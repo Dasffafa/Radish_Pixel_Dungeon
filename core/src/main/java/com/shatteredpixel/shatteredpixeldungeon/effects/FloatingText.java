@@ -79,6 +79,8 @@ public class FloatingText extends RenderedTextBlock {
 
 	public static int CRIT    = 25;
 
+	public static int CRIT_NO_BLOCK = 26;
+
 	public static int EX_EXP    = 27;
 	public static int BELIEF    = 28;
 
