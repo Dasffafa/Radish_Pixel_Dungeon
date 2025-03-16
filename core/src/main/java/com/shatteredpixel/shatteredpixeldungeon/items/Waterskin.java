@@ -87,7 +87,7 @@ public class Waterskin extends Item {
 
 			if (volume > 0) {
 
-				float missingHealthPercent = 1f - (hero.HP / (float)hero.HT) / (Dungeon.isChallenged(Challenges.DAMAGE_NO) ? 10 : 1);
+				float missingHealthPercent = 1f - (hero.HP / (float)hero.HT) / (Dungeon.isChallenged(Challenges.DAMAGE_NO) ? 5 : 1);
 
 				int curShield = 0;
 				if (hero.buff(Barrier.class) != null) curShield = hero.buff(Barrier.class).shielding();
