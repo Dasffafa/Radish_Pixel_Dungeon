@@ -89,14 +89,16 @@ public class StormAttackArrow extends MissileWeapon {
         final int cell = throwPos(user, dst);
 
         // Check if the user has enough points in StormAttack talent
-        if (user.pointsInTalent(Talent.STORM_ATTACK) - 2 > 0) {
-            handleFlurryAttack(user, dst, cell);
-        } else {
-            handleSeerShotOrDefault(user, dst, cell);
-        }
+//        if (user.pointsInTalent(Talent.STORM_ATTACK) - 2 > 0) {
+//            handleFlurryAttack(user, dst, cell);
+//        } else {
+//            handleSeerShotOrDefault(user, dst, cell);
+//        }
+        handleFlurryAttack(user,dst,cell);
 
         // Additional logic for 疾风骤雨 based on talent level
-        handleStormAttack(user, dst, cell);
+        //handleStormAttack(user, dst, cell);
+
     }
 
     private void handleStormAttack(final Hero user, final int dst, final int cell) {
@@ -106,19 +108,19 @@ public class StormAttackArrow extends MissileWeapon {
         switch (stormLevel) {
             case 1:
                 // +1: Extra 1 arrow with fixed damage 1
-                shootExtraArrow(user, dst, 1, 1);
+                shootExtraArrow(user, dst, 0, 0.25f);
                 break;
             case 2:
                 // +2: Extra 1 arrow with 25% damage
-                shootExtraArrow(user, dst, 1, 0.25f);
+                shootExtraArrow(user, dst, 0, 0.25f);
                 break;
             case 3:
                 // +3: Extra 2 arrows with fixed damage 1
-                shootExtraArrow(user, dst, 2, 1);
+                shootExtraArrow(user, dst, 1, 1f);
                 break;
             case 4:
                 // +4: Extra 2 arrows with 25% damage
-                shootExtraArrow(user, dst, 2, 0.25f);
+                shootExtraArrow(user, dst, 1, 1f);
                 break;
             default:
                 // No extra arrows if stormLevel is 0 or invalid
@@ -164,6 +166,10 @@ public class StormAttackArrow extends MissileWeapon {
             flurryCount = 2; // Initialize flurryCount if not set
         }
 
+        if(Dungeon.hero.pointsInTalent(Talent.STORM_ATTACK)<3){
+            flurryCount = 1;
+        }
+
         final Char enemy = Actor.findChar(cell);
 
         if (enemy == null) {
@@ -201,7 +207,7 @@ public class StormAttackArrow extends MissileWeapon {
                     public void call() {
                         if (enemy.isAlive()) {
                             curUser = user;
-                            onThrow(cell);
+                            onThrow(enemy.pos);
                         }
 
                         flurryCount--;

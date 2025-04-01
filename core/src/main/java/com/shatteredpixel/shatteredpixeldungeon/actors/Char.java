@@ -197,6 +197,7 @@ public abstract class Char extends Actor {
 
 
 	public static class CritClass{};
+	public static class NoArmorCritClass{};
 
 	protected float critSkill() {
 		return critSkill;
@@ -657,7 +658,18 @@ public abstract class Char extends Actor {
 
 			// DoggingDog on 2024-02-01
 			if(crit){
-				enemy.damage( effectiveDamage, new CritClass() );
+				if(NO_ARMOR_PHYSICAL_SOURCES.contains(this.getClass()))
+					enemy.damage( effectiveDamage, new NoArmorCritClass() );
+
+				//special case for sniper when using ranged attacks
+				else if (this == Dungeon.hero
+						&& Dungeon.hero.subClass == HeroSubClass.SNIPER
+						&& !Dungeon.level.adjacent(Dungeon.hero.pos, pos)
+						&& Dungeon.hero.belongings.attackingWeapon() instanceof MissileWeapon){
+					enemy.damage( effectiveDamage, new NoArmorCritClass() );
+				}
+				 else
+					enemy.damage( effectiveDamage, new CritClass() );
 			}
 			else
 				enemy.damage( effectiveDamage, this );
@@ -1162,6 +1174,7 @@ public abstract class Char extends Actor {
 			if (src instanceof AscensionChallenge)                      icon = FloatingText.AMULET;
 
 			if(src instanceof CritClass) 								icon = FloatingText.CRIT;
+			if(src instanceof NoArmorCritClass)							icon = FloatingText.CRIT_NO_BLOCK;
 
 			sprite.showStatusWithIcon(CharSprite.NEGATIVE, Integer.toString(dmg + shielded), icon);
 		}

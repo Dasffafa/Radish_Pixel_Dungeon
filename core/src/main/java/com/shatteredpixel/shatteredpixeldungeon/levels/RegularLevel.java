@@ -234,7 +234,7 @@ public abstract class RegularLevel extends Level {
 	@Override
 	protected void createMobs() {
 		//on floor 1, 8 pre-set mobs are created so the player can get level 2.
-		int mobsToSpawn = Dungeon.depth == 1 ? 8 : mobLimit();
+		int mobsToSpawn = Dungeon.depth == 1 ? 8-1 : mobLimit();//一层只生成 7 个怪物 配合额外两个达到一层额外一个
 
 		mobsToSpawn += 2;
 
