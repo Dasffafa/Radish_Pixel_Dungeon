@@ -132,10 +132,9 @@ public abstract class RegularLevel extends Level {
 		if (region >= 3) roomIncrement = 2;
 		else if (region >= 1) roomIncrement = 1;
 
-		// 强制最大标准房间数，并根据区域增加房间数
+		//force max special rooms and add one more for large levels
 		int standards = standardRooms(feeling == Feeling.LARGE);
-		standards += roomIncrement; // 增加房间数
-		standards = (int) (standards * 1.15f); // 物品生成数量增加15%
+		standards += roomIncrement;
 
 		if (feeling == Feeling.LARGE) {
 			standards = (int) Math.ceil(standards * 1.5f);
@@ -154,15 +153,11 @@ public abstract class RegularLevel extends Level {
 		if (Dungeon.shopOnLevel())
 			initRooms.add(new ShopRoom());
 
-		// 强制最大特殊房间数，并根据区域增加房间数
+		//force max special rooms and add one more for large levels
 		int specials = specialRooms(feeling == Feeling.LARGE);
-		specials += roomIncrement; // 增加房间数
-		specials = (int) (specials * 1.15f); // 物品生成数量增加15%
-
-		if (feeling == Feeling.LARGE) {
+		if (feeling == Feeling.LARGE){
 			specials++;
 		}
-
 		SpecialRoom.initForFloor();
 		for (int i = 0; i < specials; i++) {
 			SpecialRoom s = SpecialRoom.createRoom();
@@ -170,8 +165,8 @@ public abstract class RegularLevel extends Level {
 			initRooms.add(s);
 		}
 
-		// 秘密房间
 		int secrets = SecretRoom.secretsForFloor(Dungeon.depth);
+		//one additional secret for secret levels
 		if (feeling == Feeling.SECRETS) secrets++;
 		for (int i = 0; i < secrets; i++) {
 			initRooms.add(SecretRoom.createRoom());

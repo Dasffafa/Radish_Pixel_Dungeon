@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class UpdateChecker {
 	public static JsonNode config;
 	// 配置获取地址
-	private static final String CONFIG_URL =  "https://download.spldream.com/GameUpdate/GAMEUPDATE/RAPD/RAPD-Servers/RPDUpdateGame.json";
+	private static final String CONFIG_URL =  "https://gameupdate.insrv.mlpd.spldream.com/RAPD/RDGameUpdate.json";
 
 	public static void refreshConfig() {
 		refreshConfig(new Net.HttpResponseListener() {

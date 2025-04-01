@@ -24,6 +24,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v05_6_Changes(changeInfos);
         add_v05_5_Changes(changeInfos);
         add_v05_0_Changes(changeInfos);
         add_v04_2_Changes(changeInfos);
@@ -38,6 +39,46 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v05_6_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.5.6", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.SHADOW_BOOK)), "幻影之书效果优化",
+                "你每阅读一次卷轴，就在你周围生成1+0.2*武器等级个镜像（向下取整）"));
+
+        Image critImage = new Image(Assets.Effects.TEXT_ICONS,56,7,7,7);
+        critImage.scale.set(PixelScene.align(1.72f));
+        changes.addButton(new ChangeButton(critImage, ("暴击视觉效果调整"),
+                ("暴击图标现在包含穿甲暴伤图标（白色）")));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.GOLD), ("其他调整"),
+                ("1.一层刷怪数量-1\n" +
+                        "2.调整伤痛难愈从1/10=>1/5\n" +
+                        "3.修复弱点洞悉boss问题及描述\n" +
+                        "4.每层有33%的概率额外一个食物，如果开启没入黑暗挑战，25%的概率额外一个火把\n" +
+                        "5.部分生成器赘余破碎武器完全移除\n" +
+                        "6.修复部分文案异常\n" +
+                        "7.游戏检测更新的接口迭代")));
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                "_-_V0.5.6\n" +
+                        "_-_ 修复房间生成异常问题\n" +
+                        "_-_ 修复怪物图鉴数据保存异常问题\n" +
+                        "_-_ 修复0层可无限上楼的问题\n" +
+                        "_-_ 修复祝福之戒未完全生效的问题\n"+
+                        "_-_ 修复末驲守卫导致法师天赋_储存护盾_失效的异常"));
     }
 
     public static void add_v05_5_Changes( ArrayList<ChangeInfo> changeInfos ) {

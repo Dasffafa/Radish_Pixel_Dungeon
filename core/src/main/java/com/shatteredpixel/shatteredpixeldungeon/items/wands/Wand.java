@@ -773,7 +773,7 @@ public abstract class Wand extends Item {
 						if(hero.belongings.weapon() instanceof EndGuard) {
 							EndGuard w2 = (EndGuard) hero.belongings.weapon;
 							if (w2 != null) {
-								Buff.affect(curUser, Barrier.class).setShield((int) (0.2f * ( w2.level() +1 )));
+								Buff.affect(curUser, Barrier.class).setShield((int) (Math.round(shield) + (0.2f * ( w2.level() +1 ))));
 							}
 						} else {
 							Buff.affect(curUser, Barrier.class).setShield(Math.round(shield));
