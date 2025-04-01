@@ -47,7 +47,7 @@ public class ElixirOfAquaticRejuvenation extends Elixir {
 	@Override
 	public void apply(Hero hero) {
 		if (Dungeon.isChallenged(Challenges.DAMAGE_NO)){
-			Buff.affect(hero, AquaHealing.class).set(Math.round(hero.HT * 1.5f)/10);
+			Buff.affect(hero, AquaHealing.class).set(Math.round(hero.HT * 1.5f)/5);
 		} else {
 			Buff.affect(hero, AquaHealing.class).set(Math.round(hero.HT * 1.5f));
 		}

@@ -57,7 +57,7 @@ public class PotionOfHealing extends Potion {
 
 	public static void heal( Char ch ){
 		if (Dungeon.isChallenged(Challenges.DAMAGE_NO)){
-			Buff.affect(ch, Healing.class).setHeal((int) (0.8f * ch.HT + 14)/10, 0.25f, 0);
+			Buff.affect(ch, Healing.class).setHeal((int) (0.8f * ch.HT + 14)/5, 0.25f, 0);
 		} else {
 			Buff.affect(ch, Healing.class).setHeal((int) (0.8f * ch.HT + 14), 0.25f, 0);
 
