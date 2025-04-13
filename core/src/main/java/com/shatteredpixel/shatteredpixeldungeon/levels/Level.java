@@ -213,8 +213,16 @@ public abstract class Level implements Bundlable {
 
 			addItemToSpawn(Generator.random(Generator.Category.FOOD));
 
+			//有33%的几率获得额外一个食物
 			if(Random.Float()<0.33f){
 				addItemToSpawn(Generator.random(Generator.Category.FOOD));
+			}
+
+			//没入黑暗挑战的情况下，有25%的几率获得一个火把
+			if(Dungeon.isChallenged(Challenges.DARKNESS)){
+				if(Random.Float()<0.25f){
+					addItemToSpawn(new Torch());
+				}
 			}
 
 			if (Dungeon.posNeeded()) {

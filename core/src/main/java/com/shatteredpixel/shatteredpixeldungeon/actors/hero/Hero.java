@@ -1838,10 +1838,10 @@ public class Hero extends Char {
 		int preTrueHP = HP;
 
 		// DoggingDog
-		int minDmg = Dungeon.depth >= 20 ? 15 :
-				Dungeon.depth >= 15 ? 10 :
-						Dungeon.depth >= 10 ? 6 :
-								Dungeon.depth >= 5 ? 3 : 1;
+		int minDmg = Dungeon.depth > 20 ? 15 :
+				Dungeon.depth > 15 ? 10 :
+						Dungeon.depth > 10 ? 6 :
+								Dungeon.depth > 5 ? 3 : 1;
 		dmg = (Dungeon.isChallenged(Challenges.BAD_POINT) && dmg <= minDmg && src instanceof Mob) ? minDmg : dmg;
 
 		super.damage( dmg, src );

@@ -24,14 +24,15 @@ package com.shatteredpixel.shatteredpixeldungeon.items.scrolls;
 import static com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll.ScrollToStone.stones;
 import static com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll.exoToReg;
 import static com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll.regToExo;
-import static com.shatteredpixel.shatteredpixeldungeon.items.spells.ArcaneCatalyst.scrollChances;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemStatusHandler;
@@ -56,10 +57,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ShadowBooks;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
@@ -185,39 +188,29 @@ public abstract class Scroll extends Item {
 	}
 
 	public void ShadowBooks(Hero hero){
-		//确保是装备了 ShadowBooks
 		if(hero.belongings.weapon instanceof ShadowBooks){
 			ShadowBooks sos = (ShadowBooks) hero.belongings.weapon;
-			//获取概率 成功进行
-			// keptThoughLostInvent 检查如果未祝福十字架后是否存在 （即玩家是否保留）
-			if(sos.aloneToChance() && !sos.keptThoughLostInvent){
-				Scroll s = Reflection.newInstance(Random.chances(scrollChances));
-				s.anonymize();
-				sos.AloneChance *= 2;
-				curItem = s;
-				s.doRead();
-			} else {
-				//失败即可恢复为正常概率
-				sos.AloneChance = 1;
-			}
-		}
-	}
+			sos.chance = (int) (1 + 0.2*sos.level());
+			for (int i = 0; i < sos.chance; i++){
+				ArrayList<Integer> respawnPoints = new ArrayList<>();
 
-	public void ShadowExBooks(Hero hero){
-		//确保是装备了 ShadowBooks
-		if(hero.belongings.weapon instanceof ShadowBooks){
-			ShadowBooks sos = (ShadowBooks) hero.belongings.weapon;
-			//获取概率 成功进行
-			// keptThoughLostInvent 检查如果未祝福十字架后是否存在 （即玩家是否保留）
-			if(sos.aloneToChance() && !sos.keptThoughLostInvent){
-				Scroll s= Reflection.newInstance(regToExo.get(this.getClass()));
-				s.anonymize();
-				curItem = s;
-				sos.AloneChance *= 2;
-				s.doRead();
-			} else {
-				//失败即可恢复为正常概率
-				sos.AloneChance = 1;
+				for (int ix = 0; ix < PathFinder.NEIGHBOURS8.length; ix++) {
+					int p = curUser.pos + PathFinder.NEIGHBOURS8[ix];
+					if (Actor.findChar( p ) == null && Dungeon.level.passable[p]) {
+						respawnPoints.add( p );
+					}
+				}
+
+				int nImages = 2;
+				while (nImages > 0 && !respawnPoints.isEmpty()) {
+					int index = Random.index(respawnPoints);
+					MirrorImage mob = new MirrorImage();
+					mob.duplicate( hero );
+					GameScene.add(mob);
+					ScrollOfTeleportation.appear(mob, respawnPoints.get(index));
+					respawnPoints.remove(index);
+					nImages--;
+				}
 			}
 		}
 	}
@@ -239,7 +232,6 @@ public abstract class Scroll extends Item {
 				ExoticScrollToScroll(true,true);
 				curUser = hero;
 				ShadowBooks(hero);
-				//curItem = detach( hero.belongings.backpack );
 				doRead();
 			}
 
