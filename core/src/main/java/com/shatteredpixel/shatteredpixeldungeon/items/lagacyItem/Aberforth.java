@@ -23,9 +23,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SandalsOfNature;
-import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
-import com.shatteredpixel.shatteredpixeldungeon.items.bags.VelvetPouch;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
@@ -38,6 +35,9 @@ import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
+
+// 传承·魔剑阿波菲斯
+// DoggingDog on 20250415
 public class Aberforth extends Weapon {
 
     public static final String AC_ADSORB		= "ADSORB";
