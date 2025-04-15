@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Pasty;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Aberforth;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.AlchemicalCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfFrost;
@@ -98,6 +99,9 @@ public class LazyTest extends TestGenerator {
             new ScrollOfTerror().quantity(100).identify().collect();
             new ScrollOfTransmutation().quantity(100).identify().collect();
             new ScrollOfUpgrade().quantity(100).identify().collect();
+
+            //DoggingDog on 20250415
+            new Aberforth().identify().collect();
 
             PlateArmor plateArmor = new PlateArmor();
             plateArmor.level(15);

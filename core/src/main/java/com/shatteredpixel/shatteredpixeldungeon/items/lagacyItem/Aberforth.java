@@ -28,9 +28,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.VelvetPouch;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.watabou.utils.Random;
 
@@ -49,7 +51,7 @@ public class Aberforth extends Weapon {
 
     private float aberforthDebuff = 6 * TICK;
 
-    Weapon adsorbedWeapon = null;
+    Weapon adsorbedWeapon = new WornShortsword();
 
 
     @Override
@@ -75,37 +77,37 @@ public class Aberforth extends Weapon {
     }
 
 
-    @Override
-    public int damageRoll(Char owner) {
-        int dmg = super.damageRoll(owner);
-        return dmg;
-    }
+//    @Override
+//    public int damageRoll(Char owner) {
+//        int dmg = super.damageRoll(owner);
+//        return dmg;
+//    }
 
 
     @Override
     public int STRReq(int lvl) {
-        return Aberforth.this.STRReq();
+        return adsorbedWeapon.STRReq(adsorbedWeapon.buffedLvl());
     }
 
 
     @Override
     public int min(){
-        return Aberforth.this.min();
+        return Aberforth.this.min(adsorbedWeapon.buffedLvl());
     }
 
     @Override
     public int min(int lvl) {
-        return Math.max(0, 1);
+        return adsorbedWeapon.min(adsorbedWeapon.buffedLvl());
     }
 
     @Override
     public int max(){
-        return Aberforth.this.max();
+        return Aberforth.this.max(adsorbedWeapon.buffedLvl());
     }
 
     @Override
     public int max(int lvl){
-        return Math.max(0,1);
+        return adsorbedWeapon.max(adsorbedWeapon.buffedLvl());
     }
 
 
@@ -161,9 +163,19 @@ public class Aberforth extends Weapon {
             @Override
             public void onSelect( Item item ) {
                 //todo
+                if(!(item instanceof MeleeWeapon)){
+                    GLog.i( Messages.get(this, "isnoweapon") );
+                    return;
+                }
 
                 if(Dungeon.hero != null)
                     item.detach(Dungeon.hero.belongings.backpack);
+                    GLog.i( Messages.get(Aberforth.class, "absorb_weapon") );
+                    adsorbedWeapon = (Weapon) item;
+                    Dungeon.hero.HT-=8;
+                    Dungeon.hero.HT = Math.max(Dungeon.hero.HT,8);
+                    Dungeon.hero.HP = Math.min(Dungeon.hero.HT,Dungeon.hero.HP);
+                    aberforthDebuff += TICK;
                 //
             }
         };
