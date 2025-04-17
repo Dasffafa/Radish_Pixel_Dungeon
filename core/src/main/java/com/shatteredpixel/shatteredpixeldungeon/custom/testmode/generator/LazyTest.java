@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Pasty;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Aberforth;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.AntiqueKatana;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Chibayari;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.DualDuelDaggers;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.AlchemicalCatalyst;
@@ -106,6 +107,7 @@ public class LazyTest extends TestGenerator {
             new Aberforth().identify().collect();
             new DualDuelDaggers().identify().collect();
             new Chibayari().identify().collect();
+            new AntiqueKatana().identify().collect();
 
             PlateArmor plateArmor = new PlateArmor();
             plateArmor.level(15);

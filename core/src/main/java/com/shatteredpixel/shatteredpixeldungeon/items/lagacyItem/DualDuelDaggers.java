@@ -28,14 +28,14 @@ public class DualDuelDaggers extends MeleeWeapon {
 
     @Override
     public int min(int lvl) {
-//        return 8+lvl;
-        return 1;
+        return 8+lvl;
+//        return 1;
     }
 
     @Override
     public int max(int lvl) {
-//        return 20+lvl*5;
-        return 1;
+        return 20+lvl*5;
+//        return 1;
     }
 
 
