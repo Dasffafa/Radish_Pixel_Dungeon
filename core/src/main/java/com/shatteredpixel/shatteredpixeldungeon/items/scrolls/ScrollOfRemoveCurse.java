@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Stubbornness;
@@ -86,7 +87,7 @@ public class ScrollOfRemoveCurse extends InventoryScroll {
 			return true;
 		} if ((item instanceof EquipableItem || item instanceof Wand) && ((!item.isIdentified() && !item.cursedKnown) || item.cursed)){
 			return true;
-		} else if (item instanceof Weapon){
+		} else if (item instanceof Weapon && !(item instanceof LegacyItemWeapon)){
 			return ((Weapon)item).hasCurseEnchant();
 		} else if (item instanceof Armor){
 			return ((Armor)item).hasCurseGlyph();
