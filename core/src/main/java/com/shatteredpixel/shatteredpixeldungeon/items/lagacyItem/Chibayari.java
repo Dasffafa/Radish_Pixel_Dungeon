@@ -3,18 +3,16 @@ package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 // 传承·千叶枪
 // DoggingDog on 20250415
-public class Chibayari extends MeleeWeapon {
+public class Chibayari extends LegacyItemWeapon {
     {
-        image = ItemSpriteSheet.THROWING_SPEAR;
+        image = ItemSpriteSheet.DARTS+15;
         hitSound = Assets.Sounds.HIT_STAB;
         hitSoundPitch = 1.1f;
-
-        tier = 1;
         RCH = 100000;    //lots of extra reach
     }
 
@@ -46,5 +44,11 @@ public class Chibayari extends MeleeWeapon {
         ACC -= Math.max(0,ACC-((float) distance) * 0.15f);
 
         return ACC;
+    }
+
+    @Override
+    public int STRReq(int lvl) {
+        lvl = Math.max(0, lvl);
+        return (8 + 2) - (int)(Math.sqrt(8 * lvl + 1) - 1)/2;
     }
 }

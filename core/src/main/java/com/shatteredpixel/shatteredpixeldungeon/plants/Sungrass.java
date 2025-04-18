@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.plants;
 
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -48,11 +49,16 @@ public class Sungrass extends Plant {
 	public void activate( Char ch ) {
 		
 		if (ch != null){
-			if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN) {
-				Buff.affect(ch, Healing.class).setHeal(ch.HT, 0, 1);
+			if(Dungeon.isChallenged(Challenges.DAMAGE_NO)){
+				Buff.affect(ch, Health.class).boost(ch.HT/5);
 			} else {
-				Buff.affect(ch, Health.class).boost(ch.HT);
+				if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClass.WARDEN) {
+					Buff.affect(ch, Healing.class).setHeal(ch.HT, 0, 1);
+				} else {
+					Buff.affect(ch, Health.class).boost(ch.HT);
+				}
 			}
+
 		}
 		
 		if (Dungeon.level.heroFOV[pos]) {

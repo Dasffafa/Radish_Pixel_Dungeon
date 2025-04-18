@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.InventoryScroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
@@ -75,7 +76,10 @@ public class ScrollOfEnchantment extends ExoticScroll {
 	}
 
 	public static boolean enchantable( Item item ){
-		return (item instanceof MeleeWeapon || item instanceof SpiritBow || item instanceof Armor)||(Dungeon.hero.hasTalent(Talent.RUNIC_TRANSFERENCE)&&item instanceof BrokenSeal);
+		if(item instanceof LegacyItemWeapon){
+			return false;
+		}
+		return item instanceof MeleeWeapon || item instanceof SpiritBow || item instanceof Armor || Dungeon.hero.hasTalent(Talent.RUNIC_TRANSFERENCE) && item instanceof BrokenSeal;
 	}
 
 	private void confirmCancelation() {

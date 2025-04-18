@@ -4,6 +4,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.actors.Actor.TICK;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
@@ -23,6 +24,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
@@ -31,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
+import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -38,12 +42,12 @@ import java.util.ArrayList;
 
 // 传承·魔剑阿波菲斯
 // DoggingDog on 20250415
-public class Aberforth extends Weapon {
+public class Aberforth extends LegacyItemWeapon {
 
     public static final String AC_ADSORB		= "ADSORB";
 
     {
-        image = ItemSpriteSheet.WEAPON_HOLDER;
+        image = ItemSpriteSheet.DARTS+17;
         hitSound = Assets.Sounds.HIT_STAB;
         ACC = 1f;
         defaultAction = AC_ADSORB;
@@ -52,6 +56,19 @@ public class Aberforth extends Weapon {
     private float aberforthDebuff = 6 * TICK;
 
     Weapon adsorbedWeapon = new WornShortsword();
+
+    private static final String ADSORBED_WEAPON	= "adsorbed_weapon";
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put( ADSORBED_WEAPON, adsorbedWeapon );
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        adsorbedWeapon = (Weapon) bundle.get( ADSORBED_WEAPON );
+    }
 
 
     @Override
@@ -160,6 +177,7 @@ public class Aberforth extends Weapon {
                 return item instanceof MeleeWeapon;
             }
 
+            @SuppressWarnings("SuspiciousIndentation")
             @Override
             public void onSelect( Item item ) {
                 //todo
@@ -176,8 +194,16 @@ public class Aberforth extends Weapon {
                     Dungeon.hero.HT = Math.max(Dungeon.hero.HT,8);
                     Dungeon.hero.HP = Math.min(Dungeon.hero.HT,Dungeon.hero.HP);
                     aberforthDebuff += TICK;
-                //
+                    curUser.spend( Actor.TICK );
+                    curUser.busy();
+                    curUser.sprite.operate( curUser.pos );
+                    Sample.INSTANCE.play( Assets.Sounds.MASTERY );
             }
         };
+
+    @Override
+    public String desc() {
+        return Messages.get(this, "desc",adsorbedWeapon.name());
+    }
 
 }
