@@ -56,54 +56,18 @@ public class AntiqueKatana extends MeleeWeapon {
         if (Dungeon.hero != null){
             if(cursed){
                 this.detach(Dungeon.hero.belongings.backpack);
-                Dungeon.hero.belongings.backpack.items.add((Item) new Muramasa().identify());
+//                Dungeon.hero.belongings.backpack.items.add((Item) new Muramasa().identify());
+                new Muramasa().identify().collect();
             }
             else {
                 this.detach(Dungeon.hero.belongings.backpack);
-                Dungeon.hero.belongings.backpack.items.add((Item) new Masamune().identify());
+//                Dungeon.hero.belongings.backpack.items.add((Item) new Masamune().identify());
+                new Masamune().identify().collect();
             }
         }
         return super.enchant(ench);
     }
 
-    // 正宗
-    public class Masamune extends MeleeWeapon{
-        {
-            image = ItemSpriteSheet.KATANA;
-            hitSound = Assets.Sounds.HIT;
-            hitSoundPitch = 1.1f;
-            tier = 1;
-        }
 
-        @Override
-        public int min(int lvl) {
-            return 8+lvl*2;
-        }
-
-        @Override
-        public int max(int lvl) {
-            return 20+lvl*4;
-        }
-    }
-
-    // 村正
-    public class Muramasa extends MeleeWeapon{
-        {
-            image = ItemSpriteSheet.KATANA;
-            hitSound = Assets.Sounds.HIT;
-            hitSoundPitch = 1.1f;
-            tier = 1;
-        }
-
-        @Override
-        public int min(int lvl) {
-            return 1;
-        }
-
-        @Override
-        public int max(int lvl) {
-            return 30+lvl*8;
-        }
-    }
 
 }
