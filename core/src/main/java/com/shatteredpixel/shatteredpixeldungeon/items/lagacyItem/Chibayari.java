@@ -4,8 +4,6 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 // 传承·千叶枪
@@ -47,9 +45,10 @@ public class Chibayari extends LegacyItemWeapon {
 
         return ACC;
     }
-    Weapon adsorbedWeapon = new WornShortsword();
+
     @Override
     public int STRReq(int lvl) {
-        return adsorbedWeapon.STRReq(adsorbedWeapon.buffedLvl());
+        lvl = Math.max(0, lvl);
+        return (8 + 2) - (int)(Math.sqrt(8 * lvl + 1) - 1)/2;
     }
 }

@@ -8,8 +8,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 // 决斗对剑
@@ -47,9 +45,9 @@ public class DualDuelDaggers extends LegacyItemWeapon {
         return damage;
     }
 
-    Weapon adsorbedWeapon = new WornShortsword();
     @Override
     public int STRReq(int lvl) {
-        return adsorbedWeapon.STRReq(adsorbedWeapon.buffedLvl());
+        lvl = Math.max(0, lvl);
+        return (8 + 2) - (int)(Math.sqrt(8 * lvl + 1) - 1)/2;
     }
 }
