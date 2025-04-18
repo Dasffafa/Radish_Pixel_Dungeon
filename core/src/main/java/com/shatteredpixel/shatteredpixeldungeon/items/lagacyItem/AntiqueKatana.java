@@ -1,14 +1,25 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Glaive;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.CursingTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
+
+import java.io.IOException;
 
 // 古武士刀
 // DoggingDog on 20250417
@@ -32,10 +43,25 @@ public class AntiqueKatana extends MeleeWeapon {
     }
 
     @Override
+    protected void onThrow( int cell ) {
+        super.onThrow(cell);
+        Trap trapOnTrow = Dungeon.level.traps.get(cell);
+        if(trapOnTrow instanceof CursingTrap && Dungeon.level.heaps.get(cell) != null){
+            Dungeon.level.heaps.get(cell).remove(this);
+        }
+    }
+
+    @Override
     public Weapon enchant(Enchantment ench ) {
         if (Dungeon.hero != null){
-            this.detach(Dungeon.hero.belongings.backpack);
-            Dungeon.hero.belongings.backpack.items.add((Item) new Masamune().identify());
+            if(cursed){
+                this.detach(Dungeon.hero.belongings.backpack);
+                Dungeon.hero.belongings.backpack.items.add((Item) new Muramasa().identify());
+            }
+            else {
+                this.detach(Dungeon.hero.belongings.backpack);
+                Dungeon.hero.belongings.backpack.items.add((Item) new Masamune().identify());
+            }
         }
         return super.enchant(ench);
     }

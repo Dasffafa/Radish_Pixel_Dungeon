@@ -5,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 // 传承·千叶枪
 // DoggingDog on 20250415
@@ -16,7 +17,7 @@ public class Chibayari extends LegacyItemWeapon {
         RCH = 100000;    //lots of extra reach
     }
 
-    int distance = 0;
+    int distance = 10;
 
 
     @Override
@@ -31,18 +32,16 @@ public class Chibayari extends LegacyItemWeapon {
 
     @Override
     public int damageRoll( Char owner ) {
-        return (int) ((1-distance*0.15f)  * (float)Char.combatRoll( min(), max() ));
+        return (int) ((1-(distance-2)*0.15f)  * (float)Char.combatRoll( min(), max() ));
     }
 
 
     @Override
     public float accuracyFactor(Char owner, Char target) {
         float ACC = super.accuracyFactor(owner, target);
-
         this.distance = Dungeon.level.distance(owner.pos,target.pos);
         this.distance = Math.max(2,distance-2);
-        ACC -= Math.max(0,ACC-((float) distance) * 0.15f);
-
+        ACC = Math.max(0,ACC-((float) distance - 2) * 0.15f);
         return ACC;
     }
 
