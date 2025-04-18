@@ -23,6 +23,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
@@ -38,12 +39,12 @@ import java.util.ArrayList;
 
 // 传承·魔剑阿波菲斯
 // DoggingDog on 20250415
-public class Aberforth extends Weapon {
+public class Aberforth extends LegacyItemWeapon {
 
     public static final String AC_ADSORB		= "ADSORB";
 
     {
-        image = ItemSpriteSheet.WEAPON_HOLDER;
+        image = ItemSpriteSheet.DARTS+17;
         hitSound = Assets.Sounds.HIT_STAB;
         ACC = 1f;
         defaultAction = AC_ADSORB;

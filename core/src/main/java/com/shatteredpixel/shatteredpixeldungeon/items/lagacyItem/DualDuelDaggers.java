@@ -6,21 +6,18 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 // 决斗对剑
-public class DualDuelDaggers extends MeleeWeapon {
+public class DualDuelDaggers extends LegacyItemWeapon {
     {
-        image = ItemSpriteSheet.SAI;
+        image = ItemSpriteSheet.DARTS+16;
         hitSound = Assets.Sounds.HIT;
         hitSoundPitch = 1.1f;
-
-        tier = 1;
-
         DLY = 0.8f;
     }
 
@@ -48,5 +45,11 @@ public class DualDuelDaggers extends MeleeWeapon {
         }
         lastDamage = damage;
         return damage;
+    }
+
+    Weapon adsorbedWeapon = new WornShortsword();
+    @Override
+    public int STRReq(int lvl) {
+        return adsorbedWeapon.STRReq(adsorbedWeapon.buffedLvl());
     }
 }
