@@ -30,12 +30,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
@@ -164,6 +166,15 @@ public abstract class Plant implements Bundlable {
 		
 		@Override
 		public void execute( Hero hero, String action ) {
+
+			// func 4 Muramasa mania
+			// DoggingDog on 20250419
+			if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+				GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+				return;
+			}
+			//
+
 
 			super.execute (hero, action );
 

@@ -22,12 +22,15 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.stones;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.watabou.noosa.audio.Sample;
 
@@ -50,6 +53,15 @@ public abstract class InventoryStone extends Runestone {
 	
 	@Override
 	public void execute(Hero hero, String action) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return;
+		}
+		//
+
 		super.execute(hero, action);
 		if (action.equals(AC_USE)){
 			activate(curUser.pos);

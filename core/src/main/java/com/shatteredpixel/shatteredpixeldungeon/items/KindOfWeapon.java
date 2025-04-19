@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -102,6 +103,15 @@ abstract public class KindOfWeapon extends EquipableItem {
 	
 	@Override
 	public boolean doEquip( Hero hero ) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return false;
+		}
+		//
+
 
 		isSwiftEquipping = false;
 		if (hero.belongings.contains(this) && hero.hasTalent(Talent.SWIFT_EQUIP)){
@@ -196,6 +206,15 @@ abstract public class KindOfWeapon extends EquipableItem {
 
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return false;
+		}
+		//
+
 		boolean second = hero.belongings.secondWep == this;
 
 		if (second){

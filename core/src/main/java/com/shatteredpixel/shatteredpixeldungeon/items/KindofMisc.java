@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -37,6 +38,15 @@ public abstract class KindofMisc extends EquipableItem {
 
 	@Override
 	public boolean doEquip(final Hero hero) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return false;
+		}
+		//
+
 
 		boolean equipFull = false;
 		if ( this instanceof Artifact

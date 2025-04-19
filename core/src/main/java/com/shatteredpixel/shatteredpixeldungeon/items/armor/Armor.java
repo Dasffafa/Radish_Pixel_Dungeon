@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Swiftness;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Thorns;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
@@ -194,6 +195,15 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public boolean doEquip( Hero hero ) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return false;
+		}
+		//
+
 
 		detach(hero.belongings.backpack);
 

@@ -62,7 +62,7 @@ public class AntiqueKatana extends MeleeWeapon {
             else {
                 this.detach(Dungeon.hero.belongings.backpack);
 //                Dungeon.hero.belongings.backpack.items.add((Item) new Masamune().identify());
-                new Masamune().identify().collect();
+                new Masamune().enchant(Weapon.Enchantment.randomCurse()).collect();
             }
         }
         return super.enchant(ench);
