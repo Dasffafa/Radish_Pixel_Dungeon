@@ -78,7 +78,7 @@ public class RA_v0_13_X_Changes {
                         "_-_ 修复怪物图鉴数据保存异常问题\n" +
                         "_-_ 修复0层可无限上楼的问题\n" +
                         "_-_ 修复祝福之戒未完全生效的问题\n"+
-                        "_-_ 修复末驲守卫导致法师天赋_储存护盾_失效的异常"));
+                        "_-_ 修复末日守卫导致法师天赋_储存护盾_失效的异常"));
     }
 
     public static void add_v05_5_Changes( ArrayList<ChangeInfo> changeInfos ) {

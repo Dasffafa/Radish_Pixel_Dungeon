@@ -68,8 +68,14 @@ public class Statistics {
 	public static boolean amuletObtained = false;
 	public static boolean gameWon = false;
 	public static boolean ascended = false;
+
+	//Spiral Bosses Boolean
+	public static boolean bigsnake_zikk = false;
 	
 	public static void reset() {
+
+		//Spiral Bosses Boolean
+		bigsnake_zikk 	= false;
 		
 		goldCollected	= 0;
 		deepestFloor	= 0;
@@ -148,6 +154,9 @@ public class Statistics {
 	private static final String AMULET          = "amuletObtained";
 	private static final String WON		        = "won";
 	private static final String ASCENDED		= "ascended";
+
+
+	private static final String BIGSNAKE_ZIKK		        = "bigsnake_zikk";
 	
 	public static void storeInBundle( Bundle bundle ) {
 		bundle.put( GOLD,		goldCollected );
@@ -191,6 +200,8 @@ public class Statistics {
 		bundle.put( AMULET,		amuletObtained );
 		bundle.put( WON,        gameWon );
 		bundle.put( ASCENDED,   ascended );
+
+		bundle.put(BIGSNAKE_ZIKK, bigsnake_zikk);
 
 		storeCustom(bundle);
 
@@ -242,6 +253,7 @@ public class Statistics {
 		gameWon         = bundle.getBoolean( WON );
 		ascended        = bundle.getBoolean( ASCENDED );
 
+		bigsnake_zikk  = bundle.getBoolean(BIGSNAKE_ZIKK);
 
 		resetCustom();
 

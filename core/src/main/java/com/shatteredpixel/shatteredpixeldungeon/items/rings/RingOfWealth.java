@@ -226,7 +226,7 @@ public class RingOfWealth extends Ring {
 		}
 	}
 
-	private static Item genMidValueConsumable(){
+	public static Item genMidValueConsumable(){
 		switch (Random.Int(6)){
 			case 0: default:
 				Item i = genLowValueConsumable();

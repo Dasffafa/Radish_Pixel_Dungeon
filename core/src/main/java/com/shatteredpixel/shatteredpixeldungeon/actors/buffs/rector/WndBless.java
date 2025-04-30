@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.ItemSlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoItem;
 import com.watabou.noosa.NinePatch;
@@ -71,24 +72,46 @@ public class WndBless extends Window {
 
         public RewardWindow( Item item ) {
             super(item);
-            Belief failed = Dungeon.hero.buff(Belief.class);
+            Belief creaditSkills = Dungeon.hero.buff(Belief.class);
             StyledButton btnConfirm = new StyledButton(Chrome.Type.RED_BUTTON,Messages.get(this, "ac_ask")){
                 @Override
                 protected void onClick() {
-                    if(item == S1){
-                        if(failed != null){
-                            failed.useSkills(Belief.SkillList.valueOf("CORRECT"));
+                    //惩戒
+                    if(item == S1) {
+                        if(creaditSkills != null && creaditSkills.credibility>=5){
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("CORRECT"));
+                            WndBless.this.hide();
+                        } else {
+                            GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
-                    } else if(item == S2){
-
-                    } else {
-
+                    //净化
+                    } else if(item == S3){
+                        if(creaditSkills != null && creaditSkills.credibility>=15){
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
+                            WndBless.this.hide();
+                            creaditSkills.DownBelief(15);
+                        } else {
+                            GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
+                        }
+                    //祷告
+                    } else if(item == S4){
+                        if(creaditSkills != null && creaditSkills.credibility>=20){
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("PRAYERS"));
+                            WndBless.this.hide();
+                            creaditSkills.DownBelief(20);
+                        } else {
+                            GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
+                        }
                     }
                     hide();
                     RewardWindow.this.hide();
                 }
             };
             btnConfirm.setRect(0, height+2, width, 16);
+            if(item == S2){
+                btnConfirm.active = false;
+                btnConfirm.alpha(0.5f);
+            }
             add(btnConfirm);
 
             resize(width, (int)btnConfirm.bottom());

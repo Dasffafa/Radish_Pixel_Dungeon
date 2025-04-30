@@ -1,19 +1,49 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector;
 
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+import static com.shatteredpixel.shatteredpixeldungeon.items.Item.curItem;
+import static com.shatteredpixel.shatteredpixeldungeon.items.Item.curUser;
+import static com.shatteredpixel.shatteredpixeldungeon.items.Item.updateQuickslot;
+import static com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfWealth.genMidValueConsumable;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.WondrousResin;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.CursedWand;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.Random;
+
+import java.util.ArrayList;
 
 public class Belief extends Buff implements ActionIndicator.Action {
 
@@ -61,16 +91,59 @@ public class Belief extends Buff implements ActionIndicator.Action {
     public void useSkills(Belief.SkillList skillList){
         switch (skillList){
             case CORRECT:
-                Buff.affect(hero, Healing.class).setHeal((int) (0.8f * hero.HT + 14), 0.25f, 0);
+                curUser = hero;
+                curItem = new WandOfCorret();
+                GameScene.selectCell( zapper );
                 break;
             case LIGHTIMUEE:
-                Buff.affect(hero, Healing.class).setHeal((int) (0.6f * hero.HT + 14), 0.25f, 0);
-                break;
-            case CLEAN:
                 Buff.affect(hero, Healing.class).setHeal((int) (0.4f * hero.HT + 14), 0.25f, 0);
                 break;
+            case CLEAN:
+                curUser = hero;
+                Scroll s = new ScrollOfRemoveCurse();
+                s.anonymize();
+                curItem = s;
+                s.doRead();
+                Buff.prolong( curUser, Light.class, 100f);
+                Buff.prolong( curUser, Bless.class, 20f);
+                if (hero.hasTalent(Talent.DEVOTIONAL)){
+                    Buff.affect(hero, Barrier.class).setShield(4 * hero.pointsInTalent(Talent.DEVOTIONAL));
+                    hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(4 * hero.pointsInTalent(Talent.DEVOTIONAL)), FloatingText.SHIELDING );
+                }
+                break;
             case PRAYERS:
-                Buff.affect(hero, Healing.class).setHeal((int) (0.2f * hero.HT + 14), 0.25f, 0);
+                switch (Random.Int(4)){
+                    //财富蓝色掉落
+                    case 0:
+                        Item i = genMidValueConsumable();
+                        Dungeon.level.drop(i,target.pos);
+                        new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
+                        GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
+                    break;
+                    case 1:
+                        hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
+                        hero.earnExp( hero.maxExp()/2, getClass() );
+                        new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
+                        GLog.p(Messages.get(Belief.class, "experience_success",hero.maxExp()/2));
+                    break;
+                    case 2:
+                        ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
+                        for (Item w : belongingsItems.toArray(new Item[0])){
+                            ScrollOfRemoveCurse.uncurse( hero, w );
+                            Sample.INSTANCE.play( Assets.Sounds.RAY );
+                        }
+                        new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
+                        GLog.p(Messages.get(Belief.class, "curse_remove_success"));
+                    break;
+                    case 3:
+                        hero.HP += Math.min(hero.HT / 3, hero.HT);
+                        if (hero.HP > hero.HT) {
+                            hero.HP = hero.HT;
+                        }
+                        new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
+                        GLog.p(Messages.get(Belief.class, "heal_success"));
+                    break;
+                }
                 break;
             default:
                 break;
@@ -88,9 +161,22 @@ public class Belief extends Buff implements ActionIndicator.Action {
         return true;
     }
 
+    /**
+     * 增加信仰值
+     * @param value 信仰值
+     */
     public void getBelief(float value) {
         credibility += (float) (Math.floor(value * 100) / 100);
         hero.sprite.showStatusWithIcon(Window.TITLE_COLOR, String.valueOf(value), FloatingText.BELIEF);
+    }
+
+    /**
+     * 减少信仰值
+     * @param value 信仰值
+     */
+    public void DownBelief(float value) {
+        credibility -= (float) (Math.floor(value * 100) / 100);
+        hero.sprite.showStatus(Window.RADISH, "-" + value);
     }
 
     @Override
@@ -116,6 +202,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
         if (credibility>5 && !not_link){
             ActionIndicator.setAction(this);
+        } else {
+            ActionIndicator.refresh();
         }
     }
 
@@ -154,6 +242,116 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
     @Override
     public void doAction() {
-        GameScene.show(new WndBless(this));
+        if(not_link){
+            GLog.w(Messages.get(this, "not_link_error"));
+        } else {
+            GameScene.show(new WndBless(this));
+        }
+
     }
+
+
+    protected static CellSelector.Listener zapper = new  CellSelector.Listener() {
+
+        @Override
+        public void onSelect( Integer target ) {
+
+            if (target != null) {
+
+                //FIXME this safety check shouldn't be necessary
+                //it would be better to eliminate the curItem static variable.
+                final Wand curWand;
+                if (curItem instanceof Wand) {
+                    curWand = (Wand) curItem;
+                } else {
+                    return;
+                }
+
+                final Ballistica shot = new Ballistica( curUser.pos, target, curWand.collisionProperties(target));
+                int cell = shot.collisionPos;
+
+                if (target == curUser.pos || cell == curUser.pos) {
+                    if (target == curUser.pos && curUser.hasTalent(Talent.SHIELD_BATTERY)){
+                        float shield = curUser.HT * (0.04f*curWand.curCharges);
+                        if (curUser.pointsInTalent(Talent.SHIELD_BATTERY) == 2) shield *= 1.5f;
+
+                        if(hero.belongings.weapon() instanceof EndGuard) {
+                            EndGuard w2 = (EndGuard) hero.belongings.weapon;
+                            if (w2 != null) {
+                                Buff.affect(curUser, Barrier.class).setShield((int) (Math.round(shield) + (0.2f * ( w2.level() +1 ))));
+                            }
+                        } else {
+                            Buff.affect(curUser, Barrier.class).setShield(Math.round(shield));
+                        }
+
+                        curWand.curCharges = 0;
+                        curUser.sprite.operate(curUser.pos);
+                        Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);
+                        ScrollOfRecharging.charge(curUser);
+                        updateQuickslot();
+                        curUser.spend(Actor.TICK);
+                        return;
+                    }
+                    GLog.i( Messages.get(Wand.class, "self_target") );
+                    return;
+                }
+
+                curUser.sprite.zap(cell);
+
+                //attempts to target the cell aimed at if something is there, otherwise targets the collision pos.
+                if (Actor.findChar(target) != null)
+                    QuickSlotButton.target(Actor.findChar(target));
+                else
+                    QuickSlotButton.target(Actor.findChar(cell));
+
+                if (curWand.tryToZap(curUser, target)) {
+
+                    curUser.busy();
+
+                    if (curWand.cursed){
+                        if (!curWand.cursedKnown){
+                            GLog.n(Messages.get(Wand.class, "curse_discover", curWand.name()));
+                        }
+                        CursedWand.cursedZap(curWand,
+                                curUser,
+                                new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT),
+                                new Callback() {
+                                    @Override
+                                    public void call() {
+                                        curWand.wandUsed();
+                                    }
+                                });
+                    } else {
+                        curWand.fx(shot, new Callback() {
+                            public void call() {
+                                curWand.onZap(shot);
+                                if (Random.Float() < WondrousResin.extraCurseEffectChance()){
+                                    WondrousResin.forcePositive = true;
+                                    CursedWand.cursedZap(curWand,
+                                            curUser,
+                                            new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT), new Callback() {
+                                                @Override
+                                                public void call() {
+                                                    WondrousResin.forcePositive = false;
+                                                    curWand.wandUsed();
+                                                }
+                                            });
+                                } else {
+                                    curWand.wandUsed();
+                                }
+                            }
+                        });
+                    }
+                    curWand.cursedKnown = true;
+
+                }
+
+            }
+        }
+
+        @Override
+        public String prompt() {
+            return Messages.get(Wand.class, "prompt");
+        }
+    };
 }

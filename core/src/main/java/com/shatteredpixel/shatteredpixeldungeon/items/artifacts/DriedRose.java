@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.artifacts;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.CorrosiveGas;
@@ -829,7 +830,12 @@ public class DriedRose extends Artifact {
 			
 			switch(depth){
 				case 0:
-					yell( Messages.get( this, "seen_goo_" + Random.IntRange(1, 3) ));
+					if(Statistics.bigsnake_zikk){
+						yell( Messages.get( this, "seen_snake_" + Random.IntRange(1, 3) ));
+					} else {
+						yell( Messages.get( this, "seen_goo_" + Random.IntRange(1, 3) ));
+					}
+
 					break;
 				case 1:
 					yell( Messages.get( this, "seen_tengu_" + Random.IntRange(1, 3) ));

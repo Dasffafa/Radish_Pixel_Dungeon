@@ -474,7 +474,7 @@ public abstract class Wand extends Item {
 		Invisibility.dispel();
 		updateQuickslot();
 	}
-	protected void wandUsed() {
+	public void wandUsed() {
 
 		if(hero.hasTalent(Talent.MAGIC_STICK) && hero.pointsInTalent(Talent.MAGIC_STICK) >=4 && ! isMagesStaff){
 			if(hero.buff(MagicStick.class) == null ){

@@ -397,5 +397,7 @@ public class Assets {
 		public static final String DEVILOON = "sprites/RadishEnemySprite/ZoneFive/deviloon.png";
 		public static final String GORGON = "sprites/RadishEnemySprite/ZoneFive/gorgon.png";
 
+		//RadishBoss
+		public static final String ZIKK="sprites/RadishBossEnemySprite/snake_zik.png";
 	}
 }
