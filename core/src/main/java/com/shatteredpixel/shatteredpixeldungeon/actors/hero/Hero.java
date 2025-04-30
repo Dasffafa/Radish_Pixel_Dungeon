@@ -605,7 +605,13 @@ public class Hero extends Char {
 			accuracy *= 1.50f;
 		}
 
-		return (int)(attackSkill * accuracy);
+		if (hero.buff(RingOfForce.Force.class) == null) {
+			return (int)(attackSkill * accuracy * wep.accuracyFactor( this, target ));
+		} else {
+			return (int)(attackSkill * accuracy);
+		}
+
+//		return (int)(attackSkill * accuracy);
 	}
 
 	@Override
