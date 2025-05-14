@@ -70,6 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.SeedOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.StoneOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Wastelandew;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.PotionBandolier;
@@ -139,6 +140,7 @@ public enum HeroClass {
 		new Aberforth().identify().collect();
 		new DualDuelDaggers().identify().collect();
 		new Chibayari().identify().collect();
+		new Wastelandew().identify().collect();
 
 		new SpawnMisc().collect();
 		new MobPlacer().collect();
