@@ -14,6 +14,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
@@ -96,7 +98,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 GameScene.selectCell( zapper );
                 break;
             case LIGHTIMUEE:
-                Buff.affect(hero, Healing.class).setHeal((int) (0.4f * hero.HT + 14), 0.25f, 0);
+                Buff.affect(hero, Stamina.class,12f * ((Dungeon.depth/5)+1));
+                Buff.affect(hero, VitaeBuff.class).setVitae(((Dungeon.depth/5)+1)*8);
                 break;
             case CLEAN:
                 curUser = hero;

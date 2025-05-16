@@ -78,6 +78,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Speed;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -180,6 +181,9 @@ public abstract class Char extends Actor {
 
 	public int HT;
 	public int HP;
+
+	// DoggingDog on 20250501
+	public int VITAE;
 
 	public int DefendProKill = 3;
 
@@ -958,6 +962,14 @@ public abstract class Char extends Actor {
 		return cachedShield;
 	}
 
+	public int getVitae(){
+		int preVitae = 0;
+		for (VitaeBuff s : buffs(VitaeBuff.class)){
+			preVitae += s.getVitae();
+		}
+		return preVitae;
+	}
+
 	public void GetMobExp(Mob alter){
 		int exp = hero.lvl <= alter.maxLvl ? alter.EXP : 0;
 		if (hero.buff(AscensionChallenge.class) != null &&
@@ -1108,6 +1120,12 @@ public abstract class Char extends Actor {
 			}
 		}
 		shielded -= dmg;
+
+
+		// DoggingDog on 20250511
+		for(VitaeBuff s:buffs(VitaeBuff.class)){
+			dmg = s.absorbDamage(dmg);
+		}
 
 		if (this.buff(ImmortalShieldAffecter.ImmortalShield.class)==null) {
 			HP -= dmg;

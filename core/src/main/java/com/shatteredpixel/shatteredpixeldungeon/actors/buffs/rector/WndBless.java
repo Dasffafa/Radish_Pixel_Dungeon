@@ -85,6 +85,14 @@ public class WndBless extends Window {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     //净化
+                    } else if(item == S2){
+                        if(creaditSkills != null && creaditSkills.credibility>=12){
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
+                            WndBless.this.hide();
+                            creaditSkills.DownBelief(12);
+                        } else {
+                            GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
+                        }
                     } else if(item == S3){
                         if(creaditSkills != null && creaditSkills.credibility>=15){
                             creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
@@ -108,10 +116,10 @@ public class WndBless extends Window {
                 }
             };
             btnConfirm.setRect(0, height+2, width, 16);
-            if(item == S2){
-                btnConfirm.active = false;
-                btnConfirm.alpha(0.5f);
-            }
+//            if(item == S2){
+//                btnConfirm.active = false;
+//                btnConfirm.alpha(0.5f);
+//            }
             add(btnConfirm);
 
             resize(width, (int)btnConfirm.bottom());
