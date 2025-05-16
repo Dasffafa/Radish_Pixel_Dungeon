@@ -56,6 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.TelekineticGrab;
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.WondrousResin;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Morello;
@@ -612,7 +613,9 @@ public abstract class Wand extends Item {
 		if(hero.heroClass == HeroClass.RECTOR){
 			FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
 			if(failed == null){
-				Buff.affect(curUser, FaithObstruction.class, FaithObstruction.DURATION);
+				if(getClass() != WandOfCorret.class){
+					Buff.affect(curUser, FaithObstruction.class, FaithObstruction.DURATION);
+				}
 			}
 		}
 	}

@@ -27,7 +27,8 @@ public class RectorSkills extends Item {
         @Override
         public String desc() {
             String desc = "";
-            desc += Messages.get(this, "desc",Dungeon.depth/5*8, Dungeon.depth+10);
+            int level = ((Dungeon.depth/5)+1)*8;
+            desc += Messages.get(this, "desc",level, Dungeon.depth+10);
             return desc;
         }
     }

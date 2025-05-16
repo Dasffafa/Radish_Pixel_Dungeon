@@ -69,6 +69,7 @@ public class Statistics {
 	public static boolean gameWon = false;
 	public static boolean ascended = false;
 
+	public static boolean RectorGetHP = false;
 	//Spiral Bosses Boolean
 	public static boolean bigsnake_zikk = false;
 	
@@ -76,6 +77,8 @@ public class Statistics {
 
 		//Spiral Bosses Boolean
 		bigsnake_zikk 	= false;
+
+		RectorGetHP = false;
 		
 		goldCollected	= 0;
 		deepestFloor	= 0;
@@ -155,8 +158,8 @@ public class Statistics {
 	private static final String WON		        = "won";
 	private static final String ASCENDED		= "ascended";
 
-
 	private static final String BIGSNAKE_ZIKK		        = "bigsnake_zikk";
+	private static final String GETRECTOR_HP		        = "getrector_hp";
 	
 	public static void storeInBundle( Bundle bundle ) {
 		bundle.put( GOLD,		goldCollected );
@@ -202,6 +205,7 @@ public class Statistics {
 		bundle.put( ASCENDED,   ascended );
 
 		bundle.put(BIGSNAKE_ZIKK, bigsnake_zikk);
+		bundle.put(GETRECTOR_HP, RectorGetHP);
 
 		storeCustom(bundle);
 
@@ -254,6 +258,7 @@ public class Statistics {
 		ascended        = bundle.getBoolean( ASCENDED );
 
 		bigsnake_zikk  = bundle.getBoolean(BIGSNAKE_ZIKK);
+		RectorGetHP	   = bundle.getBoolean(GETRECTOR_HP);
 
 		resetCustom();
 

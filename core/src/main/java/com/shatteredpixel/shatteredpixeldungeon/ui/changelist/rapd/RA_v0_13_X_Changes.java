@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.GiantWormSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RatKingSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ZikkSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v05_7_Changes(changeInfos);
         add_v05_6_Changes(changeInfos);
         add_v05_5_Changes(changeInfos);
         add_v05_0_Changes(changeInfos);
@@ -39,6 +41,50 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v05_7_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.5.7", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new ZikkSprite()), "新Boss：大蛇兹克",
+                "有极小概率替换粘咕，更加狡猾，但战利品也更加丰厚。"));
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师1-2阶开放测试"),
+                ("牧师基础技能和1/2阶天赋已经可用，欢迎各位测试！\n\n" +
+                        "天赋T1：餐前祈祷，心灵感应，恩惠之雨，虔诚祷告\n" +
+                        "天赋T2：祝福一餐，灵魂干涉，光辉灌注，神圣护体，绝望祷言\n")));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS+17)), "传承武器测试",
+                "可在测试时间中进行测试，后续将会渐渐正式上线到正常游玩中。"));
+
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.PREFS), ("其他调整"),
+                ("1.一层刷怪数量-1\n" +
+                        "2.调整伤痛难愈从1/10=>1/5\n" +
+                        "3.修复弱点洞悉boss问题及描述\n" +
+                        "4.每层有33%的概率额外一个食物，如果开启没入黑暗挑战，25%的概率额外一个火把\n" +
+                        "5.部分生成器赘余破碎武器完全移除\n" +
+                        "6.修复部分文案异常\n" +
+                        "7.游戏检测更新的接口迭代")));
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                "_-_V0.5.6\n" +
+                        "_-_ 修复房间生成异常问题\n" +
+                        "_-_ 修复怪物图鉴数据保存异常问题\n" +
+                        "_-_ 修复0层可无限上楼的问题\n" +
+                        "_-_ 修复祝福之戒未完全生效的问题\n"+
+                        "_-_ 修复末日守卫导致法师天赋_储存护盾_失效的异常"));
     }
 
     public static void add_v05_6_Changes( ArrayList<ChangeInfo> changeInfos ) {
@@ -58,27 +104,6 @@ public class RA_v0_13_X_Changes {
         critImage.scale.set(PixelScene.align(1.72f));
         changes.addButton(new ChangeButton(critImage, ("暴击视觉效果调整"),
                 ("暴击图标现在包含穿甲暴伤图标（白色）")));
-
-        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
-        changes.hardlight(CharSprite.WARNING);
-        changeInfos.add(changes);
-
-        changes.addButton(new ChangeButton(Icons.get(Icons.GOLD), ("其他调整"),
-                ("1.一层刷怪数量-1\n" +
-                        "2.调整伤痛难愈从1/10=>1/5\n" +
-                        "3.修复弱点洞悉boss问题及描述\n" +
-                        "4.每层有33%的概率额外一个食物，如果开启没入黑暗挑战，25%的概率额外一个火把\n" +
-                        "5.部分生成器赘余破碎武器完全移除\n" +
-                        "6.修复部分文案异常\n" +
-                        "7.游戏检测更新的接口迭代")));
-
-        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
-                "_-_V0.5.6\n" +
-                        "_-_ 修复房间生成异常问题\n" +
-                        "_-_ 修复怪物图鉴数据保存异常问题\n" +
-                        "_-_ 修复0层可无限上楼的问题\n" +
-                        "_-_ 修复祝福之戒未完全生效的问题\n"+
-                        "_-_ 修复末日守卫导致法师天赋_储存护盾_失效的异常"));
     }
 
     public static void add_v05_5_Changes( ArrayList<ChangeInfo> changeInfos ) {

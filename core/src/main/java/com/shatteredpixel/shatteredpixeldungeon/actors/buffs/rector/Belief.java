@@ -12,7 +12,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
@@ -27,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.WondrousResin;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.CursedWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -98,23 +98,76 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 GameScene.selectCell( zapper );
                 break;
             case LIGHTIMUEE:
-                Buff.affect(hero, Stamina.class,12f * ((Dungeon.depth/5)+1));
-                Buff.affect(hero, VitaeBuff.class).setVitae(((Dungeon.depth/5)+1)*8);
+                if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
+                    float originStamina = 12f * ((Dungeon.depth/5)+1);
+                    int originVitae =(((Dungeon.depth/5)+1)*8);
+                    Buff.affect(hero, Stamina.class,originStamina  * 1.5f);
+                    Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitae * 1.5f));
+                } else {
+                    Buff.affect(hero, Stamina.class,12f * ((Dungeon.depth/5)+1));
+                    Buff.affect(hero, VitaeBuff.class).setVitae(((Dungeon.depth/5)+1)*8);
+                }
+                GLog.p(Messages.get(Belief.class, "lightimuee_success"));
                 break;
             case CLEAN:
                 curUser = hero;
-                Scroll s = new ScrollOfRemoveCurse();
-                s.anonymize();
-                curItem = s;
-                s.doRead();
-                Buff.prolong( curUser, Light.class, 100f);
-                Buff.prolong( curUser, Bless.class, 20f);
+                if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
+                    ArrayList<Weapon> items = hero.belongings.getAllItems(Weapon.class);
+                    for (Weapon w : items.toArray(new Weapon[0])){
+                       w.cursed = false;
+                       w.enchant(null);
+                    }
+                    Buff.prolong( curUser, Light.class, 200f);
+                    Buff.prolong( curUser, Bless.class, 40f);
+                } else {
+                    Scroll s = new ScrollOfRemoveCurse();
+                    s.anonymize();
+                    curItem = s;
+                    s.doRead();
+                    Buff.prolong( curUser, Light.class, 100f);
+                    Buff.prolong( curUser, Bless.class, 20f);
+                }
+
                 if (hero.hasTalent(Talent.DEVOTIONAL)){
                     Buff.affect(hero, Barrier.class).setShield(4 * hero.pointsInTalent(Talent.DEVOTIONAL));
                     hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(4 * hero.pointsInTalent(Talent.DEVOTIONAL)), FloatingText.SHIELDING );
                 }
                 break;
             case PRAYERS:
+                if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
+                    switch (Random.Int(4)){
+                        //财富蓝色掉落
+                        case 0:
+                            Item i = genMidValueConsumable();
+                            Dungeon.level.drop(i,target.pos);
+                            new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
+                            GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
+                            break;
+                        case 1:
+                            hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
+                            hero.earnExp( hero.maxExp()/2, getClass() );
+                            new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
+                            GLog.p(Messages.get(Belief.class, "experience_success",hero.maxExp()/2));
+                            break;
+                        case 2:
+                            ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
+                            for (Item w : belongingsItems.toArray(new Item[0])){
+                                ScrollOfRemoveCurse.uncurse( hero, w );
+                                Sample.INSTANCE.play( Assets.Sounds.RAY );
+                            }
+                            new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
+                            GLog.p(Messages.get(Belief.class, "curse_remove_success"));
+                            break;
+                        case 3:
+                            hero.HP += Math.min(hero.HT / 3, hero.HT);
+                            if (hero.HP > hero.HT) {
+                                hero.HP = hero.HT;
+                            }
+                            new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
+                            GLog.p(Messages.get(Belief.class, "heal_success"));
+                            break;
+                    }
+                }
                 switch (Random.Int(4)){
                     //财富蓝色掉落
                     case 0:
@@ -156,8 +209,10 @@ public class Belief extends Buff implements ActionIndicator.Action {
     @Override
     public boolean act() {
         FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
-        if (credibility >= 5.0f && failed == null){
+        if (credibility >= 5.0f){
             ActionIndicator.setAction(this);
+        } else {
+            ActionIndicator.clearAction();
         }
         not_link = failed != null;
         spend(TICK);
@@ -203,10 +258,10 @@ public class Belief extends Buff implements ActionIndicator.Action {
         credibility = bundle.getFloat(CREDIBILITY);
         not_link    = bundle.getBoolean(NOT_LINK);
 
-        if (credibility>5 && !not_link){
+        if (credibility>5){
             ActionIndicator.setAction(this);
         } else {
-            ActionIndicator.refresh();
+            ActionIndicator.clearAction();
         }
     }
 

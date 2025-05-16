@@ -78,7 +78,18 @@ public class Buff extends Actor {
 			return false;
 		}
 	}
-	
+	// 在Buff类中添加以下方法
+	public float remaining() {
+		// 使用visualcooldown需要扣除增加的1f偏移量
+		return visualcooldown() - 1f;
+	}
+
+	public boolean isAboutToEnd(float threshold) {
+		return remaining() <= threshold;
+	}
+
+
+
 	public void detach() {
 		if (target.remove( this ) && target.sprite != null) fx( false );
 	}

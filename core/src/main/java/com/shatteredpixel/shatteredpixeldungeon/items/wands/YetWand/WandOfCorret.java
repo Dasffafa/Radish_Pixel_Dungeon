@@ -36,11 +36,11 @@ public class WandOfCorret extends DamageWand {
 
 
     public int min(int lvl){
-        return 12 + Dungeon.depth;
+        return hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4 ? (int) (1.5f * 12 + Dungeon.depth) : 12 + Dungeon.depth;
     }
 
     public int max(int lvl){
-        return 12 + Dungeon.depth;
+        return hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4 ? (int) (1.5f * 12 + Dungeon.depth) : 12 + Dungeon.depth;
     }
 
     @Override

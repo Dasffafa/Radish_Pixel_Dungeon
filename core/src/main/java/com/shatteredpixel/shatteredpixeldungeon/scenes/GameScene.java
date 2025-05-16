@@ -1448,6 +1448,10 @@ public class GameScene extends PixelScene {
 			scene.showBanner( bossSlain );
 			
 			Sample.INSTANCE.play( Assets.Sounds.BOSS );
+
+			if(Statistics.RectorGetHP){
+				Statistics.RectorGetHP = false;
+			}
 		}
 	}
 	
