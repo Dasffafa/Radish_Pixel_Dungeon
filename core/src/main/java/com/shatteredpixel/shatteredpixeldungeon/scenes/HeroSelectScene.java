@@ -55,7 +55,6 @@ import com.watabou.noosa.NinePatch;
 import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.tweeners.Tweener;
 import com.watabou.noosa.ui.Component;
-import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PointF;
 
@@ -132,10 +131,10 @@ public class HeroSelectScene extends PixelScene {
 			protected void onClick() {
 				super.onClick();
 
-				if(GamesInProgress.selectedClass == HeroClass.RECTOR && !DeviceCompat.isDebug()){
-					ShatteredPixelDungeon.scene().addToFront(new WndMessage(Messages.get(HeroClass.class, "rector_unlock")));
-					return;
-				}
+//				if(GamesInProgress.selectedClass == HeroClass.RECTOR && !DeviceCompat.isDebug()){
+//					ShatteredPixelDungeon.scene().addToFront(new WndMessage(Messages.get(HeroClass.class, "rector_unlock")));
+//					return;
+//				}
 
 				if (GamesInProgress.selectedClass == null) return;
 
