@@ -1,4 +1,4 @@
-package com.shatteredpixel.shatteredpixeldungeon.items.armor;
+package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -12,16 +12,18 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Random;
 
+// 荒原
+// Doggingdog on 20250517
 public class Wastelandew extends LegacyItemArmor {
     {
-        image = ItemSpriteSheet.ARMOR_MAGE;
+        image = ItemSpriteSheet.STONE_SHOCK+8;
     }
     public Wastelandew() {
         super(1);
     }
     @Override
     public int DRMax(int lvl){
-        return 2 + Math.max(lvl + augment.defenseFactor(lvl), lvl);
+        return 8 + Math.max(lvl + augment.defenseFactor(lvl), lvl);
     }
 
     @Override
