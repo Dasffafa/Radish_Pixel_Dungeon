@@ -70,6 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.SeedOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.StoneOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Showdarker;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Turtleir;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Wastelandew;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
@@ -143,6 +144,7 @@ public enum HeroClass {
 		new Chibayari().identify().collect();
 		new Wastelandew().identify().collect();
 		new Turtleir().identify().collect();
+		new Showdarker().identify().collect();
 
 		new SpawnMisc().collect();
 		new MobPlacer().collect();
