@@ -2,7 +2,13 @@ package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ConfusionGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.CorrosiveGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ParalyticGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.StenchGas;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemArmor;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -53,13 +59,16 @@ public class Sunless extends LegacyItemArmor {
         @Override
         public boolean act() {
             for (Blob blob : Dungeon.level.blobs.values()) {
-                if (blob.volume > 0 && blob.cur[target.pos] > 0 && blob.tileDesc() != null) {
-                    inGas = true;
-                    spend( TICK );
-                    return true;
+                if(blob instanceof ToxicGas || blob instanceof ConfusionGas || blob instanceof CorrosiveGas || blob instanceof ParalyticGas || blob instanceof StenchGas){
+                    if (blob.volume > 0 && blob.cur[target.pos] > 0 && blob.tileDesc() != null) {
+                        inGas = true;
+                        spend( TICK );
+                        return true;
+                    }
                 }
             }
             spend( TICK );
+            inGas = false;
             return true;
         }
 
@@ -73,7 +82,9 @@ public class Sunless extends LegacyItemArmor {
         }
 
         public int absorbDamage(int dmg){
-            return Math.max(0,(int) (dmg * (0.4f - lvl * 0.08f)));
+            if(inGas)
+                return Math.max(0,(int) (dmg * (0.4f - lvl * 0.08f)));
+            return dmg;
         }
 
         private static final String LVL	= "level";
@@ -89,5 +100,12 @@ public class Sunless extends LegacyItemArmor {
             super.restoreFromBundle( bundle );
             lvl = bundle.getInt( LVL );
         }
+        @Override
+        public String desc() {
+            if(inGas)
+                return Messages.get(this, "desc", (60+lvl*8)+"");
+            return Messages.get(this, "desc", 0+"");
+        }
+
     }
 }
