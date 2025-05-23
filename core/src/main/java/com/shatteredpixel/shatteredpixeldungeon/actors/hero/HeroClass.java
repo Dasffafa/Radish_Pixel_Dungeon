@@ -71,6 +71,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.alive.SeedOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.StoneOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Showdarker;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Starlight;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Sunless;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Turtleir;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Wastelandew;
@@ -147,6 +148,7 @@ public enum HeroClass {
 		new Turtleir().identify().collect();
 		new Showdarker().identify().collect();
 		new Sunless().identify().collect();
+		new Starlight().identify().collect();
 
 		new SpawnMisc().collect();
 		new MobPlacer().collect();

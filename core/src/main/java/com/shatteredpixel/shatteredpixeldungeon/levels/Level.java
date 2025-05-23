@@ -64,6 +64,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Stylus;
 import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Starlight;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
@@ -1330,6 +1331,14 @@ public abstract class Level implements Bundlable {
 			if (c.buff(MagicalSight.class) != null){
 				sense = Math.max( MagicalSight.DISTANCE, sense );
 			}
+
+			// DoggingDog on 20250523
+			if (c.buff(Starlight.Venus.class) != null){
+				Starlight.Venus buff = c.buff(Starlight.Venus.class);
+				sense = Math.max(Starlight.Venus.DISTANCE + buff.getBOOST(), sense );
+			}
+			//
+
 		}
 
 		//uses rounding
