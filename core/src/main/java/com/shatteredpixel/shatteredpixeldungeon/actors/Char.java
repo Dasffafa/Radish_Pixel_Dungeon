@@ -1007,7 +1007,7 @@ public abstract class Char extends Actor {
 		}
 
 		if (hero.hasTalent(Talent.SOUL_NOWIFI)
-				&& src instanceof Hero && ((Hero) src).belongings.weapon instanceof MeleeWeapon){
+				&& src instanceof Hero && ((Hero) src).belongings.weapon instanceof MeleeWeapon || ((Hero) src).belongings.weapon instanceof MissileWeapon){
 
 					switch (hero.pointsInTalent(Talent.SOUL_NOWIFI)){
 						case 1:
