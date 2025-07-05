@@ -1011,7 +1011,14 @@ public abstract class Char extends Actor {
 
 					switch (hero.pointsInTalent(Talent.SOUL_NOWIFI)){
 						case 1:
-							if(HT == 1){
+							boolean isChampion = false;
+							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
+								if(buff == null){
+									isChampion = true;
+								}
+							}
+							if(HT == 1 && !isChampion && !(properties().contains(Property.MINIBOSS) ||
+									properties().contains(Property.BOSS))){
 								GetMobExp((Mob) this);
 								HP = HT;
 								Buff.affect(this, ScrollOfSirensSong.Enthralled.class);
@@ -1019,8 +1026,14 @@ public abstract class Char extends Actor {
 							}
 							break;
 						case 2:
+							boolean isChampion2 = false;
+							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
+								if(buff == null){
+									isChampion2 = true;
+								}
+							}
 							if(HP <= 5 && !(properties().contains(Property.MINIBOSS) ||
-									properties().contains(Property.BOSS))){
+									properties().contains(Property.BOSS) && !isChampion2)){
 								GetMobExp((Mob) this);
 								HP = HT;
 								Buff.affect(this, ScrollOfSirensSong.Enthralled.class);
