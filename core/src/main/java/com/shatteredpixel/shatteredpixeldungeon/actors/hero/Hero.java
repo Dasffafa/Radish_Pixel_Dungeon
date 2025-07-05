@@ -139,6 +139,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.IronKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.Key;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.SkeletonKey;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Showdarker;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
@@ -609,12 +610,13 @@ public class Hero extends Char {
 		}
 
 		if (hero.buff(RingOfForce.Force.class) == null) {
-			return (int)(attackSkill * accuracy * wep.accuracyFactor( this, target ));
+			if(wep != null)
+				return (int)(attackSkill * accuracy * wep.accuracyFactor( this, target ));
 		} else {
 			return (int)(attackSkill * accuracy);
 		}
 
-//		return (int)(attackSkill * accuracy);
+		return (int)(attackSkill * accuracy);
 	}
 
 	@Override
@@ -859,6 +861,10 @@ public class Hero extends Char {
 		if(belongings.attackingWeapon() != null)
 			delay *= belongings.attackingWeapon().delayFactor( this );
 
+		// DoggingDog on 20250520
+		if(belongings.armor instanceof Showdarker){
+			delay /= (2f + 0.25f * ((Showdarker) belongings.armor).buffedLvl());
+		}
 
         return delay/speed;
     }

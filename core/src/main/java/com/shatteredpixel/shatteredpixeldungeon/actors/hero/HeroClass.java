@@ -70,7 +70,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.SeedOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.StoneOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.Wastelandew;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Showdarker;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Starlight;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Sunless;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Turtleir;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Wastelandew;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.PotionBandolier;
@@ -141,6 +145,10 @@ public enum HeroClass {
 		new DualDuelDaggers().identify().collect();
 		new Chibayari().identify().collect();
 		new Wastelandew().identify().collect();
+		new Turtleir().identify().collect();
+		new Showdarker().identify().collect();
+		new Sunless().identify().collect();
+		new Starlight().identify().collect();
 
 		new SpawnMisc().collect();
 		new MobPlacer().collect();

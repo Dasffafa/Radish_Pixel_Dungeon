@@ -113,6 +113,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Masamune;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Sunless;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Turtleir;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
@@ -986,6 +988,22 @@ public abstract class Char extends Actor {
 
 		if (!isAlive() || dmg < 0) {
 			return;
+		}
+
+		// DoggingDog on 20250518
+		if(hero.belongings.armor instanceof Turtleir && this instanceof Hero){
+			Turtleir.Mass_Energy buff = hero.buff(Turtleir.Mass_Energy.class);
+			if(buff != null){
+				dmg = buff.absorbDamage(dmg);
+			}
+		}
+
+		// DoggingDog on 20250523
+		if(hero.belongings.armor instanceof Sunless && this instanceof Hero){
+			Sunless.Sirris buff = hero.buff(Sunless.Sirris.class);
+			if(buff != null){
+				dmg = buff.absorbDamage(dmg);
+			}
 		}
 
 		if (hero.hasTalent(Talent.SOUL_NOWIFI)
