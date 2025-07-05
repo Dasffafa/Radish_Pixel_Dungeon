@@ -112,10 +112,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
             case CLEAN:
                 curUser = hero;
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
-                    ArrayList<Weapon> items = hero.belongings.getAllItems(Weapon.class);
-                    for (Weapon w : items.toArray(new Weapon[0])){
+                    ArrayList<Item> items = hero.belongings.getAllItems(Item.class);
+                    for (Item w : items.toArray(new Item[0])){
                        w.cursed = false;
-                       w.enchant(null);
                     }
                     Buff.prolong( curUser, Light.class, 200f);
                     Buff.prolong( curUser, Bless.class, 40f);

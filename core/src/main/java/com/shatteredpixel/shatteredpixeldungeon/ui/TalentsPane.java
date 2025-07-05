@@ -30,6 +30,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.PotionBandolier;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -188,10 +190,7 @@ public class TalentsPane extends ScrollPane {
 							TalentTierPane.this.layout();
 							//光辉灌注天赋
 							if(talent == Talent.LIGHT_STEP){
-								Hero hero = Dungeon.hero;
-								hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
-								hero.earnExp( hero.maxExp(), getClass() );
-								new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
+								Dungeon.level.drop(new PotionOfExperience(),Dungeon.hero.pos);
 							}
 						}
 					}

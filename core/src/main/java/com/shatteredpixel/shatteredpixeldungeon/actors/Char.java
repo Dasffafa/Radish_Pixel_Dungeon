@@ -1014,9 +1014,10 @@ public abstract class Char extends Actor {
 						case 1:
 							boolean isChampion = false;
 							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
-								if(buff == null){
-									isChampion = true;
-								}
+                                if (buff == null) {
+                                    isChampion = true;
+                                    break;
+                                }
 							}
 							if(HT == 1 && !isChampion && !(properties().contains(Property.MINIBOSS) ||
 									properties().contains(Property.BOSS))){
@@ -1029,9 +1030,10 @@ public abstract class Char extends Actor {
 						case 2:
 							boolean isChampion2 = false;
 							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
-								if(buff == null){
-									isChampion2 = true;
-								}
+                                if (buff == null) {
+                                    isChampion2 = true;
+                                    break;
+                                }
 							}
 							if(HP <= 5 && !(properties().contains(Property.MINIBOSS) ||
 									properties().contains(Property.BOSS) && !isChampion2)){
