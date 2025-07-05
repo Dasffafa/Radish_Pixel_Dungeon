@@ -255,7 +255,7 @@ public class GnollGeomancer extends Mob {
 
 	@Override
 	public void damage(int dmg, Object src) {
-		int hpBracket = HT / 3;
+		int hpBracket = (HT == 0 ? 3 : HT) / 3;
 
 		int curbracket = HP / hpBracket;
 		if (curbracket == 3) curbracket--; //full HP isn't its own bracket
