@@ -1006,8 +1006,9 @@ public abstract class Char extends Actor {
 			}
 		}
 
+		boolean isWiFi = src instanceof Hero || src instanceof CritClass;
 		if (hero.hasTalent(Talent.SOUL_NOWIFI)
-				&& src instanceof Hero && ((Hero) src).belongings.weapon instanceof MeleeWeapon || ((Hero) src).belongings.weapon instanceof MissileWeapon){
+				&& isWiFi && hero.belongings.weapon instanceof MeleeWeapon || hero.belongings.weapon instanceof MissileWeapon){
 
 					switch (hero.pointsInTalent(Talent.SOUL_NOWIFI)){
 						case 1:

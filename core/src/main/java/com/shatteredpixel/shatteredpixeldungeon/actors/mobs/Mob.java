@@ -892,21 +892,19 @@ public abstract class Mob extends Char {
 
 		//恩惠之雨 牧师
 		if (hero.hasTalent(Talent.RAIN_GRACE)){
-			if(cause == hero){
-				if(hero.buff(Talent.Rain_Grace_Cooldown.class) == null){
-					for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
-						if (Dungeon.level.heroFOV[mob.pos] && mob != this){
-							mob.HP += Math.min( hero.pointsInTalent(Talent.RAIN_GRACE), HT );
-							mob.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
-							mob.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.pointsInTalent(Talent.RAIN_GRACE)), FloatingText.HEALING);
-						}
+			if(hero.buff(Talent.Rain_Grace_Cooldown.class) == null){
+				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
+					if (Dungeon.level.heroFOV[mob.pos] && mob != this){
+						mob.HP += Math.min( hero.pointsInTalent(Talent.RAIN_GRACE), HT );
+						mob.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
+						mob.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.pointsInTalent(Talent.RAIN_GRACE)), FloatingText.HEALING);
 					}
-					int effect = Math.min( hero.HT - hero.HP,hero.pointsInTalent(Talent.RAIN_GRACE));
-					hero.HP += effect;
-					hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
-					hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.pointsInTalent(Talent.RAIN_GRACE)), FloatingText.HEALING);
-					Buff.affect(hero, Talent.Rain_Grace_Cooldown.class, 5f);
 				}
+				int effect = Math.min( hero.HT - hero.HP,hero.pointsInTalent(Talent.RAIN_GRACE));
+				hero.HP += effect;
+				hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
+				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.pointsInTalent(Talent.RAIN_GRACE)), FloatingText.HEALING);
+				Buff.affect(hero, Talent.Rain_Grace_Cooldown.class, 5f);
 			}
 		}
 
