@@ -911,7 +911,7 @@ public class Hero extends Char {
 			for (Buff buff : hero.buffs()) {
 				if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(-1f) && buff instanceof Corrosion) { // 使用阈值检测方法
 					buff.detach();
-				} else if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(Dungeon.hero.pointsInTalent(Talent.GOD_BODY) == 2 ? 3f : -1f)) { // 使用阈值检测方法
+				} else if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(Dungeon.hero.pointsInTalent(Talent.GOD_BODY) == 2 ? 1f : 0f)) { // 使用阈值检测方法
 					buff.detach();
 				}
 			}
