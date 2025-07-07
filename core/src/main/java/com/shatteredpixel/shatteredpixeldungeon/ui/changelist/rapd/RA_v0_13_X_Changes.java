@@ -45,7 +45,7 @@ public class RA_v0_13_X_Changes {
     }
 
     public static void add_v05_8_Changes( ArrayList<ChangeInfo> changeInfos ) {
-        ChangeInfo changes = new ChangeInfo("v0.5.8", true, "");
+        ChangeInfo changes = new ChangeInfo("v0.5.8-9", true, "");
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
@@ -54,11 +54,16 @@ public class RA_v0_13_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
-        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.WAND_GNOLL)), "新法杖：豺狼法杖",
-                "由彦木作者进行联动。"));
+        changes.addButton(new ChangeButton(Icons.get(Icons.WARNING), ("异常调试日志"),
+                ("在游戏卡死时，通过此系统可有效进行反馈。")));
 
-        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.SPOTOA)), "新饰品：豺狼法杖",
-                "由彦木作者进行联动。"));
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.WAND_GNOLL)), "新法杖：豺狼法杖",
+                "0.5.8--由彦木作者进行联动。\n\n" +
+                        "0.5.9--修复了卡死异常"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.SPOTOA)), "新饰品：发芽土豆",
+                "0.5.8--由彦木作者进行联动。\n\n" +
+                        "0.5.9--部分效果缺失修正"));
 
 
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
@@ -67,12 +72,12 @@ public class RA_v0_13_X_Changes {
 
         changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师相关Bug批量修正"),
                 (       "_-_ 修复暴击无法触发恩惠之雨与灵魂干涉\n" +
-                        "_-_ 绝望祷言已修复\n" +
-                        "_-_ 光能灌注已修复\n" +
-                        "_-_ 祝福一餐已修复\n" +
-                        "_-_ 惩戒伤害已修复\n" +
-                        "_-_ 现在投掷武器也会触发灵魂干涉\n" +
-                        "_-_ 现在灵魂干涉不再对精英怪生效\n" +
+                        "_-_ 绝望祷言相关问题已修复\n" +
+                        "_-_ 光能灌注相关问题已修复\n" +
+                        "_-_ 祝福一餐相关问题已修复\n" +
+                        "_-_ 惩戒伤害相关问题已修复\n" +
+                        "_-_ 现在投掷武器不会触发灵魂干涉\n" +
+                        "_-_ 现在灵魂干涉不再对精英怪生效，并且T2生效为低于当前最大生命的二分之一\n" +
                         "_-_ 将神圣护体的天赋数值下调为2/3回合，而非2/5回合\n" +
                         "_-_ 将灵魂干涉的生效条件改为生命值小于等于2/4")));
 
@@ -80,9 +85,14 @@ public class RA_v0_13_X_Changes {
                 ("主背包数量调整为25，其他背包格子数量调整为24")));
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
-                "_-_V0.5.7\n" +
+                ( "_-_V0.5.8\n" +
+                        "_-_ 修复惩戒伤害幂运算的异常\n" +
+                        "_-_ 修复商品出售和购买价格不一致的异常\n" +
+                        "_-_ 牧师的信仰值现在和最大经验挂钩\n" +
+                        "_-_ 修正一些小崩溃异常\n"+
+                        "_-_V0.5.7\n" +
                         "_-_ 修复牧师拾取天狗面具闪退的异常\n"+
-                        "_-_ 修复上个版本FireBase报告的崩溃异常"));
+                        "_-_ 修复上个版本FireBase报告的崩溃异常")));
     }
 
     public static void add_v05_7_Changes( ArrayList<ChangeInfo> changeInfos ) {

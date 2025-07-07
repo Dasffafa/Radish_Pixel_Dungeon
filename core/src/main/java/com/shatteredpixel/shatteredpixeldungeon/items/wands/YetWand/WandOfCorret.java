@@ -71,16 +71,18 @@ public class WandOfCorret extends DamageWand {
         }
 
         int fixedDamage = 12 + Dungeon.depth;
-
+        boolean damageDealt = false;
         for (Char ch : chars) {
-            wandProc(ch, chargesPerCast());
-            // 检查角色是否有恶魔或亡灵属性
-            if (ch.properties().contains(Char.Property.DEMONIC) || ch.properties().contains(Char.Property.UNDEAD)) {
-               fixedDamage *= (int) (fixedDamage * 1.5f);
+            if (!damageDealt) {
+                wandProc(ch, chargesPerCast());
+                if (ch.properties().contains(Char.Property.DEMONIC) || ch.properties().contains(Char.Property.UNDEAD)) {
+                    fixedDamage = (int) (fixedDamage * 1.5f);
+                }
+                ch.damage(fixedDamage, this);
+                ch.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
+                ch.sprite.flash();
+                damageDealt = true;
             }
-            ch.damage(fixedDamage, this);
-            ch.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
-            ch.sprite.flash();
         }
 
         //惩戒法杖

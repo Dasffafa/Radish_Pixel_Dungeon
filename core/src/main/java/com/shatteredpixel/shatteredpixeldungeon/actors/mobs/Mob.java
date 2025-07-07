@@ -864,6 +864,15 @@ public abstract class Mob extends Char {
 				if (exp > 0) {
 					Dungeon.hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(exp), FloatingText.EXPERIENCE);
 				}
+
+				float Rbelief = Dungeon.hero.lvl <= maxLvl ? 1f+0.2f*Dungeon.depth/5f : 0f;
+				if(hero.heroClass == HeroClass.RECTOR){
+					Belief belief = Dungeon.hero.buff(Belief.class);
+					if(belief != null){
+						belief.getBelief(Rbelief);
+					}
+				}
+
 				Dungeon.hero.earnExp(exp, getClass());
 
 				if (Dungeon.hero.subClass == HeroSubClass.MONK){

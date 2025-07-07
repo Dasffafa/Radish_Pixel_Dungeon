@@ -303,7 +303,7 @@ public class Shopkeeper extends NPC {
 				options[i++] = Messages.get(Shopkeeper.this, "sell");
 				options[i++] = Messages.get(Shopkeeper.this, "talk");
 				for (Item item : buybackItems){
-					options[i] = Messages.get(Heap.class, "for_sale", item.value()*3, Messages.titleCase(item.title()));
+					options[i] = Messages.get(Heap.class, "for_sale", item.value()*2, Messages.titleCase(item.title()));
 					if (options[i].length() > maxLen) options[i] = options[i].substring(0, maxLen-3) + "...";
 					i++;
 				}
@@ -318,8 +318,8 @@ public class Shopkeeper extends NPC {
 						} else if (index > 1){
 							GLog.i(Messages.get(Shopkeeper.this, "buyback"));
 							Item returned = buybackItems.remove(index-2);
-							Dungeon.gold -= returned.value()*3;
-							Statistics.goldCollected -= returned.value()*3;
+							Dungeon.gold -= returned.value()*2;
+							Statistics.goldCollected -= returned.value()*2;
 							if (!returned.doPickUp(Dungeon.hero)){
 								Dungeon.level.drop(returned, Dungeon.hero.pos);
 							}

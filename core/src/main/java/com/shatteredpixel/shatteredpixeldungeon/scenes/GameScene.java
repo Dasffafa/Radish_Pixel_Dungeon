@@ -757,7 +757,7 @@ public class GameScene extends PixelScene {
 				Gdx.app.getClipboard().setContents(msg);
 				ShatteredPixelDungeon.reportException(new RuntimeException(msg)
 				);
-				add(new WndMessage(Messages.get(this,"copied")));
+				addToFront(new WndMessage(Messages.get(this,"copied",msg)));
 			}
 		}
 

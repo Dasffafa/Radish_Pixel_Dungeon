@@ -1035,7 +1035,7 @@ public abstract class Char extends Actor {
                                     break;
                                 }
 							}
-							if(HP <= 5 && !(properties().contains(Property.MINIBOSS) ||
+							if(HP*2<=HT && !(properties().contains(Property.MINIBOSS) ||
 									properties().contains(Property.BOSS) && !isChampion2)){
 								GetMobExp((Mob) this);
 								HP = HT;

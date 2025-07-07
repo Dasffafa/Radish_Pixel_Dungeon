@@ -362,7 +362,7 @@ public class WandOfGnollKing extends DamageWand{
         public MirrorGnollSprite() {
             super();
 
-            texture( Assets.Sprites.GNOLL_GEOMANCER );
+            texture( Assets.Sprites.GNOLL_GUARD );
 
             TextureFilm frames = new TextureFilm( texture, 12, 16 );
 
