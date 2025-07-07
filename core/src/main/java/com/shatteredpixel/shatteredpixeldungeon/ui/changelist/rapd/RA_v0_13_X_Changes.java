@@ -25,6 +25,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v05_8_Changes(changeInfos);
         add_v05_7_Changes(changeInfos);
         add_v05_6_Changes(changeInfos);
         add_v05_5_Changes(changeInfos);
@@ -41,6 +42,47 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v05_8_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.5.8", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.WAND_GNOLL)), "新法杖：豺狼法杖",
+                "由彦木作者进行联动。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.SPOTOA)), "新饰品：豺狼法杖",
+                "由彦木作者进行联动。"));
+
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师相关Bug批量修正"),
+                (       "_-_ 修复暴击无法触发恩惠之雨与灵魂干涉\n" +
+                        "_-_ 绝望祷言已修复\n" +
+                        "_-_ 光能灌注已修复\n" +
+                        "_-_ 祝福一餐已修复\n" +
+                        "_-_ 惩戒伤害已修复\n" +
+                        "_-_ 现在投掷武器也会触发灵魂干涉\n" +
+                        "_-_ 现在灵魂干涉不再对精英怪生效\n" +
+                        "_-_ 将神圣护体的天赋数值下调为2/3回合，而非2/5回合\n" +
+                        "_-_ 将灵魂干涉的生效条件改为生命值小于等于2/4")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.BACKPACK), ("背包优化"),
+                ("主背包数量调整为25，其他背包格子数量调整为24")));
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                "_-_V0.5.7\n" +
+                        "_-_ 修复牧师拾取天狗面具闪退的异常\n"+
+                        "_-_ 修复上个版本FireBase报告的崩溃异常"));
     }
 
     public static void add_v05_7_Changes( ArrayList<ChangeInfo> changeInfos ) {

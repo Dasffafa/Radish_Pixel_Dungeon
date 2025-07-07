@@ -76,7 +76,7 @@ public class WandOfCorret extends DamageWand {
             wandProc(ch, chargesPerCast());
             // 检查角色是否有恶魔或亡灵属性
             if (ch.properties().contains(Char.Property.DEMONIC) || ch.properties().contains(Char.Property.UNDEAD)) {
-               fixedDamage = (int) (fixedDamage * 1.5f);
+               fixedDamage *= (int) (fixedDamage * 1.5f);
             }
             ch.damage(fixedDamage, this);
             ch.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));

@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2024 Evan Debenham
+ * Copyright (C) 2014-2025 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.SaltCube;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -35,8 +36,6 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 
 public class Hunger extends Buff implements Hero.Doom {
-
-	private static final float STEP	= 10f;
 
 	public static final float HUNGRY	= 300f;
 	public static final float STARVING	= 450f;
@@ -68,7 +67,7 @@ public class Hunger extends Buff implements Hero.Doom {
 				|| target.buff(WellFed.class) != null
 				|| SPDSettings.intro()
 				|| target.buff(ScrollOfChallenge.ChallengeArena.class) != null){
-			spend(STEP);
+			spend(TICK);
 			return true;
 		}
 
@@ -78,22 +77,39 @@ public class Hunger extends Buff implements Hero.Doom {
 
 			if (isStarving()) {
 
-				partialDamage += STEP * target.HT/1000f;
+				partialDamage += target.HT/1000f;
 
 				if (partialDamage > 1){
-					target.damage( (int)partialDamage, this);
+					if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+						Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)partialDamage*Sprouted_Potato.hungerMultiplier());
+					} else {
+						target.damage( (int)partialDamage, this);
+					}
 					partialDamage -= (int)partialDamage;
 				}
 
 			} else {
 
-				float newLevel = level + STEP;
+				float hungerDelay = 1f;
+				if (target.buff(Shadows.class) != null){
+					hungerDelay *= 1.5f;
+				}
+
+				hungerDelay /= SaltCube.hungerGainMultiplier();
+
+				float newLevel = level + (1f/hungerDelay);
 				if (newLevel >= STARVING) {
 
 					GLog.n( Messages.get(this, "onstarving") );
-					hero.damage( 1, this );
+
+					if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+						Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden(1*Sprouted_Potato.hungerMultiplier());
+					} else {
+						hero.damage( 1, this );
+					}
 
 					hero.interrupt();
+					newLevel = STARVING;
 
 				} else if (newLevel >= HUNGRY && level < HUNGRY) {
 
@@ -108,13 +124,7 @@ public class Hunger extends Buff implements Hero.Doom {
 
 			}
 
-			float hungerDelay = STEP;
-			if (target.buff(Shadows.class) != null){
-				hungerDelay *= 1.5f;
-			}
-			hungerDelay /= SaltCube.hungerGainMultiplier();
-
-			spend( hungerDelay );
+			spend( TICK );
 
 		} else {
 
@@ -151,7 +161,11 @@ public class Hunger extends Buff implements Hero.Doom {
 			level = STARVING;
 			partialDamage += excess * (target.HT/1000f);
 			if (partialDamage > 1f){
-				target.damage( (int)partialDamage, this );
+				if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+					Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)partialDamage*Sprouted_Potato.hungerMultiplier());
+				} else {
+					target.damage( (int)partialDamage, this );
+				}
 				partialDamage -= (int)partialDamage;
 			}
 		}
@@ -160,7 +174,11 @@ public class Hunger extends Buff implements Hero.Doom {
 			GLog.w( Messages.get(this, "onhungry") );
 		} else if (oldLevel < STARVING && level >= STARVING){
 			GLog.n( Messages.get(this, "onstarving") );
-			target.damage( 1, this );
+			if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+				Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)1*Sprouted_Potato.hungerMultiplier());
+			} else	{
+				target.damage( 1, this );
+			}
 		}
 
 		BuffIndicator.refreshHero();
