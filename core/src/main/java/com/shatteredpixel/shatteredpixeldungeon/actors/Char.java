@@ -112,6 +112,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Potential;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.LunarCorona;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Masamune;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Sunless;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Turtleir;
@@ -988,6 +989,17 @@ public abstract class Char extends Actor {
 
 		if (!isAlive() || dmg < 0) {
 			return;
+		}
+
+		// DoggingDog on 20250710
+		if(hero.buff(LunarCorona.Phase.class) != null){
+			LunarCorona.Phase buff = hero.buff(LunarCorona.Phase.class);
+			if(buff.isWaxing()){
+				dmg *= 2;
+			}
+			else {
+				dmg /= 2;
+			}
 		}
 
 		// DoggingDog on 20250518
