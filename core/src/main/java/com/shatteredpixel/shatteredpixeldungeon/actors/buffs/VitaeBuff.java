@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 
 public class VitaeBuff extends Buff{
@@ -16,15 +17,15 @@ public class VitaeBuff extends Buff{
     }
 
     public int absorbDamage( int dmg ){
+        if (vitae <= 0){
+            detach();
+        }
         if (vitae >= dmg){
             vitae -= dmg;
             dmg = 0;
         } else {
+            dmg -= vitae;
             vitae = 0;
-            dmg = 0;
-        }
-        if (vitae == 0){
-            detach();
         }
         return dmg;
     }
