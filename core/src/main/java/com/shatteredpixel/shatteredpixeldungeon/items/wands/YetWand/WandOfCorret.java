@@ -87,9 +87,12 @@ public class WandOfCorret extends DamageWand {
 
         //惩戒法杖
         Belief creaditSkills = Dungeon.hero.buff(Belief.class);
-        if(creaditSkills!= null){
+        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null) {
+            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, 500f);
+        } else if(creaditSkills!= null) {
             creaditSkills.DownBelief(5);
         }
+
         if (hero.hasTalent(Talent.DEVOTIONAL)){
             Buff.affect(hero, Barrier.class).setShield(4 * hero.pointsInTalent(Talent.DEVOTIONAL));
             hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(4 * hero.pointsInTalent(Talent.DEVOTIONAL)), FloatingText.SHIELDING );

@@ -1,9 +1,14 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -36,7 +41,7 @@ public class WndBless extends Window {
         S1 = new RectorSkills.CORRECT();
         S2 = new RectorSkills.LIGHTIMUEE();
         S3 = new RectorSkills.CLEAN();
-        S4 = new RectorSkills.PRAYERS();
+        S4 = hero.subClass == HeroSubClass.BATTLEPREIST ? new RectorSkills.BLESS() : new RectorSkills.PRAYERS();
 
         IconTitle titlebar = new IconTitle();
         titlebar.setRect(0, -3, WIDTH, 0);
@@ -72,41 +77,77 @@ public class WndBless extends Window {
 
         public RewardWindow( Item item ) {
             super(item);
-            Belief creaditSkills = Dungeon.hero.buff(Belief.class);
+            Belief creaditSkills = hero.buff(Belief.class);
             StyledButton btnConfirm = new StyledButton(Chrome.Type.RED_BUTTON,Messages.get(this, "ac_ask")){
                 @Override
                 protected void onClick() {
+                    float cooldown;
+                    switch (hero.pointsInTalent(Talent.ACT_GODPROGRESS)){
+                        default:
+                        case 1:
+                            cooldown = 500f;
+                            break;
+                        case 2:
+                            cooldown = 425f;
+                            break;
+                        case 3:
+                            cooldown = 350f;
+                            break;
+                    }
                     //惩戒
                     if(item == S1) {
-                        if(creaditSkills != null && creaditSkills.credibility>=5){
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1  && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null) {
                             creaditSkills.useSkills(Belief.SkillList.valueOf("CORRECT"));
                             WndBless.this.hide();
+                        } else if(creaditSkills != null && creaditSkills.credibility>=5){
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("CORRECT"));
+                            WndBless.this.hide();
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     //净化
                     } else if(item == S2){
-                        if(creaditSkills != null && creaditSkills.credibility>=12){
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
+                            WndBless.this.hide();
+                        } else if(creaditSkills != null && creaditSkills.credibility>=12){
                             creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
                             WndBless.this.hide();
                             creaditSkills.DownBelief(12);
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     } else if(item == S3){
-                        if(creaditSkills != null && creaditSkills.credibility>=15){
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
+                            WndBless.this.hide();
+                        } else if (creaditSkills != null && creaditSkills.credibility>=15){
                             creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
                             WndBless.this.hide();
                             creaditSkills.DownBelief(15);
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     //祷告
                     } else if(item == S4){
-                        if(creaditSkills != null && creaditSkills.credibility>=20){
-                            creaditSkills.useSkills(Belief.SkillList.valueOf("PRAYERS"));
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
+                            creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
                             WndBless.this.hide();
-                            creaditSkills.DownBelief(20);
+                        } else if(creaditSkills != null && creaditSkills.credibility>=20) {
+                            creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
+                            WndBless.this.hide();
+                            creaditSkills.DownBelief(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20);
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
@@ -116,10 +157,6 @@ public class WndBless extends Window {
                 }
             };
             btnConfirm.setRect(0, height+2, width, 16);
-//            if(item == S2){
-//                btnConfirm.active = false;
-//                btnConfirm.alpha(0.5f);
-//            }
             add(btnConfirm);
 
             resize(width, (int)btnConfirm.bottom());

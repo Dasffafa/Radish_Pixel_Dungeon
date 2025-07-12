@@ -150,6 +150,8 @@ public abstract class ChampionHero extends Buff {
             case 3:             buffCls = Giant.class;        break;
             case 4:             buffCls = Blessed.class;      break;
             case 5:             buffCls = Growing.class;      break;
+
+            case 6:             buffCls = BattleRector.class;      break;
         }
         Buff.affect(hero, buffCls).set(dur);
     }
@@ -172,6 +174,27 @@ public abstract class ChampionHero extends Buff {
 
         {
             immunities.add(Burning.class);
+        }
+    }
+
+    public static class BattleRector extends ChampionHero {
+
+        {
+            color = 0x00EEEE;
+        }
+
+        @Override
+        public int icon() {
+            return BuffIndicator.AMULET;
+        }
+
+        @Override
+        public float meleeDamageFactor() {
+            return 1.25f;
+        }
+        @Override
+        public float damageTakenFactor() {
+            return 0.75f;
         }
     }
 

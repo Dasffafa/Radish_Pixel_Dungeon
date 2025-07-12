@@ -45,4 +45,10 @@ public class RectorSkills extends Item {
         }
     }
 
+    public static class BLESS extends RectorSkills {
+        {
+            image = ItemSpriteSheet.BLESS;
+        }
+    }
+
 }

@@ -12,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
@@ -58,13 +59,14 @@ public class Belief extends Buff implements ActionIndicator.Action {
     }
 
     public enum SkillList {
-        CORRECT, LIGHTIMUEE, CLEAN, PRAYERS;
+        CORRECT, LIGHTIMUEE, CLEAN, PRAYERS, BATTLE;
         public String desc(){
             switch (this){
                 case CORRECT:
                 case LIGHTIMUEE:
                 case CLEAN:
                 case PRAYERS:
+                case BATTLE:
                     return Messages.get(this, name()+"desc");
                 default:
                     return Messages.get(this, desc());
@@ -72,21 +74,6 @@ public class Belief extends Buff implements ActionIndicator.Action {
         }
         public String title(){
             return Messages.get(this, name() + ".name");
-        }
-
-        public int getImage() {
-            switch (this) {
-                case CORRECT:
-                    return ItemSpriteSheet.CORRECT;
-                case LIGHTIMUEE:
-                    return ItemSpriteSheet.LIGHTIMUEE;
-                case CLEAN:
-                    return ItemSpriteSheet.CLEAN;
-                case PRAYERS:
-                    return ItemSpriteSheet.PRAYERS;
-                default:
-                    return 0;
-            }
         }
     }
 
@@ -199,6 +186,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                         GLog.p(Messages.get(Belief.class, "heal_success"));
                     break;
                 }
+                break;
+            case BATTLE:
+                ChampionHero.getElite(hero,6, 60f);
                 break;
             default:
                 break;

@@ -82,6 +82,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScrol
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAggression;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
@@ -888,6 +889,14 @@ public abstract class Mob extends Char {
 		if(hero.subClass == HeroSubClass.SNIPER){
 			next();
 		}
+
+
+		if(cause instanceof Wand && hero.pointsInTalent(Talent.SMART_BLESSING)>=2){
+			Belief creaditSkills = hero.buff(Belief.class);
+			creaditSkills.getBelief(0.33f);
+			GLog.n("w1");
+		}
+
 
 		//击杀boss会直接获取15点信仰值
 		if(hero.heroClass == HeroClass.RECTOR){

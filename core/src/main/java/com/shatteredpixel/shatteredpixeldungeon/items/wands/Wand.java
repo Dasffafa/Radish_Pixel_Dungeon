@@ -613,7 +613,7 @@ public abstract class Wand extends Item {
 		if(hero.heroClass == HeroClass.RECTOR){
 			FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
 			if(failed == null){
-				if(getClass() != WandOfCorret.class){
+				if(getClass() != WandOfCorret.class && !(Dungeon.hero.hasTalent(Talent.SMART_BLESSING))){
 					Buff.affect(curUser, FaithObstruction.class, FaithObstruction.DURATION);
 				}
 			}

@@ -984,6 +984,8 @@ public class ItemSpriteSheet {
 	public static final int CLEAN			= BAGS+15;
 	public static final int PRAYERS			= BAGS+16;
 
+	public static final int BLESS			= BAGS+23;
+
 	static{
 		assignItemRect(WATERSKIN,   16, 14);
 		assignItemRect(BACKPACK,    16, 16);
