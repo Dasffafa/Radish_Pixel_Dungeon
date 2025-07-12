@@ -1006,46 +1006,6 @@ public abstract class Char extends Actor {
 			}
 		}
 
-		boolean isWiFi = src instanceof Hero || src instanceof CritClass;
-		if (hero.hasTalent(Talent.SOUL_NOWIFI)
-				&& isWiFi && hero.belongings.weapon instanceof MeleeWeapon && HP*2<=HT){
-
-					switch (hero.pointsInTalent(Talent.SOUL_NOWIFI)){
-						case 1:
-							boolean isChampion = false;
-							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
-                                if (buff == null) {
-                                    isChampion = true;
-                                    break;
-                                }
-							}
-							if(HT == 1 && !isChampion && !(properties().contains(Property.MINIBOSS) ||
-									properties().contains(Property.BOSS))){
-								GetMobExp((Mob) this);
-								HP = HT;
-								Buff.affect(this, ScrollOfSirensSong.Enthralled.class);
-								return;
-							}
-							break;
-						case 2:
-							boolean isChampion2 = false;
-							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
-                                if (buff == null) {
-                                    isChampion2 = true;
-                                    break;
-                                }
-							}
-							if(HP*2<=HT && !(properties().contains(Property.MINIBOSS) ||
-									properties().contains(Property.BOSS) && !isChampion2)){
-								GetMobExp((Mob) this);
-								HP = HT;
-								Buff.affect(this, ScrollOfSirensSong.Enthralled.class);
-								return;
-							}
-							break;
-					}
-		}
-
 		if(isInvulnerable(src.getClass())){
 			sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "invulnerable"));
 			return;

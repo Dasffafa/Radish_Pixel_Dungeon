@@ -1056,6 +1056,35 @@ public class Dungeon {
 			}
 		}
 
+		switch (Dungeon.hero.pointsInTalent(Talent.SOUL_NOWIFI)){
+			case 1:
+				for (Mob m : level.mobs.toArray(new Mob[0])){
+					if (stealthyMimics && m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL || m.HP > m.HT / 4){
+						continue;
+					}
+
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
+					//updates adjacent cells too
+					GameScene.updateFog(m.pos, 2);
+				}
+			break;
+			case 2:
+				for (Mob m : level.mobs.toArray(new Mob[0])){
+					if (stealthyMimics && m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL || m.HP > m.HT * 0.4){
+						continue;
+					}
+
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
+					//updates adjacent cells too
+					GameScene.updateFog(m.pos, 2);
+				}
+			break;
+		}
+
 		if (hero.buff(Awareness.class) != null){
 			for (Heap h : level.heaps.valueList()){
 				BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );

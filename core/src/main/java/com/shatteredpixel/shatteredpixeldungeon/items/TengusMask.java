@@ -68,15 +68,8 @@ public class TengusMask extends Item {
 		super.execute( hero, action );
 
 		if (action.equals( AC_WEAR )) {
-			if(hero.heroClass == HeroClass.RECTOR && !DeviceCompat.isDebug()){
-				GLog.w(Messages.get(this, "cant_wear_mask"));
-				return;
-			}
-			
 			curUser = hero;
-
 			GameScene.show( new WndChooseSubclass( this, hero ) );
-			
 		}
 	}
 	

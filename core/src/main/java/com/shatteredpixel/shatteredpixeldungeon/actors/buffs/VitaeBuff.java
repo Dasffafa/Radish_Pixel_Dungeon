@@ -21,7 +21,6 @@ public class VitaeBuff extends Buff{
             dmg = 0;
         } else {
             vitae = 0;
-            dmg = 0;
         }
         if (vitae == 0){
             detach();

@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
@@ -25,6 +26,7 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class WandOfCorret extends DamageWand {
 
@@ -71,6 +73,8 @@ public class WandOfCorret extends DamageWand {
         }
 
         int fixedDamage = 12 + Dungeon.depth;
+        int fixedDamagePlus = 0;
+
         boolean damageDealt = false;
         for (Char ch : chars) {
             if (!damageDealt) {
@@ -78,14 +82,13 @@ public class WandOfCorret extends DamageWand {
                 if (ch.properties().contains(Char.Property.DEMONIC) || ch.properties().contains(Char.Property.UNDEAD)) {
                     fixedDamage = (int) (fixedDamage * 1.5f);
                 }
-                ch.damage(fixedDamage, this);
+                ch.damage(fixedDamage + fixedDamagePlus, this);
                 ch.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
                 ch.sprite.flash();
                 damageDealt = true;
             }
         }
 
-        //惩戒法杖
         Belief creaditSkills = Dungeon.hero.buff(Belief.class);
         if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null) {
             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, 500f);
@@ -98,8 +101,6 @@ public class WandOfCorret extends DamageWand {
             hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(4 * hero.pointsInTalent(Talent.DEVOTIONAL)), FloatingText.SHIELDING );
         }
     }
-
-
 
     @Override
     public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {

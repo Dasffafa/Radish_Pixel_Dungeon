@@ -209,6 +209,8 @@ public enum Talent {
 	//T3牧师通用
 	ACT_GODPROGRESS(352,3),SMART_BLESSING(353,3),
 
+	//BATTLE RECTOR
+	IRON_SUN(354,3),PHARCIS_BLESS(355,3),BEN_WORK(356,3),
 	ERROR(294,4);
 
 
@@ -223,6 +225,11 @@ public enum Talent {
 	public static class NoBeliefUsedCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.75f, 0f, 0f); }
+	};
+
+	public static class SlowHealingDeadCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0f, 0.55f, 0f); }
 	};
 
 	public static class Rain_Grace_Cooldown extends FlavourBuff{
@@ -1034,8 +1041,11 @@ public enum Talent {
 			case WARDEN:
 				Collections.addAll(tierTalents, DURABLE_TIPS, BARKSKIN, VINE_TRAP);
 				break;
-			case REDCARDINAL:case BATTLEPREIST:
-				Collections.addAll(tierTalents,ERROR,ERROR,ERROR);
+			case BATTLEPREIST:
+				Collections.addAll(tierTalents,IRON_SUN,PHARCIS_BLESS, BEN_WORK);
+				break;
+			case REDCARDINAL:
+				Collections.addAll(tierTalents,ERROR);
 				break;
 		}
 		for (Talent talent : tierTalents){

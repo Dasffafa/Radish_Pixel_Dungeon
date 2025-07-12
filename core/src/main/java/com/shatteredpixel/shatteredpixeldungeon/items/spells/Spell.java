@@ -74,7 +74,7 @@ public abstract class Spell extends Item {
 				}
 			}
 
-			if(hero.pointsInTalent(Talent.SMART_BLESSING)>=3){
+			if(Random.Float() <= 0.33f && hero.pointsInTalent(Talent.SMART_BLESSING)>=3){
 				if(getClass() != MagicalInfusion.class && getClass() != CurseInfusion.class ){
 					Dungeon.level.drop(this,hero.pos);
 					GLog.p(Messages.get(Spell.class, "smart_blessing",name()) );

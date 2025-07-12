@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -13,9 +14,24 @@ public class RectorSkills extends Item {
         }
 
         @Override
+        public String name(){
+            String name = "";
+            if(Dungeon.hero.subClass == HeroSubClass.BATTLEPREIST){
+                name += Messages.get(this, "name_plus");
+            }  else {
+                name += Messages.get(this, "name");
+            }
+            return name;
+        }
+
+        @Override
         public String desc() {
             String desc = "";
-            desc += Messages.get(this, "desc",12 + Dungeon.depth);
+            if(Dungeon.hero.subClass == HeroSubClass.BATTLEPREIST){
+                desc += Messages.get(this, "desc_plus", Dungeon.depth+10);
+            } else {
+                desc += Messages.get(this, "desc",12 + Dungeon.depth);
+            }
             return desc;
         }
     }
@@ -24,11 +40,30 @@ public class RectorSkills extends Item {
         {
             image = ItemSpriteSheet.LIGHTIMUEE;
         }
+
+
+        @Override
+        public String name(){
+            String name = "";
+            if(Dungeon.hero.subClass == HeroSubClass.BATTLEPREIST){
+                name += Messages.get(this, "name_plus");
+            }  else {
+                name += Messages.get(this, "name");
+            }
+            return name;
+        }
+
         @Override
         public String desc() {
             String desc = "";
-            int level = ((Dungeon.depth/5)+1)*8;
-            desc += Messages.get(this, "desc",level, Dungeon.depth+10);
+            int level = Dungeon.depth/5*8;
+
+            if(Dungeon.hero.subClass == HeroSubClass.BATTLEPREIST){
+                desc += Messages.get(this, "desc_plus",Dungeon.depth/5 *12 ,  Dungeon.depth+10,Dungeon.depth/5 * 4);
+            }  else {
+                desc += Messages.get(this, "desc",level, Dungeon.depth+10);
+            }
+
             return desc;
         }
     }

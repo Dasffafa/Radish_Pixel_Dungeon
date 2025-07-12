@@ -1390,12 +1390,35 @@ public abstract class Level implements Bundlable {
 			boolean stealthyMimics = MimicTooth.stealthyMimics();
 			if (c.buff( MindVision.class ) != null) {
 				for (Mob mob : mobs) {
-					if (stealthyMimics && mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL){
+					if (stealthyMimics && mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL) {
 						continue;
 					}
 					for (int i : PathFinder.NEIGHBOURS9) {
 						heroMindFov[mob.pos + i] = true;
 					}
+				}
+			} else if(Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)){
+				switch (Dungeon.hero.pointsInTalent(Talent.SOUL_NOWIFI)) {
+					case 1:
+						for (Mob mob : mobs) {
+							if (stealthyMimics && mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL || mob.HP > mob.HT / 4) {
+								continue;
+							}
+							for (int i : PathFinder.NEIGHBOURS9) {
+								heroMindFov[mob.pos + i] = true;
+							}
+						}
+						break;
+					case 2:
+						for (Mob mob : mobs) {
+							if (stealthyMimics && mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL || mob.HP > mob.HT * 0.4) {
+								continue;
+							}
+							for (int i : PathFinder.NEIGHBOURS9) {
+								heroMindFov[mob.pos + i] = true;
+							}
+						}
+						break;
 				}
 			} else {
 

@@ -836,7 +836,7 @@ public abstract class Mob extends Char {
 
 		Dungeon.level.mobs.remove( this );
 
-		if (Dungeon.hero.buff(MindVision.class) != null){
+		if (Dungeon.hero.buff(MindVision.class) != null || Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI) && !(HP > HT *  (hero.pointsInTalent(Talent.SOUL_NOWIFI)>=2 ? 0.4 : 0.25)  )){
 			Dungeon.observe();
 			GameScene.updateFog(pos, 2);
 		}
@@ -872,6 +872,14 @@ public abstract class Mob extends Char {
 					if(belief != null){
 						belief.getBelief(Rbelief);
 					}
+				}
+
+				if(hero.pointsInTalent(Talent.IRON_SUN)>=3){
+					int expBarrier = Dungeon.hero.lvl <= maxLvl ? exp : 0;
+					if(expBarrier != 0){
+						Buff.affect(hero, Barrier.class).setShield( expBarrier );
+					}
+
 				}
 
 				Dungeon.hero.earnExp(exp, getClass());
