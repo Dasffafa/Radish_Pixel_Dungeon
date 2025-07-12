@@ -25,6 +25,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v06_0_Changes(changeInfos);
         add_v05_8_Changes(changeInfos);
         add_v05_7_Changes(changeInfos);
         add_v05_6_Changes(changeInfos);
@@ -42,6 +43,46 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v06_0_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.6.0", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师转职-战斗牧师"),
+                (       "新增战斗牧师T3天赋 和 转职后的效果，欢迎各位尝鲜\n\n" +
+                        "代行神权，灵活信仰【公用天赋】\n\n" +
+                        "战斗牧师专属天赋：钢铁烈阳，物理祈祷，极效疗愈\n\n" +
+                        "替换2层天赋灵魂干涉为-->窥视生灵")));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.CORRECT)), "技能Plus：神罚裁决",
+                "战斗牧师的惩戒伤害会增加50%并会额外指定一个视野内的随机目标。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.BLESS)), "新技能：天官赐福",
+                "转职后自动替换_虔诚祈祷_，获得此技能。\n\n" +
+                        "效果：获得25%伤害加成 + 25%的伤害减免，持续60回合。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.LIGHTIMUEE)), "技能Plus：光明领域",
+                "战斗牧师的光能灌注的效果变更至获得区域数*12点临时生命与区域数*4回合激素涌动，其他不变。"));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DISPLAY_LAND), ("UI优化"),
+                ("现在牧师的临时血条可在血条上显示出来")));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复牧师临时血条可以抵挡超出伤害的异常\n" +
+                        "_-_ 灵魂干涉替换为窥视生灵新天赋")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.BACKPACK), ("背包优化"),
+                ("现在电脑端所有界面都已支持新布局")));
     }
 
     public static void add_v05_8_Changes( ArrayList<ChangeInfo> changeInfos ) {
