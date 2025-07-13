@@ -60,10 +60,10 @@ public class RA_v0_13_X_Changes {
                         "战斗牧师专属天赋：钢铁烈阳，物理祈祷，极效疗愈\n\n" +
                         "替换2层天赋灵魂干涉为-->窥视生灵")));
 
-        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.CORRECT)), "技能Plus：神罚裁决",
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.CORRECT)), "技能Plus：神罚时刻",
                 "战斗牧师的惩戒伤害会增加50%并会额外指定一个视野内的随机目标。"));
 
-        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.BLESS)), "新技能：天官赐福",
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.BLESS)), "新技能：圣光之耀",
                 "转职后自动替换_虔诚祈祷_，获得此技能。\n\n" +
                         "效果：获得25%伤害加成 + 25%的伤害减免，持续60回合。"));
 
