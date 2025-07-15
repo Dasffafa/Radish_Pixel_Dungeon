@@ -91,33 +91,6 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 curItem = new WandOfCorret();
                 GameScene.selectCell( zapper );
 
-                int altFixedDamage = 12 + Dungeon.depth;
-                int altFixedDamagePlus;
-
-                if(hero.subClass == HeroSubClass.BATTLEPREIST){
-                    ArrayList<Mob> visibleTargets = new ArrayList<>();
-
-                    for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
-                        if(Dungeon.level.visited[mob.pos]){
-                            visibleTargets.add(mob);
-                        } else {
-                            visibleTargets.remove(mob);
-                        }
-                    }
-                    if(!visibleTargets.isEmpty()){
-                        Mob mob = visibleTargets.get(Random.Int(visibleTargets.size()));
-                        // 这里添加对目标的具体操作逻辑
-                        altFixedDamagePlus = (int) (altFixedDamage * 1.5f);
-                        hero.sprite.parent.add(new Beam.DeathRay(hero.sprite.center(), DungeonTilemap.raisedTileCenterToWorld( mob.pos )));
-                        if (mob.properties().contains(Char.Property.DEMONIC) || mob.properties().contains(Char.Property.UNDEAD)) {
-                            altFixedDamage = (int) (altFixedDamage * 1.5f);
-                        }
-                        mob.damage(altFixedDamage + altFixedDamagePlus, this);
-                        mob.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
-                        mob.sprite.flash();
-                    }
-                }
-
                 break;
             case LIGHTIMUEE:
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
