@@ -47,6 +47,7 @@ public enum HeroSubClass {
 	//Rector Sub Class
 	BATTLEPREIST(HeroIcon.PATLE),
 	REDCARDINAL(HeroIcon.REDLORD),
+	DEAD_KNIGHT(HeroIcon.DEADKNIGHT),
 
 	//Never Used Duelist
 	CHAMPION(HeroIcon.CHAMPION),

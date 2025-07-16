@@ -167,6 +167,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -778,6 +779,10 @@ public class Hero extends Char {
 			speed *= buff.speedFactor();
 		}
 
+		if(Dungeon.level.map[pos] == Terrain.HOLY_LAND && Dungeon.hero.pointsInTalent(Talent.SKY_TOWER)>=2){
+			speed *= 1.25f;
+		}
+
 		if (belongings.armor() != null) {
 			speed = belongings.armor().speedFactor(this, speed);
 		}
@@ -894,6 +899,7 @@ public class Hero extends Char {
 
 	@Override
 	public void spend( float time ) {
+
 		super.spend(time);
 	}
 
@@ -1039,7 +1045,7 @@ public class Hero extends Char {
 		ready = false;
 	}
 
-	private void ready() {
+	public void ready() {
 		if (sprite.looping()) sprite.idle();
 		curAction = null;
 		damageInterrupt = true;

@@ -20,11 +20,16 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
+import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualActor;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
-import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
@@ -32,15 +37,15 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurs
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.WondrousResin;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.CursedWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyFire;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -51,6 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -66,14 +72,17 @@ public class Belief extends Buff implements ActionIndicator.Action {
     }
 
     public enum SkillList {
-        CORRECT, LIGHTIMUEE, CLEAN, PRAYERS, BATTLE;
+        CORRECT, LIGHTIMUEE, CLEAN, PRAYERS, BATTLE, BLESS, HOLYFIRE, HOLYLAND;
         public String desc(){
             switch (this){
                 case CORRECT:
                 case LIGHTIMUEE:
                 case CLEAN:
                 case PRAYERS:
+                case BLESS:
                 case BATTLE:
+                case HOLYFIRE:
+                case HOLYLAND:
                     return Messages.get(this, name()+"desc");
                 default:
                     return Messages.get(this, desc());
@@ -90,7 +99,65 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 curUser = hero;
                 curItem = new WandOfCorret();
                 GameScene.selectCell( zapper );
+                int altFixedDamage = 12 + Dungeon.depth;
+                int altFixedDamagePlus;
 
+                if(hero.subClass == HeroSubClass.BATTLEPREIST){
+                    ArrayList<Mob> visibleTargets = new ArrayList<>();
+
+                    for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
+                        if(Dungeon.level.visited[mob.pos] && !(mob instanceof NPC || mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL) && !(mob.properties().contains(Char.Property.IMMOVABLE ))){
+                            visibleTargets.add(mob);
+                        } else {
+                            visibleTargets.remove(mob);
+                        }
+                    }
+                    if(!visibleTargets.isEmpty()){
+                        Mob mob = visibleTargets.get(Random.Int(visibleTargets.size()));
+                        // 这里添加对目标的具体操作逻辑
+                        altFixedDamagePlus = (int) (altFixedDamage * 1.5f);
+                        hero.sprite.parent.add(new Beam.LightRay(hero.sprite.center(), DungeonTilemap.raisedTileCenterToWorld( mob.pos )));
+                        if (mob.properties().contains(Char.Property.DEMONIC) || mob.properties().contains(Char.Property.UNDEAD)) {
+                            altFixedDamage = (int) (altFixedDamage * 1.5f);
+                        }
+                        int finalAltFixedDamage = altFixedDamage;
+                        VirtualActor.delay(0f, ()->{
+
+                            if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1
+                                    && hero.buff(Talent.NoBeliefUsedCooldown.class) == null
+                                    && credibility<5) {
+                                float cooldown;
+                                switch (hero.pointsInTalent(Talent.ACT_GODPROGRESS)){
+                                    default:
+                                    case 1:
+                                        cooldown = 500f;
+                                        break;
+                                    case 2:
+                                        cooldown = 425f;
+                                        break;
+                                    case 3:
+                                        cooldown = 350f;
+                                        break;
+                                }
+                                Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
+                            } else {
+                                DownBelief(5);
+                            }
+
+                            float x = mob.sprite.center().x;
+                            float y = mob.sprite.center().y;
+                            mob.sprite.parent.add(new Lightning(mob.sprite.center(), new PointF( x, y-300f),null));
+                            mob.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
+                            mob.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
+                            Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
+                            mob.damage(finalAltFixedDamage + altFixedDamagePlus, this);
+                            mob.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
+                            mob.sprite.flash();
+                        });
+                    } else {
+                        GLog.n(Messages.get(Belief.class,"no_target"));
+                    }
+                }
                 break;
             case LIGHTIMUEE:
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
@@ -112,7 +179,6 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     if(hero.subClass == HeroSubClass.BATTLEPREIST){
                         Buff.affect(hero, VitaeBuff.class).setVitae(Dungeon.depth/5 * 12);
                         Buff.affect(target, Adrenaline.class,Dungeon.depth/5 * 4-1);
-                        GLog.p("1e1");
                     } else {
                         Buff.affect(hero, VitaeBuff.class).setVitae(Dungeon.depth/5*8);
                     }
@@ -210,12 +276,36 @@ public class Belief extends Buff implements ActionIndicator.Action {
                         GLog.p(Messages.get(Belief.class, "heal_success"));
                     break;
                 }
+                switch (hero.pointsInTalent(Talent.LIGHT_WASH)){
+                    case 1:
+                        hero.HP = Math.min(hero.HP+3, hero.HT);
+                        hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 3);
+                    break;
+                    case 2:
+                        hero.HP = Math.min(hero.HP+6, hero.HT);
+                        hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 6);
+                        break;
+                    case 3:
+                        hero.HP = Math.min(hero.HP+9, hero.HT);
+                        hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 9);
+                        break;
+                }
                 break;
             case BATTLE:
                 if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
                     Buff.affect(hero, Barrier.class).setShield( hero.lvl );
                 }
                 ChampionHero.getElite(hero,6, 60f);
+                break;
+            case HOLYFIRE:
+                curUser = hero;
+                curItem = new HolyFire();
+                GameScene.selectCell(Item.thrower);
+                break;
+            case HOLYLAND:
+                curUser = hero;
+                curItem = new HolyLand();
+                GameScene.selectCell(Item.thrower);
                 break;
             default:
                 break;
@@ -225,7 +315,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
     @Override
     public boolean act() {
         FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
-        if (credibility >= 5.0f){
+        if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+            ActionIndicator.clearAction();
+        } else if (credibility >= 0f){
             ActionIndicator.setAction(this);
         } else {
             ActionIndicator.clearAction();

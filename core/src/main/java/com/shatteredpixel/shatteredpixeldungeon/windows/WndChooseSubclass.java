@@ -79,7 +79,7 @@ public class WndChooseSubclass extends Window {
 				}
 			};
 
-			if(subCls == HeroSubClass.REDCARDINAL){
+			if(subCls == HeroSubClass.DEAD_KNIGHT){
 				btnCls.enable( false );
 				btnCls.alpha(0.2f);
 				btnCls.active = false;

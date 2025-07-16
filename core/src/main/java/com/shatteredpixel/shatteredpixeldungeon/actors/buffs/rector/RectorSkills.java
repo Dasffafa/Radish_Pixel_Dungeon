@@ -1,10 +1,18 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.PathFinder;
 
 public class RectorSkills extends Item {
 
@@ -83,6 +91,41 @@ public class RectorSkills extends Item {
     public static class BLESS extends RectorSkills {
         {
             image = ItemSpriteSheet.BLESS;
+        }
+    }
+
+    //RED
+    public static class HOLYFIRE extends RectorSkills {
+        {
+            image = ItemSpriteSheet.HOLYFIRE;
+        }
+    }
+
+    public static class HOLYLAND extends RectorSkills {
+        {
+            image = ItemSpriteSheet.HOLYLAND;
+        }
+        public String desc(){
+            return Messages.get(this, "desc", radius(),Dungeon.depth/5 == 0 ? 1 : Dungeon.depth/5);
+        }
+
+        private String radius() {
+            String string;
+            switch (Dungeon.hero.pointsInTalent(Talent.SKY_TOWER)) {
+                case 1:
+                   string = Messages.get(this, "radius1");
+                   break;
+                case 2:
+                    string = Messages.get(this, "radius2");
+                    break;
+                case 3:
+                    string = Messages.get(this, "radius3");
+                    break;
+                default:
+                    string = Messages.get(this, "radius0");
+                    break;
+            }
+            return string;
         }
     }
 

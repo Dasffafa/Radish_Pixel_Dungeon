@@ -25,6 +25,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v06_1_Changes(changeInfos);
         add_v06_0_Changes(changeInfos);
         add_v05_8_Changes(changeInfos);
         add_v05_7_Changes(changeInfos);
@@ -45,6 +46,40 @@ public class RA_v0_13_X_Changes {
         add_v03_1_Changes(changeInfos);
     }
 
+    public static void add_v06_1_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.6.1", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师转职-红衣主教"),
+                (       "新增红衣主教T3天赋 和 转职后的效果，欢迎各位尝鲜\n\n" +
+                        "代行神权，灵活信仰【公用天赋】\n\n" +
+                        "战斗牧师专属天赋：圣火燎原，圣光洗礼，通天圣塔")));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.HOLYFIRE)), "新技能：圣火审判",
+                "指定一个地格，在其3×3区域生成圣火场，火场内的所有生物受到的伤害增加1.3倍且沾染上圣火。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.HOLYLAND)), "新技能：圣地领域",
+                "指定一个地格，并以其为中心生成一片5*5圆形的圣地区域。" +
+                        "\n\n在圣地区域内的非英雄非飞行角色都会减少33%移速，对亡灵与恶魔类怪物则是减少50%移速，并且每回合它们受到区域数点伤害。"));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复牧师额外惩戒不消耗信仰的异常\n" +
+                        "_-_ 修复一些小的崩溃异常\n" +
+                        "_-_ 修复0层会掉饥饿的异常")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.BACKPACK), ("背包优化"),
+                ("现在电脑端所有界面都已支持新布局")));
+    }
+
     public static void add_v06_0_Changes( ArrayList<ChangeInfo> changeInfos ) {
         ChangeInfo changes = new ChangeInfo("v0.6.0", true, "");
         changes.hardlight(Window.TITLE_COLOR);
@@ -57,8 +92,7 @@ public class RA_v0_13_X_Changes {
         changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师转职-战斗牧师"),
                 (       "新增战斗牧师T3天赋 和 转职后的效果，欢迎各位尝鲜\n\n" +
                         "代行神权，灵活信仰【公用天赋】\n\n" +
-                        "战斗牧师专属天赋：钢铁烈阳，物理祈祷，极效疗愈\n\n" +
-                        "替换2层天赋灵魂干涉为-->窥视生灵")));
+                        "战斗牧师专属天赋：钢铁烈阳，物理祈祷，极效疗愈")));
 
         changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.CORRECT)), "技能Plus：神罚时刻",
                 "战斗牧师的惩戒伤害会增加50%并会额外指定一个视野内的随机目标。"));
@@ -79,7 +113,7 @@ public class RA_v0_13_X_Changes {
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
                 (       "_-_ 修复牧师临时血条可以抵挡超出伤害的异常\n" +
-                        "_-_ 灵魂干涉替换为窥视生灵新天赋")));
+                        "_-_ 灵魂干涉优化")));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.BACKPACK), ("背包优化"),
                 ("现在电脑端所有界面都已支持新布局")));
