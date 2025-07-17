@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.DeferredShield;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Drowsy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Foresight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HoldFast;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
@@ -95,6 +96,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogDzewa;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Chains;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CheckedCell;
@@ -103,6 +105,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -164,6 +167,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seeking;
@@ -199,6 +204,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AttackIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
@@ -741,6 +747,18 @@ public class Hero extends Char {
 			dmg = RingOfForce.damageRoll(this);
 		}
 
+
+		if(hero.pointsInTalent(Talent.IRON_SUN)>=1){
+			int buffCnt = 0;
+			for(Object i: buffs(Buff.class).toArray()) {
+				if(((Buff) i).icon()!= BuffIndicator.NONE){
+					buffCnt+=3;
+				}
+			}
+			dmg += buffCnt;
+		}
+
+
 		if( attackDelay() >1 && hasTalent(Talent.STRONGMAN) && !(wep instanceof SpiritBow)){
 			dmg += (int) (dmg * Math.max (attackDelay() - (1f / 3f * pointsInTalent(Talent.STRONGMAN)),0.75f));
 		}
@@ -759,6 +777,10 @@ public class Hero extends Char {
 
 		for (ChampionHero buff : buffs(ChampionHero.class)){
 			speed *= buff.speedFactor();
+		}
+
+		if(Dungeon.level.map[pos] == Terrain.HOLY_LAND && Dungeon.hero.pointsInTalent(Talent.SKY_TOWER)>=2){
+			speed *= 1.25f;
 		}
 
 		if (belongings.armor() != null) {
@@ -877,6 +899,7 @@ public class Hero extends Char {
 
 	@Override
 	public void spend( float time ) {
+
 		super.spend(time);
 	}
 
@@ -929,7 +952,7 @@ public class Hero extends Char {
 
 		if (!ready) {
 			//do a full observe (including fog update) if not resting.
-			if (!resting || buff(MindVision.class) != null || buff(Awareness.class) != null) {
+			if (!resting || buff(MindVision.class) != null || buff(Awareness.class) != null || Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)) {
 				Dungeon.observe();
 			} else {
 				//otherwise just directly re-calculate FOV
@@ -1022,7 +1045,7 @@ public class Hero extends Char {
 		ready = false;
 	}
 
-	private void ready() {
+	public void ready() {
 		if (sprite.looping()) sprite.idle();
 		curAction = null;
 		damageInterrupt = true;
@@ -1583,6 +1606,19 @@ public class Hero extends Char {
 		resting = fullRest;
 	}
 
+	public void WandOfCorrectNoTime(float chargesPerCast,Char mob){
+		if(Random.Float()<=chargesPerCast){
+			int fixedDamage = 12 + Dungeon.depth;
+			hero.sprite.parent.add(new Beam.DeathRay(hero.sprite.center(), DungeonTilemap.raisedTileCenterToWorld( mob.pos )));
+			if (mob.properties().contains(Property.DEMONIC) || mob.properties().contains(Property.UNDEAD)) {
+				fixedDamage = (int) (fixedDamage * 1.5f);
+			}
+			mob.damage(fixedDamage, this);
+			mob.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
+			mob.sprite.flash();
+		}
+	}
+
 	@Override
 	public int attackProc( final Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
@@ -1608,6 +1644,18 @@ public class Hero extends Char {
 		if (wep != null) damage = wep.proc( this, enemy, damage );
 
 		damage = Talent.onAttackProc( this, enemy, damage );
+
+		switch (hero.pointsInTalent(Talent.PHARCIS_BLESS)){
+			case 1:
+				WandOfCorrectNoTime(0.17f,enemy);
+			break;
+			case 2:
+				WandOfCorrectNoTime(0.33f,enemy);
+			break;
+			case 3:
+				WandOfCorrectNoTime(0.50f,enemy);
+			break;
+		}
 
 		switch (subClass) {
 			case SNIPER:
@@ -1680,6 +1728,13 @@ public class Hero extends Char {
 		return damage;
 	}
 
+
+	public void SlowHealDamage(int damage){
+		if(hero.buff(Talent.SlowHealingDeadCooldown.class) == null){
+			Buff.affect(hero, Healing.class).setHeal(damage, 0.05f, 0);
+		}
+	}
+
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 
@@ -1695,6 +1750,23 @@ public class Hero extends Char {
 		WandOfLivingEarth.RockArmor rockArmor = buff(WandOfLivingEarth.RockArmor.class);
 		if (rockArmor != null) {
 			damage = rockArmor.absorb(damage);
+		}
+
+		if(damage >= 10){
+			switch (hero.pointsInTalent(Talent.BEN_WORK)) {
+				case 1:
+					SlowHealDamage((int) (damage * 0.4f));
+					Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 50f);
+				break;
+				case 2:
+					SlowHealDamage((int) (damage * 0.6f));
+					Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 40f);
+				break;
+				case 3:
+					SlowHealDamage((int) (damage * 0.8f));
+					Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 30f);
+				break;
+			}
 		}
 
 		return super.defenseProc( enemy, damage );

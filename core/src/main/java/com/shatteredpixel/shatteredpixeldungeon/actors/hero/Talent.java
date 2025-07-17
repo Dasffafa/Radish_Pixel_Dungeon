@@ -209,6 +209,11 @@ public enum Talent {
 	//T3牧师通用
 	ACT_GODPROGRESS(352,3),SMART_BLESSING(353,3),
 
+	//BATTLE RECTOR
+	IRON_SUN(354,3),PHARCIS_BLESS(355,3),BEN_WORK(356,3),
+
+	FIRE_GLASS(386,3),LIGHT_WASH(387,3),SKY_TOWER(388,3),
+
 	ERROR(294,4);
 
 
@@ -218,6 +223,16 @@ public enum Talent {
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.15f, 0.2f, 0.5f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 50); }
+	};
+
+	public static class NoBeliefUsedCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0.75f, 0f, 0f); }
+	};
+
+	public static class SlowHealingDeadCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0f, 0.55f, 0f); }
 	};
 
 	public static class Rain_Grace_Cooldown extends FlavourBuff{
@@ -1029,8 +1044,14 @@ public enum Talent {
 			case WARDEN:
 				Collections.addAll(tierTalents, DURABLE_TIPS, BARKSKIN, VINE_TRAP);
 				break;
-			case REDCARDINAL:case BATTLEPREIST:
-				Collections.addAll(tierTalents,ERROR,ERROR,ERROR);
+			case BATTLEPREIST:
+				Collections.addAll(tierTalents,IRON_SUN,PHARCIS_BLESS, BEN_WORK);
+				break;
+			case REDCARDINAL:
+				Collections.addAll(tierTalents,FIRE_GLASS, LIGHT_WASH, SKY_TOWER);
+				break;
+			case DEAD_KNIGHT:
+				Collections.addAll(tierTalents,ERROR);
 				break;
 		}
 		for (Talent talent : tierTalents){

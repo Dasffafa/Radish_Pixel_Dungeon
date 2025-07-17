@@ -38,6 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndChooseSubclass;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
+import com.watabou.utils.DeviceCompat;
 
 import java.util.ArrayList;
 
@@ -67,15 +68,8 @@ public class TengusMask extends Item {
 		super.execute( hero, action );
 
 		if (action.equals( AC_WEAR )) {
-			if(hero.heroClass == HeroClass.RECTOR){
-				GLog.w(Messages.get(this, "cant_wear_mask"));
-				return;
-			}
-			
 			curUser = hero;
-
 			GameScene.show( new WndChooseSubclass( this, hero ) );
-			
 		}
 	}
 	

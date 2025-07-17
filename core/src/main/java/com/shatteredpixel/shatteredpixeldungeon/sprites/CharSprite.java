@@ -33,7 +33,9 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.ShieldHalo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TorchHalo;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.HalomethaneFlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SnowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -82,7 +84,8 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	protected float shadowOffset    = 0.25f;
 
 	public enum State {
-		BURNING, LEVITATING, INVISIBLE, PARALYSED, FROZEN, ILLUMINATED, CHILLED, DARKENED, MARKED, HEALING, SHIELDED, HEARTS
+		BURNING, LEVITATING, INVISIBLE, PARALYSED, FROZEN, ILLUMINATED, CHILLED, DARKENED, MARKED, HEALING, SHIELDED, HEARTS,
+		HALOMETHANEBURNING,ELMOBURNING
 	}
 	private int stunStates = 0;
 	
@@ -98,11 +101,15 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	protected PosTweener motion;
 	
 	protected Emitter burning;
+
+	protected Emitter ealoburning;
+
 	protected Emitter chilled;
 	protected Emitter marked;
 	protected Emitter levitation;
 	protected Emitter healing;
 	protected Emitter hearts;
+	protected Emitter haloburning;
 	
 	protected IceBlock iceBlock;
 	protected DarkBlock darkBlock;
@@ -110,6 +117,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	protected ShieldHalo shield;
 	protected AlphaTweener invisible;
 	protected Flare aura;
+
 	
 	protected EmoIcon emo;
 	protected CharHealthIndicator health;
@@ -365,6 +373,10 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 					Sample.INSTANCE.play( Assets.Sounds.BURNING );
 				}
 				break;
+			case ELMOBURNING:
+				ealoburning = emitter();
+				ealoburning.pour(ElmoParticle.FACTORY,0.05f);
+				break;
 			case LEVITATING:
 				levitation = emitter();
 				levitation.pour( Speck.factory( Speck.JET ), 0.02f );
@@ -413,15 +425,34 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 				hearts = emitter();
 				hearts.pour(Speck.factory(Speck.HEART), 0.5f);
 				break;
+			case HALOMETHANEBURNING:
+				haloburning = emitter();
+				haloburning.pour(HalomethaneFlameParticle.FACTORY, 0.06f);
+				if (visible) {
+					Sample.INSTANCE.play(Assets.Sounds.BURNING);
+				}
+				break;
 		}
 	}
 	
 	public void remove( State state ) {
 		switch (state) {
+			case HALOMETHANEBURNING:
+				if (haloburning != null) {
+					haloburning.on = false;
+					haloburning = null;
+				}
+				break;
 			case BURNING:
 				if (burning != null) {
 					burning.on = false;
 					burning = null;
+				}
+				break;
+			case ELMOBURNING:
+				if(ealoburning != null){
+					ealoburning.on = false;
+					ealoburning = null;
 				}
 				break;
 			case LEVITATING:

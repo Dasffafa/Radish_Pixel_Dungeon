@@ -122,7 +122,7 @@ public enum HeroClass {
 	HUNTRESS( HeroSubClass.SNIPER, HeroSubClass.WARDEN ),
 
 	//New Hero-Radish Pixel Dungeon
-	RECTOR( HeroSubClass.BATTLEPREIST, HeroSubClass.REDCARDINAL);
+	RECTOR( HeroSubClass.BATTLEPREIST, HeroSubClass.REDCARDINAL, HeroSubClass.DEAD_KNIGHT);
 
 //	DUELIST( HeroSubClass.CHAMPION, HeroSubClass.MONK );
 

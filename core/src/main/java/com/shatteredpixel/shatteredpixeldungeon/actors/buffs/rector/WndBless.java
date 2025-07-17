@@ -1,9 +1,13 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -31,12 +35,20 @@ public class WndBless extends Window {
     public static Item S3;
     public static Item S4;
 
+    public static Item S5;
+    public static Item S6;
+
     public WndBless(Belief belief) {
 
         S1 = new RectorSkills.CORRECT();
         S2 = new RectorSkills.LIGHTIMUEE();
         S3 = new RectorSkills.CLEAN();
-        S4 = new RectorSkills.PRAYERS();
+        S4 = hero.subClass == HeroSubClass.BATTLEPREIST ? new RectorSkills.BLESS() : new RectorSkills.PRAYERS();
+
+        if(hero.subClass == HeroSubClass.REDCARDINAL){
+            S5 = new RectorSkills.HOLYFIRE();
+            S6 = new RectorSkills.HOLYLAND();
+        }
 
         IconTitle titlebar = new IconTitle();
         titlebar.setRect(0, -3, WIDTH, 0);
@@ -48,78 +60,176 @@ public class WndBless extends Window {
         message.setPos(0, titlebar.bottom() + GAP);
         add( message );
 
-        RewardButton shop1 = new RewardButton( S1 );
-        shop1.setRect( (WIDTH) / 2f - BTN_SIZE, message.top() + message.height() + BTN_GAP, BTN_SIZE,
+        RewardButton skills1 = new RewardButton( S1 );
+        skills1.setRect( (WIDTH) / 2f - BTN_SIZE, message.top() + message.height() + BTN_GAP, BTN_SIZE,
                 BTN_SIZE );
-        add( shop1 );
+        add( skills1 );
 
-        RewardButton shop2 = new RewardButton( S2 );
-        shop2.setRect( shop1.right(), shop1.top(), BTN_SIZE, BTN_SIZE );
-        add(shop2);
+        RewardButton skills2 = new RewardButton( S2 );
+        skills2.setRect( skills1.right(), skills1.top(), BTN_SIZE, BTN_SIZE );
+        add(skills2);
 
-        RewardButton shop3 = new RewardButton( S3 );
-        shop3.setRect( shop1.left(), shop1.bottom(), BTN_SIZE, BTN_SIZE );
-        add(shop3);
+        RewardButton skills3 = new RewardButton( S3 );
+        skills3.setRect( skills1.left(), skills1.bottom(), BTN_SIZE, BTN_SIZE );
+        add(skills3);
 
-        RewardButton shop4 = new RewardButton( S4 );
-        shop4.setRect( shop3.right(), shop2.bottom(), BTN_SIZE, BTN_SIZE );
-        add(shop4);
+        RewardButton skills4 = new RewardButton( S4 );
+        skills4.setRect( skills3.right(), skills2.bottom(), BTN_SIZE, BTN_SIZE );
+        add(skills4);
 
-        resize(WIDTH, (int) shop3.bottom());
+        if(hero.subClass == HeroSubClass.REDCARDINAL) {
+            RewardButton skills5 = new RewardButton(S5);
+            skills5.setRect(skills1.left(), skills3.bottom(), BTN_SIZE, BTN_SIZE);
+            add(skills5);
+            
+            RewardButton skills6 = new RewardButton(S6);
+            skills6.setRect(skills5.right(), skills3.bottom(), BTN_SIZE, BTN_SIZE);
+            add(skills6);
+            resize(WIDTH, (int) skills5.bottom());
+        } else {
+            resize(WIDTH, (int) skills3.bottom());
+        }
+
+
     }
 
     private class RewardWindow extends WndInfoItem {
 
         public RewardWindow( Item item ) {
             super(item);
-            Belief creaditSkills = Dungeon.hero.buff(Belief.class);
+            Belief creaditSkills = hero.buff(Belief.class);
             StyledButton btnConfirm = new StyledButton(Chrome.Type.RED_BUTTON,Messages.get(this, "ac_ask")){
                 @Override
                 protected void onClick() {
+                    float cooldown;
+                    switch (hero.pointsInTalent(Talent.ACT_GODPROGRESS)){
+                        default:
+                        case 1:
+                            cooldown = 500f;
+                            break;
+                        case 2:
+                            cooldown = 425f;
+                            break;
+                        case 3:
+                            cooldown = 350f;
+                            break;
+                    }
                     //惩戒
                     if(item == S1) {
-                        if(creaditSkills != null && creaditSkills.credibility>=5){
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1  && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null
+                                && creaditSkills.credibility<5) {
                             creaditSkills.useSkills(Belief.SkillList.valueOf("CORRECT"));
                             WndBless.this.hide();
+                        } else if(creaditSkills != null && creaditSkills.credibility>=5){
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("CORRECT"));
+                            WndBless.this.hide();
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     //净化
                     } else if(item == S2){
-                        if(creaditSkills != null && creaditSkills.credibility>=12){
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 &&
+                                creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<12) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
+                            WndBless.this.hide();
+                            if(hero.subClass != HeroSubClass.REDCARDINAL){
+                                hero.spend(1f);
+                            }
+                        } else if(creaditSkills != null && creaditSkills.credibility>=12){
                             creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
                             WndBless.this.hide();
                             creaditSkills.DownBelief(12);
+                            if(hero.subClass != HeroSubClass.REDCARDINAL){
+                                hero.spend(1f);
+                            }
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     } else if(item == S3){
-                        if(creaditSkills != null && creaditSkills.credibility>=15){
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null
+                                && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<15) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
+                            WndBless.this.hide();
+                            if(hero.subClass != HeroSubClass.REDCARDINAL){
+                                hero.spend(1f);
+                            }
+                        } else if (creaditSkills != null && creaditSkills.credibility>=15){
                             creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
                             WndBless.this.hide();
                             creaditSkills.DownBelief(15);
+                            if(hero.subClass != HeroSubClass.REDCARDINAL){
+                                hero.spend(1f);
+                            }
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     //祷告
                     } else if(item == S4){
-                        if(creaditSkills != null && creaditSkills.credibility>=20){
-                            creaditSkills.useSkills(Belief.SkillList.valueOf("PRAYERS"));
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null
+                                && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20)) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
+                            creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
                             WndBless.this.hide();
-                            creaditSkills.DownBelief(20);
+                            if(hero.subClass != HeroSubClass.REDCARDINAL){
+                                hero.spend(1f);
+                            }
+                        } else if(creaditSkills != null && creaditSkills.credibility>=(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20)) {
+                            creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
+                            WndBless.this.hide();
+                            creaditSkills.DownBelief(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20);
+                            if(hero.subClass != HeroSubClass.REDCARDINAL){
+                                hero.spend(1f);
+                            }
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
                         } else {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
+                    }  else if(item == S5) {
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<10) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("HOLYFIRE"));
+                            WndBless.this.hide();
+                        } else if(creaditSkills != null && creaditSkills.credibility>=10) {
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("HOLYFIRE"));
+                            WndBless.this.hide();
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
+                        } else {
+                            GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
+                        }
+                    } else if(item == S6) {
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<8) {
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("HOLYLAND"));
+                            WndBless.this.hide();
+                        } else if(creaditSkills != null && creaditSkills.credibility>=8) {
+                            creaditSkills.useSkills(Belief.SkillList.valueOf("HOLYLAND"));
+                            WndBless.this.hide();
+                        } else if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
+                            GLog.n(Messages.get(WndBless.class,"not_talent"));
+                        } else {
+                            GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
+                        }
+
                     }
+                {
+
+
+                }
                     hide();
                     RewardWindow.this.hide();
                 }
             };
             btnConfirm.setRect(0, height+2, width, 16);
-//            if(item == S2){
-//                btnConfirm.active = false;
-//                btnConfirm.alpha(0.5f);
-//            }
             add(btnConfirm);
 
             resize(width, (int)btnConfirm.bottom());

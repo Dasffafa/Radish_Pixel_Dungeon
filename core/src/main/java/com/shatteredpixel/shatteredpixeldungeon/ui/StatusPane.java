@@ -271,6 +271,8 @@ public class StatusPane extends Component {
 	private int oldShield = 0;
 	private int oldMax = 0;
 
+	private int oldvt = 0;
+
 	// DoggingDog on 20250511
 	private int oldVitae = 0;
 
@@ -315,16 +317,22 @@ public class StatusPane extends Component {
 			rawShielding.scale.x = 0;
 		}
 
-		if (oldHP != health || oldShield != shield || oldMax != max){
-			if (shield <= 0) {
-				hpText.text(health + "/" + max);
-			} else {
+		if (oldHP != health || oldShield != shield || oldMax != max || oldvt != vt) {
+			if (shield > 0 && vt > 0) {
+				hpText.text(health + "+" + vt + "+" + shield + "/" + max);
+			} else if (shield > 0) {
 				hpText.text(health + "+" + shield + "/" + max);
+			} else if (vt > 0) {
+				hpText.text(health + "+" + vt + "/" + max);
+			} else {
+				hpText.text(health + "/" + max);
 			}
 			oldHP = health;
 			oldShield = shield;
 			oldMax = max;
+			oldvt = vt;
 		}
+
 
 		// DoggingDog on 20250511
 		if(oldVitae != vt){

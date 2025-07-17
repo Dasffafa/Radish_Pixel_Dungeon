@@ -43,7 +43,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HalomethaneBurning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolyLowBurinng;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
@@ -53,6 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SoulMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -82,6 +86,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScrol
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAggression;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
@@ -93,6 +99,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart
 import com.shatteredpixel.shatteredpixeldungeon.journal.MobBestiary;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
@@ -250,6 +257,28 @@ public abstract class Mob extends Char {
 	protected boolean act() {
 
 		super.act();
+
+
+
+
+		boolean isSpMob = properties.contains(Property.DEMONIC) || properties.contains(Property.UNDEAD);
+		if(Dungeon.level.map[pos] == Terrain.HOLY_LAND){
+			if(isAlive()){
+				if(isSpMob){
+					Buff.affect(this, HolyLand.DemonSlowSpeed.class, 3f);
+					Buff.affect(this, HolyLand.DemonDmage.class).set(100, 1);
+				}
+				if(!flying && !isSpMob){
+					Buff.affect(this, HolyLand.MobSlowSpeed.class, 3f);
+					if(Dungeon.hero.pointsInTalent(Talent.SKY_TOWER)>=3){
+						Buff.affect(this, HolyLand.DemonDmage.class).set(100, 1);
+					}
+				}
+			}
+		} else {
+			Buff.detach(this, HolyLand.DemonSlowSpeed.class);
+			Buff.detach(this, HolyLand.MobSlowSpeed.class);
+		}
 
 		boolean justAlerted = alerted;
 		alerted = false;
@@ -824,6 +853,10 @@ public abstract class Mob extends Char {
 			}
 		}
 
+		if(buff(HolyLowBurinng.class) !=null || buff(HalomethaneBurning.class)!=null){
+			dmg *= 1.3f;
+		}
+
 		super.damage( dmg, src );
 	}
 
@@ -835,7 +868,7 @@ public abstract class Mob extends Char {
 
 		Dungeon.level.mobs.remove( this );
 
-		if (Dungeon.hero.buff(MindVision.class) != null){
+		if (Dungeon.hero.buff(MindVision.class) != null || Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI) && !(HP > HT *  (hero.pointsInTalent(Talent.SOUL_NOWIFI)>=2 ? 0.4 : 0.25)  )){
 			Dungeon.observe();
 			GameScene.updateFog(pos, 2);
 		}
@@ -871,6 +904,21 @@ public abstract class Mob extends Char {
 					if(belief != null){
 						belief.getBelief(Rbelief);
 					}
+
+					int exExp = 10;
+					if(hero.subClass == HeroSubClass.REDCARDINAL){
+						if( exp >= exExp){
+							belief.getBelief(1f);
+						}
+					}
+				}
+
+				if(hero.pointsInTalent(Talent.IRON_SUN)>=3){
+					int expBarrier = Dungeon.hero.lvl <= maxLvl ? exp : 0;
+					if(expBarrier != 0){
+						Buff.affect(hero, Barrier.class).setShield( expBarrier );
+					}
+
 				}
 
 				Dungeon.hero.earnExp(exp, getClass());
@@ -888,6 +936,14 @@ public abstract class Mob extends Char {
 		if(hero.subClass == HeroSubClass.SNIPER){
 			next();
 		}
+
+
+		if(cause instanceof Wand && hero.pointsInTalent(Talent.SMART_BLESSING)>=2){
+			Belief creaditSkills = hero.buff(Belief.class);
+			creaditSkills.getBelief(0.33f);
+			GLog.n("w1");
+		}
+
 
 		//击杀boss会直接获取15点信仰值
 		if(hero.heroClass == HeroClass.RECTOR){

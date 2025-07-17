@@ -22,15 +22,21 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.spells;
 
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.FaithObstruction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
@@ -63,10 +69,18 @@ public abstract class Spell extends Item {
 		if (action.equals( AC_CAST )) {
 			if(hero.heroClass == HeroClass.RECTOR){
 				FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
-				if(failed == null){
+				if(failed == null && !(Dungeon.hero.hasTalent(Talent.SMART_BLESSING))){
 					Buff.affect(curUser, FaithObstruction.class, FaithObstruction.DURATION);
 				}
 			}
+
+			if(Random.Float() <= 0.33f && hero.pointsInTalent(Talent.SMART_BLESSING)>=3){
+				if(getClass() != MagicalInfusion.class && getClass() != CurseInfusion.class ){
+					Dungeon.level.drop(this,hero.pos);
+					GLog.p(Messages.get(Spell.class, "smart_blessing",name()) );
+				}
+			}
+
 			if (curUser.buff(MagicImmune.class) != null){
 				GLog.w( Messages.get(this, "no_magic") );
 				return;

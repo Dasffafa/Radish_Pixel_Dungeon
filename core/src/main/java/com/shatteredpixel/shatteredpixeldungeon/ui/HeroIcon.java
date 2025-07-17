@@ -80,6 +80,8 @@ public class HeroIcon extends Image {
 	public static final int PATLE   	  = 10;
 	public static final int REDLORD       = 11;
 
+	public static final int DEADKNIGHT = 12;
+
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );
 		if (film == null){

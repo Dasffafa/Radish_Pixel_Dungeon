@@ -57,8 +57,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FireImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FrostImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HalomethaneBurning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolyLowBurinng;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LifeLink;
@@ -133,6 +135,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFireblast;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFrost;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazing;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
@@ -935,6 +938,13 @@ public abstract class Char extends Actor {
 		if ( buff( Stamina.class ) != null) speed *= 1.5f*ben_mul;
 		/** 祝福之戒 */
 
+		if(buff(HolyLand.DemonSlowSpeed.class)!=null) {
+			speed*=0.5f;
+		}
+		if(buff(HolyLand.MobSlowSpeed.class)!=null) {
+			speed*=0.77f;
+		}
+
 		if ( buff( Cripple.class ) != null ) speed /= 2f;
 		if ( buff( Adrenaline.class ) != null) speed *= 2f;
 		if ( buff( Haste.class ) != null) speed *= 3f;
@@ -1018,46 +1028,6 @@ public abstract class Char extends Actor {
 			}
 		}
 
-		boolean isWiFi = src instanceof Hero || src instanceof CritClass;
-		if (hero.hasTalent(Talent.SOUL_NOWIFI)
-				&& isWiFi && hero.belongings.weapon instanceof MeleeWeapon && HP*2<=HT){
-
-					switch (hero.pointsInTalent(Talent.SOUL_NOWIFI)){
-						case 1:
-							boolean isChampion = false;
-							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
-                                if (buff == null) {
-                                    isChampion = true;
-                                    break;
-                                }
-							}
-							if(HT == 1 && !isChampion && !(properties().contains(Property.MINIBOSS) ||
-									properties().contains(Property.BOSS))){
-								GetMobExp((Mob) this);
-								HP = HT;
-								Buff.affect(this, ScrollOfSirensSong.Enthralled.class);
-								return;
-							}
-							break;
-						case 2:
-							boolean isChampion2 = false;
-							for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
-                                if (buff == null) {
-                                    isChampion2 = true;
-                                    break;
-                                }
-							}
-							if(HP*2<=HT && !(properties().contains(Property.MINIBOSS) ||
-									properties().contains(Property.BOSS) && !isChampion2)){
-								GetMobExp((Mob) this);
-								HP = HT;
-								Buff.affect(this, ScrollOfSirensSong.Enthralled.class);
-								return;
-							}
-							break;
-					}
-		}
-
 		if(isInvulnerable(src.getClass())){
 			sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "invulnerable"));
 			return;
@@ -1104,6 +1074,7 @@ public abstract class Char extends Actor {
 		if (this.buff(Doom.class) != null && !isImmune(Doom.class)){
 			dmg *= 1.67f;
 		}
+
 		if (alignment != Alignment.ALLY && this.buff(DeathMark.DeathMarkTracker.class) != null){
 			dmg *= 1.25f;
 		}

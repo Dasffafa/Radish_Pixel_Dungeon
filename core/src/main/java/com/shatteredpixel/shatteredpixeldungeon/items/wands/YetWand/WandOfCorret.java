@@ -2,26 +2,43 @@ package com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand;
 
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.HalomethaneFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.stats.DM100H;
+import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
+import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualActor;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.DamageWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.Camera;
+import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
+import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -30,8 +47,18 @@ public class WandOfCorret extends DamageWand {
 
     {
         image = ItemSpriteSheet.WAND_DISINTEGRATION;
-
+        usesTargeting = true;
         collisionProperties = Ballistica.WONT_STOP;
+    }
+
+    @Override
+    public void wandUsed() {
+        super.wandUsed();
+        if(hero.subClass == HeroSubClass.REDCARDINAL){
+            float timeToZap;
+            timeToZap = -hero.cooldown();
+            curUser.spendAndNext(timeToZap);
+        }
     }
 
 
@@ -71,6 +98,8 @@ public class WandOfCorret extends DamageWand {
         }
 
         int fixedDamage = 12 + Dungeon.depth;
+        int fixedDamagePlus = 0;
+
         boolean damageDealt = false;
         for (Char ch : chars) {
             if (!damageDealt) {
@@ -78,25 +107,50 @@ public class WandOfCorret extends DamageWand {
                 if (ch.properties().contains(Char.Property.DEMONIC) || ch.properties().contains(Char.Property.UNDEAD)) {
                     fixedDamage = (int) (fixedDamage * 1.5f);
                 }
-                ch.damage(fixedDamage, this);
-                ch.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
-                ch.sprite.flash();
+                int finalFixedDamage = fixedDamage;
+                VirtualActor.delay(0f, ()->{
+                    float x = ch.sprite.center().x;
+                    float y = ch.sprite.center().y;
+                    ch.sprite.parent.add(new Lightning(ch.sprite.center(), new PointF( x, y-300f),null));
+                    ch.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
+                    ch.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
+                    Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
+                    ch.damage(finalFixedDamage + fixedDamagePlus, this);
+                    ch.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
+                    ch.sprite.flash();
+                });
                 damageDealt = true;
+                if (Dungeon.hero.pointsInTalent(Talent.FIRE_GLASS) > 0 ){
+                    GameScene.add(Blob.seed(ch.pos, 2, HalomethaneFire.class));
+                }
             }
         }
 
-        //惩戒法杖
         Belief creaditSkills = Dungeon.hero.buff(Belief.class);
-        if(creaditSkills!= null){
+        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<5) {
+            float cooldown;
+            switch (hero.pointsInTalent(Talent.ACT_GODPROGRESS)){
+                default:
+                case 1:
+                    cooldown = 500f;
+                    break;
+                case 2:
+                    cooldown = 425f;
+                    break;
+                case 3:
+                    cooldown = 350f;
+                    break;
+            }
+            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
+        } else if(creaditSkills!= null && !(hero.subClass == HeroSubClass.BATTLEPREIST)) {
             creaditSkills.DownBelief(5);
         }
+
         if (hero.hasTalent(Talent.DEVOTIONAL)){
             Buff.affect(hero, Barrier.class).setShield(4 * hero.pointsInTalent(Talent.DEVOTIONAL));
             hero.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(4 * hero.pointsInTalent(Talent.DEVOTIONAL)), FloatingText.SHIELDING );
         }
     }
-
-
 
     @Override
     public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
@@ -109,10 +163,8 @@ public class WandOfCorret extends DamageWand {
 
     @Override
     public void fx(Ballistica beam, Callback callback) {
-
         int cell = beam.path.get(Math.min(beam.dist, distance()));
-        curUser.sprite.parent.add(new Beam.DeathRay(curUser.sprite.center(), DungeonTilemap.raisedTileCenterToWorld( cell )));
-        callback.call();
+        curUser.sprite.parent.add(new Lightning(hero.sprite.center(), cell, callback));
     }
 
     @Override
