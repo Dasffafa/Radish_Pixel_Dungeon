@@ -108,6 +108,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MetalCross;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PneumFistGloves;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ShadowBooks;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Perfidy;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -214,6 +215,7 @@ public enum HeroClass {
 		if (Dungeon.isChallenged(Challenges.TEST_MODE))
 			doChallengeSpawn();
 
+		hero.rectorDeadKngithDeadMode = false;
 
 		new StoneOfCard().collect();
 		new SeedOfCard().collect();
@@ -331,6 +333,8 @@ public enum HeroClass {
 		new SmallWoodenCross().identify().collect();
 		new ScrollHolder().identify().collect();
 		new Food().identify().collect();
+
+		new Perfidy().identify().quantity(12).collect();
 
 		Buff.affect(hero, Belief.class);
 

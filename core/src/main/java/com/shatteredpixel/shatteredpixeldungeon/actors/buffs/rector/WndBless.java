@@ -4,15 +4,26 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemSlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
@@ -20,6 +31,9 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoItem;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndSettings;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.NinePatch;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.ui.Component;
@@ -41,13 +55,16 @@ public class WndBless extends Window {
     public WndBless(Belief belief) {
 
         S1 = new RectorSkills.CORRECT();
-        S2 = new RectorSkills.LIGHTIMUEE();
-        S3 = new RectorSkills.CLEAN();
-        S4 = hero.subClass == HeroSubClass.BATTLEPREIST ? new RectorSkills.BLESS() : new RectorSkills.PRAYERS();
+        S2 = hero.subClass == HeroSubClass.DEAD_KNIGHT ? new RectorSkills.APOWER() : new RectorSkills.LIGHTIMUEE();
+        S3 = hero.subClass == HeroSubClass.DEAD_KNIGHT ? new RectorSkills.BACKMESSAGE() : new RectorSkills.CLEAN();
+        S4 = hero.subClass == HeroSubClass.DEAD_KNIGHT ? new RectorSkills.DEADMODE() : hero.subClass == HeroSubClass.BATTLEPREIST ? new RectorSkills.BLESS() : new RectorSkills.PRAYERS();
 
         if(hero.subClass == HeroSubClass.REDCARDINAL){
             S5 = new RectorSkills.HOLYFIRE();
             S6 = new RectorSkills.HOLYLAND();
+        } else if(hero.subClass == HeroSubClass.DEAD_KNIGHT){
+            S5 = new RectorSkills.DEADMODE_X();
+            S6 = new RectorSkills.NORMALMODE_X();
         }
 
         IconTitle titlebar = new IconTitle();
@@ -86,6 +103,42 @@ public class WndBless extends Window {
             skills6.setRect(skills5.right(), skills3.bottom(), BTN_SIZE, BTN_SIZE);
             add(skills6);
             resize(WIDTH, (int) skills5.bottom());
+        } else if(hero.subClass == HeroSubClass.DEAD_KNIGHT){
+            StyledButton skills5 = new StyledButton(Chrome.Type.WINDOW,Messages.get(this, hero.rectorDeadKngithDeadMode ? "mode_d" : "mode_s")){
+                @Override
+                protected void onClick() {
+                    add(new WndOptions(new Image(new ItemSprite(ItemSpriteSheet.DEADMODE)),
+                            Messages.get(this, "mode"),
+                            Messages.get(this, "mode_desc"),
+                            Messages.get(this, "okay"),
+                            Messages.get(this, "cancel")) {
+                        @Override
+                        protected void onSelect(int index) {
+                            if (index == 0) {
+                                if(!hero.rectorDeadKngithDeadMode){
+                                    hero.rectorDeadKngithDeadMode = true;
+                                }
+                               WndBless.this.hide();
+                               GLog.n(Messages.get(this,"dead"));
+                            } else {
+                                if(hero.rectorDeadKngithDeadMode){
+                                    hero.rectorDeadKngithDeadMode = false;
+                                }
+                                WndBless.this.hide();
+                                GLog.p(Messages.get(this,"normal"));
+                            }
+                        }
+                    });
+                }
+            };
+            skills5.setRect(skills1.left(), skills3.bottom()+5, 64, 20);
+            add(skills5);
+            if(hero.rectorDeadKngithDeadMode){
+                skills5.textColor(0xff0000);
+            } else {
+                skills5.textColor(Window.TITLE_COLOR);
+            }
+            resize(WIDTH, (int) skills5.bottom());
         } else {
             resize(WIDTH, (int) skills3.bottom());
         }
@@ -94,7 +147,7 @@ public class WndBless extends Window {
     }
 
     private class RewardWindow extends WndInfoItem {
-
+        boolean isDead = hero.subClass == HeroSubClass.DEAD_KNIGHT;
         public RewardWindow( Item item ) {
             super(item);
             Belief creaditSkills = hero.buff(Belief.class);
@@ -131,17 +184,27 @@ public class WndBless extends Window {
                     //净化
                     } else if(item == S2){
                         if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 &&
-                                creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<12) {
+                                creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility< (isDead ? 4 : 12) ) {
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
-                            creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
-                            WndBless.this.hide();
+                            if(isDead) {
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("DEADKILL"));
+                                WndBless.this.hide();
+                            } else {
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
+                                WndBless.this.hide();
+                            }
                             if(hero.subClass != HeroSubClass.REDCARDINAL){
                                 hero.spend(1f);
                             }
-                        } else if(creaditSkills != null && creaditSkills.credibility>=12){
-                            creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
-                            WndBless.this.hide();
-                            creaditSkills.DownBelief(12);
+                        } else if(creaditSkills != null && creaditSkills.credibility>=(isDead ? 4 : 12)){
+                            if(isDead) {
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("DEADKILL"));
+                                WndBless.this.hide();
+                            } else {
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("LIGHTIMUEE"));
+                                WndBless.this.hide();
+                                creaditSkills.DownBelief(12);
+                            }
                             if(hero.subClass != HeroSubClass.REDCARDINAL){
                                 hero.spend(1f);
                             }
@@ -152,17 +215,30 @@ public class WndBless extends Window {
                         }
                     } else if(item == S3){
                         if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null
-                                && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<15) {
+                                && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<(isDead ? 12 : 15)) {
+
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
-                            creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
-                            WndBless.this.hide();
+                            if(isDead){
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("BACK"));
+                                WndBless.this.hide();
+                            } else {
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
+                                WndBless.this.hide();
+                            }
                             if(hero.subClass != HeroSubClass.REDCARDINAL){
                                 hero.spend(1f);
                             }
-                        } else if (creaditSkills != null && creaditSkills.credibility>=15){
-                            creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
-                            WndBless.this.hide();
-                            creaditSkills.DownBelief(15);
+                        } else if (creaditSkills != null && creaditSkills.credibility>=(isDead ? 12 : 15)){
+                            if(isDead){
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("BACK"));
+                                WndBless.this.hide();
+                                creaditSkills.DownBelief(12);
+                            } else {
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("CLEAN"));
+                                WndBless.this.hide();
+                                creaditSkills.DownBelief(15);
+                            }
+
                             if(hero.subClass != HeroSubClass.REDCARDINAL){
                                 hero.spend(1f);
                             }
@@ -174,17 +250,29 @@ public class WndBless extends Window {
                     //祷告
                     } else if(item == S4){
                         if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null
-                                && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20)) {
+                                && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<(isDead ? 20 : (hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20))) {
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
-                            creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
+
+                            if(isDead){
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("ENDDEAD"));
+                            } else {
+                                creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
+                                creaditSkills.DownBelief(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20);
+                            }
+
                             WndBless.this.hide();
                             if(hero.subClass != HeroSubClass.REDCARDINAL){
                                 hero.spend(1f);
                             }
-                        } else if(creaditSkills != null && creaditSkills.credibility>=(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20)) {
-                            creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
+                        } else if(creaditSkills != null && creaditSkills.credibility>=(isDead ? 20 : (hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20))) {
+                            if(isDead){
+                                creaditSkills.useSkills(Belief.SkillList.valueOf("ENDDEAD"));
+                                creaditSkills.DownBelief(20);
+                            } else {
+                                creaditSkills.useSkills(hero.subClass == HeroSubClass.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
+                                creaditSkills.DownBelief(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20);
+                            }
                             WndBless.this.hide();
-                            creaditSkills.DownBelief(hero.subClass == HeroSubClass.BATTLEPREIST ? 15 : 20);
                             if(hero.subClass != HeroSubClass.REDCARDINAL){
                                 hero.spend(1f);
                             }

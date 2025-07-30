@@ -21,11 +21,14 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
@@ -52,6 +55,7 @@ import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
@@ -125,7 +129,7 @@ public class Item implements Bundlable {
 
 		// func 4 Muramasa mania
 		// DoggingDog on 20250419
-		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero !=null){
 			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
 			return false;
 		}
@@ -150,7 +154,7 @@ public class Item implements Bundlable {
 
 		// func 4 Muramasa mania
 		// DoggingDog on 20250419
-		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero !=null){
 			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
 			return false;
 		}
@@ -190,7 +194,7 @@ public class Item implements Bundlable {
 
 		// func 4 Muramasa mania
 		// DoggingDog on 20250419
-		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero !=null){
 			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
 			return;
 		}
@@ -273,9 +277,9 @@ public class Item implements Bundlable {
 				if (isSimilar( item )) {
 					item.merge( this );
 					item.updateQuickslot();
-					if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
+					if (hero != null && hero.isAlive()) {
 						Badges.validateItemLevelAquired( this );
-						Talent.onItemCollected(Dungeon.hero, item);
+						Talent.onItemCollected(hero, item);
 						if (isIdentified()) Catalog.setSeen(getClass());
 					}
 					if (TippedDart.lostDarts > 0){
@@ -288,7 +292,7 @@ public class Item implements Bundlable {
 								{ actPriority = VFX_PRIO; }
 								@Override
 								protected boolean act() {
-									Dungeon.level.drop(d, Dungeon.hero.pos).sprite.drop();
+									Dungeon.level.drop(d, hero.pos).sprite.drop();
 									Actor.remove(this);
 									return true;
 								}
@@ -300,9 +304,9 @@ public class Item implements Bundlable {
 			}
 		}
 
-		if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
+		if (hero != null && hero.isAlive()) {
 			Badges.validateItemLevelAquired( this );
-			Talent.onItemCollected( Dungeon.hero, this );
+			Talent.onItemCollected( hero, this );
 			if (isIdentified()) Catalog.setSeen(getClass());
 		}
 
@@ -315,7 +319,7 @@ public class Item implements Bundlable {
 	}
 	
 	public boolean collect() {
-		return collect( Dungeon.hero.belongings.backpack );
+		return collect( hero.belongings.backpack );
 	}
 	
 	//returns a new item if the split was sucessful and there are now 2 items, otherwise null
@@ -419,8 +423,8 @@ public class Item implements Bundlable {
 	//note that not all item properties should care about buffs/debuffs! (e.g. str requirement)
 	public int buffedLvl(){
 		//only the hero can be affected by Degradation
-		if (Dungeon.hero != null && Dungeon.hero.buff( Degrade.class ) != null
-				&& (isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this ))) {
+		if (hero != null && hero.buff( Degrade.class ) != null
+				&& (isEquipped( hero ) || hero.belongings.contains( this ))) {
 			return Degrade.reduceLevel(level());
 		} else {
 			return level();
@@ -494,9 +498,9 @@ public class Item implements Bundlable {
 
 	public Item identify( boolean byHero ) {
 
-		if (byHero && Dungeon.hero != null && Dungeon.hero.isAlive()){
+		if (byHero && hero != null && hero.isAlive()){
 			Catalog.setSeen(getClass());
-			if (!isIdentified()) Talent.onItemIdentified(Dungeon.hero, this);
+			if (!isIdentified()) Talent.onItemIdentified(hero, this);
 		}
 
 		levelKnown = true;
@@ -548,7 +552,7 @@ public class Item implements Bundlable {
 
 	public String info() {
 
-		if (Dungeon.hero != null) {
+		if (hero != null) {
 			Notes.CustomRecord note;
 			if (this instanceof EquipableItem) {
 				note = Notes.findCustomRecord(((EquipableItem) this).customNoteID);
@@ -643,7 +647,7 @@ public class Item implements Bundlable {
 		cursed	= bundle.getBoolean( CURSED );
 
 		//only want to populate slot on first load.
-		if (Dungeon.hero == null) {
+		if (hero == null) {
 			if (bundle.contains(QUICKSLOT)) {
 				Dungeon.quickslot.setSlot(bundle.getInt(QUICKSLOT), this);
 			}
@@ -659,6 +663,8 @@ public class Item implements Bundlable {
 	public int throwPos( Hero user, int dst){
 		return new Ballistica( user.pos, dst, Ballistica.PROJECTILE ).collisionPos;
 	}
+
+
 
 	public void throwSound(){
 		Sample.INSTANCE.play(Assets.Sounds.MISS, 0.6f, 0.6f, 1.5f);
@@ -727,7 +733,54 @@ public class Item implements Bundlable {
 					});
 		}
 	}
-	
+
+	public void castOnlyEnemy( final Hero user, final int dst ) {
+
+		final int cell = thrownoEnemyPos( user, dst );
+		user.sprite.zap( cell );
+		user.busy();
+
+		throwSound();
+
+		final float delay = castDelay(user, dst);
+
+		((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
+				reset(user.sprite,
+						cell,
+						this,
+						new Callback() {
+							@Override
+							public void call() {
+								curUser = user;
+								Item i = Item.this.detach(user.belongings.backpack);
+								if (i != null) i.onThrow(cell);
+								user.spendAndNext(delay);
+								addBleedingEffect(cell);
+							}
+						});
+		Char enemy = Actor.findChar( cell );
+		if (enemy != null) {
+			QuickSlotButton.target(enemy);
+		}
+	}
+
+	private void addBleedingEffect(int targetCell) {
+		for (int n : PathFinder.NEIGHBOURS9) {
+			Char enemy = Actor.findChar(targetCell + n);
+			if (enemy != null) {
+				if(enemy != hero){
+					if(enemy.alignment == Char.Alignment.ENEMY) {
+						Buff.affect(enemy, Bleeding.class).set(Dungeon.depth + 3);
+					}
+				}
+			}
+		}
+	}
+
+	public int thrownoEnemyPos( Hero user, int dst){
+		return new Ballistica( user.pos, dst, Ballistica.STOP_TARGET ).collisionPos;
+	}
+
 	public float castDelay( Char user, int dst ){
 		return TIME_TO_THROW;
 	}

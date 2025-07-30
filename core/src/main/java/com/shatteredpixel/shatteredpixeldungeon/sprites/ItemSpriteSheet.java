@@ -984,6 +984,10 @@ public class ItemSpriteSheet {
 	public static final int CLEAN			= BAGS+15;
 	public static final int PRAYERS			= BAGS+16;
 
+	public static final int APOWER			= BAGS+18;
+	public static final int BACKMESSAGE	    = BAGS+19;
+	public static final int DEADMODE		= BAGS+20;
+
 
 	public static final int BLESS			= BAGS+22;
 	public static final int HOLYFIRE		= BAGS+23;

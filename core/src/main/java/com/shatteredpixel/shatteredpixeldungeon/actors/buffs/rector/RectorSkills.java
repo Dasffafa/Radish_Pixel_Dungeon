@@ -129,4 +129,36 @@ public class RectorSkills extends Item {
         }
     }
 
+    //DEAD
+    public static class APOWER extends RectorSkills {
+        {
+            image = ItemSpriteSheet.APOWER;
+        }
+    }
+
+    public static class BACKMESSAGE extends RectorSkills {
+        {
+            image = ItemSpriteSheet.BACKMESSAGE;
+        }
+    }
+
+    public static class DEADMODE extends RectorSkills {
+        {
+            image = ItemSpriteSheet.DEADMODE;
+        }
+    }
+
+    //MODE SWITCH
+    public static class DEADMODE_X extends RectorSkills {
+        {
+            image = ItemSpriteSheet.DEADMODE;
+        }
+    }
+
+    public static class NORMALMODE_X extends RectorSkills {
+        {
+            image = ItemSpriteSheet.BLESS;
+        }
+    }
+
 }

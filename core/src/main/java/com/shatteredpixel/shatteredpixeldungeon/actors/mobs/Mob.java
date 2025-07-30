@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.branch;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import static com.shatteredpixel.shatteredpixeldungeon.items.Item.updateQuickslot;
 
@@ -38,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AnkhInvulnerability
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
@@ -57,6 +59,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SoulMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
@@ -921,7 +924,7 @@ public abstract class Mob extends Char {
 
 				}
 
-				Dungeon.hero.earnExp(exp, getClass());
+				Dungeon.hero.earnExp(hero.rectorDeadKngithDeadMode ? 0 : exp, getClass());
 
 				if (Dungeon.hero.subClass == HeroSubClass.MONK){
 					Buff.affect(Dungeon.hero, MonkEnergy.class).gainEnergy(this);
@@ -941,7 +944,35 @@ public abstract class Mob extends Char {
 		if(cause instanceof Wand && hero.pointsInTalent(Talent.SMART_BLESSING)>=2){
 			Belief creaditSkills = hero.buff(Belief.class);
 			creaditSkills.getBelief(0.33f);
-			GLog.n("w1");
+		}
+
+		//执行模式
+		if(hero.rectorDeadKngithDeadMode && cause == hero){
+			for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
+				if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]) {
+					CellEmitter.center( mob.pos ).start( ShadowParticle.UP, 0.05f, 10 );
+					mob.damage(mob.EXP, new DM100.LightningBolt() );
+				}
+				if(hero.hasTalent(Talent.BLACK_LOVE)){
+					Buff.affect(mob, Bleeding.class).set(2 * hero.pointsInTalent(Talent.BLACK_LOVE));
+				}
+			}
+			if(hero.lvl <= ((Dungeon.depth/5)*5)-2){
+				switch (hero.pointsInTalent(Talent.EXP_IMPOTION)){
+					case 1:
+						Dungeon.hero.earnExp(6, getClass());
+						Buff.affect(hero, VitaeBuff.class).setVitae(1);
+						break;
+					case 2:
+						Dungeon.hero.earnExp(9, getClass());
+						Buff.affect(hero, VitaeBuff.class).setVitae(1);
+						break;
+					case 3:
+						Dungeon.hero.earnExp(12, getClass());
+						Buff.affect(hero, VitaeBuff.class).setVitae(1);
+						break;
+				}
+			}
 		}
 
 

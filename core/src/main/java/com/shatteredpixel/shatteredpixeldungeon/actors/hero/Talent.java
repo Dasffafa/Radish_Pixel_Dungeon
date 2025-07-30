@@ -212,7 +212,11 @@ public enum Talent {
 	//BATTLE RECTOR
 	IRON_SUN(354,3),PHARCIS_BLESS(355,3),BEN_WORK(356,3),
 
+	//RED MASTER
 	FIRE_GLASS(386,3),LIGHT_WASH(387,3),SKY_TOWER(388,3),
+
+	//DEAD DIFE
+	BLACK_LOVE(418,3),DEAD_POWER(419,3),EXP_IMPOTION(420,3),
 
 	ERROR(294,4);
 
@@ -1051,7 +1055,7 @@ public enum Talent {
 				Collections.addAll(tierTalents,FIRE_GLASS, LIGHT_WASH, SKY_TOWER);
 				break;
 			case DEAD_KNIGHT:
-				Collections.addAll(tierTalents,ERROR);
+				Collections.addAll(tierTalents,BLACK_LOVE,DEAD_POWER,EXP_IMPOTION);
 				break;
 		}
 		for (Talent talent : tierTalents){
