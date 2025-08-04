@@ -12,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
@@ -20,15 +21,18 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualActor;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
@@ -41,6 +45,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyFire;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Perfidy;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -72,7 +77,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
     }
 
     public enum SkillList {
-        CORRECT, LIGHTIMUEE, CLEAN, PRAYERS, BATTLE, BLESS, HOLYFIRE, HOLYLAND;
+        CORRECT, LIGHTIMUEE, CLEAN, PRAYERS,
+        BATTLE, BLESS, HOLYFIRE, HOLYLAND, DEADKILL,
+        BACK, ENDDEAD;
         public String desc(){
             switch (this){
                 case CORRECT:
@@ -83,6 +90,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 case BATTLE:
                 case HOLYFIRE:
                 case HOLYLAND:
+                case DEADKILL:
+                case BACK:
+                case ENDDEAD:
                     return Messages.get(this, name()+"desc");
                 default:
                     return Messages.get(this, desc());
@@ -307,6 +317,66 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 curItem = new HolyLand();
                 GameScene.selectCell(Item.thrower);
                 break;
+            case DEADKILL:
+                boolean foundMobs = false;
+                for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
+                    foundMobs = true;
+                    if(hero.belongings.weapon != null){
+                        if(hero.belongings.weapon.canReach(hero, mob.pos)){
+                            if(mob.HP < mob.HT * 0.6f) {
+                                mob.die(true);
+                                GLog.n(Messages.get(Belief.class, "deadkill_success", mob.name()));
+                                if (hero.buff(Talent.NoBeliefUsedCooldown.class) == null
+                                        && credibility>=4) {
+                                    DownBelief(4);
+                                }
+                            } else {
+                                GLog.w(Messages.get(Belief.class, "deadkill_noattack"));
+                            }
+                        }
+                    } else if(Dungeon.level.distance(hero.pos, mob.pos) <= 1){
+                        if(mob.HP < mob.HT * 0.6f){
+                            mob.die(true);
+                            GLog.n(Messages.get(Belief.class, "deadkill_success",mob.name()));
+                            if (hero.buff(Talent.NoBeliefUsedCooldown.class) == null
+                                    && credibility>=4) {
+                                DownBelief(4);
+                            }
+                        } else {
+                            GLog.w(Messages.get(Belief.class, "deadkill_noattack"));
+                        }
+                    }
+                }
+                if(!foundMobs){
+                    GLog.w(Messages.get(Belief.class, "deadkill_nomobs"));
+                }
+                break;
+            case BACK:
+                curUser = hero;
+                curItem = new Perfidy();
+                GameScene.selectCell(Perfidy.throwerx);
+                break;
+            case ENDDEAD:
+                int count = 0;
+                int expCost = 0;
+
+                for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+                    if (count >= 5) break;
+                    if (mob.alignment == Char.Alignment.ENEMY && !(mob.properties().contains(Char.Property.BOSS) || mob.properties().contains(Char.Property.MINIBOSS)) && Dungeon.level.heroFOV[mob.pos]) {
+                        CellEmitter.center(mob.pos).start(ShadowParticle.UP, 0.05f, 10);
+                        mob.die(true);
+                        expCost += mob.EXP;
+                        count++;
+                    }
+                }
+
+                if (expCost > 0) {
+                   hero.exp -= Math.min(hero.exp, expCost);
+                }
+                new Flare( 5, 32 ).color( 0xFF0000, true ).show( hero.sprite, 2f );
+                Sample.INSTANCE.play( Assets.Sounds.READ );
+                GLog.w(Messages.get(this,"enddead_success",count));
+                break;
             default:
                 break;
         }
@@ -332,9 +402,63 @@ public class Belief extends Buff implements ActionIndicator.Action {
      * @param value 信仰值
      */
     public void getBelief(float value) {
-        credibility += (float) (Math.floor(value * 100) / 100);
-        hero.sprite.showStatusWithIcon(Window.TITLE_COLOR, String.valueOf(value), FloatingText.BELIEF);
+        boolean[] cursedItemsProcessed = new boolean[5];
+        float roundedValue = (float) (Math.round(value * 100) / 100);
+        credibility += roundedValue;
+
+        int cursedItems = 0;
+        if (hero.belongings.weapon != null && !cursedItemsProcessed[0]) {
+            if (hero.belongings.weapon.cursed) {
+                cursedItems++;
+                cursedItemsProcessed[0] = true; // 标记武器已经被处理
+            }
+        }
+        if (hero.belongings.armor != null && !cursedItemsProcessed[1]) {
+            if (hero.belongings.armor.cursed) {
+                cursedItems++;
+                cursedItemsProcessed[1] = true; // 标记盔甲已经被处理
+            }
+        }
+        if (hero.belongings.ring != null && !cursedItemsProcessed[2]) {
+            if (hero.belongings.ring.cursed) {
+                cursedItems++;
+                cursedItemsProcessed[2] = true; // 标记戒指已经被处理
+            }
+        }
+        if (hero.belongings.artifact != null && !cursedItemsProcessed[3]) {
+            if (hero.belongings.artifact.cursed) {
+                cursedItems++;
+                cursedItemsProcessed[3] = true; // 标记神器已经被处理
+            }
+        }
+        if (hero.belongings.misc != null && !cursedItemsProcessed[4]) {
+            if (hero.belongings.misc.cursed) {
+                cursedItems++;
+                cursedItemsProcessed[4] = true; // 标记辅助物品已经被处理
+            }
+        }
+
+        float beliefExpert = 0f;
+        switch (hero.pointsInTalent(Talent.DEAD_POWER)) {
+            case 1:
+                beliefExpert = 0.16f;
+                break;
+            case 2:
+                beliefExpert = 0.32f;
+                break;
+            case 3:
+                beliefExpert = 0.50f;
+                break;
+        }
+        float exp = 0f;
+        if (hero.hasTalent(Talent.DEAD_POWER)) {
+            exp = cursedItems * beliefExpert;
+            credibility += exp;
+        }
+
+        hero.sprite.showStatusWithIcon(Window.TITLE_COLOR, String.valueOf(roundedValue + exp), FloatingText.BELIEF);
     }
+
 
     /**
      * 减少信仰值

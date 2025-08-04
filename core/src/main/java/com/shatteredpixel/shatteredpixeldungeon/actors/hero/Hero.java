@@ -255,6 +255,9 @@ public class Hero extends Char {
 	private int defenseSkill = 5;
 
 	public boolean ready = false;
+
+	public boolean rectorDeadKngithDeadMode = false;
+
 	public boolean damageInterrupt = true;
 	public HeroAction curAction = null;
 	public HeroAction lastAction = null;
@@ -400,6 +403,8 @@ public class Hero extends Char {
 	private static final String EXPERIENCE	= "exp";
 	private static final String HTBOOST     = "htboost";
 
+	private static final String DEADKNGITH = "deadknight";
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 
@@ -421,6 +426,8 @@ public class Hero extends Char {
 
 		bundle.put( HTBOOST, HTBoost );
 
+		bundle.put(DEADKNGITH, rectorDeadKngithDeadMode );
+
 		belongings.storeInBundle( bundle );
 	}
 
@@ -431,6 +438,8 @@ public class Hero extends Char {
 		exp = bundle.getInt( EXPERIENCE );
 
 		HTBoost = bundle.getInt(HTBOOST);
+
+		rectorDeadKngithDeadMode = bundle.getBoolean(DEADKNGITH);
 
 		super.restoreFromBundle( bundle );
 

@@ -26,16 +26,8 @@ public class HolyFire extends Item {
 
     @Override
     protected void onThrow(int cell) {
-        if (Dungeon.level.map[cell] == Terrain.WELL || Dungeon.level.pit[cell]) {
-
-            super.onThrow(cell);
-
-        } else {
-
-            Dungeon.level.pressCell(cell);
-            shatter(cell);
-
-        }
+        Dungeon.level.pressCell(cell);
+        shatter(cell);
     }
 
     public void shatter(int cell) {

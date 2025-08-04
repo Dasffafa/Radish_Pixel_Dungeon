@@ -560,6 +560,8 @@ public class DM300 extends Mob {
 
 		super.die( cause );
 
+		Badges.validateRogueUnlock();
+
 		GameScene.bossSlain();
 		Dungeon.level.unseal();
 

@@ -37,16 +37,8 @@ public class HolyLand extends Item {
 
     @Override
     protected void onThrow(int cell) {
-        if (Dungeon.level.map[cell] == Terrain.WELL || Dungeon.level.pit[cell]) {
-
-            super.onThrow(cell);
-
-        } else {
-
-            Dungeon.level.pressCell(cell);
-            shatter(cell);
-
-        }
+        Dungeon.level.pressCell(cell);
+        shatter(cell);
     }
 
     public void shatter(int cell) {
@@ -60,10 +52,12 @@ public class HolyLand extends Item {
 
         for (int offset : pathfinder()){
             if (!Dungeon.level.solid[cell+offset]) {
-                Level.set(cell + offset, Terrain.HOLY_LAND);
-                GameScene.updateMap(cell);
-                GameScene.updateMap(cell + offset);
-                Dungeon.level.addVisuals();
+                if(Dungeon.level.passable [cell+offset]) {
+                    Level.set(cell + offset, Terrain.HOLY_LAND);
+                    GameScene.updateMap(cell);
+                    GameScene.updateMap(cell + offset);
+                    Dungeon.level.addVisuals();
+                }
             }
         }
         Belief creaditSkills = hero.buff(Belief.class);
