@@ -1144,8 +1144,21 @@ public abstract class Char extends Actor {
 			dmg = s.absorbDamage(dmg);
 		}
 
+		// DoggingDog on 20250818
+		if(hero.pointsInTalent(Talent.VITAE_BOOST) >= 4 && hero != null && !(src instanceof Hunger)){
+			dmg -= 2;
+		}
+
 		if (this.buff(ImmortalShieldAffecter.ImmortalShield.class)==null) {
 			HP -= dmg;
+
+			// DoggingDog on 20250818
+			if(dmg>=1 && hero.hasTalent(Talent.BLOODY_VITAE) && this instanceof Hero && hero != null){
+				if(src instanceof Mob)
+					Buff.affect(hero, VitaeBuff.class).setVitae(2+hero.pointsInTalent(Talent.BLOODY_VITAE));
+			}
+			//
+
 		}
 
 		if (HP > 0 && buff(Grim.GrimTracker.class) != null){

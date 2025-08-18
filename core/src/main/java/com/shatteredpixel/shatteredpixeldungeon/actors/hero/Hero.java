@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AdrenalineSurge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AnkhInvulnerability;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
@@ -295,6 +296,27 @@ public class Hero extends Char {
 	//This list is maintained so that some logic checks can be skipped
 	// for enemies we know we aren't seeing normally, resulting in better performance
 	public ArrayList<Mob> mindVisionEnemies = new ArrayList<>();
+
+	// Talent: Superstition by DoggingDog on 20250817
+	public static class SuperstitionCounter{
+		int cnt;
+
+		public SuperstitionCounter(){
+			cnt = 0;
+		}
+
+		float briefRet(int exp){
+			int m = 24 - 4 * hero.pointsInTalent(Talent.SUPERSTITION);
+			cnt += exp;
+			if(cnt >= m){
+				cnt = m % cnt;
+				return 1f;
+			}
+			return 0;
+		}
+	}
+	SuperstitionCounter superstitionCounter = null;
+	//
 
 	public Hero() {
 		super();
@@ -2288,6 +2310,19 @@ public class Hero extends Char {
 		if (source != AscensionChallenge.class) {
 			this.exp += exp;
 		}
+
+		// Superstition by DoggingDog on 20250817
+		// 天赋：星界沟通
+		if(superstitionCounter != null){
+			if(hero.heroClass == HeroClass.RECTOR){
+				Belief belief = Dungeon.hero.buff(Belief.class);
+				if(belief != null){
+					belief.getBelief(superstitionCounter.briefRet(exp));
+				}
+			}
+		}
+
+
 		float percent = exp/(float)maxExp();
 
 		EtherealChains.chainsRecharge chains = buff(EtherealChains.chainsRecharge.class);
@@ -2637,6 +2672,12 @@ public class Hero extends Char {
 		if (hit && subClass == HeroSubClass.GLADIATOR && wasEnemy){
 			Buff.affect( this, Combo.class ).hit( );
 		}
+
+		// DoggingDog on 20250818
+		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){
+			Buff.affect(hero, Adrenaline.class,2f+hero.pointsInTalent(Talent.ADRENAL_COMBAT));
+		}
+		//
 
 		curAction = null;
 

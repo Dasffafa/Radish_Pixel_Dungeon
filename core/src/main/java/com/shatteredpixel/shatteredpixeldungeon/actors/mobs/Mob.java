@@ -81,11 +81,13 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EliteBadge;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.ExoticPotion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfWealth;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfSirensSong;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAggression;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
@@ -277,6 +279,18 @@ public abstract class Mob extends Char {
 						Buff.affect(this, HolyLand.DemonDmage.class).set(100, 1);
 					}
 				}
+
+				// DoggingDog on 20250818
+				if(hero.hasTalent(Talent.SOUL_POSSESSION)){
+					if(Random.Float(0,100)<1f+hero.pointsInTalent(Talent.SOUL_POSSESSION) * 0.5f){
+						if (!this.isImmune(ScrollOfSirensSong.Enthralled.class)) {
+							AllyBuff.affectAndLoot(this, hero, ScrollOfSirensSong.Enthralled.class);
+							PotionOfHealing.heal(this);
+						}
+					}
+				}
+				//
+
 			}
 		} else {
 			Buff.detach(this, HolyLand.DemonSlowSpeed.class);

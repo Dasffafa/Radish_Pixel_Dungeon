@@ -218,6 +218,23 @@ public enum Talent {
 	//DEAD DIFE
 	BLACK_LOVE(418,3),DEAD_POWER(419,3),EXP_IMPOTION(420,3),
 
+	// T4 rector universal
+	// T4 牧师通用(星界沟通，生命坚壁)
+	SUPERSTITION(421,4),VITAE_BOOST(422,4),
+
+	// T4 战斗牧师(战斗兴奋,神赐之礼)
+	// T4 BATTLE RECTOR
+	ADRENAL_COMBAT(423,4),GIFT(424,4),
+
+
+	// T4 红衣主教(圣化转变,圣光障壁)
+	// T4 Cardinal
+	SOUL_POSSESSION(425,4),BLOODY_VITAE(426,4),
+
+	// T4 执行者(无情扫除,信仰收割)
+	// T4 DEAD DIFE
+	PRESS_ON(427,4),BRIEF_HARVEST(428,4),
+
 	ERROR(294,4);
 
 
@@ -488,6 +505,14 @@ public enum Talent {
 	}
 
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
+
+		// Superstition by DoggingDog on 20250817
+		// 天赋：星界沟通
+		if(talent == SUPERSTITION){
+			Dungeon.hero.superstitionCounter = new Hero.SuperstitionCounter();
+		}
+		//
+
 		if (talent == HERB_MIXTURE  &&hero.belongings.getItem(HerbMaker.class)==null){
 			Dungeon.level.drop(new HerbMaker(),Dungeon.hero.pos);
 		}
@@ -1115,7 +1140,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, BRISK_PACE,PHASE_FILLING);
 				break;
 			case RECTOR:
-				Collections.addAll(tierTalents,ERROR,ERROR);
+				Collections.addAll(tierTalents,SUPERSTITION,VITAE_BOOST,ERROR);
 				break;
 		}
 		//tier 4
@@ -1150,8 +1175,13 @@ public enum Talent {
 			case WARDEN:
 				Collections.addAll(tierTalents, MEDART_SPECIALIST, LAND_HEART);
 				break;
-			case REDCARDINAL:case BATTLEPREIST:
-				Collections.addAll(tierTalents,ERROR,ERROR);
+
+			case REDCARDINAL:
+				Collections.addAll(tierTalents,SOUL_POSSESSION,BLOODY_VITAE);
+				break;
+
+			case BATTLEPREIST:
+				Collections.addAll(tierTalents,ADRENAL_COMBAT,GIFT);
 				break;
 		}
 		for (Talent talent : tierTalents){
