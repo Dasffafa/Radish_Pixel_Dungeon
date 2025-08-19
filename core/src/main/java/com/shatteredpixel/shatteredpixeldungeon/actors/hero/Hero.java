@@ -179,6 +179,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.KillBoatSword
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LockChain;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LongStick;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Quarterstaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Rlyeh;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RoundShield;
@@ -1620,7 +1621,7 @@ public class Hero extends Char {
 			int fixedDamage = 12 + Dungeon.depth;
 			hero.sprite.parent.add(new Beam.DeathRay(hero.sprite.center(), DungeonTilemap.raisedTileCenterToWorld( mob.pos )));
 			if (mob.properties().contains(Property.DEMONIC) || mob.properties().contains(Property.UNDEAD)) {
-				fixedDamage = (int) (fixedDamage * 1.5f);
+				fixedDamage = (int) (fixedDamage * 1.25f);
 			}
 			mob.damage(fixedDamage, this);
 			mob.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
@@ -1654,17 +1655,20 @@ public class Hero extends Char {
 
 		damage = Talent.onAttackProc( this, enemy, damage );
 
-		switch (hero.pointsInTalent(Talent.PHARCIS_BLESS)){
-			case 1:
-				WandOfCorrectNoTime(0.17f,enemy);
-			break;
-			case 2:
-				WandOfCorrectNoTime(0.33f,enemy);
-			break;
-			case 3:
-				WandOfCorrectNoTime(0.50f,enemy);
-			break;
+		if (wep instanceof MeleeWeapon || wep == null) {
+			switch (hero.pointsInTalent(Talent.PHARCIS_BLESS)){
+				case 1:
+					WandOfCorrectNoTime(0.13f,enemy);
+					break;
+				case 2:
+					WandOfCorrectNoTime(0.26f,enemy);
+					break;
+				case 3:
+					WandOfCorrectNoTime(0.40f,enemy);
+					break;
+			}
 		}
+
 
 		switch (subClass) {
 			case SNIPER:

@@ -105,7 +105,7 @@ public class WandOfCorret extends DamageWand {
             if (!damageDealt) {
                 wandProc(ch, chargesPerCast());
                 if (ch.properties().contains(Char.Property.DEMONIC) || ch.properties().contains(Char.Property.UNDEAD)) {
-                    fixedDamage = (int) (fixedDamage * 1.5f);
+                    fixedDamage = (int) (fixedDamage * 1.25f);
                 }
                 int finalFixedDamage = fixedDamage;
                 VirtualActor.delay(0f, ()->{

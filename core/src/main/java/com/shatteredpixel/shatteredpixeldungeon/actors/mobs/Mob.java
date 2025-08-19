@@ -957,22 +957,24 @@ public abstract class Mob extends Char {
 					Buff.affect(mob, Bleeding.class).set(2 * hero.pointsInTalent(Talent.BLACK_LOVE));
 				}
 			}
-			if(hero.lvl <= ((Dungeon.depth/5)*5)-2){
+			int needTotal = Dungeon.depth;
+			if(hero.lvl <= needTotal){
 				switch (hero.pointsInTalent(Talent.EXP_IMPOTION)){
 					case 1:
 						Dungeon.hero.earnExp(6, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(1);
+						Buff.affect(hero, VitaeBuff.class).setVitae(2);
 						break;
 					case 2:
 						Dungeon.hero.earnExp(9, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(1);
+						Buff.affect(hero, VitaeBuff.class).setVitae(2);
 						break;
 					case 3:
 						Dungeon.hero.earnExp(12, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(1);
+						Buff.affect(hero, VitaeBuff.class).setVitae(2);
 						break;
 				}
 			}
+			GLog.w(String.valueOf(hero.lvl <= needTotal));
 		}
 
 
