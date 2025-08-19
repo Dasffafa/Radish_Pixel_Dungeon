@@ -900,6 +900,13 @@ public abstract class Wand extends Item {
 			float turnsToCharge = (float) (BASE_CHARGE_DELAY
 					+ (SCALING_CHARGE_ADDITION * Math.pow(scalingFactor, missingCharges)));
 
+			// 星界沟通(superstition) by doggingdog on 20250817
+			if( hero.hasTalent(Talent.SUPERSTITION) && hero != null){
+				int lv = hero.pointsInTalent(Talent.SUPERSTITION);
+				turnsToCharge *= (1f-0.15f*lv);
+			}
+			//
+
 			LockedFloor lock = target.buff(LockedFloor.class);
 			if (lock == null || lock.regenOn())
 				partialCharge += (1f/turnsToCharge) * RingOfEnergy.wandChargeMultiplier(target);

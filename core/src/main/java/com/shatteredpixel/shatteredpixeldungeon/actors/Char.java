@@ -114,6 +114,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Potential;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.LunarCorona;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Masamune;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Sunless;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Turtleir;
@@ -1000,6 +1001,17 @@ public abstract class Char extends Actor {
 			return;
 		}
 
+		// DoggingDog on 20250710
+		if(hero.buff(LunarCorona.Phase.class) != null){
+			LunarCorona.Phase buff = hero.buff(LunarCorona.Phase.class);
+			if(buff.isWaxing()){
+				dmg *= 2;
+			}
+			else {
+				dmg /= 2;
+			}
+		}
+
 		// DoggingDog on 20250518
 		if(hero.belongings.armor instanceof Turtleir && this instanceof Hero){
 			Turtleir.Mass_Energy buff = hero.buff(Turtleir.Mass_Energy.class);
@@ -1132,8 +1144,21 @@ public abstract class Char extends Actor {
 			dmg = s.absorbDamage(dmg);
 		}
 
+		// DoggingDog on 20250818
+		if(hero.pointsInTalent(Talent.VITAE_BOOST) >= 4 && hero != null && !(src instanceof Hunger)){
+			dmg -= 2;
+		}
+
 		if (this.buff(ImmortalShieldAffecter.ImmortalShield.class)==null) {
 			HP -= dmg;
+
+			// DoggingDog on 20250818
+			if(dmg>=1 && hero.hasTalent(Talent.BLOODY_VITAE) && this instanceof Hero && hero != null){
+				if(src instanceof Mob)
+					Buff.affect(hero, VitaeBuff.class).setVitae(2+hero.pointsInTalent(Talent.BLOODY_VITAE));
+			}
+			//
+
 		}
 
 		if (HP > 0 && buff(Grim.GrimTracker.class) != null){

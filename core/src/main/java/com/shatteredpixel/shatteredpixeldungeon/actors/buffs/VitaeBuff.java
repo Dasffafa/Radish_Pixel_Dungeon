@@ -1,5 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.watabou.utils.Bundle;
 
 public class VitaeBuff extends Buff{
@@ -13,6 +15,16 @@ public class VitaeBuff extends Buff{
     public void setVitae(int vt){
         this.vitae = vt;
         this.maxVitae = vt;
+
+        // DoggingDog on 20250818
+        if(Dungeon.hero.hasTalent(Talent.VITAE_BOOST)){
+            switch (Dungeon.hero.pointsInTalent(Talent.VITAE_BOOST)){
+                case 1:this.vitae+=1;break;
+                case 2:this.vitae+=2;break;
+                default:break;
+            }
+        }
+        //
     }
 
     public int absorbDamage( int dmg ){
@@ -26,6 +38,16 @@ public class VitaeBuff extends Buff{
             detach();
         }
         return dmg;
+    }
+
+    // DoggingDog on 20250818
+    {
+        if(Dungeon.hero.pointsInTalent(Talent.VITAE_BOOST)>=3){
+            immunities.add(Weakness.class);
+            immunities.add(Vulnerable.class);
+            immunities.add(Hex.class);
+            immunities.add(Degrade.class);
+        }
     }
 
     private static final String VITAE = "vitae";
