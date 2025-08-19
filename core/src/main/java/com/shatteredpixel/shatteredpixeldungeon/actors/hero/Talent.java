@@ -220,20 +220,20 @@ public enum Talent {
 
 	// T4 rector universal
 	// T4 牧师通用(星界沟通，生命坚壁)
-	SUPERSTITION(421,4),VITAE_BOOST(422,4),
+	SUPERSTITION(358,4),VITAE_BOOST(359,4),
 
 	// T4 战斗牧师(战斗兴奋,神赐之礼)
 	// T4 BATTLE RECTOR
-	ADRENAL_COMBAT(423,4),GIFT(424,4),
+	ADRENAL_COMBAT(360,4),GIFT(361,4),
 
 
 	// T4 红衣主教(圣化转变,圣光障壁)
 	// T4 Cardinal
-	SOUL_POSSESSION(425,4),BLOODY_VITAE(426,4),
+	SOUL_POSSESSION(392,4),BLOODY_VITAE(393,4),
 
 	// T4 执行者(无情扫除,信仰收割)
 	// T4 DEAD DIFE
-	PRESS_ON(427,4),BRIEF_HARVEST(428,4),
+	PRESS_ON(390,4),BRIEF_HARVEST(391,4),
 
 	ERROR(294,4);
 
@@ -1140,7 +1140,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, BRISK_PACE,PHASE_FILLING);
 				break;
 			case RECTOR:
-				Collections.addAll(tierTalents,SUPERSTITION,VITAE_BOOST,ERROR);
+				Collections.addAll(tierTalents,SUPERSTITION,VITAE_BOOST);
 				break;
 		}
 		//tier 4
@@ -1182,6 +1182,10 @@ public enum Talent {
 
 			case BATTLEPREIST:
 				Collections.addAll(tierTalents,ADRENAL_COMBAT,GIFT);
+				break;
+
+			case DEAD_KNIGHT:
+				Collections.addAll(tierTalents,ERROR);
 				break;
 		}
 		for (Talent talent : tierTalents){

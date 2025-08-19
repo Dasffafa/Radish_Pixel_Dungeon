@@ -34,7 +34,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LifeLink;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestTalentOFTerminalBook;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
@@ -554,9 +556,17 @@ public class DwarfKing extends Mob {
 		}
 
 		if (Dungeon.level.solid[pos]){
-			Dungeon.level.drop(new KingsCrown(), pos + Dungeon.level.width()).sprite.drop(pos);
+			if(Dungeon.hero.heroClass == HeroClass.RECTOR){
+				Dungeon.level.drop(new TestTalentOFTerminalBook(), pos + Dungeon.level.width()).sprite.drop(pos);
+			} else {
+				Dungeon.level.drop(new KingsCrown(), pos + Dungeon.level.width()).sprite.drop(pos);
+			}
 		} else {
-			Dungeon.level.drop(new KingsCrown(), pos).sprite.drop();
+			if(Dungeon.hero.heroClass == HeroClass.RECTOR){
+				Dungeon.level.drop(new TestTalentOFTerminalBook(), pos).sprite.drop();
+			} else {
+				Dungeon.level.drop(new KingsCrown(), pos).sprite.drop();
+			}
 		}
 
 		Badges.validateBossSlain();
