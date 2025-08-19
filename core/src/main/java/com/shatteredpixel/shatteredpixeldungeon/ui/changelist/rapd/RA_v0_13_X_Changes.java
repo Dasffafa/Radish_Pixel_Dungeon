@@ -25,6 +25,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v06_2_Changes(changeInfos);
         add_v06_1_Changes(changeInfos);
         add_v06_0_Changes(changeInfos);
         add_v05_8_Changes(changeInfos);
@@ -44,6 +45,39 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v06_2_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.6.2", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师转职-执行者"),
+                (       "新增红衣主教T3天赋 和 转职后的效果，欢迎各位尝鲜\n\n" +
+                        "代行神权，灵活信仰【公用天赋】\n\n" +
+                        "战斗牧师专属天赋：黑暗奉献，殉道之力，经验灌注")));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.APOWER)), "新技能：宽恕裁决",
+                "立刻击杀攻击范围内一名_生命值低于60%的敌人_。\\n\\n这个技能需要消耗_4点信仰值_。\\n\\n释放失败不会扣减信仰值。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.BACKMESSAGE)), "新技能：背信弃义",
+                "指定视野范围内的一点，其_3*3范围_内的所有生物获得初始值为_楼层数+3的流血_。\\n\\n这个技能需要消耗_12点信仰值_。"));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复牧师额外惩戒不消耗信仰的异常\n" +
+                        "_-_ 修复一些小的崩溃异常\n" +
+                        "_-_ 修复0层会掉饥饿的异常")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.BACKPACK), ("背包优化"),
+                ("现在电脑端所有界面都已支持新布局")));
     }
 
     public static void add_v06_1_Changes( ArrayList<ChangeInfo> changeInfos ) {

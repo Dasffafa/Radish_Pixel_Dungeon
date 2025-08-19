@@ -334,8 +334,6 @@ public enum HeroClass {
 		new ScrollHolder().identify().collect();
 		new Food().identify().collect();
 
-		new Perfidy().identify().quantity(12).collect();
-
 		Buff.affect(hero, Belief.class);
 
 		new ScrollOfIdentify().identify();

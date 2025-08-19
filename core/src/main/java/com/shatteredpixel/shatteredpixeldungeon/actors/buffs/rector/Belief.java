@@ -323,7 +323,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     foundMobs = true;
                     if(hero.belongings.weapon != null){
                         if(hero.belongings.weapon.canReach(hero, mob.pos)){
-                            if(mob.HP < mob.HT * 0.6f) {
+                            if(mob.HP < mob.HT * 0.6f && !(mob.properties().contains(Char.Property.BOSS) || mob.properties().contains(Char.Property.MINIBOSS)) ) {
                                 mob.die(true);
                                 GLog.n(Messages.get(Belief.class, "deadkill_success", mob.name()));
                                 if (hero.buff(Talent.NoBeliefUsedCooldown.class) == null
@@ -335,7 +335,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                             }
                         }
                     } else if(Dungeon.level.distance(hero.pos, mob.pos) <= 1){
-                        if(mob.HP < mob.HT * 0.6f){
+                        if(mob.HP < mob.HT * 0.6f && !(mob.properties().contains(Char.Property.BOSS) || mob.properties().contains(Char.Property.MINIBOSS))){
                             mob.die(true);
                             GLog.n(Messages.get(Belief.class, "deadkill_success",mob.name()));
                             if (hero.buff(Talent.NoBeliefUsedCooldown.class) == null
