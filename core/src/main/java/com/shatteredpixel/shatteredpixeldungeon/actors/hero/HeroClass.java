@@ -70,6 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.SeedOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.alive.StoneOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.LunarCorona;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Showdarker;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Starlight;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Sunless;
@@ -150,6 +151,7 @@ public enum HeroClass {
 		new Showdarker().identify().collect();
 		new Sunless().identify().collect();
 		new Starlight().identify().collect();
+		new LunarCorona().identify().collect();
 
 		new SpawnMisc().collect();
 		new MobPlacer().collect();

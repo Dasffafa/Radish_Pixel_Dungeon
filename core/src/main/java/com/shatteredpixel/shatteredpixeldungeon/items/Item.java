@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
@@ -422,6 +423,21 @@ public class Item implements Bundlable {
 	//returns the level of the item, after it may have been modified by temporary boosts/reductions
 	//note that not all item properties should care about buffs/debuffs! (e.g. str requirement)
 	public int buffedLvl(){
+
+		// DoggingDog on 20250818
+		if (hero != null && hero.buff( Degrade.class ) != null
+				&& (isEquipped( hero ) || hero.belongings.contains( this )) && hero.hasTalent(Talent.GIFT)) {
+			if(hero.buff(Bless.class)!= null)
+				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
+			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,Degrade.reduceLevel(level()));
+		}
+		else if(hero.hasTalent(Talent.GIFT)){
+			if(hero.buff(Bless.class)!= null)
+				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
+			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,level());
+		}
+		//
+
 		//only the hero can be affected by Degradation
 		if (hero != null && hero.buff( Degrade.class ) != null
 				&& (isEquipped( hero ) || hero.belongings.contains( this ))) {
