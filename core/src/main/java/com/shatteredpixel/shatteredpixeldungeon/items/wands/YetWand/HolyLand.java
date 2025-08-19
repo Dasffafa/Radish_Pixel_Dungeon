@@ -53,16 +53,22 @@ public class HolyLand extends Item {
         for (int offset : pathfinder()){
             if (!Dungeon.level.solid[cell+offset]) {
                 if(Dungeon.level.passable [cell+offset]) {
-                    Level.set(cell + offset, Terrain.HOLY_LAND);
-                    GameScene.updateMap(cell);
-                    GameScene.updateMap(cell + offset);
-                    Dungeon.level.addVisuals();
+                    int targetCell = cell + offset;
+                    int terrain = Dungeon.level.map[targetCell];
+                    if (terrain != Terrain.EXIT && terrain != Terrain.ENTRANCE &&
+                            terrain != Terrain.HIGH_GRASS && terrain != Terrain.WELL) {
+                        Level.set(targetCell, Terrain.HOLY_LAND);
+                        GameScene.updateMap(cell);
+                        GameScene.updateMap(targetCell);
+                        Dungeon.level.addVisuals();
+                    }
                 }
             }
         }
         Belief creaditSkills = hero.buff(Belief.class);
         if(creaditSkills != null) creaditSkills.DownBelief(8);
     }
+
 
     private int[] pathfinder() {
         switch (Dungeon.hero.pointsInTalent(Talent.SKY_TOWER)) {
