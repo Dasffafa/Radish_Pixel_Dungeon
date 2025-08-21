@@ -75,10 +75,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ChaoticCenser;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundial;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.EyeOfNewt;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MossyClump;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.PetrifiedSeed;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.SaltCube;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
@@ -268,6 +270,8 @@ public class SpawnMisc extends TestItem {
             trList.add(ShardOfOblivion.class);
 
             trList.add(Sprouted_Potato.class);
+            trList.add(Radish.class);
+            trList.add(GoldRadish.class);
         }
 
         //Misc

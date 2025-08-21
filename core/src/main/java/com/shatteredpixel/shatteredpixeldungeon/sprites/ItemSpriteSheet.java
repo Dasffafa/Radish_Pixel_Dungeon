@@ -505,8 +505,17 @@ public class ItemSpriteSheet {
 	public static final int DISPLACING_DART = DARTS+11;
 	public static final int BLINDING_DART   = DARTS+12;
 	static {
-		for (int i = DARTS; i < DARTS+16; i++)
+		for (int i = DARTS; i < DARTS+20; i++){
 			assignItemRect(i, 15, 15);
+			if(i == DARTS+18){
+				assignItemRect(i, 14, 16);
+			}
+			if(i == DARTS+19){
+				assignItemRect(i,16,16);
+			}
+		}
+
+
 	}
 	
 	private static final int ARMOR            =                               xy(1, 12);  //16 slots
@@ -685,6 +694,10 @@ public class ItemSpriteSheet {
 	public static final int SALT_CUBE       = TRINKETS+11;
 	public static final int OBLIVION_SHARD  = TRINKETS+12;
 	public static final int CHAOTIC_CENSER  = TRINKETS+13;
+
+	public static final int RADISH 			= TRINKETS+14;
+	public static final int GOLD_RADISH 	= TRINKETS+15;
+
 	static{
 		assignItemRect(RAT_SKULL,       16, 11);
 		assignItemRect(PARCHMENT_SCRAP, 10, 14);
@@ -700,6 +713,9 @@ public class ItemSpriteSheet {
 		assignItemRect(SALT_CUBE,       12, 13);
 		assignItemRect(OBLIVION_SHARD,  7,  14);
 		assignItemRect(CHAOTIC_CENSER,  13, 15);
+
+		assignItemRect(RADISH,          12, 13);
+		assignItemRect(GOLD_RADISH,     12, 13);
 	}
 
 	private static final int SCROLLS        =                               xy(1, 19);  //16 slots

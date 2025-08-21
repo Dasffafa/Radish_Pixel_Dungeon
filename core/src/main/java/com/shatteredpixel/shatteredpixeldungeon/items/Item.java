@@ -446,6 +446,7 @@ public class Item implements Bundlable {
 			return level();
 		}
 	}
+
 	public void level( int value ){
 		level = value;
 

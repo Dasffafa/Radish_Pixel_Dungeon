@@ -165,11 +165,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
-import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
-import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seeking;
@@ -956,6 +955,11 @@ public class Hero extends Char {
 	@Override
 	public boolean act() {
 
+		Radish radish = hero.belongings.getItem(Radish.class);
+		Radish.GlobalCritChance globalCritChance = hero.buff(Radish.GlobalCritChance.class);
+		if(radish != null && globalCritChance == null){
+			Buff.affect(hero, Radish.GlobalCritChance.class);
+		}
 		//calls to dungeon.observe will also update hero's local FOV.
 		fieldOfView = Dungeon.level.heroFOV;
 

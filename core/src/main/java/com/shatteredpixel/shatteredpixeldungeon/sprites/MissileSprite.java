@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CompositeCrossbow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crossbow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ScorpionCrossbow;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WhiteKingGodSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Bolas;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.FishingSpear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.HeavyBoomerang;
@@ -109,6 +110,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 		// DoggingDog 20250121
 		ANGULAR_SPEEDS.put(StormAttackArrow.class,   0);
+		ANGULAR_SPEEDS.put(WhiteKingGodSword.class,   0);
 
 		//720 is default
 

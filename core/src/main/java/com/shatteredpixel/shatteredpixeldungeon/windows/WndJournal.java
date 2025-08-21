@@ -1007,7 +1007,7 @@ public class WndJournal extends WndTabbed {
 						if (seen) {
 							if (ShatteredPixelDungeon.scene() instanceof GameScene){
 								if (doc ==  Document.LEGENDS_STORY){
-									GameScene.show(new WndScrollTitledMessage(sprite,  doc.pageTitle(page), doc.pageBody(page), 152, Chrome.Type.GEM));
+									GameScene.show(new WndScrollTitledMessage(sprite,  doc.pageTitle(page), doc.pageBody(page), 152, Chrome.Type.TOAST_TR));
 								} else {
 									GameScene.show(new WndStory(sprite, doc.pageTitle(page), doc.pageBody(page)));
 								}

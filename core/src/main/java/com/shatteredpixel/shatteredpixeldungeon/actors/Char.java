@@ -57,10 +57,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FireImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FrostImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HalomethaneBurning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolyLowBurinng;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LifeLink;
@@ -128,7 +126,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRetributio
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfPsionicBlast;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfSirensSong;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ThirteenLeafClover;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFireblast;
@@ -145,11 +143,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Bloodblade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.GiantKiller;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LongStick;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PneumFistGloves;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Seekingspear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sickle;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WhiteKingGodSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.ShockingDart;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -566,10 +564,18 @@ public abstract class Char extends Actor {
 					}
 				}
 
+				Radish.GlobalCritChance globalCritChance = hero.buff(Radish.GlobalCritChance.class);
+
 				if (hero.hasTalent(Talent.DEATHBLOW)){
 					current_crit+=15f;
 				}
+				if(globalCritChance!=null){
+					current_crit+=globalCritChance.critChance;
+				}
 			}
+
+
+
 			if(!( buff(Calm.class)!=null || buff(CriticalAttack.class)!=null))
 				current_critdamage=Math.min(current_critdamage,critDamageCap);
 			if (this.buff(Scythe.scytheSac.class)!=null){
@@ -1206,7 +1212,7 @@ public abstract class Char extends Actor {
 					&& hero.belongings.attackingWeapon() instanceof MissileWeapon){
 				icon = FloatingText.PHYS_DMG_NO_BLOCK;
 			}
-
+			if(src  instanceof WhiteKingGodSword.OnlyOneEyeAttack) icon = FloatingText.PHYS_DMG_NO_BLOCK;
 			if (src instanceof Hunger)                                  icon = FloatingText.HUNGER;
 			if (src instanceof Burning)                                 icon = FloatingText.BURNING;
 			if (src instanceof Chill || src instanceof Frost)           icon = FloatingText.FROST;
@@ -1565,7 +1571,7 @@ public abstract class Char extends Actor {
 		return buff(Challenge.SpectatorFreeze.class) != null;
 	}
 
-	protected HashSet<Property> properties = new HashSet<>();
+	public HashSet<Property> properties = new HashSet<>();
 
 	public HashSet<Property> properties() {
 		HashSet<Property> props = new HashSet<>(properties);
@@ -1604,7 +1610,8 @@ public abstract class Char extends Actor {
 						Paralysis.class, Frost.class, Chill.class, Slow.class, Speed.class) )),
 		ELITES,
 
-		HEADLESS;
+		HEADLESS,
+		EYES;
 
 		private HashSet<Class> resistances;
 		private HashSet<Class> immunities;

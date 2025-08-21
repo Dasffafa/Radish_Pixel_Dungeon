@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CircleSword;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
@@ -416,6 +417,10 @@ public class Armor extends EquipableItem {
 	public int buffedLvl() {
 
 		if(Dungeon.hero.belongings.armor == this ) {
+			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
+			if(goldRadish != null){
+				return goldRadish.fixedLevel(goldRadish.buffedLvl());
+			}
 			if(Dungeon.hero.buff( Degrade.class ) != null){
 				return super.buffedLvl();
 			} else {

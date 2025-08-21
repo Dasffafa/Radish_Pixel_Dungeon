@@ -305,17 +305,17 @@ public enum Document {
 		HALLS_KING.pagesStates.put("thing",                     debug ? READ : NOT_FOUND);
 		HALLS_KING.pagesStates.put(KING_ATTRITION,              	debug ? READ : NOT_FOUND);
 
-//		LEGENDS_STORY.pagesStates.put("REN_vs_LVB",                 	debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("LVB_Story",                 	debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("Free_Fly",                 	debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("SkyWindows_Sword",            debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("NoSync_Enter",                debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("Body_sendSun",                debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("Cut_Future",                 	debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("ATRI",                 		debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("LvBuyOrange",                 debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("LvGold",                 		debug ? READ : NOT_FOUND);
-//		LEGENDS_STORY.pagesStates.put("Lv_Trigger",                 	debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("REN_vs_LVB",                 	debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("LVB_Story",                 	debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("Free_Fly",                 	debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("SkyWindows_Sword",            debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("NoSync_Enter",                debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("Body_sendSun",                debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("Cut_Future",                 	debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("ATRI",                 		debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("LvBuyOrange",                 debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("LvGold",                 		debug ? READ : NOT_FOUND);
+		LEGENDS_STORY.pagesStates.put("Lv_Trigger",                 	debug ? READ : NOT_FOUND);
 	}
 
 	private static final String DOCUMENTS = "documents";

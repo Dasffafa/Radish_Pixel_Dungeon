@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -230,12 +231,18 @@ public class MeleeWeapon extends Weapon {
 	public int buffedLvl() {
 
 		if(hero.belongings.weapon == this ) {
+			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
+			if(goldRadish != null){
+				return goldRadish.fixedLevel(goldRadish.buffedLvl());
+			}
 			if(Dungeon.hero.buff( Degrade.class ) != null){
 				return super.buffedLvl();
 			} else {
 				return hero.belongings.weapon.level() + RingOfKing.updateMultiplier(Dungeon.hero);
 			}
 		}
+
+
 
 		if (isEquipped( hero ) || hero.belongings.contains( this )){
 			return super.buffedLvl();

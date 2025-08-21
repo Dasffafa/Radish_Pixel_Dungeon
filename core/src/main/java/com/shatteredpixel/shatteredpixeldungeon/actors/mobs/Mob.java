@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
-import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.branch;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import static com.shatteredpixel.shatteredpixeldungeon.items.Item.updateQuickslot;
 
@@ -45,7 +44,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HalomethaneBurning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolyLowBurinng;
@@ -58,7 +56,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SoulMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -156,6 +153,8 @@ public abstract class Mob extends Char {
 	protected static final float TIME_TO_WAKE_UP = 1f;
 
 	protected boolean firstAdded = true;
+
+	public boolean eyeAttack = false;
 	protected void onAdd(){
 		if (firstAdded) {
 			//modify health for ascension challenge if applicable, only on first add
@@ -170,6 +169,8 @@ public abstract class Mob extends Char {
 	private static final String SEEN	= "seen";
 	private static final String TARGET	= "target";
 	private static final String MAX_LVL	= "max_lvl";
+
+	private static final String EYEATTACK = "eye_attack";
 
 	private static final String ENEMY_ID	= "enemy_id";
 	private static final String ONLY_ACTDOWN = "only_actdown";
@@ -204,6 +205,7 @@ public abstract class Mob extends Char {
 		bundle.put( SEEN, enemySeen );
 		bundle.put( TARGET, target );
 		bundle.put( MAX_LVL, maxLvl );
+		bundle.put(EYEATTACK, eyeAttack);
 
 		if (enemy != null) {
 			bundle.put(ENEMY_ID, enemy.id() );
@@ -245,6 +247,8 @@ public abstract class Mob extends Char {
 			onlyActDown = bundle.getBoolean(ONLY_ACTDOWN);
 		}
 
+
+		eyeAttack = bundle.getBoolean(EYEATTACK);
 		//no need to actually save this, must be false
 		firstAdded = false;
 	}

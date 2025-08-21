@@ -21,8 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnhancedRings;
@@ -33,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemStatusHandler;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindofMisc;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
@@ -165,7 +167,7 @@ public class Ring extends KindofMisc {
 				handler.know(this);
 			}
 
-			if (Dungeon.hero.isAlive()) {
+			if (hero.isAlive()) {
 				Catalog.setSeen(getClass());
 			}
 		}
@@ -204,7 +206,7 @@ public class Ring extends KindofMisc {
 			desc = super.info();
 		}
 
-		if (cursed && isEquipped(Dungeon.hero)) {
+		if (cursed && isEquipped(hero)) {
 			desc += "\n\n" + Messages.get(Ring.class, "cursed_worn");
 
 		} else if (cursed && cursedKnown) {
@@ -343,8 +345,14 @@ public class Ring extends KindofMisc {
 	@Override
 	public int buffedLvl() {
 		int lvl = super.buffedLvl();
-		if (Dungeon.hero.buff(EnhancedRings.class) != null) {
+		if (hero.buff(EnhancedRings.class) != null) {
 			lvl++;
+		}
+		if(hero.belongings.misc == this || hero.belongings.ring == this){
+			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
+			if(goldRadish != null){
+				return goldRadish.fixedLevel(goldRadish.buffedLvl());
+			}
 		}
 		return lvl;
 	}
@@ -417,7 +425,7 @@ public class Ring extends KindofMisc {
 		public boolean attachTo(Char target) {
 			if (super.attachTo(target)) {
 				// if we're loading in and the hero has partially spent a turn, delay for 1 turn
-				if (target instanceof Hero && Dungeon.hero == null && cooldown() == 0 && target.cooldown() > 0) {
+				if (target instanceof Hero && hero == null && cooldown() == 0 && target.cooldown() > 0) {
 					spend(TICK);
 				}
 				return true;

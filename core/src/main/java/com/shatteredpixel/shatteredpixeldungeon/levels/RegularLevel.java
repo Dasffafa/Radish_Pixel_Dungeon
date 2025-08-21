@@ -648,56 +648,56 @@ public abstract class RegularLevel extends Level {
 		Random.popGenerator();
 
 		Random.pushGenerator( Random.Long() );
-//		Document regionDoc_LS = null;
+		Document regionDoc_LS = null;
 
-//		if (Dungeon.depth != 26 && !Dungeon.bossLevel()) {
-//			regionDoc_LS = Document.LEGENDS_STORY;
-//		}
-//
-//		if (regionDoc_LS != null && !regionDoc_LS.allPagesFound()) {
-//
-//			Dungeon.LimitedDrops limit = limitedDocs.get(regionDoc_LS);
-//
-//			if (limit == null || !limit.dropped()) {
-//
-//				float totalPages = 0;
-//				float pagesFound = 0;
-//				String pageToDrop = null;
-//
-//				// 对 `Document.LengStory` 进行特殊处理，假设该文档总共有 11 本书
-//				for (String page : regionDoc_LS.pageNames()) {
-//					totalPages++;
-//					if (!regionDoc_LS.isPageFound(page)) {
-//						if (pageToDrop == null) {
-//							pageToDrop = page;
-//						}
-//					} else {
-//						pagesFound++;
-//					}
-//				}
-//
-//				float percentComplete = pagesFound / totalPages;
-//				int region = 1+(Dungeon.depth-1)/5;
-//				// 对于 `Document.LengStory`，目标楼层的计算可以基于进度调整
-//				int targetFloor = 5 * (region - 1) + 1;
-//				targetFloor += Math.round(3 * percentComplete);
-//
-//				// 针对 `Document.LengStory`，确保不在 Boss 层或第 26 层掉落
-//				if (Dungeon.depth >= targetFloor && Dungeon.depth != 26 && !Dungeon.bossLevel()) {
-//					DocumentPage page = RegionLorePage.pageForDoc(regionDoc_LS);
-//					page.page(pageToDrop);
-//					int cell = randomDropCell();
-//					if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
-//						map[cell] = Terrain.GRASS;
-//						losBlocking[cell] = false;
-//					}
-//					drop(page, cell);
-//					if (limit != null) limit.drop();
-//				}
-//
-//			}
-//		}
-//		Random.popGenerator();
+		if (Dungeon.depth != 26 && !Dungeon.bossLevel()) {
+			regionDoc_LS = Document.LEGENDS_STORY;
+		}
+
+		if (regionDoc_LS != null && !regionDoc_LS.allPagesFound()) {
+
+			Dungeon.LimitedDrops limit = limitedDocs.get(regionDoc_LS);
+
+			if (limit == null || !limit.dropped()) {
+
+				float totalPages = 0;
+				float pagesFound = 0;
+				String pageToDrop = null;
+
+				// 对 `Document.LengStory` 进行特殊处理，假设该文档总共有 11 本书
+				for (String page : regionDoc_LS.pageNames()) {
+					totalPages++;
+					if (!regionDoc_LS.isPageFound(page)) {
+						if (pageToDrop == null) {
+							pageToDrop = page;
+						}
+					} else {
+						pagesFound++;
+					}
+				}
+
+				float percentComplete = pagesFound / totalPages;
+				int region = 1+(Dungeon.depth-1)/5;
+				// 对于 `Document.LengStory`，目标楼层的计算可以基于进度调整
+				int targetFloor = 5 * (region - 1) + 1;
+				targetFloor += Math.round(3 * percentComplete);
+
+				// 针对 `Document.LengStory`，确保不在 Boss 层或第 26 层掉落
+				if (Dungeon.depth >= targetFloor && Dungeon.depth != 26 && !Dungeon.bossLevel()) {
+					DocumentPage page = RegionLorePage.pageForDoc(regionDoc_LS);
+					page.page(pageToDrop);
+					int cell = randomDropCell();
+					if (map[cell] == Terrain.HIGH_GRASS || map[cell] == Terrain.FURROWED_GRASS) {
+						map[cell] = Terrain.GRASS;
+						losBlocking[cell] = false;
+					}
+					drop(page, cell);
+					if (limit != null) limit.drop();
+				}
+
+			}
+		}
+		Random.popGenerator();
 
 		//ebony mimics >:)
 		Random.pushGenerator(Random.Long());

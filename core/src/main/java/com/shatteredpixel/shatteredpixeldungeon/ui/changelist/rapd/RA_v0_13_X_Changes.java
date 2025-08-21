@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.KingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.GiantWormSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RatKingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ZikkSprite;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v06_3_Changes(changeInfos);
         add_v06_2_Changes(changeInfos);
         add_v06_1_Changes(changeInfos);
         add_v06_0_Changes(changeInfos);
@@ -45,6 +47,56 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v06_3_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.6.3", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS+18)), "新武器：暗影之刃",
+                "二阶，力量需求12\n" +
+                        "初始2-12，成长1-2，精准1.2\n" +
+                        "视野内的每位敌人都会为这把武器提供20%+5%*等级的攻击速度。\n" +
+                        "敌人越多，这把剑的思绪也就越多。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS+19)), "新武器：白帝圣剑",
+                "三阶，力量需求14\n" +
+                        "初始3-16，成长2-3\n" +
+                        "在每位敌人首次出现在你视野中时，立刻对其造成一次相当于攻击力60%+10%*等级的伤害。\n" +
+                        "御剑跟着我！"));
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 5), ("牧师恶魔天赋实装"),
+                (       "除执行者恶魔天赋尚未完成，其他均已实装。")));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.RADISH)), "新饰品：萝卜",
+                "一株不应该在炼金锅里存在的蔬菜，似乎是整个地牢的精神象征，冥冥之中有人这么告诉你。\n" +
+                        "萝卜地牢怎么能没有萝卜呢？\n" +
+                        "在当前等级下，这件饰物会为你提供5%/10%/15%/20%的全局暴击率。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.GOLD_RADISH)), "新饰品：黄金萝卜",
+                "这枚神秘纪念品闪烁着灿金色的光辉，并非暗金那种货色可比。你一定是把探索的运气全用到这上面了才能获得它。\n" +
+                        "这件饰品的获取概率是其他饰品的1/10\n" +
+                        "在当前等级下，这件饰物会使你所装备的非神器非传承装备等级固定为+1/+2/+3/+4。"));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复执行者的经验灌注天赋没有触发\n" +
+                        "_-_ 修复战斗牧师的物理祈祷天赋有问题，投掷武器和复合弩的射击都能触发\n" +
+                        "_-_ 修复圣地会把上下楼梯覆盖掉")));
+
+        changes.addButton( new ChangeButton((new Image(new KingSprite())), "矮人国王调整",
+                "如通过牧师击败矮人国王，直接掉落强化天赋书。\n\n牧师护甲技能还未完成，所以先用着恶魔4阶强化天赋。"));
+
+        changes.addButton( new ChangeButton(new ItemSprite(ItemSpriteSheet.LENGDS_PAGE), "育言故事回归",
+                "育言故事回归，在探索地牢时阅读一些睡前小故事！"));
     }
 
     public static void add_v06_2_Changes( ArrayList<ChangeInfo> changeInfos ) {
