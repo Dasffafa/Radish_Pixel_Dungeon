@@ -33,7 +33,7 @@ public class RegionLorePage {
 			case CAVES_EXPLORER:            return new RegionLorePage.Caves();
 			case CITY_WARLOCK:              return new RegionLorePage.City();
 			case HALLS_KING:                return new RegionLorePage.Halls();
-//			case LEGENDS_STORY:                return new RegionLorePage.LengStory();
+			case LEGENDS_STORY:                return new RegionLorePage.LengStory();
 		}
 	}
 

@@ -737,6 +737,7 @@ public abstract class RegularLevel extends Level {
 		limitedDocs.put(Document.CAVES_EXPLORER, Dungeon.LimitedDrops.LORE_CAVES);
 		limitedDocs.put(Document.CITY_WARLOCK, Dungeon.LimitedDrops.LORE_CITY);
 		limitedDocs.put(Document.HALLS_KING, Dungeon.LimitedDrops.LORE_HALLS);
+		limitedDocs.put(Document.LEGENDS_STORY, Dungeon.LimitedDrops.LORE_STORS);
 	}
 	
 	public ArrayList<Room> rooms() {
