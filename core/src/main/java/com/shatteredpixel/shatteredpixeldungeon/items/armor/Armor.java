@@ -6,6 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
@@ -415,6 +416,20 @@ public class Armor extends EquipableItem {
 	//other things can equip these, for now we assume only the hero can be affected by levelling debuffs
 	@Override
 	public int buffedLvl() {
+
+		// DoggingDog on 20250826
+		if (hero != null && hero.buff( Degrade.class ) != null
+				&& (isEquipped( hero ) || hero.belongings.contains( this )) && hero.hasTalent(Talent.GIFT)) {
+			if(hero.buff(Bless.class)!= null)
+				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level())) + RingOfKing.updateMultiplier(Dungeon.hero);
+			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,Degrade.reduceLevel(level())) + RingOfKing.updateMultiplier(Dungeon.hero);
+		}
+		else if(hero.hasTalent(Talent.GIFT)){
+			if(hero.buff(Bless.class)!= null)
+				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,level()) + RingOfKing.updateMultiplier(Dungeon.hero);
+			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,level());
+		}
+		//
 
 		if(Dungeon.hero.belongings.armor == this ) {
 			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
