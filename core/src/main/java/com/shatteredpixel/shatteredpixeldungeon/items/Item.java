@@ -424,19 +424,19 @@ public class Item implements Bundlable {
 	//note that not all item properties should care about buffs/debuffs! (e.g. str requirement)
 	public int buffedLvl(){
 
-		// DoggingDog on 20250818
-		if (hero != null && hero.buff( Degrade.class ) != null
-				&& (isEquipped( hero ) || hero.belongings.contains( this )) && hero.hasTalent(Talent.GIFT)) {
-			if(hero.buff(Bless.class)!= null)
-				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
-			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,Degrade.reduceLevel(level()));
-		}
-		else if(hero.hasTalent(Talent.GIFT)){
-			if(hero.buff(Bless.class)!= null)
-				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
-			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,level());
-		}
-		//
+//		// DoggingDog on 20250818
+//		if (hero != null && hero.buff( Degrade.class ) != null
+//				&& (isEquipped( hero ) || hero.belongings.contains( this )) && hero.hasTalent(Talent.GIFT)) {
+//			if(hero.buff(Bless.class)!= null)
+//				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
+//			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,Degrade.reduceLevel(level()));
+//		}
+//		else if(hero.hasTalent(Talent.GIFT)){
+//			if(hero.buff(Bless.class)!= null)
+//				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
+//			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,level());
+//		}
+//		//
 
 		//only the hero can be affected by Degradation
 		if (hero != null && hero.buff( Degrade.class ) != null

@@ -23,6 +23,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -36,9 +37,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.BoneClaw;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.NecromancerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.ClusteredSkeletonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -314,6 +318,16 @@ public class ClusteredSkeleton extends Mob {
                     heroKilled = true;
                 }
             }
+            // DoggingDog on 20250826
+            if(Dungeon.level.map[pos + PathFinder.NEIGHBOURS8[i]] != Terrain.EMPTY){
+                if(Random.Int(0,3)<2){
+                    Necromancer.NecroSkeleton mySkeleton = new Necromancer.NecroSkeleton();
+                    mySkeleton.pos = pos + PathFinder.NEIGHBOURS8[i];
+                    GameScene.add( mySkeleton );
+                    Dungeon.level.occupyCell( mySkeleton );
+                }
+            }
+            //
         }
 
         if (Dungeon.level.heroFOV[pos]) {
