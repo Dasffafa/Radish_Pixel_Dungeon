@@ -1,4 +1,4 @@
-package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem;
+package com.shatteredpixel.shatteredpixeldungeon.items.legacyItem;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -6,7 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
-import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 

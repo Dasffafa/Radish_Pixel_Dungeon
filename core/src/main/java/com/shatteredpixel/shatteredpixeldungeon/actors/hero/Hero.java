@@ -143,7 +143,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.IronKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.Key;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.SkeletonKey;
-import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.Showdarker;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.InversionBeta;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Showdarker;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
@@ -350,6 +351,12 @@ public class Hero extends Char {
 		if (boostHP){
 			HP += Math.max(HT - curHT, 0);
 		}
+
+		// DoggingDog on 20250914
+		if(belongings.misc instanceof InversionBeta || belongings.ring instanceof InversionBeta){
+			HT = InversionBeta.betaHP(this);
+		}
+
 		HP = Math.min(HP, HT);
 	}
 
@@ -754,6 +761,11 @@ public class Hero extends Char {
 				wepDr -= 2*(((Weapon)belongings.weapon()).STRReq() - STR());
 			}
 			if (wepDr > 0) dr += wepDr;
+		}
+
+		// DoggingDog on 20250914
+		if(belongings.ring instanceof InversionBeta || belongings.misc instanceof InversionBeta){
+			dr = InversionBeta.betaDR(this);
 		}
 
 		return dr;

@@ -1,4 +1,4 @@
-package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem;
+package com.shatteredpixel.shatteredpixeldungeon.items.legacyItem;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;

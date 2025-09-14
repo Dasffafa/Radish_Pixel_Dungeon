@@ -1,6 +1,6 @@
-package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem;
+package com.shatteredpixel.shatteredpixeldungeon.items.legacyItem;
 
-import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemRing;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.utils.LegacyItemRing;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;

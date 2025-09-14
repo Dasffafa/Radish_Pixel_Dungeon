@@ -10,7 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Pasty;
-import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.AntiqueKatana;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.AntiqueKatana;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.AlchemicalCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfFrost;

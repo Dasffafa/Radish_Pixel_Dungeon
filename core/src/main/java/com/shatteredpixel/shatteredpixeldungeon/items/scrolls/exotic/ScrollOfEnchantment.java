@@ -32,7 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
-import com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils.LegacyItemWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.utils.LegacyItemWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.InventoryScroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
