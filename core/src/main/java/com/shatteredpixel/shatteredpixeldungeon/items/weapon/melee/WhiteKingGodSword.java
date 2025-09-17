@@ -3,12 +3,16 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
-import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.particles.Emitter;
+import com.watabou.utils.Callback;
 
 public class WhiteKingGodSword extends MeleeWeapon {
 
@@ -24,6 +28,10 @@ public class WhiteKingGodSword extends MeleeWeapon {
 
     @Override
     public boolean doEquip(Hero hero) {
+        if(hero.belongings.weapon instanceof WhiteKingGodSword){
+            GLog.n(Messages.get(this, "already_wielding"));
+            return false;
+        }
         Buff.affect(hero, OnlyOneEyeAttack.class);
         return super.doEquip(hero);
     }
@@ -46,39 +54,51 @@ public class WhiteKingGodSword extends MeleeWeapon {
         }
 
         @Override
-        public int icon() {
-            return BuffIndicator.NONE;
-        }
-
-        @Override
         public boolean act() {
-            for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
-                if(Dungeon.level.heroFOV[mob.pos] && mob.alignment == Char.Alignment.ENEMY){
-                    if (!mob.eyeAttack) {
-                        WhiteKingGodSword weapon = Dungeon.hero.belongings.weapon instanceof WhiteKingGodSword ?
-                                (WhiteKingGodSword)Dungeon.hero.belongings.weapon : null;
-                        if (weapon != null) {
-                            int damage = Math.round(weapon.damageRoll(Dungeon.hero) * (0.6f + 0.1f * weapon.level()));
-                            ((MissileSprite)target.sprite.parent.recycle( MissileSprite.class )).
-                                    reset( target.pos, mob.pos, new WhiteKingGodSword(), () -> mob.damage(damage, this));
-                        }
-                        mob.eyeAttack = true;
-                    }
+            for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+                if (Dungeon.level.heroFOV[mob.pos] && mob.alignment == Char.Alignment.ENEMY && !mob.eyeAttack) {
+                    if (Dungeon.hero.belongings.weapon instanceof WhiteKingGodSword) {
+                        WhiteKingGodSword weapon = (WhiteKingGodSword) Dungeon.hero.belongings.weapon;
+                        int vault_damage = (int) (weapon.damageRoll(Dungeon.hero) * 0.6f);
 
+                        int damage = Math.round(vault_damage * (weapon.augment == Augment.DAMAGE ? 1.5f : (weapon.augment == Augment.SPEED ? 0.7f : 1f)) + 0.1f * weapon.level());
+
+                        Buff.affect(mob, Paralysis.class, 100f);
+                        ((MissileSprite)target.sprite.parent.recycle( MissileSprite.class )).resetFromAbove(mob,mob.pos, new WKNOR(), new Callback() {
+                            @Override
+                            public void call() {
+                                mob.damage(damage, this);
+                                Buff.detach( mob, Paralysis.class);
+                            }
+                        });
+                    }
+                    mob.eyeAttack = true;
                 }
             }
             spend(TICK);
             return true;
         }
+
     }
 
 
     public String desc() {
-        String s = super.desc();
-        int min = Math.round(min() * (0.6f + 0.1f * level()));
-        int max = Math.round(max() * (0.6f + 0.1f * level()));
+        String s;
+        int min = Math.round(((min() * 0.6f) * (augment == Augment.DAMAGE ? 1.5f : (augment == Augment.SPEED ? 0.7f : 1f))) + 0.1f * level());
+        int max = Math.round(((max() * 0.6f) * (augment == Augment.DAMAGE ? 1.5f : (augment == Augment.SPEED ? 0.7f : 1f))) + 0.1f * level());
         s = Messages.get(this, "desc", min,max);
         return s;
+    }
+
+    public static class WKNOR extends WhiteKingGodSword{
+        @Override
+        public Emitter emitter() {
+            Emitter e = new Emitter();
+            e.pos(0, 10);
+            e.fillTarget = false;
+            e.pour(MagicMissile.MagicParticle.ATTRACTING, 0.05f);
+            return e;
+        }
     }
 
 }
