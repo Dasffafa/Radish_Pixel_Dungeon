@@ -417,25 +417,22 @@ public class Armor extends EquipableItem {
 	@Override
 	public int buffedLvl() {
 
-		// DoggingDog on 20250826
-		if (hero != null && hero.buff( Degrade.class ) != null
-				&& (isEquipped( hero ) || hero.belongings.contains( this )) && hero.hasTalent(Talent.GIFT)) {
-			if(hero.buff(Bless.class)!= null)
-				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level())) + RingOfKing.updateMultiplier(Dungeon.hero);
-			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,Degrade.reduceLevel(level())) + RingOfKing.updateMultiplier(Dungeon.hero);
-		}
-		else if(hero.hasTalent(Talent.GIFT)){
-			if(hero.buff(Bless.class)!= null)
-				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,level()) + RingOfKing.updateMultiplier(Dungeon.hero);
-			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,level());
-		}
-		//
-
-		if(Dungeon.hero.belongings.armor == this ) {
+		if(hero != null && Dungeon.hero.belongings.armor == this ) {
 			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
 			if(goldRadish != null){
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
 			}
+
+			if( hero.pointsInTalent(Talent.GIFT) > 0){
+				int giftUpgrade  = hero.pointsInTalent(Talent.GIFT) == 0 ? 0 : Math.max(hero.pointsInTalent(Talent.GIFT)+1, super.buffedLvl());
+				int blessUpgrade = hero.pointsInTalent(Talent.GIFT) == 0 ? 0 : Math.max(hero.pointsInTalent(Talent.GIFT)+3, super.buffedLvl());
+				if(hero.buff(Bless.class)!= null) {
+					return hero.belongings.armor.level() + RingOfKing.updateMultiplier(Dungeon.hero) + blessUpgrade;
+				}
+				return hero.belongings.armor.level() + RingOfKing.updateMultiplier(Dungeon.hero) + giftUpgrade;
+			}
+
+
 			if(Dungeon.hero.buff( Degrade.class ) != null){
 				return super.buffedLvl();
 			} else {
@@ -443,7 +440,7 @@ public class Armor extends EquipableItem {
 			}
 		}
 
-		if (isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this )){
+		if (hero != null && isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this )){
 			return super.buffedLvl();
 		} else {
 			return level();

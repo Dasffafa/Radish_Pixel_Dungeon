@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
@@ -235,6 +236,16 @@ public class MeleeWeapon extends Weapon {
 			if(goldRadish != null){
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
 			}
+
+			if( hero.pointsInTalent(Talent.GIFT) > 0){
+				int giftUpgrade  = hero.pointsInTalent(Talent.GIFT) == 0 ? 0 : Math.max(hero.pointsInTalent(Talent.GIFT)+1, super.buffedLvl());
+				int blessUpgrade = hero.pointsInTalent(Talent.GIFT) == 0 ? 0 : Math.max(hero.pointsInTalent(Talent.GIFT)+3, super.buffedLvl());
+				if(hero.buff(Bless.class)!= null) {
+					return hero.belongings.weapon.level() + RingOfKing.updateMultiplier(Dungeon.hero) + blessUpgrade;
+				}
+				return hero.belongings.weapon.level() + RingOfKing.updateMultiplier(Dungeon.hero) + giftUpgrade;
+			}
+
 			if(Dungeon.hero.buff( Degrade.class ) != null){
 				return super.buffedLvl();
 			} else {
