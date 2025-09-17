@@ -651,8 +651,6 @@ public abstract class Char extends Actor {
 				enemy.buff(Viscosity.ViscosityTracker.class).detach();
 			}
 
-
-
 			if ( enemy.buff( Vulnerable.class ) != null){
 				effectiveDamage *= 1.33f;
 			}

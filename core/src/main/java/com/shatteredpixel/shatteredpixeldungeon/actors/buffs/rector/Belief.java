@@ -12,7 +12,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
@@ -21,7 +20,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
@@ -172,10 +170,10 @@ public class Belief extends Buff implements ActionIndicator.Action {
             case LIGHTIMUEE:
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     int originStamina = 10 + Dungeon.depth/5 - 1;
-                    int originVitae = Dungeon.depth/5*8;
+                    int originVitae = Dungeon.depth/5*8 + 8;
 
-                    int originVitaePlus = Dungeon.depth/5 * 12;
-                    int adrenaline =  Dungeon.depth/5 * 4 - 1;
+                    int originVitaePlus = Dungeon.depth/5 * 12 + 8;
+                    int adrenaline =  Dungeon.depth/5 * 4 - 1 ;
 
                     if(hero.subClass == HeroSubClass.BATTLEPREIST){
                         Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitaePlus * 1.5f));
@@ -465,9 +463,11 @@ public class Belief extends Buff implements ActionIndicator.Action {
      * @param value 信仰值
      */
     public void DownBelief(float value) {
-        credibility -= (float) (Math.floor(value * 100) / 100);
-        hero.sprite.showStatus(Window.RADISH, "-" + value);
+        float actualValue = (float) (Math.floor(value * 100) / 100);
+        credibility = Math.max(0, credibility - actualValue);
+        hero.sprite.showStatus(Window.RADISH, "-" + actualValue);
     }
+
 
     @Override
     public String iconTextDisplay() {
