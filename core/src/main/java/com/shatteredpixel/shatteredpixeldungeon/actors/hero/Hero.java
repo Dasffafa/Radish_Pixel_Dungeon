@@ -1771,11 +1771,6 @@ public class Hero extends Char {
 			default:
 		}
 
-		if (damage > 0 && subClass == HeroSubClass.BERSERKER){
-			Berserk berserk = Buff.affect(this, Berserk.class);
-			berserk.damage(damage);
-		}
-
 		return damage;
 	}
 
@@ -1788,7 +1783,10 @@ public class Hero extends Char {
 
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
-
+		if (damage > 0 && subClass == HeroSubClass.BERSERKER){
+			Berserk berserk = Buff.affect(this, Berserk.class);
+			berserk.damage(damage);
+		}
 		if (belongings.armor() != null) {
 			damage = belongings.armor().proc( enemy, this, damage );
 		}
@@ -1801,23 +1799,6 @@ public class Hero extends Char {
 		WandOfLivingEarth.RockArmor rockArmor = buff(WandOfLivingEarth.RockArmor.class);
 		if (rockArmor != null) {
 			damage = rockArmor.absorb(damage);
-		}
-
-		if(damage >= 10){
-			switch (hero.pointsInTalent(Talent.BEN_WORK)) {
-				case 1:
-					SlowHealDamage((int) (damage * 0.4f));
-					Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 50f);
-				break;
-				case 2:
-					SlowHealDamage((int) (damage * 0.6f));
-					Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 40f);
-				break;
-				case 3:
-					SlowHealDamage((int) (damage * 0.8f));
-					Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 30f);
-				break;
-			}
 		}
 
 		return super.defenseProc( enemy, damage );
@@ -1836,6 +1817,26 @@ public class Hero extends Char {
 		if (hero.pointsInTalent(Talent.MEDART_SPECIALIST) >= 4 ) {
 			if(hero.belongings.thrownWeapon instanceof TippedDart){
 				dmg = dmg*2;
+			}
+		}
+
+		if (dmg >= 10) {
+			switch (hero.pointsInTalent(Talent.BEN_WORK)) {
+				case 1:
+					SlowHealDamage((int) (dmg * 0.5f));
+					if (hero.buff(Talent.SlowHealingDeadCooldown.class) == null)
+						Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 50f);
+					break;
+				case 2:
+					SlowHealDamage((int) (dmg * 0.7f));
+					if (hero.buff(Talent.SlowHealingDeadCooldown.class) == null)
+						Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 40f);
+					break;
+				case 3:
+					SlowHealDamage((int) (dmg * 0.9f));
+					if (hero.buff(Talent.SlowHealingDeadCooldown.class) == null)
+						Buff.affect(hero, Talent.SlowHealingDeadCooldown.class, 30f);
+					break;
 			}
 		}
 

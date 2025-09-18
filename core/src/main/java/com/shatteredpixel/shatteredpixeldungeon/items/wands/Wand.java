@@ -903,7 +903,7 @@ public abstract class Wand extends Item {
 			// 星界沟通(superstition) by doggingdog on 20250817
 			if( hero.hasTalent(Talent.SUPERSTITION) && hero != null){
 				int lv = hero.pointsInTalent(Talent.SUPERSTITION);
-				turnsToCharge *= (1f-0.15f*lv);
+				turnsToCharge *= (1f-(0.15f*lv));
 			}
 			//
 

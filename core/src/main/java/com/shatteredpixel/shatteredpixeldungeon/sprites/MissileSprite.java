@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.StormAttackArrow;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -54,9 +55,9 @@ import java.util.HashMap;
 public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 	private static final float SPEED	= 240f;
-	
+
 	private Callback callback;
-	
+
 	public void reset( int from, int to, Item item, Callback listener ) {
 		reset(Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
 				Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
@@ -67,6 +68,33 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		reset(from.center(),
 				Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
 				item, listener );
+	}
+
+	// 新增方法：从怪物头上掉下来且瞬发执行的特效
+	public void resetFromAbove(Char ch, int targetPos, Item item, Callback listener) {
+		revive();
+
+		if (item == null)   view(0, null);
+		else                view(item);
+		PointF from = new PointF(0, 0);
+		// 目标位置保持不变
+		PointF to = DungeonTilemap.raisedTileCenterToWorld(targetPos);
+		from.x =  0;
+		from.y -= 0;
+		to.x -= ch.sprite.width-10;
+		to.y -= ch.sprite.height;
+
+		this.callback = listener;
+		point(from);
+
+		angle = 90;
+		flipHorizontal = false;
+		updateFrame();
+
+		angularSpeed = 0;
+		PosTweener tweener = new PosTweener(this, to, 1f);
+		tweener.listener = this;
+		parent.add(tweener);
 	}
 
 	public void reset( int from, Visual to, Item item, Callback listener ) {

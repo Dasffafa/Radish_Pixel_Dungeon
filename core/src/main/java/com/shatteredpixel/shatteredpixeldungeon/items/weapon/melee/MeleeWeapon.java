@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
@@ -235,6 +236,26 @@ public class MeleeWeapon extends Weapon {
 			if(goldRadish != null){
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
 			}
+
+			if (hero.pointsInTalent(Talent.GIFT) > 0) {
+				// 获取天赋等级（1-4）
+				int giftLevel = hero.pointsInTalent(Talent.GIFT);
+
+				// 根据天赋等级计算基础要求的最小等级（+1对应2，+2对应3，以此类推）
+				int baseRequiredLevel = giftLevel + 1;
+
+				// 计算基础值：取当前基础等级和要求的最小等级中的较大值
+				int baseValue = Math.max(super.buffedLvl(), baseRequiredLevel);
+
+				// 计算最终值：基础值加上戒指加成，如果有祝福则额外+2
+				int finalValue = baseValue + RingOfKing.updateMultiplier(Dungeon.hero);
+				if (hero.buff(Bless.class) != null) {
+					finalValue += 2;
+				}
+
+				return finalValue;
+			}
+
 			if(Dungeon.hero.buff( Degrade.class ) != null){
 				return super.buffedLvl();
 			} else {

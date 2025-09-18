@@ -26,6 +26,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v06_4_Changes(changeInfos);
         add_v06_3_Changes(changeInfos);
         add_v06_2_Changes(changeInfos);
         add_v06_1_Changes(changeInfos);
@@ -47,6 +48,36 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v06_4_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.6.4", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS+19)), "新武器：白帝圣剑",
+                "三阶，力量需求14\n" +
+                        "初始3-16，成长2-3\n" +
+                        "在每位敌人首次出现在你视野中时，立刻对其造成一次相当于攻击力60%+10%*等级的伤害。\n" +
+                        "御剑跟着我！\n\n现在可以被磨重或减轻效果影响。"));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复星界沟通和神赐之礼生效异常问题\n" +
+                        "_-_ 修复复仇怒号未正确显示的问题\n" +
+                        "_-_ 修复战斗牧师的极效疗愈会在处于冷却时错误的触发并增加冷却时间，并且会被护甲格挡的零伤害触发\n" +
+                        "_-_ 现在治疗飞镖和治疗炸弹会被挑战-【伤痛难愈】-的1/5效率影响\n" +
+                        "_-_ 修复光能灌注给的临时生命值少了八点")));
+
+        changes.addButton( new ChangeButton(new ItemSprite(ItemSpriteSheet.LENGDS_PAGE), "育言故事正式回归",
+                "育言故事回归，在探索地牢时阅读一些睡前小故事！"));
     }
 
     public static void add_v06_3_Changes( ArrayList<ChangeInfo> changeInfos ) {

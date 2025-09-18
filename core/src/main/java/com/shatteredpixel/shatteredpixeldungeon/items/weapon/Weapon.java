@@ -27,8 +27,6 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -321,29 +319,6 @@ abstract public class Weapon extends KindOfWeapon {
 	//overrides as other things can equip these
 	@Override
 	public int buffedLvl() {
-
-		// DoggingDog on 20250826
-		if (hero != null && hero.buff( Degrade.class ) != null
-				&& (isEquipped( hero ) || hero.belongings.contains( this )) && hero.hasTalent(Talent.GIFT)) {
-			if(hero.buff(Bless.class)!= null)
-				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level())) + RingOfKing.updateMultiplier(Dungeon.hero);
-			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,Degrade.reduceLevel(level())) + RingOfKing.updateMultiplier(Dungeon.hero);
-		}
-		else if(hero.hasTalent(Talent.GIFT)){
-			if(hero.buff(Bless.class)!= null)
-				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,level()) + RingOfKing.updateMultiplier(Dungeon.hero);
-			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,level());
-		}
-		//
-
-		if(hero.belongings.weapon == this ) {
-			if(Dungeon.hero.buff( Degrade.class ) != null){
-				return super.buffedLvl();
-			} else {
-				return hero.belongings.weapon.level() + RingOfKing.updateMultiplier(Dungeon.hero);
-			}
-		}
-
 		if (isEquipped( hero ) || hero.belongings.contains( this )){
 			return super.buffedLvl();
 		} else {
