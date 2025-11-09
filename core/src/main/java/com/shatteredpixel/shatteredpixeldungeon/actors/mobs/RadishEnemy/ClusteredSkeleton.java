@@ -320,12 +320,24 @@ public class ClusteredSkeleton extends Mob {
             }
             // DoggingDog on 20250826
             if(Dungeon.level.map[pos + PathFinder.NEIGHBOURS8[i]] != Terrain.EMPTY){
-                if(Random.Int(0,3)<2){
-                    Necromancer.NecroSkeleton mySkeleton = new Necromancer.NecroSkeleton();
-                    mySkeleton.pos = pos + PathFinder.NEIGHBOURS8[i];
-                    GameScene.add( mySkeleton );
-                    Dungeon.level.occupyCell( mySkeleton );
+                // DoggingDog fix on 20251011
+                boolean canGen = Terrain.flags[Dungeon.level.map[pos + PathFinder.NEIGHBOURS8[i]]] == Terrain.PASSABLE;
+                if(canGen){
+                    if(Random.Int(0,3)<2){
+                        Necromancer.NecroSkeleton mySkeleton = new Necromancer.NecroSkeleton();
+                        mySkeleton.pos = pos + PathFinder.NEIGHBOURS8[i];
+                        GameScene.add( mySkeleton );
+                        Dungeon.level.occupyCell( mySkeleton );
+                    }
                 }
+
+//                if(Random.Int(0,3)<2){
+//                    Necromancer.NecroSkeleton mySkeleton = new Necromancer.NecroSkeleton();
+//                    mySkeleton.pos = pos + PathFinder.NEIGHBOURS8[i];
+//                    GameScene.add( mySkeleton );
+//                    Dungeon.level.occupyCell( mySkeleton );
+//                }
+
             }
             //
         }

@@ -235,6 +235,11 @@ public enum Talent {
 	// T4 DEAD DIFE
 	PRESS_ON(390,4),BRIEF_HARVEST(391,4),
 
+	// T4 rector
+	// last prayer
+	// 高效回复	借力疾驰	  圣灵赐福
+	EFFICIENT_HEALING(394,4), INERTIAL_CHARGE(395,4),BLESS_RETURN(396,4),
+
 	ERROR(294,4);
 
 
