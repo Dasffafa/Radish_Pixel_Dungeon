@@ -1,4 +1,4 @@
-package com.shatteredpixel.shatteredpixeldungeon.items.lagacyItem.utils;
+package com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.utils;
 
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 
