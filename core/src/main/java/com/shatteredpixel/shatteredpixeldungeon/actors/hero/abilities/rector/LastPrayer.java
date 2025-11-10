@@ -1,9 +1,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector;
 
+import static com.shatteredpixel.shatteredpixeldungeon.items.Item.curUser;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AnkhInvulnerability;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
@@ -32,6 +35,10 @@ public class LastPrayer extends ArmorAbility {
 
     @Override
     protected void activate(ClassArmor armor, Hero hero, Integer target) {
+
+        // reg to store hp remain
+        int HpRemain = hero.HP - 1;
+
         // set Hp to 1
         hero.HP = 1;
 
@@ -96,6 +103,11 @@ public class LastPrayer extends ArmorAbility {
         // set haste
         if(hero.hasTalent(Talent.INERTIAL_CHARGE)){
             Buff.prolong(Dungeon.hero, Haste.class, 2f + Dungeon.hero.pointsInTalent(Talent.INERTIAL_CHARGE));
+        }
+
+        // set bless
+        if(hero.hasTalent(Talent.BLESS_RETURN)){
+            Buff.prolong( hero, Bless.class, (hero.pointsInTalent(Talent.BLESS_RETURN) * 0.25f + 0.5f) * (HpRemain - 1));
         }
 
     }
