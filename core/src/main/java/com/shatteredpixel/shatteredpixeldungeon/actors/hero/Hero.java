@@ -822,6 +822,12 @@ public class Hero extends Char {
 			speed *= buff.speedFactor();
 		}
 
+		if(Dungeon.hero.pointsInTalent(Talent.LAND_HEART)>=1) {
+			if (hero.buff(Talent.HIGHGRSS_SPEED.class) != null){
+				speed *= 1.5f;
+			}
+		}
+
 		if(Dungeon.level.map[pos] == Terrain.HOLY_LAND && Dungeon.hero.pointsInTalent(Talent.SKY_TOWER)>=2){
 			speed *= 1.25f;
 		}

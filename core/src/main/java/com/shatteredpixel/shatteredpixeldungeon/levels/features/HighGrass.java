@@ -79,10 +79,12 @@ public class HighGrass {
 		if (ch instanceof Hero && ((Hero) ch).hasTalent(Talent.LAND_HEART)){
 			Buff.affect(Dungeon.hero, Talent.HIGHGRSS_SPEED.class, 1f);
 
-			if(hero.pointsInTalent(Talent.LAND_HEART) >= 2){
+			if(hero.pointsInTalent(Talent.LAND_HEART) >= 2 && Random.Int(10) == 0){
 				Waterskin waterskin = hero.belongings.getItem(Waterskin.class);
 				Dewdrop dewdrop = new Dewdrop();
-				waterskin.collectDew(dewdrop);
+				if(waterskin != null){
+					waterskin.collectDew(dewdrop);
+				}
 			}
 
 		}
