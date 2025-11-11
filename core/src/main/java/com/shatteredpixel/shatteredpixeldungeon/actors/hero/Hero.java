@@ -176,6 +176,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seekin
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CircleSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Flail;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.KillBoatSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LockChain;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LongStick;
@@ -716,6 +717,10 @@ public class Hero extends Char {
 		if (parry != null){
 			parry.parry();
 			return Messages.get(Monk.class, "parried");
+		}
+
+		if (hero.belongings.weapon() instanceof FogSword) {
+			Buff.affect(hero, Invisibility.class,1f);
 		}
 
 		if (buff(RoundShield.GuardTracker.class) != null){

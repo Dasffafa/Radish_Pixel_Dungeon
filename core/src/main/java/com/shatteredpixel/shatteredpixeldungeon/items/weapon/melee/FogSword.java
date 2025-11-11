@@ -31,19 +31,20 @@ public class FogSword extends MeleeWeapon {
         return (7 + tier * 2) - (int)(Math.sqrt(8 * lvl + 1) - 1)/2;
     }
 
-    public int proc(Char attacker, Char defender, int damage ) {
-        if(defender instanceof Mob){
-            Mob ks =(Mob)defender;
-            if (ks.onlyActDown){
-                ks.onlyActDown = false;
-                Buff.affect(attacker, ActBless.class, 2+level());
+    public int proc(Char attacker, Char defender, int damage) {
+        // 只有当伤害大于0时（即击中敌人）才触发效果
+        if (damage > 0) {
+            Buff.affect(attacker, ActBless.class, 2 + level());
+            if (defender instanceof Mob) {
+                Mob ks = (Mob) defender;
+                if (ks.onlyActDown) {
+                    ks.onlyActDown = false;
+                }
             }
-        }
-        else {
-            Buff.affect(attacker, ActBless.class, 2+level());
         }
         return super.proc(attacker, defender, damage);
     }
+
 
     public static class ActBless extends FlavourBuff {
 
