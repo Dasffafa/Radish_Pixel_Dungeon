@@ -71,7 +71,9 @@ public class Radish extends Trinket {
         @Override
         public boolean act() {
             Radish radish = Dungeon.hero.belongings.getItem(Radish.class);
-            critChance = radish.critChance(radish.buffedLvl());
+            if(radish != null){
+                critChance = radish.critChance(radish.buffedLvl());
+            }
             spend(TICK);
             return true;
         }
