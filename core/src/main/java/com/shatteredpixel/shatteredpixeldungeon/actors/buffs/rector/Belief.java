@@ -148,6 +148,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                                         break;
                                 }
                                 Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
+                                if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
+                                    Buff.affect(hero, Barrier.class).setShield( hero.lvl );
+                                }
                             } else {
                                 DownBelief(5);
                             }
@@ -168,6 +171,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 }
                 break;
             case LIGHTIMUEE:
+                if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
+                    Buff.affect(hero, Barrier.class).setShield( hero.lvl );
+                }
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     int originStamina = 10 + Dungeon.depth/5 - 1;
                     int originVitae = Dungeon.depth/5*8 + 8;
@@ -195,6 +201,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 GLog.p(Messages.get(Belief.class, "lightimuee_success"));
                 break;
             case CLEAN:
+                if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
+                    Buff.affect(hero, Barrier.class).setShield( hero.lvl );
+                }
                 curUser = hero;
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     ArrayList<Item> items = hero.belongings.getAllItems(Item.class);
@@ -218,6 +227,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 }
                 break;
             case PRAYERS:
+                if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
+                    Buff.affect(hero, Barrier.class).setShield( hero.lvl );
+                }
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     switch (Random.Int(4)){
                         //财富蓝色掉落
