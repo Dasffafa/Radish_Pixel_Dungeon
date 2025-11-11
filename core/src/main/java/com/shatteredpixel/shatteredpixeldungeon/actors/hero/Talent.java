@@ -238,7 +238,7 @@ public enum Talent {
 	// T4 rector
 	// last prayer
 	// 高效回复	借力疾驰	  圣灵赐福
-	EFFICIENT_HEALING(394,4), INERTIAL_CHARGE(395,4),BLESS_RETURN(396,4),
+	EFFICIENT_HEALING(364,4), INERTIAL_CHARGE(365,4),BLESS_RETURN(366,4),
 
 	ERROR(294,4);
 
