@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -33,7 +34,11 @@ public class EchoplexHammer extends MeleeWeapon {
     }
 
     public int proc(Char attacker, Char defender, int damage ) {
-        if (defender.HP <= damage){
+        int dmg = damage;
+        for (ChampionEnemy buff : defender.buffs(ChampionEnemy.class)){
+            dmg = (int) Math.ceil(dmg * buff.damageTakenFactor());
+        }
+        if (defender.HP <= dmg){
             KillEffect(this);
         }
         return super.proc(attacker, defender, damage);
