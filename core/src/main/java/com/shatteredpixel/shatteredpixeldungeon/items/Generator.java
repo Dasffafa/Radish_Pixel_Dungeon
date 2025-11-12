@@ -122,6 +122,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundia
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.EyeOfNewt;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MossyClump;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
@@ -718,9 +719,10 @@ public class Generator {
 
 					Sprouted_Potato.class,
 					Radish.class,
-					GoldRadish.class
+					GoldRadish.class,
+					LightKing.class
 			};
-			TRINKET.defaultProbs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 0.1f  };
+			TRINKET.defaultProbs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 0.1f, 1 };
 			TRINKET.probs = TRINKET.defaultProbs.clone();
 
 			for (Category cat : Category.values()){

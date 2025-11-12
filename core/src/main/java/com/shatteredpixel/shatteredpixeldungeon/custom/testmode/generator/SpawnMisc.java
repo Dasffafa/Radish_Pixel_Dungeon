@@ -76,6 +76,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundia
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.EyeOfNewt;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MossyClump;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
@@ -272,6 +273,7 @@ public class SpawnMisc extends TestItem {
             trList.add(Sprouted_Potato.class);
             trList.add(Radish.class);
             trList.add(GoldRadish.class);
+            trList.add(LightKing.class);
         }
 
         //Misc

@@ -125,6 +125,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRetributio
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfPsionicBlast;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ThirteenLeafClover;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -903,6 +904,30 @@ public abstract class Char extends Actor {
 	public int attackProc( Char enemy, int damage ) {
 		for (ChampionEnemy buff : buffs(ChampionEnemy.class)){
 			buff.onAttackProc( enemy );
+		}
+
+		if(getClass() == Hero.class){
+			LightKing lightKing = hero.belongings.getItem(LightKing.class);
+			if (lightKing != null) {
+				int lvl = lightKing.level();
+				float[] thresholds = {0.9f, 0.85f, 0.8f, 0.75f};
+				float[] damageModifiers = {1.25f, 1.33f, 1.41f, 1.50f};
+
+				float hpPercentage = (float)HP / HT;
+				int originalDamage = damage;
+
+				if (hpPercentage >= thresholds[lvl]) {
+					float modifiedDamage = damage * damageModifiers[lvl];
+					int bonusDamage = Math.round(modifiedDamage - damage);
+					if (bonusDamage < 1) {
+						bonusDamage = 1;
+					}
+					damage = damage + bonusDamage;
+				} else {
+					damage = Math.round(damage / damageModifiers[lvl]);
+					int reducedDamage = originalDamage - damage;
+				}
+			}
 		}
 
 		for (ChampionHero buff : buffs(ChampionHero.class)){

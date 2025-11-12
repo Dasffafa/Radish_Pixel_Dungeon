@@ -698,6 +698,8 @@ public class ItemSpriteSheet {
 	public static final int RADISH 			= TRINKETS+14;
 	public static final int GOLD_RADISH 	= TRINKETS+15;
 
+	public static final int LIGHT_KING 	= TRINKETS+32;
+
 	static{
 		assignItemRect(RAT_SKULL,       16, 11);
 		assignItemRect(PARCHMENT_SCRAP, 10, 14);
@@ -713,9 +715,10 @@ public class ItemSpriteSheet {
 		assignItemRect(SALT_CUBE,       12, 13);
 		assignItemRect(OBLIVION_SHARD,  7,  14);
 		assignItemRect(CHAOTIC_CENSER,  13, 15);
-
 		assignItemRect(RADISH,          12, 13);
 		assignItemRect(GOLD_RADISH,     12, 13);
+
+		assignItemRect(LIGHT_KING,  		 15,12);
 	}
 
 	private static final int SCROLLS        =                               xy(1, 19);  //16 slots
