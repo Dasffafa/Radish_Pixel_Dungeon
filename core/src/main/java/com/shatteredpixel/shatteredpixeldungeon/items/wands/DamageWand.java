@@ -31,7 +31,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
 //for wands that directly damage a target
@@ -74,11 +73,6 @@ public abstract class DamageWand extends Wand{
 			float hpPercentage = (float) hero.HP / hero.HT;
 			int originalDamage = dmg;
 
-			GLog.w("LightKing Debug - HP: " + hero.HP + "/" + hero.HT +
-					" (" + String.format("%.1f", hpPercentage*100) + "%)");
-			GLog.w("LightKing Debug - Level: " + lkLvl + ", Threshold: " +
-					String.format("%.0f", thresholds[lkLvl]*100) + "%");
-
 			if (hpPercentage >= thresholds[lkLvl]) {
 				float modifiedDamage = dmg * damageModifiers[lkLvl];
 				int bonusDamage = Math.round(modifiedDamage - dmg);
@@ -86,13 +80,8 @@ public abstract class DamageWand extends Wand{
 					bonusDamage = 1;
 				}
 				dmg = dmg + bonusDamage;
-				GLog.w("LightKing: Damage increased from " + originalDamage + " to " + dmg +
-						" (+" + bonusDamage + ", +" + (int)((damageModifiers[lkLvl] - 1) * 100) + "%)");
 			} else {
 				dmg = Math.round(dmg / damageModifiers[lkLvl]);
-				int reducedDamage = originalDamage - dmg;
-				GLog.w("LightKing: Damage decreased from " + originalDamage + " to " + dmg +
-						" (-" + reducedDamage + ", -" + (int)((damageModifiers[lkLvl] - 1) * 100) + "%)");
 			}
 		}
 

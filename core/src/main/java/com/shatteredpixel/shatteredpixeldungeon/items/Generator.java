@@ -148,6 +148,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfGnollKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfNewStar;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfPrismaticLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfTransfusion;
@@ -181,6 +182,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Morello;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PneumFistGloves;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ReplacePoint;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Rlyeh;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RottenLance;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RuneSlade;
@@ -440,8 +442,9 @@ public class Generator {
 					WandOfTransfusion.class,
 					WandOfCorruption.class,
 					WandOfRegrowth.class,
-					WandOfGnollKing.class};
-			WAND.defaultProbs = new float[]{ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
+					WandOfGnollKing.class,
+					WandOfNewStar.class};
+			WAND.defaultProbs = new float[]{ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 };
 			WAND.probs = WAND.defaultProbs.clone();
 
 			//see generator.randomWeapon
@@ -524,8 +527,9 @@ public class Generator {
 					HeadCleaver.class,
 					Seekingspear.class,
 					Grimtooth.class,
+					ReplacePoint.class
 			};
-			WEP_T4.probs = new float[]{ 5, 5, 5, 5, 5, 5,5, 5, 5, 5, 5, 5 };
+			WEP_T4.probs = new float[]{ 5, 5, 5, 5, 5, 5,5, 5, 5, 5, 5, 5,5 };
 
 			WEP_T4_NEW.classes = new Class<?>[]{
 					Bloodblade.class,
@@ -534,8 +538,9 @@ public class Generator {
 					HeadCleaver.class,
 					Seekingspear.class,
 					Grimtooth.class,
+					ReplacePoint.class
 			};
-			WEP_T4_NEW.probs = new float[]{ 5, 5, 5, 5, 5, 5 };
+			WEP_T4_NEW.probs = new float[]{ 5, 5, 5, 5, 5, 5, 5 };
 
 			WEP_T5.classes = new Class<?>[]{
 					Taijutsu.class,

@@ -131,11 +131,10 @@ public abstract class Wand extends Item {
 
 		if (action.equals( AC_ZAP )) {
 
-			curUser = hero;
-			curItem = this;
-			GameScene.selectCell( zapper );
-
-		}
+            curUser = hero;
+            curItem = this;
+            GameScene.selectCell(zapper);
+        }
 	}
 
 	@Override

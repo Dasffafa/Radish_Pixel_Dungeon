@@ -11,7 +11,8 @@ buildscript {
         // PowerShell: ./gradlew desktop:debug
         // 打包直接选择release 签名食用MT默认的
         classpath 'com.android.tools:r8:8.7.18'
-        classpath 'com.android.tools.build:gradle:8.9.0'
+        //noinspection AndroidGradlePluginVersion,AndroidGradlePluginVersion
+        classpath 'com.android.tools.build:gradle:8.7.2'
         classpath 'com.google.gms:google-services:4.4.2'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.3'
     }
@@ -23,8 +24,8 @@ allprojects {
         appName = 'Radish Pixel Dungeon'
         appPackageName = 'com.shatteredpixel.radishpixeldungeon'
 
-        appVersionCode = 2509170
-        appVersionName = '0.6.4-base2.4.2'
+        appVersionCode = 2511150
+        appVersionName = '0.6.5-base2.4.2'
 
         appJavaCompatibility = JavaVersion.VERSION_1_8
 
