@@ -14,6 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EliteBadge;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EtherealChains;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MagneticCrown;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.SandalsOfNature;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
@@ -107,7 +108,8 @@ public class TestArtifact extends TestGenerator {
             case 11: return TimekeepersHourglass.class;
             case 12: return UnstableSpellbook.class;
             case 13: return CloakOfConcealment.class;
-            case 14: default: return EliteBadge.class;
+            case 14: return MagneticCrown.class;
+            case 15: default: return EliteBadge.class;
         }
     }
 

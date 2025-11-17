@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfGnollKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfNewStar;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfPrismaticLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfTransfusion;
@@ -172,8 +173,6 @@ public class TestRing extends TestGenerator {
 
     private Class<? extends Wand> idToWand(int id) {
         switch (id) {
-            case 0:
-                return WandOfBlastWave.class;
             case 1:
                 return WandOfCorrosion.class;
             case 2:
@@ -198,8 +197,12 @@ public class TestRing extends TestGenerator {
                 return WandOfTransfusion.class;
             case 12:
                 return WandOfGnollKing.class;
-            default:
+            case 13:
+                return WandOfNewStar.class;
+            case 14:
                 return WandOfWarding.class;
+            default:
+                return WandOfBlastWave.class;
         }
 
     }
@@ -216,14 +219,14 @@ public class TestRing extends TestGenerator {
 
     private void buildWandList() {
         if (!wandList.isEmpty()) return;
-        for (int i = 0; i < 13; ++i) {
+        for (int i = 0; i < 15; ++i) {
             wandList.add(idToWand(i));
         }
     }
 
     private int total(int category){
         if (category == RING_CAT) return 13;
-        if (category == WAND_CAT) return 13;
+        if (category == WAND_CAT) return 15;
         return 0;
     }
 

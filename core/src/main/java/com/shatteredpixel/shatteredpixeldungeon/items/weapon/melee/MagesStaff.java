@@ -54,6 +54,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfCorrosion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfCorruption;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfDisintegration;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfNewStar;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -186,7 +187,11 @@ public class MagesStaff extends MeleeWeapon {
 				return;
 			}
 			wand.cursed = (cursed || hasCurseEnchant()) && Dungeon.hero.pointsInTalent(Talent.MAGIC_WORKMAN) < 3;
-			wand.execute(hero, AC_ZAP);
+			if(wand instanceof WandOfNewStar){
+				wand.execute(hero, WandOfNewStar.AC_ALIAS_ZAP);
+			} else {
+				wand.execute(hero, AC_ZAP);
+			}
 		} else if (action.equals(AC_UPDATE)) {
 			ArcaneResinUse();
 		}

@@ -650,6 +650,9 @@ public class ItemSpriteSheet {
 	public static final int ARTIFACT_ELTIE5     = ARTIFACTS+29+16;
 	public static final int ARTIFACT_ELTIE6     = ARTIFACTS+30+16;
 	public static final int ARTIFACT_ELTIE7     = ARTIFACTS+31+16;
+
+	public static final int MAGNETIC_CROWN     = ARTIFACTS+48;
+
 	static{
 		assignItemRect(ARTIFACT_CLOAK,      9,  15);
 		assignItemRect(ARTIFACT_ARMBAND,    16, 13);
@@ -682,6 +685,8 @@ public class ItemSpriteSheet {
 		assignItemRect(ARTIFACT_ELTIE5,     15, 15);
 		assignItemRect(ARTIFACT_ELTIE6,     15, 15);
 		assignItemRect(ARTIFACT_ELTIE7,     15, 15);
+
+		assignItemRect(MAGNETIC_CROWN,     14, 13);
 	}
 
 	private static final int TRINKETS        =                               xy(17, 28);  //24 slots
