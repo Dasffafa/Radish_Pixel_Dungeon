@@ -160,4 +160,9 @@ public class WandOfFrost extends DamageWand {
 		particle.radiateXY(Random.Float(1f));
 	}
 
+	@Override
+	public String upgradeStat2(int level) {
+		return Integer.toString(2 + level);
+	}
+
 }

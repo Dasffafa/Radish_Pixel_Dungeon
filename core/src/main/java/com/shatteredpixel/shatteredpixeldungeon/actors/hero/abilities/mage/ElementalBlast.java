@@ -65,8 +65,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfGnollKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfNewStar;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfPrismaticLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfShockBomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfTransfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
@@ -107,6 +109,8 @@ public class ElementalBlast extends ArmorAbility {
 		effectTypes.put(WandOfCorruption.class,     MagicMissile.SHADOW_CONE);
 		effectTypes.put(WandOfRegrowth.class,       MagicMissile.FOLIAGE_CONE);
 		effectTypes.put(WandOfGnollKing.class,		MagicMissile.RAINBOW);
+		effectTypes.put(WandOfShockBomb.class, 		MagicMissile.SHADOW);
+		effectTypes.put(WandOfNewStar.class, 		MagicMissile.STAR);
 	}
 
 	private static final HashMap<Class<?extends Wand>, Float> damageFactors = new HashMap<>();
@@ -125,6 +129,8 @@ public class ElementalBlast extends ArmorAbility {
 		damageFactors.put(WandOfCorruption.class,       0f);
 		damageFactors.put(WandOfRegrowth.class,         0f);
 		damageFactors.put(WandOfGnollKing.class,		0.5f);
+		damageFactors.put(WandOfShockBomb.class, 		0.5f);
+		damageFactors.put(WandOfNewStar.class, 				5f);
 	}
 
 	{
@@ -472,9 +478,16 @@ public class ElementalBlast extends ArmorAbility {
 									gnoll2spawn--;
 								}
 							}
+						} else if (finalWandCls == WandOfShockBomb.class) {
+							WandOfShockBomb.ShockBombTracker existing = Dungeon.hero.buff(WandOfShockBomb.ShockBombTracker.class);
+							if (existing != null) {
+								existing.detach();
+							}
+							WandOfShockBomb.ShockBombTracker tracker = Buff.affect(Dungeon.hero, WandOfShockBomb.ShockBombTracker.class);
+							tracker.setPos(hero.pos,Random.Int(12,16));
 						}
 
-						charsHit = Math.min(4 + hero.pointsInTalent(Talent.REACTIVE_BARRIER), charsHit);
+                        charsHit = Math.min(4 + hero.pointsInTalent(Talent.REACTIVE_BARRIER), charsHit);
 						if (charsHit > 0 && hero.hasTalent(Talent.REACTIVE_BARRIER)){
 							int shielding = Math.round(charsHit*2.5f*hero.pointsInTalent(Talent.REACTIVE_BARRIER));
 							hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shielding), FloatingText.SHIELDING);

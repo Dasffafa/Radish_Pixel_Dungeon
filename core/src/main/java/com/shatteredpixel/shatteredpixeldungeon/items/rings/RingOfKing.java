@@ -21,6 +21,18 @@ public class RingOfKing extends Ring {
     }
 
     @Override
+    public String upgradeStat1(int level) {
+        if (cursed && cursedKnown) level = Math.min(-1, level-3);
+        return Integer.toString(level+1);
+    }
+
+    @Override
+    public String upgradeStat2(int level) {
+        if (cursed && cursedKnown) level = Math.min(-1, level-3);
+        return Integer.toString(level+1);
+    }
+
+    @Override
     protected RingBuff buff( ) {
         return new KingUpdate();
     }

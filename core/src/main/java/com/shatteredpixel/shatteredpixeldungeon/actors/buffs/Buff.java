@@ -213,6 +213,7 @@ public class Buff extends Actor {
 		buff.countUp( count );
 		return buff;
 	}
+
 	
 	public static void detach( Char target, Class<? extends Buff> cl ) {
 		for ( Buff b : target.buffs( cl )){

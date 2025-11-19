@@ -413,4 +413,14 @@ public class WandOfLivingEarth extends DamageWand {
 		}
 
 	}
+
+	@Override
+	public String upgradeStat2(int level) {
+		return Integer.toString(16 + 8*level);
+	}
+
+	@Override
+	public String upgradeStat3(int level) {
+		return level + "-" + (3+(3*level));
+	}
 }

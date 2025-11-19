@@ -29,6 +29,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfBenediction;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 
@@ -139,4 +141,18 @@ public class Healing extends Buff {
 	public String desc() {
 		return Messages.get(this, "desc", healingThisTick(), healingLeft);
 	}
+
+	public static class StarHealing extends Healing{
+
+		@Override
+		public void tintIcon(Image icon) {
+			icon.hardlight(Window.SHPX_COLOR);
+		}
+
+		@Override
+		public int icon() {
+			return BuffIndicator.HERB_HEALING;
+		}
+	}
+
 }

@@ -245,6 +245,16 @@ public class WandOfBlastWave extends DamageWand {
 		particle.radiateXY(2.5f);
 	}
 
+	@Override
+	public String upgradeStat1(int level) {
+		return (1+level) + "-" + (2+2*level);
+	}
+
+	@Override
+	public String upgradeStat2(int level) {
+		return (2+2*level) + "-" + 2*(4+2*level);
+	}
+
 	public static class BlastWave extends Image {
 
 		private static final float TIME_TO_FADE = 0.2f;

@@ -52,6 +52,18 @@ public class Ring extends KindofMisc {
 
 	protected Buff buff;
 
+	public String upgradeStat1(int level){
+		return null;
+	}
+
+	public String upgradeStat2(int level){
+		return null;
+	}
+
+	public String upgradeStat3(int level){
+		return null;
+	}
+
 	public boolean readyToIdentify() {
 		return !isIdentified() && levelsToID <= 0;
 	}

@@ -250,9 +250,21 @@ public abstract class Scroll extends Item {
 
 	public abstract void doRead();
 
-	protected void readAnimation(){
-		readAnimation(false);
+	public void readAnimation() {
+		Invisibility.dispel();
+		curUser.spend( TIME_TO_READ );
+		curUser.busy();
+		((HeroSprite)curUser.sprite).read();
+
+		if (!anonymous) {
+			Catalog.countUse(getClass());
+			if (Random.Float() < talentChance) {
+				Talent.onScrollUsed(curUser, curUser.pos, talentFactor);
+			}
+		}
+
 	}
+
 	protected void readAnimation( boolean toDouble) {
 		Invisibility.dispel();
 		curUser.spend( TIME_TO_READ );

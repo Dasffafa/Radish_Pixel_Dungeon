@@ -587,6 +587,7 @@ public class ItemSpriteSheet {
 		for (int i = WANDS; i < WANDS+13; i++)
 			assignItemRect(i, 14, 14);
 
+		assignItemRect(WAND_BOMBWAVES, 14, 15);
 
 		assignItemRect(WAND_NEWSTAR, 16, 14);
 	}

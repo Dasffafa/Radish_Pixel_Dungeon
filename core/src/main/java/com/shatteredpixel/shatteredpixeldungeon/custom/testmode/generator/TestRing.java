@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfNewStar;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfPrismaticLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfShockBomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfTransfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -201,6 +202,8 @@ public class TestRing extends TestGenerator {
                 return WandOfNewStar.class;
             case 14:
                 return WandOfWarding.class;
+            case 15:
+                return WandOfShockBomb.class;
             default:
                 return WandOfBlastWave.class;
         }
@@ -219,14 +222,14 @@ public class TestRing extends TestGenerator {
 
     private void buildWandList() {
         if (!wandList.isEmpty()) return;
-        for (int i = 0; i < 15; ++i) {
+        for (int i = 0; i < 16; ++i) {
             wandList.add(idToWand(i));
         }
     }
 
     private int total(int category){
         if (category == RING_CAT) return 13;
-        if (category == WAND_CAT) return 15;
+        if (category == WAND_CAT) return 16;
         return 0;
     }
 

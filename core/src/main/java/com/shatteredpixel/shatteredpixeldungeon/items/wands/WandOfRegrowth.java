@@ -302,6 +302,31 @@ public class WandOfRegrowth extends Wand {
 		particle.x -= dst;
 		particle.y += dst;
 	}
+
+	private int chargeLimit( int heroLvl, int wndLvl ){
+		if (wndLvl >= 10){
+			return Integer.MAX_VALUE;
+		} else {
+			//20 charges at base, plus:
+			//2/3.1/4.2/5.5/6.8/8.4/10.4/13.2/18.0/30.8/inf. charges per hero level, at wand level:
+			//0/1  /2  /3  /4  /5  /6   /7   /8   /9   /10
+			return Math.round(20 + heroLvl * (2+wndLvl) * (1f + (wndLvl/(50 - 5*wndLvl))));
+		}
+	}
+
+	@Override
+	public String upgradeStat1(int level) {
+		return Messages.decimalFormat("#.##", 3 + (2+level)/3f);
+	}
+
+	@Override
+	public String upgradeStat2(int level) {
+		if (level >= 10){
+			return "∞";
+		} else {
+			return Integer.toString(chargeLimit(Dungeon.hero.lvl, level));
+		}
+	}
 	
 	private static final String TOTAL = "totChrgUsed";
 	private static final String OVER = "chargesOverLimit";

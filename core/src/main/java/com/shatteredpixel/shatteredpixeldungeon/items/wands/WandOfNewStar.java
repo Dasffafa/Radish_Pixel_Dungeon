@@ -1,11 +1,14 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
@@ -64,9 +67,15 @@ public class WandOfNewStar extends DamageWand {
         GameScene.selectCell( o_zapper );
     }
 
-    private void GetZap(Char ch){
+    private void GetZap(Char ch,int small){
+        final Wand curWand;
+        if (curItem instanceof Wand) {
+            curWand = (Wand) Wand.curItem;
+        } else {
+            return;
+        }
         Ballistica bolt;
-        int radius = 1 + (level() / 4);
+        int radius = (1 + (level() / 4))-small;
 
         int x = ch.pos % Dungeon.level.width();
         int y = ch.pos / Dungeon.level.width();
@@ -105,18 +114,62 @@ public class WandOfNewStar extends DamageWand {
                     for (int pos : aoe.cells){
                         Char enemy = Actor.findChar(pos);
                         if (enemy != null) {
-                            int damage = buffedLvl();
                             int shield = level() + 2;
                             if (enemy.alignment == Char.Alignment.ENEMY) {
-                                enemy.damage(damage == 0 ? 1:damage, new DM100.LightningBolt());
+                                enemy.damage(damageRoll() == 0 ? 1:damageRoll(), new DM100.LightningBolt());
                                 enemy.sprite.burst(0xFFFFFFFF, level() / 2 + 2);
                             } else if(enemy.alignment == Char.Alignment.ALLY || enemy instanceof Hero) {
                                 Buff.affect(enemy, Barrier.class).setShield(shield);
                             }
                         }
                     }
-                });
 
+                    int target = ch.pos;
+                    final Ballistica shot = new Ballistica(curUser.pos, target, curWand.collisionProperties(target));
+                    int cell = shot.collisionPos;
+                    curUser.sprite.zap(cell);
+                    if (curWand.tryToZap(curUser, target)) {
+
+                        curUser.busy();
+
+                        if (curWand.cursed){
+                            if (!curWand.cursedKnown){
+                                GLog.n(Messages.get(Wand.class, "curse_discover", curWand.name()));
+                            }
+                            CursedWand.cursedZap(curWand,
+                                    curUser,
+                                    new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT),
+                                    new Callback() {
+                                        @Override
+                                        public void call() {
+                                            curWand.wandUsed();
+                                        }
+                                    });
+                        } else {
+                            curWand.fx(shot, new Callback() {
+                                public void call() {
+                                    curWand.onZap(shot);
+                                    if (Random.Float() < WondrousResin.extraCurseEffectChance()){
+                                        WondrousResin.forcePositive = true;
+                                        CursedWand.cursedZap(curWand,
+                                                curUser,
+                                                new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT), new Callback() {
+                                                    @Override
+                                                    public void call() {
+                                                        WondrousResin.forcePositive = false;
+                                                        curWand.wandUsed();
+                                                    }
+                                                });
+                                    } else {
+                                        curWand.wandUsed();
+                                    }
+                                }
+                            });
+                        }
+                        curWand.cursedKnown = true;
+
+                    }
+                });
     }
 
     @Override
@@ -142,14 +195,7 @@ public class WandOfNewStar extends DamageWand {
             target.sprite.parent.add(
                     new Beam.DeathRay(target.sprite.center(), DungeonTilemap.raisedTileCenterToWorld(target.pos)));
         }
-        callback.call();{
-            new Callback() {
-                @Override
-                public void call() {
-                    Dungeon.hero.sprite.operate(Dungeon.hero.pos);
-                }
-            };
-        };
+        callback.call();
     }
 
     @Override
@@ -203,62 +249,20 @@ public class WandOfNewStar extends DamageWand {
                 final Ballistica shot = new Ballistica(curUser.pos, target, curWand.collisionProperties(target));
                 int cell = shot.collisionPos;
 
-                if(curCharges > 0 && !curWand.cursed){
-                    GetZap(targetChar);
-                }
-
-
+                curUser.busy();
                 curUser.sprite.zap(cell);
 
-                //attempts to target the cell aimed at if something is there, otherwise targets the collision pos.
+                if(curCharges > 0 && !curWand.cursed){
+                    GetZap(targetChar,0);
+                }
 
-
-
-                if (Actor.findChar(target) != null)
-                    QuickSlotButton.target(Actor.findChar(target));
-                else
-                    QuickSlotButton.target(Actor.findChar(cell));
-
-                if (curWand.tryToZap(curUser, target)) {
-
-                    curUser.busy();
-
-                    if (curWand.cursed){
-                        if (!curWand.cursedKnown){
-                            GLog.n(Messages.get(Wand.class, "curse_discover", curWand.name()));
-                        }
-                        CursedWand.cursedZap(curWand,
-                                curUser,
-                                new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT),
-                                new Callback() {
-                                    @Override
-                                    public void call() {
-                                        curWand.wandUsed();
-                                    }
-                                });
-                    } else {
-                        curWand.fx(shot, new Callback() {
-                            public void call() {
-                                curWand.onZap(shot);
-                                if (Random.Float() < WondrousResin.extraCurseEffectChance()){
-                                    WondrousResin.forcePositive = true;
-                                    CursedWand.cursedZap(curWand,
-                                            curUser,
-                                            new Ballistica(curUser.pos, target, Ballistica.MAGIC_BOLT), new Callback() {
-                                                @Override
-                                                public void call() {
-                                                    WondrousResin.forcePositive = false;
-                                                    curWand.wandUsed();
-                                                }
-                                            });
-                                } else {
-                                    curWand.wandUsed();
-                                }
-                            }
-                        });
+                if (Actor.findChar(target) != null) {
+                    if (targetChar.alignment != Char.Alignment.ENEMY) {
+                        target = targetChar.pos;
+                        QuickSlotButton.target(Actor.findChar(target));
                     }
-                    curWand.cursedKnown = true;
-
+                } else {
+                    QuickSlotButton.target(Actor.findChar(cell));
                 }
             }
         }
@@ -278,92 +282,44 @@ public class WandOfNewStar extends DamageWand {
             return Messages.get(this, "stats_desc", 3, 3, min(0), max(0),2);
     }
 
+    @Override
+    public String upgradeStat1(int level) {
+        int radius = 3+ (level()/4)*2;
+        return Integer.toString(radius);
+    }
 
-    private void GetMageZap(Char ch, MagesStaff staff, Char attacker, Char defender, int damage){
-        Ballistica bolt;
-        int radius = 1 + (level() / 4);
-        radius --;
-
-        int x = ch.pos % Dungeon.level.width();
-        int y = ch.pos / Dungeon.level.width();
-
-        if (Math.max(x, Dungeon.level.width()-x) >= Math.max(y, Dungeon.level.height()-y)){
-            if (x > Dungeon.level.width()/2){
-                bolt = new Ballistica(ch.pos, ch.pos - 1, Ballistica.WONT_STOP);
-            } else {
-                bolt = new Ballistica(ch.pos, ch.pos + 1, Ballistica.WONT_STOP);
-            }
-        } else {
-            if (y > Dungeon.level.height()/2){
-                bolt = new Ballistica(ch.pos, ch.pos - Dungeon.level.width(), Ballistica.WONT_STOP);
-            } else {
-                bolt = new Ballistica(ch.pos, ch.pos + Dungeon.level.width(), Ballistica.WONT_STOP);
-            }
-        }
-
-        ConeAOE aoe = new ConeAOE(bolt, radius, 360, Ballistica.STOP_TARGET);
-
-        for (Ballistica ray : aoe.outerRays){
-            ((MagicMissile)ch.sprite.parent.recycle( MagicMissile.class )).reset(
-                    MagicMissile.STAR,
-                    ch.sprite,
-                    ray.path.get(Math.min(radius / 2, ray.path.size()-1)),
-                    null
-            );
-        }
-
-        // 计算生成新星的概率
-        float starChance = 1f + level() / 4f + level();
-        if (Random.Float() < starChance) {
-            int newRadius = Math.max(0, radius - 1);
-            ConeAOE newAoe = new ConeAOE(bolt, newRadius, 360, Ballistica.STOP_TARGET);
-
-            for (Ballistica ray : newAoe.outerRays){
-                ((MagicMissile)ch.sprite.parent.recycle( MagicMissile.class )).reset(
-                        MagicMissile.STAR,
-                        ch.sprite,
-                        ray.path.get(Math.min(newRadius / 2, ray.path.size()-1)),
-                        null
-                );
-            }
-
-            // 新星的效果
-            ((MagicMissile)ch.sprite.parent.recycle( MagicMissile.class )).reset(
-                    MagicMissile.STAR,
-                    ch.sprite,
-                    bolt.path.get(Math.min(newRadius / 2, bolt.path.size()-1)),
-                    () -> {
-                        for (int pos : newAoe.cells){
-                            Char enemy = Actor.findChar(pos);
-                            if (enemy != null) {
-                                int shield = level() + 2;
-                                if (enemy.alignment == Char.Alignment.ENEMY) {
-                                    enemy.damage(damage == 0 ? 1:damage, new DM100.LightningBolt());
-                                    enemy.sprite.burst(0xFFFFFFFF, level() / 2 + 2);
-                                } else if(enemy.alignment == Char.Alignment.ALLY || enemy instanceof Hero) {
-                                    Buff.affect(enemy, Barrier.class).setShield(shield);
-                                }
-                            }
-                        }
-                    });
-        }
+    @Override
+    public String upgradeStat2(int level) {
+        return Integer.toString(level+2);
     }
 
     @Override
     public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
-        if(Random.NormalFloat(1,100)<=20+level()){
-            GetMageZap(attacker, staff, attacker, defender, damage);{
-                new Callback() {
-                    @Override
-                    public void call() {
-                        Dungeon.hero.sprite.operate(Dungeon.hero.pos);
-                    }
-                };
-            };
-
+        int triggerChance = 20;
+        int wandTotalLevel = 0;
+        if (level() <= 12) {
+            triggerChance += level() * 2;
+        } else {
+            triggerChance += 24;
+            triggerChance += (level() - 12) / 2;
         }
 
+        triggerChance = Math.min(triggerChance, 100);
+
+        ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
+        for (Wand w : wands.toArray(new Wand[0])){
+            wandTotalLevel += w.level();
+        }
+
+        wandTotalLevel += staff.level();
+        if (Random.Int(100) < triggerChance ) {
+            if(hero.buff(Healing.StarHealing.class)==null){
+                Buff.affect(hero, Healing.StarHealing.class).setHeal(wandTotalLevel, 0, wandTotalLevel/4);
+            }
+        }
     }
+
+
 
     @Override
     public int min(int lvl) {

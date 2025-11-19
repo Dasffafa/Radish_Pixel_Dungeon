@@ -114,6 +114,18 @@ public abstract class Wand extends Item {
 		bones = true;
 	}
 
+	public String upgradeStat1(int level){
+		return null;
+	}
+
+	public String upgradeStat2(int level){
+		return null;
+	}
+
+	public String upgradeStat3(int level){
+		return null;
+	}
+
 	@Override
 	public ArrayList<String> actions( Hero hero ) {
 		ArrayList<String> actions = super.actions( hero );
@@ -438,7 +450,7 @@ public abstract class Wand extends Item {
 		curCharges = Math.min( curCharges, maxCharges );
 	}
 
-	protected int initialCharges() {
+	public int initialCharges() {
 		return 2;
 	}
 

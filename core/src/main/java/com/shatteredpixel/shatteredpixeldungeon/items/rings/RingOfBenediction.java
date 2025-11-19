@@ -19,6 +19,11 @@ public class RingOfBenediction extends Ring {
         }
     }
 
+    public String upgradeStat1(int level){
+        if (cursed) level = Math.min(-1, level-3);
+        return Messages.decimalFormat("#.##", 100f * (Math.pow(1.2f, level+1)-1f)) + "%";
+    }
+
     @Override
     protected Ring.RingBuff buff( ) {
         return new RingOfBenediction.Benediction();
