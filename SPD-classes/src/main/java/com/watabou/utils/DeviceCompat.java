@@ -25,6 +25,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.utils.SharedLibraryLoader;
 import com.watabou.noosa.Game;
+import com.badlogic.gdx.Application;
 
 //TODO migrate to platformSupport class
 public class DeviceCompat {
@@ -49,15 +50,22 @@ public class DeviceCompat {
 	}
 
 	public static boolean isAndroid(){
-		return SharedLibraryLoader.isAndroid;
+		return Gdx.app.getType() == Application.ApplicationType.Android;
 	}
 
 	public static boolean isiOS(){
-		return SharedLibraryLoader.isIos;
+		return Gdx.app.getType() == Application.ApplicationType.iOS;
 	}
 
 	public static boolean isDesktop(){
-		return SharedLibraryLoader.isWindows || SharedLibraryLoader.isMac || SharedLibraryLoader.isLinux;
+		return System.getProperty("os.name").toLowerCase().contains("win") ||
+		System.getProperty("os.name").toLowerCase().contains("mac") ||
+		System.getProperty("os.name").toLowerCase().contains("nux") ||
+		Gdx.app.getType() == Application.ApplicationType.WebGL;
+	}
+
+	public static boolean isWeb(){
+		return Gdx.app.getType() == Application.ApplicationType.WebGL;
 	}
 
 	public static boolean hasHardKeyboard(){

@@ -27,6 +27,7 @@ import com.watabou.glwrap.Quad;
 import com.watabou.glwrap.Vertexbuffer;
 import com.watabou.utils.Rect;
 import com.watabou.utils.RectF;
+import com.watabou.utils.DeviceCompat;
 
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
@@ -197,7 +198,9 @@ public class Tilemap extends Visual {
 	public void draw() {
 
 		super.draw();
-
+		if (DeviceCompat.isWeb()) {
+			fullUpdate = true;
+		}
 		if (!updated.isEmpty()) {
 			updateVertices();
 			if (buffer == null)

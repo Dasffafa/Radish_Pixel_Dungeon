@@ -24,6 +24,8 @@ package com.watabou.glwrap;
 import com.badlogic.gdx.Gdx;
 
 import java.nio.FloatBuffer;
+import com.badlogic.gdx.graphics.GL20;
+import com.watabou.utils.DeviceCompat;
 
 public class Attribute {
 
@@ -36,20 +38,22 @@ public class Attribute {
 	public int location() {
 		return location;
 	}
+
+	private static final GL20 activeGL = (DeviceCompat.isWeb()) ? Gdx.gl30 : Gdx.gl;
 	
 	public void enable() {
-		Gdx.gl.glEnableVertexAttribArray( location );
+		activeGL.glEnableVertexAttribArray( location );
 	}
 	
 	public void disable() {
-		Gdx.gl.glDisableVertexAttribArray( location );
+		activeGL.glDisableVertexAttribArray( location );
 	}
 	
 	public void vertexPointer( int size, int stride, FloatBuffer ptr ) {
-		Gdx.gl.glVertexAttribPointer( location, size, Gdx.gl.GL_FLOAT, false, stride * 4, ptr );
+		activeGL.glVertexAttribPointer( location, size, GL20.GL_FLOAT, false, stride * 4, ptr );
 	}
 
 	public void vertexBuffer( int size, int stride, int offset) {
-		Gdx.gl.glVertexAttribPointer(location, size, Gdx.gl.GL_FLOAT, false, stride * 4, offset * 4);
+		activeGL.glVertexAttribPointer( location, size, GL20.GL_FLOAT, false, stride * 4, offset * 4 );
 	}
 }

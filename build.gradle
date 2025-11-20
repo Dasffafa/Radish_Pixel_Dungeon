@@ -35,6 +35,9 @@ allprojects {
 
         gdxVersion = '1.11.0'
         gdxControllersVersion = '2.2.4'
+
+        gdxTeaVMVersion = '1.0.5'
+        teaVMVersion = '0.11.0'
     }
     version = appVersionName
 

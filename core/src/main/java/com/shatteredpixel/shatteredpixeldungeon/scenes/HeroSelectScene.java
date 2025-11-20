@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndChallenges;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndError;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndHeroInfo;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndKeyBindings;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
@@ -55,6 +56,7 @@ import com.watabou.noosa.NinePatch;
 import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.tweeners.Tweener;
 import com.watabou.noosa.ui.Component;
+import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.GameMath;
 import com.watabou.utils.PointF;
 
@@ -578,38 +580,43 @@ public class HeroSelectScene extends PixelScene {
                 @Override
                 protected void onClick() {
                     String existingSeedtext = SPDSettings.customSeed();
-                    ShatteredPixelDungeon.scene().addToFront(new WndTextInput(Messages.get(HeroSelectScene.class, "custom_seed_title"),
-                            Messages.get(HeroSelectScene.class, "custom_seed_desc"),
-                            existingSeedtext,
-                            20,
-                            false,
-                            Messages.get(HeroSelectScene.class, "custom_seed_set"),
-                            Messages.get(HeroSelectScene.class, "custom_seed_clear")) {
-                        @Override
-                        public void onSelect(boolean positive, String text) {
-                            text = DungeonSeed.formatText(text);
-                            long seed = DungeonSeed.convertFromText(text);
+					if(DeviceCompat.isWeb()) {
+						ShatteredPixelDungeon.scene().addToFront(new WndError(Messages.get(TitleScene.class, "web")));
+					} else {
+						ShatteredPixelDungeon.scene().addToFront(new WndTextInput(Messages.get(HeroSelectScene.class, "custom_seed_title"),
+								Messages.get(HeroSelectScene.class, "custom_seed_desc"),
+								existingSeedtext,
+								20,
+								false,
+								Messages.get(HeroSelectScene.class, "custom_seed_set"),
+								Messages.get(HeroSelectScene.class, "custom_seed_clear")) {
+							@Override
+							public void onSelect(boolean positive, String text) {
+								text = DungeonSeed.formatText(text);
+								long seed = DungeonSeed.convertFromText(text);
 
-                            if (positive && seed != -1) {
+								if (positive && seed != -1) {
 
-                                for (GamesInProgress.Info info : GamesInProgress.checkAll()) {
-                                    if (info.customSeed.isEmpty() && info.seed == seed) {
-                                        SPDSettings.customSeed("");
-                                        icon.resetColor();
-                                        ShatteredPixelDungeon.scene().addToFront(new WndMessage(Messages.get(HeroSelectScene.class, "custom_seed_duplicate")));
-                                        return;
-                                    }
-                                }
+									for (GamesInProgress.Info info : GamesInProgress.checkAll()) {
+										if (info.customSeed.isEmpty() && info.seed == seed) {
+											SPDSettings.customSeed("");
+											icon.resetColor();
+											ShatteredPixelDungeon.scene().addToFront(new WndMessage(Messages.get(HeroSelectScene.class, "custom_seed_duplicate")));
+											return;
+										}
+									}
 
-                                SPDSettings.customSeed(text);
-                                icon.hardlight(1f, 1.5f, 0.67f);
-                            } else {
-                                SPDSettings.customSeed("");
-                                icon.resetColor();
-                            }
-                            updateOptionsColor();
-                        }
-                    });
+									SPDSettings.customSeed(text);
+									icon.hardlight(1f, 1.5f, 0.67f);
+								} else {
+									SPDSettings.customSeed("");
+									icon.resetColor();
+								}
+								updateOptionsColor();
+							}
+						});
+					}
+
                 }
             };
             seedButton.leftJustify = true;

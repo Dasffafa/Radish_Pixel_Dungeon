@@ -43,6 +43,7 @@ import com.watabou.noosa.Game;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.FileUtils;
+import com.watabou.utils.DeviceCompat;;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -56,6 +57,7 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Random;
 
 public enum Rankings {
 	
@@ -64,6 +66,11 @@ public enum Rankings {
 	public static final int TABLE_SIZE	= 11;
 	
 	public static final String RANKINGS_FILE = "rankings.dat";
+
+	private static String generateUUID() {
+	  Random random = new Random();
+	  return Long.toHexString(random.nextLong()) + "-" + Long.toHexString(random.nextLong());
+	}
 	
 	public ArrayList<Record> records;
 	public int lastRecord;
@@ -116,7 +123,11 @@ public enum Rankings {
 		
 		INSTANCE.saveGameData(rec);
 
+		if (DeviceCompat.isWeb()) {
+		rec.gameID = generateUUID();
+		} else {
 		rec.gameID = UUID.randomUUID().toString();
+		}
 
 		if (rec.daily){
 			if (Dungeon.dailyReplay){
@@ -533,7 +544,11 @@ public enum Rankings {
 			if (bundle.contains(DATA))  gameData = bundle.getBundle(DATA);
 			if (bundle.contains(ID))   gameID = bundle.getString(ID);
 			
+			if (DeviceCompat.isWeb()) {
+			if (gameID == null) gameID = generateUUID();
+			} else {
 			if (gameID == null) gameID = UUID.randomUUID().toString();
+			}
 
 		}
 		

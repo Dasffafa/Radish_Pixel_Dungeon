@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.update.RDChangesButton;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndError;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndSettings;
 import com.watabou.glwrap.Blending;
 import com.watabou.noosa.BitmapText;
@@ -175,7 +176,12 @@ public class TitleScene extends PixelScene {
 		StyledButton btnSeedTest = new StyledButton(GREY_TR, Messages.get(this, "seed_find")){
 			@Override
 			protected void onClick() {
-				ShatteredPixelDungeon.switchScene( SeedFindScene.class );
+				if(DeviceCompat.isWeb()){
+					ShatteredPixelDungeon.scene().addToFront(new WndError(Messages.get(TitleScene.class,"web")));
+				} else {
+					ShatteredPixelDungeon.switchScene( SeedFindScene.class );
+				}
+
 			}
 		};
 		btnSeedTest.icon(Icons.get(Icons.SEED));
@@ -184,7 +190,11 @@ public class TitleScene extends PixelScene {
 		StyledButton btnSeedAnalysis = new StyledButton(GREY_TR, Messages.get(this, "seed_analysis")){
 			@Override
 			protected void onClick() {
-				ShatteredPixelDungeon.switchScene( SeedAnalysisScene.class );
+				if(DeviceCompat.isWeb()){
+					ShatteredPixelDungeon.scene().addToFront(new WndError(Messages.get(TitleScene.class,"web")));
+				} else {
+					ShatteredPixelDungeon.switchScene(SeedAnalysisScene.class);
+				}
 			}
 		};
 		btnSeedAnalysis.icon(Icons.get(Icons.MAGNIFY));

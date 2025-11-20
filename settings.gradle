@@ -7,7 +7,7 @@ include ':android'
 //屏蔽IOS端同步
 //include ':ios'
 include ':desktop'
-
+include ':html'
 //service modules
 include ':services'
     //updates
