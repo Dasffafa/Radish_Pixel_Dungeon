@@ -1012,7 +1012,11 @@ public class WndJournal extends WndTabbed {
 									GameScene.show(new WndStory(sprite, doc.pageTitle(page), doc.pageBody(page)));
 								}
 							} else {
-								ShatteredPixelDungeon.scene().addToFront(new WndStory(sprite, doc.pageTitle(page), doc.pageBody(page)));
+								if (doc ==  Document.LEGENDS_STORY) {
+									ShatteredPixelDungeon.scene().addToFront(new WndScrollTitledMessage(sprite, doc.pageTitle(page), doc.pageBody(page), 152, Chrome.Type.TOAST_TR));
+								} else {
+									ShatteredPixelDungeon.scene().addToFront(new WndStory(sprite, doc.pageTitle(page), doc.pageBody(page)));
+								}
 							}
 
 							doc.readPage(page);

@@ -1149,7 +1149,9 @@ public abstract class Char extends Actor {
 		//受衅怒火 2024-9-17
 		if (HP > 0 && shielded > 0 && shielding() == 0){
 			if (this instanceof Hero && ((Hero) this).hasTalent(Talent.PROVOKED_ANGER)){
-				Buff.affect(this, Talent.ProvokedAngerTracker.class, 5f);
+				if(hero.buff(Talent.ProvokedAngerTracker.class) == null){
+					Buff.affect(this, Talent.ProvokedAngerTracker.class, 5f);
+				}
 			}
 		}
 

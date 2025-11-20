@@ -416,7 +416,9 @@ public class WndUpgrade extends Window {
                     upgraded = ((MagicalInfusion) upgrader).upgradeItem(toUpgrade);
                 }
 
-                if (!force) upgrader.detach(Dungeon.hero.belongings.backpack);
+                if (!force){
+                    upgrader.detach(Dungeon.hero.belongings.backpack);
+                }
                 Item moreUpgradeItem = Dungeon.hero.belongings.getItem(upgrader.getClass());
 
                 hide();

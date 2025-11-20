@@ -84,9 +84,14 @@ public class WhiteKingGodSword extends MeleeWeapon {
 
     public String desc() {
         String s;
-        int min = Math.round(((min() * 0.6f) * (augment == Augment.DAMAGE ? 1.5f : (augment == Augment.SPEED ? 0.7f : 1f))) + 0.1f * level());
-        int max = Math.round(((max() * 0.6f) * (augment == Augment.DAMAGE ? 1.5f : (augment == Augment.SPEED ? 0.7f : 1f))) + 0.1f * level());
-        s = Messages.get(this, "desc", min,max);
+        if(Dungeon.hero != null){
+            int min = Math.round(((min() * 0.6f) * (augment == Augment.DAMAGE ? 1.5f : (augment == Augment.SPEED ? 0.7f : 1f))) + 0.1f * level());
+            int max = Math.round(((max() * 0.6f) * (augment == Augment.DAMAGE ? 1.5f : (augment == Augment.SPEED ? 0.7f : 1f))) + 0.1f * level());
+            s = Messages.get(this, "desc", min,max);
+        } else {
+            s = Messages.get(this, "desc", 0,0);
+        }
+       
         return s;
     }
 

@@ -17,7 +17,6 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
-import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Halo;
@@ -37,21 +36,20 @@ public class WandOfShockBomb extends DamageWand {
 
     @Override
     public int min(int lvl) {
-        return 0;
+        return 3+level();
     }
 
     @Override
     public int max(int lvl) {
-        return 0;
+        return 10+level()*4;
     }
 
     @Override
     public String statsDesc() {
-        int damage = 3 + level() - 10 + level() * 4;
         if (levelKnown)
-            return Messages.get(this, "stats_desc", damage);
+            return Messages.get(this, "stats_desc", min(),max());
         else
-            return Messages.get(this, "stats_desc", 3);
+            return Messages.get(this, "stats_desc", min(0),max(0));
     }
 
     @Override
@@ -66,13 +64,13 @@ public class WandOfShockBomb extends DamageWand {
 
         // 创建新的爆炸区域
         ShockBombTracker tracker = Buff.affect(Dungeon.hero, ShockBombTracker.class);
+        tracker.damage = damageRoll();
         tracker.setPos(targetPos, level());
     }
 
     @Override
     public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
-        // 计算触发概率：1+level/4+level
-        float triggerChance = 1 + level()/4 + level();
+        float triggerChance = 15 + (float) level() /4 + level();
         triggerChance = Math.min(triggerChance, 100); // 限制最大概率为100%
 
         if (Random.Int(100) < triggerChance) {
@@ -82,8 +80,9 @@ public class WandOfShockBomb extends DamageWand {
                 existing.detach();
             }
 
-            // 在目标脚下放置爆炸源
+            // 创建新的爆炸区域
             ShockBombTracker tracker = Buff.affect(Dungeon.hero, ShockBombTracker.class);
+            tracker.damage = damageRoll();
             tracker.setPos(defender.pos, level());
         }
     }
@@ -129,6 +128,7 @@ public class WandOfShockBomb extends DamageWand {
         private int turnsLeft = 1;
         private boolean[] fieldOfView;
         private ShockBombVFX halo;
+
         @Override
         public boolean act() {
             if (turnsLeft > 0) {
@@ -150,7 +150,7 @@ public class WandOfShockBomb extends DamageWand {
                 if (halo == null) {
                     halo = new ShockBombVFX();
                     halo.point(p.x, p.y);
-                    halo.hardlight(1, 0.2f, 0f);
+                    halo.hardlight(0.5f, 0.2f, 0f);
                     GameScene.effect(halo);
                 }
 
@@ -166,7 +166,7 @@ public class WandOfShockBomb extends DamageWand {
 
         private void explode() {
             // 计算伤害：3+等级-10+等级*4
-            int damage = 3 + level - 10 + level * 4;
+            int damage = wandDamage();
 
             // 播放音效和震动
             Sample.INSTANCE.play(Assets.Sounds.BLAST);
@@ -178,10 +178,9 @@ public class WandOfShockBomb extends DamageWand {
                 if (Dungeon.level.insideMap(cell)) {
                     Char ch = Actor.findChar(cell);
                     if (ch != null) {
-                        if(ch.alignment == Char.Alignment.ENEMY){
+                        if (ch.alignment == Char.Alignment.ENEMY) {
                             ch.damage(damage, new DM100.LightningBolt());
                         }
-                        WandOfBlastWave.BlastWave.blast(cell);
                         if (ch.alignment == Char.Alignment.ALLY) {
                             int pushTarget = cell;
                             for (int j = 0; j < 2; j++) {
@@ -194,6 +193,7 @@ public class WandOfShockBomb extends DamageWand {
                                 Actor.addDelayed(new Pushing(ch, cell, pushTarget), -1);
                                 ch.pos = pushTarget;
                             }
+                            WandOfBlastWave.BlastWave.blast(cell,2);
                         }
                     }
                 }
@@ -203,9 +203,15 @@ public class WandOfShockBomb extends DamageWand {
             GameScene.updateFog();
         }
 
+        public int damage;
+
+        public int wandDamage() {
+            return damage;
+        }
+
         public void detach() {
-           super.detach();
-            if(halo != null){
+            super.detach();
+            if (halo != null) {
                 halo.killAndErase();
             }
         }
@@ -213,8 +219,8 @@ public class WandOfShockBomb extends DamageWand {
         public class ShockBombVFX extends Halo {
             @Override
             public void update() {
-                am = brightness + 0.01f*(float)Math.cos(20);
-                scale.set((radius/3 + (float)Math.cos(20*Game.timeTotal))/RADIUS);
+                am = brightness + 0.01f * (float) Math.cos(20);
+                scale.set((radius / 3 + (float) Math.cos(20 * Game.timeTotal)) / RADIUS);
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 point(p.x, p.y);
                 super.update();
@@ -228,7 +234,7 @@ public class WandOfShockBomb extends DamageWand {
 
         @Override
         public void fx(boolean on) {
-            if (on && (halo == null || halo.parent == null)){
+            if (on && (halo == null || halo.parent == null)) {
                 halo = new ShockBombVFX();
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 halo.point(p.x, p.y);
@@ -243,12 +249,15 @@ public class WandOfShockBomb extends DamageWand {
         private static final String LEVEL = "level";
         private static final String LEFT = "left";
 
+        private static final String DAMAGE = "damage";
+
         @Override
         public void storeInBundle(Bundle bundle) {
             super.storeInBundle(bundle);
             bundle.put(POS, pos);
             bundle.put(LEVEL, level);
             bundle.put(LEFT, turnsLeft);
+            bundle.put(DAMAGE, damage);
         }
 
         @Override
@@ -257,22 +266,157 @@ public class WandOfShockBomb extends DamageWand {
             pos = bundle.getInt(POS);
             level = bundle.getInt(LEVEL);
             turnsLeft = bundle.getInt(LEFT);
-        }
-
-        @Override
-        public int icon() {
-            return BuffIndicator.TIME;
-        }
-
-        @Override
-        public String iconTextDisplay() {
-            return Integer.toString(turnsLeft);
+            damage = bundle.getInt(DAMAGE);
         }
 
     }
 
-    public String upgradeStat1(int level){
-        int damage = 3 + level - 10 + level * 4;
-        return String.valueOf(damage);
+    public static class ShockMageBombTracker extends Buff {
+        public int pos;
+        private int level;
+        private int turnsLeft = 1;
+        private boolean[] fieldOfView;
+        private ShockBombVFX halo;
+
+        @Override
+        public boolean act() {
+            if (turnsLeft > 0) {
+                // 显示倒计时
+                PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
+                FloatingText.show(p.x, p.y, pos, "NUKE!!!", CharSprite.NEGATIVE);
+
+                // 显示圆形范围标记
+                for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
+                    int cell = pos + PathFinder.CIRCLE7x[i];
+                    if (Dungeon.level.insideMap(cell)) {
+                        if (target != null && target.sprite != null) {
+                            target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
+                        }
+                    }
+                }
+
+                // 添加视觉效果
+                if (halo == null) {
+                    halo = new ShockBombVFX();
+                    halo.point(p.x, p.y);
+                    halo.hardlight(0.2f, 0.2f, 0f);
+                    GameScene.effect(halo);
+                }
+
+                turnsLeft--;
+            } else {
+                explode();
+                detach();
+            }
+
+            spend(TICK);
+            return true;
+        }
+
+        private void explode() {
+            // 计算伤害：3+等级-10+等级*4
+            int damage = wandDamage();
+
+            // 播放音效和震动
+            Sample.INSTANCE.play(Assets.Sounds.BLAST);
+            PixelScene.shake(3, 0.5f);
+
+            // 使用相同的圆形范围
+            for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
+                int cell = pos + PathFinder.CIRCLE7x[i];
+                if (Dungeon.level.insideMap(cell)) {
+                    Char ch = Actor.findChar(cell);
+                    if (ch != null) {
+                        if (ch.alignment == Char.Alignment.ENEMY) {
+                            ch.damage(damage, new DM100.LightningBolt());
+                        }
+                        if (ch.alignment == Char.Alignment.ALLY) {
+                            int pushTarget = cell;
+                            for (int j = 0; j < 2; j++) {
+                                int nextCell = cell + PathFinder.CIRCLE5x[Random.Int(8)];
+                                if (Dungeon.level.passable[nextCell] && Actor.findChar(nextCell) == null) {
+                                    pushTarget = nextCell;
+                                }
+                            }
+                            if (pushTarget != cell) {
+                                Actor.addDelayed(new Pushing(ch, cell, pushTarget), -1);
+                                ch.pos = pushTarget;
+                            }
+                            WandOfBlastWave.BlastWave.blast(cell,2);
+                        }
+                    }
+                }
+            }
+
+            Dungeon.observe();
+            GameScene.updateFog();
+        }
+
+        public int damage;
+
+        public int wandDamage() {
+            return damage;
+        }
+
+        public void detach() {
+            super.detach();
+            if (halo != null) {
+                halo.killAndErase();
+            }
+        }
+
+        public class ShockBombVFX extends Halo {
+            @Override
+            public void update() {
+                am = brightness + 0.01f * (float) Math.cos(20);
+                scale.set((radius / 2 + (float) Math.cos(20 * Game.timeTotal)) / RADIUS);
+                PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
+                point(p.x, p.y);
+                super.update();
+            }
+        }
+
+        public void setPos(int pos, int level) {
+            this.pos = pos;
+            this.level = level;
+        }
+
+        @Override
+        public void fx(boolean on) {
+            if (on && (halo == null || halo.parent == null)) {
+                halo = new ShockBombVFX();
+                PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
+                halo.point(p.x, p.y);
+                halo.hardlight(0.2f, 1f, 1f);
+                GameScene.effect(halo);
+            }
+            super.fx(on);
+        }
+
+        // 序列化相关
+        private static final String POS = "pos";
+        private static final String LEVEL = "level";
+        private static final String LEFT = "left";
+
+        private static final String DAMAGE = "damage";
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(POS, pos);
+            bundle.put(LEVEL, level);
+            bundle.put(LEFT, turnsLeft);
+            bundle.put(DAMAGE, damage);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            pos = bundle.getInt(POS);
+            level = bundle.getInt(LEVEL);
+            turnsLeft = bundle.getInt(LEFT);
+            damage = bundle.getInt(DAMAGE);
+        }
+
     }
 }

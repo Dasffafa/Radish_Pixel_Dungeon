@@ -140,8 +140,6 @@ public class TestRing extends TestGenerator {
 
     private Class<? extends Ring> idToRing(int id) {
         switch (id) {
-            case 0:
-                return RingOfConcentration.class;
             case 1:
                 return RingOfElements.class;
             case 2:
@@ -167,6 +165,7 @@ public class TestRing extends TestGenerator {
             case 12:
                 return RingOfKing.class;
             case 13:
+                return RingOfConcentration.class;
             default:
                 return RingOfBenediction.class;
         }
@@ -215,7 +214,7 @@ public class TestRing extends TestGenerator {
 
     private void buildRingList() {
         if (!ringList.isEmpty()) return;
-        for (int i = 0; i < 13; ++i) {
+        for (int i = 0; i < 14; ++i) {
             ringList.add(idToRing(i));
         }
     }
@@ -228,7 +227,7 @@ public class TestRing extends TestGenerator {
     }
 
     private int total(int category){
-        if (category == RING_CAT) return 13;
+        if (category == RING_CAT) return 14;
         if (category == WAND_CAT) return 16;
         return 0;
     }

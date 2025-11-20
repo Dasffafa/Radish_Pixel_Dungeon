@@ -167,6 +167,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMappi
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
@@ -755,10 +756,23 @@ public class Hero extends Char {
 			dr = 0;
 		} else if (belongings.armor() != null) {
 			int armDr = Char.combatRoll( belongings.armor().DRMin(), belongings.armor().DRMax());
-			if (STR() < belongings.armor().STRReq()){
-				armDr -= 2*(belongings.armor().STRReq() - STR());
+
+			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			if(riverGlass != null){
+				int originalArmorDr = Char.combatRoll(belongings.armor().DRMin(), belongings.armor().DRMax());
+				int secondRoll = Char.combatRoll(belongings.armor().DRMin(), belongings.armor().DRMax());
+				int finalArmorDr = Math.min(originalArmorDr, secondRoll);
+				if (STR() < belongings.armor().STRReq()){
+					finalArmorDr -= 2*(belongings.armor().STRReq() - STR());
+				}
+
+				armDr = finalArmorDr;
+			} else {
+				if (STR() < belongings.armor().STRReq()){
+					armDr -= 2*(belongings.armor().STRReq() - STR());
+				}
+				if (armDr > 0) dr += armDr;
 			}
-			if (armDr > 0) dr += armDr;
 		}
 		if (belongings.weapon() != null)  {
 			int wepDr = Char.combatRoll( 0 , belongings.weapon().defenseFactor( this ) );
@@ -1700,9 +1714,38 @@ public class Hero extends Char {
 		KindOfWeapon wep;
 		wep = belongings.attackingWeapon();
 
-		if (wep != null) damage = wep.proc( this, enemy, damage );
+		if (wep != null){
+			damage = wep.proc( this, enemy, damage );
+		}
 
 		damage = Talent.onAttackProc( this, enemy, damage );
+
+		//Roll 2 次 投掷武器等相关惩罚
+		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+		if(riverGlass != null){
+			int dmg = 0;
+
+			if(wep != null){
+				int originalDamage = wep.damageRoll(this);
+				int secondRoll = Char.combatRoll(belongings.weapon().min(), belongings.weapon().max());
+                dmg = Math.min(originalDamage, secondRoll);
+
+				if (!(wep instanceof MissileWeapon)) {
+					dmg += RingOfForce.armedDamageBonus(this);
+					if (hasTalent(Talent.DEVASTATE)){
+						if (buff(Combo.class)!=null){
+							int c=Math.min(buff(Combo.class).getComboCount(),10);
+							dmg+=Random.NormalIntRange(0,pointsInTalent(Talent.DEVASTATE)*c);
+						}
+					}
+				}
+
+				damage = dmg;
+			}
+		}
+
+
+
 
 		if (wep instanceof MeleeWeapon || wep == null) {
 			switch (hero.pointsInTalent(Talent.PHARCIS_BLESS)){

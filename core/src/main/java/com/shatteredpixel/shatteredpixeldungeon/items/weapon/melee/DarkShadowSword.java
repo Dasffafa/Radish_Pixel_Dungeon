@@ -35,15 +35,18 @@ public class DarkShadowSword extends MeleeWeapon {
         float delay;
         String s;
         int visibleMobs = 0;
-        for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
-            if(Dungeon.level.heroFOV[mob.pos] && mob.alignment == Char.Alignment.ENEMY){
-                visibleMobs++;
+        if(Dungeon.level != null){
+            for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
+                if(Dungeon.level.heroFOV[mob.pos] && mob.alignment == Char.Alignment.ENEMY){
+                    visibleMobs++;
+                }
             }
+            float speedBonus = (0.2f + 0.05f * level()) * visibleMobs;
+            delay = 1 - speedBonus;
+            s = Messages.get(this, "desc", String.format("%.2f", Math.max(0.25f, delay)));
+            return s;
         }
-        float speedBonus = (0.2f + 0.05f * level()) * visibleMobs;
-        delay = 1 - speedBonus;
-        s = Messages.get(this, "desc", String.format("%.2f", Math.max(0.25f, delay)));
-        return s;
+        return Messages.get(this, "desc", String.format("%.2f", Math.max(0.25f, 1)));
     }
 
 

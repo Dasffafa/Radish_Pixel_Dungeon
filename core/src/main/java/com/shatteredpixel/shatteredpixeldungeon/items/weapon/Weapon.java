@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -284,11 +285,12 @@ abstract public class Weapon extends KindOfWeapon {
 		if(req2 != 0 ){
 			req = req2;
 		}
-		int multi = RingOfKing.updateMultiplier(hero);
-		if( RingOfKing.curItem != null && RingOfKing.curItem.cursed )
-			multi = 1;
+
 		// 暂时这样吧，先把问题修了
 		if(hero != null){
+			int multi = RingOfKing.updateMultiplier(hero);
+			if( RingOfKing.curItem != null && RingOfKing.curItem.cursed )
+				multi = 1;
 			RingOfKing ringOfKing = hero.belongings.getItem(RingOfKing.class);
 			if(ringOfKing != null){
 				if(hero.belongings.weapon == this && (hero.belongings.misc instanceof RingOfKing || hero.belongings.ring instanceof RingOfKing)) req = req + multi;
@@ -316,11 +318,10 @@ abstract public class Weapon extends KindOfWeapon {
 		return level;
 	}
 
-	//overrides as other things can equip these
-	@Override
-	public int buffedLvl() {
-		if (isEquipped( hero ) || hero.belongings.contains( this )){
-			return super.buffedLvl();
+	public int buffedLvl(){
+		if (Dungeon.hero != null && Dungeon.hero.buff( Degrade.class ) != null
+				&& (isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this ))) {
+			return Degrade.reduceLevel(level());
 		} else {
 			return level();
 		}

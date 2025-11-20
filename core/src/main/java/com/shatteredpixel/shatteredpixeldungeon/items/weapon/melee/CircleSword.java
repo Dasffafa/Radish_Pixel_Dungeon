@@ -22,8 +22,10 @@ public class CircleSword extends MeleeWeapon {
 
     @Override
     public String statsInfo(){
-        if (isEquipped(Dungeon.hero) && Dungeon.hero.belongings.armor() != null){
-            return Messages.get(this, "stats_desc2",Dungeon.hero.belongings.armor().DRMin(),Dungeon.hero.belongings.armor().DRMax());
+        if(Dungeon.hero != null){
+            if (isEquipped(Dungeon.hero) && Dungeon.hero.belongings.armor() != null){
+                return Messages.get(this, "stats_desc2",Dungeon.hero.belongings.armor().DRMin(),Dungeon.hero.belongings.armor().DRMax());
+            }
         }
         return Messages.get(this, "stats_desc");
     }

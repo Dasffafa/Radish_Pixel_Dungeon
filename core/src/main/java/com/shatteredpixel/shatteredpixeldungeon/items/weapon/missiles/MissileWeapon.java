@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -38,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfSharpshooting;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfDisintegration;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -79,7 +82,12 @@ abstract public class MissileWeapon extends Weapon {
 
 	@Override
 	public int min() {
-		return Math.max(0, min( buffedLvl() + RingOfSharpshooting.levelDamageBonus(Dungeon.hero) ));
+		if(hero != null){
+			return Math.max(0, min( buffedLvl() + RingOfSharpshooting.levelDamageBonus(Dungeon.hero) ));
+		} else {
+			return Math.max(0, min( buffedLvl()  ));
+		}
+
 	}
 
 	@Override
@@ -88,9 +96,14 @@ abstract public class MissileWeapon extends Weapon {
 				(tier == 1 ? lvl : 2*lvl);      //level scaling
 	}
 
+
+
 	@Override
 	public int max() {
-		return Math.max(0, max( buffedLvl() + RingOfSharpshooting.levelDamageBonus(Dungeon.hero) ));
+		if(hero != null){
+			return Math.max(0, max( buffedLvl() + RingOfSharpshooting.levelDamageBonus(Dungeon.hero) ));
+		}
+		return Math.max(0, max( buffedLvl() ));
 	}
 
 	@Override
@@ -105,6 +118,14 @@ abstract public class MissileWeapon extends Weapon {
 
 	//use the parent item if this has been thrown from a parent
 	public int buffedLvl(){
+
+		if(Dungeon.hero != null){
+			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			if(riverGlass != null){
+				return super.buffedLvl() + riverGlass.level() + 1;
+			}
+		}
+
 		if (parent != null) {
 			return parent.buffedLvl();
 		} else {
@@ -362,14 +383,18 @@ abstract public class MissileWeapon extends Weapon {
 		float usages = baseUses * (float)(Math.pow(3, level()));
 
 		//+50%/75% durability
-		if (Dungeon.hero.hasTalent(Talent.DURABLE_PROJECTILES)){
-			usages *= 1.25f + (0.25f*Dungeon.hero.pointsInTalent(Talent.DURABLE_PROJECTILES));
+		if (Dungeon.hero != null) {
+			if (Dungeon.hero.hasTalent(Talent.DURABLE_PROJECTILES)){
+				usages *= 1.25f + (0.25f*Dungeon.hero.pointsInTalent(Talent.DURABLE_PROJECTILES));
+			}
 		}
 		if (holster) {
 			usages *= MagicalHolster.HOLSTER_DURABILITY_FACTOR;
 		}
 
-		usages *= RingOfSharpshooting.durabilityMultiplier( Dungeon.hero );
+		if (Dungeon.hero != null) {
+			usages *= RingOfSharpshooting.durabilityMultiplier(Dungeon.hero);
+		}
 
 		//at 100 uses, items just last forever.
 		if (usages >= 100f) return 0;
@@ -487,10 +512,12 @@ abstract public class MissileWeapon extends Weapon {
 				Math.round(augment.damageFactor(max())),
 				STRReq());
 
-		if (STRReq() > Dungeon.hero.STR()) {
-			info += " " + Messages.get(Weapon.class, "too_heavy");
-		} else if (Dungeon.hero.STR() > STRReq()){
-			info += " " + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
+		if (Dungeon.hero != null) {
+			if (STRReq() > Dungeon.hero.STR()) {
+				info += " " + Messages.get(Weapon.class, "too_heavy");
+			} else if (Dungeon.hero.STR() > STRReq()) {
+				info += " " + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
+			}
 		}
 
 		if (enchantment != null && (cursedKnown || !enchantment.curse())){

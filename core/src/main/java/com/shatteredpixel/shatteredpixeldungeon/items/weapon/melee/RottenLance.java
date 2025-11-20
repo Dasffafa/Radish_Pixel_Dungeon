@@ -35,7 +35,7 @@ public class RottenLance extends MeleeWeapon{// idea is from relic pd
                 (isRoot(Dungeon.hero)?11+2*lvl:0);
     }
     public boolean isRoot(Hero hero){
-        return hero.buff(Root.class)!=null;
+        return Dungeon.hero != null && hero.buff(Root.class) != null;
     }
     @Override public ArrayList<String> actions(Hero hero ) {
         ArrayList<String> actions = super.actions(hero);

@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnhancedRings;
@@ -35,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemStatusHandler;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindofMisc;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
@@ -357,13 +359,19 @@ public class Ring extends KindofMisc {
 	@Override
 	public int buffedLvl() {
 		int lvl = super.buffedLvl();
-		if (hero.buff(EnhancedRings.class) != null) {
-			lvl++;
-		}
-		if(hero.belongings.misc == this || hero.belongings.ring == this){
-			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
-			if(goldRadish != null){
-				return goldRadish.fixedLevel(goldRadish.buffedLvl());
+		if (Dungeon.hero != null){
+			if (hero.buff(EnhancedRings.class) != null) {
+				lvl++;
+			}
+			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			if(riverGlass != null){
+				return super.buffedLvl() + riverGlass.level() + 1;
+			}
+			if(hero.belongings.misc == this || hero.belongings.ring == this){
+				GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
+				if(goldRadish != null){
+					return goldRadish.fixedLevel(goldRadish.buffedLvl());
+				}
 			}
 		}
 		return lvl;

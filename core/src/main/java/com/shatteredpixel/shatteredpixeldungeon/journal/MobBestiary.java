@@ -66,6 +66,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.PhantomPiranha;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Piranha;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Pylon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.BigSnake_Zikk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Artillerist;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.ClusteredSkeleton;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.DM175;
@@ -242,7 +243,7 @@ public enum MobBestiary {
                 Deminion.class, Gorgon.class, Deviloon.class, DemonLord.class
                 );
 
-        BOSSES.addEntities(Goo.class,
+        BOSSES.addEntities(Goo.class, BigSnake_Zikk.class,
                 Tengu.class,
                 Pylon.class, DM300.class,
                 DwarfKing.class,

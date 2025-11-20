@@ -710,6 +710,9 @@ public class ItemSpriteSheet {
 	public static final int GOLD_RADISH 	= TRINKETS+15;
 
 	public static final int LIGHT_KING 	= TRINKETS+32;
+	public static final int RIVER_GLASS 	= TRINKETS+33;
+
+
 
 	static{
 		assignItemRect(RAT_SKULL,       16, 11);

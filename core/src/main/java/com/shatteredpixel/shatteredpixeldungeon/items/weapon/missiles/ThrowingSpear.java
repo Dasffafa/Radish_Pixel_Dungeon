@@ -61,7 +61,9 @@ public class ThrowingSpear extends MissileWeapon {
 		return super.accuracyFactor(owner,target)*(bow!=null?1.5f:1f);
 	}
 	private void updateCrossbow(){
-		if (Dungeon.hero.belongings.weapon() instanceof ScorpionCrossbow){
+		if (Dungeon.hero == null) {
+			bow = null;
+		} else if (Dungeon.hero.belongings.weapon() instanceof ScorpionCrossbow){
 			bow = (ScorpionCrossbow) Dungeon.hero.belongings.weapon();
 		} else {
 			bow = null;

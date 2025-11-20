@@ -26,6 +26,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v06_8_Changes(changeInfos);
         add_v06_4_Changes(changeInfos);
         add_v06_3_Changes(changeInfos);
         add_v06_2_Changes(changeInfos);
@@ -48,6 +49,74 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v06_8_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.6.8", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS+21)), "新武器：改锥",
+                "4阶，力量需求16\n" +
+                        "初始2-10，成长1-2，攻速0.4\n" +
+                        "一对锋利的锥子，可以捅向敌人的伤患处，越来越深。\n\n在上回合每造成一次物理伤害，此武器的伤害就越致命。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.WAND_NEWSTAR)), "新法杖：新星法杖",
+                "使用这根法杖可以对自己或者友军使用，随后以那个位置为中心，3*3圆形范围内的所有敌人受到2+等级-5+等级*4点伤害，友军获得法杖等级的护盾。等级每提升4级就会使范围扩大一圈。\n" +
+                        "\n" +
+                        "战法特效为使用新星法杖进行近战攻击时，有概率触发_新星治疗_，它会将_老魔杖_和_所有法杖_的总等级综合，并迅速回馈给自己的主人。\n\n" +
+                        "新星法杖的元素风暴战技：没有特殊效果，但是它的伤害倍率是元素风暴基础伤害的2倍。\n\n" +
+                        "谁知道制作这根法杖的家伙和牧师做了什么交易，但是不用祈祷就能使用的神圣法术可是许多人梦寐以求的，nova！"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.WAND_BOMBWAVES)), "新法杖：新星法杖",
+                "使用这根法杖会先指定一处位置，在下回合以那个位置为中心，5×5圆形范围内的所有敌人受到3+等级-10+等级*4点伤害。并击退范围内的友军2格。\n" +
+                        "\n" +
+                        "战法特效为有1+等级/4+等级的概率向目标脚下放置一个爆炸源。\n\n" +
+                        "震爆法杖的元素风暴战技：将会在英雄脚下生成一个威力十分巨大的震爆范围，此效果远超直接释放。\n\n" +
+                        "此类法杖延迟生效和范围过大的特点，一直被魔法学会列为缺点，直到如今也没有人能替它翻案。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.MAGNETIC_CROWN)), "新神器：磁力王冠",
+                "带上这顶王冠时，你感受到了空间中微弱的磁力，这种力量也许能把你和其他生物拖向某一地点……\n\n" +
+                        "升级方式：在陷阱地块上获得经验。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.LIGHT_KING)), "新饰品：光明之冠",
+                "你能感受得到这枚闪烁的皇冠中蕴藏着力量，不过需要以你良好的状态诱发之。\n" +
+                        "\n" +
+                        "在当前的等级下，当你的当前生命值大于或等于最大生命值的90%/85%/80%/75%时，这件饰物会使你造成的所有伤害增加25%/33%/41%/50%，反之则降低如上值。"));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.RIVER_GLASS)), "新饰品：塑形玻璃",
+                "这件饰品有很强的延展性，你能感受到它给你的所有装备都镀了一层性能近似但更柔软的膜。\n" +
+                        "\n" +
+                        "在当前的等级下，这件饰物每级会使所有可被升级的装备获得1级虚拟升级，但也会使装备在发挥效用时多进行1次判定并取其中最小值结算。"));
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 6), ("牧师护甲第一天赋实装"),
+                (       "牧师首个护甲技能---终末圣祷，现已正式实装！")));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复 嬗变饰品萝卜有概率会闪退\n" +
+                        "_-_ 修复 天赋大地之心+1的加速未生效，+2 踩在草上就有露珠，并且扔下水袋后，踩不了草游戏异常\n" +
+                        "_-_ 修复 钢铁烈阳会使自己释放的法术神罚不给护盾\n" +
+                        "_-_ 修复 巨人杀手的暴击增益对精英强敌的精英无效\n" +
+                        "_-_ 修复 幻影雾剑在攻击时未击中敌人时自身隐形\n" +
+                        "_-_ 修复 使用回音锤攻击巨型精英时未击杀也可以产生特效\n" +
+                        "_-_ 修复 狂战士怒气获取问题\n" +
+                        "_-_ 修复 部分测试工具异常\n" +
+                        "_-_ 修复 新星法杖的一堆问题\n" +
+                        "_-_ 修复 护甲部分渲染素材异常")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DISPLAY_LAND), ("主界面优化"),
+                ("现在 日志 界面，可在游戏主界面打开。")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DATA), ("网络协议迭代"),
+                ("从0.6.7-FD开始，迭代网络协议，重启游戏内部自动更新")));
     }
 
     public static void add_v06_4_Changes( ArrayList<ChangeInfo> changeInfos ) {

@@ -55,6 +55,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.TelekineticGrab;
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.WondrousResin;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.WandOfCorret;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
@@ -314,8 +315,10 @@ public abstract class Wand extends Item {
 			desc += "\n\n" + Messages.get(Wand.class, "not_cursed");
 		}
 
-		if (hero.subClass == HeroSubClass.BATTLEMAGE){
-			desc += "\n\n" + Messages.get(this, "bmage_desc");
+		if(hero != null){
+			if (hero.subClass == HeroSubClass.BATTLEMAGE){
+				desc += "\n\n" + Messages.get(this, "bmage_desc");
+			}
 		}
 
 		return desc;
@@ -388,6 +391,11 @@ public abstract class Wand extends Item {
 		if(Dungeon.hero.buff(Berserk.class) != null){
 			lvl += Dungeon.hero.buff(Berserk.class).WandBuffedLvl();
 			updateQuickslot();
+		}
+
+		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+		if(riverGlass != null){
+			return super.buffedLvl() + riverGlass.level() + 1;
 		}
 
 		if (charger != null && charger.target != null) {

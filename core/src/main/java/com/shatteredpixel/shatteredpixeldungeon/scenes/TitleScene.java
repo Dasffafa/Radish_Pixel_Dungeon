@@ -143,13 +143,13 @@ public class TitleScene extends PixelScene {
 		add(btnRankings);
 		Dungeon.daily = Dungeon.dailyReplay = false;
 
-		StyledButton btnBadges = new StyledButton(GREY_TR, Messages.get(this, "badges")){
+		StyledButton btnBadges = new StyledButton(GREY_TR, Messages.get(JournalScene.class, "title")){
 			@Override
 			protected void onClick() {
-				ShatteredPixelDungeon.switchNoFade( BadgesScene.class );
+				ShatteredPixelDungeon.switchNoFade(JournalScene.class);
 			}
 		};
-		btnBadges.icon(Icons.get(Icons.BADGES));
+		btnBadges.icon(Icons.get(Icons.CATALOG));
 		add(btnBadges);
 
 		/*StyledButton btnNews = new NewsButton(GREY_TR, Messages.get(this, "news"));

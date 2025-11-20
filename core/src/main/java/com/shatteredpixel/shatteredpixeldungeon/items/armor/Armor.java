@@ -44,6 +44,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CircleSword;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
@@ -423,6 +424,11 @@ public class Armor extends EquipableItem {
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
 			}
 
+			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			if(riverGlass != null){
+				return super.buffedLvl() + riverGlass.level() + 1;
+			}
+
 			if (hero.pointsInTalent(Talent.GIFT) > 0) {
 				// 获取天赋等级（1-4）
 				int giftLevel = hero.pointsInTalent(Talent.GIFT);
@@ -535,18 +541,15 @@ public class Armor extends EquipableItem {
 			} else {
 				info += "\n\n" + Messages.get(Armor.class, "curr_absorb", DRMin(), DRMax(), STRReq());
 			}
+			info += "\n\n" + Messages.get(Armor.class, "curr_absorb", DRMin(), DRMax(), STRReq());
 
-			if (STRReq() > Dungeon.hero.STR()) {
+			if (Dungeon.hero != null && STRReq() > Dungeon.hero.STR()) {
 				info += " " + Messages.get(Armor.class, "too_heavy");
 			}
 		} else {
-			if(hero.belongings.weapon() instanceof CircleSword && hero.belongings.armor() == this){
-				info += "\n\n" + Messages.get(Armor.class, "avg_absorb", 0, 0, STRReq(0));
-			} else {
-				info += "\n\n" + Messages.get(Armor.class, "avg_absorb", DRMin(0), DRMax(0), STRReq(0));
-			}
+			info += "\n\n" + Messages.get(Armor.class, "avg_absorb", DRMin(0), DRMax(0), STRReq(0));
 
-			if (STRReq(0) > Dungeon.hero.STR()) {
+			if (Dungeon.hero != null && STRReq(0) > Dungeon.hero.STR()) {
 				info += " " + Messages.get(Armor.class, "probably_too_heavy");
 			}
 		}

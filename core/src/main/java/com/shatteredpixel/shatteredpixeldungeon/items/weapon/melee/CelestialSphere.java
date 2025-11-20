@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
@@ -25,10 +26,11 @@ public class CelestialSphere extends MeleeWeapon {
     @Override
     public int min(int lvl) {
         int wandTotalLevel = 0;
-
-        ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
-        for (Wand w : wands.toArray(new Wand[0])){
-            wandTotalLevel += w.level();
+        if(Dungeon.hero != null) {
+            ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
+            for (Wand w : wands.toArray(new Wand[0])) {
+                wandTotalLevel += w.level();
+            }
         }
 
         return 1 + lvl + wandTotalLevel;
@@ -36,20 +38,13 @@ public class CelestialSphere extends MeleeWeapon {
     @Override
     public int max(int lvl) {
         int wandTotalLevel = 0;
-        ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
-        for (Wand w : wands.toArray(new Wand[0])){
-            wandTotalLevel += w.level();
+        if(Dungeon.hero != null) {
+            ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
+            for (Wand w : wands.toArray(new Wand[0])) {
+                wandTotalLevel += w.level();
+            }
         }
 
         return 4 + lvl * 3 + wandTotalLevel * 2;
     }
-
-    // See Hero.java AttackProc()
-//    public int proc(Char attacker, Char defender, int damage ) {
-//        int magicDamage;
-//        magicDamage = Random.NormalIntRange(min(level()),max(level()));
-//        defender.damage(magicDamage,new DM100.LightningBolt());
-//        return magicDamage;
-//    }
-
 }

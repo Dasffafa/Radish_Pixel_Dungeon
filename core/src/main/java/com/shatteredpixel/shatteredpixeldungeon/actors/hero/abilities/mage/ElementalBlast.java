@@ -109,7 +109,7 @@ public class ElementalBlast extends ArmorAbility {
 		effectTypes.put(WandOfCorruption.class,     MagicMissile.SHADOW_CONE);
 		effectTypes.put(WandOfRegrowth.class,       MagicMissile.FOLIAGE_CONE);
 		effectTypes.put(WandOfGnollKing.class,		MagicMissile.RAINBOW);
-		effectTypes.put(WandOfShockBomb.class, 		MagicMissile.SHADOW);
+		effectTypes.put(WandOfShockBomb.class, 		MagicMissile.SHAMAN_BLUE);
 		effectTypes.put(WandOfNewStar.class, 		MagicMissile.STAR);
 	}
 
@@ -130,7 +130,7 @@ public class ElementalBlast extends ArmorAbility {
 		damageFactors.put(WandOfRegrowth.class,         0f);
 		damageFactors.put(WandOfGnollKing.class,		0.5f);
 		damageFactors.put(WandOfShockBomb.class, 		0.5f);
-		damageFactors.put(WandOfNewStar.class, 				5f);
+		damageFactors.put(WandOfNewStar.class, 				2f);
 	}
 
 	{
@@ -479,12 +479,16 @@ public class ElementalBlast extends ArmorAbility {
 								}
 							}
 						} else if (finalWandCls == WandOfShockBomb.class) {
-							WandOfShockBomb.ShockBombTracker existing = Dungeon.hero.buff(WandOfShockBomb.ShockBombTracker.class);
+							WandOfShockBomb.ShockMageBombTracker existing = Dungeon.hero.buff(WandOfShockBomb.ShockMageBombTracker.class);
 							if (existing != null) {
 								existing.detach();
 							}
-							WandOfShockBomb.ShockBombTracker tracker = Buff.affect(Dungeon.hero, WandOfShockBomb.ShockBombTracker.class);
-							tracker.setPos(hero.pos,Random.Int(12,16));
+
+							WandOfShockBomb.ShockMageBombTracker tracker = Buff.affect(Dungeon.hero, WandOfShockBomb.ShockMageBombTracker.class);
+							WandOfShockBomb w = new WandOfShockBomb();
+							w.level = Random.Int(12,16);
+							tracker.damage = w.damageRoll();
+							tracker.setPos(hero.pos,0);
 						}
 
                         charsHit = Math.min(4 + hero.pointsInTalent(Talent.REACTIVE_BARRIER), charsHit);

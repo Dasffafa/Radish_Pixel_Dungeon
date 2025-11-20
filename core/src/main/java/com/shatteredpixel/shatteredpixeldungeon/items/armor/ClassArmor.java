@@ -251,16 +251,18 @@ abstract public class ClassArmor extends Armor {
 	@Override
 	public String desc() {
 		String desc = super.desc();
-
-		if (Dungeon.hero.belongings.contains(this)) {
-			ArmorAbility ability = Dungeon.hero.armorAbility;
-			if (ability != null) {
-				desc += "\n\n" + ability.shortDesc();
-				float chargeUse = ability.chargeUse(Dungeon.hero);
-				desc += " " + Messages.get(this, "charge_use", new DecimalFormat("#.##").format(chargeUse));
-			} else {
-				desc += "\n\n" + "_" + Messages.get(this, "no_ability") + "_";
+		if(Dungeon.hero != null){
+			if (Dungeon.hero.belongings.contains(this)) {
+				ArmorAbility ability = Dungeon.hero.armorAbility;
+				if (ability != null) {
+					desc += "\n\n" + ability.shortDesc();
+					float chargeUse = ability.chargeUse(Dungeon.hero);
+					desc += " " + Messages.get(this, "charge_use", new DecimalFormat("#.##").format(chargeUse));
+				} else {
+					desc += "\n\n" + "_" + Messages.get(this, "no_ability") + "_";
+				}
 			}
+
 		}
 
 		return desc;

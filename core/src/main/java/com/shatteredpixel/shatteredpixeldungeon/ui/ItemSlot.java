@@ -262,7 +262,7 @@ public class ItemSlot extends Button {
 			if (item.levelKnown){
 				int str = item instanceof Weapon ? ((Weapon)item).STRReq() : ((Armor)item).STRReq();
 				extra.text( Messages.format( TXT_STRENGTH, str ) );
-				if (str > Dungeon.hero.STR()) {
+				if (Dungeon.hero != null && str > Dungeon.hero.STR()) {
 					extra.hardlight( DEGRADED );
 				} else if (item instanceof Weapon && ((Weapon) item).masteryPotionBonus){
 					extra.hardlight( MASTERED );
@@ -315,6 +315,7 @@ public class ItemSlot extends Button {
 		}else {
 			special.resetColor();
 		}
+
 		layout();
 	}
 

@@ -104,6 +104,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
     public void useSkills(Belief.SkillList skillList){
         switch (skillList){
             case CORRECT:
+                if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
+                    Buff.affect(hero, Barrier.class).setShield( hero.lvl );
+                }
                 curUser = hero;
                 curItem = new WandOfCorret();
                 GameScene.selectCell( zapper );

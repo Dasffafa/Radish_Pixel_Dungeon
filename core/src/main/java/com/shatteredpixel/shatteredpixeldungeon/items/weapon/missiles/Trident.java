@@ -57,7 +57,9 @@ public class Trident extends MissileWeapon {
 		return sm;
 	}
 	private void updateCrossbow(){
-		if (Dungeon.hero.belongings.weapon() instanceof ScorpionCrossbow){
+		if (Dungeon.hero == null) {
+			bow = null;
+		} else if (Dungeon.hero.belongings.weapon() instanceof ScorpionCrossbow){
 			bow = (ScorpionCrossbow) Dungeon.hero.belongings.weapon();
 		} else {
 			bow = null;

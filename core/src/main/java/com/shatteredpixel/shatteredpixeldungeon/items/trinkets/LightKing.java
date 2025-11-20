@@ -31,11 +31,14 @@ public class LightKing extends Trinket {
     }
 
     public String checkStats(){
-        if(checkHpThreshold(Dungeon.hero.HP,Dungeon.hero.HT)){
-            return Messages.get(this, "stats_desc_yes");
-        } else {
-            return Messages.get(this, "stats_desc_no");
+        if(Dungeon.hero != null){
+            if(checkHpThreshold(Dungeon.hero.HP,Dungeon.hero.HT)){
+                return Messages.get(this, "stats_desc_yes");
+            } else {
+                return Messages.get(this, "stats_desc_no");
+            }
         }
+        return Messages.get(this, "stats_desc_no");
     }
 
     public int damagePlus( int level ){

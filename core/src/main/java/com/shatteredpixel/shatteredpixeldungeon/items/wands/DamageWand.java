@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.noosa.audio.Sample;
 
@@ -63,6 +64,14 @@ public abstract class DamageWand extends Wand{
 				berserk.damage(dmg/2);
 			}
 		}
+
+		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+		if(riverGlass != null){
+			int originalDamage = Char.combatRoll(min(lvl), max(lvl));
+			int secondRoll = Char.combatRoll(min(lvl), max(lvl));
+			dmg = Math.min(originalDamage, secondRoll);
+		}
+
 
 		LightKing lightKing = hero.belongings.getItem(LightKing.class);
 		if (lightKing != null) {

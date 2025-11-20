@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -235,6 +236,11 @@ public class MeleeWeapon extends Weapon {
 			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
 			if(goldRadish != null){
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
+			}
+
+			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			if(riverGlass != null){
+				return super.buffedLvl() + riverGlass.level() + 1;
 			}
 
 			if (hero.pointsInTalent(Talent.GIFT) > 0) {

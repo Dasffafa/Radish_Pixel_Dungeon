@@ -38,7 +38,7 @@ import com.watabou.utils.Random;
 import java.util.ArrayList;
 
 public class GooSprite extends MobSprite {
-	
+
 	private Animation pump;
 	private Animation pumpAttack;
 
@@ -47,17 +47,17 @@ public class GooSprite extends MobSprite {
 
 	public GooSprite() {
 		super();
-		
+
 		texture( Assets.Sprites.GOO );
-		
+
 		TextureFilm frames = new TextureFilm( texture, 20, 14 );
-		
+
 		idle = new Animation( 10, true );
 		idle.frames( frames, 2, 1, 0, 0, 1 );
-		
+
 		run = new Animation( 15, true );
 		run.frames( frames, 3, 2, 1, 2 );
-		
+
 		pump = new Animation( 20, true );
 		pump.frames( frames, 4, 3, 2, 1, 0 );
 
@@ -66,16 +66,17 @@ public class GooSprite extends MobSprite {
 
 		attack = new Animation( 10, false );
 		attack.frames( frames, 8, 9, 10 );
-		
+
 		die = new Animation( 10, false );
 		die.frames( frames, 5, 6, 7 );
-		
+
 		play(idle);
 
-		spray = centerEmitter();
-		spray.autoKill = false;
-		spray.pour( GooParticle.FACTORY, 0.04f );
-		spray.on = false;
+		if (spray != null) {
+			spray.autoKill = false;
+			spray.pour(GooParticle.FACTORY, 0.04f);
+			spray.on = false;
+		}
 	}
 
 	@Override

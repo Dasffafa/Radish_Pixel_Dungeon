@@ -938,7 +938,7 @@ public class Badges {
 
 	public static void validateRogueUnlock(){
 		if (Statistics.sneakAttacks >= 10 && !isUnlocked(Badge.UNLOCK_ROGUE)){
-			displayBadge( Badge.UNLOCK_RECTOR );
+			displayBadge( Badge.UNLOCK_ROGUE );
 		}
 	}
 

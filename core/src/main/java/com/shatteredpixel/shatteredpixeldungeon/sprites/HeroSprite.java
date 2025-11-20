@@ -83,9 +83,7 @@ public class HeroSprite extends CharSprite {
 		Armor armor = hero.belongings.armor();
 		if (armor instanceof ClassArmor){
 			t= 6;
-		}
-
-		if (armor != null) {
+		} else if (armor != null) {
 				if (armor instanceof PrisonArmor) t=7;
 				else if (armor instanceof CrabArmor) t=8;
 				else if (armor instanceof DarkCoat) t=9;
