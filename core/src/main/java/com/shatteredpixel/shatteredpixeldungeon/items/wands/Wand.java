@@ -504,6 +504,12 @@ public abstract class Wand extends Item {
 			}
 		}
 
+		if (Dungeon.hero.hasTalent(Talent.LINGERING_MAGIC)
+				&& charger != null && charger.target == Dungeon.hero){
+
+			Buff.prolong(Dungeon.hero, Talent.LingeringMagicTracker.class, 5f);
+		}
+
 		if (!isIdentified()) {
 			float uses = Math.min(availableUsesToID, Talent.itemIDSpeedFactor(hero, this));
 			availableUsesToID -= uses;

@@ -112,8 +112,12 @@ public class RA_v0_13_X_Changes {
                         "_-_ 修复 新星法杖的一堆问题\n" +
                         "_-_ 修复 护甲部分渲染素材异常")));
 
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.STONE_DISARM)), "符石重做：探测符石",
+                "原先为拆除符石，现在二合一。"));
+
         changes.addButton(new ChangeButton(Icons.get(Icons.DISPLAY_LAND), ("主界面优化"),
-                ("现在 日志 界面，可在游戏主界面打开。")));
+                ("现在 日志 界面，可在游戏主界面打开。\n" +
+                        "升级 界面 迭代新版")));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.DATA), ("网络协议迭代"),
                 ("从0.6.7-FD开始，迭代网络协议，重启游戏内部自动更新")));

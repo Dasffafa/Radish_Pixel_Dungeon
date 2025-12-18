@@ -832,6 +832,13 @@ public enum Talent {
 			Buff.affect(enemy, SuckerPunchTracker.class);
 		}
 
+
+		if (hero.hasTalent(Talent.LINGERING_MAGIC)
+				&& hero.buff(LingeringMagicTracker.class) != null){
+			dmg += Random.IntRange(hero.pointsInTalent(Talent.LINGERING_MAGIC) , 2);
+			hero.buff(LingeringMagicTracker.class).detach();
+		}
+
 		if (hero.hasTalent(THIRSTY_BLADE)){
 			int restoration = Math.round(dmg* hero.pointsInTalent(THIRSTY_BLADE)*0.02f);
 			if (restoration > 0) {
@@ -840,12 +847,6 @@ public enum Talent {
 				hero.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", hero.HP-preHp);
 				hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
 			}
-		}
-
-		if (hero.hasTalent(Talent.LINGERING_MAGIC)
-				&& hero.buff(LingeringMagicTracker.class) != null){
-			dmg += Random.IntRange(hero.pointsInTalent(Talent.LINGERING_MAGIC) , 2);
-			hero.buff(LingeringMagicTracker.class).detach();
 		}
 
 		//受衅怒火 2024-9-17
