@@ -481,6 +481,21 @@ public class Belief extends Buff implements ActionIndicator.Action {
         float actualValue = (float) (Math.floor(value * 100) / 100);
         credibility = Math.max(0, credibility - actualValue);
         hero.sprite.showStatus(Window.RADISH, "-" + actualValue);
+
+        // Rector armor skill : taichi poise
+        // DoggingDog 20260116
+        if(hero != null){
+            Buff buff = hero.buff(Soulstaker.class);
+            if (buff != null && !hero.hasTalent(Talent.TAI_CHI_POISE)){
+                buff.detach();
+            }
+            else if(buff != null){
+                if(value > hero.pointsInTalent(Talent.TAI_CHI_POISE) * 5f){
+                    buff.detach();
+                }
+            }
+        }
+
     }
 
 

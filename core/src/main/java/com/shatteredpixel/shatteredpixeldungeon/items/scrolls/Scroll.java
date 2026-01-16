@@ -28,8 +28,11 @@ import static com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.Exot
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Soulstaker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
@@ -279,6 +282,16 @@ public abstract class Scroll extends Item {
 			for (Wand.Charger c : curUser.buffs(Wand.Charger.class)){
 				c.gainCharge((toDouble?2:1)*(0.34f+0.33f*curUser.pointsInTalent(Talent.ENERGIZING_UPGRADE)));
 			}
+		}
+
+		// blocking reading ,Rector armor skill.
+		// DoggingDog on 20260116
+		if(curUser.buff(Soulstaker.class) != null && curUser.hasTalent(Talent.BLOCKING_READING)){
+			int ptSkill = curUser.pointsInTalent(Talent.BLOCKING_READING);
+			// Strengthen if ExoticScroll used
+			ptSkill = (this instanceof ExoticScroll)?ptSkill*2:ptSkill;
+
+			Buff.affect(curUser, VitaeBuff.class).setVitae(ptSkill + 4);
 		}
 
 	}
