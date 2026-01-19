@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AnkhInvulnerability;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -493,6 +494,15 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 if(value > hero.pointsInTalent(Talent.TAI_CHI_POISE) * 5f){
                     buff.detach();
                 }
+            }
+        }
+
+        // rector armor skill : gods possession
+        // 20260119 by DoggingDog
+        if(hero != null){
+            Buff buff = hero.buff(GodsPossessionBuff.class);
+            if (buff != null && !hero.hasTalent(Talent.BLOCKING_READING)){
+                Buff.prolong(hero, AnkhInvulnerability.class, hero.pointsInTalent(Talent.BLOCKING_READING) + 1);
             }
         }
 

@@ -962,6 +962,14 @@ public class Hero extends Char {
 			delay /= (2f + 0.25f * ((Showdarker) belongings.armor).buffedLvl());
 		}
 
+		// rector skill : gods possession with talent avatar
+		// DoggingDog on 20260119
+		if(hero != null){
+			int t_lvl = hero.pointsInTalent(Talent.AVATAR);
+			t_lvl = Math.max(0,t_lvl-1);
+			speed *= (1f + ((float) t_lvl)/3);
+		}
+
         return delay/speed;
     }
 
