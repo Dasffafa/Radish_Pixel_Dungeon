@@ -1017,6 +1017,21 @@ public class Hero extends Char {
 			}
 		}
 
+		int mobcount = 0;
+		if (hero.hasTalent(Talent.HIDE_IN_CROWD)){
+			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
+				if(fieldOfView[mob.pos]){
+					mobcount++;
+				}
+			}
+			if(mobcount >= 6 - hero.pointsInTalent(Talent.HIDE_IN_CROWD)){
+				if(buff(Talent.HideInCrowdCooldown.class) == null){
+					Buff.affect(hero, Invisibility.class,7f);
+					Buff.affect(hero, Talent.HideInCrowdCooldown.class, 50f);
+				}
+			}
+		}
+
 		if (hero.hasTalent(Talent.GOD_BODY)){
 			for (Buff buff : hero.buffs()) {
 				if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(-1f) && buff instanceof Corrosion) { // 使用阈值检测方法

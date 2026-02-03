@@ -266,6 +266,11 @@ public enum Talent {
 		public void tintIcon(Image icon) { icon.hardlight(0.75f, 0f, 0f); }
 	};
 
+	public static class HideInCrowdCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0x5562F6); }
+	};
+
 	public static class SlowHealingDeadCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0f, 0.55f, 0f); }
