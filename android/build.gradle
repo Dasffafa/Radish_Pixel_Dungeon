@@ -4,7 +4,8 @@ apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     namespace 'com.shatteredpixel.shatteredpixeldungeon.android'
-    compileSdk appAndroidCompileSDK
+//    compileSdk appAndroidCompileSDK
+    compileSdkVersion  15
     compileOptions.sourceCompatibility = compileOptions.targetCompatibility = appJavaCompatibility
 
     sourceSets.main.assets.srcDirs = [new File(project(':core').projectDir, "/src/main/assets")]
