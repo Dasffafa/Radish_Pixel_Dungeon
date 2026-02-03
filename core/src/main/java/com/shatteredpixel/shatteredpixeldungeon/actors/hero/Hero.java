@@ -962,6 +962,8 @@ public class Hero extends Char {
 			delay /= (2f + 0.25f * ((Showdarker) belongings.armor).buffedLvl());
 		}
 
+		if ( buff(Adrenaline.class) != null) delay /= 1.5f;
+
 		// rector skill : gods possession with talent avatar
 		// DoggingDog on 20260119
 		if(hero != null){
