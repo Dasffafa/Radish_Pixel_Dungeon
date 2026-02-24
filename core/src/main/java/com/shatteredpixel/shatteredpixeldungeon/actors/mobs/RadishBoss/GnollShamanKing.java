@@ -14,9 +14,10 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollShamanKingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
-public class GnollShamanKing extends Mob {
+public class GnollShamanKing extends Mob implements Callback {
 
     {
         spriteClass = GnollShamanKingSprite.class;
@@ -26,6 +27,11 @@ public class GnollShamanKing extends Mob {
         maxLvl = 30;
 
         properties.add(Property.BOSS);
+    }
+
+    @Override
+    public int attackSkill( Char target ) {
+        return 25;
     }
 
 
@@ -52,6 +58,17 @@ public class GnollShamanKing extends Mob {
                 return true;
             }
         }
+    }
+
+
+    public void onZapComplete() {
+        zap();
+        next();
+    }
+
+    @Override
+    public void call() {
+        next();
     }
 
     private void zap() {

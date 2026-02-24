@@ -3,13 +3,24 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 import static com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.WALL;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollShamanKing;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CavesLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.audio.Music;
+import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Callback;
 
 public class GnollKingBossLevel extends Level {
 
@@ -25,6 +36,20 @@ public class GnollKingBossLevel extends Level {
     private static final int HEIGHT = 19;
 
     @Override
+    public void playLevelMusic() {
+        if (locked){
+            if (BossHealthBar.isBleeding()){
+                Music.INSTANCE.play(Assets.Music.CAVES_BOSS_FINALE, true);
+            } else {
+                Music.INSTANCE.play(Assets.Music.CAVES_BOSS, true);
+            }
+            //if wall isn't broken
+        } else {
+            Music.INSTANCE.playTracks(CavesLevel.CAVES_TRACK_LIST, CavesLevel.CAVES_TRACK_CHANCES, false);
+        }
+    }
+
+    @Override
     public void unseal() {
         super.unseal();
 
@@ -33,15 +58,49 @@ public class GnollKingBossLevel extends Level {
     @Override
     public void occupyCell( Char ch ) {
         super.occupyCell(ch);
-
-       // GLog.w(String.valueOf(Dungeon.hero.pos));
-
-//        if (map[entrance] == Terrain.STATUE && map[exit] != Terrain.EXIT
-//                && ch == hero && level.distance(ch.pos, entrance) >= 2) {
-//            seal();
-//        }
+        int gatePos = 180;
+        if (Dungeon.level.distance(ch.pos, gatePos) >= 3 && map[gatePos] == Terrain.ENTRANCE){
+            seal();
+        }
     }
 
+    @Override
+    public void seal() {
+        super.seal();
+        int exit = exit();
+        set( exit, Terrain.EMPTY );
+        GameScene.updateMap( exit );
+        Dungeon.observe();
+
+        CellEmitter.get( exit ).start( Speck.factory( Speck.ROCK ), 0.07f, 10 );
+        PixelScene.shake( 3, 0.7f );
+        Sample.INSTANCE.play( Assets.Sounds.ROCKS );
+
+        GnollKing gk = new GnollKing();
+        gk.pos = 236;
+        gk.state = gk.WANDERING;
+        GameScene.add(gk);
+
+        CellEmitter.get( 236 ).start( Speck.factory( Speck.BUBBLE ), 0.07f, 10 );
+        PixelScene.shake( 3, 0.7f );
+        Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
+
+        GnollShamanKing gsk = new GnollShamanKing();
+        gsk.pos = 238;
+        gsk.state = gsk.WANDERING;
+        GameScene.add(gsk);
+
+        CellEmitter.get( 238 ).start( Speck.factory( Speck.BUBBLE ), 0.07f, 10 );
+        PixelScene.shake( 3, 0.7f );
+        Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
+
+        Game.runOnRenderThread(new Callback() {
+            @Override
+            public void call() {
+                Music.INSTANCE.play(Assets.Music.CAVES_BOSS, true);
+            }
+        });
+    }
 
     private static final int[] code_map = {
         D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
@@ -92,13 +151,7 @@ public class GnollKingBossLevel extends Level {
 
     @Override
     protected void createMobs() {
-        GnollKing gk = new GnollKing();
-        gk.pos = 236;
-        mobs.add(gk);
 
-        GnollShamanKing gsk = new GnollShamanKing();
-        gsk.pos = 238;
-        mobs.add(gsk);
     }
 
     public Actor respawner() {

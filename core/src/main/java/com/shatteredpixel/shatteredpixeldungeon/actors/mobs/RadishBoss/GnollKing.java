@@ -4,18 +4,23 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGuard;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollKingSprite;
+import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
@@ -32,6 +37,7 @@ public class GnollKing extends Mob {
     private int stickCooldown;
     public int summonCooldownLimit;
     private int summonCooldown;
+    private boolean toughnessTriggered = false;
 
     {
         spriteClass = GnollKingSprite.class;
@@ -46,6 +52,11 @@ public class GnollKing extends Mob {
     }
 
     private int lastEnemyPos = -1;
+
+    @Override
+    public float attackDelay() {
+        return 1.5f;
+    }
 
     @Override
     protected boolean act() {
@@ -141,7 +152,9 @@ public class GnollKing extends Mob {
     private static final String LEAP_POS = "leap_pos";
     private static final String LEAP_CD = "leap_cd";
     private static final String CHARGING = "charging";
-
+    private static final String CHECK_HP = "check_hp";
+    private static final String SUMMON_COOLDOWNLIMIT = "summonCooldownLimit";
+    private static final String SUMMON_COOLDOWN= "summonCooldown";
     @Override
     public void storeInBundle(Bundle bundle) {
         super.storeInBundle(bundle);
@@ -151,6 +164,11 @@ public class GnollKing extends Mob {
         bundle.put(LEAP_POS, leapPos);
         bundle.put(LEAP_CD, leapCooldown);
         bundle.put(CHARGING, charging);
+
+        bundle.put(CHECK_HP,toughnessTriggered);
+
+        bundle.put(SUMMON_COOLDOWNLIMIT,summonCooldownLimit);
+        bundle.put(SUMMON_COOLDOWN,summonCooldown);
     }
 
     @Override
@@ -162,6 +180,24 @@ public class GnollKing extends Mob {
         leapPos = bundle.getInt(LEAP_POS);
         leapCooldown = bundle.getFloat(LEAP_CD);
         charging = bundle.getBoolean(CHARGING);
+
+        toughnessTriggered = bundle.getBoolean(CHECK_HP);
+
+        summonCooldownLimit = bundle.getInt(SUMMON_COOLDOWNLIMIT);
+        summonCooldown = bundle.getInt(SUMMON_COOLDOWN);
+    }
+
+    @Override
+    public boolean canAttack(Char target) {
+        return Dungeon.level.trueDistance(pos, target.pos) <= 2;
+    }
+
+    @Override
+    protected boolean getCloser( int target ) {
+        if (Dungeon.level.trueDistance(pos, target) <= 2) {
+            return false;
+        }
+        return super.getCloser(target);
     }
 
     private int leapPos = -1;
@@ -352,6 +388,75 @@ public class GnollKing extends Mob {
             }
         }
 
+    }
+
+
+    @Override
+    public void damage(int dmg, Object src) {
+        int finalDmg = calculateToughnessDamage(dmg, src);
+        super.damage(finalDmg, src);
+        checkFirstHalfHealthTrigger();
+    }
+
+    /**
+     * 计算坚韧不拔被动的减伤后伤害
+     * @param originalDmg 原始伤害值
+     * @param src 伤害来源
+     * @return 减伤后的最终伤害
+     */
+    private int calculateToughnessDamage(int originalDmg, Object src) {
+        if (!isPhysicalDamage(originalDmg)) {
+            return originalDmg;
+        }
+
+        float baseReduction = 0.75f;
+
+        int lostHealth = HT - HP;
+        float extraReductionPercent = ((float) lostHealth / 10) * 2;
+        float totalReductionFactor = baseReduction * (1 - extraReductionPercent / 100);
+
+        float scaleFactor = AscensionChallenge.statModifier(this);
+        int scaledDmg = Math.round(originalDmg / scaleFactor);
+
+        int damageAfterScale = (int)(scaledDmg * scaleFactor);
+        int damageAfterToughness = Math.round(damageAfterScale * totalReductionFactor);
+
+        return Math.max(damageAfterToughness, 1);
+    }
+
+    /**
+     * 检查是否首次血量低于50%，触发被动效果：5回合全面净化 + 30点恒动
+     */
+    private void checkFirstHalfHealthTrigger() {
+        if (!toughnessTriggered && HP < HT * 0.5f) {
+            toughnessTriggered = true;
+            PotionOfCleansing.cleanse(this, 5f);
+            Buff.affect(this, Kinetic.ConservedDamage.class).setBonus(30);
+            yell("DF");
+        }
+    }
+
+    /**
+     * 判断是否为物理伤害（需根据项目实际逻辑实现）
+     * @param src 伤害来源
+     * @return true=物理伤害，false=魔法/元素等其他伤害
+     */
+    private boolean isPhysicalDamage(Object src) {
+        return src instanceof Char;
+    }
+
+    @Override
+    public void notice() {
+        super.notice();
+        if (!BossHealthBar.isAssigned()) {
+            BossHealthBar.assignBoss(this);
+            yell(Messages.get(this, "notice"));
+            for (Char ch : Actor.chars()){
+                if (ch instanceof DriedRose.GhostHero){
+                    ((DriedRose.GhostHero) ch).sayBoss();
+                }
+            }
+        }
     }
 
 
