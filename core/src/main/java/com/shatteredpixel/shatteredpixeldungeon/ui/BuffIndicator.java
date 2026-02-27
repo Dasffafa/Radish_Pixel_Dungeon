@@ -43,7 +43,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 
 public class BuffIndicator extends Component {
-	
+
 	//transparent icon
 	public static final int NONE    = 127;
 
@@ -123,7 +123,7 @@ public class BuffIndicator extends Component {
 
 	public static final int HOLD_BREATH = 71;
 	public static final int A_EVA	    = 72;
-//	public static final int DUEL_DANCE  = 73;
+	//	public static final int DUEL_DANCE  = 73;
 	public static final int SCYTHE_S    = 78;
 
 	public static final int FOG_ROAD    = 79;
@@ -139,32 +139,40 @@ public class BuffIndicator extends Component {
 
 	public static final int SIZE_SMALL  = 7;
 	public static final int SIZE_LARGE  = 16;
-	
+
 	private static BuffIndicator heroInstance;
-	private static BuffIndicator bossInstance;
-	
+	// 修改：将单个bossInstance改为数组，支持最多4个Boss
+	private static BuffIndicator[] bossInstances = new BuffIndicator[4];
+
 	private LinkedHashMap<Buff, BuffButton> buffButtons = new LinkedHashMap<>();
-	private boolean needsRefresh;
+	public boolean needsRefresh;
 	private Char ch;
 
 	private boolean large = false;
-	
+
 	public BuffIndicator( Char ch, boolean large ) {
 		super();
-		
+
 		this.ch = ch;
 		this.large = large;
 		if (ch == Dungeon.hero) {
 			heroInstance = this;
 		}
 	}
-	
+
 	@Override
 	public void destroy() {
 		super.destroy();
-		
+
 		if (this == heroInstance) {
 			heroInstance = null;
+		}
+		// 修改：销毁时清理对应的boss实例引用
+		for (int i = 0; i < bossInstances.length; i++) {
+			if (bossInstances[i] == this) {
+				bossInstances[i] = null;
+				break;
+			}
 		}
 	}
 
@@ -204,19 +212,19 @@ public class BuffIndicator extends Component {
 						super.updateValues( progress );
 						image.scale.set( 1 + 5 * progress );
 					}
-					
+
 					@Override
 					protected void onComplete() {
 						image.killAndErase();
 					}
 				} );
-				
+
 				buffButtons.get( buff ).destroy();
 				remove(buffButtons.get( buff ));
 				buffButtons.remove( buff );
 			}
 		}
-		
+
 		//add new icons
 		for (Buff buff : newBuffs) {
 			if (!buffButtons.containsKey(buff)) {
@@ -225,7 +233,7 @@ public class BuffIndicator extends Component {
 				buffButtons.put( buff, icon );
 			}
 		}
-		
+
 		//layout
 		int pos = 0;
 		float lastIconLeft = 0;
@@ -357,20 +365,57 @@ public class BuffIndicator extends Component {
 			return Messages.titleCase(buff.name());
 		}
 	}
-	
+
 	public static void refreshHero() {
 		if (heroInstance != null) {
 			heroInstance.needsRefresh = true;
 		}
 	}
 
+	/**
+	 * 兼容原有方法：刷新第一个Boss的Buff指示器
+	 */
 	public static void refreshBoss(){
-		if (bossInstance != null) {
-			bossInstance.needsRefresh = true;
+		// 刷新第一个Boss
+		if (bossInstances[0] != null) {
+			bossInstances[0].needsRefresh = true;
 		}
 	}
 
+	/**
+	 * 新增方法：刷新所有活跃的Boss Buff指示器
+	 */
+	public static void refreshAllBosses() {
+		for (BuffIndicator instance : bossInstances) {
+			if (instance != null) {
+				instance.needsRefresh = true;
+			}
+		}
+	}
+
+	/**
+	 * 兼容原有方法：设置第一个Boss的Buff实例
+	 */
 	public static void setBossInstance(BuffIndicator boss){
-		bossInstance = boss;
+		bossInstances[0] = boss;
+	}
+
+	/**
+	 * 新增方法：设置指定索引的Boss Buff实例（适配多Boss血条）
+	 */
+	public static void setBossInstance(int index, BuffIndicator boss) {
+		if (index >= 0 && index < bossInstances.length) {
+			bossInstances[index] = boss;
+		}
+	}
+
+	/**
+	 * 新增方法：获取指定索引的Boss Buff实例
+	 */
+	public static BuffIndicator getBossInstance(int index) {
+		if (index >= 0 && index < bossInstances.length) {
+			return bossInstances[index];
+		}
+		return null;
 	}
 }

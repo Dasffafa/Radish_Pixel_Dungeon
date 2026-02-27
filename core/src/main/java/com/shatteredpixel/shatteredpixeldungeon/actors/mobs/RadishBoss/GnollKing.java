@@ -1,27 +1,40 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGuard;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
+import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
+import com.shatteredpixel.shatteredpixeldungeon.items.keys.SkeletonKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollGuardSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollKingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
+import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.Image;
+import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
@@ -80,6 +93,25 @@ public class GnollKing extends Mob {
             }
         }
 
+        if(stickCooldown <= 0){
+            boolean isRe = false;
+            for ( Mob mob : Dungeon.level.mobs.toArray(new Mob[0]) ){
+                if( mob != null ){
+                    if( mob.buff(EyeAttack.class) == null ){
+                        Buff.affect(mob, EyeAttack.class,5f);
+                        stickCooldown = 15;
+                        if(!isRe){
+                            isRe = true;
+                            GLog.n(Messages.get(this,"eye"));
+                        }
+
+                    }
+                }
+            }
+        } else {
+            stickCooldown--;
+        }
+
         if(summonCooldown <= 0){
             summonCooldown = 25;
             summonGnollShadow(pos);
@@ -114,10 +146,97 @@ public class GnollKing extends Mob {
 
     }
 
-    public static class GnollGuardShadow extends GnollGuard {
+    public static class EyeAttack extends FlavourBuff {
+
+        public static final float DURATION = 5f;
 
         {
+            announced = true;
+            type = buffType.NEGATIVE;
+        }
+
+        @Override
+        public int icon() {
+            return BuffIndicator.MIND_VISION;
+        }
+
+        @Override
+        public void tintIcon(Image icon) {
+            icon.hardlight(Window.RADISH);
+        }
+
+        @Override
+        public float iconFadePercent() {
+            return Math.max(0, (DURATION - visualcooldown()) / DURATION);
+        }
+
+
+        @Override
+        public boolean act() {
+            if(target instanceof Mob) {
+                ((Mob) target).beckon(Dungeon.hero.pos);
+            }
+            return super.act();
+        }
+    }
+
+    public static class GnollGuardShadow extends GnollGuard {
+
+        public boolean reachAttack = false;
+
+        {
+            spriteClass = GnollGuardSprite.GnollGuardShadowSprite.class;
             maxLvl = -1;
+        }
+
+        @Override
+        protected boolean act() {
+            if(Statistics.gnoll_boss >= 2){
+                damage(1000,new DM100.LightningBolt());
+            }
+            return super.act();
+        }
+
+        private static final String REACH_ATTACK = "REACH_ATTACK";
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(REACH_ATTACK,reachAttack);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            reachAttack = bundle.getBoolean(REACH_ATTACK);
+        }
+
+        @Override
+        public boolean attack(Char enemy, float dmgMulti, float dmgBonus, float accMulti ) {
+            boolean result = super.attack( enemy, dmgMulti, dmgBonus, accMulti );
+            if(reachAttack){
+                reachAttack = false;
+            }
+            return result;
+        }
+
+
+        @Override
+        protected boolean getCloser( int target ) {
+            if (state == HUNTING && reachAttack) {
+                return enemySeen && getFurther( target );
+            } else {
+                return super.getCloser( target );
+            }
+        }
+
+        @Override
+        protected boolean canAttack( Char enemy ) {
+            if(reachAttack){
+                return !Dungeon.level.adjacent( pos, enemy.pos )
+                        && (super.canAttack(enemy) || new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos);
+            } else {
+                return super.canAttack(enemy);
+            }
         }
 
         @Override
@@ -126,6 +245,8 @@ public class GnollKing extends Mob {
             for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
                 if (mob instanceof GnollKing) {
                     ((GnollKing) mob).summonCooldownLimit--;
+                } else if(mob instanceof GnollShamanKing){
+                    ((GnollShamanKing) mob).summonCooldownLimit--;
                 }
             }
         }
@@ -185,11 +306,13 @@ public class GnollKing extends Mob {
 
         summonCooldownLimit = bundle.getInt(SUMMON_COOLDOWNLIMIT);
         summonCooldown = bundle.getInt(SUMMON_COOLDOWN);
+        if (state != SLEEPING) BossHealthBar.assignBoss(this);
+        if ((HP*2 <= HT) || toughnessTriggered) BossHealthBar.bleed(this,true);
     }
 
     @Override
     public boolean canAttack(Char target) {
-        return Dungeon.level.trueDistance(pos, target.pos) <= 2;
+        return Dungeon.level.trueDistance(pos, target.pos) <= 2 || super.canAttack(enemy);
     }
 
     @Override
@@ -432,7 +555,18 @@ public class GnollKing extends Mob {
             toughnessTriggered = true;
             PotionOfCleansing.cleanse(this, 5f);
             Buff.affect(this, Kinetic.ConservedDamage.class).setBonus(30);
-            yell("DF");
+            BossHealthBar.bleed(this,true);
+            Game.runOnRenderThread(new Callback() {
+                @Override
+                public void call() {
+                    Music.INSTANCE.fadeOut(0.5f, new Callback() {
+                        @Override
+                        public void call() {
+                            Music.INSTANCE.play(Assets.Music.CAVES_BOSS_FINALE, true);
+                        }
+                    });
+                }
+            });
         }
     }
 
@@ -443,6 +577,25 @@ public class GnollKing extends Mob {
      */
     private boolean isPhysicalDamage(Object src) {
         return src instanceof Char;
+    }
+
+    @Override
+    public void die( Object cause ) {
+        super.die( cause );
+
+        Statistics.gnoll_boss++;
+
+        if(Statistics.gnoll_boss >= 2){
+            Badges.validateRectorUnlock();
+            GameScene.bossSlain();
+            Dungeon.level.unseal();
+            Dungeon.level.drop( new SkeletonKey( Dungeon.depth ), pos ).sprite.drop();
+            Dungeon.level.drop( new Gold( 1500 ), pos ).sprite.drop();
+            Dungeon.level.drop( new ScrollOfUpgrade(), pos ).sprite.drop();
+            Statistics.bossScores[2] += 3000;
+        }
+
+        yell( Messages.get(this, "defeated") );
     }
 
     @Override

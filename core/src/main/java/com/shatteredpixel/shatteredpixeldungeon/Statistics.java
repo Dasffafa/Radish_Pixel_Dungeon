@@ -72,11 +72,14 @@ public class Statistics {
 	public static boolean RectorGetHP = false;
 	//Spiral Bosses Boolean
 	public static boolean bigsnake_zikk = false;
+
+	public static int gnoll_boss = 0;
 	
 	public static void reset() {
 
 		//Spiral Bosses Boolean
 		bigsnake_zikk 	= false;
+		gnoll_boss = 0;
 
 		RectorGetHP = false;
 		
@@ -159,6 +162,9 @@ public class Statistics {
 	private static final String ASCENDED		= "ascended";
 
 	private static final String BIGSNAKE_ZIKK		        = "bigsnake_zikk";
+
+	private static final String GNOLL_BOSS		            = "gnoll_boss";
+
 	private static final String GETRECTOR_HP		        = "getrector_hp";
 	
 	public static void storeInBundle( Bundle bundle ) {
@@ -205,6 +211,8 @@ public class Statistics {
 		bundle.put( ASCENDED,   ascended );
 
 		bundle.put(BIGSNAKE_ZIKK, bigsnake_zikk);
+		bundle.put(GNOLL_BOSS, gnoll_boss);
+
 		bundle.put(GETRECTOR_HP, RectorGetHP);
 
 		storeCustom(bundle);
@@ -258,6 +266,9 @@ public class Statistics {
 		ascended        = bundle.getBoolean( ASCENDED );
 
 		bigsnake_zikk  = bundle.getBoolean(BIGSNAKE_ZIKK);
+		gnoll_boss = bundle.getInt(GNOLL_BOSS);
+
+
 		RectorGetHP	   = bundle.getBoolean(GETRECTOR_HP);
 
 		resetCustom();

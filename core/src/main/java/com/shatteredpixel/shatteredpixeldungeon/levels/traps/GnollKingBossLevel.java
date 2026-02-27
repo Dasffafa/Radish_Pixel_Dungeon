@@ -50,12 +50,6 @@ public class GnollKingBossLevel extends Level {
     }
 
     @Override
-    public void unseal() {
-        super.unseal();
-
-    }
-
-    @Override
     public void occupyCell( Char ch ) {
         super.occupyCell(ch);
         int gatePos = 180;
@@ -78,6 +72,7 @@ public class GnollKingBossLevel extends Level {
 
         GnollKing gk = new GnollKing();
         gk.pos = 236;
+        BossHealthBar.assignBoss(gk);
         gk.state = gk.WANDERING;
         GameScene.add(gk);
 
@@ -87,6 +82,7 @@ public class GnollKingBossLevel extends Level {
 
         GnollShamanKing gsk = new GnollShamanKing();
         gsk.pos = 238;
+        BossHealthBar.assignBoss(gsk);
         gsk.state = gsk.WANDERING;
         GameScene.add(gsk);
 
@@ -100,6 +96,26 @@ public class GnollKingBossLevel extends Level {
                 Music.INSTANCE.play(Assets.Music.CAVES_BOSS, true);
             }
         });
+    }
+
+    @Override
+    public void unseal() {
+        super.unseal();
+        transitions.clear();
+
+        int exitpos = 28;
+        LevelTransition exit = new LevelTransition(this, exitpos, LevelTransition.Type.REGULAR_EXIT);
+        transitions.add(exit);
+        map[exitpos] = Terrain.LOCKED_EXIT;
+
+        int entrance = 237;
+        LevelTransition enter = new LevelTransition(this, entrance, LevelTransition.Type.REGULAR_ENTRANCE);
+        transitions.add(enter);
+
+        set(entrance, Terrain.ENTRANCE);
+        GameScene.updateMap(entrance);
+        Dungeon.observe();
+
     }
 
     private static final int[] code_map = {

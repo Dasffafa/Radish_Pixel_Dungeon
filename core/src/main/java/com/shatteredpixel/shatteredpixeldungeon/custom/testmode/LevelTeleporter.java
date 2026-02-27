@@ -6,6 +6,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.depth;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness;
@@ -250,6 +251,9 @@ public class LevelTeleporter extends TestItem {
             }
             if(Dungeon.level.locked)
                 Dungeon.level.unseal();
+
+            Statistics.gnoll_boss = 0;
+
             InterlevelScene.mode = InterlevelScene.Mode.RESET;
 
             Game.switchScene(InterlevelScene.class);
