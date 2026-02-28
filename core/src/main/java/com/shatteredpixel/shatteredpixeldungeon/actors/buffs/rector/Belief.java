@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AnkhInvulnerability;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -481,6 +482,30 @@ public class Belief extends Buff implements ActionIndicator.Action {
         float actualValue = (float) (Math.floor(value * 100) / 100);
         credibility = Math.max(0, credibility - actualValue);
         hero.sprite.showStatus(Window.RADISH, "-" + actualValue);
+
+        // Rector armor skill : taichi poise
+        // DoggingDog 20260116
+        if(hero != null){
+            Buff buff = hero.buff(Soulstaker.class);
+            if (buff != null && !hero.hasTalent(Talent.TAI_CHI_POISE)){
+                buff.detach();
+            }
+            else if(buff != null){
+                if(value > hero.pointsInTalent(Talent.TAI_CHI_POISE) * 5f){
+                    buff.detach();
+                }
+            }
+        }
+
+        // rector armor skill : gods possession
+        // 20260119 by DoggingDog
+        if(hero != null){
+            Buff buff = hero.buff(GodsPossessionBuff.class);
+            if (buff != null && hero.hasTalent(Talent.GODHOOD)){
+                Buff.prolong(hero, AnkhInvulnerability.class, hero.pointsInTalent(Talent.GODHOOD) + 1);
+            }
+        }
+
     }
 
 

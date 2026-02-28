@@ -37,7 +37,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.S
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.ElementalBlast;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WarpBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WildMagic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.GodsPossesion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.LastPrayer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.ShadowHymn;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.ShadowClone;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.SmokeBomb;
@@ -378,7 +380,7 @@ public enum HeroClass {
 			case HUNTRESS:
 				return new ArmorAbility[]{new SpectralBlades(), new NaturesPower(), new SpiritHawk()};
 			case RECTOR:
-				return new ArmorAbility[]{new LastPrayer(),new Ratmogrify()};
+				return new ArmorAbility[]{new LastPrayer(),new ShadowHymn(),new GodsPossesion()};
 		}
 	}
 

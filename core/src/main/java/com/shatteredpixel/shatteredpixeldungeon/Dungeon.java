@@ -68,6 +68,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SmallGrassMiniLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.ZeroLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.FireHallsLevel;
@@ -77,6 +78,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WorkCaveLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.VineTrap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -377,7 +379,7 @@ public class Dungeon {
 					}
 					break;
 				case 15:
-					level = new CavesBossLevel();
+					level = GenerateCaveBossLevel();
 					break;
 				case 16:
 					level = new CityLevel();
@@ -417,11 +419,22 @@ public class Dungeon {
 			}
 		} else if (branch == 1) {
 			switch (depth) {
+				case 2:
+					level = new SmallGrassMiniLevel();
+					break;
 				case 11:
 				case 12:
 				case 13:
 				case 14:
 					level = new MiningLevel();
+					break;
+				default:
+					level = new DeadEndLevel();
+			}
+		} else if (branch == 2) {
+			switch (depth) {
+				case 2:
+					level = new SmallGrassMiniLevel();
 					break;
 				default:
 					level = new DeadEndLevel();
@@ -456,6 +469,28 @@ public class Dungeon {
 		if (branch == 0) Statistics.qualifiedForNoKilling = !bossLevel();
 		Statistics.qualifiedForBossChallengeBadge = false;
 		
+		return level;
+	}
+
+    public static Level GenerateCaveBossLevel()
+	{
+		level = new CavesBossLevel();
+
+        float GNOLL_KING_BOSS_SPAWN_CHANCE = 0.42f;
+        boolean shouldSpawnGnollKingBoss =
+				( (Random.Float() <= GNOLL_KING_BOSS_SPAWN_CHANCE) && !Statistics.DM300MustBoss )
+				|| ( Statistics.gnollMustBoss && !Statistics.DM300MustBoss);
+
+		if (shouldSpawnGnollKingBoss) {
+			level = new GnollKingBossLevel();
+			Statistics.gnollMustBoss = true;
+		} else {
+			level = new CavesBossLevel();
+			if (!Statistics.DM300MustBoss)
+			{
+				Statistics.DM300MustBoss = true;
+			}
+		}
 		return level;
 	}
 	
@@ -590,7 +625,7 @@ public class Dungeon {
 
 	public static boolean posNeeded() {
 
-		if (depth==0) return false;
+		if (depth==0 || branch != 0) return false;
 
 		//2 POS each floor set
 		int posLeftThisSet = 2 - (LimitedDrops.STRENGTH_POTIONS.count - (depth / 5) * 2);
@@ -609,7 +644,7 @@ public class Dungeon {
 	
 	public static boolean souNeeded() {
 
-		if (depth==0) return false;
+		if (depth==0 || branch != 0) return false;
 
 		int souLeftThisSet;
 		//3 SOU each floor set

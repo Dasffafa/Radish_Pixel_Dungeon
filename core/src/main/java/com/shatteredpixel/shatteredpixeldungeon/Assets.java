@@ -43,6 +43,8 @@ public class Assets {
 		public static final String TILES_CITY   = "environment/tiles_city.png";
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 
+		public static final String TILES_MOSS  = "environment/tiles_moss.png";
+
 		public static final String TILES_OLD_SEWERS =   "environment/alter/tiles_old_sewers.png";
 		public static final String TILES_BLOOD_PRISON = "environment/alter/tiles_blood_prison.png";
 		public static final String TILES_WORK_CAVES  =  "environment/alter/tiles_work_caves.png";
@@ -55,6 +57,8 @@ public class Assets {
 		public static final String WATER_D = "environment/alter/water_d.png";
 		public static final String WATER_E = "environment/alter/water_e.png";
 
+		public static final String WATER_MOSS = "environment/water_moss.png";
+		public static final String MOSS_ENTER = "environment/custom_tiles/moss_enter.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";
 		public static final String TILES_CAVES_GNOLL    = "environment/tiles_caves_gnoll.png";
@@ -296,7 +300,7 @@ public class Assets {
 		public static final String HUNTRESS = "sprites/huntress.png";
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String AVATARS  = "sprites/avatars.png";
-		public static final String PET      = "sprites/pet.png";
+		public static final String FROG      = "sprites/frog.png";
 		public static final String AMULET   = "sprites/amulet.png";
 
 		public static final String RAT      = "sprites/rat.png";
@@ -399,5 +403,8 @@ public class Assets {
 
 		//RadishBoss
 		public static final String ZIKK="sprites/RadishBossEnemySprite/snake_zik.png";
+
+		public static final String GNOLL_KING ="sprites/RadishBossEnemySprite/gnollking.png";
+		public static final String GNOLL_SHAMAN_KING ="sprites/RadishBossEnemySprite/gnollshamanking.png";
 	}
 }

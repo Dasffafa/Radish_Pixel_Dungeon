@@ -240,6 +240,16 @@ public enum Talent {
 	// 高效回复	借力疾驰	  圣灵赐福
 	EFFICIENT_HEALING(364,4), INERTIAL_CHARGE(365,4),BLESS_RETURN(366,4),
 
+	// T4 rector
+	// shadow hymn
+	// 暗色契约	潜心苦读	双修牧师
+	SACRIFICE(396,4),BLOCKING_READING(397,4),TAI_CHI_POISE(398,4),
+
+	// T4 Rector
+	// gods possession
+	// 治愈圣启	无可侵犯	神灵之触
+	HOLY_SHOCKWAVE(428,4),GODHOOD(429,4),AVATAR(430,4),
+
 	ERROR(294,4);
 
 
@@ -254,6 +264,11 @@ public enum Talent {
 	public static class NoBeliefUsedCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.75f, 0f, 0f); }
+	};
+
+	public static class HideInCrowdCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0x5562F6); }
 	};
 
 	public static class SlowHealingDeadCooldown extends FlavourBuff{
@@ -832,6 +847,13 @@ public enum Talent {
 			Buff.affect(enemy, SuckerPunchTracker.class);
 		}
 
+
+		if (hero.hasTalent(Talent.LINGERING_MAGIC)
+				&& hero.buff(LingeringMagicTracker.class) != null){
+			dmg += Random.IntRange(hero.pointsInTalent(Talent.LINGERING_MAGIC) , 2);
+			hero.buff(LingeringMagicTracker.class).detach();
+		}
+
 		if (hero.hasTalent(THIRSTY_BLADE)){
 			int restoration = Math.round(dmg* hero.pointsInTalent(THIRSTY_BLADE)*0.02f);
 			if (restoration > 0) {
@@ -840,12 +862,6 @@ public enum Talent {
 				hero.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", hero.HP-preHp);
 				hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
 			}
-		}
-
-		if (hero.hasTalent(Talent.LINGERING_MAGIC)
-				&& hero.buff(LingeringMagicTracker.class) != null){
-			dmg += Random.IntRange(hero.pointsInTalent(Talent.LINGERING_MAGIC) , 2);
-			hero.buff(LingeringMagicTracker.class).detach();
 		}
 
 		//受衅怒火 2024-9-17

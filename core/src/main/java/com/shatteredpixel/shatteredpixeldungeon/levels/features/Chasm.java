@@ -21,6 +21,10 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.branch;
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.level;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -33,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.SkyWalker;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfFeatherFall;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
@@ -105,15 +110,21 @@ public class Chasm implements Hero.Doom {
 		Level.beforeTransition();
 
 		if (Dungeon.hero.isAlive()) {
-			Dungeon.hero.interrupt();
-			InterlevelScene.mode = InterlevelScene.Mode.FALL;
-			if (Dungeon.level instanceof RegularLevel) {
+			if(branch!=0) {
+				ScrollOfTeleportation.appear(hero, level.entrance());
+				Dungeon.hero.interrupt();
+				Dungeon.observe();
+			} else if (Dungeon.level instanceof RegularLevel) {
+				Dungeon.hero.interrupt();
+				InterlevelScene.mode = InterlevelScene.Mode.FALL;
 				Room room = ((RegularLevel)Dungeon.level).room( pos );
 				InterlevelScene.fallIntoPit = room != null && room instanceof WeakFloorRoom;
 			} else {
 				InterlevelScene.fallIntoPit = false;
 			}
-			Game.switchScene( InterlevelScene.class );
+			if(branch == 0){
+				Game.switchScene( InterlevelScene.class );
+			}
 		} else {
 			Dungeon.hero.sprite.visible = false;
 		}

@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.watabou.noosa.audio.Sample;
@@ -43,7 +44,15 @@ public abstract class InventoryStone extends Runestone {
 	}
 	
 	public static final String AC_USE	= "USE";
-	
+
+	//anonymous stones don't count as consumed, do not drop, etc.
+	//useful for stones which are only spawned for their effects
+	protected boolean anonymous = false;
+	public void anonymize(){
+		image = ItemSpriteSheet.STONE_HOLDER;
+		anonymous = true;
+	}
+
 	@Override
 	public ArrayList<String> actions(Hero hero) {
 		ArrayList<String> actions = super.actions( hero );
