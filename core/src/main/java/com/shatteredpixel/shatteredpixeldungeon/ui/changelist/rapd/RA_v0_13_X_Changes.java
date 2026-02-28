@@ -6,6 +6,9 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.ChangesScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.FrogSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollKingSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.GnollShamanKingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v06_9_Changes(changeInfos);
         add_v06_8_Changes(changeInfos);
         add_v06_4_Changes(changeInfos);
         add_v06_3_Changes(changeInfos);
@@ -50,6 +54,53 @@ public class RA_v0_13_X_Changes {
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
     }
+
+    public static void add_v06_9_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.6.9", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new GnollKingSprite()), "新Boss：豺狼大酋长",
+                "15层B面Boss，击败获得1500金币，必定掉落一个升级卷轴。\n\n注意：此为双Boss，因此必须全部击败后才会掉落奖励。"));
+
+        changes.addButton( new ChangeButton((new GnollShamanKingSprite()), "新Boss：豺狼大祭司",
+                "15层B面Boss，击败获得1500金币，必定掉落一个升级卷轴。\n\n注意：此为双Boss，因此必须全部击败后才会掉落奖励。"));
+
+        changes.addButton( new ChangeButton((new FrogSprite()), "新敌人：青蛙",
+                "栖息于苔藓洞穴，其危险性比啮齿小鼠更大。"));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DISTANT_WELL), ("新地形：苔藓洞穴"),
+                ("在一区2层必定生成，一个迷你副本，里面不会生成力量药水和升级卷轴，但据说有一个较为珍贵的宝藏在这里……")));
+
+        changes.addButton( new ChangeButton((new ItemSprite(ItemSpriteSheet.BLESS_SCROLL)), "新物品：赐福卷轴",
+                "可为你提供护甲/武器临时+1升级，击败核心Boss后自动失效。"));
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.RECTOR, 6), ("牧师护甲天赋全面实装"),
+                (       "牧师三大天赋技能：终末奇迹，暗影咒文，凡体受神全面实装，欢迎各位游玩。")));
+
+
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复 隐没于人天赋不生效\n" +
+                        "_-_ 修复 激素涌动攻速异常\n" +
+                        "_-_ 修复 上一个版本的相关游戏崩溃问题")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.PREFS), ("杂项修改"),
+                ("1.现在Boss血条支持多血条，至多支持4个\n" +
+                        "2.现在子层跳楼将自动返回到入口处\n" +
+                        "3.部分素材优化迭代")));
+
+
+    }
+
 
     public static void add_v06_8_Changes( ArrayList<ChangeInfo> changeInfos ) {
         ChangeInfo changes = new ChangeInfo("v0.6.8", true, "");
