@@ -84,6 +84,9 @@ public class HeroIcon extends Image {
 
 	public static final int END_BLESS = 13;
 
+	public static final int SHADOW = 14;
+	public static final int POSSESSION = 15;
+
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );
 		if (film == null){

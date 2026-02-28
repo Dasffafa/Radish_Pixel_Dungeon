@@ -36,6 +36,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlessAWP;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner;
@@ -1450,6 +1452,11 @@ public class GameScene extends PixelScene {
 			scene.showBanner( bossSlain );
 			
 			Sample.INSTANCE.play( Assets.Sounds.BOSS );
+
+			if(Dungeon.branch == 0 && Dungeon.bossLevel()) {
+				Buff.detach(Dungeon.hero, BlessAWP.ArmorGetReady.class);
+				Buff.detach(Dungeon.hero, BlessAWP.WeaponGetReady.class);
+			}
 
 			if(Statistics.RectorGetHP){
 				Statistics.RectorGetHP = false;

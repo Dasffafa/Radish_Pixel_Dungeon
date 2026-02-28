@@ -1295,6 +1295,7 @@ public abstract class Mob extends Char {
 					}
 				}
 			}
+
 			spend(TIME_TO_WAKE_UP);
 		}
 	}

@@ -83,6 +83,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.En
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Frog;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
@@ -962,6 +963,16 @@ public class Hero extends Char {
 			delay /= (2f + 0.25f * ((Showdarker) belongings.armor).buffedLvl());
 		}
 
+		if ( buff(Adrenaline.class) != null) delay /= 1.5f;
+
+		// rector skill : gods possession with talent avatar
+		// DoggingDog on 20260119
+		if(hero != null){
+			int t_lvl = hero.pointsInTalent(Talent.AVATAR);
+			t_lvl = Math.max(0,t_lvl-1);
+			speed *= (1f + ((float) t_lvl)/3);
+		}
+
         return delay/speed;
     }
 
@@ -1000,12 +1011,41 @@ public class Hero extends Char {
 		//calls to dungeon.observe will also update hero's local FOV.
 		fieldOfView = Dungeon.level.heroFOV;
 
+		//粘液逻辑
+		ArrayList<Frog.PoulWater> poulWaters = hero.belongings.getAllItems(Frog.PoulWater.class);
+		if(poulWaters != null){
+			for (Frog.PoulWater w : poulWaters.toArray(new Frog.PoulWater[0])) {
+				if(w.cooldown >0){
+					w.cooldown--;
+				}
+				if(w.cooldown <= 0){
+					w.detach(hero.belongings.backpack);
+				}
+			}
+		}
+
+
 		SmallWoodenCross smallWoodenCross = hero.belongings.getItem(SmallWoodenCross.class);
 		if (smallWoodenCross != null && Dungeon.smwcLevel()) {
 			if(!Statistics.RectorGetHP){
 				Buff.affect(hero, VitaeBuff.class).setVitae(6);
 				Statistics.RectorGetHP = true;
 				GLog.p(Messages.get(smallWoodenCross, "bless"));
+			}
+		}
+
+		int mobcount = 0;
+		if (hero.hasTalent(Talent.HIDE_IN_CROWD)){
+			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
+				if(fieldOfView[mob.pos]){
+					mobcount++;
+				}
+			}
+			if(mobcount >= 6 - hero.pointsInTalent(Talent.HIDE_IN_CROWD)){
+				if(buff(Talent.HideInCrowdCooldown.class) == null){
+					Buff.affect(hero, Invisibility.class,7f);
+					Buff.affect(hero, Talent.HideInCrowdCooldown.class, 50f);
+				}
 			}
 		}
 
@@ -1035,7 +1075,7 @@ public class Hero extends Char {
 
 		checkVisibleMobs();
 		BuffIndicator.refreshHero();
-		BuffIndicator.refreshBoss();
+		BuffIndicator.refreshAllBosses();
 
 		if (paralysed > 0) {
 
