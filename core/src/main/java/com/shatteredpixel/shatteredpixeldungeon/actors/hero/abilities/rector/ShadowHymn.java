@@ -7,12 +7,18 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
+import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 
 // 暗影咒文
 // 20260115 by DoggingDog
 public class ShadowHymn extends ArmorAbility {
     {
         baseChargeUse = 35;
+    }
+
+    @Override
+    public int icon() {
+        return HeroIcon.SHADOW;
     }
 
     @Override

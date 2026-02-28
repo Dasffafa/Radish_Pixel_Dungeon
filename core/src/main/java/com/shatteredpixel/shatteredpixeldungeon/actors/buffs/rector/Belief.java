@@ -501,8 +501,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
         // 20260119 by DoggingDog
         if(hero != null){
             Buff buff = hero.buff(GodsPossessionBuff.class);
-            if (buff != null && !hero.hasTalent(Talent.BLOCKING_READING)){
-                Buff.prolong(hero, AnkhInvulnerability.class, hero.pointsInTalent(Talent.BLOCKING_READING) + 1);
+            if (buff != null && hero.hasTalent(Talent.GODHOOD)){
+                Buff.prolong(hero, AnkhInvulnerability.class, hero.pointsInTalent(Talent.GODHOOD) + 1);
             }
         }
 

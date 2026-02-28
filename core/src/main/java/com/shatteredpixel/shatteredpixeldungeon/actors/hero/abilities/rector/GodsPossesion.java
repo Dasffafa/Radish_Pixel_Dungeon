@@ -16,12 +16,19 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.noosa.audio.Sample;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class GodsPossesion extends ArmorAbility {
+
+    @Override
+    public int icon() {
+        return HeroIcon.POSSESSION;
+    }
+
     @Override
     protected void activate(ClassArmor armor, Hero hero, Integer target) {
 
@@ -61,6 +68,6 @@ public class GodsPossesion extends ArmorAbility {
 
     @Override
     public Talent[] talents() {
-        return new Talent[]{Talent.HOLY_SHOCKWAVE,Talent.GODHOOD,Talent.AVATAR};
+        return new Talent[]{Talent.HOLY_SHOCKWAVE,Talent.GODHOOD,Talent.AVATAR,Talent.HEROIC_ENERGY};
     }
 }

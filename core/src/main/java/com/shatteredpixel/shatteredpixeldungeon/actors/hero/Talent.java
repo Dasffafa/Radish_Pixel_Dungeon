@@ -243,12 +243,12 @@ public enum Talent {
 	// T4 rector
 	// shadow hymn
 	// 暗色契约	潜心苦读	双修牧师
-	SACRIFICE(367,4),BLOCKING_READING(368,4),TAI_CHI_POISE(369,4),
+	SACRIFICE(396,4),BLOCKING_READING(397,4),TAI_CHI_POISE(398,4),
 
 	// T4 Rector
 	// gods possession
 	// 治愈圣启	无可侵犯	神灵之触
-	HOLY_SHOCKWAVE(370,4),GODHOOD(371,4),AVATAR(372,4),
+	HOLY_SHOCKWAVE(428,4),GODHOOD(429,4),AVATAR(430,4),
 
 	ERROR(294,4);
 
