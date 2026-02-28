@@ -58,7 +58,7 @@ public class Assets {
 		public static final String WATER_E = "environment/alter/water_e.png";
 
 		public static final String WATER_MOSS = "environment/water_moss.png";
-
+		public static final String MOSS_ENTER = "environment/custom_tiles/moss_enter.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";
 		public static final String TILES_CAVES_GNOLL    = "environment/tiles_caves_gnoll.png";
@@ -300,7 +300,7 @@ public class Assets {
 		public static final String HUNTRESS = "sprites/huntress.png";
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String AVATARS  = "sprites/avatars.png";
-		public static final String PET      = "sprites/pet.png";
+		public static final String FROG      = "sprites/frog.png";
 		public static final String AMULET   = "sprites/amulet.png";
 
 		public static final String RAT      = "sprites/rat.png";

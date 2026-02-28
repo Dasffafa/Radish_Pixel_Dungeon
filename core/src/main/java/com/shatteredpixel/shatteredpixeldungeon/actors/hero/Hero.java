@@ -83,6 +83,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.En
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Frog;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
@@ -1009,6 +1010,20 @@ public class Hero extends Char {
 		}
 		//calls to dungeon.observe will also update hero's local FOV.
 		fieldOfView = Dungeon.level.heroFOV;
+
+		//粘液逻辑
+		ArrayList<Frog.PoulWater> poulWaters = hero.belongings.getAllItems(Frog.PoulWater.class);
+		if(poulWaters != null){
+			for (Frog.PoulWater w : poulWaters.toArray(new Frog.PoulWater[0])) {
+				if(w.cooldown >0){
+					w.cooldown--;
+				}
+				if(w.cooldown <= 0){
+					w.detach(hero.belongings.backpack);
+				}
+			}
+		}
+
 
 		SmallWoodenCross smallWoodenCross = hero.belongings.getItem(SmallWoodenCross.class);
 		if (smallWoodenCross != null && Dungeon.smwcLevel()) {
