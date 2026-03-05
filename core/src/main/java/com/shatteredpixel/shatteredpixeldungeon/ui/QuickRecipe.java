@@ -360,15 +360,7 @@ public class QuickRecipe extends Component {
 					if (Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) < 4) {
 						result.add(null);
 						result.add(null);
-					}
-				}
-
-				result.add(new QuickRecipe( new ArcaneResin.Recipe(),
-						new ArrayList<Item>(Arrays.asList(new Wand.PlaceHolder())),
-						new ArcaneResin()));
-				//奥术精炼T4-4 实现
-				if(Dungeon.hero != null) {
-					if (Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 4) {
+					} else if (Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 4) {
 						result.add(null);
 						result.add(null);
 						result.add(new QuickRecipe(new ArcaneResin.TalentRecipe(),

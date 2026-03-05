@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.KingSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MoonLightSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.GiantWormSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RatKingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ZikkSprite;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v07_0_Changes(changeInfos);
         add_v06_9_Changes(changeInfos);
         add_v06_8_Changes(changeInfos);
         add_v06_4_Changes(changeInfos);
@@ -53,6 +55,38 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v07_0_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.7.0", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new MoonLightSprite()), "月华新任务",
+                "月华现在常驻于1层，与之对话可以做一个任务。"));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.PREFS), ("背水一战优化"),
+                ("现在背水一战可以显示被动回复的剩余回合了。")));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复 塑形玻璃和祝福卷轴冲突\n" +
+                        "_-_ 修复 生命壁垒负数伤害能回血，和天赋判定异常问题\n" +
+                        "_-_ 部分文案补充\n" +
+                        "_-_ 修复 豺狼双王 没有背水一战的被动回合问题")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.PREFS), ("杂项修改"),
+                ("1.0层移除\n" +
+                        "2.修复子层含有跳楼房的问题\n" +
+                        "3.修复炼金指南中部分含有赘余的合成表")));
+
     }
 
     public static void add_v06_9_Changes( ArrayList<ChangeInfo> changeInfos ) {
