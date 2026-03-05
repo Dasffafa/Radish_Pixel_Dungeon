@@ -1170,12 +1170,14 @@ public abstract class Char extends Actor {
 		}
 
 		// DoggingDog on 20250818
-		if(hero.pointsInTalent(Talent.VITAE_BOOST) >= 4 && hero != null && !(src instanceof Hunger)){
-			dmg -= 2;
+		if(hero.pointsInTalent(Talent.VITAE_BOOST) >= 4 && hero != null && !(src instanceof Hunger)) {
+			if(hero.buff(VitaeBuff.class)!=null){
+				dmg = Math.max(0, dmg - 2);
+			}
 		}
 
 		if (this.buff(ImmortalShieldAffecter.ImmortalShield.class)==null) {
-			HP -= dmg;
+			HP -= Math.max(dmg,0);
 
 			// DoggingDog on 20250818
 			if(dmg>=1 && hero.hasTalent(Talent.BLOODY_VITAE) && this instanceof Hero && hero != null){
