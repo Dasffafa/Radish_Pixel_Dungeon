@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MoonLight;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
@@ -157,6 +158,12 @@ public class SewerLevel extends RegularLevel {
 		if(Dungeon.branch == 0){
 			Ghost.Quest.spawn( this, roomExit );
 		}
+		if(Dungeon.depth == 1 ){
+			MoonLight npc18 = new MoonLight();
+			npc18.pos = entrance()-1;
+			mobs.add(npc18);
+		}
+
 		super.createMobs();
 	}
 	

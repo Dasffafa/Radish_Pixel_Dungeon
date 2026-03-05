@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGuard;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -219,6 +220,14 @@ public class GnollKing extends Mob {
             return result;
         }
 
+        @Override
+        public void damage(int dmg, Object src) {
+            super.damage(dmg, src);
+            LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+            if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
+                lock.addTime(dmg*1.25f);
+            }
+        }
 
         @Override
         protected boolean getCloser( int target ) {
@@ -519,6 +528,11 @@ public class GnollKing extends Mob {
         int finalDmg = calculateToughnessDamage(dmg, src);
         super.damage(finalDmg, src);
         checkFirstHalfHealthTrigger();
+
+        LockedFloor lock = Dungeon.hero.buff(LockedFloor.class);
+        if (lock != null && !isImmune(src.getClass()) && !isInvulnerable(src.getClass())){
+            lock.addTime(dmg*1.5f);
+        }
     }
 
     /**

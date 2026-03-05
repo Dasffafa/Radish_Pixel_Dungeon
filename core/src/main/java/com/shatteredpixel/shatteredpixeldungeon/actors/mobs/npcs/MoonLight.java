@@ -1,17 +1,32 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MoonLightSprite;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ItemButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
-import com.watabou.utils.Random;
-import com.watabou.utils.Reflection;
+import com.watabou.utils.Callback;
 
 public class MoonLight extends NPC{
     int hastalk=0;
@@ -60,28 +75,142 @@ public class MoonLight extends NPC{
         if (hastalk<2) {
             GLog.i(Messages.get(this, "msg" + hastalk));
             hastalk++;
-        } else if (hastalk==2){
+        } else if (hastalk==2) {
             GLog.p(Messages.get(this, "msg" + hastalk));
             hastalk++;
-        } else
-            GLog.i(Messages.get(this,"loop"));
-            
-            
-        if (hastalk==3) {
-            Generator.Category ca = Generator.Category.WEP_T1;
-            MeleeWeapon w = (MeleeWeapon) Reflection.newInstance(ca.classes[Random.chances(ca.probs)]);
-            w.cursed=false;
-            w.level(0);
-            Dungeon.level.drop(w, c.pos);
-            hastalk++;
+            Game.runOnRenderThread(new Callback() {
+                @Override
+                public void call() {
+                    GameScene.show(new WndWeaponTransform(null,MoonLight.this));
+                }
+            });
+        } else if(hastalk == 3){
+            Game.runOnRenderThread(new Callback() {
+                @Override
+                public void call() {
+                    GameScene.show(new WndWeaponTransform(null,MoonLight.this));
+                }
+            });
         }
 
-        //补偿
-        if(hastalk == 13){
-            GLog.i(Messages.get(this,"ta_msg3"));
-        }
 
         return true;
+    }
+
+    public static class WndWeaponTransform extends Window {
+
+        // 窗口尺寸常量
+        private static final int WIDTH = 120;
+        private static final int BTN_SIZE = 32;
+        private static final float GAP = 2;
+
+        private ItemButton btnPressed;
+        private ItemButton btnWeaponInput;
+        private RedButton btnTransform;
+
+        // 父窗口引用
+        private Window wndParent;
+
+        public WndWeaponTransform(Window wndParent, MoonLight get) {
+            super();
+            this.wndParent = wndParent;
+
+            IconTitle titlebar = new IconTitle();
+            titlebar.icon(new Image(new MoonLightSprite()));
+            titlebar.label(Messages.titleCase(Messages.get(this, "weapon_transform")));
+            titlebar.setRect(0, 0, WIDTH, 0);
+            add(titlebar);
+
+            RenderedTextBlock message = PixelScene.renderTextBlock(
+                    Messages.get(this, "transform_message"), 6);
+            message.maxWidth(WIDTH);
+            message.setPos(0, titlebar.bottom() + GAP);
+            add(message);
+
+            btnWeaponInput = new ItemButton() {
+                @Override
+                protected void onClick() {
+                    btnPressed = btnWeaponInput;
+                    GameScene.selectItem(weaponSelector);
+                }
+            };
+            btnWeaponInput.setRect(
+                    (float) (WIDTH - BTN_SIZE) / 2,
+                    message.top() + message.height(),
+                    BTN_SIZE,
+                    BTN_SIZE
+            );
+            add(btnWeaponInput);
+
+            btnTransform = new RedButton(Messages.get(this, "transform")) {
+                @Override
+                protected void onClick() {
+                    if (btnWeaponInput.item() instanceof Weapon) {
+                        handleWeaponTransformation((Weapon) btnWeaponInput.item());
+                        hide();
+                        if (wndParent != null) {
+                            wndParent.hide();
+                        }
+                        get.hastalk++;
+                        get.yell(Messages.get(get,"loop"));
+                        get.die(true);
+                    }
+                }
+            };
+            btnTransform.enable(false);
+            btnTransform.setRect(0, btnWeaponInput.bottom() + GAP, WIDTH, 20);
+            add(btnTransform);
+
+            resize(WIDTH, (int) btnTransform.bottom());
+        }
+
+        /**
+         * 处理武器转换逻辑：移除原武器，生成随机2阶武器
+         */
+        private void handleWeaponTransformation(Weapon oldWeapon) {
+            oldWeapon.detach(hero.belongings.backpack);
+            GLog.i(Messages.get(this, "weapon_removed", oldWeapon.name()));
+            Weapon newWeapon = generateRandomTier2Weapon(oldWeapon);
+            newWeapon.doPickUp(hero);
+            GLog.p(Messages.get(this, "new_weapon_gained", newWeapon.name()));
+        }
+
+        /**
+         * 生成随机的2阶武器
+         */
+        private Weapon generateRandomTier2Weapon(Weapon oldweapon) {
+            Weapon newWeapon = oldweapon;
+            if(newWeapon instanceof MeleeWeapon){
+                newWeapon = (MeleeWeapon)Generator.randomUsingDefaults(Generator.Category.WEP_T2);
+            } else if(newWeapon instanceof MissileWeapon){
+                newWeapon = (MissileWeapon)Generator.randomUsingDefaults(Generator.Category.MIS_T2);
+            }
+            ScrollOfRemoveCurse.uncurse( hero, newWeapon );
+            return newWeapon;
+        }
+
+        /**
+         * 武器选择器：仅允许选择任意武器
+         */
+        protected WndBag.ItemSelector weaponSelector = new WndBag.ItemSelector() {
+            @Override
+            public String textPrompt() {
+                return Messages.get(this, "select_weapon");
+            }
+
+            @Override
+            public boolean itemSelectable(Item item) {
+                return item instanceof Weapon && item != hero.belongings.weapon() && !(item instanceof Pickaxe);
+            }
+
+            @Override
+            public void onSelect(Item item) {
+                if (item != null && btnPressed.parent != null) {
+                    btnWeaponInput.item(item);
+                    btnTransform.enable(true);
+                }
+            }
+        };
     }
 
 }

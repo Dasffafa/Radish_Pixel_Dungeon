@@ -569,9 +569,9 @@ public abstract class Level implements Bundlable {
 
 	//returns true if we immediately transition, false otherwise
 	public boolean activateTransition(Hero hero, LevelTransition transition){
-		if (locked){
-			return false;
-		}
+//		if (locked){
+//			return false;
+//		}
 
 		beforeTransition();
 		InterlevelScene.curTransition = transition;
