@@ -424,14 +424,17 @@ public class Armor extends EquipableItem {
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
 			}
 
-			if(hero.buff(BlessAWP.ArmorGetReady.class)!=null && hero.belongings.armor() == this){
-				return super.buffedLvl()+1;
-			}
-
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
-			if(riverGlass != null){
+			if(hero.buff(BlessAWP.ArmorGetReady.class)!=null && hero.belongings.armor() == this && riverGlass != null){
+				return super.buffedLvl()+1 + riverGlass.level() + 1;
+			} else if(hero.buff(BlessAWP.ArmorGetReady.class)!=null && hero.belongings.armor() == this) {
+				return super.buffedLvl()+1;
+			} else if(riverGlass != null){
 				return super.buffedLvl() + riverGlass.level() + 1;
 			}
+
+
+
 
 			if (hero.pointsInTalent(Talent.GIFT) > 0) {
 				// 获取天赋等级（1-4）

@@ -239,14 +239,12 @@ public class MeleeWeapon extends Weapon {
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
 			}
 
-			if(hero != null){
-				if(hero.buff(BlessAWP.WeaponGetReady.class)!=null && hero.belongings.weapon() == this){
-					return super.buffedLvl()+1;
-				}
-			}
-
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
-			if(riverGlass != null){
+			if(riverGlass != null && hero.buff(BlessAWP.WeaponGetReady.class)!=null && hero.belongings.weapon() == this) {
+				return super.buffedLvl() + 1 + riverGlass.level() + 1;
+			} else if(hero.buff(BlessAWP.WeaponGetReady.class)!=null && hero.belongings.weapon() == this){
+				return super.buffedLvl()+1;
+			} else if(riverGlass != null){
 				return super.buffedLvl() + riverGlass.level() + 1;
 			}
 

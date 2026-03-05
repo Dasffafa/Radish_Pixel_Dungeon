@@ -79,7 +79,7 @@ public class LevelTransition extends Rect implements Bundlable {
 				destType = Type.REGULAR_ENTRANCE;
 				break;
 			case SURFACE:
-				destDepth = 0;
+				destDepth = 1;
 				destBranch = 0;
 				destType = null;
 				break;

@@ -58,6 +58,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.quest.GooBlob;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.MetalShard;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfBlessGoTend;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.Alchemize;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.BeaconOfReturning;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.CurseInfusion;
@@ -175,6 +176,7 @@ public class SpawnMisc extends TestItem {
             for (int i = 0; i < Generator.Category.SCROLL.classes.length; i++) {
                 scrollList.add((Class<? extends Scroll>) Generator.Category.SCROLL.classes[i]);
             }
+            scrollList.add(ScrollOfBlessGoTend.class);
         }
 
         if(exoticScrollList.isEmpty()) {
