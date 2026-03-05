@@ -768,13 +768,13 @@ public class Hero extends Char {
 				}
 
 				armDr = finalArmorDr;
-			} else {
+            } else {
 				if (STR() < belongings.armor().STRReq()){
 					armDr -= 2*(belongings.armor().STRReq() - STR());
 				}
-				if (armDr > 0) dr += armDr;
-			}
-		}
+            }
+            if (armDr > 0) dr += armDr;
+        }
 		if (belongings.weapon() != null)  {
 			int wepDr = Char.combatRoll( 0 , belongings.weapon().defenseFactor( this ) );
 			if (STR() < ((Weapon)belongings.weapon()).STRReq()){
