@@ -92,6 +92,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deminion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu;
@@ -1251,6 +1252,7 @@ public abstract class Char extends Actor {
 
 			if(src instanceof CritClass) 								icon = FloatingText.CRIT;
 			if(src instanceof NoArmorCritClass)							icon = FloatingText.CRIT_NO_BLOCK;
+			if(src instanceof Deminion.DeminionCritClass)				icon = FloatingText.CRIT_NO_BLOCK;
 
 			sprite.showStatusWithIcon(CharSprite.NEGATIVE, Integer.toString(dmg + shielded), icon);
 		}

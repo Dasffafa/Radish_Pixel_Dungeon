@@ -78,6 +78,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.HeavyBoomerang;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deviloon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Door;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.HighGrass;
@@ -985,14 +986,19 @@ public abstract class Level implements Bundlable {
 			heap = new Heap();
 			heap.seen = Dungeon.level == this && heroFOV[cell];
 			heap.pos = cell;
-			heap.drop(item);
-			if (map[cell] == Terrain.CHASM || (Dungeon.level != null && pit[cell])) {
-				Dungeon.dropToChasm( item );
-				GameScene.discard( heap );
+		heap.drop(item);
+		if (map[cell] == Terrain.CHASM || (Dungeon.level != null && pit[cell])) {
+			if (!(item instanceof Deviloon.BlastRune)) {
+				Dungeon.dropToChasm(item);
+				GameScene.discard(heap);
 			} else {
-				heaps.put( cell, heap );
-				GameScene.add( heap );
+				heaps.put(cell, heap);
+				GameScene.add(heap);
 			}
+		} else {
+			heaps.put( cell, heap );
+			GameScene.add( heap );
+		}
 
 		} else if (heap.type == Heap.Type.LOCKED_CHEST || heap.type == Heap.Type.CRYSTAL_CHEST) {
 

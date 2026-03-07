@@ -184,25 +184,61 @@ public class Deminion extends Mob {
             if ( enemy.buff( Vulnerable.class ) != null){
                 effectiveDamage *= 1.33f;
             }
-
+            
             effectiveDamage = attackProc( enemy, effectiveDamage );
-
+            
             if (visibleFight) {
                 if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
                     hitSound(Random.Float(0.87f, 1.15f));
                 }
             }
 
+            if (!enemy.isAlive()){
+                return true;
+            }
+            
+            if(crit){
+                enemy.sprite.showStatus(CharSprite.NEGATIVE,Messages.get(this,"crit"));
+            }
+
+            if(enemy.buff(Sigil.class) != null){
+                Buff.prolong(enemy, Sigil.class, Sigil.DURATION);
+
+                enemy.damage(effectiveDamage, this);
+
+                enemy.damage(8, new DeminionCritClass());
+            } else {
+                enemy.damage(effectiveDamage, this);
+            }
+
+            if(enemy.buff(Sigil.class) != null){
+                Buff.prolong(enemy, Sigil.class, Sigil.DURATION);
+                effectiveDamage += 8;
+            }
+            
+            effectiveDamage = attackProc( enemy, effectiveDamage );
+            
+            if (visibleFight) {
+                if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
+                    hitSound(Random.Float(0.87f, 1.15f));
+                }
+            }
+            
             // If the enemy is already dead, interrupt the attack.
             // This matters as defence procs can sometimes inflict self-damage, such as armor glyphs.
             if (!enemy.isAlive()){
                 return true;
             }
-
+            
             if(crit){
                 enemy.sprite.showStatus(CharSprite.NEGATIVE,Messages.get(this,"crit"));
             }
-            enemy.damage( effectiveDamage, this );
+            // Use DeminionCritClass if target has Sigil to show armor-piercing crit icon
+            if(enemy.buff(Sigil.class) != null){
+                enemy.damage(effectiveDamage, new DeminionCritClass());
+            } else {
+                enemy.damage(effectiveDamage, this);
+            }
 
             if (buff(FireImbue.class) != null)  buff(FireImbue.class).proc(enemy);
             if (buff(FrostImbue.class) != null) buff(FrostImbue.class).proc(enemy);
@@ -261,16 +297,22 @@ public class Deminion extends Mob {
     }
     private void zap() {
         spend( 1f );
-
+        
         Invisibility.dispel(this);
         if (hit( this, enemy, true )) {
-
+            
             int dmg = Random.NormalIntRange( 1, 1 );
             dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
-            enemy.damage( dmg, new MagicMissile() );
-            Buff.prolong(enemy,Sigil.class,Sigil.DURATION);
 
-
+            if(enemy.buff(Sigil.class) != null){
+                Buff.prolong(enemy, Sigil.class, Sigil.DURATION);
+                enemy.damage(dmg, new MagicMissile());
+                enemy.damage(8, new DeminionCritClass());
+            } else {
+                enemy.damage(dmg, new MagicMissile());
+                Buff.prolong(enemy,Sigil.class,Sigil.DURATION);
+            }
+            
             if (!enemy.isAlive() && enemy == Dungeon.hero) {
                 Badges.validateDeathFromEnemyMagic();
                 Dungeon.fail( getClass() );
@@ -332,4 +374,7 @@ public class Deminion extends Mob {
             GLog.n( Messages.get(this, "ondeath") );
         }
     }
+
+    // 这是为了表明Deminion攻击带有印记的敌人的时候造成了固定的真实伤害
+    public static class DeminionCritClass{}
 }
