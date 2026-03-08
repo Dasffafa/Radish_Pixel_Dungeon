@@ -10,28 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Annoying;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Displacing;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Friendly;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Polarized;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Sacrificial;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Stubbornness;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Wayward;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazing;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blocking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blooming;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Chilling;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Corrupting;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Elastic;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Euphoria;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Striking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Vampiric;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -179,71 +158,25 @@ public class SpawnWeapon extends TestItem {
     }
 
     private Class getEnchant(int rarity,int id){
+        Class<?>[] enchants;
         switch (rarity){
             case 1:
-                switch (id){
-                    case 0:
-                        return Blazing.class;
-                    case 1:
-                        return Chilling.class;
-                    case 2:
-                        return Kinetic.class;
-                    case 3:
-                        return Shocking.class;
-                    default:
-                        return null;
-                }
+                enchants = Enchantment.common;
+                break;
             case 2:
-                switch (id){
-                    case 0:
-                        return Blocking.class;
-                    case 1:
-                        return Blooming.class;
-                    case 2:
-                        return Elastic.class;
-                    case 3:
-                        return Lucky.class;
-                    case 4:
-                        return Projecting.class;
-                    case 5:
-                        return Unstable.class;
-                    default:
-                        return null;
-                }
+                enchants = Enchantment.uncommon;
+                break;
             case 3:
-                switch (id){
-                    case 0:
-                        return Corrupting.class;
-                    case 1:
-                        return Grim.class;
-                    case 2:
-                        return Vampiric.class;
-                    case 3:
-                        return Striking.class;
-                    case 4:
-                        return Euphoria.class;
-                    default:
-                        return null;
-                }
+                enchants = Enchantment.rare;
+                break;
             case 4:
-                switch (id){
-                    case 0:
-                        return Annoying.class;
-                    case 1:
-                        return Displacing.class;
-                    case 2:
-                        return Sacrificial.class;
-                    case 3:
-                        return Wayward.class;
-                    case 4:
-                        return Polarized.class;
-                    case 5:
-                        return Friendly.class;
-                    case 6:
-                        return Stubbornness.class;
-                    default:
-                        return null;
-                }
+                enchants = Enchantment.curses;
+                break;
+            default:
+                return null;
+        }
+        if (id >= 0 && id < enchants.length) {
+            return (Class<? extends Enchantment>) enchants[id];
         }
         return null;
     }
@@ -283,14 +216,14 @@ public class SpawnWeapon extends TestItem {
         private static final int MAX_ICONS_PER_LINE = 7; // 每行最大图标数量
 
         // 成员变量
-        private final RedButton Button_Create; // 创建武器按钮
-        private final CheckBox CheckBox_Curse; // 诅咒物品复选框
-        private final ArrayList<IconButton> IconButtons = new ArrayList<>(); // 图标按钮列表
-        private final OptionSlider OptionSlider_EnchantId; // 附魔编号选项滑块
-        private final OptionSlider OptionSlider_EnchantRarity; // 附魔种类选项滑块
-        private final RedButton Button_Level; // 武器等级按钮
-        private final OptionSlider OptionSlider_Tier; // 武器阶数选项滑块
-        private final RenderedTextBlock Text_EnchantInfo; // 附魔信息文本块
+        private RedButton Button_Create; // 创建武器按钮
+        private CheckBox CheckBox_Curse; // 诅咒物品复选框
+        private ArrayList<IconButton> IconButtons = new ArrayList<>(); // 图标按钮列表
+        private OptionSlider OptionSlider_EnchantId; // 附魔编号选项滑块
+        private OptionSlider OptionSlider_EnchantRarity; // 附魔种类选项滑块
+        private RedButton Button_Level; // 武器等级按钮
+        private OptionSlider OptionSlider_Tier; // 武器阶数选项滑块
+        private RenderedTextBlock Text_EnchantInfo; // 附魔信息文本块
 
         /**
          * 构造函数，用于初始化窗口。
@@ -318,6 +251,7 @@ public class SpawnWeapon extends TestItem {
 
             // 创建附魔信息文本块
             Text_EnchantInfo = PixelScene.renderTextBlock("", 6);
+            Text_EnchantInfo.maxWidth(150);
             updateEnchantText();
             add(Text_EnchantInfo);
 
@@ -326,6 +260,7 @@ public class SpawnWeapon extends TestItem {
                 @Override
                 protected void onChange() {
                     enchant_rarity = getSelectedValue();
+                    updateEnchantIdSlider();
                     updateEnchantText();
                 }
             };
@@ -333,14 +268,7 @@ public class SpawnWeapon extends TestItem {
             add(OptionSlider_EnchantRarity);
 
             // 创建附魔编号选项滑块
-            OptionSlider_EnchantId = new OptionSlider(Messages.get(this, "enchant_id"), "1", "8", 0, 7) {
-                @Override
-                protected void onChange() {
-                    enchant_id = getSelectedValue();
-                    updateEnchantText();
-                }
-            };
-            OptionSlider_EnchantId.setSelectedValue(enchant_id);
+            updateEnchantIdSlider();
             add(OptionSlider_EnchantId);
 
             // 创建诅咒物品复选框
@@ -410,7 +338,7 @@ public class SpawnWeapon extends TestItem {
                 totalHeight += numLines * (BTN_SIZE + GAP);
             }
             Button_Level.setRect(0, totalHeight, WIDTH, 24);
-            Text_EnchantInfo.setPos(0, GAP + Button_Level.bottom());
+            Text_EnchantInfo.setRect(0, GAP + Button_Level.bottom(), WIDTH, 24);
             OptionSlider_EnchantRarity.setRect(0, GAP + Text_EnchantInfo.bottom(), WIDTH, 24);
             OptionSlider_EnchantId.setRect(0, GAP + OptionSlider_EnchantRarity.bottom(), WIDTH, 24);
             CheckBox_Curse.setRect(0, GAP + OptionSlider_EnchantId.bottom(), WIDTH / 2f - GAP / 2f, 16);
@@ -427,6 +355,22 @@ public class SpawnWeapon extends TestItem {
 
         private void layout(){
             SyncUI();
+        }
+
+        private void updateEnchantIdSlider(){
+            int maxId = getEnchantCount(enchant_rarity) - 1;
+            if (OptionSlider_EnchantId != null) {
+                remove(OptionSlider_EnchantId);
+            }
+            OptionSlider_EnchantId = new OptionSlider(Messages.get(this, "enchant_id"), "1", String.valueOf(maxId + 1), 0, maxId) {
+                @Override
+                protected void onChange() {
+                    enchant_id = getSelectedValue();
+                    updateEnchantText();
+                }
+            };
+            OptionSlider_EnchantId.setSelectedValue(Math.min(enchant_id, maxId));
+            add(OptionSlider_EnchantId);
         }
 
         /**
@@ -510,13 +454,13 @@ public class SpawnWeapon extends TestItem {
         private int getEnchantCount(int rarity) {
             switch (rarity) {
                 case 1:
-                    return 4;
+                    return Enchantment.common.length;
                 case 2:
-                    return 6;
+                    return Enchantment.uncommon.length;
                 case 3:
-                    return 6;
+                    return Enchantment.rare.length;
                 case 4:
-                    return 8;
+                    return Enchantment.curses.length;
             }
             return 0;
         }
@@ -524,13 +468,12 @@ public class SpawnWeapon extends TestItem {
         private void updateEnchantText() {
             StringBuilder info = new StringBuilder();
             if (enchant_rarity == 0) {
-                info = new StringBuilder(Messages.get(this, "no_enchant"));
+                info.append(Messages.get(this, "no_enchant"));
+                info.append(Messages.get(this, "current_enchant",Messages.get(this, "no_enchant")));
             } else {
                 for (int i = 0; i < getEnchantCount(enchant_rarity); i++) {
                     info.append(i + 1).append(":").append(getEnchantInfo(getEnchant(enchant_rarity, i))).append(" ");
-
-                    // 添加换行判断
-                    if ((i + 1) % 4 == 0 || i == (getEnchantCount(enchant_rarity)-1)) {
+                    if ((i + 1) % 4 == 0) {
                         info.append("\n");
                     }
                 }
