@@ -212,6 +212,8 @@ public class Assets {
 		public static final String HIT_MAGIC        = "sounds/hit_magic.mp3";
 		public static final String HIT_STRONG       = "sounds/hit_strong.mp3";
 		public static final String HIT_PARRY        = "sounds/hit_parry.mp3";
+
+		public static final String LARGE_BELL = "sounds/large_bell.mp3";
 		public static final String HIT_ARROW        = "sounds/hit_arrow.mp3";
 		public static final String ATK_SPIRITBOW    = "sounds/atk_spiritbow.mp3";
 		public static final String ATK_CROSSBOW     = "sounds/atk_crossbow.mp3";
@@ -272,7 +274,7 @@ public class Assets {
 				DESCEND, EAT, READ, LULLABY, DRINK, SHATTER, ZAP, LIGHTNING, LEVELUP, DEATH,
 				CHALLENGE, CURSED, TRAP, EVOKE, TOMB, ALERT, MELD, BOSS, BLAST, PLANT, RAY, BEACON,
 				TELEPORT, CHARMS, MASTERY, PUFF, ROCKS, BURNING, FALLING, GHOST, SECRET, BONES,
-				BEE, DEGRADE, MIMIC, DEBUFF, CHARGEUP, GAS, CHAINS, SCAN, SHEEP, MINE
+				BEE, DEGRADE, MIMIC, DEBUFF, CHARGEUP, GAS, CHAINS, SCAN, SHEEP, MINE, LARGE_BELL
 		};
 	}
 
