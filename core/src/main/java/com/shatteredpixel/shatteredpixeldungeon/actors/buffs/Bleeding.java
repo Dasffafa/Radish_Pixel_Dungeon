@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Sacrificial;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
@@ -49,6 +50,28 @@ public class Bleeding extends Buff {
 
 	public float level(){
 		return level;
+	}
+
+	public static void finishAllBleedingDamage(Char target) {
+		Bleeding bleeding = target.buff(Bleeding.class);
+		if (bleeding == null) {
+			return;
+		}
+
+		float bleedLevel = bleeding.level();
+		int totalBleedDmg = 0;
+
+		while (bleedLevel > 0.5f) {
+			bleedLevel = Random.NormalFloat(bleedLevel / 2f, bleedLevel);
+			int bleedDmg = Math.round(bleedLevel);
+			totalBleedDmg += bleedDmg;
+		}
+
+		if (totalBleedDmg > 0) {
+			target.damage(totalBleedDmg, bleeding);
+		}
+		bleeding.detach();
+
 	}
 	
 	private static final String LEVEL	= "level";
