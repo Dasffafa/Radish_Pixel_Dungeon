@@ -35,46 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AdrenalineSurge;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AnkhInvulnerability;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barkskin;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BraceYourself;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Calm;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corrosion;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.DeferredShield;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Drowsy;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Foresight;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HoldFast;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Levitation;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Momentum;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MoveCount;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
@@ -107,6 +68,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
@@ -572,6 +534,8 @@ public class Hero extends Char {
 		if (RingOfForce.getBuffedBonus(this, RingOfForce.Force.class) > 0) {
 			//pitch deepens by 2.5% (additive) per point of strength, down to 75%
 			super.hitSound( pitch * GameMath.gate( 0.75f, 1.25f - 0.025f*STR(), 1f) );
+		} else if (hero.belongings.weapon != null) {
+			hero.belongings.weapon.hitSound(pitch);
 		} else {
 			super.hitSound(pitch * 1.1f);
 		}
@@ -1624,28 +1588,13 @@ public class Hero extends Char {
 
 		enemy = action.target;
 
-		if(belongings.weapon instanceof KillBoatSword) {
-			KillBoatSword w2 = (KillBoatSword) hero.belongings.weapon;
-			if (hero.belongings.weapon != null) {
-				if (!w2.delayAttack && Dungeon.level.adjacent(enemy.pos, pos)) {
-					sprite.attack(enemy.pos);
-					w2.delayAttack = true;
-				} else if (Dungeon.level.distance(enemy.pos, pos) > w2.RCH) {
-					spend(1f);
-					hero.sprite.showStatus(CharSprite.WARNING, Messages.get(w2, "no_rch"));
-					sprite.operate(pos);
-				} else {
-					spend(1f);
-					sprite.operate(pos);
-					/** 斩舰刀实现 */
-					MoveBoatSword();
-					hero.sprite.showStatus(CharSprite.WARNING, Messages.get(w2, "ready"));
-				}
-			}
+		// 检查武器是否可以攻击（特殊武器如斩舰刀可能在此等待）
+		if (!belongings.weapon.actAttack(hero, enemy, action)) {
+			// 武器需要等待，已处理等待逻辑
 			return false;
+		}
 
-
-		} else if(belongings.weapon instanceof LockChain) {
+		if(belongings.weapon instanceof LockChain) {
 			LockChain lk = (LockChain) hero.belongings.weapon;
 			if(Dungeon.level.distance( enemy.pos, pos ) <= 1){
 				sprite.attack(enemy.pos);
@@ -1671,6 +1620,14 @@ public class Hero extends Char {
 
 
 			sprite.attack( enemy.pos );
+
+			// 攻击成功后，移除斩舰刀的等待 buff
+			if (belongings.weapon instanceof KillBoatSword) {
+				Buff buff = buff(KillBoatSwordWaitBuff.class);
+				if (buff != null) {
+					buff.detach();
+				}
+			}
 
 			return false;
 
@@ -1708,13 +1665,18 @@ public class Hero extends Char {
 		if (hasTalent(Talent.PATIENT_STRIKE)){
 			Buff.affect(Dungeon.hero, Talent.PatientStrikeTracker.class).pos = Dungeon.hero.pos;
 		}
+
+		if(hero.belongings.weapon instanceof KillBoatSword && hero.buff(KillBoatSwordWaitBuff.class) == null) {
+			Buff.affect(this, KillBoatSwordWaitBuff.class);
+			hero.sprite.centerEmitter().burst(EnergyParticle.FACTORY, 15);
+			Sample.INSTANCE.play(Assets.Sounds.KILL_BOAT_SWORD_SWING);
+
+			hero.sprite.showStatus(CharSprite.WARNING, Messages.get(KillBoatSword.class, "ready"));
+		};
 		if (!fullRest) {
 			if (sprite != null) {
 				sprite.showStatus(CharSprite.DEFAULT, Messages.get(this, "wait"));
 			}
-
-			/** 斩舰刀实现 */
-			if(hero.belongings.weapon instanceof KillBoatSword) MoveBoatSword();
 		}
 		resting = fullRest;
 	}
