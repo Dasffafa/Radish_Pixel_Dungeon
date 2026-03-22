@@ -50,6 +50,8 @@ public class EchoplexHammer extends MeleeWeapon {
     }
 
     public static void KillEffect( Weapon weapon , Char attacker, Char defender ){
+        // 首先 被打中的怪是死了，不要让它也被判定为被冲击波杀死的怪
+        defender.die(attacker);
         Sample.INSTANCE.play( Assets.Sounds.LARGE_BELL , 0.7f , Random.Float(0.8f,1.2f));
 
         Char killedMob = null;
