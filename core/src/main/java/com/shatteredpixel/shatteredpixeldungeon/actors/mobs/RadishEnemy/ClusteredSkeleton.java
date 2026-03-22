@@ -310,7 +310,7 @@ public class ClusteredSkeleton extends Mob {
             Char ch = findChar( pos + PathFinder.NEIGHBOURS8[i] );
             if (ch != null && ch.isAlive()) {
                 int damage = Math.round(Random.NormalIntRange(30, 55));
-                if (ch.buff(PrisonArmor.myMask.class)!=null) damage-=2;
+                if (ch.buff(PrisonArmor.myMask.class)!=null) damage=0;
                 damage = Math.round( damage * AscensionChallenge.statModifier(this));
                 damage = Math.max( 0,  damage - (ch.drRoll() + ch.drRoll()) );
                 ch.damage( damage, this );
