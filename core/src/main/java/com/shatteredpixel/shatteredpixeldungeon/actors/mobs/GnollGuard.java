@@ -45,6 +45,8 @@ public class GnollGuard extends Mob {
 		loot = Spear.class;
 		lootChance = 0.1f;
 
+		properties.add(Property.GNOLL);
+
 		WANDERING = new Wandering();
 	}
 

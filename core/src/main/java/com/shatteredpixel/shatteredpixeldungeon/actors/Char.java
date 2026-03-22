@@ -107,6 +107,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.DarkCoat;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Potential;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
@@ -639,7 +640,14 @@ public abstract class Char extends Actor {
 				dmg *= 0.67f;
 			}
 
+			// 板甲特效：免疫减免前低于 4+0.5*等级的伤害（仅对英雄生效）
+			if (enemy instanceof Hero && ((Hero) enemy).belongings.armor() instanceof PlateArmor) {
+				dmg = ((PlateArmor) ((Hero) enemy).belongings.armor()).damageReduce(dmg);
+			}
+
 			int effectiveDamage = enemy.defenseProc( this, Math.round(dmg) );
+
+
 
 			// created by DoggingDog on 20240718
 			// for Torturer using
@@ -1635,7 +1643,8 @@ public abstract class Char extends Actor {
 		ELITES,
 
 		HEADLESS,
-		EYES;
+		EYES,
+		GNOLL;
 
 		private HashSet<Class> resistances;
 		private HashSet<Class> immunities;

@@ -75,6 +75,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterGlow;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.LeatherArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EliteBadge;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
@@ -1109,6 +1110,13 @@ public abstract class Mob extends Char {
 		}
 
 		dropBonus += ShardOfOblivion.lootChanceMultiplier()-1f;
+
+		// 皮甲特效：对豺狼类敌人增加掉落率
+		if (Dungeon.hero.belongings.armor() instanceof LeatherArmor) {
+			if (properties().contains(Char.Property.GNOLL)) {
+				dropBonus += ((LeatherArmor) Dungeon.hero.belongings.armor()).gnollLootBonus();
+			}
+		}
 
 		return lootChance * dropBonus;
 	}
