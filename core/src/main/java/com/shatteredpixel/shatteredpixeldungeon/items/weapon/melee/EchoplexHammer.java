@@ -12,8 +12,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.ChordHelper;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
+
+import static com.shatteredpixel.shatteredpixeldungeon.utils.ChordHelper.generateMajor7;
 
 public class EchoplexHammer extends MeleeWeapon {
 
@@ -50,9 +53,22 @@ public class EchoplexHammer extends MeleeWeapon {
     }
 
     public static void KillEffect( Weapon weapon , Char attacker, Char defender ){
+        float[] pitches = ChordHelper.generateMajor7();
+
+        int pitchIndex = 0;
+        boolean shouldEchoAgain = true;
+        do {
+            shouldEchoAgain = doEcho(weapon, attacker, defender);
+            if (pitchIndex <= 3) {
+                Sample.INSTANCE.play( Assets.Sounds.LARGE_BELL , 0.7f , pitches[pitchIndex++]);
+            }
+        } while (shouldEchoAgain);
+
+    }
+
+    public static boolean doEcho(Weapon weapon , Char attacker, Char defender){
         // 首先 被打中的怪是死了，不要让它也被判定为被冲击波杀死的怪
         defender.die(attacker);
-        Sample.INSTANCE.play( Assets.Sounds.LARGE_BELL , 0.7f , Random.Float(0.8f,1.2f));
 
         Char killedMob = null;
 
@@ -69,12 +85,9 @@ public class EchoplexHammer extends MeleeWeapon {
                 }
             }
         }
-        Actor.addDelayed(mobs[0],1);
-        if (killedMob != null){
-            KillEffect(weapon, attacker, killedMob);
-        }
         // 不可以删除
         Dungeon.observe();
+        return killedMob != null;
     }
 
     @Override
