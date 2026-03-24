@@ -609,9 +609,10 @@ public class Hero extends Char {
 		float accuracy = 1;
 		accuracy *= RingOfAccuracy.accuracyMultiplier( this );
 
-
-		if(attackDelay() >1 && hasTalent(Talent.STRONGMAN)){
-			accuracy += accuracy * Math.max((attackDelay()-1f) * ( (0.5f / 3f) * pointsInTalent(Talent.STRONGMAN)),0.5f);
+		int killBoatSwordBonus = wep instanceof KillBoatSword ? 1 : 0;
+		float talentPointBonus = 0.5f * pointsInTalent(Talent.STRONGMAN);
+		if(attackDelay() > 1 && hasTalent(Talent.STRONGMAN)){
+			accuracy += accuracy * (attackDelay() + killBoatSwordBonus - 1) * talentPointBonus;
 		}
 
 //		if (wep instanceof MissileWeapon){
@@ -786,8 +787,10 @@ public class Hero extends Char {
 		}
 
 
-		if( attackDelay() >1 && hasTalent(Talent.STRONGMAN) && !(wep instanceof SpiritBow)){
-			dmg += (int) (dmg * Math.max (attackDelay() - (1f / 3f * pointsInTalent(Talent.STRONGMAN)),0.75f));
+		if( attackDelay() >1 && hasTalent(Talent.STRONGMAN)){
+			int killBoatSwordBonus = hero.belongings.attackingWeapon() instanceof KillBoatSword ? 1 : 0;
+			float pointBonus = 0.33f * pointsInTalent(Talent.STRONGMAN);
+			dmg += (int) (dmg * (attackDelay() + killBoatSwordBonus - 1) * pointBonus);
 		}
 
 		if (dmg < 0) dmg = 0;
