@@ -2,6 +2,8 @@ package com.shatteredpixel.shatteredpixeldungeon.ui.changelist.rapd;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.ChangesScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -14,22 +16,25 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.KingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MoonLightSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.DeminionSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.DeviloonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.GiantWormSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RatKingSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ZikkSprite;
-import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIcon;
-import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.*;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
-import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.ui.changelist.ChangeButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.changelist.ChangeInfo;
 import com.watabou.noosa.Image;
 
 import java.util.ArrayList;
 
+import static com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.*;
+
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges( ArrayList<ChangeInfo> changeInfos ){
+        add_v07_1_Changes(changeInfos);
         add_v07_0_Changes(changeInfos);
         add_v06_9_Changes(changeInfos);
         add_v06_8_Changes(changeInfos);
@@ -55,6 +60,71 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+    public static void add_v07_1_Changes( ArrayList<ChangeInfo> changeInfos ) {
+        ChangeInfo changes = new ChangeInfo("v0.7.1", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton( new ChangeButton((new DeminionSprite()), "烙印恶魔更新！",
+                "现在恶魔层里随处可见的烙印恶魔不再是用1点伤害给你挠痒痒的小鬼了，烙印已经被各种恶魔利用并且增强自己的技能……\n\n" +
+                        "_-_ 拥有烙印的玩家会受到死亡射线的额外50%伤害。\n" +
+                        "_-_ 拥有烙印的玩家被重复施加烙印的时候，会受到9点真实伤害。\n" +
+                        "_-_ 拥有烙印的玩家被蛇发女妖攻击的时候，会被施加双倍的石化效果。\n" +
+                        "_-_ 拥有烙印的被魅惑玩家受到魅魔攻击的时候，魅魔会额外吸收10点生命值。\n" +
+                        "_-_ 拥有烙印的玩家被蝎子攻击的时候，会受到6回合中毒效果。"));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new ItemSprite(KILL_BOAT), ("斩舰刀修改"),
+                ("一刀两段！\n\n" +
+                        "_-_ 修复 斩舰刀即使在等待后移动了也能攻击的问题。\n" +
+                        "_-_ 为斩舰刀添加了全新的音效和视效。\n" +
+                        "_-_ 斩舰刀现在在等待时会额外获得4+等级~8+等级的物理护甲！")));
+
+        changes.addButton(new ChangeButton(new ItemSprite(CALLHAMR), ("回音锤修改"),
+                ("教科书般的亵渎！\n\n" +
+                        "_-_ 为回音锤添加全新的音效和视效。\n" +
+                        "_-_ 现在回音锤的回音如果杀死了不少于一名角色，还会再次触发回音！请注意：一次杀死多只怪物也只会额外触发一次特效。\n" +
+                        "_-_ 回音锤多次击杀产生的音效一定是协和音程或者大和弦。\n" )));
+
+        changes.addButton(new ChangeButton(new ItemSprite(SKYSPS), ("天象仪修改"),
+                ("天生魔力！\n\n" +
+                        "_-_ 天象仪的基础伤害现在是3~12点。\n" +
+                        "_-_ 现在连击天象仪的连击造成的也是法术伤害。\n" )));
+
+        changes.addButton(new ChangeButton(new ItemSprite(WINGSWORD), ("翼剑修改"),
+                ("俯冲攻击！\n\n" +
+                        "_-_ 翼剑获取了一项新的技能，在玩家拥有漂浮状态时可以消耗漂浮状态，冲向距离为2的一只怪物，发起一次必中攻击并造成额外伤害。\n" +
+                        "这次攻击的额外伤害为漂浮时长的一半+武器等级的两倍。\n" +
+                        "同为3阶武器，匕首要馋哭了..." )));
+
+        changes.addButton(new ChangeButton(new ItemSprite(WINGSWORD), ("翼剑修改"),
+                ("俯冲攻击！\n\n" +
+                        "_-_ 翼剑获取了一项新的技能，在玩家拥有漂浮状态时可以消耗漂浮状态，冲向距离为2的一只怪物，发起一次必中攻击并造成额外伤害。\n" +
+                        "这次攻击的额外伤害为漂浮时长的一半+武器等级的两倍。\n" )));
+
+        changes.addButton(new ChangeButton(new TalentIcon(Talent.STRONGMAN), "排山倒海修改",
+                "排山倒海天赋修改：\n\n" +
+                        "_-_ 现在排山倒海天赋对斩舰刀有专属的适配:使用斩舰刀前等待的1回合也会被计算入排山倒海的伤害与精准加成中。\n" +
+                        "_-_ 重大修改：在此前的版本中，因计算公式错误，该天赋的数值异常过高，现已修复至与描述相同。\n" +
+                        "也许对战士来说这是个大事件……"));
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                (       "_-_ 修复 天象仪会造成一次0点物理伤害，连击也造成物理伤害的bug。\n" +
+                        "_-_ 修复 部分造成真实伤害的怪物的伤害仍显示为普通伤害的bug。\n" +
+                        "_-_ 修复 所有武器音效都失效的bug。现在武器会正常播放它们的音效。\n" +
+                        "_-_ 修复 斩舰刀等待后即使移动了也能攻击的bug。\n" +
+                        "_-_ 修复 排山倒海天赋的攻击和精准加成公式错误的bug（之前真的没人发现吗！！！！）。\n" +
+                        "_-_ 修复 所有武器的音效都失效的bug（之前真的没人发现吗！！！！）。\n" +
+                        "_-_ 部分文案补充\n")));
+
     }
 
     public static void add_v07_0_Changes( ArrayList<ChangeInfo> changeInfos ) {
@@ -551,7 +621,7 @@ public class RA_v0_13_X_Changes {
         changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.HUNTRESS, 6), ("女猎恶魔天赋完全实装"),
                 ("射技决斗 疾风骤雨 药镖专家 大地之心均已实装")));
 
-        changes.addButton( new ChangeButton(new ItemSprite(ItemSpriteSheet.KILL_BOAT), "武器增强：斩舰刃",
+        changes.addButton( new ChangeButton(new ItemSprite(KILL_BOAT), "武器增强：斩舰刃",
                 "成长从2-8改为2-10。"));
 
         changes.addButton( new ChangeButton(new ItemSprite(ItemSpriteSheet.RUNE_SLADE+1), "新武器：轮刃",
