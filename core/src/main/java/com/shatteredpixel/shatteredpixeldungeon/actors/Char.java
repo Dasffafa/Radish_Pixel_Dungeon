@@ -86,21 +86,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalSpire;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deminion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Wraith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
@@ -140,15 +133,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazin
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Axe_D;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Bloodblade;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.GiantKiller;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LongStick;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PneumFistGloves;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Seekingspear;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sickle;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WhiteKingGodSword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.ShockingDart;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
@@ -651,7 +636,9 @@ public abstract class Char extends Actor {
 
 			// created by DoggingDog on 20240718
 			// for Torturer using
-			if(!(this instanceof Torturer))
+			boolean srcIsAHeroWieldingCS = this instanceof Hero && ((Hero) this).belongings.attackingWeapon() instanceof CelestialSphere;
+			boolean srcIsAStatueWieldingCS = this instanceof Statue && ((Statue) this).weapon instanceof CelestialSphere;
+			if(!(this instanceof Torturer || srcIsAHeroWieldingCS || srcIsAStatueWieldingCS))
 				effectiveDamage = Math.max( effectiveDamage - dr, 0 );
 
 			if (enemy.buff(Viscosity.ViscosityTracker.class) != null){
@@ -1028,6 +1015,13 @@ public abstract class Char extends Actor {
 	}
 
 	public void damage( int dmg, Object src ) {
+		// 天球仪造成魔法伤害的代码移动到这里来，以便防止额外造成1次物理伤害
+		boolean srcIsAHeroWieldingCS = src instanceof Hero && ((Hero) src).belongings.attackingWeapon() instanceof CelestialSphere;
+		boolean srcIsCS = src instanceof CelestialSphere;
+		boolean srcIsAStatueWieldingCS = src instanceof Statue && ((Statue) src).weapon instanceof CelestialSphere;
+		if (srcIsCS || srcIsAHeroWieldingCS || srcIsAStatueWieldingCS){
+			src = new DM100.LightningBolt();
+		}
 
 		if (!isAlive() || dmg < 0) {
 			return;

@@ -1708,13 +1708,13 @@ public class Hero extends Char {
 			buff(Talent.SpiritBladesTracker.class).detach();
 		}
 
-		KindOfWeapon wept = belongings.weapon();
-		if (wept instanceof CelestialSphere) {
-			int magicDamage;
-			magicDamage = Random.NormalIntRange(wept.min(wept.level()),wept.max(wept.level()));
-			enemy.damage(magicDamage, new DM100.LightningBolt());
-			damage = wept.proc( this, enemy,0 );
-		}
+//		KindOfWeapon wept = belongings.weapon();
+//		if (wept instanceof CelestialSphere) {
+//			int magicDamage;
+//			magicDamage = Random.NormalIntRange(wept.min(wept.level()),wept.max(wept.level()));
+//			enemy.damage(magicDamage, new DM100.LightningBolt());
+//			damage = wept.proc( this, enemy,0 );
+//		}
 
 		KindOfWeapon wep;
 		wep = belongings.attackingWeapon();
