@@ -60,6 +60,7 @@ public class GnollShamanKing extends Mob implements Callback {
         maxLvl = 30;
 
         properties.add(Property.BOSS);
+        properties.add(Property.GNOLL);
     }
 
     @Override

@@ -21,3 +21,6 @@ local.properties
 android/src/main/google-services.json
 android/src/debug/google-services.json
 android/google-services.json
+
+# Documentation folder
+docs/

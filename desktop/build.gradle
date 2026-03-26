@@ -1,11 +1,16 @@
 plugins {
-    id 'org.beryx.runtime' version '1.12.7'
+    id 'org.beryx.runtime' version '2.0.1'
+    id 'application'
 }
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 sourceCompatibility = targetCompatibility = appJavaCompatibility
 
 ext.appMainClass = "com.shatteredpixel.shatteredpixeldungeon.desktop.DesktopLauncher"
+
+application {
+    mainClass = appMainClass
+}
 processResources {
     from new File(project(':core').projectDir, "/src/main/assets")
     from new File(project(':desktop').projectDir,"/src/main/assets")

@@ -72,6 +72,8 @@ public class GnollGeomancer extends Mob {
 		//acts after other mobs, just like sappers
 		actPriority = MOB_PRIO-1;
 
+		properties.add(Property.GNOLL);
+
 		SLEEPING = new Sleeping();
 		HUNTING = new Hunting();
 		state = SLEEPING;

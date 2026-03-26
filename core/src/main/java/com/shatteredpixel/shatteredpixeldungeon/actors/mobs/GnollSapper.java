@@ -48,6 +48,7 @@ public class GnollSapper extends Mob {
 		maxLvl = -2;
 
 		properties.add(Property.MINIBOSS);
+		properties.add(Property.GNOLL);
 
 		HUNTING = new Hunting();
 		WANDERING = new Wandering();

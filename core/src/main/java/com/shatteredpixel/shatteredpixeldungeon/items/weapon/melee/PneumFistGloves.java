@@ -75,14 +75,14 @@ public class PneumFistGloves extends MeleeWeapon {
     @Override
     public int min(int lvl) {
         int originDamage = 4+lvl;
-        return active ? (int) (originDamage + ((0.1f * lvl) + 1.5f)) : originDamage;
+        return active ? (int) (originDamage * ((0.1f * lvl) + 1.5f)) : originDamage;
     }
 
 
     @Override
     public int max(int lvl) {
         int originDamage = 15 + lvl * 3;
-        return active ? (int) (originDamage + ((0.1f * lvl) + 1.5f)) : originDamage;
+        return active ? (int) (originDamage * ((0.1f * lvl) + 1.5f)) : originDamage;
     }
 
     @Override

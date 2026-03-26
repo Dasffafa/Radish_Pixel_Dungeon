@@ -15,10 +15,10 @@ public class Combos extends Weapon.Enchantment {
         procChance = Math.min(1f,procChance);
 
         if (Random.Float() < procChance){
-            defender.damage(attacker.damageRoll()/2-defender.drRoll(),this);
+            defender.damage(attacker.damageRoll()/2-defender.drRoll(),weapon);
             procChance /=2 ;
             while(Random.Float() < procChance){
-                defender.damage(attacker.damageRoll()/2-defender.drRoll(),this);
+                defender.damage(attacker.damageRoll()/2-defender.drRoll(),weapon);
                 procChance /= 2;
             }
         }

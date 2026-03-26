@@ -63,6 +63,7 @@ public class GnollKing extends Mob {
         HUNTING = new Hunting();
 
         properties.add(Property.BOSS);
+        properties.add(Property.GNOLL);
     }
 
     private int lastEnemyPos = -1;

@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
@@ -290,5 +291,16 @@ abstract public class KindOfWeapon extends EquipableItem {
 	public void hitSound( float pitch ){
 		Sample.INSTANCE.play(hitSound, 1, pitch * hitSoundPitch);
 	}
-	
+
+	/**
+	 * 在攻击前调用，检查武器是否可以攻击
+	 * @param attacker 攻击者
+	 * @param defender 防御者
+	 * @param action 攻击动作
+	 * @return 如果可以攻击返回 true，如果需要等待返回 false
+	 */
+	public boolean actAttack(Hero attacker, Char defender, HeroAction.Attack action) {
+		return true;
+	}
+
 }

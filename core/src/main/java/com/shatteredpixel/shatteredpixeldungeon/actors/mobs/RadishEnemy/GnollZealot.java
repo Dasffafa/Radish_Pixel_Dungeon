@@ -59,6 +59,8 @@ public class GnollZealot extends Mob {
 
         loot = new Gold();
         lootChance = 0.25f;
+
+        properties.add(Property.GNOLL);
     }
 
     private boolean isFirstSeen = false;

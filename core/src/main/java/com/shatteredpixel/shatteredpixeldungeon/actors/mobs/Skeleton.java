@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.PrisonArmor;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SkeletonSprite;
@@ -69,6 +70,7 @@ public class Skeleton extends Mob {
 			Char ch = findChar( pos + PathFinder.NEIGHBOURS8[i] );
 			if (ch != null && ch.isAlive()) {
 				int damage = Math.round(Char.combatRoll(6, 12));
+				if (ch.buff(PrisonArmor.myMask.class)!=null) damage=0;
 				damage = Math.round( damage * AscensionChallenge.statModifier(this));
 				//armor is 2x effective against bone explosion
 				damage = Math.max( 0,  damage - (ch.drRoll() + ch.drRoll()) );

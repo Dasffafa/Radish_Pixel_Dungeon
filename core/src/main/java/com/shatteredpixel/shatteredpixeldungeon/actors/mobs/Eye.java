@@ -26,8 +26,11 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deminion;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Gorgon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
@@ -186,6 +189,11 @@ public class Eye extends Mob {
 			if (hit( this, ch, true )) {
 				int dmg = Char.combatRoll( 30, 50 );
 				dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
+
+				if (ch.buff(Deminion.Sigil.class)!=null){
+					dmg = Math.round(dmg * 1.5f);
+				}
+
 				ch.damage( dmg, new DeathGaze() );
 
 				if (Dungeon.level.heroFOV[pos]) {

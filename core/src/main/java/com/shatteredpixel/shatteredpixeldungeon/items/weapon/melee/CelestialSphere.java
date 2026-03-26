@@ -33,7 +33,7 @@ public class CelestialSphere extends MeleeWeapon {
             }
         }
 
-        return 1 + lvl + wandTotalLevel;
+        return 3 + lvl + wandTotalLevel;
     }
     @Override
     public int max(int lvl) {
@@ -45,6 +45,6 @@ public class CelestialSphere extends MeleeWeapon {
             }
         }
 
-        return 4 + lvl * 3 + wandTotalLevel * 2;
+        return 12 + lvl * 3 + wandTotalLevel * 2;
     }
 }
