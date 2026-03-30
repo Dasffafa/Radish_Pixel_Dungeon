@@ -66,6 +66,13 @@ configurations { natives }
 
 dependencies {
     implementation project(':core')
+
+    // 事件系统模块引入
+    implementation project(':event-annotations')
+    annotationProcessor project(':event-processor')
+
+    annotationProcessor 'com.google.auto.service:auto-service:1.1.1'
+
     implementation 'cat.ereza:customactivityoncrash:2.3.0'
 
     implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"

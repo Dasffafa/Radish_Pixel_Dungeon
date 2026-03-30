@@ -22,8 +22,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroLevelUpEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class LeatherArmor extends Armor {
 
@@ -44,6 +48,16 @@ public class LeatherArmor extends Armor {
 			return 0.25f + 0.05f * buffedLvl();
 		} else {
 			return 0f;
+		}
+	}
+
+	@SubscribeEvent(event = HeroLevelUpEvent.class, priority = 0)
+	public static void onHeroLevelUp(HeroLevelUpEvent event) {
+		Hero hero = event.getHero();
+		if (hero != null && hero.isAlive()) {
+			if (hero.belongings.armor() instanceof LeatherArmor) {
+				GLog.p("\n你的皮甲：恭喜你升级了！");
+			}
 		}
 	}
 
