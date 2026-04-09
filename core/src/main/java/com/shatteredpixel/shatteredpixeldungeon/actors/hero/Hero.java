@@ -362,6 +362,12 @@ public class Hero extends Char {
 			critbonus += Boost;
 		}
 
+		// Radish 饰品提供的暴击率
+		Radish.GlobalCritChance globalCritChance = buff(Radish.GlobalCritChance.class);
+		if(globalCritChance != null){
+			critbonus += globalCritChance.critChance;
+		}
+
 		return critSkill+critbonus;
 	}
 	public void updateCritSkill(){
@@ -1594,7 +1600,7 @@ public class Hero extends Char {
 		enemy = action.target;
 
 		// 检查武器是否可以攻击（特殊武器如斩舰刀可能在此等待）
-		if (!belongings.weapon.actAttack(hero, enemy, action)) {
+		if (belongings.weapon != null && !belongings.weapon.actAttack(hero, enemy, action)) {
 			// 武器需要等待，已处理等待逻辑
 			return false;
 		}
