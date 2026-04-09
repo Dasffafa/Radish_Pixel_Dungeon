@@ -7,7 +7,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -47,6 +49,10 @@ public class EchoplexHammer extends MeleeWeapon {
             dmg = (int) Math.ceil(dmg * buff.damageTakenFactor());
         }
         if (defender.HP <= dmg){
+            // 在敌人死亡前显示伤害数字
+            if (defender.sprite != null) {
+                defender.sprite.showStatusWithIcon(CharSprite.NEGATIVE, Integer.toString(dmg), FloatingText.PHYS_DMG);
+            }
             KillEffect(this, attacker, defender);
         }
         return super.proc(attacker, defender, damage);
@@ -68,6 +74,7 @@ public class EchoplexHammer extends MeleeWeapon {
 
     public static boolean doEcho(Weapon weapon , Char attacker, Char defender){
         // 首先 被打中的怪是死了，不要让它也被判定为被冲击波杀死的怪
+        // 直接死会导致伤害显示丢失 但也是消除bug的最好方案，已经在proc中手动显示了伤害数值
         defender.die(attacker);
 
         Char killedMob = null;

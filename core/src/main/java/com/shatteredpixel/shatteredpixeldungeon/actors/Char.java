@@ -465,7 +465,8 @@ public abstract class Char extends Actor {
 						left = Math.max(0, left);
 						int curr;
 						for (curr = left + y * Dungeon.level.width(); curr <= right + y * Dungeon.level.width(); curr++){
-							GLog.n(""+Dungeon.level.map[curr]);
+							// 女猎手神秘调试代码
+//							GLog.n(""+Dungeon.level.map[curr]);
 							if(Dungeon.level.map[curr] == Terrain.FURROWED_GRASS || Dungeon.level.map[curr] == Terrain.HIGH_GRASS){
 								dr = 0;
 
