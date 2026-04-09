@@ -118,7 +118,9 @@ public class EventManager {
             }
 
             try {
-                subscriber.getMethod().invoke(null, event);
+                synchronized (event){
+                    subscriber.getMethod().invoke(null, event);
+                }
             } catch (Exception e) {
                 DeviceCompat.log("EventManager", "Event handling error: " + e.getMessage());
                 e.printStackTrace();
