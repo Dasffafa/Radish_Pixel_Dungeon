@@ -63,8 +63,15 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalSpire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Drake;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollShamanKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollKing;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SentryRoom;
 import com.shatteredpixel.shatteredpixeldungeon.effects.*;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -105,6 +112,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
@@ -257,6 +265,20 @@ public abstract class Mob extends Char {
 	}
 
 	public CharSprite sprite() {
+		// Snake Bite challenge: all mobs use snake sprite (except those with special sprites)
+		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
+				&& !(this instanceof Mimic)
+				&& !(this instanceof Pylon)
+				&& !(this instanceof Drake)
+				&& !(this instanceof SentryRoom.Sentry)
+				&& !(this instanceof GnollShamanKing)
+				&& !(this instanceof GnollKing)
+				&& !(this instanceof WandOfWarding.Ward)
+				&& !(this instanceof MirrorImage)
+				&& !(this instanceof PrismaticImage)
+				&& !(this instanceof CrystalSpire)) {
+			return new SnakeSprite();
+		}
 		return Reflection.newInstance(spriteClass);
 	}
 

@@ -25,6 +25,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -557,11 +558,30 @@ public class Item implements Bundlable {
 	}
 	
 	public int image() {
+//		 Snake Bite challenge: all items use snake bite icon (except keys and amulet)
+//		 Skip if hero is dead (for rankings/death screen)
+		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
+				&& Dungeon.hero != null && Dungeon.hero.isAlive()) {
+			if (!(this instanceof com.shatteredpixel.shatteredpixeldungeon.items.keys.Key)
+					&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.items.Amulet)) {
+				return com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.SNAKE_BITE;
+			}
+		}
 		return image;
 	}
 	
 	public ItemSprite.Glowing glowing() {
 		return null;
+	}
+
+	// Snake Bite challenge: hide item type icon (right top corner)
+	// Skip if hero is dead (for rankings/death screen)
+	public int icon() {
+		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
+				&& Dungeon.hero != null && Dungeon.hero.isAlive()) {
+			return -1;
+		}
+		return icon;
 	}
 
 	public Emitter emitter() { return null; }

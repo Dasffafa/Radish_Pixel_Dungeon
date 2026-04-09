@@ -514,6 +514,34 @@ public abstract class Level implements Bundlable {
 	public Mob createMob() {
 		if (mobsToSpawn == null || mobsToSpawn.isEmpty()) {
 			mobsToSpawn = Bestiary.getMobRotation(Dungeon.depth);
+			
+			// Snake Bite challenge: cross-region monster spawning
+			if (Dungeon.isChallenged(Challenges.SNAKE_BITE) && !Dungeon.bossLevel()) {
+				int floorMod = Dungeon.depth % 5;
+				int currentRegion = (Dungeon.depth - 1) / 5 + 1;
+				
+				// Near region end (floor 3,4 of each region): can spawn next region monsters
+				if (floorMod == 3 && Random.Float() < 0.01f && currentRegion < 5) {
+					// 1% chance to spawn next region monsters
+					int nextRegionDepth = currentRegion * 5 + Random.Int(1, 5);
+					mobsToSpawn = Bestiary.getMobRotation(nextRegionDepth);
+				} else if (floorMod == 4 && Random.Float() < 0.02f && currentRegion < 5) {
+					// 2% chance to spawn next region monsters
+					int nextRegionDepth = currentRegion * 5 + Random.Int(1, 5);
+					mobsToSpawn = Bestiary.getMobRotation(nextRegionDepth);
+				}
+				
+				// Near region start (floor 1,2 of each region): can spawn previous region monsters
+				else if (floorMod == 1 && Random.Float() < 0.02f && currentRegion > 1) {
+					// 2% chance to spawn previous region monsters
+					int prevRegionDepth = (currentRegion - 2) * 5 + Random.Int(1, 5);
+					mobsToSpawn = Bestiary.getMobRotation(prevRegionDepth);
+				} else if (floorMod == 2 && Random.Float() < 0.01f && currentRegion > 1) {
+					// 1% chance to spawn previous region monsters
+					int prevRegionDepth = (currentRegion - 2) * 5 + Random.Int(1, 5);
+					mobsToSpawn = Bestiary.getMobRotation(prevRegionDepth);
+				}
+			}
 		}
 
 		Mob m = Reflection.newInstance(mobsToSpawn.remove(0));

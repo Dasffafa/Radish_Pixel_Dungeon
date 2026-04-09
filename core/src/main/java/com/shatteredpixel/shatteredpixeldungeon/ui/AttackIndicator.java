@@ -149,7 +149,13 @@ public class AttackIndicator extends Tag {
 			sprite = null;
 		}
 		
-		sprite = Reflection.newInstance(lastTarget.spriteClass);
+		// Snake Bite challenge: use snake sprite in attack indicator (except Mimics)
+		if (Dungeon.isChallenged(com.shatteredpixel.shatteredpixeldungeon.Challenges.SNAKE_BITE)
+				&& !(lastTarget instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic)) {
+			sprite = new com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite();
+		} else {
+			sprite = Reflection.newInstance(lastTarget.spriteClass);
+		}
 		active = true;
 		sprite.linkVisuals(lastTarget);
 		sprite.idle();

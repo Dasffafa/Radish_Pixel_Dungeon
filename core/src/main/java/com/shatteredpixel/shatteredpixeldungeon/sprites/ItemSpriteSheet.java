@@ -60,6 +60,7 @@ public class ItemSpriteSheet {
 	public static final int STONE_HOLDER    = PLACEHOLDERS+13;
 	public static final int ELIXIR_HOLDER   = PLACEHOLDERS+14;
 	public static final int SPELL_HOLDER    = PLACEHOLDERS+15;
+//	public static final int SNAKE_BITE      = SPELL_HOLDER; // Snake Bite challenge item icon (placeholder)
 
 	public static final int MOB_HOLDER    	= PLACEHOLDERS+17;
 	public static final int DOCUMENT_HOLDER	= PLACEHOLDERS+18;
@@ -660,6 +661,8 @@ public class ItemSpriteSheet {
 	public static final int MAGNETIC_CROWN     = ARTIFACTS+48;
 
 	public static final int BLESS_SCROLL     = ARTIFACTS+50;
+	public static final int SNAKE_BITED_YENDOR = ARTIFACTS+51;
+	public static final int SNAKE_BITE = ARTIFACTS + 52;
 
 	static{
 		assignItemRect(ARTIFACT_CLOAK,      9,  15);

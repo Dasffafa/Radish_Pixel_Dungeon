@@ -235,14 +235,22 @@ public enum HeroClass {
 		hero.heroClass = this;
 		Talent.initClassTalents(hero);
 
+		// Snake Bite challenge: start with 11 strength
+		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)) {
+			hero.STR = Hero.STARTING_STR + 1;
+		}
+
 		Item i = new ClothArmor().identify();
 		if (!Challenges.isItemBlocked(i)) hero.belongings.armor = (ClothArmor)i;
 
 		i = new Food();
 		if (!Challenges.isItemBlocked(i)) i.collect();
 
-		new VelvetPouch().collect();
-		Dungeon.LimitedDrops.VELVET_POUCH.drop();
+		// 牧师不初始携带绒布包，商人会售卖
+		if (this != RECTOR) {
+			new VelvetPouch().collect();
+			Dungeon.LimitedDrops.VELVET_POUCH.drop();
+		}
 
 		Waterskin waterskin = new Waterskin();
 		waterskin.collect();

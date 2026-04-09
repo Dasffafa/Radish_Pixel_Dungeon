@@ -24,3 +24,10 @@ android/google-services.json
 
 # Documentation folder
 docs/
+/android/debug/google-services.json
+/android/src/google-services.json
+/core/bin/default/META-INF/services/javax.annotation.processing.Processor
+/android/debug/output-metadata.json
+/QWEN.md
+/.qwen/settings.json
+/.qwen/settings.json.orig

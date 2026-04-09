@@ -134,6 +134,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		ANGULAR_SPEEDS.put(SpiritBow.ALTSpiritArrow.class,       0);
 		ANGULAR_SPEEDS.put(Perfidy.class,       0);
 		ANGULAR_SPEEDS.put(SpiritBow.SpiritArrow.class,       0);
+		ANGULAR_SPEEDS.put(CompositeCrossbow.CrossbowArrow.class, 0);
 		ANGULAR_SPEEDS.put(ScorpioSprite.ScorpioShot.class,   0);
 
 		// DoggingDog 20250121
