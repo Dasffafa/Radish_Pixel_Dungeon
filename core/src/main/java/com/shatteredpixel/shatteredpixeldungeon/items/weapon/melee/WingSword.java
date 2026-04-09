@@ -136,7 +136,6 @@ public class WingSword extends MeleeWeapon {
                                 Dungeon.level.occupyCell(hero);
                                 Dungeon.observe();
 
-                                hero.belongings.abilityWeapon = WingSword.this;
                                 if (enemy != null && hero.canAttack(enemy)) {
                                     hero.sprite.attack(enemy.pos, new Callback() {
                                         @Override
