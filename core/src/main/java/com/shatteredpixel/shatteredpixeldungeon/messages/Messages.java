@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.messages;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.I18NBundle;
 import com.shatteredpixel.shatteredpixeldungeon.*;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.DeviceCompat;
 
@@ -148,25 +149,46 @@ public class Messages {
             key += "." + k;
         } else
             key = k;
+        
+        String keyLower = key.toLowerCase(Locale.CHINESE);
+        String localKey = k != null ? k.toLowerCase(Locale.CHINESE) : null;
 
         // Snake Bite challenge: intercept messages and replace with snake bite text
-        if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
-                && Dungeon.hero != null && Dungeon.hero.isAlive()) {
-            // First check if key.snake_bite exists (for special overrides)
-            String specialSnakeKey = key + ".snake_bite";
-            String specialValue = getFromBundle(specialSnakeKey.toLowerCase(Locale.CHINESE));
-            if (specialValue != null) {
-                if (args.length > 0) return format(specialValue, args);
-                else return specialValue;
-            }
+        // Check if hero is alive (for rankings/death screen)
+        if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
+            // Transform items
+            if (keyLower.startsWith("items.") && localKey != null) {
+                if (SnakeBiteChallengeManager.shouldReplaceItemText()) {
+                    // First check if key.snake_bite exists (for special overrides)
+                    String specialSnakeKey = key + ".snake_bite";
+                    String specialValue = getFromBundle(specialSnakeKey.toLowerCase(Locale.CHINESE));
+                    if (specialValue != null) {
+                        if (args.length > 0) return format(specialValue, args);
+                        else return specialValue;
+                    }
 
-            // Then apply normal transformation logic
-            String snakeKey = getSnakeBiteKey(key, k);
-            if (snakeKey != null) {
-                String snakeValue = getFromBundle(snakeKey.toLowerCase(Locale.CHINESE));
-                if (snakeValue != null) {
-                    if (args.length > 0) return format(snakeValue, args);
-                    else return snakeValue;
+                    // Then apply normal transformation logic
+                    String snakeItemKey = getSnakeBiteItemKey(key, localKey);
+                    if (snakeItemKey != null) {
+                        String snakeValue = getFromBundle(snakeItemKey.toLowerCase(Locale.CHINESE));
+                        if (snakeValue != null) {
+                            if (args.length > 0) return format(snakeValue, args);
+                            else return snakeValue;
+                        }
+                    }
+                }
+            }
+            // Transform mobs
+            else if (keyLower.startsWith("actors.mobs.")) {
+                if (SnakeBiteChallengeManager.shouldReplaceMobText()) {
+                    String snakeMobKey = getSnakeBiteMobKey(key, localKey);
+                    if (snakeMobKey != null) {
+                        String snakeValue = getFromBundle(snakeMobKey.toLowerCase(Locale.CHINESE));
+                        if (snakeValue != null) {
+                            if (args.length > 0) return format(snakeValue, args);
+                            else return snakeValue;
+                        }
+                    }
                 }
             }
         }
@@ -200,10 +222,10 @@ public class Messages {
     }
 
     /**
-     * Get transformed key for Snake Bite challenge.
+     * Get transformed key for Snake Bite challenge (items).
      * Returns the snake bite key, or null if no transformation needed.
      */
-    private static String getSnakeBiteKey(String key, String localKey) {
+    private static String getSnakeBiteItemKey(String key, String localKey) {
         String keyLower = key.toLowerCase(Locale.CHINESE);
 
         // Check exclusions
@@ -227,12 +249,20 @@ public class Messages {
             }
             // Action keys
             if (localKey.toLowerCase().startsWith("ac_")) {
-
                 return "items.snake_bite.ac_";
             }
             // All other item text returns empty
             return "items.snake_bite.empty";
         }
+        return null;
+    }
+
+    /**
+     * Get transformed key for Snake Bite challenge (mobs).
+     * Returns the snake bite key, or null if no transformation needed.
+     */
+    private static String getSnakeBiteMobKey(String key, String localKey) {
+        String keyLower = key.toLowerCase(Locale.CHINESE);
 
         // Transform mobs
         if (keyLower.startsWith("actors.mobs.")) {
@@ -242,7 +272,6 @@ public class Messages {
             // All other mob text returns origin text
             return null;
         }
-
         return null;
     }
 

@@ -25,7 +25,6 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
-import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -35,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
@@ -558,27 +558,31 @@ public class Item implements Bundlable {
 	}
 	
 	public int image() {
-//		 Snake Bite challenge: all items use snake bite icon (except keys and amulet)
+//		 Snake Bite challenge: all items use snake bite icon (except keys, amulet, and test items)
 //		 Skip if hero is dead (for rankings/death screen)
-		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
+		if (SnakeBiteChallengeManager.shouldReplaceItemSprite()
 				&& Dungeon.hero != null && Dungeon.hero.isAlive()) {
+			// Exclude keys, amulet, and test mode items from snake bite transformation
 			if (!(this instanceof com.shatteredpixel.shatteredpixeldungeon.items.keys.Key)
-					&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.items.Amulet)) {
+					&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.items.Amulet)
+					&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem)) {
 				return com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.SNAKE_BITE;
 			}
 		}
 		return image;
 	}
-	
+
 	public ItemSprite.Glowing glowing() {
 		return null;
 	}
 
 	// Snake Bite challenge: hide item type icon (right top corner)
 	// Skip if hero is dead (for rankings/death screen)
+	// Test mode items should always show their original icons
 	public int icon() {
-		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
-				&& Dungeon.hero != null && Dungeon.hero.isAlive()) {
+		if (SnakeBiteChallengeManager.shouldReplaceItemSprite()
+				&& Dungeon.hero != null && Dungeon.hero.isAlive()
+				&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem)) {
 			return -1;
 		}
 		return icon;

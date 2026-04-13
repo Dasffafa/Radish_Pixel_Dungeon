@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -63,7 +64,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalSpire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Drake;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
@@ -98,7 +98,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Beecomb;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Rlyeh;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
@@ -165,7 +164,15 @@ public abstract class Mob extends Char {
 		if (firstAdded) {
 			//modify health for ascension challenge if applicable, only on first add
 			float percent = HP / (float) HT;
-			HT = Math.round(HT * AscensionChallenge.statModifier(this));
+			
+			// Apply Ascension Challenge modifier
+			float ascensionMod = AscensionChallenge.statModifier(this);
+			
+			// Apply Cross Level Challenge modifier (next region: -30%, prev region: +30%)
+			float crossLevelMod = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CrossLevelChallenge.statModifier(this);
+			
+			// Apply both modifiers
+			HT = Math.round(HT * ascensionMod * crossLevelMod);
 			HP = Math.round(HT * percent);
 			firstAdded = false;
 		}
@@ -266,7 +273,7 @@ public abstract class Mob extends Char {
 
 	public CharSprite sprite() {
 		// Snake Bite challenge: all mobs use snake sprite (except those with special sprites)
-		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
+		if (SnakeBiteChallengeManager.shouldReplaceMobSprite()
 				&& !(this instanceof Mimic)
 				&& !(this instanceof Pylon)
 				&& !(this instanceof Drake)

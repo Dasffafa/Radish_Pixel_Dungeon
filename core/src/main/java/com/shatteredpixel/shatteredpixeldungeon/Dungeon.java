@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
@@ -792,6 +793,9 @@ public class Dungeon {
 			Notes.storeInBundle( bundle );
 			Generator.storeInBundle( bundle );
 
+			// Save Snake Bite Manager state
+			SnakeBiteChallengeManager.save(bundle);
+
 			int[] bundleArr = new int[generatedLevels.size()];
 			for (int i = 0; i < generatedLevels.size(); i++){
 				bundleArr[i] = generatedLevels.get(i);
@@ -868,7 +872,10 @@ public class Dungeon {
 
 		Dungeon.challenges = bundle.getInt( CHALLENGES );
 		Dungeon.mobsToChampion = bundle.getInt( MOBS_TO_CHAMPION );
-		
+
+		// Restore Snake Bite Manager state
+		SnakeBiteChallengeManager.restore(bundle);
+
 		Dungeon.level = null;
 		Dungeon.depth = -1;
 		

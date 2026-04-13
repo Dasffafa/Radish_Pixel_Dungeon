@@ -30,11 +30,17 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FungalSpinner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Spinner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.CorrosionParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -75,6 +81,8 @@ public class SnakeSprite extends MobSprite {
 	private Emitter earthArmor;
 	// Supercharge sparks for DM300
 	private Emitter superchargeSparks;
+	// Elemental particles for YogFist variants
+	private Emitter elementalParticles;
 
 	public SnakeSprite() {
 		super();
@@ -131,6 +139,10 @@ public class SnakeSprite extends MobSprite {
 		if (ch instanceof DM300 && ((DM300) ch).isSupercharged()) {
 			setupSuperchargeSparks(true);
 		}
+		// YogFist: create elemental particles
+		if (ch instanceof YogFist) {
+			elementalParticles = createFistEmitter();
+		}
 	}
 
 	@Override
@@ -151,6 +163,9 @@ public class SnakeSprite extends MobSprite {
 		if (superchargeSparks != null) {
 			superchargeSparks.visible = visible;
 		}
+		if (elementalParticles != null) {
+			elementalParticles.visible = visible;
+		}
 	}
 
 	@Override
@@ -165,6 +180,7 @@ public class SnakeSprite extends MobSprite {
 		if (teleParticles != null) teleParticles.on = false;
 		if (earthArmor != null) earthArmor.on = false;
 		if (superchargeSparks != null) superchargeSparks.on = false;
+		if (elementalParticles != null) elementalParticles.on = false;
 	}
 
 	@Override
@@ -174,6 +190,7 @@ public class SnakeSprite extends MobSprite {
 		if (teleParticles != null) teleParticles.killAndErase();
 		if (earthArmor != null) earthArmor.killAndErase();
 		if (superchargeSparks != null) superchargeSparks.killAndErase();
+		if (elementalParticles != null) elementalParticles.killAndErase();
 	}
 
 	@Override
@@ -428,9 +445,40 @@ public class SnakeSprite extends MobSprite {
 		play(idle);
 	}
 
+	// ==================== YogFist Compatibility ====================
+
+	// Create elemental particles based on YogFist type
+	private Emitter createFistEmitter() {
+		if (ch == null) return null;
+
+		Emitter emitter = emitter();
+		emitter.autoKill = false;
+
+		if (ch instanceof YogFist.BurningFist) {
+			emitter.pour(FlameParticle.FACTORY, 0.06f);
+		} else if (ch instanceof YogFist.SoiledFist) {
+			emitter.pour(LeafParticle.GENERAL, 0.06f);
+		} else if (ch instanceof YogFist.RottingFist) {
+			emitter.pour(Speck.factory(Speck.TOXIC), 0.25f);
+		} else if (ch instanceof YogFist.RustedFist) {
+			emitter.pour(CorrosionParticle.MISSILE, 0.06f);
+		} else if (ch instanceof YogFist.BrightFist) {
+			emitter.pour(SparkParticle.STATIC, 0.06f);
+		} else if (ch instanceof YogFist.DarkFist) {
+			emitter.pour(ShadowParticle.MISSILE, 0.06f);
+		} else {
+			// Default: no particles
+			return null;
+		}
+
+		return emitter;
+	}
+
 	// ==================== Green Goo Particle (for Goo pumpUp) ====================
 
 	public static class GreenGooParticle extends PixelParticle.Shrinking {
+
+
 
 		public static final Emitter.Factory FACTORY = new Emitter.Factory() {
 			@Override

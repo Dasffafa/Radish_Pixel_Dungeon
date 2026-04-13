@@ -48,18 +48,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.He
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Shockwave;
 import com.shatteredpixel.shatteredpixeldungeon.custom.ch.ChallengeBag;
 import com.shatteredpixel.shatteredpixeldungeon.custom.dict.DictBook;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.BackpackCleaner;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomPlayer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.EnemyAttributeModifier;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.LevelTeleporter;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobAttributeViewer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobPlacer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TerrainPlacer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestBag;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TimeReverser;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TrapPlacer;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.*;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.LazyTest;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.SpawnMisc;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.SpawnWeapon;
@@ -173,6 +162,8 @@ public enum HeroClass {
 		customWeapon.identify().collect();
 
 		new CustomPlayer().collect();
+		
+		new SnakeBiteToggle().collect();
 
 		new TestBag().collect();
 

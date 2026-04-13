@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Awareness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CrossLevelChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
@@ -514,33 +515,46 @@ public abstract class Level implements Bundlable {
 	public Mob createMob() {
 		if (mobsToSpawn == null || mobsToSpawn.isEmpty()) {
 			mobsToSpawn = Bestiary.getMobRotation(Dungeon.depth);
-			
+
 			// Snake Bite challenge: cross-region monster spawning
 			if (Dungeon.isChallenged(Challenges.SNAKE_BITE) && !Dungeon.bossLevel()) {
 				int floorMod = Dungeon.depth % 5;
 				int currentRegion = (Dungeon.depth - 1) / 5 + 1;
-				
+				int crossRegionDirection = 0; // 0: none, 1: next region, 2: previous region
+
 				// Near region end (floor 3,4 of each region): can spawn next region monsters
 				if (floorMod == 3 && Random.Float() < 0.01f && currentRegion < 5) {
 					// 1% chance to spawn next region monsters
 					int nextRegionDepth = currentRegion * 5 + Random.Int(1, 5);
 					mobsToSpawn = Bestiary.getMobRotation(nextRegionDepth);
+					crossRegionDirection = 1;
 				} else if (floorMod == 4 && Random.Float() < 0.02f && currentRegion < 5) {
 					// 2% chance to spawn next region monsters
 					int nextRegionDepth = currentRegion * 5 + Random.Int(1, 5);
 					mobsToSpawn = Bestiary.getMobRotation(nextRegionDepth);
+					crossRegionDirection = 1;
 				}
-				
+
 				// Near region start (floor 1,2 of each region): can spawn previous region monsters
 				else if (floorMod == 1 && Random.Float() < 0.02f && currentRegion > 1) {
 					// 2% chance to spawn previous region monsters
 					int prevRegionDepth = (currentRegion - 2) * 5 + Random.Int(1, 5);
 					mobsToSpawn = Bestiary.getMobRotation(prevRegionDepth);
+					crossRegionDirection = 2;
 				} else if (floorMod == 2 && Random.Float() < 0.01f && currentRegion > 1) {
 					// 1% chance to spawn previous region monsters
 					int prevRegionDepth = (currentRegion - 2) * 5 + Random.Int(1, 5);
 					mobsToSpawn = Bestiary.getMobRotation(prevRegionDepth);
+					crossRegionDirection = 2;
 				}
+
+				// Apply cross-region challenge to the monster
+				Mob m = Reflection.newInstance(mobsToSpawn.remove(0));
+				ChampionEnemy.rollForChampion(m);
+				if (crossRegionDirection != 0) {
+					CrossLevelChallenge.setDirection(m, crossRegionDirection);
+				}
+				return m;
 			}
 		}
 

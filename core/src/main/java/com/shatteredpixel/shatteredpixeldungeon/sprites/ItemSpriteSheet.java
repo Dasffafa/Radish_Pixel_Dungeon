@@ -663,6 +663,7 @@ public class ItemSpriteSheet {
 	public static final int BLESS_SCROLL     = ARTIFACTS+50;
 	public static final int SNAKE_BITED_YENDOR = ARTIFACTS+51;
 	public static final int SNAKE_BITE = ARTIFACTS + 52;
+	public static final int SNAKE_BITE_AMULET = ARTIFACTS + 53;
 
 	static{
 		assignItemRect(ARTIFACT_CLOAK,      9,  15);
