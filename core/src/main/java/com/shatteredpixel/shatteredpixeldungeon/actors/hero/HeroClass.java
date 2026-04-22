@@ -117,7 +117,8 @@ public enum HeroClass {
 	HUNTRESS( HeroSubClass.SNIPER, HeroSubClass.WARDEN ),
 
 	//New Hero-Radish Pixel Dungeon
-	RECTOR( HeroSubClass.BATTLEPREIST, HeroSubClass.REDCARDINAL, HeroSubClass.DEAD_KNIGHT);
+	RECTOR( HeroSubClass.BATTLEPREIST, HeroSubClass.REDCARDINAL, HeroSubClass.DEAD_KNIGHT),
+	MOONLIGHT( HeroSubClass.LITTLE_KNIGHT, HeroSubClass.DICE_MAGE, HeroSubClass.JUTTE_CHAMPION);
 
 //	DUELIST( HeroSubClass.CHAMPION, HeroSubClass.MONK );
 
@@ -268,6 +269,10 @@ public enum HeroClass {
 			case RECTOR:
 				initRector( hero );
 				break;
+
+			case MOONLIGHT:
+				initMoonlight( hero );
+				break;
 		}
 
 		if (SPDSettings.quickslotWaterskin()) {
@@ -352,6 +357,27 @@ public enum HeroClass {
 		new ScrollOfRemoveCurse().identify();
 	}
 
+	private static void initMoonlight( Hero hero ) {
+		// TODO: 添加轮椅神器
+		// 初始武器：所有角色的初始武器
+		(hero.belongings.weapon = new WornShortsword()).identify();
+		new Dagger().identify().collect();
+		new Gloves().identify().collect();
+		new MagesStaff().identify().collect();
+
+		// 初始物品：力量药剂、升级卷轴、鉴定卷轴已鉴定
+		// 以及四种随机卷轴与药水
+		new PotionOfExperience().identify();
+		new ScrollOfUpgrade().identify();
+		new ScrollOfIdentify().identify();
+
+		// TODO: 添加随机卷轴和药水
+
+		// 月华生命值调整：-2 最大生命值，-1 成长
+		hero.HT = hero.HT - 2;
+		hero.HP = hero.HT;
+	}
+
 	public String title() {
 		return Messages.get(HeroClass.class, name());
 	}
@@ -380,6 +406,9 @@ public enum HeroClass {
 				return new ArmorAbility[]{new SpectralBlades(), new NaturesPower(), new SpiritHawk()};
 			case RECTOR:
 				return new ArmorAbility[]{new LastPrayer(),new ShadowHymn(),new GodsPossesion()};
+			case MOONLIGHT:
+				// TODO: 添加月华护甲技能（注定一抽、玩具背包、薪王化身）
+				return new ArmorAbility[]{};
 		}
 	}
 
@@ -395,6 +424,8 @@ public enum HeroClass {
 				return Assets.Sprites.HUNTRESS;
 			case RECTOR:
 				return Assets.Sprites.RECTOR;
+			case MOONLIGHT:
+				return Assets.Sprites.MOONLIGHT;
 		}
 	}
 
@@ -410,6 +441,8 @@ public enum HeroClass {
 				return Assets.Splashes.HUNTRESS;
 			case RECTOR:
 				return Assets.Splashes.RECTOR;
+			case MOONLIGHT:
+				return Assets.Splashes.MOONLIGHT;
 		}
 	}
 	
@@ -426,6 +459,8 @@ public enum HeroClass {
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_HUNTRESS);
 			case RECTOR:
 				return true;
+			case MOONLIGHT:
+				return true; // TODO: 添加解锁条件
 			case WARRIOR: default:
 				return true;
 		}

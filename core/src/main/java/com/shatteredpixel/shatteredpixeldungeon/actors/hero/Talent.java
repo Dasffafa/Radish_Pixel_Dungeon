@@ -41,6 +41,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroEatFoodEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
@@ -249,6 +251,47 @@ public enum Talent {
 	// gods possession
 	// 治愈圣启	无可侵犯	神灵之触
 	HOLY_SHOCKWAVE(428,4),GODHOOD(429,4),AVATAR(430,4),
+
+	/**
+	 * [MOONLIGHT TALENT]
+	 */
+	//Moonlight T1
+	// 猎杀直觉 砥砺锋芒 武器掌握 战争践踏
+	HUNTING_INTUITION(448), SHARPENING_EDGE(449), WEAPON_MASTERY(450), WAR_TRAMPLE(451),
+	//Moonlight T2
+	// 利用一餐 强壮肉体 神圣泉水 三重保险 弹射起步
+	MEAL_UTILIZATION(480), STRONG_BODY(481), HOLY_SPRING(482), TRIPLE_INSURANCE(483), CATAPULT_START(484),
+	//Moonlight T3 (Universal)
+	// 剑盾骑士 轮椅翻车
+	SWORD_SHIELD_KNIGHT(512, 3), WHEELCHAIR_CRASH(513, 3),
+	//Moonlight T4 (Universal)
+
+	HEROIC_ENERGY_MOONLIGHT(294, 4),
+
+	// Little Knight T3
+	// 我不会输 濡湿附魔 左弓连射
+	WONT_LOSE(515, 3), WET_ENCHANT(516, 3), LEFT_BOW_RAPID(517, 3),
+//	//Little Knight T4
+	CANCEL_ATTACK_BOOST(455, 4), POISON_THROW(456, 4),
+
+	//Dice Mage T3
+	LEARN_SOOTHE(549, 3), LEARN_LIQUOR(550, 3), LEARN_OPERATE(549, 3), LEARN_MIASMA(550, 3), LEARN_CRUSH(551, 3), LEARN_BLAZE(552, 3),
+	//Dice Mage T4
+	MAGIC_POINT_BOOST(463, 4), SPELL_POWER(464, 4),
+
+	//Jutte Champion T3
+	ONE_JUTTE(579, 3), IRON_QUENCH(580, 3), SURPRISE_JUTTE(581, 3),
+	//Jutte Champion T4
+	JUTTE_DURABILITY(468, 4), JUTTE_SPEED(469, 4),
+
+	//注定一抽 T4
+	FATED_TWICE(492, 4), LOOT_GROUND(493, 4), TIME_PAUSE(494, 4),
+
+	//玩具背包 T4-=
+	BETTER_ITEM(524, 4), EXTRA_POCKET(525, 4), ACCEPT_CHALLENGE(526, 4),
+
+	//薪王化身 T4
+	HOLY_LANCE(556, 4), SOUL_STREAM(557, 4), FATAL_BLADE(558, 4),
 
 	ERROR(294,4);
 
@@ -613,6 +656,9 @@ public enum Talent {
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+		// 发布进食事件
+		EventManager.emit(new HeroEatFoodEvent(hero, foodVal, foodSource));
+
 		if (hero.hasTalent(HEARTY_MEAL)){
 			//3/5 HP healed, when hero is below 25% health
 			if (hero.HP <= hero.HT/4) {
@@ -990,6 +1036,9 @@ public enum Talent {
 			case RECTOR:
 				Collections.addAll(tierTalents, PRAYER_BEFORE_MEALS,MENTAL_TELEPATHY,RAIN_GRACE,DEVOTIONAL);
 				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, HUNTING_INTUITION, SHARPENING_EDGE, WEAPON_MASTERY, WAR_TRAMPLE);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1016,6 +1065,9 @@ public enum Talent {
 			case RECTOR:
 				Collections.addAll(tierTalents, BLESS_FOOD,SOUL_NOWIFI,LIGHT_STEP,GOD_BODY,NOHOPE_LANG);
 				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, MEAL_UTILIZATION, STRONG_BODY, HOLY_SPRING, TRIPLE_INSURANCE, CATAPULT_START);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -1041,6 +1093,9 @@ public enum Talent {
 				break;
 			case RECTOR:
 				Collections.addAll(tierTalents, ACT_GODPROGRESS, SMART_BLESSING);
+				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, SWORD_SHIELD_KNIGHT, WHEELCHAIR_CRASH);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -1103,6 +1158,15 @@ public enum Talent {
 			case DEAD_KNIGHT:
 				Collections.addAll(tierTalents,BLACK_LOVE,DEAD_POWER,EXP_IMPOTION);
 				break;
+			case LITTLE_KNIGHT:
+				Collections.addAll(tierTalents, WONT_LOSE, WET_ENCHANT, LEFT_BOW_RAPID);
+				break;
+			case DICE_MAGE:
+				Collections.addAll(tierTalents, LEARN_SOOTHE, LEARN_LIQUOR, LEARN_OPERATE);
+				break;
+			case JUTTE_CHAMPION:
+				Collections.addAll(tierTalents, ONE_JUTTE, IRON_QUENCH, SURPRISE_JUTTE);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			talents.get(2).put(talent, 0);
@@ -1163,6 +1227,9 @@ public enum Talent {
 			case RECTOR:
 				Collections.addAll(tierTalents,SUPERSTITION,VITAE_BOOST);
 				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, HEROIC_ENERGY_MOONLIGHT);
+				break;
 		}
 		//tier 4
 		switch (subcls){
@@ -1207,6 +1274,18 @@ public enum Talent {
 
 			case DEAD_KNIGHT:
 				Collections.addAll(tierTalents,ERROR);
+				break;
+
+			case LITTLE_KNIGHT:
+				Collections.addAll(tierTalents, CANCEL_ATTACK_BOOST, POISON_THROW);
+				break;
+
+			case DICE_MAGE:
+				Collections.addAll(tierTalents, MAGIC_POINT_BOOST, SPELL_POWER);
+				break;
+
+			case JUTTE_CHAMPION:
+				Collections.addAll(tierTalents, JUTTE_DURABILITY, JUTTE_SPEED);
 				break;
 		}
 		for (Talent talent : tierTalents){

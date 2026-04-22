@@ -87,6 +87,11 @@ public class HeroIcon extends Image {
 	public static final int SHADOW = 14;
 	public static final int POSSESSION = 15;
 
+	//Moonlight Sub Class Icons
+	public static final int LITTLE_KNIGHT = 40;
+	public static final int DICE_MAGE = 41;
+	public static final int JUTTE_CHAMPION = 42;
+
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );
 		if (film == null){
