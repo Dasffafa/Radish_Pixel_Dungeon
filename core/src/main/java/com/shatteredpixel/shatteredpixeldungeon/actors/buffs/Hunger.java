@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
@@ -25,6 +25,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.SaltCube;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
@@ -37,201 +39,201 @@ import com.watabou.utils.Bundle;
 
 public class Hunger extends Buff implements Hero.Doom {
 
-	public static final float HUNGRY	= 300f;
-	public static final float STARVING	= 450f;
+        public static final float HUNGRY        = 300f;
+        public static final float STARVING      = 450f;
 
-	private float level;
-	private float partialDamage;
+        private float level;
+        private float partialDamage;
 
-	private static final String LEVEL			= "level";
-	private static final String PARTIALDAMAGE 	= "partialDamage";
+        private static final String LEVEL                       = "level";
+        private static final String PARTIALDAMAGE       = "partialDamage";
 
-	@Override
-	public void storeInBundle( Bundle bundle ) {
-		super.storeInBundle(bundle);
-		bundle.put( LEVEL, level );
-		bundle.put( PARTIALDAMAGE, partialDamage );
-	}
+        @Override
+        public void storeInBundle( Bundle bundle ) {
+                super.storeInBundle(bundle);
+                bundle.put( LEVEL, level );
+                bundle.put( PARTIALDAMAGE, partialDamage );
+        }
 
-	@Override
-	public void restoreFromBundle( Bundle bundle ) {
-		super.restoreFromBundle( bundle );
-		level = bundle.getFloat( LEVEL );
-		partialDamage = bundle.getFloat(PARTIALDAMAGE);
-	}
+        @Override
+        public void restoreFromBundle( Bundle bundle ) {
+                super.restoreFromBundle( bundle );
+                level = bundle.getFloat( LEVEL );
+                partialDamage = bundle.getFloat(PARTIALDAMAGE);
+        }
 
-	@Override
-	public boolean act() {
+        @Override
+        public boolean act() {
 
-		if (Dungeon.level.locked
-				|| target.buff(WellFed.class) != null
-				|| SPDSettings.intro()
-				|| target.buff(ScrollOfChallenge.ChallengeArena.class) != null || Dungeon.depth == 0){
-			spend(TICK);
-			return true;
-		}
+                if (Dungeon.level.locked
+                                || target.buff(WellFed.class) != null
+                                || SPDSettings.intro()
+                                || target.buff(ScrollOfChallenge.ChallengeArena.class) != null || Dungeon.depth == 0){
+                        spend(TICK);
+                        return true;
+                }
 
-		if (target.isAlive() && target instanceof Hero) {
+                if (target.isAlive() && target instanceof Hero) {
 
-			Hero hero = (Hero)target;
+                        Hero hero = (Hero)target;
 
-			if (isStarving()) {
+                        if (isStarving()) {
 
-				partialDamage += target.HT/1000f;
+                                partialDamage += target.HT/1000f;
 
-				if (partialDamage > 1){
-					if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
-						Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)partialDamage*Sprouted_Potato.hungerMultiplier());
-					} else {
-						target.damage( (int)partialDamage, this);
-					}
-					partialDamage -= (int)partialDamage;
-				}
+                                if (partialDamage > 1){
+                                        if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+                                                Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)partialDamage*Sprouted_Potato.hungerMultiplier());
+                                        } else {
+                                                target.damage(new DamageInfo((int)partialDamage, DamageType.HUNGER, null, null, this));
+                                        }
+                                        partialDamage -= (int)partialDamage;
+                                }
 
-			} else {
+                        } else {
 
-				float hungerDelay = 1f;
-				if (target.buff(Shadows.class) != null){
-					hungerDelay *= 1.5f;
-				}
+                                float hungerDelay = 1f;
+                                if (target.buff(Shadows.class) != null){
+                                        hungerDelay *= 1.5f;
+                                }
 
-				hungerDelay /= SaltCube.hungerGainMultiplier();
+                                hungerDelay /= SaltCube.hungerGainMultiplier();
 
-				float newLevel = level + (1f/hungerDelay);
-				if (newLevel >= STARVING) {
+                                float newLevel = level + (1f/hungerDelay);
+                                if (newLevel >= STARVING) {
 
-					GLog.n( Messages.get(this, "onstarving") );
+                                        GLog.n( Messages.get(this, "onstarving") );
 
-					if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
-						Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden(1*Sprouted_Potato.hungerMultiplier());
-					} else {
-						hero.damage( 1, this );
-					}
+                                        if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+                                                Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden(1*Sprouted_Potato.hungerMultiplier());
+                                        } else {
+                                                hero.damage(new DamageInfo(1, DamageType.HUNGER, null, null, this));
+                                        }
 
-					hero.interrupt();
-					newLevel = STARVING;
+                                        hero.interrupt();
+                                        newLevel = STARVING;
 
-				} else if (newLevel >= HUNGRY && level < HUNGRY) {
+                                } else if (newLevel >= HUNGRY && level < HUNGRY) {
 
-					GLog.w( Messages.get(this, "onhungry") );
+                                        GLog.w( Messages.get(this, "onhungry") );
 
-					if (!Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_FOOD)){
-						GameScene.flashForDocument(Document.ADVENTURERS_GUIDE, Document.GUIDE_FOOD);
-					}
+                                        if (!Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_FOOD)){
+                                                GameScene.flashForDocument(Document.ADVENTURERS_GUIDE, Document.GUIDE_FOOD);
+                                        }
 
-				}
-				level = newLevel;
+                                }
+                                level = newLevel;
 
-			}
+                        }
 
-			spend( TICK );
+                        spend( TICK );
 
-		} else {
+                } else {
 
-			diactivate();
+                        diactivate();
 
-		}
+                }
 
-		return true;
-	}
+                return true;
+        }
 
-	public void satisfy( float energy ) {
-		affectHunger( energy, false );
-	}
+        public void satisfy( float energy ) {
+                affectHunger( energy, false );
+        }
 
-	public void affectHunger(float energy ){
-		affectHunger( energy, false );
-	}
+        public void affectHunger(float energy ){
+                affectHunger( energy, false );
+        }
 
-	public void affectHunger(float energy, boolean overrideLimits ) {
+        public void affectHunger(float energy, boolean overrideLimits ) {
 
-		if (energy < 0 && target.buff(WellFed.class) != null){
-			target.buff(WellFed.class).left += energy;
-			BuffIndicator.refreshHero();
-			return;
-		}
+                if (energy < 0 && target.buff(WellFed.class) != null){
+                        target.buff(WellFed.class).left += energy;
+                        BuffIndicator.refreshHero();
+                        return;
+                }
 
-		float oldLevel = level;
+                float oldLevel = level;
 
-		level -= energy;
-		if (level < 0 && !overrideLimits) {
-			level = 0;
-		} else if (level > STARVING) {
-			float excess = level - STARVING;
-			level = STARVING;
-			partialDamage += excess * (target.HT/1000f);
-			if (partialDamage > 1f){
-				if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
-					Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)partialDamage*Sprouted_Potato.hungerMultiplier());
-				} else {
-					target.damage( (int)partialDamage, this );
-				}
-				partialDamage -= (int)partialDamage;
-			}
-		}
+                level -= energy;
+                if (level < 0 && !overrideLimits) {
+                        level = 0;
+                } else if (level > STARVING) {
+                        float excess = level - STARVING;
+                        level = STARVING;
+                        partialDamage += excess * (target.HT/1000f);
+                        if (partialDamage > 1f){
+                                if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+                                        Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)partialDamage*Sprouted_Potato.hungerMultiplier());
+                                } else {
+                                        target.damage(new DamageInfo((int)partialDamage, DamageType.HUNGER, null, null, this));
+                                }
+                                partialDamage -= (int)partialDamage;
+                        }
+                }
 
-		if (oldLevel < HUNGRY && level >= HUNGRY){
-			GLog.w( Messages.get(this, "onhungry") );
-		} else if (oldLevel < STARVING && level >= STARVING){
-			GLog.n( Messages.get(this, "onstarving") );
-			if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
-				Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)1*Sprouted_Potato.hungerMultiplier());
-			} else	{
-				target.damage( 1, this );
-			}
-		}
+                if (oldLevel < HUNGRY && level >= HUNGRY){
+                        GLog.w( Messages.get(this, "onhungry") );
+                } else if (oldLevel < STARVING && level >= STARVING){
+                        GLog.n( Messages.get(this, "onstarving") );
+                        if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
+                                Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)1*Sprouted_Potato.hungerMultiplier());
+                        } else  {
+                                target.damage(new DamageInfo(1, DamageType.HUNGER, null, null, this));
+                        }
+                }
 
-		BuffIndicator.refreshHero();
-	}
+                BuffIndicator.refreshHero();
+        }
 
-	public boolean isStarving() {
-		return level >= STARVING;
-	}
+        public boolean isStarving() {
+                return level >= STARVING;
+        }
 
-	public int hunger() {
-		return (int)Math.ceil(level);
-	}
+        public int hunger() {
+                return (int)Math.ceil(level);
+        }
 
-	@Override
-	public int icon() {
-		if (level < HUNGRY) {
-			return BuffIndicator.NONE;
-		} else if (level < STARVING) {
-			return BuffIndicator.HUNGER;
-		} else {
-			return BuffIndicator.STARVATION;
-		}
-	}
+        @Override
+        public int icon() {
+                if (level < HUNGRY) {
+                        return BuffIndicator.NONE;
+                } else if (level < STARVING) {
+                        return BuffIndicator.HUNGER;
+                } else {
+                        return BuffIndicator.STARVATION;
+                }
+        }
 
-	@Override
-	public String name() {
-		if (level < STARVING) {
-			return Messages.get(this, "hungry");
-		} else {
-			return Messages.get(this, "starving");
-		}
-	}
+        @Override
+        public String name() {
+                if (level < STARVING) {
+                        return Messages.get(this, "hungry");
+                } else {
+                        return Messages.get(this, "starving");
+                }
+        }
 
-	@Override
-	public String desc() {
-		String result;
-		if (level < STARVING) {
-			result = Messages.get(this, "desc_intro_hungry");
-		} else {
-			result = Messages.get(this, "desc_intro_starving");
-		}
+        @Override
+        public String desc() {
+                String result;
+                if (level < STARVING) {
+                        result = Messages.get(this, "desc_intro_hungry");
+                } else {
+                        result = Messages.get(this, "desc_intro_starving");
+                }
 
-		result += Messages.get(this, "desc");
+                result += Messages.get(this, "desc");
 
-		return result;
-	}
+                return result;
+        }
 
-	@Override
-	public void onDeath() {
+        @Override
+        public void onDeath() {
 
-		Badges.validateDeathFromHunger();
+                Badges.validateDeathFromHunger();
 
-		Dungeon.fail( this );
-		GLog.n( Messages.get(this, "ondeath") );
-	}
+                Dungeon.fail( this );
+                GLog.n( Messages.get(this, "ondeath") );
+        }
 }

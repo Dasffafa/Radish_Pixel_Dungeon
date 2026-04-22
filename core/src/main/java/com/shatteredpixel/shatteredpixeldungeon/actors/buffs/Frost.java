@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
@@ -24,6 +24,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Thief;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.FrozenCarpaccio;
@@ -46,13 +48,13 @@ public class Frost extends FlavourBuff {
 		type = buffType.NEGATIVE;
 		announced = true;
 	}
-	
+
 	@Override
 	public boolean attachTo( Char target ) {
 		Buff.detach( target, Burning.class );
 
 		if (super.attachTo( target )) {
-			
+
 			target.paralysed++;
 			Buff.detach( target, Chill.class );
 
@@ -68,7 +70,7 @@ public class Frost extends FlavourBuff {
 						}
 					}
 				}
-				
+
 				if (!freezable.isEmpty()){
 					Item toFreeze = Random.element(freezable).detach( hero.belongings.backpack );
 					GLog.w( Messages.capitalize(Messages.get(this, "freezes", toFreeze.title())) );
@@ -81,7 +83,7 @@ public class Frost extends FlavourBuff {
 						}
 					}
 				}
-				
+
 			} else if (target instanceof Thief) {
 
 				Item item = ((Thief) target).item;
@@ -100,7 +102,7 @@ public class Frost extends FlavourBuff {
 			return false;
 		}
 	}
-	
+
 	@Override
 	public void detach() {
 		super.detach();
@@ -109,7 +111,7 @@ public class Frost extends FlavourBuff {
 		if (Dungeon.level.water[target.pos])
 			Buff.prolong(target, Chill.class, Chill.DURATION/2f);
 	}
-	
+
 	@Override
 	public int icon() {
 		return BuffIndicator.FROST;
