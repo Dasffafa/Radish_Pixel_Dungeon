@@ -37,10 +37,10 @@ public enum HeroSubClass {
 
 	BATTLEMAGE(HeroIcon.BATTLEMAGE),
 	WARLOCK(HeroIcon.WARLOCK),
-	
+
 	ASSASSIN(HeroIcon.ASSASSIN),
 	FREERUNNER(HeroIcon.FREERUNNER),
-	
+
 	SNIPER(HeroIcon.SNIPER),
 	WARDEN(HeroIcon.WARDEN),
 
@@ -49,7 +49,7 @@ public enum HeroSubClass {
 	REDCARDINAL(HeroIcon.REDLORD),
 	DEAD_KNIGHT(HeroIcon.DEADKNIGHT),
 
-	//Moonlight Sub Class
+	//Moonlight SubClasses
 	LITTLE_KNIGHT(HeroIcon.LITTLE_KNIGHT),
 	DICE_MAGE(HeroIcon.DICE_MAGE),
 	JUTTE_CHAMPION(HeroIcon.JUTTE_CHAMPION),
@@ -63,7 +63,7 @@ public enum HeroSubClass {
 	HeroSubClass(int icon){
 		this.icon = icon;
 	}
-	
+
 	public String title() {
 		return Messages.get(this, name());
 	}

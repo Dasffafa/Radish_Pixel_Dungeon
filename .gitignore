@@ -24,6 +24,7 @@ android/google-services.json
 
 # Documentation folder
 docs/
+the_catist/
 /android/debug/google-services.json
 /android/src/google-services.json
 /core/bin/default/META-INF/services/javax.annotation.processing.Processor
@@ -31,3 +32,4 @@ docs/
 /QWEN.md
 /.qwen/settings.json
 /.qwen/settings.json.orig
+

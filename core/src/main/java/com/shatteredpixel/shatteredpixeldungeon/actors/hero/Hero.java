@@ -71,7 +71,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
-import com.shatteredpixel.shatteredpixeldungeon.events.HeroGainExperienceEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroLevelUpEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
@@ -2401,9 +2400,6 @@ public class Hero extends Char {
 		if (source != AscensionChallenge.class) {
 			this.exp += exp;
 		}
-
-		// 发布经验获取事件
-		EventManager.emit(new HeroGainExperienceEvent(this, exp, source));
 
 		// Superstition by DoggingDog on 20250817
 		// 天赋：星界沟通

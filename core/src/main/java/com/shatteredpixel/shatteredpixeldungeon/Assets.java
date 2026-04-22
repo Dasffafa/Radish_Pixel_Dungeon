@@ -308,6 +308,7 @@ public class Assets {
 		public static final String HUNTRESS = "sprites/huntress.png";
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String MOONLIGHT = "sprites/moonlight.png";
+		public static final String THE_CATIST = "sprites/the_catist.png";
 		public static final String AVATARS  = "sprites/avatars.png";
 		public static final String FROG      = "sprites/frog.png";
 		public static final String AMULET   = "sprites/amulet.png";
@@ -378,7 +379,6 @@ public class Assets {
 		public static final String FUNGAL_CORE      = "sprites/fungal_core.png";
 
 		public static final String NEW_NPC="sprites/new_npc.png";
-		public static final String THE_CATIST="sprites/the_catist.png";
 
 		// Radish new Enemy
 		// Zone 1

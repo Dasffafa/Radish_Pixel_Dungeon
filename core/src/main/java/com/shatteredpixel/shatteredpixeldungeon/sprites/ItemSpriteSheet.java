@@ -664,6 +664,7 @@ public class ItemSpriteSheet {
 	public static final int SNAKE_BITED_YENDOR = ARTIFACTS+51;
 	public static final int SNAKE_BITE = ARTIFACTS + 52;
 	public static final int SNAKE_BITE_AMULET = ARTIFACTS + 53;
+	public static final int ARTIFACT_WHEELCHAIR = ARTIFACTS + 54;
 
 	static{
 		assignItemRect(ARTIFACT_CLOAK,      9,  15);

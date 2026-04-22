@@ -558,16 +558,8 @@ public class Item implements Bundlable {
 	}
 	
 	public int image() {
-//		 Snake Bite challenge: all items use snake bite icon (except keys, amulet, and test items)
-//		 Skip if hero is dead (for rankings/death screen)
-		if (SnakeBiteChallengeManager.shouldReplaceItemSprite()
-				&& Dungeon.hero != null && Dungeon.hero.isAlive()) {
-			// Exclude keys, amulet, and test mode items from snake bite transformation
-			if (!(this instanceof com.shatteredpixel.shatteredpixeldungeon.items.keys.Key)
-					&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.items.Amulet)
-					&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem)) {
-				return com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.SNAKE_BITE;
-			}
+		if (SnakeBiteChallengeManager.shouldReplaceItemSprite(this)) {
+			return com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.SNAKE_BITE;
 		}
 		return image;
 	}
@@ -580,8 +572,7 @@ public class Item implements Bundlable {
 	// Skip if hero is dead (for rankings/death screen)
 	// Test mode items should always show their original icons
 	public int icon() {
-		if (SnakeBiteChallengeManager.shouldReplaceItemSprite()
-				&& Dungeon.hero != null && Dungeon.hero.isAlive()
+		if (SnakeBiteChallengeManager.shouldReplaceItemSprite(this)
 				&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem)) {
 			return -1;
 		}

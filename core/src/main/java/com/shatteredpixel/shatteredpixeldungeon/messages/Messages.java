@@ -153,28 +153,23 @@ public class Messages {
         String keyLower = key.toLowerCase(Locale.CHINESE);
         String localKey = k != null ? k.toLowerCase(Locale.CHINESE) : null;
 
-        // Snake Bite challenge: intercept messages and replace with snake bite text
-        // Check if hero is alive (for rankings/death screen)
-        if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
-            // Transform items
-            if (keyLower.startsWith("items.") && localKey != null) {
-                if (SnakeBiteChallengeManager.shouldReplaceItemText()) {
-                    // First check if key.snake_bite exists (for special overrides)
-                    String specialSnakeKey = key + ".snake_bite";
-                    String specialValue = getFromBundle(specialSnakeKey.toLowerCase(Locale.CHINESE));
-                    if (specialValue != null) {
-                        if (args.length > 0) return format(specialValue, args);
-                        else return specialValue;
-                    }
+        if (keyLower.startsWith("items.") && localKey != null) {
+            if (SnakeBiteChallengeManager.shouldReplaceItemText()) {
+                // First check if key.snake_bite exists (for special overrides)
+                String specialSnakeKey = key + ".snake_bite";
+                String specialValue = getFromBundle(specialSnakeKey.toLowerCase(Locale.CHINESE));
+                if (specialValue != null) {
+                    if (args.length > 0) return format(specialValue, args);
+                    else return specialValue;
+                }
 
-                    // Then apply normal transformation logic
-                    String snakeItemKey = getSnakeBiteItemKey(key, localKey);
-                    if (snakeItemKey != null) {
-                        String snakeValue = getFromBundle(snakeItemKey.toLowerCase(Locale.CHINESE));
-                        if (snakeValue != null) {
-                            if (args.length > 0) return format(snakeValue, args);
-                            else return snakeValue;
-                        }
+                // Then apply normal transformation logic
+                String snakeItemKey = getSnakeBiteItemKey(key, localKey);
+                if (snakeItemKey != null) {
+                    String snakeValue = getFromBundle(snakeItemKey.toLowerCase(Locale.CHINESE));
+                    if (snakeValue != null) {
+                        if (args.length > 0) return format(snakeValue, args);
+                        else return snakeValue;
                     }
                 }
             }

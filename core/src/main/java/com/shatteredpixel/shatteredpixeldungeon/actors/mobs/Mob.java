@@ -273,17 +273,7 @@ public abstract class Mob extends Char {
 
 	public CharSprite sprite() {
 		// Snake Bite challenge: all mobs use snake sprite (except those with special sprites)
-		if (SnakeBiteChallengeManager.shouldReplaceMobSprite()
-				&& !(this instanceof Mimic)
-				&& !(this instanceof Pylon)
-				&& !(this instanceof Drake)
-				&& !(this instanceof SentryRoom.Sentry)
-				&& !(this instanceof GnollShamanKing)
-				&& !(this instanceof GnollKing)
-				&& !(this instanceof WandOfWarding.Ward)
-				&& !(this instanceof MirrorImage)
-				&& !(this instanceof PrismaticImage)
-				&& !(this instanceof CrystalSpire)) {
+		if (SnakeBiteChallengeManager.shouldReplaceMobSprite(this)){
 			return new SnakeSprite();
 		}
 		return Reflection.newInstance(spriteClass);

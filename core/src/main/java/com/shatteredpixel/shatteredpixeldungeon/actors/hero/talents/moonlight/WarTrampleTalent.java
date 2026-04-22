@@ -29,6 +29,7 @@ public class WarTrampleTalent {
         int points = hero.pointsInTalent(Talent.WAR_TRAMPLE);
         if (points <= 0) return;
 
+        // 计算移动消耗的回合数（基于英雄速度）
         float moveTime = hero.cooldown();
 
         // 收集所有需要延长的 FlavourBuff 类型
