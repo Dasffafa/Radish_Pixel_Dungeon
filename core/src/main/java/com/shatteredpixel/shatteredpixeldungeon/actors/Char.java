@@ -24,6 +24,9 @@ package com.shatteredpixel.shatteredpixeldungeon.actors;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageSource;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
@@ -1013,6 +1016,33 @@ public abstract class Char extends Actor {
 			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(exp), FloatingText.EXPERIENCE);
 		}
 		hero.earnExp(exp, getClass());
+	}
+
+	/**
+	 * 新的伤害方法：使用DamageInfo包装伤害信息
+	 * 
+	 * 暴击是DamageInfo的属性，而不是特殊的伤害类型。
+	 * 此方法将DamageInfo转换为旧格式调用现有逻辑，保持向后兼容。
+	 * 
+	 * @param info 伤害信息对象
+	 */
+	public void damage( DamageInfo info ) {
+		if (info == null) return;
+		
+		Object src = info.getSource();
+		int dmg = info.getDamage();
+		
+		// 处理暴击：将暴击转换为旧的CritClass/NoArmorCritClass标记
+		if (info.isCritical()) {
+			if (info.ignoresArmor()) {
+				src = new NoArmorCritClass();
+			} else {
+				src = new CritClass();
+			}
+		}
+		
+		// 调用现有方法
+		damage(dmg, src);
 	}
 
 	public void damage( int dmg, Object src ) {
