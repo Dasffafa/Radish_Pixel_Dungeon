@@ -48,6 +48,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Frog;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Artillerist;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GnollZealot;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Mayfly;
@@ -801,6 +804,11 @@ public class Hero extends Char {
 			dmg += (int) (dmg * (attackDelay() + killBoatSwordBonus - 1) * pointBonus);
 		}
 
+		// 武器掌握天赋伤害加成
+		if (heroClass == HeroClass.MOONLIGHT && hasTalent(Talent.WEAPON_MASTERY)) {
+			dmg += com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.WeaponMasteryTalent.getBonusDamage(this);
+		}
+
 		if (dmg < 0) dmg = 0;
 
 		return dmg;
@@ -977,6 +985,9 @@ public class Hero extends Char {
 
 	@Override
 	public boolean act() {
+
+		// 发布英雄回合事件
+		EventManager.emit(new HeroActEvent(this));
 
 		Radish radish = hero.belongings.getItem(Radish.class);
 		Radish.GlobalCritChance globalCritChance = hero.buff(Radish.GlobalCritChance.class);

@@ -21,11 +21,8 @@ public class WarTrampleTalent {
     @SubscribeEvent(event = HeroTrampleGrassEvent.class, priority = 0)
     public static void onTrampleGrass(HeroTrampleGrassEvent event) {
         Hero hero = event.getHero();
-
-        // 只对月华英雄生效
         if (hero.heroClass != HeroClass.MOONLIGHT) return;
 
-        // 检查天赋点数
         int points = hero.pointsInTalent(Talent.WAR_TRAMPLE);
         if (points <= 0) return;
 
@@ -45,10 +42,6 @@ public class WarTrampleTalent {
         // 延长所有收集到的 Buff
         for (Class<? extends FlavourBuff> buffClass : buffsToExtend) {
             Buff.affect(hero, buffClass, moveTime);
-        }
-
-        if (buffsToExtend.size() > 0) {
-            GLog.p("战争践踏：延长了 " + buffsToExtend.size() + " 个增益效果！");
         }
     }
 }

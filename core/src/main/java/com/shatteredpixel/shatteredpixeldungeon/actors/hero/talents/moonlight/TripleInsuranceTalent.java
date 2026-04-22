@@ -35,24 +35,17 @@ public class TripleInsuranceTalent {
 
     private static void applyShield(Hero hero) {
         if (hero == null) return;
-
-        // 只对月华英雄生效
         if (hero.heroClass != HeroClass.MOONLIGHT) return;
 
-        // 检查天赋点数
         int points = hero.pointsInTalent(Talent.TRIPLE_INSURANCE);
         if (points <= 0) return;
 
-        // 计算护盾值：+1时6点，+2时9点
         int shieldAmount = 3 * (points + 1);
 
-        // 获取或添加护盾 Buff
         Barrier barrier = hero.buff(Barrier.class);
         if (barrier == null) {
             barrier = Buff.affect(hero, Barrier.class);
         }
         barrier.incShield(shieldAmount);
-
-        GLog.p("三重保险：获得 " + shieldAmount + " 点护盾！");
     }
 }
