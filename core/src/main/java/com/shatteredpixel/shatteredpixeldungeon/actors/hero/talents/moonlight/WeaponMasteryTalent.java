@@ -41,7 +41,7 @@ public class WeaponMasteryTalent {
 		public String desc() {
 			int stacks = getStacks();
 			int bonus = stacks; // 最大加成等于层数
-			return Messages.get( "desc", stacks, bonus);
+			return Messages.get( this,"desc", stacks, getThreshold() - turnCount,getThreshold());
 		}
 
 		private int getThreshold() {

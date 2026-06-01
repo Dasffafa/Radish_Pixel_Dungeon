@@ -257,41 +257,35 @@ public enum Talent {
 	 */
 	//Moonlight T1
 	// 猎杀直觉 砥砺锋芒 武器掌握 战争践踏
-	HUNTING_INTUITION(448), SHARPENING_EDGE(449), WEAPON_MASTERY(450), WAR_TRAMPLE(451),
+	HUNTING_INTUITION(176), SHARPENING_EDGE(177), WEAPON_MASTERY(178), WAR_TRAMPLE(179),
 	//Moonlight T2
 	// 利用一餐 强壮肉体 神圣泉水 三重保险 弹射起步
-	MEAL_UTILIZATION(480), STRONG_BODY(481), HOLY_SPRING(482), TRIPLE_INSURANCE(483), CATAPULT_START(484),
+	MEAL_UTILIZATION(208), STRONG_BODY(209), HOLY_SPRING(210), TRIPLE_INSURANCE(211), CATAPULT_START(212),
 	//Moonlight T3 (Universal)
 	// 剑盾骑士 轮椅翻车
-	SWORD_SHIELD_KNIGHT(512, 3), WHEELCHAIR_CRASH(513, 3),
+	SWORD_SHIELD_KNIGHT(240, 3), WHEELCHAIR_CRASH(241, 3),
 	//Moonlight T4 (Universal)
 
 	HEROIC_ENERGY_MOONLIGHT(294, 4),
 
 	// Little Knight T3
 	// 我不会输 濡湿附魔 左弓连射
-	WONT_LOSE(515, 3), WET_ENCHANT(516, 3), LEFT_BOW_RAPID(517, 3),
-//	//Little Knight T4
-	CANCEL_ATTACK_BOOST(455, 4), POISON_THROW(456, 4),
+	WONT_LOSE(243, 3), WET_ENCHANT(244, 3), LEFT_BOW_RAPID(245, 3),
 
 	//Dice Mage T3
-	LEARN_SOOTHE(549, 3), LEARN_LIQUOR(550, 3), LEARN_OPERATE(549, 3), LEARN_MIASMA(550, 3), LEARN_CRUSH(551, 3), LEARN_BLAZE(552, 3),
-	//Dice Mage T4
-	MAGIC_POINT_BOOST(463, 4), SPELL_POWER(464, 4),
+	LEARN_SOOTHE(276, 3), LEARN_LIQUOR(308, 3), LEARN_OPERATE(309, 3), LEARN_MIASMA(339, 3), LEARN_CRUSH(340, 3), LEARN_BLAZE(341, 3),
 
 	//Jutte Champion T3
-	ONE_JUTTE(579, 3), IRON_QUENCH(580, 3), SURPRISE_JUTTE(581, 3),
-	//Jutte Champion T4
-	JUTTE_DURABILITY(468, 4), JUTTE_SPEED(469, 4),
+	ONE_JUTTE(371, 3), IRON_QUENCH(372, 3), SURPRISE_JUTTE(373, 3),
 
 	//注定一抽 T4
-	FATED_TWICE(492, 4), LOOT_GROUND(493, 4), TIME_PAUSE(494, 4),
+	FATED_TWICE(401, 4), LOOT_GROUND(402, 4), TIME_PAUSE(403, 4),
 
-	//玩具背包 T4-=
-	BETTER_ITEM(524, 4), EXTRA_POCKET(525, 4), ACCEPT_CHALLENGE(526, 4),
+	//玩具背包 T4
+	BETTER_ITEM(433, 4), EXTRA_POCKET(434, 4), ACCEPT_CHALLENGE(435, 4),
 
 	//薪王化身 T4
-	HOLY_LANCE(556, 4), SOUL_STREAM(557, 4), FATAL_BLADE(558, 4),
+	HOLY_LANCE(465, 4), SOUL_STREAM(466, 4), FATAL_BLADE(467, 4),
 
 	ERROR(294,4);
 
@@ -656,6 +650,7 @@ public enum Talent {
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+		EventManager.emit(new HeroEatFoodEvent(hero, foodVal, foodSource));
 		if (hero.hasTalent(HEARTY_MEAL)){
 			//3/5 HP healed, when hero is below 25% health
 			if (hero.HP <= hero.HT/4) {
@@ -1274,15 +1269,15 @@ public enum Talent {
 				break;
 
 			case LITTLE_KNIGHT:
-				Collections.addAll(tierTalents, CANCEL_ATTACK_BOOST, POISON_THROW);
+				Collections.addAll(tierTalents, ERROR);
 				break;
 
 			case DICE_MAGE:
-				Collections.addAll(tierTalents, MAGIC_POINT_BOOST, SPELL_POWER);
+				Collections.addAll(tierTalents,ERROR);
 				break;
 
 			case JUTTE_CHAMPION:
-				Collections.addAll(tierTalents, JUTTE_DURABILITY, JUTTE_SPEED);
+				Collections.addAll(tierTalents,ERROR);
 				break;
 		}
 		for (Talent talent : tierTalents){

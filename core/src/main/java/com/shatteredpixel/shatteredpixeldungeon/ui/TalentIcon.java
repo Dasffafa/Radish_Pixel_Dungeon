@@ -23,8 +23,10 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.TextureFilm;
+import com.watabou.utils.RectF;
 
 public class TalentIcon extends Image {
 
@@ -40,7 +42,18 @@ public class TalentIcon extends Image {
 
 		if (film == null) film = new TextureFilm(texture, SIZE, SIZE);
 
-		frame(film.get(icon));
+		RectF frame = film.get(icon);
+		if (frame == null) {
+			// 找不到图标时使用默认的"开发中"占位图标
+			GLog.w("天赋图标 %d 未找到，使用开发中占位图标", icon);
+			frame = film.get(0);
+			// 如果连索引0都不存在，创建一个空的默认帧防止崩溃
+			if (frame == null) {
+				GLog.w("天赋图标资源加载失败，请检查 talent_icons.png");
+				frame = new RectF(0f, 0f, 1f, 1f);
+			}
+		}
+		frame(frame);
 	}
 
 }

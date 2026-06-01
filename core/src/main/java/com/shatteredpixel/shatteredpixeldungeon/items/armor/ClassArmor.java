@@ -231,7 +231,8 @@ abstract public class ClassArmor extends Armor {
 								cursed = armor.cursed;
 								curseInfusionBonus = armor.curseInfusionBonus;
 								masteryPotionBonus = armor.masteryPotionBonus;
-								if (armor.checkSeal() != null) seal = armor.checkSeal();
+								BrokenSeal seal = armor.checkSeal();
+								if (seal != null) affixSeal(seal);
 
 								identify();
 
