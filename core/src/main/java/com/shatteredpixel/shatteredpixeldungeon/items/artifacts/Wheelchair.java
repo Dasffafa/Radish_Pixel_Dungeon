@@ -20,6 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -111,6 +112,7 @@ public class Wheelchair extends Artifact {
 
     // 执行轮椅翻车
     private void performCrash(Hero hero) {
+
         int points = hero.pointsInTalent(Talent.WHEELCHAIR_CRASH);
         if (points <= 0) return;
 
@@ -144,8 +146,10 @@ public class Wheelchair extends Artifact {
         if (points == 3) baseDamage = 30; // 调整+3为30
         int damage = baseDamage + maxTurns;
 
-        // 对5x5范围内敌人造成伤害
-        for (Mob mob : Dungeon.level.mobs) {
+        //播放一个冲击波效果
+        WandOfBlastWave.BlastWave.blast(hero.pos, 5);
+        // 对5x5范围内敌人造成伤害（使用副本避免 ConcurrentModificationException）
+        for (Mob mob : new ArrayList<>(Dungeon.level.mobs)) {
             if (Dungeon.level.distance(hero.pos, mob.pos) <= 2) {
                 // 2格距离是5x5范围
                 mob.damage(damage, this);
@@ -153,6 +157,8 @@ public class Wheelchair extends Artifact {
             }
         }
 
+        //播放坠机音效
+        Sample.INSTANCE.play(Assets.Sounds.MAN);
         // 施加轮椅翻车效果（5回合缠绕）
         Buff.affect(hero, WheelchairCrashBuff.class, WheelchairCrashBuff.DURATION);
 
@@ -225,7 +231,6 @@ public class Wheelchair extends Artifact {
         if (catapultBuff != null) {
             // 有弹射起步效果，不消耗充能
             Buff.detach(hero, CatapultStartBuff.class);
-            GLog.p("弹射起步！本次使用不消耗充能！");
         } else {
             // 消耗充能
             charge--;

@@ -13,11 +13,6 @@ import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
-/**
- * 武器掌握天赋
- * +1：回合数/125为层数，每层0-层数的伤害加成，最多5层
- * +2：回合数/100为层数，每层0-层数的伤害加成，最多5层
- */
 public class WeaponMasteryTalent {
 
 	public static class MasteryTracker extends Buff {
@@ -26,6 +21,7 @@ public class WeaponMasteryTalent {
 		}
 
 		private int turnCount;
+		private KindOfWeapon trackedWeapon;
 
 		@Override
 		public int icon() { return BuffIndicator.WEAPON; }
@@ -40,8 +36,12 @@ public class WeaponMasteryTalent {
 		@Override
 		public String desc() {
 			int stacks = getStacks();
-			int bonus = stacks; // 最大加成等于层数
-			return Messages.get( this,"desc", stacks, getThreshold() - turnCount,getThreshold());
+			if (stacks >= 5) {
+				return Messages.get(this, "desc_max", stacks);
+			}
+			int threshold = getThreshold();
+			int turnsToNext = (stacks + 1) * threshold - turnCount;
+			return Messages.get(this, "desc", stacks, turnsToNext, threshold);
 		}
 
 		private int getThreshold() {
@@ -60,6 +60,14 @@ public class WeaponMasteryTalent {
 
 		public void reset() { turnCount = 0; }
 
+		public void setTrackedWeapon(KindOfWeapon weapon) {
+			trackedWeapon = weapon;
+		}
+
+		public KindOfWeapon getTrackedWeapon() {
+			return trackedWeapon;
+		}
+
 		@Override
 		public boolean act() {
 			turnCount++;
@@ -68,17 +76,20 @@ public class WeaponMasteryTalent {
 		}
 
 		private static final String TURN_COUNT = "turn_count";
+		private static final String TRACKED_WEAPON = "tracked_weapon";
 
 		@Override
 		public void storeInBundle(Bundle bundle) {
 			super.storeInBundle(bundle);
 			bundle.put(TURN_COUNT, turnCount);
+			bundle.put(TRACKED_WEAPON, trackedWeapon);
 		}
 
 		@Override
 		public void restoreFromBundle(Bundle bundle) {
 			super.restoreFromBundle(bundle);
 			turnCount = bundle.getInt(TURN_COUNT);
+			trackedWeapon = (KindOfWeapon) bundle.get(TRACKED_WEAPON);
 		}
 	}
 
@@ -94,11 +105,14 @@ public class WeaponMasteryTalent {
 
 		// 初始化 Buff
 		MasteryTracker tracker = Buff.affect(hero, MasteryTracker.class);
-
-		// 检测武器切换
-		if (weapon != lastWeapon) {
+		if (tracker.getTrackedWeapon() == null) {
+			tracker.trackedWeapon = weapon;
+		}
+		// 检测武器切换：使用 tracker 保存的武器进行比对
+		// 这里直接检测相等不行， 因为武器的equals方法没定义好
+		if (weapon.getClass() != tracker.getTrackedWeapon().getClass()) {
 			tracker.reset();
-			lastWeapon = weapon;
+			tracker.setTrackedWeapon(weapon);
 		}
 	}
 

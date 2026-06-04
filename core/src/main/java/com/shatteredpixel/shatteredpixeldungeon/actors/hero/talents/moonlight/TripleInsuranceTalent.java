@@ -5,13 +5,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
-import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.HeroEatFoodEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.ItemUseEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
  * 三重保险天赋
@@ -24,13 +21,19 @@ public class TripleInsuranceTalent {
         applyShield(event.getHero());
     }
 
-    @SubscribeEvent(event = ItemUseEvent.class, priority = 0)
-    public static void onItemUse(ItemUseEvent event) {
-        // 只对药水和卷轴生效
-        Item item = event.getItem();
-        if (!(item instanceof Potion) && !(item instanceof Scroll)) return;
+    @SubscribeEvent(event = ThrowPotionEvent.class, priority = 0)
+    public static void onThrowPotion(ThrowPotionEvent event) {
+        applyShield(event.getUser() != null ? event.getUser() : null);
+    }
 
-        applyShield(event.getUser() instanceof Hero ? (Hero) event.getUser() : null);
+    @SubscribeEvent(event = DrinkPotionEvent.class, priority = 0)
+    public static void onDrinkPotion(DrinkPotionEvent event) {
+        applyShield(event.getUser() != null ? event.getUser() : null);
+    }
+
+    @SubscribeEvent(event = ReadScrollEvent.class, priority = 0)
+    public static void onReadScroll(ReadScrollEvent event) {
+        applyShield(event.getUser() != null ? event.getUser() : null);
     }
 
     private static void applyShield(Hero hero) {

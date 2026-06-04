@@ -39,7 +39,7 @@ public class HuntingIntuitionTalent {
 
         counter.count++;
 
-        int threshold = 15;
+        int threshold = points >= 2 ? 15 : 20;
         if (counter.count >= threshold) {
             counter.count = 0;
             MysteryMeat meat = new MysteryMeat();

@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbili
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.WeaponMasteryTalent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
@@ -49,8 +50,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
-import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Artillerist;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GnollZealot;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Mayfly;
@@ -74,7 +74,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
-import com.shatteredpixel.shatteredpixeldungeon.events.HeroLevelUpEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -305,7 +304,21 @@ public class Hero extends Char {
 	public void updateHT( boolean boostHP ){
 		int curHT = HT;
 
-		HT = 20 + 5*(lvl-1) + HTBoost;
+		// 基础成长系数
+		int growthFactor = 5;
+		int initialHP = 20;
+		// 月华英雄成长调整（强壮肉体天赋）
+		if (heroClass == HeroClass.MOONLIGHT) {
+			initialHP = 18;
+			growthFactor = 4; // 基础成长
+			int strongBody = pointsInTalent(Talent.STRONG_BODY);
+			if (strongBody != 0) initialHP = 20;
+			if (strongBody >= 1) growthFactor = 5; // +1恢复至正常
+			if (strongBody >= 2) growthFactor = 6; // +2额外成长
+		}
+
+
+		HT = initialHP + growthFactor*(lvl-1) + HTBoost;
 		float multiplier = RingOfMight.HTMultiplier(this);
 		HT = Math.round(multiplier * HT);
 
@@ -329,6 +342,7 @@ public class Hero extends Char {
 
 		HP = Math.min(HP, HT);
 	}
+
 
 	public int STR() {
 		int strBonus = 0;
@@ -806,7 +820,7 @@ public class Hero extends Char {
 
 		// 武器掌握天赋伤害加成
 		if (heroClass == HeroClass.MOONLIGHT && hasTalent(Talent.WEAPON_MASTERY)) {
-			dmg += com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.WeaponMasteryTalent.getBonusDamage(this);
+			dmg += WeaponMasteryTalent.getBonusDamage(this);
 		}
 
 		if (dmg < 0) dmg = 0;
@@ -2412,6 +2426,9 @@ public class Hero extends Char {
 			this.exp += exp;
 		}
 
+		EventManager.emit(new HeroGainExperienceEvent(this, exp, source));
+
+
 		// Superstition by DoggingDog on 20250817
 		// 天赋：星界沟通
 		if(superstitionCounter != null){
@@ -2483,6 +2500,8 @@ public class Hero extends Char {
 
 				GLog.newLine();
 				GLog.p( Messages.get(this, "level_cap"));
+				// 这是为了防止30级点强壮肉体无法升级更新血上限的bug，但是真的会有这种情况吗...
+				updateHT(false);
 				Sample.INSTANCE.play( Assets.Sounds.LEVELUP );
 			}
 

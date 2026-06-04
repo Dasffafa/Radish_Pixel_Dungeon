@@ -46,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.Smok
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.HeroicLeap;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Shockwave;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.custom.ch.ChallengeBag;
 import com.shatteredpixel.shatteredpixeldungeon.custom.dict.DictBook;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.*;
@@ -65,6 +66,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.alive.StoneOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MagneticCrown;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.PotionBandolier;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.ScrollHolder;
@@ -80,11 +82,13 @@ import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Starlight;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Sunless;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Turtleir;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Wastelandew;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfLullaby;
@@ -108,6 +112,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKn
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.DeviceCompat;
+import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
+
+import java.util.HashSet;
 
 public enum HeroClass {
 
@@ -165,6 +173,8 @@ public enum HeroClass {
 		new CustomPlayer().collect();
 		
 		new SnakeBiteToggle().collect();
+
+		new TalentSetter().collect();
 
 		new TestBag().collect();
 
@@ -358,7 +368,9 @@ public enum HeroClass {
 	}
 
 	private static void initMoonlight( Hero hero ) {
-		// TODO: 添加轮椅神器
+		Wheelchair wheelchair = new Wheelchair();
+		(hero.belongings.artifact = wheelchair).identify();
+		hero.belongings.artifact.activate( hero );
 		// 初始武器：所有角色的初始武器
 		(hero.belongings.weapon = new WornShortsword()).identify();
 		new Dagger().identify().collect();
@@ -371,7 +383,23 @@ public enum HeroClass {
 		new ScrollOfUpgrade().identify();
 		new ScrollOfIdentify().identify();
 
-		// TODO: 添加随机卷轴和药水
+		// 随机鉴定：0-4种卷轴，剩余数量为药水
+		int scrollCount = Random.Int(5); // 0-4
+		int potionCount = 4 - scrollCount;
+
+		HashSet<Class<? extends Scroll>> unknownScrolls = Scroll.getUnknown();
+		for (int i = 0; i < scrollCount && !unknownScrolls.isEmpty(); i++) {
+			Class<? extends Scroll> scrollClass = Random.element(unknownScrolls);
+			Reflection.newInstance(scrollClass).identify();
+			unknownScrolls.remove(scrollClass);
+		}
+
+		HashSet<Class<? extends Potion>> unknownPotions = Potion.getUnknown();
+		for (int i = 0; i < potionCount && !unknownPotions.isEmpty(); i++) {
+			Class<? extends Potion> potionClass = Random.element(unknownPotions);
+			Reflection.newInstance(potionClass).identify();
+			unknownPotions.remove(potionClass);
+		}
 
 		// 月华生命值调整：-2 最大生命值，-1 成长
 		hero.HT = hero.HT - 2;
@@ -408,7 +436,7 @@ public enum HeroClass {
 				return new ArmorAbility[]{new LastPrayer(),new ShadowHymn(),new GodsPossesion()};
 			case MOONLIGHT:
 				// TODO: 添加月华护甲技能（注定一抽、玩具背包、薪王化身）
-				return new ArmorAbility[]{};
+				return new ArmorAbility[]{new ToyBackpack()};
 		}
 	}
 

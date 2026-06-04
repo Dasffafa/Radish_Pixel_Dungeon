@@ -92,6 +92,9 @@ public class HeroIcon extends Image {
 	public static final int DICE_MAGE = 41;
 	public static final int JUTTE_CHAMPION = 42;
 
+	//Moonlight ArmorAbility
+	public static final int TOY_BACKPACK = 43;
+
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );
 		if (film == null){

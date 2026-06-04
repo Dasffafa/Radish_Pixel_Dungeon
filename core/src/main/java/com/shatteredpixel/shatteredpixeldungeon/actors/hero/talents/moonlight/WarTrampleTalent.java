@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroTrampleGrassEvent;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,21 +28,24 @@ public class WarTrampleTalent {
         if (points <= 0) return;
 
         // 计算移动消耗的回合数（基于英雄速度）
-        float moveTime = hero.cooldown();
+        float moveTime = hero.speed();
 
-        // 收集所有需要延长的 FlavourBuff 类型
-        // 注意：需要先收集类型列表，因为在遍历 buffs 时不能修改 buff 列表
-        List<Class<? extends FlavourBuff>> buffsToExtend = new ArrayList<>();
-        for (Buff buff : hero.buffs()) {
-            // 只延长增益效果（POSITIVE 类型）且是 FlavourBuff
-            if (buff.type == Buff.buffType.POSITIVE && buff instanceof FlavourBuff) {
-                buffsToExtend.add((Class<? extends FlavourBuff>) buff.getClass());
+        float p = Random.Float();
+        if (p >=  0.25 || points >= 2) {
+            // 收集所有需要延长的 FlavourBuff 类型
+            // 注意：需要先收集类型列表，因为在遍历 buffs 时不能修改 buff 列表
+            List<Class<? extends FlavourBuff>> buffsToExtend = new ArrayList<>();
+            for (Buff buff : hero.buffs()) {
+                // 只延长增益效果（POSITIVE 类型）且是 FlavourBuff
+                if (buff.type == Buff.buffType.POSITIVE && buff instanceof FlavourBuff) {
+                    buffsToExtend.add((Class<? extends FlavourBuff>) buff.getClass());
+                }
             }
-        }
 
-        // 延长所有收集到的 Buff
-        for (Class<? extends FlavourBuff> buffClass : buffsToExtend) {
-            Buff.affect(hero, buffClass, moveTime);
+            // 延长所有收集到的 Buff
+            for (Class<? extends FlavourBuff> buffClass : buffsToExtend) {
+                Buff.affect(hero, buffClass, moveTime);
+            }
         }
     }
 }

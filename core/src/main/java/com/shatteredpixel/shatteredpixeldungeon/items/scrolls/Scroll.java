@@ -35,6 +35,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Soulstaker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.ReadScrollEvent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -259,6 +261,9 @@ public abstract class Scroll extends Item {
 		curUser.busy();
 		((HeroSprite)curUser.sprite).read();
 
+		// 发射阅读卷轴事件
+		EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
+
 		if (!anonymous) {
 			Catalog.countUse(getClass());
 			if (Random.Float() < talentChance) {
@@ -273,6 +278,9 @@ public abstract class Scroll extends Item {
 		curUser.spend( TIME_TO_READ );
 		curUser.busy();
 		((HeroSprite)curUser.sprite).read();
+
+		// 发射阅读卷轴事件
+		EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
 
 		/*if (curUser.hasTalent(Talent.SPELL_QUEUE)){
 			Buff.affect(curUser, ScrollEmpower.class).reset();

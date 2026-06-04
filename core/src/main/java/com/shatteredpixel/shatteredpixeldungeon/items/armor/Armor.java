@@ -17,6 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.SharpeningEdgeTalent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -216,14 +217,25 @@ public class Armor extends EquipableItem {
 			actions.add(AC_SHARPENING_EDGE);
 		}
 
-		// 月华专属：玩具背包操作
-		if (hero.heroClass == HeroClass.MOONLIGHT) {
+		// 玩具背包护甲技能：只有选择了玩具背包护甲技能时显示
+		if (hero.armorAbility instanceof ToyBackpack) {
 			actions.add(AC_TOY); // 查看玩具背包
 			if (toyCharge >= TOY_CHARGE_COST) {
 				actions.add(AC_ATTACH); // 生成新玩具
 			}
 		}
 		return actions;
+	}
+
+	@Override
+	public String actionName(String action, Hero hero) {
+		if (action.equals(AC_SHARPENING_EDGE)) {
+			return Messages.get(Armor.class, "ac_" + action);
+		}
+		if (action.equals(AC_TOY) || action.equals(AC_ATTACH)) {
+			return Messages.get(Armor.class, "ac_" + action);
+		}
+		return super.actionName(action, hero);
 	}
 
 	@Override

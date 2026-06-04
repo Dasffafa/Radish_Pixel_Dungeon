@@ -31,6 +31,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Ooze;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.events.DrinkPotionEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.ThrowPotionEvent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -301,6 +304,9 @@ public class Potion extends Item {
 		hero.busy();
 		apply( hero );
 
+		// 发射饮用药水事件
+		EventManager.emit(new DrinkPotionEvent(hero, this));
+
 		Sample.INSTANCE.play( Assets.Sounds.DRINK );
 
 		hero.sprite.operate( hero.pos );
@@ -346,6 +352,10 @@ public class Potion extends Item {
 		if (Dungeon.level.heroFOV[cell]) {
 			GLog.i( Messages.get(Potion.class, "shatter") );
 			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
+		}
+		// 发射投掷药水事件
+		if (curUser != null) {
+			EventManager.emit(new ThrowPotionEvent((Hero)curUser, this, cell));
 		}
 	}
 
