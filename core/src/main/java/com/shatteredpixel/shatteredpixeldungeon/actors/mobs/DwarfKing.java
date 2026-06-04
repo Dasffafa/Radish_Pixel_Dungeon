@@ -34,7 +34,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LifeLink;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestTalentOFTerminalBook;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
@@ -447,7 +449,7 @@ public class DwarfKing extends Mob {
 	@Override
 	public void damage(int dmg, Object src) {
 		//hero counts as unarmed if they aren't attacking with a weapon and aren't benefiting from force
-		if (src == Dungeon.hero && (!RingOfForce.fightingUnarmed(Dungeon.hero) || Dungeon.hero.buff(RingOfForce.Force.class) != null)){
+		if (src == Dungeon.hero || Dungeon.hero.buff(RingOfForce.Force.class) != null){
 			Statistics.qualifiedForBossChallengeBadge = false;
 		//Corrosion, corruption, and regrowth do no direct damage and so have their own custom logic
 		//Transfusion damages DK and so doesn't need custom logic
@@ -554,9 +556,17 @@ public class DwarfKing extends Mob {
 		}
 
 		if (Dungeon.level.solid[pos]){
-			Dungeon.level.drop(new KingsCrown(), pos + Dungeon.level.width()).sprite.drop(pos);
+			if(Dungeon.hero.heroClass == HeroClass.RECTOR){
+				Dungeon.level.drop(new TestTalentOFTerminalBook(), pos + Dungeon.level.width()).sprite.drop(pos);
+			} else {
+				Dungeon.level.drop(new KingsCrown(), pos + Dungeon.level.width()).sprite.drop(pos);
+			}
 		} else {
-			Dungeon.level.drop(new KingsCrown(), pos).sprite.drop();
+			if(Dungeon.hero.heroClass == HeroClass.RECTOR){
+				Dungeon.level.drop(new TestTalentOFTerminalBook(), pos).sprite.drop();
+			} else {
+				Dungeon.level.drop(new KingsCrown(), pos).sprite.drop();
+			}
 		}
 
 		Badges.validateBossSlain();

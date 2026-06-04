@@ -62,7 +62,7 @@ public class ScrollOfTransmutation extends InventoryScroll {
 		
 		bones = true;
 
-		talentFactor = 2f;
+//		talentFactor = 2f;
 	}
 
 	@Override

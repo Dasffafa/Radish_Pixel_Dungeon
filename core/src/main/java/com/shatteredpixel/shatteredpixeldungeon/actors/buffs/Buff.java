@@ -21,9 +21,10 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Drake;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfBenediction;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
@@ -77,7 +78,18 @@ public class Buff extends Actor {
 			return false;
 		}
 	}
-	
+	// 在Buff类中添加以下方法
+	public float remaining() {
+		// 使用visualcooldown需要扣除增加的1f偏移量
+		return visualcooldown() - 1f;
+	}
+
+	public boolean isAboutToEnd(float threshold) {
+		return remaining() <= threshold;
+	}
+
+
+
 	public void detach() {
 		if (target.remove( this ) && target.sprite != null) fx( false );
 	}
@@ -148,7 +160,14 @@ public class Buff extends Actor {
 
 	public static<T extends FlavourBuff> T append( Char target, Class<T> buffClass, float duration ) {
 		T buff = append( target, buffClass );
-		buff.spend( duration * target.resist(buffClass) );
+		float time_to_spend=duration * target.resist(buffClass);
+		if (target == Dungeon.hero && buff.type==buffType.POSITIVE){
+			Buff ben=Dungeon.hero.buff(RingOfBenediction.Benediction.class);
+			if (ben!=null){
+				time_to_spend*=RingOfBenediction.periodMultiplier(target);
+			}
+		}
+		buff.spend( time_to_spend );
 		return buff;
 	}
 
@@ -161,17 +180,31 @@ public class Buff extends Actor {
 			return append( target, buffClass );
 		}
 	}
-	
+
 	public static<T extends FlavourBuff> T affect( Char target, Class<T> buffClass, float duration ) {
 		T buff = affect( target, buffClass );
-		buff.spend( duration * target.resist(buffClass) );
+		float time_to_spend=duration * target.resist(buffClass);
+		if (target == Dungeon.hero && buff.type==buffType.POSITIVE){
+			Buff ben=Dungeon.hero.buff(RingOfBenediction.Benediction.class);
+			if (ben!=null){
+				time_to_spend*=RingOfBenediction.periodMultiplier(target);
+			}
+		}
+		buff.spend( time_to_spend );
 		return buff;
 	}
 
 	//postpones an already active buff, or creates & attaches a new buff and delays that.
 	public static<T extends FlavourBuff> T prolong( Char target, Class<T> buffClass, float duration ) {
 		T buff = affect( target, buffClass );
-		buff.postpone( duration * target.resist(buffClass) );
+		float time_to_postpone=duration * target.resist(buffClass);
+		if (target == Dungeon.hero && buff.type==buffType.POSITIVE){
+			Buff ben=Dungeon.hero.buff(RingOfBenediction.Benediction.class);
+			if (ben!=null){
+				time_to_postpone*=RingOfBenediction.periodMultiplier(target);
+			}
+		}
+		buff.postpone( time_to_postpone );
 		return buff;
 	}
 
@@ -180,6 +213,7 @@ public class Buff extends Actor {
 		buff.countUp( count );
 		return buff;
 	}
+
 	
 	public static void detach( Char target, Class<? extends Buff> cl ) {
 		for ( Buff b : target.buffs( cl )){

@@ -21,22 +21,34 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Enchanting;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ElmoParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.ArcaneResin;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfEnchantment;
+import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfCorrosion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfCorruption;
@@ -48,9 +60,11 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndTitledMessage;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndUseItem;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
@@ -66,6 +80,7 @@ public class MagesStaff extends MeleeWeapon {
 
 	public static final String AC_IMBUE = "IMBUE";
 	public static final String AC_ZAP	= "ZAP";
+	public static final String AC_UPDATE = "UPDATE";
 
 	private static final float STAFF_SCALE_FACTOR = 0.75f;
 
@@ -87,10 +102,14 @@ public class MagesStaff extends MeleeWeapon {
 		wand = null;
 	}
 
+	//mage weapon
+	@Override
+	public int min(int lvl) {
+		return  1 + lvl;
+	}
 	@Override
 	public int max(int lvl) {
-		return  Math.round(3f*(tier+1)) +   //6 base damage, down from 10
-				lvl*(tier+1);               //scaling unaffected
+		return  8 + lvl * 2;
 	}
 
 	public MagesStaff(Wand wand){
@@ -109,6 +128,12 @@ public class MagesStaff extends MeleeWeapon {
 		if (wand!= null && wand.curCharges > 0) {
 			actions.add( AC_ZAP );
 		}
+
+		//魔杖匠人
+		if (Dungeon.hero.pointsInTalent(Talent.MAGIC_WORKMAN) > 0 ){
+			actions.add( AC_UPDATE );
+		}
+
 		return actions;
 	}
 
@@ -133,6 +158,18 @@ public class MagesStaff extends MeleeWeapon {
 	}
 
 	@Override
+	public String name() {
+		if (!super.customName.equals("")) {
+			return super.name();
+		} else if (wand == null) {
+			return super.name();
+		} else {
+			String name = Messages.get(wand, "staff_name");
+			return enchantment != null && (cursedKnown || !enchantment.curse()) ? enchantment.name( name ) : name;
+		}
+	}
+
+	@Override
 	public void execute(Hero hero, String action) {
 
 		super.execute(hero, action);
@@ -148,11 +185,108 @@ public class MagesStaff extends MeleeWeapon {
 				GameScene.show(new WndUseItem(null, this));
 				return;
 			}
-
-			if (cursed || hasCurseEnchant()) wand.cursed = true;
-			else                             wand.cursed = false;
+			wand.cursed = (cursed || hasCurseEnchant()) && Dungeon.hero.pointsInTalent(Talent.MAGIC_WORKMAN) < 3;
 			wand.execute(hero, AC_ZAP);
+		} else if (action.equals(AC_UPDATE)) {
+			ArcaneResinUse();
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void ArcaneResinUse() {
+
+		ArcaneResin arcaneResin = hero.belongings.getItem(ArcaneResin.class);
+
+		int chance = hero.pointsInTalent(Talent.MAGIC_WORKMAN);
+
+		// Need AR must not null
+		if(arcaneResin != null){
+			switch (chance){
+				case 1:
+					Weapon item = this;
+					item.enchant();
+					curUser.spend( Actor.TICK );
+					curUser.busy();
+					curUser.sprite.emitter().start(Speck.factory(Speck.LIGHT), 0.1f, 5);
+					Enchanting.show(curUser, this);
+					arcaneResin.detach(curUser.belongings.backpack);
+					GLog.p(Messages.get(MagesStaff.class,"en_ars"));
+					curUser.sprite.operate( curUser.pos );
+					break;
+				case 2: case 3: case 4:
+					Weapon item2 = this;
+					final Weapon.Enchantment[] enchants = new Weapon.Enchantment[3];
+					Class<? extends Weapon.Enchantment> existing = item2.enchantment != null ? item2.enchantment.getClass() : null;
+					enchants[0] = Weapon.Enchantment.randomCommon( existing );
+					enchants[1] = Weapon.Enchantment.randomUncommon( existing );
+					enchants[2] = Weapon.Enchantment.random( existing, enchants[0].getClass(), enchants[1].getClass());
+					GameScene.show(new WndEnchantSelect(item2, enchants[0], enchants[1], enchants[2]));
+					break;
+			}
+		} else {
+			GLog.w(Messages.get(MagesStaff.class,"need_ars"));
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static class WndEnchantSelect extends WndOptions {
+
+		private static Weapon wep;
+		private static Weapon.Enchantment[] enchantments;
+
+		public WndEnchantSelect(Weapon wep, Weapon.Enchantment ench1,
+								Weapon.Enchantment ench2, Weapon.Enchantment ench3){
+			super(new ItemSprite(wep.image()),
+					Messages.titleCase(new MagesStaff().name()),
+					Messages.get(MagesStaff.class, "wand_ench"),
+					ench1.name(),
+					ench2.name(),
+					ench3.name(),
+					Messages.get(ScrollOfEnchantment.class, "cancel"));
+			WndEnchantSelect.wep = wep;
+			enchantments = new Weapon.Enchantment[3];
+			enchantments[0] = ench1;
+			enchantments[1] = ench2;
+			enchantments[2] = ench3;
+		}
+
+		@Override
+		protected void onSelect(int index) {
+			ArcaneResin arcaneResin = hero.belongings.getItem(ArcaneResin.class);
+			if (index < 3) {
+				wep.enchant(enchantments[index]);
+				GLog.p(Messages.get(StoneOfEnchantment.class, "weapon"));
+				Sample.INSTANCE.play( Assets.Sounds.READ );
+				Enchanting.show(curUser, wep);
+				Talent.onUpgradeScrollUsed( hero );
+				arcaneResin.detach(curUser.belongings.backpack);
+				curUser.spend( Actor.TICK );
+				curUser.busy();
+				curUser.sprite.operate( curUser.pos );
+			}
+
+			wep = null;
+			enchantments = null;
+		}
+
+		@Override
+		protected boolean hasInfo(int index) {
+			return index < 3;
+		}
+
+		@Override
+		protected void onInfo( int index ) {
+			GameScene.show(new WndTitledMessage(
+					Icons.get(Icons.INFO),
+					Messages.titleCase(enchantments[index].name()),
+					enchantments[index].desc()));
+		}
+
+		@Override
+		public void onBackPressed() {
+			//do nothing, reader has to cancel
+		}
+
 	}
 
 	@Override
@@ -169,6 +303,41 @@ public class MagesStaff extends MeleeWeapon {
 		if (attacker instanceof Hero && ((Hero) attacker).hasTalent(Talent.MYSTICAL_CHARGE)){
 			Hero hero = (Hero) attacker;
 			ArtifactRecharge.chargeArtifacts(hero, hero.pointsInTalent(Talent.MYSTICAL_CHARGE)/2f);
+		}
+
+		//短棍格斗-T1
+		if (wand != null && attacker instanceof Hero && ((Hero)attacker).subClass == HeroSubClass.BATTLEMAGE || hero.pointsInTalent(Talent.MAGIC_STICK) >= 1) {
+			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.5f;
+			ScrollOfRecharging.charge(attacker);
+			wand.onHit(this, attacker, defender, damage, true);
+		}
+
+		//短棍格斗-T2
+		if (hero.pointsInTalent(Talent.MAGIC_STICK) >= 2){
+			if(Random.Int(100) <= 15 &&
+					hero.buff(AfterImage.AnotabsoluteEvasion.class) == null){
+				Buff.affect(hero, AfterImage.AnotabsoluteEvasion.class);
+			}
+		}
+
+		//短棍格斗-T3
+		if (hero.pointsInTalent(Talent.MAGIC_STICK) >= 3){
+			if(Random.Float() <= 0.3f){
+				switch (Random.Int(5)){
+					case 2:
+						Buff.prolong(defender, Hex.class, 8f);
+						break;
+					case 3:
+						Buff.prolong(defender, Vertigo.class, 8f);
+						break;
+					case 4:
+						Buff.prolong(defender, Weakness.class, 8f);
+						break;
+					default:
+						Buff.prolong(defender, Vulnerable.class, 8f);
+						break;
+				}
+			}
 		}
 
 		Talent.EmpoweredStrikeTracker empoweredStrike = attacker.buff(Talent.EmpoweredStrikeTracker.class);
@@ -333,16 +502,6 @@ public class MagesStaff extends MeleeWeapon {
 	public String status() {
 		if (wand == null) return super.status();
 		else return wand.status();
-	}
-
-	@Override
-	public String name() {
-		if (wand == null) {
-			return super.name();
-		} else {
-			String name = Messages.get(wand, "staff_name");
-			return enchantment != null && (cursedKnown || !enchantment.curse()) ? enchantment.name( name ) : name;
-		}
 	}
 
 	@Override

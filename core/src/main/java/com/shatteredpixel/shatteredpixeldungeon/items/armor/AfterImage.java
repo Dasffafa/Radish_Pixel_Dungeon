@@ -1,7 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
-import com.shatteredpixel.shatteredpixeldungeon.Challenges;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -24,18 +22,10 @@ public class AfterImage extends Armor{
     @Override
 
     public int DRMax(int lvl){
-        if (Dungeon.isChallenged(Challenges.NO_ARMOR)){
-            return Math.max(3 + 2 * lvl + augment.defenseFactor(lvl),2);
-        }
-
         return 8 + 5 * lvl + augment.defenseFactor(lvl);
     }
     @Override
     public int DRMin(int lvl){
-        if (Dungeon.isChallenged(Challenges.NO_ARMOR)){
-            return 2;
-        }
-
         return 4;
     }
     private static final String DODGES       = "dodges";

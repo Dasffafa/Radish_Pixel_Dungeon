@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.SaltCube;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -36,9 +37,9 @@ public class WellFed extends Buff {
 		type = buffType.POSITIVE;
 		announced = true;
 	}
-	
+
 	int left;
-	
+
 	@Override
 	public boolean act() {
 		left --;
@@ -56,11 +57,12 @@ public class WellFed extends Buff {
 				((Hero) target).resting = false;
 			}
 		}
-		
-		spend(TICK);
+
+		//salt cube does slow this buff down, but doesn't lessen the bonus health
+		spend(TICK / SaltCube.hungerGainMultiplier());
 		return true;
 	}
-	
+
 	public void reset(){
 		//heals one HP every 18 turns for 450 turns
 		//25 HP healed in total
@@ -70,7 +72,7 @@ public class WellFed extends Buff {
 			left /= 3;
 		}
 	}
-	
+
 	@Override
 	public int icon() {
 		return BuffIndicator.WELL_FED;
@@ -83,22 +85,24 @@ public class WellFed extends Buff {
 
 	@Override
 	public String iconTextDisplay() {
-		return Integer.toString(left);
+		int visualLeft = (int)(left / SaltCube.hungerGainMultiplier());
+		return Integer.toString(visualLeft+1);
 	}
-	
+
 	@Override
 	public String desc() {
-		return Messages.get(this, "desc", left + 1);
+		int visualLeft = (int)(left / SaltCube.hungerGainMultiplier());
+		return Messages.get(this, "desc", visualLeft + 1);
 	}
-	
+
 	private static final String LEFT = "left";
-	
+
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
 		bundle.put(LEFT, left);
 	}
-	
+
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);

@@ -38,6 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.ArtilleristSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
@@ -63,11 +64,16 @@ public class Artillerist extends Mob {
     private boolean targeting = false;
     private boolean shot = true;
 
+    private int targetingPos = -1;
+
     private int cellToFire = 0;
 
     @Override
     protected boolean canAttack( Char enemy ) {
-        return new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos;
+        Ballistica ballistica = new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE);
+        boolean isCanAttack = ballistica.collisionPos == enemy.pos;
+        if(targetingPos != pos) shot = true;
+        return isCanAttack;
     }
 
     public int damageRoll() {
@@ -307,23 +313,31 @@ public class Artillerist extends Mob {
         }else if (shot){
             targeting = true;
             shot = false;
+            targetingPos = pos;
             sprite.parent.add(new TargetedCell(enemy.pos, 0xFF0000));
             for(int c: PathFinder.NEIGHBOURS4){
                 sprite.parent.add(new TargetedCell(enemy.pos + c, 0xFF0000));
             }
             cellToFire = enemy.pos;
-            ((ArtilleristSprite)sprite).targeting(cellToFire);
+            if (sprite instanceof ArtilleristSprite) {
+                ((ArtilleristSprite)sprite).targeting(cellToFire);
+            } else if (sprite instanceof SnakeSprite) {
+                ((SnakeSprite)sprite).targeting(cellToFire);
+            }
             spend( attackDelay());
             return true;
         }
         else{
             shot = true;
-            targeting = false;
             if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
-                sprite.zap( cellToFire );
+                if(targeting)
+                    sprite.zap( cellToFire );
+                targeting = false;
                 return false;
             } else {
-                zap(cellToFire);
+                if(targeting)
+                    zap(cellToFire);
+                targeting = false;
                 return true;
             }
         }

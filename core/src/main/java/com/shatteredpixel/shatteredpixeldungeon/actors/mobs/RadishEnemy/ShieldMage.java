@@ -17,6 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
@@ -58,8 +59,17 @@ public class ShieldMage extends Mob {
         lootChance = 0.15f;
     }
 
+    @Override
+    public int attackProc( Char enemy, int damage ) {
+        damage = super.attackProc(enemy, damage);
+        if(Random.Int(0,4)<1){
+            Buff.affect(enemy, Slow.class,2f);
+        }
+        return damage;
+    }
 
-    public int damageRoll() {
+
+        public int damageRoll() {
         return Random.NormalIntRange( 10, 16 );
     }
 

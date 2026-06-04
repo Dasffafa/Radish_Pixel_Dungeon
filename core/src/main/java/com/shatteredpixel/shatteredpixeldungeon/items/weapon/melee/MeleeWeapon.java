@@ -21,31 +21,35 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlessAWP;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
-import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfForce;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AttackIndicator;
@@ -56,8 +60,6 @@ import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
-import java.util.ArrayList;
-
 public class MeleeWeapon extends Weapon {
 
 	public static String AC_ABILITY = "ABILITY";
@@ -65,28 +67,6 @@ public class MeleeWeapon extends Weapon {
 	@Override
 	public void activate(Char ch) {
 		super.activate(ch);
-		if (ch instanceof Hero && ((Hero) ch).heroClass == HeroClass.DUELIST){
-			Buff.affect(ch, Charger.class);
-		}
-	}
-
-	@Override
-	public String defaultAction() {
-		if (Dungeon.hero != null && (Dungeon.hero.heroClass == HeroClass.DUELIST
-			|| Dungeon.hero.hasTalent(Talent.SWIFT_EQUIP))){
-			return AC_ABILITY;
-		} else {
-			return super.defaultAction();
-		}
-	}
-
-	@Override
-	public ArrayList<String> actions(Hero hero) {
-		ArrayList<String> actions = super.actions(hero);
-		if (isEquipped(hero) && hero.heroClass == HeroClass.DUELIST){
-			actions.add(AC_ABILITY);
-		}
-		return actions;
 	}
 
 	@Override
@@ -109,14 +89,8 @@ public class MeleeWeapon extends Weapon {
 					if (hero.buff(Talent.SwiftEquipCooldown.class) == null
 						|| hero.buff(Talent.SwiftEquipCooldown.class).hasSecondUse()){
 						execute(hero, AC_EQUIP);
-					} else if (hero.heroClass == HeroClass.DUELIST) {
-						GLog.w(Messages.get(this, "ability_need_equip"));
 					}
-				} else if (hero.heroClass == HeroClass.DUELIST) {
-					GLog.w(Messages.get(this, "ability_need_equip"));
 				}
-			} else if (hero.heroClass != HeroClass.DUELIST){
-				//do nothing
 			} else if (STRReq() > hero.STR()){
 				GLog.w(Messages.get(this, "ability_low_str"));
 			} else if ((Buff.affect(hero, Charger.class).charges + Buff.affect(hero, Charger.class).partialCharge) < abilityChargeUse(hero, null)) {
@@ -124,7 +98,7 @@ public class MeleeWeapon extends Weapon {
 			} else {
 
 				if (targetingPrompt() == null){
-					duelistAbility(hero, hero.pos);
+					//duelistAbility(hero, hero.pos);
 					updateQuickslot();
 				} else {
 					usesTargeting = useTargeting();
@@ -132,7 +106,7 @@ public class MeleeWeapon extends Weapon {
 						@Override
 						public void onSelect(Integer cell) {
 							if (cell != null) {
-								duelistAbility(hero, cell);
+								//duelistAbility(hero, cell);
 								updateQuickslot();
 							}
 						}
@@ -175,13 +149,13 @@ public class MeleeWeapon extends Weapon {
 			charger.partialCharge++;
 		}
 
-		if (hero.heroClass == HeroClass.DUELIST
-				&& hero.hasTalent(Talent.AGGRESSIVE_BARRIER)
-				&& (hero.HP / (float)hero.HT) <= 0.5f){
-			int shieldAmt = 1 + 2*hero.pointsInTalent(Talent.AGGRESSIVE_BARRIER);
-			Buff.affect(hero, Barrier.class).setShield(shieldAmt);
-			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldAmt), FloatingText.SHIELDING);
-		}
+//		if (hero.heroClass == HeroClass.DUELIST
+//				&& hero.hasTalent(Talent.AGGRESSIVE_BARRIER)
+//				&& (hero.HP / (float)hero.HT) <= 0.5f){
+//			int shieldAmt = 1 + 2*hero.pointsInTalent(Talent.AGGRESSIVE_BARRIER);
+//			Buff.affect(hero, Barrier.class).setShield(shieldAmt);
+//			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shieldAmt), FloatingText.SHIELDING);
+//		}
 
 		if (hero.buff(Talent.CombinedLethalityAbilityTracker.class) != null
 				&& hero.buff(Talent.CombinedLethalityAbilityTracker.class).weapon != null
@@ -217,15 +191,7 @@ public class MeleeWeapon extends Weapon {
 				tracker.detach();
 			}
 		}
-		if (hero.hasTalent(Talent.COMBINED_ENERGY)){
-			Talent.CombinedEnergyAbilityTracker tracker = hero.buff(Talent.CombinedEnergyAbilityTracker.class);
-			if (tracker == null || tracker.energySpent == -1){
-				Buff.prolong(hero, Talent.CombinedEnergyAbilityTracker.class, hero.cooldown()).wepAbilUsed = true;
-			} else {
-				tracker.wepAbilUsed = true;
-				Buff.affect(hero, MonkEnergy.class).processCombinedEnergy(tracker);
-			}
-		}
+
 		if (hero.buff(Talent.CounterAbilityTacker.class) != null){
 			Charger charger = Buff.affect(hero, Charger.class);
 			charger.gainCharge(hero.pointsInTalent(Talent.COUNTER_ABILITY)*0.375f);
@@ -266,28 +232,57 @@ public class MeleeWeapon extends Weapon {
 		return STRReq(tier, lvl);
 	}
 
-	private static boolean evaluatingTwinUpgrades = false;
 	@Override
 	public int buffedLvl() {
-		if (!evaluatingTwinUpgrades && isEquipped(Dungeon.hero) && Dungeon.hero.hasTalent(Talent.TWIN_UPGRADES)){
-			KindOfWeapon other = null;
-			if (Dungeon.hero.belongings.weapon() != this) other = Dungeon.hero.belongings.weapon();
-			if (Dungeon.hero.belongings.secondWep() != this) other = Dungeon.hero.belongings.secondWep();
 
-			if (other instanceof MeleeWeapon) {
-				evaluatingTwinUpgrades = true;
-				int otherLevel = other.buffedLvl();
-				evaluatingTwinUpgrades = false;
+		if(hero.belongings.weapon == this ) {
+			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
+			if(goldRadish != null){
+				return goldRadish.fixedLevel(goldRadish.buffedLvl());
+			}
 
-				//weaker weapon needs to be 2/1/0 tiers lower, based on talent level
-				if ((tier + (3 - Dungeon.hero.pointsInTalent(Talent.TWIN_UPGRADES))) <= ((MeleeWeapon) other).tier
-						&& otherLevel > super.buffedLvl()) {
-					return otherLevel;
+			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			if(riverGlass != null && hero.buff(BlessAWP.WeaponGetReady.class)!=null && hero.belongings.weapon() == this) {
+				return super.buffedLvl() + 1 + riverGlass.level() + 1;
+			} else if(hero.buff(BlessAWP.WeaponGetReady.class)!=null && hero.belongings.weapon() == this){
+				return super.buffedLvl()+1;
+			} else if(riverGlass != null){
+				return super.buffedLvl() + riverGlass.level() + 1;
+			}
+
+			if (hero.pointsInTalent(Talent.GIFT) > 0) {
+				// 获取天赋等级（1-4）
+				int giftLevel = hero.pointsInTalent(Talent.GIFT);
+
+				// 根据天赋等级计算基础要求的最小等级（+1对应2，+2对应3，以此类推）
+				int baseRequiredLevel = giftLevel + 1;
+
+				// 计算基础值：取当前基础等级和要求的最小等级中的较大值
+				int baseValue = Math.max(super.buffedLvl(), baseRequiredLevel);
+
+				// 计算最终值：基础值加上戒指加成，如果有祝福则额外+2
+				int finalValue = baseValue + RingOfKing.updateMultiplier(Dungeon.hero);
+				if (hero.buff(Bless.class) != null) {
+					finalValue += 2;
 				}
 
+				return finalValue;
+			}
+
+			if(Dungeon.hero.buff( Degrade.class ) != null){
+				return super.buffedLvl();
+			} else {
+				return hero.belongings.weapon.level() + RingOfKing.updateMultiplier(Dungeon.hero);
 			}
 		}
-		return super.buffedLvl();
+
+
+
+		if (isEquipped( hero ) || hero.belongings.contains( this )){
+			return super.buffedLvl();
+		} else {
+			return level();
+		}
 	}
 
 	@Override
@@ -298,10 +293,7 @@ public class MeleeWeapon extends Weapon {
 				&& ((Hero) owner).hasTalent(Talent.PRECISE_ASSAULT)
 				//does not trigger on ability attacks
 				&& ((Hero) owner).belongings.abilityWeapon != this) {
-			if (((Hero) owner).heroClass != HeroClass.DUELIST) {
-				//persistent +10%/20%/30% ACC for other heroes
-				ACC *= 1f + 0.1f * ((Hero) owner).pointsInTalent(Talent.PRECISE_ASSAULT);
-			} else if (this instanceof Flail && owner.buff(Flail.SpinAbilityTracker.class) != null){
+			if (this instanceof Flail && owner.buff(Flail.SpinAbilityTracker.class) != null){
 				//do nothing, this is not a regular attack so don't consume preciase assault
 			} else if (owner.buff(Talent.PreciseAssaultTracker.class) != null) {
 				// 2x/4x/8x ACC for duelist if she just used a weapon ability
@@ -329,18 +321,20 @@ public class MeleeWeapon extends Weapon {
 	@Override
 	public String info() {
 
-		String info = desc();
+		String info = super.info();
 
 		if (levelKnown) {
 			info += "\n\n" + Messages.get(MeleeWeapon.class, "stats_known", tier, augment.damageFactor(min()), augment.damageFactor(max()), STRReq());
-			if (STRReq() > Dungeon.hero.STR()) {
-				info += " " + Messages.get(Weapon.class, "too_heavy");
-			} else if (Dungeon.hero.STR() > STRReq()){
-				info += " " + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
+			if (Dungeon.hero != null) {
+				if (STRReq() > Dungeon.hero.STR()) {
+					info += " " + Messages.get(Weapon.class, "too_heavy");
+				} else if (Dungeon.hero.STR() > STRReq()) {
+					info += " " + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
+				}
 			}
 		} else {
 			info += "\n\n" + Messages.get(MeleeWeapon.class, "stats_unknown", tier, min(0), max(0), STRReq(0));
-			if (STRReq(0) > Dungeon.hero.STR()) {
+			if (Dungeon.hero != null && STRReq(0) > Dungeon.hero.STR()) {
 				info += " " + Messages.get(MeleeWeapon.class, "probably_too_heavy");
 			}
 		}
@@ -378,11 +372,6 @@ public class MeleeWeapon extends Weapon {
 			}
 		}
 
-		//the mage's staff has no ability as it can only be gained by the mage
-		if (Dungeon.hero.heroClass == HeroClass.DUELIST && !(this instanceof MagesStaff)){
-			info += "\n\n" + abilityInfo();
-		}
-		
 		return info;
 	}
 	
@@ -438,11 +427,6 @@ public class MeleeWeapon extends Weapon {
 					//40 to 30 turns per charge for champion
 					if (Dungeon.hero.subClass == HeroSubClass.CHAMPION){
 						chargeToGain *= 1.5f;
-					}
-
-					//50% slower charge gain with brawler's stance enabled, even if buff is inactive
-					if (Dungeon.hero.buff(RingOfForce.BrawlersStance.class) != null){
-						chargeToGain *= 0.50f;
 					}
 
 					partialCharge += chargeToGain;
@@ -586,6 +570,9 @@ public class MeleeWeapon extends Weapon {
 			ActionIndicator.setAction(this);
 			Item.updateQuickslot();
 			AttackIndicator.updateState();
+		}
+		public boolean actAttack(Char attacker, Char defender, HeroAction.Attack action){
+			return true;
 		}
 	}
 

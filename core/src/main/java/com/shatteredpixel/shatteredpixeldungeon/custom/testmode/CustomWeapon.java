@@ -23,6 +23,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kineti
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Striking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Vampiric;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -84,6 +85,7 @@ public class CustomWeapon extends MeleeWeapon {
         enchPrio.put(Projecting.class, 2);
         enchPrio.put(Shocking.class, 1);
         enchPrio.put(Vampiric.class, 1);
+        enchPrio.put(Striking.class, 1);
 
         enchPrio.put(Annoying.class, 0);
         enchPrio.put(Displacing.class, 1);

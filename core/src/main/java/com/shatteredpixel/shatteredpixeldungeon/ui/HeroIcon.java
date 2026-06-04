@@ -75,6 +75,26 @@ public class HeroIcon extends Image {
 	public static final int WEAPON_SWAP     = 37;
 	public static final int MONK_ABILITIES  = 38;
 
+	public static final int BLESS          = 39;
+
+	public static final int PATLE   	  = 10;
+	public static final int REDLORD       = 11;
+
+	public static final int DEADKNIGHT = 12;
+
+	public static final int END_BLESS = 13;
+
+	public static final int SHADOW = 14;
+	public static final int POSSESSION = 15;
+
+	//Moonlight SubClasses
+	public static final int LITTLE_KNIGHT = 40;
+	public static final int DICE_MAGE = 41;
+	public static final int JUTTE_CHAMPION = 42;
+
+	//Moonlight ArmorAbility
+	public static final int TOY_BACKPACK = 43;
+
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );
 		if (film == null){

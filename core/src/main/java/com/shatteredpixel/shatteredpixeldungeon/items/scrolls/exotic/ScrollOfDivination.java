@@ -118,7 +118,7 @@ public class ScrollOfDivination extends ExoticScroll {
 			GameScene.show(new WndDivination(IDed));
 		}
 
-		readAnimation();
+		readAnimation(true);
 		identify();
 	}
 	

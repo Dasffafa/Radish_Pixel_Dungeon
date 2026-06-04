@@ -225,4 +225,19 @@ public class WandOfFireblast extends DamageWand {
 		particle.shuffleXY( 1.5f );
 	}
 
+	@Override
+	public String upgradeStat1(int level) {
+		return (1+level) + "-" + (2+2*level);
+	}
+
+	@Override
+	public String upgradeStat2(int level) {
+		return (2+2*level) + "-" + 2*(4+2*level);
+	}
+
+	@Override
+	public String upgradeStat3(int level) {
+		return (3+3*level) + "-" + 3*(6+2*level);
+	}
+
 }

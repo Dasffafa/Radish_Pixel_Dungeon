@@ -21,13 +21,16 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.wands;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.noosa.audio.Sample;
 
@@ -51,17 +54,47 @@ public abstract class DamageWand extends Wand{
 		return damageRoll(buffedLvl());
 	}
 
-	public int damageRoll(int lvl){
+	@SuppressWarnings("DefaultLocale")
+    public int damageRoll(int lvl){
 		int dmg = Char.combatRoll(min(lvl), max(lvl));
 
-		if(Dungeon.hero.hasTalent(Talent.FANATICISM_MAGIC)){
+		if(hero.hasTalent(Talent.FANATICISM_MAGIC)){
 			if (dmg > 0){
-				Berserk berserk = Buff.affect(Dungeon.hero, Berserk.class);
+				Berserk berserk = Buff.affect(hero, Berserk.class);
 				berserk.damage(dmg/2);
 			}
 		}
 
-		WandEmpower emp = Dungeon.hero.buff(WandEmpower.class);
+		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+		if(riverGlass != null){
+			int originalDamage = Char.combatRoll(min(lvl), max(lvl));
+			int secondRoll = Char.combatRoll(min(lvl), max(lvl));
+			dmg = Math.min(originalDamage, secondRoll);
+		}
+
+
+		LightKing lightKing = hero.belongings.getItem(LightKing.class);
+		if (lightKing != null) {
+			int lkLvl = lightKing.level();
+			float[] thresholds = {0.9f, 0.85f, 0.8f, 0.75f};
+			float[] damageModifiers = {1.25f, 1.33f, 1.41f, 1.50f};
+
+			float hpPercentage = (float) hero.HP / hero.HT;
+			int originalDamage = dmg;
+
+			if (hpPercentage >= thresholds[lkLvl]) {
+				float modifiedDamage = dmg * damageModifiers[lkLvl];
+				int bonusDamage = Math.round(modifiedDamage - dmg);
+				if (bonusDamage < 1) {
+					bonusDamage = 1;
+				}
+				dmg = dmg + bonusDamage;
+			} else {
+				dmg = Math.round(dmg / damageModifiers[lkLvl]);
+			}
+		}
+
+		WandEmpower emp = hero.buff(WandEmpower.class);
 		if (emp != null){
 			dmg += emp.dmgBoost;
 			emp.left--;
@@ -79,5 +112,10 @@ public abstract class DamageWand extends Wand{
 			return Messages.get(this, "stats_desc", min(), max());
 		else
 			return Messages.get(this, "stats_desc", min(0), max(0));
+	}
+
+	@Override
+	public String upgradeStat1(int level) {
+		return min(level) + "-" + max(level);
 	}
 }

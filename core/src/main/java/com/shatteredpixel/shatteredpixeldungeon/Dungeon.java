@@ -41,6 +41,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -68,9 +70,17 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SmallGrassMiniLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ZeroLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.FireHallsLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.OldSewerLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WarCityLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WorkCaveLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.VineTrap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -90,6 +100,7 @@ import com.watabou.utils.SparseArray;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -156,7 +167,8 @@ public class Dungeon {
 		LORE_PRISON,
 		LORE_CAVES,
 		LORE_CITY,
-		LORE_HALLS;
+		LORE_HALLS,
+		LORE_STORS;
 
 		public int count = 0;
 
@@ -237,6 +249,9 @@ public class Dungeon {
 	public static long seed;
 	
 	public static void init() {
+
+		// 初始化事件系统（自动扫描并注册订阅类）
+		EventManager.init();
 
 		initialVersion = version = Game.versionCode;
 		challenges = SPDSettings.challenges();
@@ -321,49 +336,83 @@ public class Dungeon {
 		Actor.clear();
 		
 		Level level;
+		boolean randomMap = Random.Float()>=0.5f && !SPDSettings.origin_map();
 		if (branch == 0) {
 			switch (depth) {
+				case 0:
+					level = new ZeroLevel();
+					break;
 				case 1:
+					level = new SewerLevel();
+					break;
 				case 2:
 				case 3:
 				case 4:
-					level = new SewerLevel();
+					if(randomMap){
+						level = new OldSewerLevel();
+					} else {
+						level = new SewerLevel();
+					}
 					break;
 				case 5:
 					level = new SewerBossLevel();
 					break;
 				case 6:
+					level = new PrisonLevel();
+					break;
 				case 7:
 				case 8:
 				case 9:
-					level = new PrisonLevel();
+					if(randomMap){
+						level = new BloodPrisonLevel();
+					} else {
+						level = new PrisonLevel();
+					}
 					break;
 				case 10:
 					level = new PrisonBossLevel();
 					break;
 				case 11:
+					level = new CavesLevel();
+					break;
 				case 12:
 				case 13:
 				case 14:
-					level = new CavesLevel();
+					if(randomMap){
+						level = new WorkCaveLevel();
+					} else {
+						level = new CavesLevel();
+					}
 					break;
 				case 15:
-					level = new CavesBossLevel();
+					level = GenerateCaveBossLevel();
 					break;
 				case 16:
+					level = new CityLevel();
+					break;
 				case 17:
 				case 18:
 				case 19:
-					level = new CityLevel();
+					if(randomMap){
+						level = new WarCityLevel();
+					} else {
+						level = new CityLevel();
+					}
 					break;
 				case 20:
 					level = new CityBossLevel();
 					break;
 				case 21:
+					level = new HallsLevel();
+					break;
 				case 22:
 				case 23:
 				case 24:
-					level = new HallsLevel();
+					if(randomMap){
+						level = new FireHallsLevel();
+					} else {
+						level = new HallsLevel();
+					}
 					break;
 				case 25:
 					level = new HallsBossLevel();
@@ -376,11 +425,22 @@ public class Dungeon {
 			}
 		} else if (branch == 1) {
 			switch (depth) {
+				case 2:
+					level = new SmallGrassMiniLevel();
+					break;
 				case 11:
 				case 12:
 				case 13:
 				case 14:
 					level = new MiningLevel();
+					break;
+				default:
+					level = new DeadEndLevel();
+			}
+		} else if (branch == 2) {
+			switch (depth) {
+				case 2:
+					level = new SmallGrassMiniLevel();
 					break;
 				default:
 					level = new DeadEndLevel();
@@ -417,6 +477,28 @@ public class Dungeon {
 		
 		return level;
 	}
+
+    public static Level GenerateCaveBossLevel()
+	{
+		level = new CavesBossLevel();
+
+        float GNOLL_KING_BOSS_SPAWN_CHANCE = 0.42f;
+        boolean shouldSpawnGnollKingBoss =
+				( (Random.Float() <= GNOLL_KING_BOSS_SPAWN_CHANCE) && !Statistics.DM300MustBoss )
+				|| ( Statistics.gnollMustBoss && !Statistics.DM300MustBoss);
+
+		if (shouldSpawnGnollKingBoss) {
+			level = new GnollKingBossLevel();
+			Statistics.gnollMustBoss = true;
+		} else {
+			level = new CavesBossLevel();
+			if (!Statistics.DM300MustBoss)
+			{
+				Statistics.DM300MustBoss = true;
+			}
+		}
+		return level;
+	}
 	
 	public static void resetLevel() {
 		
@@ -448,6 +530,10 @@ public class Dungeon {
 	public static boolean shopOnLevel() {
 		return depth == 6 || depth == 11 || depth == 16;
 	}
+
+	public static boolean smwcLevel() {
+		return depth == 1 ||depth == 6 || depth == 11 || depth == 16 || depth == 21;
+	}
 	
 	public static boolean bossLevel() {
 		return bossLevel( depth );
@@ -468,6 +554,7 @@ public class Dungeon {
 	}
 
 	public static boolean interfloorTeleportAllowed(){
+		if (depth==0) return false;
 		if (Dungeon.level.locked
 				|| Dungeon.level instanceof MiningLevel
 				|| (Dungeon.hero != null && Dungeon.hero.belongings.getItem(Amulet.class) != null)){
@@ -543,6 +630,9 @@ public class Dungeon {
 	}
 
 	public static boolean posNeeded() {
+
+		if (depth==0 || branch != 0) return false;
+
 		//2 POS each floor set
 		int posLeftThisSet = 2 - (LimitedDrops.STRENGTH_POTIONS.count - (depth / 5) * 2);
 		if (posLeftThisSet <= 0) return false;
@@ -559,6 +649,9 @@ public class Dungeon {
 	}
 	
 	public static boolean souNeeded() {
+
+		if (depth==0 || branch != 0) return false;
+
 		int souLeftThisSet;
 		//3 SOU each floor set
 		souLeftThisSet = 3 - (LimitedDrops.UPGRADE_SCROLLS.count - (depth / 5) * 3);
@@ -570,6 +663,9 @@ public class Dungeon {
 	}
 	
 	public static boolean asNeeded() {
+
+		if (depth==0) return false;
+
 		//1 AS each floor set
 		int asLeftThisSet = 1 - (LimitedDrops.ARCANE_STYLI.count - (depth / 5));
 		if (asLeftThisSet <= 0) return false;
@@ -598,6 +694,7 @@ public class Dungeon {
 	}
 
 	public static boolean trinketCataNeeded(){
+		if(depth == 0)return false;
 		//one trinket catalyst on floors 1-3
 		return depth < 5 && !LimitedDrops.TRINKET_CATA.dropped() && Random.Int(4-depth) == 0;
 	}
@@ -696,6 +793,9 @@ public class Dungeon {
 			Notes.storeInBundle( bundle );
 			Generator.storeInBundle( bundle );
 
+			// Save Snake Bite Manager state
+			SnakeBiteChallengeManager.save(bundle);
+
 			int[] bundleArr = new int[generatedLevels.size()];
 			for (int i = 0; i < generatedLevels.size(); i++){
 				bundleArr[i] = generatedLevels.get(i);
@@ -741,6 +841,7 @@ public class Dungeon {
 	}
 	
 	public static void loadGame( int save ) throws IOException {
+		EventManager.init();
 		loadGame( save, true );
 	}
 	
@@ -771,7 +872,10 @@ public class Dungeon {
 
 		Dungeon.challenges = bundle.getInt( CHALLENGES );
 		Dungeon.mobsToChampion = bundle.getInt( MOBS_TO_CHAMPION );
-		
+
+		// Restore Snake Bite Manager state
+		SnakeBiteChallengeManager.restore(bundle);
+
 		Dungeon.level = null;
 		Dungeon.depth = -1;
 		
@@ -998,6 +1102,35 @@ public class Dungeon {
 				//updates adjacent cells too
 				GameScene.updateFog(m.pos, 2);
 			}
+		}
+
+		switch (Dungeon.hero.pointsInTalent(Talent.SOUL_NOWIFI)){
+			case 1:
+				for (Mob m : level.mobs.toArray(new Mob[0])){
+					if (stealthyMimics && m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL || m.HP > m.HT / 4){
+						continue;
+					}
+
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
+					//updates adjacent cells too
+					GameScene.updateFog(m.pos, 2);
+				}
+			break;
+			case 2:
+				for (Mob m : level.mobs.toArray(new Mob[0])){
+					if (stealthyMimics && m instanceof Mimic && m.alignment == Char.Alignment.NEUTRAL || m.HP > m.HT * 0.4){
+						continue;
+					}
+
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 - level.width(), 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1, 3, level.visited );
+					BArray.or( level.visited, level.heroFOV, m.pos - 1 + level.width(), 3, level.visited );
+					//updates adjacent cells too
+					GameScene.updateFog(m.pos, 2);
+				}
+			break;
 		}
 
 		if (hero.buff(Awareness.class) != null){

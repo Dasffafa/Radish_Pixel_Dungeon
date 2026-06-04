@@ -73,6 +73,13 @@ public class WndInfoTalent extends Window {
 			button.icon(Icons.get(Icons.TALENT));
 			button.setRect(0, txtInfo.bottom() + 2*GAP, WIDTH, 18);
 			add(button);
+
+			//TODO 暂时禁用
+			if(talent == Talent.GHOST_ROOT){
+				button.enable(false);
+				button.alpha(0.1f);
+			}
+
 			resize( WIDTH, (int)button.bottom()+1 );
 		}
 

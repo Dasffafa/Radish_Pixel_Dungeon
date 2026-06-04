@@ -23,10 +23,10 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
-import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
@@ -35,11 +35,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhysicalEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroEatFoodEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
@@ -49,6 +52,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.HerbMaker;
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -88,7 +92,7 @@ public enum Talent {
 	//Berserker T4
 	REVENGE_ROAR(130,4),THIRSTY_BLADE(131,4),
 	//Gladiator T3
-	CLEAVE(14, 3), LETHAL_DEFENSE(15, 3), ENHANCED_COMBO(16, 3),
+	KEEP_VIGILANCE(14, 3), LETHAL_DEFENSE(15, 3), VENT_NOPLACE(16, 3),
 	//Gladiator T4
 	DEFENSIVE_STRIKE(132,4),DEVASTATE(133,4),
 	//Heroic Leap T4
@@ -102,13 +106,14 @@ public enum Talent {
 	 * [MAGE TALENT]
 	 */
 	//Mage T1
-	EMPOWERING_MEAL(32), SCHOLARS_INTUITION(33), TESTED_HYPOTHESIS(34), BACKUP_BARRIER(35),
+	EMPOWERING_MEAL(32), SCHOLARS_INTUITION(33), LINGERING_MAGIC(34), BACKUP_BARRIER(35),
 	//Mage T2
 	ENERGIZING_MEAL(36), ENERGIZING_UPGRADE(37), WAND_PRESERVATION(38), ARCANE_VISION(39), SHIELD_BATTERY(40),
 	//Mage T3
 	SPELL_QUEUE(41, 3), ALLY_WARP(42, 3),
-	MAGIC_REFINING(160,4 ),MAGIC_TACTICS(161,4),
-	MAGIC_STICK(162,4),MAGIC_WORKMAN(163,4),
+	//TODO WARMAGE T4
+	MAGIC_REFINING(160,4 ),MAGIC_TACTICS(161,4),MAGIC_STICK(162,4),MAGIC_WORKMAN(163,4),
+	//TODO MAGIC T4
 	DESPERATE_POWER(164,4),GHOST_ROOT(165,4),
 	//Battlemage T3
 	EMPOWERED_STRIKE(43, 3), MYSTICAL_CHARGE(44, 3), WAR_THROW(45, 3),
@@ -158,7 +163,8 @@ public enum Talent {
 	HOLD_BREATH(105, 3), SEER_SHOT(106, 3),
 	//Huntress T4
 	BRISK_PACE(224,4),PHASE_FILLING(225,4),
-	BOW_DULES(226,4),STORM_ATTACK(227,4),
+	BOW_DULES(226,4),
+	STORM_ATTACK(227,4),
 	MEDART_SPECIALIST(228,4),LAND_HEART(229,4),
 	//Sniper T3
 	FARSIGHT(107, 3), SHARED_ENCHANTMENT(108, 3), SHARED_UPGRADES(109, 3),
@@ -193,7 +199,96 @@ public enum Talent {
 	//Elemental Strike T4
 	ELEMENTAL_REACH(148, 4), STRIKING_FORCE(149, 4), DIRECTED_POWER(150, 4),
 	//Duelist A3 T4
-	FEIGNED_RETREAT(151, 4), EXPOSE_WEAKNESS(152, 4), COUNTER_ABILITY(153, 4);
+	FEIGNED_RETREAT(151, 4), EXPOSE_WEAKNESS(152, 4), COUNTER_ABILITY(153, 4),
+
+	/**
+	 * [RECTOR TALENT]
+	 */
+	PRAYER_BEFORE_MEALS(288,2),MENTAL_TELEPATHY(289,2), RAIN_GRACE(290,2),DEVOTIONAL(291,2),
+
+	BLESS_FOOD(320,2),SOUL_NOWIFI(321,2),LIGHT_STEP(322,2),GOD_BODY(323,2),NOHOPE_LANG(324,2),
+
+	//T3牧师通用
+	ACT_GODPROGRESS(352,3),SMART_BLESSING(353,3),
+
+	//BATTLE RECTOR
+	IRON_SUN(354,3),PHARCIS_BLESS(355,3),BEN_WORK(356,3),
+
+	//RED MASTER
+	FIRE_GLASS(386,3),LIGHT_WASH(387,3),SKY_TOWER(388,3),
+
+	//DEAD DIFE
+	BLACK_LOVE(418,3),DEAD_POWER(419,3),EXP_IMPOTION(420,3),
+
+	// T4 rector universal
+	// T4 牧师通用(星界沟通，生命坚壁)
+	SUPERSTITION(358,4),VITAE_BOOST(359,4),
+
+	// T4 战斗牧师(战斗兴奋,神赐之礼)
+	// T4 BATTLE RECTOR
+	ADRENAL_COMBAT(360,4),GIFT(361,4),
+
+
+	// T4 红衣主教(圣化转变,圣光障壁)
+	// T4 Cardinal
+	SOUL_POSSESSION(392,4),BLOODY_VITAE(393,4),
+
+	// T4 执行者(无情扫除,信仰收割)
+	// T4 DEAD DIFE
+	PRESS_ON(390,4),BRIEF_HARVEST(391,4),
+
+	// T4 rector
+	// last prayer
+	// 高效回复	借力疾驰	  圣灵赐福
+	EFFICIENT_HEALING(364,4), INERTIAL_CHARGE(365,4),BLESS_RETURN(366,4),
+
+	// T4 rector
+	// shadow hymn
+	// 暗色契约	潜心苦读	双修牧师
+	SACRIFICE(396,4),BLOCKING_READING(397,4),TAI_CHI_POISE(398,4),
+
+	// T4 Rector
+	// gods possession
+	// 治愈圣启	无可侵犯	神灵之触
+	HOLY_SHOCKWAVE(428,4),GODHOOD(429,4),AVATAR(430,4),
+
+	/**
+	 * [MOONLIGHT TALENT]
+	 */
+	//Moonlight T1
+	// 猎杀直觉 砥砺锋芒 武器掌握 战争践踏
+	HUNTING_INTUITION(176), SHARPENING_EDGE(177), WEAPON_MASTERY(178), WAR_TRAMPLE(179),
+	//Moonlight T2
+	// 利用一餐 强壮肉体 神圣泉水 三重保险 弹射起步
+	MEAL_UTILIZATION(208), STRONG_BODY(209), HOLY_SPRING(210), TRIPLE_INSURANCE(211), CATAPULT_START(212),
+	//Moonlight T3 (Universal)
+	// 剑盾骑士 轮椅翻车
+	SWORD_SHIELD_KNIGHT(240, 3), WHEELCHAIR_CRASH(241, 3),
+	//Moonlight T4 (Universal)
+
+	HEROIC_ENERGY_MOONLIGHT(294, 4),
+
+	// Little Knight T3
+	// 我不会输 濡湿附魔 左弓连射
+	WONT_LOSE(243, 3), WET_ENCHANT(244, 3), LEFT_BOW_RAPID(245, 3),
+
+	//Dice Mage T3
+	LEARN_SOOTHE(276, 3), LEARN_LIQUOR(308, 3), LEARN_OPERATE(309, 3), LEARN_MIASMA(339, 3), LEARN_CRUSH(340, 3), LEARN_BLAZE(341, 3),
+
+	//Jutte Champion T3
+	ONE_JUTTE(371, 3), IRON_QUENCH(372, 3), SURPRISE_JUTTE(373, 3),
+
+	//注定一抽 T4
+	FATED_TWICE(401, 4), LOOT_GROUND(402, 4), TIME_PAUSE(403, 4),
+
+	//玩具背包 T4
+	BETTER_ITEM(433, 4), EXTRA_POCKET(434, 4), ACCEPT_CHALLENGE(435, 4),
+
+	//薪王化身 T4
+	HOLY_LANCE(465, 4), SOUL_STREAM(466, 4), FATAL_BLADE(467, 4),
+
+	ERROR(294,4);
+
 
 	public static class MagicRootDropped extends CounterBuff{{revivePersists = true;}};
 
@@ -202,6 +297,28 @@ public enum Talent {
 		public void tintIcon(Image icon) { icon.hardlight(0.15f, 0.2f, 0.5f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 50); }
 	};
+
+	public static class NoBeliefUsedCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0.75f, 0f, 0f); }
+	};
+
+	public static class HideInCrowdCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0x5562F6); }
+	};
+
+	public static class SlowHealingDeadCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0f, 0.55f, 0f); }
+	};
+
+	public static class Rain_Grace_Cooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0f, 0.6f, 0f); }
+		public float iconFadePercent() { return Math.max(0, visualcooldown() / 50); }
+	};
+
 	public static class LethalMomentumTracker extends FlavourBuff{};
 	public static class StrikingWaveTracker extends FlavourBuff{};
 	public static class WandPreservationCounter extends CounterBuff{{revivePersists = true;}};
@@ -378,6 +495,11 @@ public enum Talent {
 	}
 	public static class CounterAbilityTacker extends FlavourBuff{};
 
+	public static class HIGHGRSS_SPEED extends FlavourBuff{
+		public int icon() { return BuffIndicator.HASTE;}
+		public void tintIcon(Image icon) { icon.hardlight(0xFfa500);
+		}
+	};
 	int icon;
 	int maxPoints;
 
@@ -408,8 +530,6 @@ public enum Talent {
 					return 90;
 				case HUNTRESS:
 					return 122;
-				case DUELIST:
-					return 154;
 			}
 		} else {
 			return icon;
@@ -442,9 +562,18 @@ public enum Talent {
 	}
 
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
+
+		// Superstition by DoggingDog on 20250817
+		// 天赋：星界沟通
+		if(talent == SUPERSTITION){
+			Dungeon.hero.superstitionCounter = new Hero.SuperstitionCounter();
+		}
+		//
+
 		if (talent == HERB_MIXTURE  &&hero.belongings.getItem(HerbMaker.class)==null){
 			Dungeon.level.drop(new HerbMaker(),Dungeon.hero.pos);
 		}
+
 		if (talent == HOLD_BREATH){
 			Buff.affect(hero, HoldBreathTracker.class);
 		}
@@ -460,15 +589,19 @@ public enum Talent {
 		}
 
 		if (talent == ARMSMASTERS_INTUITION && hero.pointsInTalent(ARMSMASTERS_INTUITION) == 2){
-			if (hero.belongings.weapon() != null) hero.belongings.weapon().identify();
-			if (hero.belongings.armor() != null)  hero.belongings.armor.identify();
+			if (hero.belongings.weapon() != null && !ShardOfOblivion.passiveIDDisabled()){
+				hero.belongings.weapon().identify();
+			}
+			if (hero.belongings.armor() != null&& !ShardOfOblivion.passiveIDDisabled()){
+				hero.belongings.armor.identify();
+			}
 		}
 
 
 
 		if (talent == THIEFS_INTUITION && hero.pointsInTalent(THIEFS_INTUITION) == 2){
-			if (hero.belongings.ring instanceof Ring) hero.belongings.ring.identify();
-			if (hero.belongings.misc instanceof Ring) hero.belongings.misc.identify();
+			if (hero.belongings.ring instanceof Ring && !ShardOfOblivion.passiveIDDisabled()) hero.belongings.ring.identify();
+			if (hero.belongings.misc instanceof Ring && !ShardOfOblivion.passiveIDDisabled()) hero.belongings.misc.identify();
 			for (Item item : Dungeon.hero.belongings){
 				if (item instanceof Ring){
 					((Ring) item).setKnown();
@@ -476,10 +609,10 @@ public enum Talent {
 			}
 		}
 		if (talent == THIEFS_INTUITION && hero.pointsInTalent(THIEFS_INTUITION) == 1){
-			if (hero.belongings.ring instanceof Ring) hero.belongings.ring.setKnown();
-			if (hero.belongings.misc instanceof Ring) ((Ring) hero.belongings.misc).setKnown();
+			if (hero.belongings.ring instanceof Ring && !ShardOfOblivion.passiveIDDisabled()) hero.belongings.ring.setKnown();
+			if (hero.belongings.misc instanceof Ring && !ShardOfOblivion.passiveIDDisabled()) ((Ring) hero.belongings.misc).setKnown();
 		}
-		if (talent == ADVENTURERS_INTUITION && hero.pointsInTalent(ADVENTURERS_INTUITION) == 2){
+		if (talent == ADVENTURERS_INTUITION && hero.pointsInTalent(ADVENTURERS_INTUITION) == 2 && !ShardOfOblivion.passiveIDDisabled()){
 			if (hero.belongings.weapon() != null) hero.belongings.weapon().identify();
 		}
 
@@ -517,15 +650,38 @@ public enum Talent {
 	public static class NatureBerriesDropped extends CounterBuff{{revivePersists = true;}};
 
 	public static void onFoodEaten( Hero hero, float foodVal, Item foodSource ){
+		EventManager.emit(new HeroEatFoodEvent(hero, foodVal, foodSource));
 		if (hero.hasTalent(HEARTY_MEAL)){
-			//3/5 HP healed, when hero is below 30% health
-			if (hero.HP/(float)hero.HT <= 0.3f) {
-				int healing = 1 + 2 * hero.pointsInTalent(HEARTY_MEAL);
-				hero.HP = Math.min(hero.HP + healing, hero.HT);
-				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(healing), FloatingText.HEALING);
-
+			//3/5 HP healed, when hero is below 25% health
+			if (hero.HP <= hero.HT/4) {
+				hero.HP = Math.min(hero.HP + 1 + 2 * hero.pointsInTalent(HEARTY_MEAL), hero.HT);
+				hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1+hero.pointsInTalent(HEARTY_MEAL));
+				//2/3 HP healed, when hero is below 50% health
+			} else if (hero.HP <= hero.HT/2){
+				hero.HP = Math.min(hero.HP + 1 + hero.pointsInTalent(HEARTY_MEAL), hero.HT);
+				hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), hero.pointsInTalent(HEARTY_MEAL));
 			}
 		}
+
+		//餐前祈祷
+		if (hero.hasTalent(PRAYER_BEFORE_MEALS)){
+			Belief belief = Dungeon.hero.buff(Belief.class);
+			if(belief != null){
+				belief.getBelief(hero.pointsInTalent(PRAYER_BEFORE_MEALS));
+			}
+		}
+
+		if (hero.hasTalent(BLESS_FOOD)){
+			switch (Dungeon.hero.pointsInTalent(BLESS_FOOD)){
+				case 1:
+					Buff.affect(hero, Bless.class, 12f);
+					break;
+				case 2:
+					Buff.affect(hero, Bless.class, 20f);
+					break;
+			}
+		}
+
 		if (hero.hasTalent(IRON_STOMACH)){
 			if (hero.cooldown() > 0) {
 				Buff.affect(hero, WarriorFoodImmunity.class, hero.cooldown());
@@ -560,14 +716,8 @@ public enum Talent {
 			Buff.affect( hero, PhysicalEmpower.class).set(3, 1 + hero.pointsInTalent(STRENGTHENING_MEAL));
 		}
 		if (hero.hasTalent(FOCUSED_MEAL)){
-			if (hero.heroClass == HeroClass.DUELIST){
-				//0.67/1 charge for the duelist
-				Buff.affect( hero, MeleeWeapon.Charger.class ).gainCharge((hero.pointsInTalent(FOCUSED_MEAL)+1)/3f);
-				ScrollOfRecharging.charge( hero );
-			} else {
 				// lvl/3 / lvl/2 bonus dmg on next hit for other classes
 				Buff.affect( hero, PhysicalEmpower.class).set(Math.round(hero.lvl / (4f - hero.pointsInTalent(FOCUSED_MEAL))), 1);
-			}
 		}
 	}
 
@@ -672,18 +822,46 @@ public enum Talent {
 		}
 	}
 
+	public static void RectorGetIdentify(Hero hero,Item item){
+		switch (hero.pointsInTalent(MENTAL_TELEPATHY)){
+			case 1:
+				if(!item.cursed){
+					if((item instanceof Weapon || item instanceof Armor)){
+						item.identify();
+					}
+				}
+				break;
+			case 2:
+				if(!item.cursed){
+					if((item instanceof Weapon && hero.belongings.weapon() == item || item instanceof Armor && hero.belongings.armor() == item)){
+						item.identify();
+					}
+					if((item instanceof Ring && hero.belongings.ring() == item) ||(item instanceof Ring && hero.belongings.misc() == item) ){
+						item.identify();
+					}
+				}
+				break;
+		}
+	}
+
 	public static void onItemEquipped( Hero hero, Item item ){
+		boolean identify = false;
+
 		if (hero.pointsInTalent(ARMSMASTERS_INTUITION) == 2 && (item instanceof Weapon || item instanceof Armor)){
 			item.identify();
 		}
+
+		RectorGetIdentify(hero,item);
+
 		if (hero.hasTalent(THIEFS_INTUITION) && item instanceof Ring){
 			if (hero.pointsInTalent(THIEFS_INTUITION) == 2){
-				item.identify();
-			} else {
-				((Ring) item).setKnown();
+				identify = true;
 			}
+			((Ring) item).setKnown();
 		}
-		if (hero.pointsInTalent(ADVENTURERS_INTUITION) == 2 && item instanceof Weapon){
+
+
+		if (identify && !ShardOfOblivion.passiveIDDisabled()){
 			item.identify();
 		}
 	}
@@ -707,6 +885,22 @@ public enum Talent {
 			Buff.affect(enemy, SuckerPunchTracker.class);
 		}
 
+
+		if (hero.hasTalent(Talent.LINGERING_MAGIC)
+				&& hero.buff(LingeringMagicTracker.class) != null){
+			dmg += Random.IntRange(hero.pointsInTalent(Talent.LINGERING_MAGIC) , 2);
+			hero.buff(LingeringMagicTracker.class).detach();
+		}
+
+		if (hero.hasTalent(THIRSTY_BLADE)){
+			int restoration = Math.round(dmg* hero.pointsInTalent(THIRSTY_BLADE)*0.02f);
+			if (restoration > 0) {
+				int preHp=hero.HP;
+				hero.HP = Math.min(hero.HT, hero.HP + restoration);
+				hero.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", hero.HP-preHp);
+				hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
+			}
+		}
 
 		//受衅怒火 2024-9-17
 		if (hero.hasTalent(Talent.PROVOKED_ANGER)
@@ -823,13 +1017,19 @@ public enum Talent {
 				Collections.addAll(tierTalents, HEARTY_MEAL, ARMSMASTERS_INTUITION, PROVOKED_ANGER, IRON_WILL);
 				break;
 			case MAGE:
-				Collections.addAll(tierTalents, EMPOWERING_MEAL, SCHOLARS_INTUITION, TESTED_HYPOTHESIS, BACKUP_BARRIER);
+				Collections.addAll(tierTalents, EMPOWERING_MEAL, SCHOLARS_INTUITION, LINGERING_MAGIC, BACKUP_BARRIER);
 				break;
 			case ROGUE:
 				Collections.addAll(tierTalents, CACHED_RATIONS, THIEFS_INTUITION, SUCKER_PUNCH, PROTECTIVE_SHADOWS);
 				break;
 			case HUNTRESS:
 				Collections.addAll(tierTalents, NATURES_BOUNTY, SURVIVALISTS_INTUITION, FOLLOWUP_STRIKE, UNDERESTIMATED);
+				break;
+			case RECTOR:
+				Collections.addAll(tierTalents, PRAYER_BEFORE_MEALS,MENTAL_TELEPATHY,RAIN_GRACE,DEVOTIONAL);
+				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, HUNTING_INTUITION, SHARPENING_EDGE, WEAPON_MASTERY, WAR_TRAMPLE);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -854,6 +1054,12 @@ public enum Talent {
 			case HUNTRESS:
 				Collections.addAll(tierTalents, INVIGORATING_MEAL, HERB_MIXTURE, REJUVENATING_STEPS, HEIGHTENED_SENSES, DURABLE_PROJECTILES);
 				break;
+			case RECTOR:
+				Collections.addAll(tierTalents, BLESS_FOOD,SOUL_NOWIFI,LIGHT_STEP,GOD_BODY,NOHOPE_LANG);
+				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, MEAL_UTILIZATION, STRONG_BODY, HOLY_SPRING, TRIPLE_INSURANCE, CATAPULT_START);
+				break;
 		}
 		for (Talent talent : tierTalents){
 			if (replacements.containsKey(talent)){
@@ -876,6 +1082,12 @@ public enum Talent {
 				break;
 			case HUNTRESS:
 				Collections.addAll(tierTalents, HOLD_BREATH, SEER_SHOT);
+				break;
+			case RECTOR:
+				Collections.addAll(tierTalents, ACT_GODPROGRESS, SMART_BLESSING);
+				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, SWORD_SHIELD_KNIGHT, WHEELCHAIR_CRASH);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -909,7 +1121,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, ENDLESS_RAGE, PAIN_SCAR, FANATICISM_MAGIC);
 				break;
 			case GLADIATOR:
-				Collections.addAll(tierTalents, CLEAVE, LETHAL_DEFENSE, ENHANCED_COMBO);
+				Collections.addAll(tierTalents, KEEP_VIGILANCE, LETHAL_DEFENSE, VENT_NOPLACE);
 				break;
 			case BATTLEMAGE:
 				Collections.addAll(tierTalents, EMPOWERED_STRIKE, MYSTICAL_CHARGE, WAR_THROW);
@@ -928,6 +1140,24 @@ public enum Talent {
 				break;
 			case WARDEN:
 				Collections.addAll(tierTalents, DURABLE_TIPS, BARKSKIN, VINE_TRAP);
+				break;
+			case BATTLEPREIST:
+				Collections.addAll(tierTalents,IRON_SUN,PHARCIS_BLESS, BEN_WORK);
+				break;
+			case REDCARDINAL:
+				Collections.addAll(tierTalents,FIRE_GLASS, LIGHT_WASH, SKY_TOWER);
+				break;
+			case DEAD_KNIGHT:
+				Collections.addAll(tierTalents,BLACK_LOVE,DEAD_POWER,EXP_IMPOTION);
+				break;
+			case LITTLE_KNIGHT:
+				Collections.addAll(tierTalents, WONT_LOSE, WET_ENCHANT, LEFT_BOW_RAPID);
+				break;
+			case DICE_MAGE:
+				Collections.addAll(tierTalents, LEARN_SOOTHE, LEARN_LIQUOR, LEARN_OPERATE);
+				break;
+			case JUTTE_CHAMPION:
+				Collections.addAll(tierTalents, ONE_JUTTE, IRON_QUENCH, SURPRISE_JUTTE);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -986,6 +1216,12 @@ public enum Talent {
 			case HUNTRESS:
 				Collections.addAll(tierTalents, BRISK_PACE,PHASE_FILLING);
 				break;
+			case RECTOR:
+				Collections.addAll(tierTalents,SUPERSTITION,VITAE_BOOST);
+				break;
+			case MOONLIGHT:
+				Collections.addAll(tierTalents, HEROIC_ENERGY_MOONLIGHT);
+				break;
 		}
 		//tier 4
 		switch (subcls){
@@ -1018,6 +1254,30 @@ public enum Talent {
 
 			case WARDEN:
 				Collections.addAll(tierTalents, MEDART_SPECIALIST, LAND_HEART);
+				break;
+
+			case REDCARDINAL:
+				Collections.addAll(tierTalents,SOUL_POSSESSION,BLOODY_VITAE);
+				break;
+
+			case BATTLEPREIST:
+				Collections.addAll(tierTalents,ADRENAL_COMBAT,GIFT);
+				break;
+
+			case DEAD_KNIGHT:
+				Collections.addAll(tierTalents,ERROR);
+				break;
+
+			case LITTLE_KNIGHT:
+				Collections.addAll(tierTalents, ERROR);
+				break;
+
+			case DICE_MAGE:
+				Collections.addAll(tierTalents,ERROR);
+				break;
+
+			case JUTTE_CHAMPION:
+				Collections.addAll(tierTalents,ERROR);
 				break;
 		}
 		for (Talent talent : tierTalents){
@@ -1054,6 +1314,32 @@ public enum Talent {
 		bundle.put("replacements", replacementsBundle);
 	}
 
+	public static void restoreTalentsFromBundle( Bundle bundle, Hero hero ){
+		if (bundle.contains("replacements")){
+			Bundle replacements = bundle.getBundle("replacements");
+			for (String key : replacements.getKeys()){
+				hero.metamorphedTalents.put(Talent.valueOf(key), replacements.getEnum(key, Talent.class));
+			}
+		}
+
+		if (hero.heroClass != null)     initClassTalents(hero);
+		if (hero.subClass != null)      initSubclassTalents(hero);
+		if (hero.armorAbility != null)  initArmorTalents(hero);
+		if (hero.powerOfImp) initT4Talents(hero);
+
+		for (int i = 0; i < MAX_TALENT_TIERS; i++){
+			LinkedHashMap<Talent, Integer> tier = hero.talents.get(i);
+			Bundle tierBundle = bundle.contains(TALENT_TIER+(i+1)) ? bundle.getBundle(TALENT_TIER+(i+1)) : null;
+
+			if (tierBundle != null){
+				for (Talent talent : tier.keySet()){
+					if (tierBundle.contains(talent.name())){
+						tier.put(talent, Math.min(tierBundle.getInt(talent.name()), talent.maxPoints()));
+					}
+				}
+			}
+		}
+	}
 	private static final HashSet<String> removedTalents = new HashSet<>();
 	static{
 		//v2.4.0
@@ -1081,49 +1367,4 @@ public enum Talent {
 		//v2.0.0
 		renamedTalents.put("ARMSMASTERS_INTUITION",     "VETERANS_INTUITION");
 	}
-
-	public static void restoreTalentsFromBundle( Bundle bundle, Hero hero ){
-		if (bundle.contains("replacements")){
-			Bundle replacements = bundle.getBundle("replacements");
-			for (String key : replacements.getKeys()){
-				String value = replacements.getString(key);
-				if (renamedTalents.containsKey(key)) key = renamedTalents.get(key);
-				if (renamedTalents.containsKey(value)) value = renamedTalents.get(value);
-				if (!removedTalents.contains(key) && !removedTalents.contains(value)){
-					try {
-						hero.metamorphedTalents.put(Talent.valueOf(key), Talent.valueOf(value));
-					} catch (Exception e) {
-						ShatteredPixelDungeon.reportException(e);
-					}
-				}
-			}
-		}
-		if (hero.powerOfImp) initT4Talents(hero);
-		if (hero.heroClass != null)     initClassTalents(hero);
-		if (hero.subClass != null)      initSubclassTalents(hero);
-		if (hero.armorAbility != null)  initArmorTalents(hero);
-
-		for (int i = 0; i < MAX_TALENT_TIERS; i++){
-			LinkedHashMap<Talent, Integer> tier = hero.talents.get(i);
-			Bundle tierBundle = bundle.contains(TALENT_TIER+(i+1)) ? bundle.getBundle(TALENT_TIER+(i+1)) : null;
-
-			if (tierBundle != null){
-				for (String tName : tierBundle.getKeys()){
-					int points = tierBundle.getInt(tName);
-					if (renamedTalents.containsKey(tName)) tName = renamedTalents.get(tName);
-					if (!removedTalents.contains(tName)) {
-						try {
-							Talent talent = Talent.valueOf(tName);
-							if (tier.containsKey(talent)) {
-								tier.put(talent, Math.min(points, talent.maxPoints()));
-							}
-						} catch (Exception e) {
-							ShatteredPixelDungeon.reportException(e);
-						}
-					}
-				}
-			}
-		}
-	}
-
 }

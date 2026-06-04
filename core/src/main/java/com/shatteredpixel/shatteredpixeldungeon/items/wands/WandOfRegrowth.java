@@ -26,7 +26,6 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Doom;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
@@ -45,6 +44,7 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.ConeAOE;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Sungrass;
+import com.shatteredpixel.shatteredpixeldungeon.plants.VineTrap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.LotusSprite;
@@ -106,7 +106,7 @@ public class WandOfRegrowth extends Wand {
 				i.remove();
 			} else if (Char.hasProp(Actor.findChar(cell), Char.Property.IMMOVABLE)) {
 				i.remove();
-			} else if (Dungeon.level.plants.get(cell) != null){
+			} else if (Dungeon.level.plants.get(cell) != null && !(Dungeon.level.plants.get(cell) instanceof VineTrap)){
 				i.remove();
 			} else {
 				if (terr != Terrain.HIGH_GRASS && terr != Terrain.FURROWED_GRASS) {
@@ -301,6 +301,31 @@ public class WandOfRegrowth extends Wand {
 		float dst = Random.Float(11f);
 		particle.x -= dst;
 		particle.y += dst;
+	}
+
+	private int chargeLimit( int heroLvl, int wndLvl ){
+		if (wndLvl >= 10){
+			return Integer.MAX_VALUE;
+		} else {
+			//20 charges at base, plus:
+			//2/3.1/4.2/5.5/6.8/8.4/10.4/13.2/18.0/30.8/inf. charges per hero level, at wand level:
+			//0/1  /2  /3  /4  /5  /6   /7   /8   /9   /10
+			return Math.round(20 + heroLvl * (2+wndLvl) * (1f + (wndLvl/(50 - 5*wndLvl))));
+		}
+	}
+
+	@Override
+	public String upgradeStat1(int level) {
+		return Messages.decimalFormat("#.##", 3 + (2+level)/3f);
+	}
+
+	@Override
+	public String upgradeStat2(int level) {
+		if (level >= 10){
+			return "∞";
+		} else {
+			return Integer.toString(chargeLimit(Dungeon.hero.lvl, level));
+		}
 	}
 	
 	private static final String TOTAL = "totChrgUsed";

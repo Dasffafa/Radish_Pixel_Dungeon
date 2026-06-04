@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EliteBadge;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -86,8 +87,12 @@ public abstract class ChampionEnemy extends Buff {
 	}
 
 	public static void rollForChampion(Mob m){
-		if (Dungeon.mobsToChampion <= 0) Dungeon.mobsToChampion = 8;
-
+		boolean cursed_badge=(Dungeon.hero.buff(EliteBadge.badgeRecharge.class)!=null && Dungeon.hero.buff(EliteBadge.badgeRecharge.class).isCursed());
+		if (Dungeon.mobsToChampion <= 0) {
+			Dungeon.mobsToChampion = 10;
+			if (Dungeon.isChallenged(Challenges.CHAMPION_ENEMIES) && cursed_badge)
+				Dungeon.mobsToChampion = 5;
+		}
 		Dungeon.mobsToChampion--;
 
 		//we roll for a champion enemy even if we aren't spawning one to ensure that
@@ -102,11 +107,12 @@ public abstract class ChampionEnemy extends Buff {
 			case 5:             buffCls = Growing.class;      break;
 		}
 
-		if (Dungeon.mobsToChampion <= 0 && Dungeon.isChallenged(Challenges.CHAMPION_ENEMIES)) {
+		if (Dungeon.mobsToChampion <= 0 && (Dungeon.isChallenged(Challenges.CHAMPION_ENEMIES)||cursed_badge)) {
 			Buff.affect(m, buffCls);
 			m.state = m.WANDERING;
 		}
 	}
+
 
 	public static class Blazing extends ChampionEnemy {
 

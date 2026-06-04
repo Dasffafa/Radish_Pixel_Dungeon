@@ -53,7 +53,9 @@ public class DungeonTileSheet {
 	public static final int GRASS           = GROUND +2;
 	public static final int EMBERS          = GROUND +3;
 	public static final int FLOOR_SP        = GROUND +4;
-
+	
+	public static final int HOLY_LAND_TILES      = GROUND +5;
+	
 	public static final int FLOOR_ALT_1     = GROUND +6;
 	public static final int FLOOR_DECO_ALT  = GROUND +7;
 	public static final int GRASS_ALT       = GROUND +8;
@@ -397,7 +399,7 @@ public class DungeonTileSheet {
 		directVisuals.put(Terrain.PEDESTAL,         PEDESTAL);
 		directVisuals.put(Terrain.EMPTY_SP,         FLOOR_SP);
 		directVisuals.put(Terrain.ENTRANCE_SP,      ENTRANCE_SP);
-
+		directVisuals.put(Terrain.HOLY_LAND,       HOLY_LAND_TILES);
 		directVisuals.put(Terrain.SECRET_TRAP,      directVisuals.get(Terrain.EMPTY));
 		directVisuals.put(Terrain.TRAP,             directVisuals.get(Terrain.EMPTY));
 		directVisuals.put(Terrain.INACTIVE_TRAP,    directVisuals.get(Terrain.EMPTY));

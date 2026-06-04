@@ -27,85 +27,95 @@ import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpectralBlades;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.ElementalBlast;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WarpBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WildMagic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.GodsPossesion;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.LastPrayer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.ShadowHymn;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.ShadowClone;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.SmokeBomb;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.HeroicLeap;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Shockwave;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.custom.ch.ChallengeBag;
 import com.shatteredpixel.shatteredpixeldungeon.custom.dict.DictBook;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.BackpackCleaner;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomPlayer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.EnemyAttributeModifier;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.LevelTeleporter;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobAttributeViewer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobPlacer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TerrainPlacer;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestBag;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TimeReverser;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TrapPlacer;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.*;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.LazyTest;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.SpawnMisc;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.SpawnWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestArmor;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestArtifact;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestMelee;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestMissile;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestRing;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.TestTalentOFTerminalBook;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Waterskin;
+import com.shatteredpixel.shatteredpixeldungeon.items.alive.SeedOfCard;
+import com.shatteredpixel.shatteredpixeldungeon.items.alive.StoneOfCard;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MagneticCrown;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.PotionBandolier;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.ScrollHolder;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.VelvetPouch;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Aberforth;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Chibayari;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.DualDuelDaggers;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.InversionBeta;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.LunarCorona;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Showdarker;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Starlight;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Sunless;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Turtleir;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Wastelandew;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfLullaby;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRage;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
-import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Dagger;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EchoplexHammer;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EnemyFlag;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Gloves;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.KillBoatSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Rapier;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Rlyeh;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MetalCross;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PneumFistGloves;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ShadowBooks;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSpike;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.DeviceCompat;
+import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
+
+import java.util.HashSet;
 
 public enum HeroClass {
 
@@ -113,7 +123,12 @@ public enum HeroClass {
 	MAGE( HeroSubClass.BATTLEMAGE, HeroSubClass.WARLOCK ),
 	ROGUE( HeroSubClass.ASSASSIN, HeroSubClass.FREERUNNER ),
 	HUNTRESS( HeroSubClass.SNIPER, HeroSubClass.WARDEN ),
-	DUELIST( HeroSubClass.CHAMPION, HeroSubClass.MONK );
+
+	//New Hero-Radish Pixel Dungeon
+	RECTOR( HeroSubClass.BATTLEPREIST, HeroSubClass.REDCARDINAL, HeroSubClass.DEAD_KNIGHT),
+	MOONLIGHT( HeroSubClass.LITTLE_KNIGHT, HeroSubClass.DICE_MAGE, HeroSubClass.JUTTE_CHAMPION);
+
+//	DUELIST( HeroSubClass.CHAMPION, HeroSubClass.MONK );
 
 	private HeroSubClass[] subClasses;
 
@@ -122,41 +137,44 @@ public enum HeroClass {
 	}
 
 
-	private static void doChallengeSpawn(Hero hero) {
+	private static void doChallengeSpawn() {
 		new ChallengeBag().collect();
 
-		new DictBook().collect();
-		new MimicTooth().collect();
-			/*
-			Mana mana = new Mana();
-			mana.maxMana = 200;
-			mana.curMana = 0;
-			mana.manaRegen = 0.514f;
-			mana.attachTo(hero);
-			 */
-		//new WandOfScanningBeam().identify().collect();
+		//TODO
+		new MagneticCrown().identify().collect();
 
-		//Dev Tst
-//			new Spanner().collect();
-//			new RingOfKing().collect();
-//			new GiantKiller().collect();
-//			new FogSword().collect();
+		new DictBook().collect();
 		new EchoplexHammer().collect();
 		new EnemyFlag().collect();
 		new ShadowBooks().collect();
 		new CelestialSphere().collect();
-		new Rlyeh().collect();
-		new EndGuard().collect();
-		new KillBoatSword().collect();
+
+		new Aberforth().identify().collect();
+		new DualDuelDaggers().identify().collect();
+		new Chibayari().identify().collect();
+		new Wastelandew().identify().collect();
+		new Turtleir().identify().collect();
+		new Showdarker().identify().collect();
+		new Sunless().identify().collect();
+		new Starlight().identify().collect();
+		new LunarCorona().identify().collect();
+
+		new InversionBeta().identify().collect();
+
 		new SpawnMisc().collect();
 		new MobPlacer().collect();
 
+		new PneumFistGloves().collect();
 
 		CustomWeapon customWeapon = new CustomWeapon();
 		customWeapon.adjustStatus();
 		customWeapon.identify().collect();
 
 		new CustomPlayer().collect();
+		
+		new SnakeBiteToggle().collect();
+
+		new TalentSetter().collect();
 
 		new TestBag().collect();
 
@@ -174,7 +192,7 @@ public enum HeroClass {
 
 		new TestArmor().collect();
 		new TestArtifact().collect();
-		new TestMelee().collect();
+		new SpawnWeapon().collect();
 		new TestMissile().collect();
 		new TestRing().collect();
 		//new TestPotion().collect();
@@ -209,10 +227,20 @@ public enum HeroClass {
 
 		//[TEST MODE]
 		if (Dungeon.isChallenged(Challenges.TEST_MODE))
-			doChallengeSpawn(hero);
+			doChallengeSpawn();
+
+		hero.rectorDeadKngithDeadMode = false;
+
+		new StoneOfCard().collect();
+		new SeedOfCard().collect();
 
 		hero.heroClass = this;
 		Talent.initClassTalents(hero);
+
+		// Snake Bite challenge: start with 11 strength
+		if (Dungeon.isChallenged(Challenges.SNAKE_BITE)) {
+			hero.STR = Hero.STARTING_STR + 1;
+		}
 
 		Item i = new ClothArmor().identify();
 		if (!Challenges.isItemBlocked(i)) hero.belongings.armor = (ClothArmor)i;
@@ -220,8 +248,11 @@ public enum HeroClass {
 		i = new Food();
 		if (!Challenges.isItemBlocked(i)) i.collect();
 
-		new VelvetPouch().collect();
-		Dungeon.LimitedDrops.VELVET_POUCH.drop();
+		// 牧师不初始携带绒布包，商人会售卖
+		if (this != RECTOR) {
+			new VelvetPouch().collect();
+			Dungeon.LimitedDrops.VELVET_POUCH.drop();
+		}
 
 		Waterskin waterskin = new Waterskin();
 		waterskin.collect();
@@ -245,8 +276,12 @@ public enum HeroClass {
 				initHuntress( hero );
 				break;
 
-			case DUELIST:
-				initDuelist( hero );
+			case RECTOR:
+				initRector( hero );
+				break;
+
+			case MOONLIGHT:
+				initMoonlight( hero );
 				break;
 		}
 
@@ -258,23 +293,6 @@ public enum HeroClass {
 				}
 			}
 		}
-
-	}
-
-	public Badges.Badge masteryBadge() {
-		switch (this) {
-			case WARRIOR:
-				return Badges.Badge.MASTERY_WARRIOR;
-			case MAGE:
-				return Badges.Badge.MASTERY_MAGE;
-			case ROGUE:
-				return Badges.Badge.MASTERY_ROGUE;
-			case HUNTRESS:
-				return Badges.Badge.MASTERY_HUNTRESS;
-			case DUELIST:
-				return Badges.Badge.MASTERY_DUELIST;
-		}
-		return null;
 	}
 
 	private static void initWarrior( Hero hero ) {
@@ -334,19 +352,58 @@ public enum HeroClass {
 		new ScrollOfLullaby().identify();
 	}
 
-	private static void initDuelist( Hero hero ) {
+	private static void initRector( Hero hero ) {
 
-		(hero.belongings.weapon = new Rapier()).identify();
-		hero.belongings.weapon.activate(hero);
+		(hero.belongings.weapon = new MetalCross()).identify();
 
-		ThrowingSpike spikes = new ThrowingSpike();
-		spikes.quantity(2).collect();
+		new SmallWoodenCross().identify().collect();
+		new ScrollHolder().identify().collect();
+		new Food().identify().collect();
 
-		Dungeon.quickslot.setSlot(0, hero.belongings.weapon);
-		Dungeon.quickslot.setSlot(1, spikes);
+		Buff.affect(hero, Belief.class);
 
-		new PotionOfStrength().identify();
-		new ScrollOfMirrorImage().identify();
+		new ScrollOfIdentify().identify();
+		new PotionOfExperience().identify();
+		new ScrollOfRemoveCurse().identify();
+	}
+
+	private static void initMoonlight( Hero hero ) {
+		Wheelchair wheelchair = new Wheelchair();
+		(hero.belongings.artifact = wheelchair).identify();
+		hero.belongings.artifact.activate( hero );
+		// 初始武器：所有角色的初始武器
+		(hero.belongings.weapon = new WornShortsword()).identify();
+		new Dagger().identify().collect();
+		new Gloves().identify().collect();
+		new MagesStaff().identify().collect();
+
+		// 初始物品：力量药剂、升级卷轴、鉴定卷轴已鉴定
+		// 以及四种随机卷轴与药水
+		new PotionOfExperience().identify();
+		new ScrollOfUpgrade().identify();
+		new ScrollOfIdentify().identify();
+
+		// 随机鉴定：0-4种卷轴，剩余数量为药水
+		int scrollCount = Random.Int(5); // 0-4
+		int potionCount = 4 - scrollCount;
+
+		HashSet<Class<? extends Scroll>> unknownScrolls = Scroll.getUnknown();
+		for (int i = 0; i < scrollCount && !unknownScrolls.isEmpty(); i++) {
+			Class<? extends Scroll> scrollClass = Random.element(unknownScrolls);
+			Reflection.newInstance(scrollClass).identify();
+			unknownScrolls.remove(scrollClass);
+		}
+
+		HashSet<Class<? extends Potion>> unknownPotions = Potion.getUnknown();
+		for (int i = 0; i < potionCount && !unknownPotions.isEmpty(); i++) {
+			Class<? extends Potion> potionClass = Random.element(unknownPotions);
+			Reflection.newInstance(potionClass).identify();
+			unknownPotions.remove(potionClass);
+		}
+
+		// 月华生命值调整：-2 最大生命值，-1 成长
+		hero.HT = hero.HT - 2;
+		hero.HP = hero.HT;
 	}
 
 	public String title() {
@@ -375,8 +432,11 @@ public enum HeroClass {
 				return new ArmorAbility[]{new SmokeBomb(), new DeathMark(), new ShadowClone()};
 			case HUNTRESS:
 				return new ArmorAbility[]{new SpectralBlades(), new NaturesPower(), new SpiritHawk()};
-			case DUELIST:
-				return new ArmorAbility[]{new Challenge(), new ElementalStrike(), new Feint()};
+			case RECTOR:
+				return new ArmorAbility[]{new LastPrayer(),new ShadowHymn(),new GodsPossesion()};
+			case MOONLIGHT:
+				// TODO: 添加月华护甲技能（注定一抽、玩具背包、薪王化身）
+				return new ArmorAbility[]{new ToyBackpack()};
 		}
 	}
 
@@ -390,8 +450,10 @@ public enum HeroClass {
 				return Assets.Sprites.ROGUE;
 			case HUNTRESS:
 				return Assets.Sprites.HUNTRESS;
-			case DUELIST:
-				return Assets.Sprites.DUELIST;
+			case RECTOR:
+				return Assets.Sprites.RECTOR;
+			case MOONLIGHT:
+				return Assets.Sprites.MOONLIGHT;
 		}
 	}
 
@@ -405,8 +467,10 @@ public enum HeroClass {
 				return Assets.Splashes.ROGUE;
 			case HUNTRESS:
 				return Assets.Splashes.HUNTRESS;
-			case DUELIST:
-				return Assets.Splashes.DUELIST;
+			case RECTOR:
+				return Assets.Splashes.RECTOR;
+			case MOONLIGHT:
+				return Assets.Splashes.MOONLIGHT;
 		}
 	}
 	
@@ -415,16 +479,18 @@ public enum HeroClass {
 		if (DeviceCompat.isDebug()) return true;
 
 		switch (this){
-			case WARRIOR: default:
-				return true;
 			case MAGE:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_MAGE);
 			case ROGUE:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_ROGUE);
 			case HUNTRESS:
 				return Badges.isUnlocked(Badges.Badge.UNLOCK_HUNTRESS);
-			case DUELIST:
-				return Badges.isUnlocked(Badges.Badge.UNLOCK_DUELIST);
+			case RECTOR:
+				return true;
+			case MOONLIGHT:
+				return true; // TODO: 添加解锁条件
+			case WARRIOR: default:
+				return true;
 		}
 	}
 	

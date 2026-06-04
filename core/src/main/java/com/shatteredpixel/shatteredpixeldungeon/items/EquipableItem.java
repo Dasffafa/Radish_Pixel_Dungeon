@@ -28,15 +28,44 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
 
 public abstract class EquipableItem extends Item {
+
+	public String customName = "";
+	public int customNoteID = -1;
+
+	public String name() {
+		return this.customName.equals("") ? super.name() : this.customName;
+	}
+
+	private static final String CUSTOM_NOTE_ID = "custom_note_id";
+
+	@Override
+	public void restoreFromBundle(Bundle bundle) {
+		super.restoreFromBundle(bundle);
+		if (bundle.contains(CUSTOM_NOTE_ID))    customNoteID = bundle.getInt(CUSTOM_NOTE_ID);
+		if (bundle.contains("customName")) {
+			this.customName = bundle.getString("customName");
+		}
+	}
+
+	@Override
+	public void storeInBundle(Bundle bundle) {
+		super.storeInBundle(bundle);
+		if (customNoteID != -1)     bundle.put(CUSTOM_NOTE_ID, customNoteID);
+		if (!this.customName.equals("")) {
+			bundle.put("customName", this.customName);
+		}
+	}
 
 	public static final String AC_EQUIP		= "EQUIP";
 	public static final String AC_UNEQUIP	= "UNEQUIP";
@@ -44,6 +73,8 @@ public abstract class EquipableItem extends Item {
 	{
 		bones = true;
 	}
+
+
 
 	@Override
 	public ArrayList<String> actions(Hero hero ) {
@@ -123,6 +154,15 @@ public abstract class EquipableItem extends Item {
 	public abstract boolean doEquip( Hero hero );
 
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero!=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return false;
+		}
+		//
+
 
 		if (cursed
 				&& hero.buff(MagicImmune.class) == null

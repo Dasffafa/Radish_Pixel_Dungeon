@@ -110,7 +110,7 @@ public class ScrollOfSirensSong extends ExoticScroll {
 				}
 				identifiedByUse = false;
 
-				readAnimation();
+				readAnimation(true);
 
 			}
 		}

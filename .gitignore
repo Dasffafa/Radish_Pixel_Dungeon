@@ -21,3 +21,15 @@ local.properties
 android/src/main/google-services.json
 android/src/debug/google-services.json
 android/google-services.json
+
+# Documentation folder
+docs/
+the_catist/
+/android/debug/google-services.json
+/android/src/google-services.json
+/core/bin/default/META-INF/services/javax.annotation.processing.Processor
+/android/debug/output-metadata.json
+/QWEN.md
+/.qwen/settings.json
+/.qwen/settings.json.orig
+

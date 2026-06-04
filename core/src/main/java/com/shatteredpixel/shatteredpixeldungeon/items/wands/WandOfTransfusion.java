@@ -178,6 +178,22 @@ public class WandOfTransfusion extends DamageWand {
 	}
 
 	@Override
+	public String upgradeStat1(int level) {
+		int selfDMG = Dungeon.hero != null ? Math.round(Dungeon.hero.HT*0.05f): 1;
+		return Integer.toString(selfDMG + 3*level);
+	}
+
+	@Override
+	public String upgradeStat2(int level) {
+		return Integer.toString(5 + level);
+	}
+
+	@Override
+	public String upgradeStat3(int level) {
+		return super.upgradeStat1(level); //damage
+	}
+
+	@Override
 	public void staffFx(MagesStaff.StaffParticle particle) {
 		particle.color( 0xCC0000 );
 		particle.am = 0.6f;
@@ -189,7 +205,7 @@ public class WandOfTransfusion extends DamageWand {
 
 	@Override
 	public String statsDesc() {
-		int selfDMG = Math.round(Dungeon.hero.HT*0.05f);
+		int selfDMG = Dungeon.hero != null ? Math.round(Dungeon.hero.HT*0.05f): 1;
 		if (levelKnown)
 			return Messages.get(this, "stats_desc", selfDMG, selfDMG + 3*buffedLvl(), 5+buffedLvl(), min(), max());
 		else

@@ -21,19 +21,25 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.StormAttackArrow;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.LeafParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfSharpshooting;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Blindweed;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Firebloom;
@@ -99,6 +105,16 @@ public class SpiritBow extends Weapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
+
+		if(hero.pointsInTalent(Talent.LAND_HEART) >= 4){
+			if((Dungeon.level.map[defender.pos] == Terrain.EMBERS) || (Dungeon.level.map[defender.pos] == Terrain.GRASS)){
+				if(Random.Float()<=0.15f){
+					Plant plant = (Plant) Reflection.newInstance(Random.element(harmfulPlants));
+					plant.pos = defender.pos;
+					plant.activate( defender.isAlive() ? defender : null );
+				}
+			}
+		}
 
 		if (attacker.buff(NaturesPower.naturesPowerTracker.class) != null && !sniperSpecial){
 
@@ -186,7 +202,7 @@ public class SpiritBow extends Weapon {
 	
 	@Override
 	public int min(int lvl) {
-		int dmg = 1 + Dungeon.hero.lvl/5
+		int dmg = 2 + Dungeon.hero.lvl/5
 				+ RingOfSharpshooting.levelDamageBonus(Dungeon.hero)
 				+ (curseInfusionBonus ? 1 + Dungeon.hero.lvl/30 : 0);
 		return Math.max(0, dmg);
@@ -237,6 +253,8 @@ public class SpiritBow extends Weapon {
 					break;
 			}
 		}
+
+		if(hero.hasTalent(Talent.BOW_DULES) && hero.pointsInTalent(Talent.BOW_DULES)>=4) damage *= 1.35f;
 		
 		return damage;
 	}
@@ -287,6 +305,203 @@ public class SpiritBow extends Weapon {
 	
 	public SpiritArrow knockArrow(){
 		return new SpiritArrow();
+	}
+
+	public ALTSpiritArrow altknockArrow(){
+		return new ALTSpiritArrow();
+	}
+
+	public class ALTSpiritArrow extends MissileWeapon {
+
+		{
+			image = ItemSpriteSheet.SPIRIT_ALT_ARROW;
+
+			hitSound = Assets.Sounds.HIT_ARROW;
+		}
+
+		@Override
+		public Emitter emitter() {
+			if (Dungeon.hero.buff(NaturesPower.naturesPowerTracker.class) != null && !sniperSpecial){
+				Emitter e = new Emitter();
+				e.pos(5, 5);
+				e.fillTarget = false;
+				e.pour(LeafParticle.GENERAL, 0.01f);
+				return e;
+			} else {
+				return super.emitter();
+			}
+		}
+
+		@Override
+		public int damageRoll(Char owner) {
+			return SpiritBow.this.damageRoll(owner);
+		}
+		@Override
+		public int max(){
+			int damgeMuilt = 1;
+			if(hero.pointsInTalent(Talent.STORM_ATTACK) == 1){
+				damgeMuilt = 4;
+			} else if(hero.pointsInTalent(Talent.STORM_ATTACK) == 2){
+				damgeMuilt = 2;
+			}
+			return (SpiritBow.this.max()/damgeMuilt);
+		}
+		@Override
+		public int min(){
+			int damgeMuilt = 1;
+			if(hero.pointsInTalent(Talent.STORM_ATTACK) == 1){
+				damgeMuilt = 4;
+			} else if(hero.pointsInTalent(Talent.STORM_ATTACK) == 2){
+				damgeMuilt = 2;
+			}
+			return (SpiritBow.this.min()/damgeMuilt);
+		}
+		@Override
+		public boolean hasEnchant(Class<? extends Enchantment> type, Char owner) {
+			return SpiritBow.this.hasEnchant(type, owner);
+		}
+
+		@Override
+		public int proc(Char attacker, Char defender, int damage) {
+			return SpiritBow.this.proc(attacker, defender, damage);
+		}
+
+		@Override
+		public float delayFactor(Char user) {
+			return SpiritBow.this.delayFactor(user);
+		}
+
+		@Override
+		public float accuracyFactor(Char owner, Char target) {
+			if (sniperSpecial && SpiritBow.this.augment == Augment.DAMAGE){
+				return Float.POSITIVE_INFINITY;
+			} else {
+				return super.accuracyFactor(owner, target);
+			}
+		}
+
+		@Override
+		public int STRReq(int lvl) {
+			return SpiritBow.this.STRReq(lvl);
+		}
+
+		@Override
+		protected void onThrow( int cell ) {
+			Char enemy = Actor.findChar( cell );
+			if (enemy == null || enemy == curUser) {
+				parent = null;
+				Splash.at( cell, 0xCC99FFFF, 1 );
+			} else {
+				if (!curUser.shoot( enemy, this )) {
+					Splash.at(cell, 0xCC99FFFF, 1);
+				}
+				if (sniperSpecial && SpiritBow.this.augment != Augment.SPEED) sniperSpecial = false;
+			}
+		}
+
+		@Override
+		public void throwSound() {
+			Sample.INSTANCE.play( Assets.Sounds.ATK_SPIRITBOW, 1, Random.Float(0.87f, 1.15f) );
+		}
+
+		int flurryCount = -1;
+		Actor flurryActor = null;
+
+		@Override
+		public void cast(final Hero user, final int dst) {
+			final int cell = throwPos( user, dst );
+			SpiritBow.this.targetPos = cell;
+			if (sniperSpecial && SpiritBow.this.augment == Augment.SPEED){
+				if (flurryCount == -1) flurryCount = 3;
+
+				final Char enemy = Actor.findChar( cell );
+
+				if (enemy == null){
+					user.spendAndNext(castDelay(user, dst));
+					sniperSpecial = false;
+					flurryCount = -1;
+
+					if (flurryActor != null){
+						flurryActor.next();
+						flurryActor = null;
+					}
+					return;
+				}
+				QuickSlotButton.target(enemy);
+
+				final boolean last = flurryCount == 1;
+
+				user.busy();
+
+				throwSound();
+
+				((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
+						reset(user.sprite,
+								cell,
+								this,
+								new Callback() {
+									@Override
+									public void call() {
+										if (enemy.isAlive()) {
+											curUser = user;
+											onThrow(cell);
+										}
+
+										if (last) {
+											user.spendAndNext(castDelay(user, dst));
+											sniperSpecial = false;
+											flurryCount = -1;
+										}
+
+										if (flurryActor != null){
+											flurryActor.next();
+											flurryActor = null;
+										}
+									}
+								});
+
+				user.sprite.zap(cell, new Callback() {
+					@Override
+					public void call() {
+						flurryCount--;
+						if (flurryCount > 0){
+							Actor.add(new Actor() {
+
+								{
+									actPriority = VFX_PRIO-1;
+								}
+
+								@Override
+								protected boolean act() {
+									flurryActor = this;
+									int target = QuickSlotButton.autoAim(enemy, ALTSpiritArrow.this);
+									if (target == -1) target = cell;
+									cast(user, target);
+									Actor.remove(this);
+									return false;
+								}
+							});
+							curUser.next();
+						}
+					}
+				});
+
+			} else {
+
+				if (user.hasTalent(Talent.SEER_SHOT)
+						&& user.buff(Talent.SeerShotCooldown.class) == null){
+					int shotPos = throwPos(user, dst);
+					if (Actor.findChar(shotPos) == null) {
+						RevealedArea a = Buff.affect(user, RevealedArea.class, 5 * user.pointsInTalent(Talent.SEER_SHOT));
+						a.depth = Dungeon.depth;
+						a.pos = shotPos;
+						Buff.affect(user, Talent.SeerShotCooldown.class, 20f);
+					}
+				}
+
+				super.cast(user, dst);
+			}
+		}
 	}
 	
 	public class SpiritArrow extends MissileWeapon {
@@ -411,6 +626,16 @@ public class SpiritBow extends Weapon {
 											onThrow(cell);
 										}
 
+
+										//射技决斗 T3
+										int bonusTurns = Dungeon.hero.hasTalent(Talent.SHARED_UPGRADES) ? hero.belongings.weapon().buffedLvl() : 0;
+										if (enemy instanceof Mob && ((Mob) enemy).surprisedBy(hero)
+										&& hero.pointsInTalent(Talent.BOW_DULES)>=3) {
+											if(hero.buff(SnipersMark.class) == null){
+												Buff.prolong(hero, SnipersMark.class, SnipersMark.DURATION + bonusTurns).set(enemy.id(), bonusTurns);
+											}
+										}
+
 										flurryCount--;
 										if (flurryCount > 0){
 											Actor.add(new Actor() {
@@ -466,12 +691,19 @@ public class SpiritBow extends Weapon {
 			}
 		}
 	}
-	
+
 	private CellSelector.Listener shooter = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer target ) {
 			if (target != null) {
 				knockArrow().cast(curUser, target);
+
+				if(Dungeon.hero != null){
+					if(Dungeon.hero.hasTalent(Talent.STORM_ATTACK)){
+						StormAttackArrow arrow = new StormAttackArrow();
+						arrow.cast(Dungeon.hero,target);
+					}
+				}
 			}
 		}
 		@Override

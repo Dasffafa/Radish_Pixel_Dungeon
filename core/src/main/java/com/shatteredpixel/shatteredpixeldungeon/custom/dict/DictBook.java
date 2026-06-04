@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.dict;
 
+import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.custom.ch.ChallengeItem;
@@ -222,7 +223,7 @@ public class DictBook extends ChallengeItem {
 
             public boolean onClick(float x, float y) {
                 if (inside(x, y)) {
-                    GameScene.show(new WndScrollTitledMessage(new Image(icon), M.TL(Dict.class, k ), M.L(Dict.class, k + "_d"), 152));
+                    GameScene.show(new WndScrollTitledMessage(new Image(icon), M.TL(Dict.class, k ), M.L(Dict.class, k + "_d"), 152, Chrome.Type.WINDOW));
                     return true;
                 }
                 return false;

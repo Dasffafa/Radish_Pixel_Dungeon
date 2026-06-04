@@ -21,20 +21,14 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
-import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EliteBadge;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Wayward;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.BArray;
 import com.watabou.noosa.Image;
@@ -43,7 +37,6 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 import java.util.HashSet;
-import java.util.function.ToDoubleBiFunction;
 
 public abstract class ChampionHero extends Buff {
 
@@ -157,6 +150,8 @@ public abstract class ChampionHero extends Buff {
             case 3:             buffCls = Giant.class;        break;
             case 4:             buffCls = Blessed.class;      break;
             case 5:             buffCls = Growing.class;      break;
+
+            case 6:             buffCls = BattleRector.class;      break;
         }
         Buff.affect(hero, buffCls).set(dur);
     }
@@ -182,6 +177,27 @@ public abstract class ChampionHero extends Buff {
         }
     }
 
+    public static class BattleRector extends ChampionHero {
+
+        {
+            color = 0x00EEEE;
+        }
+
+        @Override
+        public int icon() {
+            return BuffIndicator.AMULET;
+        }
+
+        @Override
+        public float meleeDamageFactor() {
+            return 1.25f;
+        }
+        @Override
+        public float damageTakenFactor() {
+            return 0.75f;
+        }
+    }
+
     public static class Projecting extends ChampionHero {
 
         {
@@ -194,15 +210,8 @@ public abstract class ChampionHero extends Buff {
         }
 
         @Override
-        public boolean canAttackWithExtraReach( Char enemy ) {
-            boolean[] passable = BArray.not(Dungeon.level.solid, null);
-
-            PathFinder.buildDistanceMap(enemy.pos, passable, 12);
-
-            return PathFinder.distance[target.pos] <= 12 && target.fieldOfView[enemy.pos];
-
-
-
+        public boolean canAttackWithExtraReach( Char hero ) {
+            return target.fieldOfView[hero.pos]; //if it can see it, it can attack it.
         }
     }
         //TODO

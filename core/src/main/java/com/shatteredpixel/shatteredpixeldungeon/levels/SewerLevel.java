@@ -26,11 +26,15 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MoonLight;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.SewerPainter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.BlessScrollRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SmallGrassEnterRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.AlarmTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.ChillingTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.ConfusionTrap;
@@ -57,6 +61,8 @@ import com.watabou.utils.ColorMath;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
+import java.util.ArrayList;
+
 public class SewerLevel extends RegularLevel {
 
 	{
@@ -80,14 +86,28 @@ public class SewerLevel extends RegularLevel {
 			Music.INSTANCE.playTracks(SEWER_TRACK_LIST, SEWER_TRACK_CHANCES, false);
 		}
 	}
-	
+
+	@Override
+	protected ArrayList<Room> initRooms() {
+		ArrayList<Room> initRooms = super.initRooms();
+		if(Dungeon.depth == 2){
+			if(Dungeon.branch == 0){
+				initRooms.add(new SmallGrassEnterRoom());
+			}
+			if((Dungeon.branch == 2)){
+				initRooms.add(new BlessScrollRoom());
+			}
+		}
+		return initRooms;
+	}
+
 	@Override
 	protected int standardRooms(boolean forceMax) {
 		if (forceMax) return 6;
 		//4 to 6, average 5
 		return 4+Random.chances(new float[]{1, 3, 1});
 	}
-	
+
 	@Override
 	protected int specialRooms(boolean forceMax) {
 		if (forceMax) return 2;
@@ -135,7 +155,15 @@ public class SewerLevel extends RegularLevel {
 
 	@Override
 	protected void createMobs() {
-		Ghost.Quest.spawn( this, roomExit );
+		if(Dungeon.branch == 0){
+			Ghost.Quest.spawn( this, roomExit );
+		}
+		if(Dungeon.depth == 1 ){
+			MoonLight npc18 = new MoonLight();
+			npc18.pos = entrance()-1;
+			mobs.add(npc18);
+		}
+
 		super.createMobs();
 	}
 	

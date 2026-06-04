@@ -41,7 +41,7 @@ public class Entanglement extends Glyph {
 	public int proc(Armor armor, Char attacker, final Char defender, final int damage ) {
 
 		final int level = Math.max( 0, armor.buffedLvl() );
-		float procChance = 1/4f * procChanceMultiplier(defender);
+		float procChance = 1/4f * procChanceMultiplier(defender)*defender.talentProc();
 
 		if (Random.Float() < procChance) {
 

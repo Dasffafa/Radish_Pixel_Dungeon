@@ -58,6 +58,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.quest.GooBlob;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.MetalShard;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfBlessGoTend;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.Alchemize;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.BeaconOfReturning;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.CurseInfusion;
@@ -71,14 +72,22 @@ import com.shatteredpixel.shatteredpixeldungeon.items.spells.TelekineticGrab;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.WildEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.Runestone;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfFear;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ChaoticCenser;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundial;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.EyeOfNewt;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MossyClump;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.PetrifiedSeed;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RatSkull;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.SaltCube;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ThirteenLeafClover;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrapMechanism;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Trinket;
@@ -167,6 +176,7 @@ public class SpawnMisc extends TestItem {
             for (int i = 0; i < Generator.Category.SCROLL.classes.length; i++) {
                 scrollList.add((Class<? extends Scroll>) Generator.Category.SCROLL.classes[i]);
             }
+            scrollList.add(ScrollOfBlessGoTend.class);
         }
 
         if(exoticScrollList.isEmpty()) {
@@ -245,7 +255,7 @@ public class SpawnMisc extends TestItem {
             foodList.add(PhantomMeat.class);
         }
 
-        //Book
+        //trList
         if(trList.isEmpty()) {
             trList.add(DimensionalSundial.class);
             trList.add(ExoticCrystals.class);
@@ -258,6 +268,16 @@ public class SpawnMisc extends TestItem {
             trList.add(ThirteenLeafClover.class);
             trList.add(TrapMechanism.class);
             trList.add(WondrousResin.class);
+
+            trList.add(ChaoticCenser.class);
+            trList.add(SaltCube.class);
+            trList.add(ShardOfOblivion.class);
+
+            trList.add(Sprouted_Potato.class);
+            trList.add(Radish.class);
+            trList.add(GoldRadish.class);
+            trList.add(LightKing.class);
+            trList.add(RiverCrystal.class);
         }
 
         //Misc

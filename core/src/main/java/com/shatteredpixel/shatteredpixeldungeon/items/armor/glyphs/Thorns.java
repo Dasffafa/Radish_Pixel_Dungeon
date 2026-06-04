@@ -40,7 +40,7 @@ public class Thorns extends Armor.Glyph {
 		// lvl 0 - 16.7%
 		// lvl 1 - 23.1%
 		// lvl 2 - 28.5%
-		float procChance = (level+2f)/(level+12f) * procChanceMultiplier(defender);
+		float procChance = (level+2f)/(level+12f) * procChanceMultiplier(defender)*defender.talentProc();
 		if ( Random.Float() < procChance ) {
 
 			float powerMulti = Math.max(1f, procChance);

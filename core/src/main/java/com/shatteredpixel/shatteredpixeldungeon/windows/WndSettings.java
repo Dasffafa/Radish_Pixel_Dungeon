@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.SeedFindScene;
 import com.shatteredpixel.shatteredpixeldungeon.services.news.News;
 import com.shatteredpixel.shatteredpixeldungeon.services.updates.Updates;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -418,6 +419,8 @@ public class WndSettings extends WndTabbed {
 		ColorBlock sep2;
 		CheckBox chkFont;
 		CheckBox chkVibrate;
+		CheckBox origri_map;
+		CheckBox origri_normal;
 
 		@Override
 		protected void createChildren() {
@@ -651,6 +654,26 @@ public class WndSettings extends WndTabbed {
 				chkVibrate.checked(SPDSettings.vibration());
 			}
 			add(chkVibrate);
+
+			origri_map = new CheckBox(Messages.get(this, "origin_map")){
+				@Override
+				protected void onClick() {
+					super.onClick();
+					SPDSettings.origin_map(checked());
+				}
+			};
+			origri_map.checked(SPDSettings.origin_map());
+			add(origri_map);
+
+			origri_normal = new CheckBox(Messages.get(this, "origin_normal")){
+				@Override
+				protected void onClick() {
+					super.onClick();
+					SPDSettings.NORMAL_SKIN(checked());
+				}
+			};
+			origri_normal.checked(SPDSettings.NORMAL_SKIN());
+			add(origri_normal);
 		}
 
 		@Override
@@ -691,14 +714,16 @@ public class WndSettings extends WndTabbed {
 			if (width > 200) {
 				chkFont.setRect(0, sep2.y + 1 + GAP, width/2-1, BTN_HEIGHT);
 				chkVibrate.setRect(chkFont.right()+2, chkFont.top(), width/2-1, BTN_HEIGHT);
-				height = chkVibrate.bottom();
-
-			} else {
+				origri_map.setRect(0, chkVibrate.bottom(), width/2-1, BTN_HEIGHT);
+				origri_normal.setRect(origri_map.right()+2, origri_map.top(), width/2-1, BTN_HEIGHT);
+            } else {
 				chkFont.setRect(0, sep2.y + 1 + GAP, width, BTN_HEIGHT);
 				chkVibrate.setRect(0, chkFont.bottom() + GAP, width, BTN_HEIGHT);
-				height = chkVibrate.bottom();
-			}
-		}
+				origri_map.setRect(0, chkVibrate.bottom() + GAP, width, BTN_HEIGHT);
+				origri_normal.setRect(0, origri_map.bottom() + GAP, width, BTN_HEIGHT);
+            }
+            height = origri_normal.bottom();
+        }
 
 	}
 
@@ -832,7 +857,7 @@ public class WndSettings extends WndTabbed {
 		CheckBox chkUpdates;
 		CheckBox chkBetas;
 		CheckBox chkWifi;
-
+		OptionSlider seedFindMaxDepth;
 		@Override
 		protected void createChildren() {
 			title = PixelScene.renderTextBlock(Messages.get(this, "title"), 9);
@@ -890,6 +915,21 @@ public class WndSettings extends WndTabbed {
 				chkWifi.checked(SPDSettings.WiFi());
 				add(chkWifi);
 			}
+
+			seedFindMaxDepth = new OptionSlider(Messages.get(SeedFindScene.class, "depth"),"1","24",1,24 ) {
+				@Override
+				protected void onChange() {
+					if (getSelectedValue() != SPDSettings.getKeySeedDepth()) {
+						SPDSettings.setKeySeeddepth(getSelectedValue());
+					}
+				}
+				@Override
+				public int getTitleTextSize(){
+					return 6;
+				}
+			};
+			seedFindMaxDepth.setSelectedValue(SPDSettings.getKeySeedDepth());
+			add(seedFindMaxDepth);
 		}
 
 		@Override
@@ -921,6 +961,9 @@ public class WndSettings extends WndTabbed {
 				chkWifi.setRect(0, pos + GAP, width, BTN_HEIGHT);
 				pos = chkWifi.bottom();
 			}
+
+			seedFindMaxDepth.setRect(0, pos + GAP, width, BTN_HEIGHT);
+			pos = seedFindMaxDepth.bottom();
 
 			height = pos;
 

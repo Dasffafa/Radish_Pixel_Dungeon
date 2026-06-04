@@ -24,8 +24,10 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CircleArc;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -60,6 +62,11 @@ public class StatusPane extends Component {
 	private Image rawShielding;
 	private Image shieldedHP;
 	private Image hp;
+
+	// DoggingDog on 20250511
+	private Image vitae;
+	private BitmapText vitaeText;
+
 	private BitmapText hpText;
 	private Button heroInfoOnBar;
 
@@ -76,7 +83,7 @@ public class StatusPane extends Component {
 	private BusyIndicator busy;
 	private CircleArc counter;
 
-	private static String asset = Assets.Interfaces.STATUS;
+	private static String asset =  !SPDSettings.NORMAL_SKIN() ? Assets.Interfaces.STATUS : Assets.Interfaces.NORMAL_STATUS;
 
 	private boolean large;
 
@@ -128,6 +135,18 @@ public class StatusPane extends Component {
 		if (large)  hp = new Image(asset, 0, 103, 128, 9);
 		else        hp = new Image(asset, 0, 36, 50, 4);
 		add( hp );
+
+		// DoggingDog on 20250511
+		if(large) vitae =new Image(asset, 0, 121, 128, 9);
+		else        vitae = new Image(asset, 0, 121, 128, 4);
+		add(vitae);
+
+		vitaeText = new BitmapText(PixelScene.pixelFont);
+		vitaeText.alpha(0.6f);
+		if(large)
+			add(vitaeText);
+
+		//
 
 		hpText = new BitmapText(PixelScene.pixelFont);
 		hpText.alpha(0.6f);
@@ -195,9 +214,18 @@ public class StatusPane extends Component {
 			hp.x = shieldedHP.x = rawShielding.x = x + 30;
 			hp.y = shieldedHP.y = rawShielding.y = y + 19;
 
+			// DoggingDog on 20250511
+			vitae.x = hp.x;
+			vitae.y = hp.y;
+
 			hpText.x = hp.x + (128 - hpText.width())/2f;
 			hpText.y = hp.y + 1;
 			PixelScene.align(hpText);
+
+			// DoggingDog on 20250511
+			vitaeText.x = vitae.x + vitae.width()/2f - vitaeText.width()/2f;
+			vitaeText.y = vitae.y + 1;
+			PixelScene.align(vitaeText);
 
 			expText.x = exp.x + (128 - expText.width())/2f;
 			expText.y = exp.y;
@@ -215,6 +243,10 @@ public class StatusPane extends Component {
 
 			hp.x = shieldedHP.x = rawShielding.x = x + 30;
 			hp.y = shieldedHP.y = rawShielding.y = y + 3;
+
+			// DoggingDog on 20250511
+			vitae.x = hp.x;
+			vitae.y = hp.y;
 
 			hpText.scale.set(PixelScene.align(0.5f));
 			hpText.x = hp.x + 1;
@@ -239,6 +271,11 @@ public class StatusPane extends Component {
 	private int oldShield = 0;
 	private int oldMax = 0;
 
+	private int oldvt = 0;
+
+	// DoggingDog on 20250511
+	private int oldVitae = 0;
+
 	@Override
 	public void update() {
 		super.update();
@@ -246,6 +283,9 @@ public class StatusPane extends Component {
 		int health = Dungeon.hero.HP;
 		int shield = Dungeon.hero.shielding();
 		int max = Dungeon.hero.HT;
+
+		// DoggingDog on 20250511
+		int vt = Dungeon.hero.getVitae();
 
 		if (!Dungeon.hero.isAlive()) {
 			avatar.tint(0x000000, 0.5f);
@@ -263,28 +303,58 @@ public class StatusPane extends Component {
 		hp.scale.x = Math.max( 0, (health-shield)/(float)max);
 		shieldedHP.scale.x = health/(float)max;
 
+		// DoggingDog on 20250511
+		float vitaeMax = hp.scale.x/6f;
+		float vitaeSpan = 0;
+		for(VitaeBuff s:Dungeon.hero.buffs(VitaeBuff.class)){
+			vitaeSpan += (float) s.maxVitae;
+		}
+		vitae.scale.x = vitaeMax/vitaeSpan * Math.min(vitaeSpan,vt);
+
 		if (shield > health) {
 			rawShielding.scale.x = Math.min(1, shield / (float) max);
 		} else {
 			rawShielding.scale.x = 0;
 		}
 
-		if (oldHP != health || oldShield != shield || oldMax != max){
-			if (shield <= 0) {
-				hpText.text(health + "/" + max);
-			} else {
+		if (oldHP != health || oldShield != shield || oldMax != max || oldvt != vt) {
+			if (shield > 0 && vt > 0) {
+				hpText.text(health + "+" + vt + "+" + shield + "/" + max);
+			} else if (shield > 0) {
 				hpText.text(health + "+" + shield + "/" + max);
+			} else if (vt > 0) {
+				hpText.text(health + "+" + vt + "/" + max);
+			} else {
+				hpText.text(health + "/" + max);
 			}
 			oldHP = health;
 			oldShield = shield;
 			oldMax = max;
+			oldvt = vt;
 		}
+
+
+		// DoggingDog on 20250511
+		if(oldVitae != vt){
+			oldVitae = vt;
+		}
+		if(!large){
+			vitaeText.text("");
+		}
+		if(vitae.width() > 0)
+			vitaeText.text(vt+"");
+		else
+			vitaeText.text("");
 
 		if (large) {
 			exp.scale.x = (128 / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
 
 			hpText.measure();
 			hpText.x = hp.x + (128 - hpText.width())/2f;
+
+			// DoggingDog on 20250511
+			vitaeText.measure();
+			vitaeText.x = vitae.x + vitae.width()/2 - vitaeText.width()/2;
 
 			expText.text(Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
 			expText.measure();
@@ -316,7 +386,7 @@ public class StatusPane extends Component {
 			PixelScene.align(level);
 		}
 
-		int tier = Dungeon.hero.tier();
+		int tier = Dungeon.hero.tier_for_image();
 		if (tier != lastTier) {
 			lastTier = tier;
 			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
@@ -348,4 +418,7 @@ public class StatusPane extends Component {
 		emitter.burst( Speck.factory( Speck.STAR ), 12 );
 	}
 
+	public void updateAvatar(){
+		avatar.copy( HeroSprite.avatar( Dungeon.hero ) );
+	}
 }

@@ -25,6 +25,9 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.ChaliceOfBlood;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ChaoticCenser;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.SaltCube;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Sprouted_Potato;
 import com.watabou.utils.Bundle;
 
 public class Regeneration extends Buff {
@@ -60,8 +63,23 @@ public class Regeneration extends Buff {
 	public boolean act() {
 		if (target.isAlive()) {
 
+			//if other trinkets ever get buffs like this should probably make the buff attaching
+			// behaviour more like wands/rings/artifacts
+			if (ChaoticCenser.averageTurnsUntilGas() != -1){
+				Buff.affect(Dungeon.hero, ChaoticCenser.CenserGasTracker.class);
+			}
+
+			//cancel regenning entirely in thie case
+			if (SaltCube.healthRegenMultiplier() == 0){
+				spend(REGENERATION_DELAY);
+				return true;
+			}
+
 			if (target.HP < regencap() && !((Hero)target).isStarving()) {
 				if (regenOn()) {
+					if (target.buff(Sprouted_Potato.Potato_Poison.class)!=null){
+						target.buff(Sprouted_Potato.Potato_Poison.class).reduce(1*Sprouted_Potato.regenerationMultiplier());
+					}
 					target.HP += 1;
 					if (target.HP == regencap()) {
 						((Hero) target).resting = false;
@@ -81,14 +99,15 @@ public class Regeneration extends Buff {
 					delay /= RingOfEnergy.artifactChargeMultiplier(target);
 				}
 			}
+			delay /= SaltCube.healthRegenMultiplier();
 			spend( delay );
-			
+
 		} else {
-			
+
 			diactivate();
-			
+
 		}
-		
+
 		return true;
 	}
 	

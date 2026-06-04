@@ -21,22 +21,28 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
+import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.TippedDart;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -44,11 +50,13 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
@@ -67,7 +75,7 @@ public class Item implements Bundlable {
 	public static final String AC_DROP		= "DROP";
 	public static final String AC_THROW		= "THROW";
 	
-	protected String defaultAction;
+	public String defaultAction;
 	public boolean usesTargeting;
 	public boolean curseInfusionBonus = false;
 
@@ -79,7 +87,7 @@ public class Item implements Bundlable {
 	protected int quantity = 1;
 	public boolean dropsDownHeap = false;
 	
-	private int level = 0;
+	public int level = 0;
 
 	public boolean levelKnown = false;
 	
@@ -119,6 +127,15 @@ public class Item implements Bundlable {
 	}
 
 	public boolean doPickUp(Hero hero, int pos) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero !=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return false;
+		}
+		//
+
 		if (collect( hero.belongings.backpack )) {
 			
 			GameScene.pickUp( this, pos );
@@ -126,6 +143,30 @@ public class Item implements Bundlable {
 			hero.spendAndNext( TIME_TO_PICK_UP );
 			return true;
 			
+		} else {
+			return false;
+		}
+	}
+
+
+	public final boolean doPickUpInstantly(Hero hero){return doPickUpInstantly(hero,hero.pos);}
+
+	public boolean doPickUpInstantly (Hero hero,int pos){
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero !=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return false;
+		}
+		//
+
+		if (collect( hero.belongings.backpack )) {
+
+			GameScene.pickUp( this, pos );
+			Sample.INSTANCE.play( Assets.Sounds.ITEM );
+			return true;
+
 		} else {
 			return false;
 		}
@@ -151,6 +192,15 @@ public class Item implements Bundlable {
 	}
 	
 	public void execute( Hero hero, String action ) {
+
+		// func 4 Muramasa mania
+		// DoggingDog on 20250419
+		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero !=null){
+			GLog.n(Messages.get(Muramasa.MuramasaMania.class,"mania"));
+			return;
+		}
+		//
+
 
 		GameScene.cancel();
 		curUser = hero;
@@ -228,9 +278,9 @@ public class Item implements Bundlable {
 				if (isSimilar( item )) {
 					item.merge( this );
 					item.updateQuickslot();
-					if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
+					if (hero != null && hero.isAlive()) {
 						Badges.validateItemLevelAquired( this );
-						Talent.onItemCollected(Dungeon.hero, item);
+						Talent.onItemCollected(hero, item);
 						if (isIdentified()) Catalog.setSeen(getClass());
 					}
 					if (TippedDart.lostDarts > 0){
@@ -243,7 +293,7 @@ public class Item implements Bundlable {
 								{ actPriority = VFX_PRIO; }
 								@Override
 								protected boolean act() {
-									Dungeon.level.drop(d, Dungeon.hero.pos).sprite.drop();
+									Dungeon.level.drop(d, hero.pos).sprite.drop();
 									Actor.remove(this);
 									return true;
 								}
@@ -255,9 +305,9 @@ public class Item implements Bundlable {
 			}
 		}
 
-		if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
+		if (hero != null && hero.isAlive()) {
 			Badges.validateItemLevelAquired( this );
-			Talent.onItemCollected( Dungeon.hero, this );
+			Talent.onItemCollected( hero, this );
 			if (isIdentified()) Catalog.setSeen(getClass());
 		}
 
@@ -270,7 +320,7 @@ public class Item implements Bundlable {
 	}
 	
 	public boolean collect() {
-		return collect( Dungeon.hero.belongings.backpack );
+		return collect( hero.belongings.backpack );
 	}
 	
 	//returns a new item if the split was sucessful and there are now 2 items, otherwise null
@@ -369,13 +419,28 @@ public class Item implements Bundlable {
 	public int level(){
 		return level;
 	}
-	
+
 	//returns the level of the item, after it may have been modified by temporary boosts/reductions
 	//note that not all item properties should care about buffs/debuffs! (e.g. str requirement)
 	public int buffedLvl(){
+
+//		// DoggingDog on 20250818
+//		if (hero != null && hero.buff( Degrade.class ) != null
+//				&& (isEquipped( hero ) || hero.belongings.contains( this )) && hero.hasTalent(Talent.GIFT)) {
+//			if(hero.buff(Bless.class)!= null)
+//				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
+//			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,Degrade.reduceLevel(level()));
+//		}
+//		else if(hero.hasTalent(Talent.GIFT)){
+//			if(hero.buff(Bless.class)!= null)
+//				return Math.max(hero.pointsInTalent(Talent.GIFT)+3,Degrade.reduceLevel(level()));
+//			return Math.max(hero.pointsInTalent(Talent.GIFT)+1,level());
+//		}
+//		//
+
 		//only the hero can be affected by Degradation
-		if (Dungeon.hero.buff( Degrade.class ) != null
-			&& (isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this ))) {
+		if (hero != null && hero.buff( Degrade.class ) != null
+				&& (isEquipped( hero ) || hero.belongings.contains( this ))) {
 			return Degrade.reduceLevel(level());
 		} else {
 			return level();
@@ -450,9 +515,9 @@ public class Item implements Bundlable {
 
 	public Item identify( boolean byHero ) {
 
-		if (byHero && Dungeon.hero != null && Dungeon.hero.isAlive()){
+		if (byHero && hero != null && hero.isAlive()){
 			Catalog.setSeen(getClass());
-			if (!isIdentified()) Talent.onItemIdentified(Dungeon.hero, this);
+			if (!isIdentified()) Talent.onItemIdentified(hero, this);
 		}
 
 		levelKnown = true;
@@ -493,19 +558,45 @@ public class Item implements Bundlable {
 	}
 	
 	public int image() {
+		if (SnakeBiteChallengeManager.shouldReplaceItemSprite(this)) {
+			return com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.SNAKE_BITE;
+		}
 		return image;
 	}
-	
+
 	public ItemSprite.Glowing glowing() {
 		return null;
 	}
 
+	// Snake Bite challenge: hide item type icon (right top corner)
+	// Skip if hero is dead (for rankings/death screen)
+	// Test mode items should always show their original icons
+	public int icon() {
+		if (SnakeBiteChallengeManager.shouldReplaceItemSprite(this)
+				&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem)) {
+			return -1;
+		}
+		return icon;
+	}
+
 	public Emitter emitter() { return null; }
-	
+
 	public String info() {
+
+		if (hero != null) {
+			Notes.CustomRecord note;
+			if (this instanceof EquipableItem) {
+				note = Notes.findCustomRecord(((EquipableItem) this).customNoteID);
+			} else {
+				note = Notes.findCustomRecord(getClass());
+			}
+			if (note != null){
+				return Messages.get(this, "custom_note", note.title()) + "\n\n" + desc();
+			}
+		}
 		return desc();
 	}
-	
+
 	public String desc() {
 		return Messages.get(this, "desc");
 	}
@@ -587,7 +678,7 @@ public class Item implements Bundlable {
 		cursed	= bundle.getBoolean( CURSED );
 
 		//only want to populate slot on first load.
-		if (Dungeon.hero == null) {
+		if (hero == null) {
 			if (bundle.contains(QUICKSLOT)) {
 				Dungeon.quickslot.setSlot(bundle.getInt(QUICKSLOT), this);
 			}
@@ -603,6 +694,8 @@ public class Item implements Bundlable {
 	public int throwPos( Hero user, int dst){
 		return new Ballistica( user.pos, dst, Ballistica.PROJECTILE ).collisionPos;
 	}
+
+
 
 	public void throwSound(){
 		Sample.INSTANCE.play(Assets.Sounds.MISS, 0.6f, 0.6f, 1.5f);
@@ -671,14 +764,61 @@ public class Item implements Bundlable {
 					});
 		}
 	}
-	
+
+	public void castOnlyEnemy( final Hero user, final int dst ) {
+
+		final int cell = thrownoEnemyPos( user, dst );
+		user.sprite.zap( cell );
+		user.busy();
+
+		throwSound();
+
+		final float delay = castDelay(user, dst);
+
+		((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
+				reset(user.sprite,
+						cell,
+						this,
+						new Callback() {
+							@Override
+							public void call() {
+								curUser = user;
+								Item i = Item.this.detach(user.belongings.backpack);
+								if (i != null) i.onThrow(cell);
+								user.spendAndNext(delay);
+								addBleedingEffect(cell);
+							}
+						});
+		Char enemy = Actor.findChar( cell );
+		if (enemy != null) {
+			QuickSlotButton.target(enemy);
+		}
+	}
+
+	private void addBleedingEffect(int targetCell) {
+		for (int n : PathFinder.NEIGHBOURS9) {
+			Char enemy = Actor.findChar(targetCell + n);
+			if (enemy != null) {
+				if(enemy != hero){
+					if(enemy.alignment == Char.Alignment.ENEMY) {
+						Buff.affect(enemy, Bleeding.class).set(Dungeon.depth + 3);
+					}
+				}
+			}
+		}
+	}
+
+	public int thrownoEnemyPos( Hero user, int dst){
+		return new Ballistica( user.pos, dst, Ballistica.STOP_TARGET ).collisionPos;
+	}
+
 	public float castDelay( Char user, int dst ){
 		return TIME_TO_THROW;
 	}
 	
-	protected static Hero curUser = null;
-	protected static Item curItem = null;
-	protected static CellSelector.Listener thrower = new CellSelector.Listener() {
+	public static Hero curUser = null;
+	public static Item curItem = null;
+	public static CellSelector.Listener thrower = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer target ) {
 			if (target != null) {

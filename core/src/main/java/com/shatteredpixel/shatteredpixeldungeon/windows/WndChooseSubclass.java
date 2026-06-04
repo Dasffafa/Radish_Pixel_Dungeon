@@ -78,6 +78,7 @@ public class WndChooseSubclass extends Window {
 					});
 				}
 			};
+
 			btnCls.leftJustify = true;
 			btnCls.multiline = true;
 			btnCls.setSize(WIDTH-20, btnCls.reqHeight()+2);

@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Artillerist;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.ClusteredSkeleton;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.DM175;
@@ -68,10 +69,18 @@ public class Bestiary {
 						Rat.class, Rat.class, Rat.class,
 						Snake.class, GiantWorm.class, GiantWorm.class));
 			case 2:
-				//2x rat, 1x snake, 2x gnoll
-				return new ArrayList<>(Arrays.asList(Rat.class, Rat.class,
-						Snake.class,
-						Gnoll.class, Gnoll.class, GiantWorm.class, Mayfly.class));
+				if(Dungeon.branch == 2){
+					return new ArrayList<>(Arrays.asList(
+							Frog.class, Frog.class, Frog.class,
+							Goblin.class,Goblin.class,Goblin.class));
+				} else if(Dungeon.branch == 1){
+					return new ArrayList<>(Arrays.asList(Frog.class, Frog.class, Frog.class));
+				} else {
+					//2x rat, 1x snake, 2x gnoll
+					return new ArrayList<>(Arrays.asList(Rat.class, Rat.class,
+							Snake.class,
+							Gnoll.class, Gnoll.class, GiantWorm.class, Mayfly.class));
+				}
 			case 3:
 				//1x rat, 1x snake, 3x gnoll, 1x swarm, 1x crab
 				return new ArrayList<>(Arrays.asList(Rat.class,

@@ -41,7 +41,7 @@ public class Repulsion extends Armor.Glyph {
 		// lvl 0 - 20%
 		// lvl 1 - 33%
 		// lvl 2 - 43%
-		float procChance = (level+1f)/(level+5f) * procChanceMultiplier(defender);
+		float procChance = (level+1f)/(level+5f) * procChanceMultiplier(defender)*defender.talentProc();
 		if (Dungeon.level.adjacent(attacker.pos, defender.pos) && Random.Float() < procChance){
 
 			float powerMulti = Math.max(1f, procChance);

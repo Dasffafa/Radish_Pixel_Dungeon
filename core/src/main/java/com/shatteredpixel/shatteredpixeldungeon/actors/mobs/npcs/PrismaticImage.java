@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Brimstone;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfAccuracy;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfBenediction;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEvasion;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -222,14 +223,22 @@ public class PrismaticImage extends NPC {
 		}
 		return super.speed();
 	}
-	
+
 	@Override
 	public int attackProc( Char enemy, int damage ) {
-		
+
 		if (enemy instanceof Mob) {
 			((Mob)enemy).aggro( this );
 		}
-		
+		float to_heal=1f;
+		Buff ben=hero.buff(RingOfBenediction.Benediction.class);
+		if (ben!=null){
+			to_heal*=RingOfBenediction.periodMultiplier(hero);
+		}
+		if (to_heal>1.2f){
+			to_heal/=1.3f;
+			HP=Math.min(HT,HP+Math.round(to_heal));
+		}
 		return super.attackProc( enemy, damage );
 	}
 	

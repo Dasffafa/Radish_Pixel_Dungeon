@@ -72,6 +72,8 @@ public class GnollGeomancer extends Mob {
 		//acts after other mobs, just like sappers
 		actPriority = MOB_PRIO-1;
 
+		properties.add(Property.GNOLL);
+
 		SLEEPING = new Sleeping();
 		HUNTING = new Hunting();
 		state = SLEEPING;
@@ -255,7 +257,7 @@ public class GnollGeomancer extends Mob {
 
 	@Override
 	public void damage(int dmg, Object src) {
-		int hpBracket = HT / 3;
+		int hpBracket = (HT == 0 ? 3 : HT) / 3;
 
 		int curbracket = HP / hpBracket;
 		if (curbracket == 3) curbracket--; //full HP isn't its own bracket

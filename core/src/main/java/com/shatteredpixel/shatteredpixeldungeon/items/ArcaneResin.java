@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
+import com.shatteredpixel.shatteredpixeldungeon.items.spells.UnstableSpell;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -181,6 +182,55 @@ public class ArcaneResin extends Item {
 			}
 
 			return output;
+		}
+	}
+
+	public static class TalentRecipe extends com.shatteredpixel.shatteredpixeldungeon.items.Recipe {
+
+		@Override
+		public boolean testIngredients(ArrayList<Item> ingredients) {
+
+			if (ingredients.size() != 3) {
+				return false;
+			}
+
+			boolean allArcaneCatalysts = true;
+
+			if(!(Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 4)){
+				allArcaneCatalysts = false;
+			}
+
+			for (Item ingredient : ingredients) {
+				if (!(ingredient instanceof UnstableSpell && ingredient.quantity() >= 1)) {
+					allArcaneCatalysts = false;
+					break;
+				}
+			}
+
+			return allArcaneCatalysts;
+		}
+
+		@Override
+		public int cost(ArrayList<Item> ingredients) {
+			return 6;
+		}
+
+		@Override
+		public Item brew(ArrayList<Item> ingredients) {
+			if (!testIngredients(ingredients) && !(Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 4)) return null;
+
+			for (Item ingredient : ingredients) {
+				ingredient.quantity(ingredient.quantity() - 1);
+			}
+
+			Item result = new ArcaneResin();
+			result.identify();
+			return result;
+		}
+
+		@Override
+		public Item sampleOutput(ArrayList<Item> ingredients) {
+			return new ArcaneResin();
 		}
 	}
 

@@ -41,7 +41,7 @@ public class ScrollOfPassage extends ExoticScroll {
 
 		detach(curUser.belongings.backpack);
 		identify();
-		readAnimation();
+		readAnimation(true);
 		
 		if (!Dungeon.interfloorTeleportAllowed()) {
 			

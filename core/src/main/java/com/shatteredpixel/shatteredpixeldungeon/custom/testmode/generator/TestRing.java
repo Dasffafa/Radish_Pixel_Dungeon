@@ -26,11 +26,14 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfCorruption;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfDisintegration;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFireblast;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFrost;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfGnollKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfNewStar;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfPrismaticLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfShockBomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfTransfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -137,8 +140,6 @@ public class TestRing extends TestGenerator {
 
     private Class<? extends Ring> idToRing(int id) {
         switch (id) {
-            case 0:
-                return RingOfConcentration.class;
             case 1:
                 return RingOfElements.class;
             case 2:
@@ -164,6 +165,7 @@ public class TestRing extends TestGenerator {
             case 12:
                 return RingOfKing.class;
             case 13:
+                return RingOfConcentration.class;
             default:
                 return RingOfBenediction.class;
         }
@@ -171,8 +173,6 @@ public class TestRing extends TestGenerator {
 
     private Class<? extends Wand> idToWand(int id) {
         switch (id) {
-            case 0:
-                return WandOfBlastWave.class;
             case 1:
                 return WandOfCorrosion.class;
             case 2:
@@ -196,8 +196,15 @@ public class TestRing extends TestGenerator {
             case 11:
                 return WandOfTransfusion.class;
             case 12:
-            default:
+                return WandOfGnollKing.class;
+            case 13:
+                return WandOfNewStar.class;
+            case 14:
                 return WandOfWarding.class;
+            case 15:
+                return WandOfShockBomb.class;
+            default:
+                return WandOfBlastWave.class;
         }
 
     }
@@ -207,21 +214,21 @@ public class TestRing extends TestGenerator {
 
     private void buildRingList() {
         if (!ringList.isEmpty()) return;
-        for (int i = 0; i < 13; ++i) {
+        for (int i = 0; i < 14; ++i) {
             ringList.add(idToRing(i));
         }
     }
 
     private void buildWandList() {
         if (!wandList.isEmpty()) return;
-        for (int i = 0; i < 13; ++i) {
+        for (int i = 0; i < 16; ++i) {
             wandList.add(idToWand(i));
         }
     }
 
     private int total(int category){
-        if (category == RING_CAT) return 13;
-        if (category == WAND_CAT) return 13;
+        if (category == RING_CAT) return 14;
+        if (category == WAND_CAT) return 16;
         return 0;
     }
 

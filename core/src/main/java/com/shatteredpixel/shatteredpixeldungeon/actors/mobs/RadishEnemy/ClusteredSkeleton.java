@@ -23,8 +23,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
@@ -36,9 +38,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.BoneClaw;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.NecromancerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.ClusteredSkeletonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -286,10 +291,19 @@ public class ClusteredSkeleton extends Mob {
         }
     }
     protected void triggerDeathClock(){
-        Buff.affect(this, ClusteredSkeleton.DeathClock.class).setShield(2);
+        Buff.affect(this, ClusteredSkeleton.DeathClock.class).setShield(20);
         state = PASSIVE;
         spend( TICK );
         isDead = true;
+
+        if (Dungeon.level.heroFOV[pos]) {
+            for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {
+                if (!Dungeon.level.solid[pos + PathFinder.NEIGHBOURS8[i]]) {
+                    sprite.parent.add(new TargetedCell(pos + PathFinder.NEIGHBOURS8[i], 0xFF0000));
+                }
+            }
+            GLog.w(Messages.get(this, "death_warning"));
+        }
     }
     @Override
     public void die( Object cause ) {
@@ -306,12 +320,22 @@ public class ClusteredSkeleton extends Mob {
             Char ch = findChar( pos + PathFinder.NEIGHBOURS8[i] );
             if (ch != null && ch.isAlive()) {
                 int damage = Math.round(Random.NormalIntRange(30, 55));
-                if (ch.buff(PrisonArmor.myMask.class)!=null) damage-=2;
+                if (ch.buff(PrisonArmor.myMask.class)!=null) damage=0;
                 damage = Math.round( damage * AscensionChallenge.statModifier(this));
                 damage = Math.max( 0,  damage - (ch.drRoll() + ch.drRoll()) );
                 ch.damage( damage, this );
                 if (ch == Dungeon.hero && !ch.isAlive()) {
                     heroKilled = true;
+                }
+            }
+            int spawnPos = pos + PathFinder.NEIGHBOURS8[i];
+            if (Terrain.flags[Dungeon.level.map[spawnPos]] == Terrain.PASSABLE
+                    && findChar(spawnPos) == null) {
+                if (Random.Int(3) < 2) {
+                    Necromancer.NecroSkeleton mySkeleton = new Necromancer.NecroSkeleton();
+                    mySkeleton.pos = spawnPos;
+                    GameScene.add(mySkeleton);
+                    Dungeon.level.occupyCell(mySkeleton);
                 }
             }
         }
@@ -339,7 +363,7 @@ public class ClusteredSkeleton extends Mob {
                 return true;
             }
 
-            absorbDamage( 1 );
+            absorbDamage( 10 );
 
             if (shielding() <= 0){
                 target.die(null);

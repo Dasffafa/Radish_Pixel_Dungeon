@@ -146,6 +146,8 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_SYSTEMFONT	= "system_font";
 	public static final String KEY_VIBRATION    = "vibration";
 
+	public static final String KEY_ORIGINMAP    = "origin_map";
+
 	public static final String KEY_SEEDDEPTH	= "seeddepth";
 
 	//0 = mobile, 1 = mixed (large without inventory in main UI), 2 = large
@@ -233,6 +235,14 @@ public class SPDSettings extends GameSettings {
 		return getBoolean(KEY_VIBRATION, true);
 	}
 
+	public static void origin_map(boolean value){
+		put(KEY_ORIGINMAP, value);
+	}
+
+	public static boolean origin_map(){
+		return getBoolean(KEY_ORIGINMAP, false);
+	}
+
 	//Game State
 	
 	public static final String KEY_LAST_CLASS	= "last_class";
@@ -241,7 +251,7 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_LAST_DAILY	= "last_daily";
 	public static final String KEY_INTRO		= "intro";
 
-	public static final String KEY_SUPPORT_NAGGED= "support_nagged";
+	public static final String KEY_UPDATEREADY = "updateready";
 	
 	public static void intro( boolean value ) {
 		put( KEY_INTRO, value );
@@ -283,12 +293,14 @@ public class SPDSettings extends GameSettings {
 		return getLong( KEY_LAST_DAILY, 0);
 	}
 
-	public static void supportNagged( boolean value ) {
-		put( KEY_SUPPORT_NAGGED, value );
+
+	//补偿
+	public static void UpdateReady(boolean value ) {
+		put( KEY_UPDATEREADY, value );
 	}
 
-	public static boolean supportNagged() {
-		return getBoolean(KEY_SUPPORT_NAGGED, false);
+	public static boolean UpdateReady() {
+		return getBoolean( KEY_UPDATES, true );
 	}
 
 	public static void boatMeeted(boolean meet){put("boat_meeted",meet);}
@@ -471,4 +483,16 @@ public class SPDSettings extends GameSettings {
 	public static boolean windowMaximized(){
 		return getBoolean( KEY_WINDOW_MAXIMIZED, false );
 	}
+
+
+	public static final String KEY_NORMAL = "window_maximized";
+
+	public static void NORMAL_SKIN( boolean value ){
+		put( KEY_NORMAL, value );
+	}
+
+	public static boolean NORMAL_SKIN(){
+		return getBoolean( KEY_NORMAL, false );
+	}
+
 }

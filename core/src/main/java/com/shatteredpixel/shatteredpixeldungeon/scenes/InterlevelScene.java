@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.scenes;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
@@ -55,6 +56,7 @@ import com.watabou.noosa.tweeners.Tweener;
 import com.watabou.utils.BArray;
 import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.GameMath;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 import com.watabou.utils.Signal;
 
@@ -627,6 +629,22 @@ public class InterlevelScene extends PixelScene {
 			Dungeon.switchLevel( level, -1 );
 		} else {
 			Mob.holdAllies( Dungeon.level );
+			
+			// Snake Bite challenge: teleport all monsters to exit before descending
+			if (Dungeon.isChallenged(Challenges.SNAKE_BITE)) {
+				int exitPos = Dungeon.level.exit();
+				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+					if (mob.alignment != Mob.Alignment.ALLY && mob.pos != exitPos) {
+						// Find a random passable cell near the exit
+						int newPos = findNearbyPassable(exitPos, mob);
+						if (newPos != -1) {
+							mob.pos = newPos;
+							mob.state = mob.HUNTING;
+						}
+					}
+				}
+			}
+			
 			Dungeon.saveAll();
 
 			Level level;
@@ -777,5 +795,40 @@ public class InterlevelScene extends PixelScene {
 	@Override
 	protected void onBackPressed() {
 		//Do nothing
+	}
+
+	// Snake Bite challenge: find a passable cell near a position for a mob
+	private int findNearbyPassable(int centerPos, Mob mob) {
+		ArrayList<Integer> candidates = new ArrayList<>();
+		int[] neighbours = PathFinder.NEIGHBOURS8;
+		
+		for (int n : neighbours) {
+			int cell = centerPos + n;
+			if (Dungeon.level.passable[cell] && Actor.findChar(cell) == null) {
+				if (Dungeon.level.openSpace[cell]) {
+					candidates.add(cell);
+				}
+			}
+		}
+		
+		if (candidates.isEmpty()) {
+			// Try neighbours of neighbours
+			for (int n : neighbours) {
+				for (int n2 : neighbours) {
+					int cell = centerPos + n + n2;
+					if (Dungeon.level.passable[cell] && Actor.findChar(cell) == null) {
+						if (Dungeon.level.openSpace[cell]) {
+							candidates.add(cell);
+						}
+					}
+				}
+			}
+		}
+		
+		if (candidates.isEmpty()) {
+			return -1;
+		}
+		
+		return Random.element(candidates);
 	}
 }

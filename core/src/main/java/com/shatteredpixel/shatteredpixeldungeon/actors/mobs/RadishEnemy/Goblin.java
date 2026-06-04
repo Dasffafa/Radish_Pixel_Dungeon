@@ -138,7 +138,7 @@ public class Goblin extends Mob {
     }
 
     public int damageRoll() {
-        return Random.NormalIntRange( 2, 5 );
+        return Random.NormalIntRange( 2, 3 );
     }
 
     @Override

@@ -21,11 +21,16 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfBenediction;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.GameMath;
 
@@ -71,21 +76,29 @@ public class Healing extends Buff {
 		return true;
 	}
 	
+
+
+
 	private int healingThisTick(){
-		return (int)GameMath.gate(1,
-				Math.round(healingLeft * percentHealPerTick) + flatHealPerTick,
+		int heal = (int)GameMath.gate(1, Math.round(healingLeft * percentHealPerTick) + flatHealPerTick,
 				healingLeft);
+
+		if (Dungeon.isChallenged(Challenges.DAMAGE_NO)){
+			heal = 1;
+		}
+		return heal;
 	}
 
 	public void setHeal(int amount, float percentPerTick, int flatPerTick){
-		//multiple sources of healing do not overlap, but do combine the best of their properties
-		healingLeft = Math.max(healingLeft, amount);
-		percentHealPerTick = Math.max(percentHealPerTick, percentPerTick);
-		flatHealPerTick = Math.max(flatHealPerTick, flatPerTick);
-	}
-	
-	public void increaseHeal( int amount ){
-		healingLeft += amount;
+		if (target == Dungeon.hero){
+			Buff ben=Dungeon.hero.buff(RingOfBenediction.Benediction.class);
+			if (ben!=null){
+				amount*= (int) RingOfBenediction.periodMultiplier(target);
+			}
+		}
+		healingLeft = amount;
+		percentHealPerTick = percentPerTick;
+		flatHealPerTick = flatPerTick;
 	}
 	
 	@Override
@@ -128,4 +141,18 @@ public class Healing extends Buff {
 	public String desc() {
 		return Messages.get(this, "desc", healingThisTick(), healingLeft);
 	}
+
+	public static class StarHealing extends Healing{
+
+		@Override
+		public void tintIcon(Image icon) {
+			icon.hardlight(Window.SHPX_COLOR);
+		}
+
+		@Override
+		public int icon() {
+			return BuffIndicator.HERB_HEALING;
+		}
+	}
+
 }

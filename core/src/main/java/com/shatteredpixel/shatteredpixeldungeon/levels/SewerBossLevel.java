@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.BigSnake_Zikk;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.Builder;
@@ -65,15 +66,15 @@ public class SewerBossLevel extends SewerLevel {
 			return;
 		}
 
-		boolean gooAlive = false;
+		boolean bossAlive = false;
 		for (Mob m : mobs){
-			if (m instanceof Goo) {
-				gooAlive = true;
+			if (m instanceof Goo || m instanceof BigSnake_Zikk) {
+				bossAlive = true;
 				break;
 			}
 		}
 
-		if (gooAlive){
+		if (bossAlive){
 			Music.INSTANCE.end();
 		} else {
 			Music.INSTANCE.playTracks(SewerLevel.SEWER_TRACK_LIST, SewerLevel.SEWER_TRACK_CHANCES, false);

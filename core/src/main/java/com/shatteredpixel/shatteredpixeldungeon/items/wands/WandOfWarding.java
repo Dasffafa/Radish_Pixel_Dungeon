@@ -150,6 +150,17 @@ public class WandOfWarding extends Wand {
 	}
 
 	@Override
+	public String upgradeStat1(int level) {
+		return 2+level + "-" + (8+4*level);
+	}
+
+	@Override
+	public String upgradeStat2(int level) {
+		return Integer.toString(level+2);
+	}
+
+
+	@Override
 	public void fx(Ballistica bolt, Callback callback) {
 		MagicMissile m = MagicMissile.boltFromChar(curUser.sprite.parent,
 				MagicMissile.WARD,
@@ -203,7 +214,7 @@ public class WandOfWarding extends Wand {
 	}
 
 	public static class Ward extends NPC {
-
+		public static class WardSentry extends Ward{};
 		public int tier = 1;
 		private int wandLevel = 1;
 

@@ -156,7 +156,7 @@ public abstract class SpecialRoom extends Room {
 	}
 	
 	public static SpecialRoom createRoom(){
-		if (Dungeon.depth == pitNeededDepth){
+		if (Dungeon.depth == pitNeededDepth && Dungeon.branch == 0 ){
 			pitNeededDepth = -1;
 			
 			useType( PitRoom.class );
@@ -168,8 +168,8 @@ public abstract class SpecialRoom extends Room {
 			return new LaboratoryRoom();
 		
 		} else {
-			
-			if (Dungeon.bossLevel(Dungeon.depth + 1)){
+			//TheCatist: 修复苔藓层生成跳楼房的bug
+			if (Dungeon.bossLevel(Dungeon.depth + 1) || Dungeon.branch != 0){
 				floorSpecials.remove(WeakFloorRoom.class);
 			}
 
