@@ -22,9 +22,9 @@ public class Wet extends Enchantment {
     public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
         int lvl = weapon.buffedLvl();
         if (lvl > 0 && attacker.buff(MagicImmune.class) == null) {
-            // 魔法伤害：0-等级
+            // 魔法伤害：0-等级，使用 WetMagicDamage 来源以单独显示
             int magicDmg = Random.IntRange(0, lvl);
-            defender.damage(magicDmg, this);
+            defender.damage(magicDmg, new WetMagicDamage());
 
             // 25%概率虚弱
             if (Random.Float() < 0.25f) {
@@ -48,4 +48,9 @@ public class Wet extends Enchantment {
     public String desc() {
         return Messages.get(this, "desc");
     }
+
+    /**
+     * Wet 附魔魔法伤害来源类，用于单独显示魔法伤害数字
+     */
+    public static class WetMagicDamage {}
 }

@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.WeaponMasteryTalent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
@@ -145,6 +146,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphe
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CircleSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Flail;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.JutteChampionWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.KillBoatSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LockChain;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LongStick;
@@ -839,6 +841,12 @@ public class Hero extends Char {
 			speed *= buff.speedFactor();
 		}
 
+		//索命弯刀：范围内有敌人时移速翻倍
+		AshKing.FatalBladeForm fatalBlade = buff(AshKing.FatalBladeForm.class);
+		if (fatalBlade != null && fatalBlade.hasEnemyNearby) {
+			speed *= 2f;
+		}
+
 		if(Dungeon.hero.pointsInTalent(Talent.LAND_HEART)>=1) {
 			if (hero.buff(Talent.HIGHGRSS_SPEED.class) != null){
 				speed *= 1.5f;
@@ -899,6 +907,12 @@ public class Hero extends Char {
 			if (buff.canAttackWithExtraReach( enemy )){
 				return true;
 			}
+		}
+
+		//神佑长枪形态：攻击距离+1
+		AshKing.HolyLanceForm holyLance = buff(AshKing.HolyLanceForm.class);
+		if (holyLance != null && Dungeon.level.distance(pos, enemy.pos) <= 2) {
+			return true;
 		}
 
 		//can always attack adjacent enemies
@@ -2790,7 +2804,25 @@ public class Hero extends Char {
 		boolean hit = attack( enemy );
 
 		Invisibility.dispel();
-		spend( attackDelay() );
+
+		// CancelAttackBuff：攻击不消耗回合
+		CancelAttackBuff cancelBuff = buff(CancelAttackBuff.class);
+		if (cancelBuff != null) {
+			Buff.detach(this, CancelAttackBuff.class);
+		} else {
+			// 出其不意天赋：十手伏击减少回合消耗
+			boolean surpriseAttack = enemy instanceof Mob && ((Mob) enemy).surprisedBy(this);
+			if (surpriseAttack
+					&& subClass == HeroSubClass.JUTTE_CHAMPION
+					&& hasTalent(Talent.SURPRISE_JUTTE)
+					&& belongings.attackingWeapon() instanceof JutteChampionWeapon) {
+				int points = pointsInTalent(Talent.SURPRISE_JUTTE);
+				float delayMultiplier = (points == 2 ? 0.66f : 0.33f);
+				spend(attackDelay() * delayMultiplier);
+			} else {
+				spend(attackDelay());
+			}
+		}
 
 		if (hit && subClass == HeroSubClass.GLADIATOR && wasEnemy){
 			Buff.affect( this, Combo.class ).hit( );

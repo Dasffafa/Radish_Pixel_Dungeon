@@ -32,12 +32,18 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
 import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.TippedDart;
@@ -201,6 +207,17 @@ public class Item implements Bundlable {
 		}
 		//
 
+		// 薪王化身触发检测
+		AshKing.IncarnationReady incarnationReady = hero.buff(AshKing.IncarnationReady.class);
+		if (incarnationReady != null && !action.equals(AC_DROP) && !action.equals(AC_THROW)) {
+			String itemType = null;
+			if (this instanceof Artifact) itemType = "Artifact";
+			else if (this instanceof Wand) itemType = "Wand";
+			else if (this instanceof MissileWeapon) itemType = "MissileWeapon";
+			if (itemType != null && incarnationReady.tryIncarnate(hero, itemType)) {
+				// 成功触发化身，继续执行物品使用
+			}
+		}
 
 		GameScene.cancel();
 		curUser = hero;
@@ -732,6 +749,21 @@ public class Item implements Bundlable {
 									Sample.INSTANCE.play(Assets.Sounds.HIT);
 									Buff.affect(enemy, Blindness.class, 1f + curUser.pointsInTalent(Talent.IMPROVISED_PROJECTILES));
 									Buff.affect(curUser, Talent.ImprovisedProjectileCooldown.class, 50f);
+								}
+							}
+							// 左弓连射天赋：投掷武器不消耗回合（如果目标有足够中矢层数）
+							if (user.heroClass == HeroClass.MOONLIGHT
+									&& user.subClass == HeroSubClass.LITTLE_KNIGHT
+									&& user.hasTalent(Talent.LEFT_BOW_RAPID)
+									&& enemy != null
+									&& Item.this instanceof MissileWeapon) {
+								PinCushion pc = enemy.buff(PinCushion.class);
+								if (pc != null) {
+									int requiredStacks = 4 - user.pointsInTalent(Talent.LEFT_BOW_RAPID);
+									if (pc.getStuckItems().size() >= requiredStacks) {
+										user.next();
+										return;
+									}
 								}
 							}
 							if (user.buff(Talent.LethalMomentumTracker.class) != null){

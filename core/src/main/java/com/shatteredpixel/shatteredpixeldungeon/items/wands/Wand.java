@@ -46,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WildMagic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
@@ -528,7 +529,13 @@ public abstract class Wand extends Item {
 			}
 		}
 
-		curCharges -= cursed ? 1 : chargesPerCast();
+		//灵魂激流：免费施法消耗
+		AshKing.SoulStreamForm soulStream = hero.buff(AshKing.SoulStreamForm.class);
+		if (soulStream != null && soulStream.consumeFreeCast()) {
+			// 使用免费次数，不消耗充能
+		} else {
+			curCharges -= cursed ? 1 : chargesPerCast();
+		}
 		if (hero.hasTalent(Talent.SPELL_QUEUE)) {
 			SpellQueue mySq = hero.belongings.getItem(SpellQueue.class);
 			if (mySq != null) mySq.updateImage();
@@ -748,7 +755,12 @@ public abstract class Wand extends Item {
 
 	public int collisionProperties(int target){
 		if (cursed)     return Ballistica.MAGIC_BOLT;
-		else            return collisionProperties;
+		//灵魂激流：法杖穿透敌人
+		AshKing.SoulStreamForm soulStream = Dungeon.hero != null ? Dungeon.hero.buff(AshKing.SoulStreamForm.class) : null;
+		if (soulStream != null) {
+			return Ballistica.STOP_SOLID | Ballistica.STOP_TARGET;
+		}
+		return collisionProperties;
 	}
 
 	public static class PlaceHolder extends Wand {

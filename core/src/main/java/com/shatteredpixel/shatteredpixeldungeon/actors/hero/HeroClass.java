@@ -46,6 +46,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.Smok
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.HeroicLeap;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Shockwave;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.custom.ch.ChallengeBag;
 import com.shatteredpixel.shatteredpixeldungeon.custom.dict.DictBook;
@@ -435,8 +437,7 @@ public enum HeroClass {
 			case RECTOR:
 				return new ArmorAbility[]{new LastPrayer(),new ShadowHymn(),new GodsPossesion()};
 			case MOONLIGHT:
-				// TODO: 添加月华护甲技能（注定一抽、玩具背包、薪王化身）
-				return new ArmorAbility[]{new ToyBackpack()};
+				return new ArmorAbility[]{new FatedDraw(), new ToyBackpack(), new AshKing()};
 		}
 	}
 

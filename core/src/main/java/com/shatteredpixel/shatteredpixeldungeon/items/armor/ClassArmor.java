@@ -117,6 +117,9 @@ abstract public class ClassArmor extends Armor {
 			case RECTOR:
 				classArmor = new DuelistArmor();
 				break;
+			case MOONLIGHT:
+				classArmor = new MoonlightArmor();
+				break;
 		}
 
 		classArmor.level(armor.trueLevel());

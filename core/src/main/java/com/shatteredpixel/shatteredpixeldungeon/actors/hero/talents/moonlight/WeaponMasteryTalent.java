@@ -110,7 +110,7 @@ public class WeaponMasteryTalent {
 		}
 		// 检测武器切换：使用 tracker 保存的武器进行比对
 		// 这里直接检测相等不行， 因为武器的equals方法没定义好
-		if (weapon.getClass() != tracker.getTrackedWeapon().getClass()) {
+		if (weapon != null && weapon.getClass() != tracker.getTrackedWeapon().getClass()) {
 			tracker.reset();
 			tracker.setTrackedWeapon(weapon);
 		}

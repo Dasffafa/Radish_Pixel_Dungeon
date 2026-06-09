@@ -306,8 +306,18 @@ public class BuffIndicator extends Component {
 
 		public void updateIcon(){
 			((BuffIcon)icon).refresh(buff);
-			//round up to the nearest pixel if <50% faded, otherwise round down
-			if (!large || buff.iconTextDisplay().isEmpty()) {
+			//如果有文字显示（如剩余次数），则显示文字而非灰色进度条
+			if (!buff.iconTextDisplay().isEmpty()) {
+				text.visible = true;
+				grey.visible = false;
+				if (buff.type == Buff.buffType.POSITIVE)        text.hardlight(CharSprite.POSITIVE);
+				else if (buff.type == Buff.buffType.NEGATIVE)   text.hardlight(CharSprite.NEGATIVE);
+				text.alpha(0.7f);
+
+				text.text(buff.iconTextDisplay());
+				text.measure();
+			} else {
+				//round up to the nearest pixel if <50% faded, otherwise round down
 				text.visible = false;
 				grey.visible = true;
 				float fadeHeight = GameMath.gate(0, buff.iconFadePercent(), 1) * icon.height();
@@ -317,15 +327,6 @@ public class BuffIndicator extends Component {
 				} else {
 					grey.scale.set(icon.width(), (float) Math.floor(zoom * fadeHeight) / zoom);
 				}
-			} else if (!buff.iconTextDisplay().isEmpty()) {
-				text.visible = true;
-				grey.visible = false;
-				if (buff.type == Buff.buffType.POSITIVE)        text.hardlight(CharSprite.POSITIVE);
-				else if (buff.type == Buff.buffType.NEGATIVE)   text.hardlight(CharSprite.NEGATIVE);
-				text.alpha(0.7f);
-
-				text.text(buff.iconTextDisplay());
-				text.measure();
 			}
 		}
 
@@ -335,7 +336,10 @@ public class BuffIndicator extends Component {
 			grey.x = icon.x = this.x + (large ? 0 : 1);
 			grey.y = icon.y = this.y + (large ? 0 : 2);
 
-			if (text.width > width()){
+			//小型图标使用更小的字体
+			if (!large) {
+				text.scale.set(PixelScene.align(0.5f));
+			} else if (text.width > width()){
 				text.scale.set(PixelScene.align(0.5f));
 			} else {
 				text.scale.set(1f);

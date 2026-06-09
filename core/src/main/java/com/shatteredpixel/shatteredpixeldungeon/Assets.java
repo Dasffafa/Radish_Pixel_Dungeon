@@ -266,6 +266,8 @@ public class Assets {
 		public static final String MINE    = "sounds/mine.mp3";
 		public static final String MAN = "sounds/man.mp3";
 
+		public static final String JUTTE_BREAK = "sounds/weapon_break.ogg";
+
 		public static final String[] all = new String[]{
 				CLICK, BADGE, GOLD,
 
@@ -280,7 +282,7 @@ public class Assets {
 				BEE, DEGRADE, MIMIC, DEBUFF, CHARGEUP, GAS, CHAINS, SCAN, SHEEP, MINE,
 
 				//Added by TheCatist
-				LARGE_BELL,KILL_BOAT_SWORD_SLASH, KILL_BOAT_SWORD_SWING, MAN
+				LARGE_BELL,KILL_BOAT_SWORD_SLASH, KILL_BOAT_SWORD_SWING, MAN, JUTTE_BREAK
 		};
 	}
 

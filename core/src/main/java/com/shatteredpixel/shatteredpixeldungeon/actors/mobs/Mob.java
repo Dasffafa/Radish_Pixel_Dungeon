@@ -64,6 +64,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Drake;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
@@ -1171,6 +1172,16 @@ public abstract class Mob extends Char {
 		if (buff(SoulMark.class) != null &&
 				Random.Int(10) < Dungeon.hero.pointsInTalent(Talent.SOUL_EATER)){
 			Talent.onFoodEaten(Dungeon.hero, 0, null);
+		}
+
+		//搜刮地皮天赋：注定一抽消耗次数产生掉落
+		FatedDraw.FatedDrawTracker fatedTracker = Dungeon.hero.buff(FatedDraw.FatedDrawTracker.class);
+		if (fatedTracker != null && Dungeon.hero.hasTalent(Talent.LOOT_GROUND)) {
+			Item lootItem = fatedTracker.tryGenLootGroundDrop(Dungeon.hero);
+			if (lootItem != null) {
+				Dungeon.level.drop(lootItem, pos).sprite.drop();
+				RingOfWealth.showFlareForBonusDrop(sprite);
+			}
 		}
 
 	}

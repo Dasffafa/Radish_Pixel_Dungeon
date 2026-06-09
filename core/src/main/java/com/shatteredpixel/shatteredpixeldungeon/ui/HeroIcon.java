@@ -94,6 +94,7 @@ public class HeroIcon extends Image {
 
 	//Moonlight ArmorAbility
 	public static final int TOY_BACKPACK = 43;
+	public static final int FATED_DRAW = 44;
 
 	public HeroIcon(HeroSubClass subCls){
 		super( Assets.Interfaces.HERO_ICONS );

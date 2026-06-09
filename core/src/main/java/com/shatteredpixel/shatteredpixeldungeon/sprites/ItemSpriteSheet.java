@@ -545,6 +545,7 @@ public class ItemSpriteSheet {
 	public static final int ARMOR_ENERGY2     = ARMOR+17;
 	public static final int ARMOR_SILVERSCALE = ARMOR+18;
 	public static final int ARMOR_BLACKCOAT   = ARMOR+19;
+	public static final int ARMOR_MOONLIGHT   = ARMOR+20;
 	
 	static{
 		assignItemRect(ARMOR_CLOTH,     15, 12);
@@ -567,6 +568,7 @@ public class ItemSpriteSheet {
 		assignItemRect(ARMOR_ENERGY2,   16, 14);
 		assignItemRect(ARMOR_SILVERSCALE,   14, 13);
 		assignItemRect(ARMOR_BLACKCOAT,   16, 16);
+		assignItemRect(ARMOR_MOONLIGHT,   12, 12);
 
 	}
 

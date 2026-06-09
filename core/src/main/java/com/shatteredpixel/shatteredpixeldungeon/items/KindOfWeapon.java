@@ -66,8 +66,8 @@ abstract public class KindOfWeapon extends EquipableItem {
 		if (SharpeningEdgeTalent.canUse(hero, this)) {
 			actions.add(AC_SHARPENING_EDGE);
 		}
-		// 十手冠军：所有武器都可以转换为十手
-		if (hero.subClass == HeroSubClass.JUTTE_CHAMPION) {
+		// 十手冠军：所有武器都可以转换为十手（但十手本身不能再转化）
+		if (hero.subClass == HeroSubClass.JUTTE_CHAMPION && !(this instanceof JutteChampionWeapon)) {
 			actions.add(AC_CONVERT_TO_JUTTE);
 		}
 		return actions;
@@ -183,7 +183,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 			if (hero.subClass == HeroSubClass.LITTLE_KNIGHT) {
 				// 检查冷却是否结束
 				if (hero.buff(CancelAttackCooldown.class) == null) {
-					Buff.affect(hero, CancelAttackBuff.class, 1f);
+					Buff.affect(hero, CancelAttackBuff.class, 2f);
 					Buff.affect(hero, CancelAttackCooldown.class, CancelAttackCooldown.getDuration());
 					GLog.p(Messages.get("actors.hero.moonlight.cancel_attack_gained"));
 				}
@@ -391,17 +391,20 @@ abstract public class KindOfWeapon extends EquipableItem {
 		// 计算阶数（基于武器等级）
 		int tier = Math.min(5, Math.max(1, level() + 1));
 
-		// 创建十手
+		// 创建十手并立即鉴定
 		JutteChampionWeapon jutte = new JutteChampionWeapon(tier);
+		jutte.identify();
 
-		// 精铁淬炼天赋：如果原武器已升级，返还升级卷轴
-		if (level() > 0) {
-			int points = hero.pointsInTalent(Talent.IRON_QUENCH);
-			if (points > 0) {
-				ScrollOfUpgrade scroll = new ScrollOfUpgrade();
-				scroll.identify().collect();
-				GLog.p(Messages.get(KindOfWeapon.class, "jutte_return_scroll"));
-			}
+		// 精铁淬炼天赋：让十手获得升级等级并返还升级卷轴
+		int originalLevel = level();
+		if (originalLevel > 0 && hero.hasTalent(Talent.IRON_QUENCH)) {
+			// 十手获得升级等级（等于原武器的升级数）
+			jutte.level(originalLevel);
+
+			// 返还一张升级卷轴
+			ScrollOfUpgrade scroll = new ScrollOfUpgrade();
+			scroll.identify().collect();
+			GLog.p(Messages.get(KindOfWeapon.class, "jutte_return_scroll"));
 		}
 
 		// 卸下当前武器
@@ -410,8 +413,8 @@ abstract public class KindOfWeapon extends EquipableItem {
 		}
 		detach(hero.belongings.backpack);
 
-		// 装备十手
-		jutte.doEquip(hero);
+		// 将十手放入背包
+		jutte.collect();
 		GLog.p(Messages.get(KindOfWeapon.class, "jutte_converted", tier));
 	}
 

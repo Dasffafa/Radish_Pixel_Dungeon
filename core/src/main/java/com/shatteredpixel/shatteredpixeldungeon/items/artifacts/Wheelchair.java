@@ -200,6 +200,12 @@ public class Wheelchair extends Artifact {
         @Override
         public void onSelect(Integer target) {
             if (target != null) {
+                // 检查是否处于坠毁状态
+                if (curUser.buff(WheelchairCrashBuff.class) != null) {
+                    GLog.w(Messages.get(Wheelchair.class, "cannot_jump_crashed"));
+                    return;
+                }
+
                 // 检查范围
                 int range = jumpRange();
                 if (Dungeon.level.distance(curUser.pos, target) > range) {

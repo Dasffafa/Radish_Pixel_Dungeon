@@ -76,6 +76,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfPsi
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ThirteenLeafClover;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFireblast;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFrost;
@@ -86,6 +87,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazin
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Wet;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.ShockingDart;
@@ -386,10 +388,21 @@ public abstract class Char extends Actor {
 			if (enemy.buff(AfterImage.Blur.class)!=null){
 				enemy.buff(AfterImage.Blur.class).gainDodge();
 			}
-			int dr = Math.round(enemy.drRoll() * AscensionChallenge.statModifier(enemy));
-
-			Barkskin bark = enemy.buff(Barkskin.class);
-			if (bark != null)   dr += Random.NormalIntRange( 0 , bark.level() );
+			// 注定一抽：防御判定消耗（当英雄是被攻击者时）
+			int dr = 0;
+			if (enemy instanceof Hero) {
+				FatedDraw.FatedDrawTracker trackerD = ((Hero) enemy).buff(FatedDraw.FatedDrawTracker.class);
+				if (trackerD != null && trackerD.remainingChecks > 0) {
+					// 先计算防御减免（combatRoll会取最大值）
+					dr = Math.round(enemy.drRoll() * AscensionChallenge.statModifier(enemy));
+					// 然后消耗次数
+					trackerD.consume("defense_block");
+				} else {
+					dr = Math.round(enemy.drRoll() * AscensionChallenge.statModifier(enemy));
+				}
+			} else {
+				dr = Math.round(enemy.drRoll() * AscensionChallenge.statModifier(enemy));
+			}
 
 			if (this instanceof Hero){
 				Hero h = (Hero)this;
@@ -461,7 +474,20 @@ public abstract class Char extends Actor {
 						Buff.affect(this, Talent.PowerRecycleTracker.class,0.0f);
 				}
 			} else {
-				dmg = damageRoll();
+				// 注定一抽：攻击伤害判定消耗（当英雄是攻击者时）
+				if (this instanceof Hero) {
+					FatedDraw.FatedDrawTracker trackerA = ((Hero) this).buff(FatedDraw.FatedDrawTracker.class);
+					if (trackerA != null && trackerA.remainingChecks > 0) {
+						// 先计算伤害（combatRoll会取最大值）
+						dmg = damageRoll();
+						// 然后消耗次数
+						trackerA.consume("attack_damage");
+					} else {
+						dmg = damageRoll();
+					}
+				} else {
+					dmg = damageRoll();
+				}
 				if (this == hero) {
 					if (hero.hasTalent(Talent.POWER_RECYCLE))
 						if (hero.pointsInTalent(Talent.POWER_RECYCLE)==4)
@@ -533,6 +559,8 @@ public abstract class Char extends Actor {
 			}
 
 			if (this.buff(RingOfTenacity.Tenacity.class)!=null) {current_crit=0;}
+
+			// 注定一抽：暴击判定不消耗随机数次数
 
 			if (Random.Float()*100<current_crit || crit || (critDamage >= 3 && ( this instanceof Hero && hero.buff(CriticalAttack.class) != null))) {
 				dmg*=current_critdamage;
@@ -776,7 +804,15 @@ public abstract class Char extends Actor {
 			return true;
 		}
 
-		float acuRoll = Random.Float( acuStat );
+		float acuRoll;
+		// 注定一抽：攻击者命中判定取最大值
+		FatedDraw.FatedDrawTracker trackerA = attacker instanceof Hero ? ((Hero) attacker).buff(FatedDraw.FatedDrawTracker.class) : null;
+		if (trackerA != null && trackerA.remainingChecks > 0){
+			acuRoll = acuStat; // 取最大值
+			trackerA.consume("attack_hit");
+		} else {
+			acuRoll = Random.Float( acuStat );
+		}
 
 		//祝福之戒
 		float bless_adj_a=1.25f,bless_adj_d=1.25f;
@@ -797,7 +833,15 @@ public abstract class Char extends Actor {
 		}
 		acuRoll *= AscensionChallenge.statModifier(attacker);
 
-		float defRoll = Random.Float( defStat );
+		float defRoll;
+		// 注定一抽：防御者闪避判定取最大值
+		FatedDraw.FatedDrawTracker trackerD = defender instanceof Hero ? ((Hero) defender).buff(FatedDraw.FatedDrawTracker.class) : null;
+		if (trackerD != null && trackerD.remainingChecks > 0){
+			defRoll = defStat; // 取最大值
+			trackerD.consume("defense_evasion");
+		} else {
+			defRoll = Random.Float( defStat );
+		}
 		if (defender.buff(Bless.class) != null) defRoll *= 1.25f;
 		if (defender.buff(  Hex.class) != null) defRoll *= 0.8f;
 		if (defender.buff( Daze.class) != null) defRoll *= 0.5f;
@@ -817,6 +861,13 @@ public abstract class Char extends Actor {
 	//used for damage and blocking calculations, normally just calls NormalIntRange
 	// but may be affected by things that specifically impact combat number ranges
 	public static int combatRoll(int min, int max ){
+		// 注定一抽：伤害判定取最大值（需要在调用点处理）
+		FatedDraw.FatedDrawTracker tracker = Dungeon.hero != null ? Dungeon.hero.buff(FatedDraw.FatedDrawTracker.class) : null;
+		if (tracker != null && tracker.remainingChecks > 0){
+			// 不在这里消耗，由调用点决定是否消耗
+			return max;
+		}
+
 		if (Random.Float() < ThirteenLeafClover.combatDistributionInverseChance()){
 			return ThirteenLeafClover.invCombatRoll(min, max);
 		} else {
@@ -1209,6 +1260,7 @@ public abstract class Char extends Actor {
 			int                                                         icon = FloatingText.PHYS_DMG;
 			if (NO_ARMOR_PHYSICAL_SOURCES.contains(src.getClass()))     icon = FloatingText.PHYS_DMG_NO_BLOCK;
 			if (AntiMagic.RESISTS.contains(src.getClass()))             icon = FloatingText.MAGIC_DMG;
+			if (src instanceof Wet.WetMagicDamage)                      icon = FloatingText.MAGIC_DMG;
 			if (src instanceof Pickaxe)                                 icon = FloatingText.PICK_DMG;
 
 			//special case for sniper when using ranged attacks

@@ -21,56 +21,50 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
 
-/**
- * 十手 - 十手冠军的专属武器
- * 属性固定：STR 10，攻速0.75，精准1.25，50点耐久
- * 阶数决定伤害和格挡
- */
+
 public class JutteChampionWeapon extends MeleeWeapon {
 
-    // 阶数：1-5阶
     public int tier = 1;
 
-    // 基础属性
     private static final int BASE_STR = 10;
     private static final float ATTACK_DELAY = 0.75f;
     private static final float ACCURACY = 1.25f;
     private static final float MAX_DURABILITY = 50f;
 
-    // 当前耐久
     private float durability = MAX_DURABILITY;
 
-    // 每阶属性：伤害min~max，格挡min~max
     private static final int[][] TIER_DAMAGE = {
-        {5, 20},   // 1阶
-        {6, 24},   // 2阶
-        {8, 32},   // 3阶
-        {9, 36},   // 4阶
-        {10, 40}   // 5阶
+        {5, 20},   // 1
+        {6, 24},   // 2
+        {8, 32},   // 3
+        {9, 36},   // 4
+        {10, 40}   // 5
     };
 
     private static final int[][] TIER_BLOCK = {
-        {2, 4},    // 1阶
-        {2, 5},    // 2阶
-        {3, 6},    // 3阶
-        {3, 7},    // 4阶
-        {4, 8}     // 5阶
+        {2, 4},    // 1
+        {2, 5},    // 2
+        {3, 6},    // 3
+        {3, 7},    // 4
+        {4, 8}     // 5
     };
 
     {
-        image = ItemSpriteSheet.SNAKE_BITED_YENDOR; // 使用十手贴图
-        defaultAction = AC_THROW; // 可以投掷
+        image = ItemSpriteSheet.SNAKE_BITED_YENDOR;
+        defaultAction = AC_THROW;
     }
 
     public JutteChampionWeapon() {
@@ -84,49 +78,51 @@ public class JutteChampionWeapon extends MeleeWeapon {
 
     @Override
     public int min(int lvl) {
-        return TIER_DAMAGE[tier - 1][0];
+        // 基础最小伤害 + 每次升级+1
+        return TIER_DAMAGE[tier - 1][0] + lvl;
     }
 
     @Override
     public int max(int lvl) {
         int baseMax = TIER_DAMAGE[tier - 1][1];
-        // 精铁淬炼天赋：升级数*百分比额外伤害
+        // 基础最大伤害 + 每次升级增加 (tier+1)
+        int levelBonus = lvl * (tier + 1);
+        
+        // 铁淬炼天赋：额外增加升级数*10%/20%/30%
         if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.JUTTE_CHAMPION) {
             int points = Dungeon.hero.pointsInTalent(Talent.IRON_QUENCH);
-            if (points > 0) {
-                float bonus = lvl * 0.1f * points; // 10%/20%/30%
-                baseMax = Math.round(baseMax * (1 + bonus));
+            if (points > 0 && lvl > 0) {
+                float extraBonus = lvl * 0.1f * points;
+                levelBonus = Math.round(levelBonus * (1 + extraBonus));
             }
         }
-        return baseMax;
+        return baseMax + levelBonus;
     }
 
     @Override
     public int STRReq() {
-        return BASE_STR; // 固定10
+        return BASE_STR;
     }
 
     @Override
     public float delayFactor(Char owner) {
-        return ATTACK_DELAY; // 固定0.75
+        return ATTACK_DELAY;
     }
 
     @Override
     public float accuracyFactor(Char owner, Char target) {
-        return ACCURACY; // 固定1.25
+        return ACCURACY;
     }
 
     @Override
     public int defenseFactor(Char owner) {
-        // 格挡：从阶数获取
         int[] block = TIER_BLOCK[tier - 1];
         return Random.IntRange(block[0], block[1]);
     }
 
-    // 耐久度相关
+    // ?????
     public float getMaxDurability() {
         float base = MAX_DURABILITY;
-        // 一把十手天赋：耐久上升
         if (Dungeon.hero != null) {
             int points = Dungeon.hero.pointsInTalent(Talent.ONE_JUTTE);
             switch (points) {
@@ -147,19 +143,17 @@ public class JutteChampionWeapon extends MeleeWeapon {
     }
 
     public void consumeDurability(float amount) {
-        // 出其不意天赋：伏击不消耗/减少消耗
-        if (Dungeon.hero != null && Dungeon.hero.buff(SurpriseJutteTracker.class) != null) {
-            int points = Dungeon.hero.pointsInTalent(Talent.SURPRISE_JUTTE);
-            if (points >= 1) {
-                if (points == 1) {
-                    return; // 不消耗
-                } else {
-                    amount *= (points == 2 ? 0.66f : 0.33f);
-                }
-            }
-        }
         durability -= amount;
         if (durability < 0) durability = 0;
+
+        if (durability <= 0 && Dungeon.hero != null) {
+            Hero hero = Dungeon.hero;
+            Sample.INSTANCE.play(Assets.Sounds.JUTTE_BREAK);
+            if (isEquipped(hero)) {
+                doUnequip(hero, true, true);
+            }
+            detach(hero.belongings.backpack);
+        }
     }
 
     @Override
@@ -171,7 +165,16 @@ public class JutteChampionWeapon extends MeleeWeapon {
     @Override
     public int proc(Char attacker, Char defender, int damage) {
         if (attacker instanceof Hero) {
-            consumeDurability(1f); // 近战命中消耗1点
+            Hero hero = (Hero) attacker;
+            // 出其不意天赋：伏击时不消耗耐久度
+            boolean surpriseAttack = defender instanceof Mob && ((Mob) defender).surprisedBy(attacker);
+            boolean hasTalent = hero.subClass == HeroSubClass.JUTTE_CHAMPION 
+                    && hero.hasTalent(Talent.SURPRISE_JUTTE);
+            
+            if (!surpriseAttack || !hasTalent) {
+                consumeDurability(1f);
+            }
+            // 伏击且有天赋时，所有等级都不消耗耐久度
         }
         super.proc(attacker, defender, damage);
         return damage;
@@ -179,35 +182,27 @@ public class JutteChampionWeapon extends MeleeWeapon {
 
     @Override
     public Item random() {
-        return this; // 不随机生成
+        return this;
     }
 
     @Override
     public boolean isUpgradable() {
-        return false; // 无法升级
+        return false;
     }
 
     @Override
     public int value() {
-        return 0; // 无价值
+        return 0;
     }
 
     @Override
-    public String info() {
-        String info = desc();
-        info += "\n\n" + Messages.get(this, "stats", tier, min(), max(), STRReq(), 
-                TIER_BLOCK[tier-1][0], TIER_BLOCK[tier-1][1], 
+    public String statsInfo() {
+        String info = Messages.get(this, "stats",
+                TIER_BLOCK[tier-1][0], TIER_BLOCK[tier-1][1],
                 (int)durability, (int)getMaxDurability());
         if (isBroken()) {
-            info += "\n\n" + Messages.get(this, "broken");
+            info += "\n" + Messages.get(this, "broken");
         }
         return info;
-    }
-
-    // 伏击追踪Buff
-    public static class SurpriseJutteTracker extends FlavourBuff {
-        {
-            type = buffType.POSITIVE;
-        }
     }
 }
