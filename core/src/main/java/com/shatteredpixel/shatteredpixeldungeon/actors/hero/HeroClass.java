@@ -27,16 +27,19 @@ import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpectralBlades;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.ElementalBlast;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WarpBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WildMagic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.GodsPossesion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.LastPrayer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.ShadowHymn;
@@ -46,12 +49,22 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.Smok
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.HeroicLeap;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Shockwave;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.custom.ch.ChallengeBag;
 import com.shatteredpixel.shatteredpixeldungeon.custom.dict.DictBook;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.*;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.BackpackCleaner;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomPlayer;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.EnemyAttributeModifier;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.LevelTeleporter;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobAttributeViewer;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobPlacer;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SnakeBiteToggle;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TalentSetter;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TerrainPlacer;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestBag;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TimeReverser;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TrapPlacer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.LazyTest;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.SpawnMisc;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.SpawnWeapon;
@@ -90,8 +103,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfLullaby;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
@@ -113,6 +126,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortswor
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndKeyBindings;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.watabou.noosa.Image;
 import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
@@ -497,6 +513,85 @@ public enum HeroClass {
 	
 	public String unlockMsg() {
 		return shortDesc() + "\n\n" + Messages.get(HeroClass.class, name()+"_unlock");
+	}
+
+	public String GetSkinAssest(){
+		switch (this) {
+			case WARRIOR: default:
+				return Assets.Sprites.AVATARS_WARRIOR;
+			case MAGE:
+				return Assets.Sprites.AVATARS_MAGE;
+			case ROGUE:
+				return Assets.Sprites.AVATARS_ROGUE;
+			case HUNTRESS:
+				return Assets.Sprites.AVATARS_HUNTRESS;
+			case RECTOR:
+				return Assets.Sprites.AVATARS_RECTOR;
+			case MOONLIGHT:
+				return Assets.Sprites.AVATARS_MOONLIGHT;
+		}
+	}
+
+	private static boolean onlyMode = false;
+
+
+
+	/**
+	 *
+	 * @param skinIndex 注意皮肤iNDEX与PNG索引有关
+	 */
+	public void SetSkin(int skinIndex){
+		boolean isSkinUnlock = false;
+		Image img = new Image(this.GetSkinAssest());
+		int skinCount = img.texture.width/64;
+
+		if(skinIndex==0){
+			isSkinUnlock = true;
+		}else {
+			while ( skinIndex < skinCount ) {
+				switch (this) {
+					case WARRIOR:
+					default:
+						isSkinUnlock = SPDSettings.isItemUnlock("avatars_warrior_" + skinIndex);
+						break;
+					case MAGE:
+						isSkinUnlock = SPDSettings.isItemUnlock("avatars_mage_" + skinIndex);
+						break;
+					case ROGUE:
+						isSkinUnlock = SPDSettings.isItemUnlock("avatars_rogue_" + skinIndex);
+						break;
+					case HUNTRESS:
+						isSkinUnlock = SPDSettings.isItemUnlock("avatars_huntress_" + skinIndex);
+						break;
+					case RECTOR:
+						isSkinUnlock = SPDSettings.isItemUnlock("avatars_rector_" + skinIndex);
+						break;
+					case MOONLIGHT:
+						isSkinUnlock = SPDSettings.isItemUnlock("avatars_moonlight_" + skinIndex);
+						break;
+				}
+				if(!isSkinUnlock){
+					skinIndex++;
+				}else {
+					break;
+				}
+			}
+		}
+
+		if(!isSkinUnlock){
+			skinIndex=0;
+			if(!onlyMode){
+				ShatteredPixelDungeon.scene().addToFront(new WndMessage(Messages.get(WndKeyBindings.class,"switch_skin")));
+				onlyMode = true;
+			}
+		}
+
+
+		SPDSettings.setHeroSkin(this.ordinal(),skinIndex);
+	}
+
+	public int GetSkin(){
+		return SPDSettings.getHeroSkin(this.ordinal());
 	}
 
 }
