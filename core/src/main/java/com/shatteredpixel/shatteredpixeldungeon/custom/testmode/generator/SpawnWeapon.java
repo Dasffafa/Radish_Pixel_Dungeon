@@ -224,6 +224,7 @@ public class SpawnWeapon extends TestItem {
         private RedButton Button_Level; // 武器等级按钮
         private OptionSlider OptionSlider_Tier; // 武器阶数选项滑块
         private RenderedTextBlock Text_EnchantInfo; // 附魔信息文本块
+        private boolean initialized = false; // 初始化完成标志
 
         /**
          * 构造函数，用于初始化窗口。
@@ -259,6 +260,7 @@ public class SpawnWeapon extends TestItem {
             OptionSlider_EnchantRarity = new OptionSlider(Messages.get(this, "enchant_rarity"), "1", "5", 0, 4) {
                 @Override
                 protected void onChange() {
+                    if (!initialized) return; // 初始化未完成时不执行回调
                     enchant_rarity = getSelectedValue();
                     updateEnchantIdSlider();
                     updateEnchantText();
@@ -325,12 +327,14 @@ public class SpawnWeapon extends TestItem {
             add(Button_Create);
 
             layout();
+            initialized = true; // 初始化完成
         }
 
         /**
          * 封装一个同步UI的方法，用于调整UI组件的位置和大小。
          */
         private void SyncUI() {
+            if (!initialized) return; // 初始化未完成时不执行
             OptionSlider_Tier.setRect(0, GAP, WIDTH, 24);
             int numLines = (int) Math.ceil(getWeapon(tier).size() / (float) MAX_ICONS_PER_LINE);
             float totalHeight = 30;
@@ -365,6 +369,7 @@ public class SpawnWeapon extends TestItem {
             OptionSlider_EnchantId = new OptionSlider(Messages.get(this, "enchant_id"), "1", String.valueOf(maxId + 1), 0, maxId) {
                 @Override
                 protected void onChange() {
+                    if (!initialized) return; // 初始化未完成时不执行回调
                     enchant_id = getSelectedValue();
                     updateEnchantText();
                 }

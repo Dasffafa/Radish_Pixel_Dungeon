@@ -28,7 +28,7 @@ public class WarTrampleTalent {
         if (points <= 0) return;
 
         // 计算移动消耗的回合数（基于英雄速度）
-        float moveTime = hero.speed();
+        float moveTime = 1 / hero.speed();
 
         float p = Random.Float();
         if (p >=  0.25 || points >= 2) {

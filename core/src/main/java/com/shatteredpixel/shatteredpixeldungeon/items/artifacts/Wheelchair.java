@@ -19,6 +19,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.N
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
+import com.shatteredpixel.shatteredpixeldungeon.events.BeforeHeroMoveEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroMoveEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
@@ -281,7 +284,7 @@ public class Wheelchair extends Artifact {
         if (cursed || target.buff(MagicImmune.class) != null) return;
         chargeCap = maxCharge();
         if (charge < chargeCap) {
-            partialCharge += 0.2f * amount;
+            partialCharge += 0.01f * amount;
             while (partialCharge >= 1f) {
                 partialCharge--;
                 charge++;
@@ -294,19 +297,45 @@ public class Wheelchair extends Artifact {
         }
     }
 
-    // 记录移动距离，用于升级
-    public void onHeroMove(Hero hero, int distance) {
-        if (cursed) return;
-        moveDistance += distance;
+    /**
+     * 订阅英雄移动前事件
+     * 月华没有强壮体质天赋且没有装备轮椅时，取消移动并显示消息
+     */
+    @SubscribeEvent(event = BeforeHeroMoveEvent.class)
+    public static void onBeforeHeroMove(BeforeHeroMoveEvent event) {
+        Hero hero = event.getHero();
 
-        // 升级所需移动距离：1000 + 100*等级
-        int upgradeThreshold = 1000 + 100 * level();
-        if (moveDistance >= upgradeThreshold && level() < levelCap) {
-            moveDistance -= upgradeThreshold;
-            upgrade();
-            chargeCap = maxCharge();
-            GLog.p(Messages.get(this, "levelup"));
-            updateQuickslot();
+        // 月华轮椅移动限制：如果没有强壮体质天赋且没有装备轮椅，则无法移动
+        if (hero.heroClass == HeroClass.MOONLIGHT && hero.pointsInTalent(Talent.STRONG_BODY) == 0) {
+            if (!(hero.belongings.artifact instanceof Wheelchair)) {
+                GLog.w(Messages.get(hero, "wheelchair_needed"));
+                event.cancel();
+            }
+        }
+    }
+
+    /**
+     * 订阅英雄移动完成事件
+     * 装备轮椅时，记录移动距离用于升级
+     */
+    @SubscribeEvent(event = HeroMoveEvent.class)
+    public static void onHeroMove(HeroMoveEvent event) {
+        Hero hero = event.getHero();
+
+        // 升级逻辑：仅当装备轮椅时执行
+        if (hero.belongings.artifact instanceof Wheelchair) {
+            Wheelchair wheelchair = (Wheelchair) hero.belongings.artifact;
+            if (wheelchair.cursed) return;
+
+            wheelchair.moveDistance++;
+            int upgradeThreshold = 100 + 100 * wheelchair.level();
+            if (wheelchair.moveDistance >= upgradeThreshold && wheelchair.level() < wheelchair.levelCap) {
+                wheelchair.moveDistance -= upgradeThreshold;
+                wheelchair.upgrade();
+                wheelchair.chargeCap = wheelchair.maxCharge();
+                GLog.p(Messages.get(wheelchair, "levelup"));
+                wheelchair.updateQuickslot();
+            }
         }
     }
 
@@ -352,9 +381,7 @@ public class Wheelchair extends Artifact {
 
             if (charge < chargeCap && !cursed && target.buff(MagicImmune.class) == null) {
                 // 充能速度：每 (80 - level - charge) 回合恢复1充能
-                // 加上神器充能效果：每回合恢复0.2充能
-                float chargeGain = 0.2f; // 基础神器充能
-                chargeGain += 1f / Math.max(1, 80 - level() - charge); // 额外充能
+                float chargeGain = 1f / Math.max(1, 80 - level());
                 chargeGain *= RingOfEnergy.artifactChargeMultiplier(target);
 
                 partialCharge += chargeGain;
@@ -372,11 +399,6 @@ public class Wheelchair extends Artifact {
 
             spend(TICK);
             return true;
-        }
-
-        // 当英雄移动时触发
-        public void onMove(int distance) {
-            Wheelchair.this.onHeroMove((Hero) target, distance);
         }
     }
 }

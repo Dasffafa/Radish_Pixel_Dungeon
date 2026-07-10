@@ -23,10 +23,15 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -204,5 +209,34 @@ public class JutteChampionWeapon extends MeleeWeapon {
             info += "\n" + Messages.get(this, "broken");
         }
         return info;
+    }
+
+    @Override
+    protected void onThrow(int cell) {
+        Char enemy = Actor.findChar(cell);
+        if (enemy == null || enemy == curUser) {
+            super.onThrow(cell);
+            return;
+        }
+
+        if (isBroken()) {
+            super.onThrow(cell);
+            return;
+        }
+
+        Hero hero = (Hero) curUser;
+        boolean wasEnemy = enemy.alignment == Char.Alignment.ENEMY
+                || (enemy instanceof Mimic && enemy.alignment == Char.Alignment.NEUTRAL);
+
+        hero.belongings.thrownWeapon = this;
+        boolean hit = hero.attack(enemy);
+        Invisibility.dispel();
+        hero.belongings.thrownWeapon = null;
+
+        if (hit && hero.subClass == HeroSubClass.GLADIATOR && wasEnemy) {
+            Buff.affect(hero, Combo.class).hit();
+        }
+
+        Dungeon.level.drop(this, cell).sprite.drop(cell);
     }
 }

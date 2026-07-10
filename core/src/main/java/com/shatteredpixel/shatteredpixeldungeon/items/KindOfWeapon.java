@@ -167,7 +167,9 @@ abstract public class KindOfWeapon extends EquipableItem {
 		}
 
 		if (hero.heroClass == HeroClass.MOONLIGHT){
-			isSwiftEquipping = true;
+			if (hero.buff(Talent.SwiftEquipCooldown.class) == null){
+				isSwiftEquipping = true;
+			}
 		}
 
 		detachAll( hero.belongings.backpack );

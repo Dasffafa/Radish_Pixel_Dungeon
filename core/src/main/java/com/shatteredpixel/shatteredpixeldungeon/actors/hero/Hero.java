@@ -74,7 +74,9 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
+import com.shatteredpixel.shatteredpixeldungeon.events.BeforeHeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
@@ -2232,7 +2234,12 @@ public class Hero extends Char {
 			return false;
 		}
 
-
+		// 发布移动前事件，允许订阅者取消移动
+		BeforeHeroMoveEvent beforeMoveEvent = new BeforeHeroMoveEvent(this, pos, target);
+		EventManager.emit(beforeMoveEvent);
+		if (beforeMoveEvent.isCancelled()) {
+			return false;
+		}
 
 		int step = -1;
 
@@ -2765,9 +2772,13 @@ public class Hero extends Char {
 
 	@Override
 	public void move(int step, boolean travelling) {
+		int fromPos = pos; // 记录移动前的位置
 		boolean wasHighGrass = Dungeon.level.map[step] == Terrain.HIGH_GRASS;
 
 		super.move( step, travelling);
+
+		// 发布移动完成事件（实际移动发生后）
+		EventManager.emit(new HeroMoveEvent(this, fromPos, pos));
 
 		if (!flying && travelling) {
 			if (Dungeon.level.water[pos]) {
