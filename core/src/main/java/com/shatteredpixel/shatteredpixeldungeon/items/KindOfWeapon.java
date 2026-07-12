@@ -62,8 +62,8 @@ abstract public class KindOfWeapon extends EquipableItem {
 	@Override
 	public ArrayList<String> actions(Hero hero) {
 		ArrayList<String> actions = super.actions(hero);
-		// 砥砺锋芒天赋：只有月华英雄且有天赋时显示
-		if (SharpeningEdgeTalent.canUse(hero, this)) {
+		// 砥砺锋芒天赋：只有月华英雄且有天赋时显示，且仅对近战武器生效
+		if (SharpeningEdgeTalent.canUse(hero, this) && this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) {
 			actions.add(AC_SHARPENING_EDGE);
 		}
 		// 十手冠军：所有武器都可以转换为十手（但十手本身不能再转化）
@@ -370,16 +370,18 @@ abstract public class KindOfWeapon extends EquipableItem {
 	public String desc() {
 		String desc = super.desc();
 
-		// 剑盾骑士天赋：显示护甲最小值提升
-		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MOONLIGHT) {
-			int points = Dungeon.hero.pointsInTalent(Talent.SWORD_SHIELD_KNIGHT);
-			if (points > 0 && Dungeon.hero.belongings.armor != null) {
-				// 计算天赋加成后的护甲最小值
-				float multiplier = 1.0f + (points - 1) * 0.25f;
-				int talentArmorMin = Math.round(min() * multiplier);
-				int armorMax = Dungeon.hero.belongings.armor.DRMax();
-				int actualMin = Math.min(talentArmorMin, armorMax);
-				desc += "\n\n" + Messages.get(KindOfWeapon.class, "sword_shield_knight", actualMin);
+		// 剑盾骑士天赋：显示护甲最小值提升（仅对近战武器生效）
+		if (this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) {
+			if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MOONLIGHT) {
+				int points = Dungeon.hero.pointsInTalent(Talent.SWORD_SHIELD_KNIGHT);
+				if (points > 0 && Dungeon.hero.belongings.armor != null) {
+					// 计算天赋加成后的护甲最小值
+					float multiplier = 1.0f + (points - 1) * 0.25f;
+					int talentArmorMin = Math.round(min() * multiplier);
+					int armorMax = Dungeon.hero.belongings.armor.DRMax();
+					int actualMin = Math.min(talentArmorMin, armorMax);
+					desc += "\n\n" + Messages.get(KindOfWeapon.class, "sword_shield_knight", actualMin);
+				}
 			}
 		}
 

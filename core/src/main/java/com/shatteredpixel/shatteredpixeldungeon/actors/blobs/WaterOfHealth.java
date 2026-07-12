@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.WellWater;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolySpringUsedBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
@@ -43,6 +44,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes.Landmark;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -80,12 +83,26 @@ public class WaterOfHealth extends WellWater {
 							@Override
 							protected void onSelect(int index) {
 								if (index == 0) {
-									// 正常效果
-									normalEffect(hero);
-								} else if (index == 1) {
-									// 转化
-									transformEffect(hero, points);
-								}
+																// 正常效果
+																normalEffect(hero);
+																// 消耗泉水
+																WellWater water = (WellWater) Dungeon.level.blobs.get(WaterOfHealth.class);
+																if (water != null) {
+																	water.cur[hero.pos] = 0;
+																	Level.set(hero.pos, Terrain.EMPTY_WELL);
+																	GameScene.updateMap(hero.pos);
+																}
+															} else if (index == 1) {
+																// 转化
+																transformEffect(hero, points);
+																// 消耗泉水
+																WellWater water = (WellWater) Dungeon.level.blobs.get(WaterOfHealth.class);
+																if (water != null) {
+																	water.cur[hero.pos] = 0;
+																	Level.set(hero.pos, Terrain.EMPTY_WELL);
+																	GameScene.updateMap(hero.pos);
+																}
+															}
 							}
 						});
 					});

@@ -32,6 +32,9 @@ public class HuntingIntuitionTalent {
         int points = hero.pointsInTalent(Talent.HUNTING_INTUITION);
         if (points <= 0) return;
 
+        // 获得0经验时不计数（如幽灵等）
+        if (event.getExp() <= 0) return;
+
         ExperienceCounter counter = hero.buff(ExperienceCounter.class);
         if (counter == null) {
             counter = Buff.affect(hero, ExperienceCounter.class);

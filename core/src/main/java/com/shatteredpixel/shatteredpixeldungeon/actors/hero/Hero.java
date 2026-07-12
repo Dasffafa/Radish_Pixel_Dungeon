@@ -2219,6 +2219,10 @@ public class Hero extends Char {
 	}
 
 	private boolean walkingToVisibleTrapInFog = false;
+	
+	// 用于记录绕路确认状态
+	private boolean detourConfirmed = false;
+	private int detourTarget = -1;
 
 	//FIXME this is a fairly crude way to track this, really it would be nice to have a short
 	//history of hero actions
@@ -2286,7 +2290,44 @@ public class Hero extends Char {
 				}
 
 				PathFinder.Path newpath = Dungeon.findPath(this, target, passable, fieldOfView, true);
-				if (newpath != null && path != null && newpath.size() > 2*path.size()){
+				
+				// 检测绕路穿过迷雾的情况
+				int directDist = Dungeon.level.distance(pos, target);
+				if (newpath != null && directDist <= 8 && newpath.size() > directDist * 2) {
+					// 存在绕远路，需要询问玩家
+					if (!detourConfirmed || detourTarget != target) {
+						final int finalTarget = target;
+						final PathFinder.Path finalNewpath = newpath;
+						Game.runOnRenderThread(new Callback() {
+							@Override
+							public void call() {
+								GameScene.show(new WndOptions(
+										Messages.get(Hero.class, "detour_title"),
+										Messages.get(Hero.class, "detor_desc"),
+										Messages.get(Hero.class, "detour_yes"),
+										Messages.get(Hero.class, "detour_no")) {
+									@Override
+									protected void onSelect(int index) {
+										if (index == 0) {
+											// 玩家选择绕远路
+											detourConfirmed = true;
+											detourTarget = finalTarget;
+											path = finalNewpath;
+										} else {
+											// 玩家取消，中断移动
+											detourConfirmed = false;
+											detourTarget = -1;
+											interrupt();
+										}
+									}
+								});
+							}
+						});
+						return false;
+					}
+					// 已确认绕路
+					path = newpath;
+				} else if (newpath != null && path != null && newpath.size() > 2*path.size()){
 					path = null;
 				} else {
 					path = newpath;

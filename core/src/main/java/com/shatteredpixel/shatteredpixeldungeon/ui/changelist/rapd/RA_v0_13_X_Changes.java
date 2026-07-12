@@ -22,6 +22,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.*
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges(ArrayList<ChangeInfo> changeInfos) {
+        add_v07_3_Changes(changeInfos);
         add_v07_2_Changes(changeInfos);
         add_v07_1_Changes(changeInfos);
         add_v07_0_Changes(changeInfos);
@@ -49,6 +50,36 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v07_3_Changes(ArrayList<ChangeInfo> changeInfos) {
+        ChangeInfo changes = new ChangeInfo("v0.7.3", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.COMPASS), ("战争迷雾绕路优化"),
+                ("当目的地与玩家之间有战争迷雾阻挡时，若直线距离在8格以内，系统会询问玩家是否绕远路前往。\n\n" +
+                        "_-_ 选择是：按照绕过迷雾的远路前进\n" +
+                        "_-_ 选择否：取消本次移动\n\n" +
+                        "这个改动可以避免误操作导致角色绕半个地图的尴尬情况。")));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
+        changes.hardlight(CharSprite.NEGATIVE);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                ("_-_ 修复 地龙初始状态为被动而非睡眠，导致睡眠动画不显示的bug\n" +
+                        "_-_ 修复 神圣泉水转化后获得卷轴但泉水未被消耗，可重复触发的bug\n" +
+                        "_-_ 修复 弩类武器（十字弩、蝎子弩）投掷物伤害面板未显示加成来源的提示\n" +
+                        "_-_ 修复 猎杀直觉天赋对击杀幽灵等0经验怪物错误计数的bug\n" +
+                        "_-_ 修复 荒芜挑战中文描述与实际效果不符的bug，现在描述与英文一致\n" +
+                        "_-_ 修复 残魔余卷对护甲不生效的bug，现在护甲生成时也会受残魔余卷影响\n" +
+                        "_-_ 部分文案补充\n")));
+
     }
 
     public static void add_v07_2_Changes(ArrayList<ChangeInfo> changeInfos) {

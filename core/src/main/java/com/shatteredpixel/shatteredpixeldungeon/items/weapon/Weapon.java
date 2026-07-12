@@ -137,8 +137,8 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
 
-		// 小骑士：无附魔武器视为拥有 Wet 附魔
-		if (enchantment == null && attacker instanceof Hero) {
+		// 小骑士：无附魔近战武器视为拥有 Wet 附魔
+		if (enchantment == null && attacker instanceof Hero && this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) {
 			Hero hero = (Hero) attacker;
 			if (hero.subClass == HeroSubClass.LITTLE_KNIGHT && hero.buff(MagicImmune.class) == null) {
 				damage = WET_ENCHANT.proc(this, attacker, defender, damage);
