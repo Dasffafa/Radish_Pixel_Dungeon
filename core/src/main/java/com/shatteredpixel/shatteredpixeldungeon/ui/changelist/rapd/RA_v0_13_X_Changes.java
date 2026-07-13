@@ -63,9 +63,10 @@ public class RA_v0_13_X_Changes {
         changeInfos.add(changes);
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
-                ("_-_ 修复 种子查找器搜索不存在的物品时会导致游戏卡死的bug\n" +
-                        "_-_ 现在种子查找器会在后台线程运行，超时20秒后自动停止并提示用户\n" +
-                        "_-_ 部分文案补充\n")));
+        			("_-_ 修复 种子查找器搜索不存在的物品时会导致游戏卡死的bug\n" +
+        					"_-_ 现在种子查找器会在后台线程运行，超时20秒后自动停止并提示用户\n" +
+        					"_-_ 修复 多处物品效果计算未使用buffedLvl导致增益效果未正确生效的bug\n" +
+        					"_-_ 部分文案补充\n")));
     }
 
     public static void add_v07_3_Changes(ArrayList<ChangeInfo> changeInfos) {

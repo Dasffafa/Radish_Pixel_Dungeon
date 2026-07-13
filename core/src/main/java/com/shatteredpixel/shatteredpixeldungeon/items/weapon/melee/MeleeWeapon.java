@@ -270,10 +270,10 @@ public class MeleeWeapon extends Weapon {
 			}
 
 			if(Dungeon.hero.buff( Degrade.class ) != null){
-				return super.buffedLvl();
-			} else {
-				return hero.belongings.weapon.level() + RingOfKing.updateMultiplier(Dungeon.hero);
-			}
+						return super.buffedLvl();
+					} else {
+						return hero.belongings.weapon.buffedLvl() + RingOfKing.updateMultiplier(Dungeon.hero);
+					}
 		}
 
 

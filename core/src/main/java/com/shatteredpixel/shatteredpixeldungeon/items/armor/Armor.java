@@ -709,10 +709,10 @@ public class Armor extends EquipableItem {
 
 
 			if(Dungeon.hero.buff( Degrade.class ) != null){
-				return super.buffedLvl();
-			} else {
-				return hero.belongings.armor.level() + RingOfKing.updateMultiplier(Dungeon.hero);
-			}
+						return super.buffedLvl();
+					} else {
+						return hero.belongings.armor.buffedLvl() + RingOfKing.updateMultiplier(Dungeon.hero);
+					}
 		}
 
 		if (hero != null && isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this )){

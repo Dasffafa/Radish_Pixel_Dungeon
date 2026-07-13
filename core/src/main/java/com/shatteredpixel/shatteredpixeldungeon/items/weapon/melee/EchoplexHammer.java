@@ -85,7 +85,7 @@ public class EchoplexHammer extends MeleeWeapon {
         Mob[] mobs = Dungeon.level.mobs.toArray(new Mob[0]);
         for (Mob mob : mobs) {
             if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]) {
-                mob.damage(10 + 2 * weapon.level() , weapon );
+            			mob.damage(10 + 2 * weapon.buffedLvl() , weapon );
                 if (!mob.isAlive()) {
                     killedMob = mob;
                     mob.die(attacker);
@@ -103,10 +103,10 @@ public class EchoplexHammer extends MeleeWeapon {
         String desc;
 
         if(isIdentified()){
-            desc = Messages.get(this, "desc",10 + 2 * level());
-        } else {
-            desc = Messages.get(this, "normal_desc",10);
-        }
+        			desc = Messages.get(this, "desc",10 + 2 * buffedLvl());
+        		} else {
+        			desc = Messages.get(this, "normal_desc",10);
+        		}
 
         return desc;
     }

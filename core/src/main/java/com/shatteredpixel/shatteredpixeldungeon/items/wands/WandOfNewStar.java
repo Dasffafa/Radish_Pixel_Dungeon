@@ -33,7 +33,7 @@ public class WandOfNewStar extends DamageWand {
     }
 
     private void executeStarEffect(Char centerChar) {
-        int radius = 1 + (level() / 4);
+    		int radius = 1 + (buffedLvl() / 4);
 
         int x = centerChar.pos % Dungeon.level.width();
         int y = centerChar.pos / Dungeon.level.width();
@@ -70,17 +70,17 @@ public class WandOfNewStar extends DamageWand {
                 bolt.path.get(Math.min(radius / 2, bolt.path.size() - 1)),
                 () -> {
                     for (int pos : aoe.cells) {
-                        Char target = Actor.findChar(pos);
-                        if (target != null) {
-                            int shield = level() + 2;
-                            if (target.alignment == Char.Alignment.ENEMY) {
-                                target.damage(damageRoll() == 0 ? 1 : damageRoll(), new DM100.LightningBolt());
-                                target.sprite.burst(0xFFFFFFFF, level() / 2 + 2);
-                            } else if (target.alignment == Char.Alignment.ALLY || target instanceof Hero) {
-                                Buff.affect(target, Barrier.class).setShield(shield);
-                            }
-                        }
-                    }
+                    						Char target = Actor.findChar(pos);
+                    						if (target != null) {
+                    							int shield = buffedLvl() + 2;
+                    							if (target.alignment == Char.Alignment.ENEMY) {
+                    								target.damage(damageRoll() == 0 ? 1 : damageRoll(), new DM100.LightningBolt());
+                    								target.sprite.burst(0xFFFFFFFF, buffedLvl() / 2 + 2);
+                    							} else if (target.alignment == Char.Alignment.ALLY || target instanceof Hero) {
+                    								Buff.affect(target, Barrier.class).setShield(shield);
+                    							}
+                    						}
+                    					}
                 });
     }
 
@@ -149,13 +149,13 @@ public class WandOfNewStar extends DamageWand {
     }
 
     @Override
-    public String statsDesc() {
-        int radius = 3 + (level() / 4) * 2;
-        if (levelKnown)
-            return Messages.get(this, "stats_desc", radius, radius, min(), max(), level() + 2);
-        else
-            return Messages.get(this, "stats_desc", 3, 3, min(0), max(0), 2);
-    }
+    	public String statsDesc() {
+    		int radius = 3 + (buffedLvl() / 4) * 2;
+    		if (levelKnown)
+    			return Messages.get(this, "stats_desc", radius, radius, min(), max(), buffedLvl() + 2);
+    		else
+    			return Messages.get(this, "stats_desc", 3, 3, min(0), max(0), 2);
+    	}
 
     @Override
     public String upgradeStat1(int level) {
@@ -169,30 +169,30 @@ public class WandOfNewStar extends DamageWand {
     }
 
     @Override
-    public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
-        int triggerChance = 20;
-        int wandTotalLevel = 0;
-        if (level() <= 12) {
-            triggerChance += level() * 2;
-        } else {
-            triggerChance += 24;
-            triggerChance += (level() - 12) / 2;
-        }
+    	public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
+    		int triggerChance = 20;
+    		int wandTotalLevel = 0;
+    		if (buffedLvl() <= 12) {
+    			triggerChance += buffedLvl() * 2;
+    		} else {
+    			triggerChance += 24;
+    			triggerChance += (buffedLvl() - 12) / 2;
+    		}
 
-        triggerChance = Math.min(triggerChance, 100);
+    		triggerChance = Math.min(triggerChance, 100);
 
-        ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
-        for (Wand w : wands.toArray(new Wand[0])) {
-            wandTotalLevel += w.level();
-        }
+    		ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
+    		for (Wand w : wands.toArray(new Wand[0])) {
+    			wandTotalLevel += w.buffedLvl();
+    		}
 
-        wandTotalLevel += staff.level();
-        if (Random.Int(100) < triggerChance) {
-            if (hero.buff(Healing.StarHealing.class) == null) {
-                Buff.affect(hero, Healing.StarHealing.class).setHeal(wandTotalLevel, 0, wandTotalLevel / 4);
-            }
-        }
-    }
+    		wandTotalLevel += staff.buffedLvl();
+    		if (Random.Int(100) < triggerChance) {
+    			if (hero.buff(Healing.StarHealing.class) == null) {
+    				Buff.affect(hero, Healing.StarHealing.class).setHeal(wandTotalLevel, 0, wandTotalLevel / 4);
+    			}
+    		}
+    	}
 
     @Override
     public int min(int lvl) {

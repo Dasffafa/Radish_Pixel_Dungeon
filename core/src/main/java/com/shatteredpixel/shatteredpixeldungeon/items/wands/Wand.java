@@ -525,7 +525,7 @@ public abstract class Wand extends Item {
 		if (hero.belongings.weapon() instanceof EndGuard) {
 			EndGuard w2 = (EndGuard) hero.belongings.weapon;
 			if (w2 != null) {
-				Buff.affect(hero, Barrier.class).setShield((int) (0.2f * ( w2.level() +1 )));
+				Buff.affect(hero, Barrier.class).setShield((int) (0.2f * ( w2.buffedLvl() +1 )));
 			}
 		}
 
@@ -566,7 +566,7 @@ public abstract class Wand extends Item {
 						EndGuard w2 = (EndGuard) hero.belongings.weapon;
 						if (w2 != null) {
 							//grants 3/5 shielding
-							Buff.affect(hero, Barrier.class).setShield((int) (0.2f * ( w2.level() +1 )));
+							Buff.affect(hero, Barrier.class).setShield((int) (0.2f * ( w2.buffedLvl() +1 )));
 						}
 					} else {
 						//grants 3/5 shielding
@@ -585,7 +585,7 @@ public abstract class Wand extends Item {
 					&& hero.hasTalent(Talent.BACKUP_BARRIER)) {
 				boolean highest = true;
 				for (Item i : hero.belongings.getAllItems(Wand.class)) {
-					if (i.level() > level()) {
+					if (i.buffedLvl() > buffedLvl()) {
 						highest = false;
 					}
 				}
@@ -594,7 +594,7 @@ public abstract class Wand extends Item {
 						EndGuard w2 = (EndGuard) hero.belongings.weapon;
 						if (w2 != null) {
 							//grants 3/5 shielding
-							Buff.affect(hero, Barrier.class).setShield((int) (0.2f * ( w2.level() +1 )));
+							Buff.affect(hero, Barrier.class).setShield((int) (0.2f * ( w2.buffedLvl() +1 )));
 						}
 					} else {
 						//grants 3/5 shielding
@@ -813,7 +813,7 @@ public abstract class Wand extends Item {
 						if(hero.belongings.weapon() instanceof EndGuard) {
 							EndGuard w2 = (EndGuard) hero.belongings.weapon;
 							if (w2 != null) {
-								Buff.affect(curUser, Barrier.class).setShield((int) (Math.round(shield) + (0.2f * ( w2.level() +1 ))));
+								Buff.affect(curUser, Barrier.class).setShield((int) (Math.round(shield) + (0.2f * ( w2.buffedLvl() +1 ))));
 							}
 						} else {
 							Buff.affect(curUser, Barrier.class).setShield(Math.round(shield));
