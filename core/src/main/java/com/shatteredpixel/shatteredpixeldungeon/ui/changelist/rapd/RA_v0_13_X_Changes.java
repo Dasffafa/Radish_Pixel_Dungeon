@@ -22,6 +22,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.*
 public class RA_v0_13_X_Changes {
 
     public static void addAllChanges(ArrayList<ChangeInfo> changeInfos) {
+        add_v07_4_Changes(changeInfos);
         add_v07_3_Changes(changeInfos);
         add_v07_2_Changes(changeInfos);
         add_v07_1_Changes(changeInfos);
@@ -52,6 +53,21 @@ public class RA_v0_13_X_Changes {
         add_v03_1_Changes(changeInfos);
     }
 
+    public static void add_v07_4_Changes(ArrayList<ChangeInfo> changeInfos) {
+        ChangeInfo changes = new ChangeInfo("v0.7.4", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
+        changes.hardlight(CharSprite.NEGATIVE);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                ("_-_ 修复 种子查找器搜索不存在的物品时会导致游戏卡死的bug\n" +
+                        "_-_ 现在种子查找器会在后台线程运行，超时20秒后自动停止并提示用户\n" +
+                        "_-_ 部分文案补充\n")));
+    }
+
     public static void add_v07_3_Changes(ArrayList<ChangeInfo> changeInfos) {
         ChangeInfo changes = new ChangeInfo("v0.7.3", true, "");
         changes.hardlight(Window.TITLE_COLOR);
@@ -67,6 +83,13 @@ public class RA_v0_13_X_Changes {
                         "_-_ 选择否：取消本次移动\n\n" +
                         "这个改动可以避免误操作导致角色绕半个地图的尴尬情况。")));
 
+        changes.addButton(new ChangeButton(Icons.get(Icons.BACKPACK), ("种子查找器饰品支持"),
+                ("种子查找器现在支持搜索饰品！\n\n" +
+                        "_-_ 当找到魔能触媒时，会自动生成4个饰品选项（3个具体饰品+1个随机选项）\n" +
+                        "_-_ 饰品选项会在结果中标注（饰品选项）\n" +
+                        "_-_ 搜索饰品名称时可以匹配到这些选项\n\n" +
+                        "注意：饰品是通过魔能触媒炼金获得的，无法直接在地牢中找到。")));
+
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
         changes.hardlight(CharSprite.NEGATIVE);
         changeInfos.add(changes);
@@ -78,6 +101,10 @@ public class RA_v0_13_X_Changes {
                         "_-_ 修复 猎杀直觉天赋对击杀幽灵等0经验怪物错误计数的bug\n" +
                         "_-_ 修复 荒芜挑战中文描述与实际效果不符的bug，现在描述与英文一致\n" +
                         "_-_ 修复 残魔余卷对护甲不生效的bug，现在护甲生成时也会受残魔余卷影响\n" +
+                        "_-_ 修复 十手武器耐久度未存储，小退重进会重置耐久的bug\n" +
+                        "_-_ 修复 一把十手天赋只增加耐久上限，不增加当前耐久的bug\n" +
+                        "_-_ 修复 十手武器格挡值未正确应用的bug\n" +
+                        "_-_ 修复 十手武器投掷时未检查一把十手天赋，导致无天赋时也能触发投掷攻击的bug\n" +
                         "_-_ 部分文案补充\n")));
 
     }

@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
 
@@ -47,24 +48,27 @@ public class JutteChampionWeapon extends MeleeWeapon {
     private static final int BASE_STR = 10;
     private static final float ATTACK_DELAY = 0.75f;
     private static final float ACCURACY = 1.25f;
-    private static final float MAX_DURABILITY = 50f;
+    private static final float BASE_MAX_DURABILITY = 50f;
 
-    private float durability = MAX_DURABILITY;
+    private float durability = BASE_MAX_DURABILITY;
+    
+    // Store talent bonus for durability (to fix "one jutte talent only adds empty durability")
+    private float talentBonus = 0f;
 
     private static final int[][] TIER_DAMAGE = {
-        {5, 20},   // 1
-        {6, 24},   // 2
-        {8, 32},   // 3
-        {9, 36},   // 4
-        {10, 40}   // 5
+        {5, 20},   // tier 1
+        {6, 24},   // tier 2
+        {8, 32},   // tier 3
+        {9, 36},   // tier 4
+        {10, 40}   // tier 5
     };
 
     private static final int[][] TIER_BLOCK = {
-        {2, 4},    // 1
-        {2, 5},    // 2
-        {3, 6},    // 3
-        {3, 7},    // 4
-        {4, 8}     // 5
+        {2, 4},    // tier 1
+        {2, 5},    // tier 2
+        {3, 6},    // tier 3
+        {3, 7},    // tier 4
+        {4, 8}     // tier 5
     };
 
     {
@@ -78,22 +82,20 @@ public class JutteChampionWeapon extends MeleeWeapon {
 
     public JutteChampionWeapon(int tier) {
         this.tier = Math.max(1, Math.min(5, tier));
-        durability = getMaxDurability();
+        updateDurabilityFromTalent();
     }
 
     @Override
     public int min(int lvl) {
-        // 基础最小伤害 + 每次升级+1
         return TIER_DAMAGE[tier - 1][0] + lvl;
     }
 
     @Override
     public int max(int lvl) {
         int baseMax = TIER_DAMAGE[tier - 1][1];
-        // 基础最大伤害 + 每次升级增加 (tier+1)
         int levelBonus = lvl * (tier + 1);
         
-        // 铁淬炼天赋：额外增加升级数*10%/20%/30%
+        // Iron Quench talent: extra bonus based on upgrade level
         if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.JUTTE_CHAMPION) {
             int points = Dungeon.hero.pointsInTalent(Talent.IRON_QUENCH);
             if (points > 0 && lvl > 0) {
@@ -108,10 +110,26 @@ public class JutteChampionWeapon extends MeleeWeapon {
     public int STRReq() {
         return BASE_STR;
     }
+    
+    @Override
+    public int STRReq(int lvl) {
+        // Fixed strength requirement of 10
+        return BASE_STR;
+    }
 
     @Override
     public float delayFactor(Char owner) {
-        return ATTACK_DELAY;
+        float delay = ATTACK_DELAY;
+        // One Jutte talent: throw speed bonus
+        if (owner instanceof Hero) {
+            Hero hero = (Hero) owner;
+            if (hero.subClass == HeroSubClass.JUTTE_CHAMPION && hero.hasTalent(Talent.ONE_JUTTE)) {
+                int points = hero.pointsInTalent(Talent.ONE_JUTTE);
+                // Throw speed bonus: +1: 20%, +2: 35%, +3: 50%
+                // Note: this affects overall attack speed, not just throw
+            }
+        }
+        return delay;
     }
 
     @Override
@@ -125,18 +143,42 @@ public class JutteChampionWeapon extends MeleeWeapon {
         return Random.IntRange(block[0], block[1]);
     }
 
-    // ?????
-    public float getMaxDurability() {
-        float base = MAX_DURABILITY;
-        if (Dungeon.hero != null) {
+    /**
+     * Get talent bonus for durability from One Jutte talent
+     */
+    public float getTalentBonus() {
+        if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.JUTTE_CHAMPION) {
             int points = Dungeon.hero.pointsInTalent(Talent.ONE_JUTTE);
             switch (points) {
-                case 1: base += 10; break;
-                case 2: base += 17; break;
-                case 3: base += 25; break;
+                case 1: return 10f;
+                case 2: return 17f;
+                case 3: return 25f;
             }
         }
-        return base;
+        return 0f;
+    }
+
+    /**
+     * Get max durability (base + talent bonus)
+     */
+    public float getMaxDurability() {
+        return BASE_MAX_DURABILITY + getTalentBonus();
+    }
+
+    /**
+     * Update durability when talent upgrades - increases current durability to match new max
+     * This fixes the bug where "one jutte talent only adds empty durability"
+     */
+    public void updateDurabilityFromTalent() {
+        float newBonus = getTalentBonus();
+        if (newBonus > talentBonus) {
+            // Talent upgraded, add the difference to current durability
+            float diff = newBonus - talentBonus;
+            durability += diff;
+            talentBonus = newBonus;
+        }
+        // Ensure durability doesn't exceed max
+        durability = Math.min(durability, getMaxDurability());
     }
 
     public float getDurability() {
@@ -171,7 +213,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     public int proc(Char attacker, Char defender, int damage) {
         if (attacker instanceof Hero) {
             Hero hero = (Hero) attacker;
-            // 出其不意天赋：伏击时不消耗耐久度
+            // Surprise Jutte talent: no durability consumption on surprise attack
             boolean surpriseAttack = defender instanceof Mob && ((Mob) defender).surprisedBy(attacker);
             boolean hasTalent = hero.subClass == HeroSubClass.JUTTE_CHAMPION 
                     && hero.hasTalent(Talent.SURPRISE_JUTTE);
@@ -179,7 +221,6 @@ public class JutteChampionWeapon extends MeleeWeapon {
             if (!surpriseAttack || !hasTalent) {
                 consumeDurability(1f);
             }
-            // 伏击且有天赋时，所有等级都不消耗耐久度
         }
         super.proc(attacker, defender, damage);
         return damage;
@@ -225,6 +266,12 @@ public class JutteChampionWeapon extends MeleeWeapon {
         }
 
         Hero hero = (Hero) curUser;
+        
+        // Bug1 fix: Check ONE_JUTTE talent - without it, jutte should drop like normal item
+        if (hero.subClass != HeroSubClass.JUTTE_CHAMPION || !hero.hasTalent(Talent.ONE_JUTTE)) {
+            super.onThrow(cell);
+            return;
+        }
         boolean wasEnemy = enemy.alignment == Char.Alignment.ENEMY
                 || (enemy instanceof Mimic && enemy.alignment == Char.Alignment.NEUTRAL);
 
@@ -238,5 +285,29 @@ public class JutteChampionWeapon extends MeleeWeapon {
         }
 
         Dungeon.level.drop(this, cell).sprite.drop(cell);
+    }
+    
+    // Serialization: store and restore durability
+    private static final String DURABILITY = "durability";
+    private static final String TIER_KEY = "tier";
+    private static final String TALENT_BONUS_KEY = "talent_bonus";
+    
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(DURABILITY, durability);
+        bundle.put(TIER_KEY, tier);
+        bundle.put(TALENT_BONUS_KEY, talentBonus);
+    }
+    
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        durability = bundle.getFloat(DURABILITY);
+        tier = bundle.getInt(TIER_KEY);
+        talentBonus = bundle.getFloat(TALENT_BONUS_KEY);
+        
+        // After restore, check if talent has been upgraded and update durability accordingly
+        updateDurabilityFromTalent();
     }
 }

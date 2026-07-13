@@ -313,7 +313,13 @@ public abstract class Level implements Bundlable {
 			customTiles = new HashSet<>();
 			customWalls = new HashSet<>();
 
-		} while (!build());
+		} while (!build() && !Thread.currentThread().isInterrupted());
+
+		// 如果线程被中断，直接返回不完整的地图（SeedFinder 会检测中断状态）
+		if (Thread.currentThread().isInterrupted()) {
+			Random.popGenerator();
+			return;
+		}
 
 		buildFlagMaps();
 		cleanWalls();

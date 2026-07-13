@@ -113,7 +113,12 @@ public abstract class RegularLevel extends Level {
 				r.connected.clear();
 			}
 			rooms = builder.build((ArrayList<Room>)initRooms.clone());
-		} while (rooms == null);
+		} while (rooms == null && !Thread.currentThread().isInterrupted());
+		
+		// 如果线程被中断，返回 false 表示构建失败
+		if (Thread.currentThread().isInterrupted()) {
+			return false;
+		}
 		
 		return painter().paint(this, rooms);
 		
