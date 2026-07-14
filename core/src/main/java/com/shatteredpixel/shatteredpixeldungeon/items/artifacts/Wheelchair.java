@@ -25,12 +25,17 @@ import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
@@ -216,14 +221,31 @@ public class Wheelchair extends Artifact {
                     return;
                 }
 
-                // 检查目标位置是否可行
-                if (Dungeon.level.solid[target] || Actor.findChar(target) != null) {
+                // 使用 Ballistica 计算路径，防止穿墙跳跃
+                Ballistica route = new Ballistica(curUser.pos, target, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID);
+                int cell = route.collisionPos;
+
+                // 如果目标位置有角色，回退一格
+                int backTrace = route.dist - 1;
+                while (Actor.findChar(cell) != null && cell != curUser.pos && backTrace >= 0) {
+                    cell = route.path.get(backTrace);
+                    backTrace--;
+                }
+
+                // 如果最终位置就是当前位置，说明无法跳跃
+                if (cell == curUser.pos) {
                     GLog.w(Messages.get(Wheelchair.class, "invalid_target"));
                     return;
                 }
 
+                // 检查目标位置是否为深渊，需要确认
+                if (Dungeon.level.map[cell] == Terrain.CHASM || Dungeon.level.pit[cell]) {
+                    showChasmConfirmDialog(curUser, cell);
+                    return;
+                }
+
                 // 执行跳跃
-                performJump(curUser, target);
+                performJump(curUser, cell);
             }
         }
 
@@ -233,6 +255,46 @@ public class Wheelchair extends Artifact {
             return Messages.get(Wheelchair.class, "prompt", range);
         }
     };
+
+    // 显示跳入深渊确认对话框
+    private void showChasmConfirmDialog(final Hero hero, final int targetPos) {
+        Game.runOnRenderThread(new Callback() {
+            @Override
+            public void call() {
+                GameScene.show(
+                        new WndOptions(new Image(Dungeon.level.tilesTex(), 176, 16, 16, 16),
+                                Messages.get(Chasm.class, "chasm"),
+                                Messages.get(Wheelchair.class, "jump_chasm_prompt"),
+                                Messages.get(Chasm.class, "yes"),
+                                Messages.get(Chasm.class, "no")) {
+
+                            private float elapsed = 0f;
+
+                            @Override
+                            public synchronized void update() {
+                                super.update();
+                                elapsed += Game.elapsed;
+                            }
+
+                            @Override
+                            public void hide() {
+                                if (elapsed > 0.2f) {
+                                    super.hide();
+                                }
+                            }
+
+                            @Override
+                            protected void onSelect(int index) {
+                                if (index == 0 && elapsed > 0.2f) {
+                                    // 确认跳跃
+                                    performJump(hero, targetPos);
+                                }
+                            }
+                        }
+                );
+            }
+        });
+    }
 
     private void performJump(Hero hero, int targetPos) {
         // 检查弹射起步效果Buff
@@ -258,7 +320,8 @@ public class Wheelchair extends Artifact {
         hero.sprite.jump(hero.pos, dest, 0, 0.1f, new Callback() {
             @Override
             public void call() {
-                hero.pos = dest;
+                // 使用 hero.move() 替代直接设置位置，确保触发 HeroMoveEvent
+                hero.move(dest);
                 Dungeon.level.occupyCell(hero);
                 Dungeon.observe();
                 GameScene.updateFog();
@@ -328,7 +391,7 @@ public class Wheelchair extends Artifact {
             if (wheelchair.cursed) return;
 
             wheelchair.moveDistance++;
-            int upgradeThreshold = 100 + 100 * wheelchair.level();
+            int upgradeThreshold = 300 + 200 * wheelchair.level();
             if (wheelchair.moveDistance >= upgradeThreshold && wheelchair.level() < wheelchair.levelCap) {
                 wheelchair.moveDistance -= upgradeThreshold;
                 wheelchair.upgrade();
@@ -380,8 +443,8 @@ public class Wheelchair extends Artifact {
             chargeCap = maxCharge();
 
             if (charge < chargeCap && !cursed && target.buff(MagicImmune.class) == null) {
-                // 充能速度：每 (80 - level - charge) 回合恢复1充能
-                float chargeGain = 1f / Math.max(1, 80 - level());
+                // 充能速度：每 (80 - 2*level) 回合恢复1充能
+                float chargeGain = 1f / Math.max(1, 80 - 2 * level());
                 chargeGain *= RingOfEnergy.artifactChargeMultiplier(target);
 
                 partialCharge += chargeGain;
