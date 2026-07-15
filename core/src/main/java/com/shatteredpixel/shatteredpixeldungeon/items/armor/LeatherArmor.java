@@ -50,14 +50,4 @@ public class LeatherArmor extends Armor {
 			return 0f;
 		}
 	}
-
-	@SubscribeEvent(event = HeroLevelUpEvent.class, priority = 0)
-	public static void onHeroLevelUp(HeroLevelUpEvent event) {
-		Hero hero = event.getHero();
-		if (hero != null && hero.isAlive()) {
-			if (hero.belongings.armor() instanceof LeatherArmor) {
-				GLog.p("\n你的皮甲：恭喜你升级了！");
-			}
-		}
-	}
 }

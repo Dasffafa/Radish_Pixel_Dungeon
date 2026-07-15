@@ -321,7 +321,7 @@ public class Armor extends EquipableItem {
 	}
 
 	public void affixSeal(BrokenSeal seal){
-		// 升级传递逻辑
+		// 升级传递逻辑：纹章等级传递给护甲，但卸下时会返还
 		if (seal.level() > 0){
 			//doesn't trigger upgrading logic such as affecting curses/glyphs
 			int newLevel = trueLevel()+1;
@@ -395,10 +395,25 @@ public class Armor extends EquipableItem {
 
 	/**
 	 * 卸下破损纹章（向后兼容，现在统一通过 detachToy 处理）
+	 * 卸下时：护甲等级-1返还给纹章，如果有符文传递天赋则携带护甲附魔/诅咒
 	 */
 	public void detachSeal(Hero hero) {
 		BrokenSeal seal = getToy(BrokenSeal.class);
 		if (seal == null) return;
+
+		// 如果纹章有等级，返还给护甲-1
+		if (seal.level() > 0) {
+			int newLevel = Math.max(0, trueLevel() - 1);
+			level(newLevel);
+		}
+
+		// 如果有符文传递天赋，携带护甲附魔/诅咒
+		if (hero != null && hero.hasTalent(Talent.RUNIC_TRANSFERENCE)) {
+			if (glyph != null) {
+				seal.inscribe(glyph);
+			}
+		}
+
 		int idx = attachedToys.indexOf(seal);
 		detachToy(idx);
 	}
@@ -461,8 +476,14 @@ public class Armor extends EquipableItem {
 		protected void onSelect(int index) {
 			if (index < 0 || index >= armor.attachedToys.size()) return;
 			ItemArmorAttachable item = armor.attachedToys.get(index);
-			armor.detachToy(index);
-			item.removeEffect(hero);
+
+			// 破损纹章有特殊卸下逻辑
+			if (item instanceof BrokenSeal) {
+				armor.detachSeal(hero);
+			} else {
+				armor.detachToy(index);
+			}
+
 			GLog.i(Messages.get(Armor.class, "detached_toy", item.name()));
 			hero.sprite.operate(hero.pos);
 			if (!item.collect()) {
