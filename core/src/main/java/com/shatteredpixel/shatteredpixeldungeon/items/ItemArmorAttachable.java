@@ -81,7 +81,6 @@ public abstract class ItemArmorAttachable extends Item {
 	 */
 	public void attachToArmor(Armor armor) {
 		this.attachedTo = armor;
-		applyEffect(Dungeon.hero);
 	}
 
 	/**

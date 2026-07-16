@@ -42,6 +42,11 @@ public class Hunger extends Buff implements Hero.Doom {
         public static final float HUNGRY        = 300f;
         public static final float STARVING      = 450f;
 
+        // 战士4-2 高端饮食：饱食度上限加成
+        public static final int[] HIGH_DIET_MAX = {550, 600, 650, 700};
+        public static final float HIGH_DIET_THRESHOLD = 450f;
+        public static final float[] HIGH_DIET_REGEN_BOOST = {0.15f, 0.24f, 0.33f, 0.45f};
+
         private float level;
         private float partialDamage;
 
@@ -100,7 +105,8 @@ public class Hunger extends Buff implements Hero.Doom {
                                 hungerDelay /= SaltCube.hungerGainMultiplier();
 
                                 float newLevel = level + (1f/hungerDelay);
-                                if (newLevel >= STARVING) {
+                                float maxHunger = getMaxHunger();
+                                if (newLevel >= maxHunger) {
 
                                         GLog.n( Messages.get(this, "onstarving") );
 
@@ -111,7 +117,7 @@ public class Hunger extends Buff implements Hero.Doom {
                                         }
 
                                         hero.interrupt();
-                                        newLevel = STARVING;
+                                        newLevel = maxHunger;
 
                                 } else if (newLevel >= HUNGRY && level < HUNGRY) {
 
@@ -156,11 +162,12 @@ public class Hunger extends Buff implements Hero.Doom {
                 float oldLevel = level;
 
                 level -= energy;
+                float maxHunger = getMaxHunger();
                 if (level < 0 && !overrideLimits) {
                         level = 0;
-                } else if (level > STARVING) {
-                        float excess = level - STARVING;
-                        level = STARVING;
+                } else if (level > maxHunger) {
+                        float excess = level - maxHunger;
+                        level = maxHunger;
                         partialDamage += excess * (target.HT/1000f);
                         if (partialDamage > 1f){
                                 if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
@@ -174,7 +181,7 @@ public class Hunger extends Buff implements Hero.Doom {
 
                 if (oldLevel < HUNGRY && level >= HUNGRY){
                         GLog.w( Messages.get(this, "onhungry") );
-                } else if (oldLevel < STARVING && level >= STARVING){
+                } else if (oldLevel < maxHunger && level >= maxHunger){
                         GLog.n( Messages.get(this, "onstarving") );
                         if (((Hero) target).belongings!=null && ((Hero) target).belongings.getItem(Sprouted_Potato.class)!=null){
                                 Buff.affect(target, Sprouted_Potato.Potato_Poison.class).harden((int)1*Sprouted_Potato.hungerMultiplier());
@@ -187,7 +194,47 @@ public class Hunger extends Buff implements Hero.Doom {
         }
 
         public boolean isStarving() {
-                return level >= STARVING;
+                // 战士4-2 高端饮食：使用动态饱食度上限
+                return level >= getMaxHunger();
+        }
+
+        /**
+         * 获取动态饱食度上限（战士4-2 高端饮食）
+         */
+        public float getMaxHunger() {
+                if (target instanceof Hero) {
+                        Hero hero = (Hero) target;
+                        if (hero.hasTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HIGH_DIET)) {
+                                int points = hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HIGH_DIET);
+                                if (points > 0 && points <= 4) {
+                                        return HIGH_DIET_MAX[points - 1];
+                                }
+                        }
+                }
+                return STARVING;
+        }
+
+        /**
+         * 检查是否处于高饱食度状态（战士4-2 高端饮食）
+         */
+        public boolean isHighSatiety() {
+                return level < HIGH_DIET_THRESHOLD;
+        }
+
+        /**
+         * 获取回血加成倍率（战士4-2 高端饮食）
+         */
+        public static float getHighDietRegenMultiplier(Hero hero) {
+                if (hero.hasTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HIGH_DIET)) {
+                        Hunger hunger = hero.buff(Hunger.class);
+                        if (hunger != null && hunger.level < HIGH_DIET_THRESHOLD) {
+                                int points = hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HIGH_DIET);
+                                if (points > 0 && points <= 4) {
+                                        return 1f + HIGH_DIET_REGEN_BOOST[points - 1];
+                                }
+                        }
+                }
+                return 1f;
         }
 
         public int hunger() {

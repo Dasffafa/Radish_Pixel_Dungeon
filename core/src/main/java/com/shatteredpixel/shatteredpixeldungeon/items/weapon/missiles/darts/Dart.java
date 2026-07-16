@@ -425,7 +425,14 @@ public class Dart extends MissileWeapon {
 
 			final String[] options;
 
-			singleSeedDarts = 4;
+			// 守望4-3 药水涂飞镖数量加成
+			int baseDarts = 4;
+			if (Dungeon.hero != null && Dungeon.hero.hasTalent(Talent.MORE_DARTS)) {
+				int points = Dungeon.hero.pointsInTalent(Talent.MORE_DARTS);
+				// +1: 4枚, +2: 6枚
+				baseDarts = (points >= 2) ? 6 : 4;
+			}
+			singleSeedDarts = baseDarts;
 			options = new String[]{
 					Messages.get(Dart.class, "tip_potion"),
 					Messages.get(Dart.class, "tip_cancel")};

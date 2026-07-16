@@ -87,6 +87,7 @@ public enum Talent {
 	HOLD_FAST(9, 3), STRONGMAN(10, 3),
 	//Warrior T4
 	IRON_MUSCLE(128,4),MOVING_DEFENSE(129,4),
+	HIGH_DIET(134,4), // 战士4-2重做：高端饮食
 	//Berserker T3
 	ENDLESS_RAGE(11, 3), PAIN_SCAR(12, 3), FANATICISM_MAGIC(13, 3),
 	//Berserker T4
@@ -95,6 +96,7 @@ public enum Talent {
 	KEEP_VIGILANCE(14, 3), LETHAL_DEFENSE(15, 3), VENT_NOPLACE(16, 3),
 	//Gladiator T4
 	DEFENSIVE_STRIKE(132,4),DEVASTATE(133,4),
+	WEAPON_MASTER(135,4), // 角斗士4-4重做：武器大师
 	//Heroic Leap T4
 	BODY_SLAM(17, 4), IMPACT_WAVE(18, 4), DOUBLE_JUMP(19, 4),
 	//Shockwave T4
@@ -113,8 +115,10 @@ public enum Talent {
 	SPELL_QUEUE(41, 3), ALLY_WARP(42, 3),
 	//TODO WARMAGE T4
 	MAGIC_REFINING(160,4 ),MAGIC_TACTICS(161,4),MAGIC_STICK(162,4),MAGIC_WORKMAN(163,4),
+	WAND_DODGE(166,4), // 战法4-3：老魔杖闪避
 	//TODO MAGIC T4
 	DESPERATE_POWER(164,4),GHOST_ROOT(165,4),
+	CORRUPT_SPIRIT(167,4), // 术士4-4：腐化怨灵
 	//Battlemage T3
 	EMPOWERED_STRIKE(43, 3), MYSTICAL_CHARGE(44, 3), WAR_THROW(45, 3),
 	//Warlock T3
@@ -166,6 +170,8 @@ public enum Talent {
 	BOW_DULES(226,4),
 	STORM_ATTACK(227,4),
 	MEDART_SPECIALIST(228,4),LAND_HEART(229,4),
+	COMMON_SHOT(230,4), // 狙击4-3重做：通识射击
+	MORE_DARTS(231,4),GRASS_VISION(232,4), // 守望4-3/4-4
 	//Sniper T3
 	FARSIGHT(107, 3), SHARED_ENCHANTMENT(108, 3), SHARED_UPGRADES(109, 3),
 	//Warden T3
@@ -267,13 +273,16 @@ public enum Talent {
 	//Moonlight T4 (Universal)
 
 	HEROIC_ENERGY_MOONLIGHT(294, 4),
+	LIGHT_ETERNITY(295, 4), MOON_GLORY(296, 4), // 月华4-1/4-2
 
 	// Little Knight T3
 	// 我不会输 濡湿附魔 左弓连射
 	WONT_LOSE(243, 3), WET_ENCHANT(244, 3), LEFT_BOW_RAPID(245, 3),
+	SHIELD_POKE(246, 4), KNIGHT_SPIRIT(247, 4), // 小骑士4-3/4-4
 
 	//Dice Mage T3
 	LEARN_SOOTHE(276, 3), LEARN_LIQUOR(308, 3), LEARN_OPERATE(309, 3), LEARN_MIASMA(339, 3), LEARN_CRUSH(340, 3), LEARN_BLAZE(341, 3),
+	SPELL_EMPOWER(342, 4), EGG_BASKET(343, 4), // 骰子法师4-3/4-4
 
 	//Jutte Champion T3
 	ONE_JUTTE(371, 3), IRON_QUENCH(372, 3), SURPRISE_JUTTE(373, 3),
@@ -311,6 +320,11 @@ public enum Talent {
 	public static class SlowHealingDeadCooldown extends FlavourBuff{
 		public int icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0f, 0.55f, 0f); }
+	};
+
+	public static class ThirstyBladeCooldown extends FlavourBuff{
+		public int icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0.8f, 0f, 0f); }
 	};
 
 	public static class Rain_Grace_Cooldown extends FlavourBuff{
@@ -892,13 +906,15 @@ public enum Talent {
 			hero.buff(LingeringMagicTracker.class).detach();
 		}
 
-		if (hero.hasTalent(THIRSTY_BLADE)){
+		if (hero.hasTalent(THIRSTY_BLADE) && hero.buff(ThirstyBladeCooldown.class) == null){
 			int restoration = Math.round(dmg* hero.pointsInTalent(THIRSTY_BLADE)*0.02f);
 			if (restoration > 0) {
 				int preHp=hero.HP;
 				hero.HP = Math.min(hero.HT, hero.HP + restoration);
 				hero.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", hero.HP-preHp);
 				hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
+				// 添加20回合冷却
+				Buff.affect(hero, ThirstyBladeCooldown.class, 20f);
 			}
 		}
 
@@ -945,6 +961,18 @@ public enum Talent {
 			}
 		}
 
+		// 狙击4-3 通识射击：近战攻击有概率给予狙击标记
+		if (hero.hasTalent(COMMON_SHOT) && hero.subClass == HeroSubClass.SNIPER) {
+			if (!(hero.belongings.attackingWeapon() instanceof MissileWeapon)) {
+				int points = hero.pointsInTalent(COMMON_SHOT);
+				// +1: 33%, +2: 66%, +3: 100%
+				int chance = points * 33;
+				if (Random.Int(100) < chance) {
+					Buff.prolong(enemy, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark.class, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark.DURATION).set(enemy.id(), Dungeon.hero.belongings.weapon() != null ? Dungeon.hero.belongings.weapon().buffedLvl() : 0);
+				}
+			}
+		}
+
 		return dmg;
 	}
 
@@ -952,6 +980,18 @@ public enum Talent {
 		/*if (hero.hasTalent(DEATHBLOW)){
 			Buff.prolong(hero, EnhancedRings.class, 3f*hero.pointsInTalent(DEATHBLOW));
 		}*/
+	}
+
+	/**
+	 * 术士4-4 腐化怨灵：进入新层时生成怨灵
+	 */
+	public static void onNewFloor(Hero hero) {
+		if (hero.hasTalent(CORRUPT_SPIRIT)) {
+			int points = hero.pointsInTalent(CORRUPT_SPIRIT);
+			// +1/+2: 2只怨灵, +3/+4: 3只怨灵
+			int count = (points >= 3) ? 3 : 2;
+			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CorruptSpirit.spawnAround(hero.pos, count);
+		}
 	}
 
 	public static class ProvokedAngerTracker extends FlavourBuff{
@@ -1202,7 +1242,7 @@ public enum Talent {
 		//tier 4
 		switch (cls){
 			case WARRIOR: default:
-				Collections.addAll(tierTalents, IRON_MUSCLE, MOVING_DEFENSE);
+				Collections.addAll(tierTalents, IRON_MUSCLE, HIGH_DIET); // 4-2重做
 				break;
 			case ROGUE:
 				Collections.addAll(tierTalents, HIDE_IN_CROWD,DARK_ARMOR);
@@ -1220,18 +1260,18 @@ public enum Talent {
 				Collections.addAll(tierTalents,SUPERSTITION,VITAE_BOOST);
 				break;
 			case MOONLIGHT:
-				Collections.addAll(tierTalents, HEROIC_ENERGY_MOONLIGHT);
+				Collections.addAll(tierTalents, LIGHT_ETERNITY, MOON_GLORY); // 4-1/4-2重做
 				break;
 		}
 		//tier 4
 		switch (subcls){
 			case BERSERKER: default:
-				Collections.addAll(tierTalents, REVENGE_ROAR, THIRSTY_BLADE);
+				Collections.addAll(tierTalents, REVENGE_ROAR, THIRSTY_BLADE); // THIRSTY_BLADE加冷却
 
 				//GLog.p("5");
 				break;
 			case GLADIATOR:
-				Collections.addAll(tierTalents, DEFENSIVE_STRIKE, DEVASTATE);
+				Collections.addAll(tierTalents, DEFENSIVE_STRIKE, WEAPON_MASTER); // 4-4重做
 				break;
 			case ASSASSIN:
 				Collections.addAll(tierTalents, BRACE_YOURSELF,POWER_RECYCLE);
@@ -1242,18 +1282,18 @@ public enum Talent {
 				break;
 
 			case BATTLEMAGE:
-				Collections.addAll(tierTalents,MAGIC_STICK,MAGIC_WORKMAN);
+				Collections.addAll(tierTalents,WAND_DODGE, MAGIC_WORKMAN); // 4-3重做
 				break;
 			case WARLOCK:
-				Collections.addAll(tierTalents, DESPERATE_POWER,GHOST_ROOT);
+				Collections.addAll(tierTalents, DESPERATE_POWER, CORRUPT_SPIRIT); // 4-4重做
 				break;
 
 			case SNIPER:
-				Collections.addAll(tierTalents, BOW_DULES,STORM_ATTACK);
+				Collections.addAll(tierTalents, COMMON_SHOT, STORM_ATTACK); // 4-3重做
 				break;
 
 			case WARDEN:
-				Collections.addAll(tierTalents, MEDART_SPECIALIST, LAND_HEART);
+				Collections.addAll(tierTalents, MORE_DARTS, GRASS_VISION); // 4-3/4-4重做
 				break;
 
 			case REDCARDINAL:
@@ -1269,11 +1309,11 @@ public enum Talent {
 				break;
 
 			case LITTLE_KNIGHT:
-				Collections.addAll(tierTalents, ERROR);
+				Collections.addAll(tierTalents, SHIELD_POKE, KNIGHT_SPIRIT); // 4-3/4-4重做
 				break;
 
 			case DICE_MAGE:
-				Collections.addAll(tierTalents, LEARN_MIASMA, LEARN_CRUSH, LEARN_BLAZE);
+				Collections.addAll(tierTalents, SPELL_EMPOWER, EGG_BASKET); // 4-3/4-4重做
 				break;
 
 			case JUTTE_CHAMPION:

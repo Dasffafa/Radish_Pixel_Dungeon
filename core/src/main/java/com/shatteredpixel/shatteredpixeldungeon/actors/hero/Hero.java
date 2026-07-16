@@ -323,6 +323,12 @@ public class Hero extends Char {
 
 
 		HT = initialHP + growthFactor*(lvl-1) + HTBoost;
+		if (buff(ScarBuff.class) != null) {
+			HT += ScarBuff.MAX_HP_BONUS;
+		}
+		if (buff(BarkskinToyBuff.class) != null) {
+			HT -= BarkskinToyBuff.MAX_HP_PENALTY;
+		}
 		float multiplier = RingOfMight.HTMultiplier(this);
 		HT = Math.round(multiplier * HT);
 
@@ -769,6 +775,8 @@ public class Hero extends Char {
             }
             if (armDr > 0) dr += armDr;
         }
+		dr += ShieldToyBuff.getDRBonus();
+
 		if (belongings.weapon() != null)  {
 			int wepDr = Char.combatRoll( 0 , belongings.weapon().defenseFactor( this ) );
 			if (STR() < ((Weapon)belongings.weapon()).STRReq()){
@@ -827,6 +835,11 @@ public class Hero extends Char {
 			dmg += WeaponMasteryTalent.getBonusDamage(this);
 		}
 
+		dmg = Math.round(dmg
+				* IronHeartBuff.getDamageMultiplier()
+				* HeavyShoesBuff.getDamageMultiplier()
+				* WhetstoneBuff.getDamageMultiplier());
+
 		if (dmg < 0) dmg = 0;
 
 		return dmg;
@@ -862,6 +875,8 @@ public class Hero extends Char {
 		if (belongings.armor() != null) {
 			speed = belongings.armor().speedFactor(this, speed);
 		}
+
+		speed *= HeavyShoesBuff.getSpeedMultiplier();
 
 		Momentum momentum = buff(Momentum.class);
 		if (momentum != null){
@@ -922,6 +937,11 @@ public class Hero extends Char {
 			return true;
 		}
 
+		int polearmReach = PolearmBuff.getReachBonus();
+		if (polearmReach > 0 && Dungeon.level.distance(pos, enemy.pos) <= 1 + polearmReach) {
+			return true;
+		}
+
 		KindOfWeapon wep = Dungeon.hero.belongings.attackingWeapon();
 
 		if (wep != null){
@@ -977,6 +997,9 @@ public class Hero extends Char {
 		}
 
 		if ( buff(Adrenaline.class) != null) delay /= 1.5f;
+
+		delay *= PolearmBuff.getAttackDelayMultiplier();
+		speed *= IronHeartBuff.getAttackSpeedMultiplier();
 
 		// rector skill : gods possession with talent avatar
 		// DoggingDog on 20260119

@@ -42,12 +42,14 @@ public class Scar extends ItemArmorAttachable {
 	@Override
 	public void applyEffect(Hero hero) {
 		Buff.affect(hero, ScarBuff.class);
+		hero.updateHT(false);
 	}
 
 	@Override
 	public void removeEffect(Hero hero) {
 		ScarBuff buff = hero.buff(ScarBuff.class);
 		if (buff != null) buff.detach();
+		hero.updateHT(false);
 	}
 
 	@Override

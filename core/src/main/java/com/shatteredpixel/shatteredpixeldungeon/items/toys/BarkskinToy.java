@@ -19,12 +19,14 @@ public class BarkskinToy extends ItemArmorAttachable {
 	@Override
 	public void applyEffect(Hero hero) {
 		Buff.affect(hero, BarkskinToyBuff.class);
+		hero.updateHT(false);
 	}
 
 	@Override
 	public void removeEffect(Hero hero) {
 		BarkskinToyBuff buff = hero.buff(BarkskinToyBuff.class);
 		if (buff != null) buff.detach();
+		hero.updateHT(false);
 	}
 
 	@Override

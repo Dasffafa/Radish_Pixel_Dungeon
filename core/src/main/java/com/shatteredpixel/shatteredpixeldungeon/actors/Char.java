@@ -639,6 +639,13 @@ public abstract class Char extends Actor {
 
 			effectiveDamage = attackProc( enemy, effectiveDamage );
 
+			if (this == hero) {
+				PoemBuff poem = hero.buff(PoemBuff.class);
+				if (poem != null) {
+					effectiveDamage = poem.applyFinalDamage(hero, enemy, effectiveDamage);
+				}
+			}
+
 			if (visibleFight) {
 				if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
 					hitSound(Random.Float(0.87f, 1.15f));
@@ -673,6 +680,11 @@ public abstract class Char extends Actor {
 
 			if (buff(FireImbue.class) != null)  buff(FireImbue.class).proc(enemy);
 			if (buff(FrostImbue.class) != null) buff(FrostImbue.class).proc(enemy);
+
+			if (this == hero && enemy.isAlive() && ArrowBuff.tryExecute(enemy)) {
+				enemy.HP = 0;
+				enemy.die(this);
+			}
 
 			if (enemy.isAlive() && enemy.alignment != alignment && prep != null && prep.canKO(enemy)){
 				enemy.HP = 0;

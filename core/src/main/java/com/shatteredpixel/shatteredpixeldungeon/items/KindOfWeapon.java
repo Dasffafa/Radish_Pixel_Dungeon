@@ -145,7 +145,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 	protected float timeToEquip( Hero hero ) {
 		return isSwiftEquipping ? 0f : super.timeToEquip(hero);
 	}
-	
+
 	@Override
 	public boolean doEquip( Hero hero ) {
 
@@ -173,9 +173,9 @@ abstract public class KindOfWeapon extends EquipableItem {
 		}
 
 		detachAll( hero.belongings.backpack );
-		
+
 		if (hero.belongings.weapon == null || hero.belongings.weapon.doUnequip( hero, true )) {
-			
+
 			hero.belongings.weapon = this;
 			activate( hero );
 			Talent.onItemEquipped(hero, this);
@@ -191,6 +191,21 @@ abstract public class KindOfWeapon extends EquipableItem {
 				}
 				// 检测踹飞技能
 				KickTracker.checkKick(hero);
+			}
+
+			// 角斗士4-4 武器大师：切换武器后连击数和攻速加成
+			if (hero.subClass == HeroSubClass.GLADIATOR && hero.hasTalent(Talent.WEAPON_MASTER)) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo combo = hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo.class);
+				if (combo != null) {
+					int points = hero.pointsInTalent(Talent.WEAPON_MASTER);
+					// +1/+2: 连击数3, +3/+4: 连击数4
+					int comboCount = (points >= 3) ? 4 : 3;
+					combo.setComboCount(comboCount);
+					// 攻速加成持续时间: +1:2回合, +2/+3:3回合, +4:4回合
+					int duration = (points == 1) ? 2 : (points == 4) ? 4 : 3;
+					Buff.prolong(hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste.class, duration);
+					GLog.p(Messages.get(Talent.class, "weapon_master_activated", comboCount, duration));
+				}
 			}
 
 			cursedKnown = true;
@@ -211,7 +226,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 				isSwiftEquipping = false;
 			}
 			return true;
-			
+
 		} else {
 			isSwiftEquipping = false;
 			collect( hero.belongings.backpack );
@@ -314,11 +329,11 @@ abstract public class KindOfWeapon extends EquipableItem {
 	public int damageRoll( Char owner ) {
 		return Char.combatRoll( min(), max() );
 	}
-	
+
 	public float accuracyFactor( Char owner, Char target ) {
 		return 1f;
 	}
-	
+
 	public float delayFactor( Char owner ) {
 		return 1f;
 	}
@@ -326,7 +341,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 	public int reachFactor( Char owner ){
 		return 1;
 	}
-	
+
 	public boolean canReach( Char owner, int target){
 		int reach = reachFactor(owner);
 		if (Dungeon.level.distance( owner.pos, target ) > reach){
@@ -336,9 +351,9 @@ abstract public class KindOfWeapon extends EquipableItem {
 			for (Char ch : Actor.chars()) {
 				if (ch != owner) passable[ch.pos] = false;
 			}
-			
+
 			PathFinder.buildDistanceMap(target, passable, reach);
-			
+
 			return PathFinder.distance[owner.pos] <= reach;
 		}
 	}
@@ -346,7 +361,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 	public int defenseFactor( Char owner ) {
 		return 0;
 	}
-	
+
 	public int proc( Char attacker, Char defender, int damage ) {
 		return damage;
 	}

@@ -222,7 +222,8 @@ public class Armor extends EquipableItem {
 		// 玩具背包护甲技能：只有选择了玩具背包护甲技能时显示
 		if (hero.armorAbility instanceof ToyBackpack) {
 			actions.add(AC_TOY); // 查看玩具背包
-			if (toyCharge >= TOY_CHARGE_COST) {
+			if (this instanceof ClassArmor
+					&& ((ClassArmor)this).charge >= hero.armorAbility.chargeUse(hero)) {
 				actions.add(AC_ATTACH); // 生成新玩具
 			}
 		}
@@ -253,9 +254,12 @@ public class Armor extends EquipableItem {
 			GameScene.show(new WndDetachItems(hero, this));
 
 		} else if (action.equals(AC_ATTACH)) {
-			// 消耗充能生成随机玩具
-			if (toyCharge >= TOY_CHARGE_COST) {
-				toyCharge -= TOY_CHARGE_COST;
+			// 消耗护甲充能生成随机玩具
+			if (this instanceof ClassArmor
+					&& hero.armorAbility instanceof ToyBackpack
+					&& ((ClassArmor)this).charge >= hero.armorAbility.chargeUse(hero)) {
+				((ClassArmor)this).charge -= hero.armorAbility.chargeUse(hero);
+				((ClassArmor)this).updateQuickslot();
 				ItemArmorAttachable toy = generateRandomToy();
 				if (toy != null) {
 					GLog.p(Messages.get(Armor.class, "toy_generated", toy.name()));
@@ -319,6 +323,11 @@ public class Armor extends EquipableItem {
 		buff = buff();
 		if (buff!=null)
 			buff.attachTo( ch );
+		if (ch instanceof Hero) {
+			for (ItemArmorAttachable toy : attachedToys) {
+				toy.applyEffect((Hero)ch);
+			}
+		}
 	}
 
 	public void affixSeal(BrokenSeal seal){
@@ -387,7 +396,7 @@ public class Armor extends EquipableItem {
 	public void detachToy(int index) {
 		if (index >= 0 && index < attachedToys.size()) {
 			ItemArmorAttachable toy = attachedToys.remove(index);
-			if (Dungeon.hero != null) {
+			if (Dungeon.hero != null && isEquipped(Dungeon.hero)) {
 				toy.removeEffect(Dungeon.hero);
 			}
 			toy.attachedTo = null;
@@ -510,14 +519,15 @@ public class Armor extends EquipableItem {
 	// 静态辅助方法：构建玩具背包信息文本
 	private static String buildToyBackpackMessage(Armor armor) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.get(Armor.class, "toy_backpack_charge", armor.toyCharge, TOY_CHARGE_COST));
+		int currentCharge = armor instanceof ClassArmor ? (int)Math.floor(((ClassArmor)armor).charge) : armor.toyCharge;
+		sb.append(Messages.get(Armor.class, "toy_backpack_charge", currentCharge, TOY_CHARGE_COST));
 		sb.append("\n\n");
 		if (armor.attachedToys.isEmpty()) {
 			sb.append(Messages.get(Armor.class, "toy_backpack_empty"));
 		} else {
 			sb.append(Messages.get(Armor.class, "toy_backpack_attached"));
 			for (ItemArmorAttachable toy : armor.attachedToys) {
-				sb.append("\n   • ").append(toy.name());
+				sb.append("\n\n• ").append(toy.name()).append("\n  ").append(toy.desc());
 			}
 		}
 		return sb.toString();
@@ -551,6 +561,9 @@ public class Armor extends EquipableItem {
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (super.doUnequip( hero, collect, single )) {
+			for (ItemArmorAttachable toy : attachedToys) {
+				toy.removeEffect(hero);
+			}
 
 			if (buff != null) {
 				buff.detach();

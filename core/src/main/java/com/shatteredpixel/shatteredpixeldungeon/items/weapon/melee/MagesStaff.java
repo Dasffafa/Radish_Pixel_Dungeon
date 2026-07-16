@@ -340,6 +340,19 @@ public class MagesStaff extends MeleeWeapon {
 			}
 		}
 
+		// 战法4-3 老魔杖闪避：近战攻击后概率获得闪避机动，物理伤害加成
+		if (hero.hasTalent(Talent.WAND_DODGE) && wand != null) {
+			int points = hero.pointsInTalent(Talent.WAND_DODGE);
+			// 闪避概率：+2:15%, +3:20%, +4:25%
+			int dodgeChance = 10 + points * 5;
+			if (Random.Int(100) < dodgeChance && hero.buff(AfterImage.AnotabsoluteEvasion.class) == null) {
+				Buff.affect(hero, AfterImage.AnotabsoluteEvasion.class);
+			}
+			// 物理伤害加成：+2:4, +3:6, +4:8
+			int bonusDamage = points * 2;
+			damage += bonusDamage;
+		}
+
 		Talent.EmpoweredStrikeTracker empoweredStrike = attacker.buff(Talent.EmpoweredStrikeTracker.class);
 		if (empoweredStrike != null){
 			damage = Math.round( damage * (1f + Dungeon.hero.pointsInTalent(Talent.EMPOWERED_STRIKE)/6f));

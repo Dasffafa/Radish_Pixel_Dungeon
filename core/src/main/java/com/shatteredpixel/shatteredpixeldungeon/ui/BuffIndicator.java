@@ -134,8 +134,10 @@ public class BuffIndicator extends Component {
 
 	public static final int WAND    	= 83;
 
-	public static final int BELIEF_LINK    	= 84;
-	public static final int BELIEF_DNOT    	= 85;
+	public static final int BELIEF_LINK   	= 84;
+	public static final int BELIEF_DNOT   	= 85;
+
+	public static final int CORRUPT_SPIRIT = 86; // 术士4-4 腐化怨灵debuff
 
 	public static final int SIZE_SMALL  = 7;
 	public static final int SIZE_LARGE  = 16;

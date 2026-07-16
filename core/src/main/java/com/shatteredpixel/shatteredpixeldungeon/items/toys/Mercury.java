@@ -33,6 +33,6 @@ public class Mercury extends ItemArmorAttachable {
 
 	@Override
 	public String desc() {
-		return Messages.get(this, "desc", 5); // TODO: 从玩具 level 获取
+		return Messages.get(this, "desc", MercuryBuff.getShieldInterval());
 	}
 }

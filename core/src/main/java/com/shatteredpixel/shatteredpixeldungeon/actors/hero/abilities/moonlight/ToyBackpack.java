@@ -21,11 +21,18 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.ItemArmorAttachable;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
  * 玩具背包护甲技能
@@ -39,8 +46,20 @@ public class ToyBackpack extends ArmorAbility {
 
 	@Override
 	protected void activate(ClassArmor armor, Hero hero, Integer target) {
-		// 玩具背包的核心功能通过Armor.java的AC_ATTACH和AC_TOY实现
-		// 此处仅作为护甲技能标识，不在此处执行具体逻辑
+		ItemArmorAttachable toy = armor.generateRandomToy();
+		if (toy == null) return;
+
+		armor.charge -= chargeUse(hero);
+		armor.updateQuickslot();
+		Item.updateQuickslot();
+
+		GLog.p(Messages.get(Armor.class, "toy_generated", toy.name()));
+		if (!toy.collect(hero.belongings.backpack)) {
+			Dungeon.level.drop(toy, hero.pos).sprite.drop();
+		}
+
+		hero.sprite.operate(hero.pos);
+		hero.spendAndNext(Actor.TICK);
 	}
 
 	@Override

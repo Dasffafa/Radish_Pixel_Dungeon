@@ -51,7 +51,9 @@ public class Barrier extends ShieldBuff {
 	@Override
 	public boolean act() {
 
-		partialLostShield += Math.min(1f, shielding()/20f);
+		if (!MercuryBuff.preventsNaturalDecay()) {
+			partialLostShield += Math.min(1f, shielding()/20f);
+		}
 
 		if (partialLostShield >= 1f) {
 			absorbDamage(1);

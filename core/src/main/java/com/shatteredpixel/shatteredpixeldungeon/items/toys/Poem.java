@@ -2,31 +2,18 @@ package com.shatteredpixel.shatteredpixeldungeon.items.toys;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PoemBuff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemArmorAttachable;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 /**
- * 诗 — 连续攻击相同名字的敌人拥有 66% 伤害加成
+ * 诗 — 对名称与武器或护甲押韵的目标造成额外最终伤害
  */
 public class Poem extends ItemArmorAttachable {
 
 	{
 		image = ItemSpriteSheet.SNAKE_BITE;
-	}
-
-	public static boolean checkCombo(Char enemy) {
-		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero == null) return false;
-		PoemBuff buff = com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.buff(PoemBuff.class);
-		return buff != null && buff.checkCombo(enemy);
-	}
-
-	public static float getDamageMultiplier() {
-		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero == null) return 1f;
-		PoemBuff buff = com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.buff(PoemBuff.class);
-		return buff != null ? buff.getDamageMultiplier() : 1f;
 	}
 
 	@Override
@@ -42,6 +29,6 @@ public class Poem extends ItemArmorAttachable {
 
 	@Override
 	public String desc() {
-		return Messages.get(this, "desc", PoemBuff.REQUIRED_COMBO, (int)((PoemBuff.COMBO_DAMAGE_MULTIPLIER - 1) * 100));
+		return Messages.get(this, "desc", (int)((PoemBuff.RHYME_DAMAGE_MULTIPLIER - 1) * 100));
 	}
 }

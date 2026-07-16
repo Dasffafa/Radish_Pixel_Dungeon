@@ -610,6 +610,9 @@ public class Dungeon {
 		
 		hero.curAction = hero.lastAction = null;
 
+		// 术士4-4 腐化怨灵：进入新层时生成怨灵
+		Talent.onNewFloor(hero);
+
 		observe();
 		try {
 			saveAll();
