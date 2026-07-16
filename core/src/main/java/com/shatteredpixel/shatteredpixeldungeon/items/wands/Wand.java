@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicStick;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
@@ -496,6 +497,10 @@ public abstract class Wand extends Item {
 		updateQuickslot();
 	}
 	public void wandUsed() {
+
+		if (hero.subClass == HeroSubClass.DICE_MAGE){
+			Buff.affect(hero, MagicPoint.class).addPoints(0.5f + buffedLvl() * 0.05f);
+		}
 
 		if(hero.hasTalent(Talent.MAGIC_STICK) && hero.pointsInTalent(Talent.MAGIC_STICK) >=4 && ! isMagesStaff){
 			if(hero.buff(MagicStick.class) == null ){

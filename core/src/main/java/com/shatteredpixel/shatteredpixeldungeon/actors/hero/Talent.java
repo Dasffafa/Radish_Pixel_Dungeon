@@ -1273,7 +1273,7 @@ public enum Talent {
 				break;
 
 			case DICE_MAGE:
-				Collections.addAll(tierTalents,ERROR);
+				Collections.addAll(tierTalents, LEARN_MIASMA, LEARN_CRUSH, LEARN_BLAZE);
 				break;
 
 			case JUTTE_CHAMPION:
