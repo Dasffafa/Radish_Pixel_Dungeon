@@ -34,8 +34,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -190,6 +192,8 @@ public class JutteChampionWeapon extends MeleeWeapon {
     }
 
     public void consumeDurability(float amount) {
+        if (isBroken()) return;
+
         durability -= amount;
         if (durability < 0) durability = 0;
 
@@ -200,6 +204,14 @@ public class JutteChampionWeapon extends MeleeWeapon {
                 doUnequip(hero, true, true);
             }
             detach(hero.belongings.backpack);
+
+            if (level() > 0 && hero.hasTalent(Talent.IRON_QUENCH)) {
+                ScrollOfUpgrade scroll = new ScrollOfUpgrade();
+                if (!scroll.identify().collect()) {
+                    Dungeon.level.drop(scroll, hero.pos).sprite.drop();
+                }
+                GLog.p(Messages.get(this, "return_scroll"));
+            }
         }
     }
 

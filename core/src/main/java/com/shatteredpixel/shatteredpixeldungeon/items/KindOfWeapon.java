@@ -35,7 +35,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.Sh
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CancelAttackBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CancelAttackCooldown;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.KickTracker;
-import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.JutteChampionWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
@@ -402,32 +401,50 @@ abstract public class KindOfWeapon extends EquipableItem {
 	private void convertToJutte(Hero hero) {
 		// 计算阶数（基于武器等级）
 		int tier = Math.min(5, Math.max(1, level() + 1));
+		int originalLevel = level();
 
 		// 创建十手并立即鉴定
 		JutteChampionWeapon jutte = new JutteChampionWeapon(tier);
 		jutte.identify();
 
-		// 精铁淬炼天赋：让十手获得升级等级并返还升级卷轴
-		int originalLevel = level();
+		// 精铁淬炼天赋：让十手获得升级等级
 		if (originalLevel > 0 && hero.hasTalent(Talent.IRON_QUENCH)) {
 			// 十手获得升级等级（等于原武器的升级数）
 			jutte.level(originalLevel);
-
-			// 返还一张升级卷轴
-			ScrollOfUpgrade scroll = new ScrollOfUpgrade();
-			scroll.identify().collect();
-			GLog.p(Messages.get(KindOfWeapon.class, "jutte_return_scroll"));
 		}
 
-		// 卸下当前武器
+		boolean converted = false;
+		boolean second = hero.belongings.secondWep == this;
+		int slot = Dungeon.quickslot.getSlot(this);
+
 		if (isEquipped(hero)) {
-			doUnequip(hero, true, true);
-		}
-		detach(hero.belongings.backpack);
+			if (!doUnequip(hero, false, true)) {
+				return;
+			}
 
-		// 将十手放入背包
-		jutte.collect();
-		GLog.p(Messages.get(KindOfWeapon.class, "jutte_converted", tier));
+			if (second) {
+				hero.belongings.secondWep = jutte;
+			} else {
+				hero.belongings.weapon = jutte;
+			}
+			jutte.activate(hero);
+			Talent.onItemEquipped(hero, jutte);
+			if (slot != -1) {
+				Dungeon.quickslot.setSlot(slot, jutte);
+			}
+			jutte.updateQuickslot();
+			converted = true;
+		} else {
+			detach(hero.belongings.backpack);
+			converted = jutte.collect();
+			if (!converted) {
+				collect(hero.belongings.backpack);
+			}
+		}
+
+		if (converted) {
+			GLog.p(Messages.get(KindOfWeapon.class, "jutte_converted", tier));
+		}
 	}
 
 }
