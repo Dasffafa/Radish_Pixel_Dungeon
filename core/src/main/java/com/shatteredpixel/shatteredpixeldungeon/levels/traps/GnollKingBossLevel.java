@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 import static com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.WALL;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -37,6 +38,7 @@ public class GnollKingBossLevel extends Level {
 
     @Override
     public void playLevelMusic() {
+        if (DiceMageAudio.playLevelMusic()) return;
         if (locked){
             if (BossHealthBar.isBleeding()){
                 Music.INSTANCE.play(Assets.Music.CAVES_BOSS_FINALE, true);
@@ -93,7 +95,9 @@ public class GnollKingBossLevel extends Level {
         Game.runOnRenderThread(new Callback() {
             @Override
             public void call() {
-                Music.INSTANCE.play(Assets.Music.CAVES_BOSS, true);
+                if (!DiceMageAudio.playLevelMusic()) {
+                    Music.INSTANCE.play(Assets.Music.CAVES_BOSS, true);
+                }
             }
         });
     }

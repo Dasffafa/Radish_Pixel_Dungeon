@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -91,6 +92,7 @@ public class PrisonBossLevel extends Level {
 
 	@Override
 	public void playLevelMusic() {
+        if (DiceMageAudio.playLevelMusic()) return;
 		if (state == State.START){
 			Music.INSTANCE.end();
 		} else if (state == State.WON) {
@@ -422,7 +424,9 @@ public class PrisonBossLevel extends Level {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
-						Music.INSTANCE.play(Assets.Music.PRISON_BOSS, true);
+						if (!DiceMageAudio.playLevelMusic()) {
+							Music.INSTANCE.play(Assets.Music.PRISON_BOSS, true);
+						}
 					}
 				});
 				break;

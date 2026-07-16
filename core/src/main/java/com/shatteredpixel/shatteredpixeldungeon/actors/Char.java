@@ -46,6 +46,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -293,6 +294,10 @@ public abstract class Char extends Actor {
 	}
 
 	public void hitSound( float pitch ){
+		if (this == hero && DiceMageAudio.active()) {
+			DiceMageAudio.hit(pitch);
+			return;
+		}
 		Sample.INSTANCE.play(Assets.Sounds.HIT, 1, pitch);
 	}
 
@@ -685,6 +690,9 @@ public abstract class Char extends Actor {
 			enemy.sprite.flash();
 
 			if (!enemy.isAlive() && visibleFight) {
+				if (this == hero && DiceMageAudio.active()) {
+					DiceMageAudio.death();
+				}
 				if (enemy == hero) {
 
 					if (this == hero) {
@@ -717,7 +725,11 @@ public abstract class Char extends Actor {
 
 			if (visibleFight) {
 				//TODO enemy.defenseSound? currently miss plays for monks/crab even when they parry
-				Sample.INSTANCE.play(Assets.Sounds.MISS);
+				if (this == hero && DiceMageAudio.active()) {
+					DiceMageAudio.miss();
+				} else {
+					Sample.INSTANCE.play(Assets.Sounds.MISS);
+				}
 			}
 
 			return false;

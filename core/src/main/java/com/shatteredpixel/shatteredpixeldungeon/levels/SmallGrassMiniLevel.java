@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.depth;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
@@ -17,6 +18,7 @@ public class SmallGrassMiniLevel extends SewerLevel{
 
     @Override
     public void playLevelMusic(){
+        if (DiceMageAudio.playLevelMusic()) return;
         Music.INSTANCE.play(Assets.Music.SEWERS_TENSE, true);
     }
 
