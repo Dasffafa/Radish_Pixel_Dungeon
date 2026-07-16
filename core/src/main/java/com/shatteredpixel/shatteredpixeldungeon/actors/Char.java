@@ -1350,8 +1350,26 @@ public abstract class Char extends Actor {
 	}
 
 	public void die( Object src ) {
+		boolean skipDeathAnimation = suppressNextDeathAnimation;
+		suppressNextDeathAnimation = false;
 		destroy();
-		if (src != Chasm.class) sprite.die();
+		if (src != Chasm.class && sprite != null) {
+			if (skipDeathAnimation) {
+				sprite.skipDieAnimation();
+			} else {
+				sprite.die();
+			}
+		}
+	}
+
+	private boolean suppressNextDeathAnimation = false;
+
+	public void suppressNextDeathAnimation() {
+		suppressNextDeathAnimation = true;
+	}
+
+	public void clearDeathAnimationSuppression() {
+		suppressNextDeathAnimation = false;
 	}
 
 	//we cache this info to prevent having to call buff(...) in isAlive.

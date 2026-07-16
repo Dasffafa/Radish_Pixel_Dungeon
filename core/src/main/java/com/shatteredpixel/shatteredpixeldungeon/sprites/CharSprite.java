@@ -322,6 +322,16 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 			health.killAndErase();
 		}
 	}
+
+	public void skipDieAnimation() {
+		sleeping = false;
+		remove( State.PARALYSED );
+		hideEmo();
+
+		if (health != null){
+			health.killAndErase();
+		}
+	}
 	
 	public Emitter emitter() {
 		Emitter emitter = GameScene.emitter();

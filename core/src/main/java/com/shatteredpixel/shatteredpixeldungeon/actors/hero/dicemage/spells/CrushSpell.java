@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
@@ -52,8 +53,8 @@ public class CrushSpell extends DiceMageSpell {
 
         if (!spendMagic(hero)) return;
 
-        topEnemy.damage(damage, this);
-        bottomEnemy.damage(damage, this);
+        DiceMageSpellFX.damage(topEnemy, damage, this, DiceMageSpellFX.Type.CRUSH);
+        DiceMageSpellFX.damage(bottomEnemy, damage, this, DiceMageSpellFX.Type.CRUSH);
         GLog.p(Messages.get(this, "cast", damage));
         hero.spendAndNext(1f);
     }
