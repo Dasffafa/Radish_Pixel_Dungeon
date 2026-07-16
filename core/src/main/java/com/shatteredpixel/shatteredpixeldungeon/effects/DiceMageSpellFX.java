@@ -41,6 +41,8 @@ public class DiceMageSpellFX {
         if (target == null || target.pos < 0) return;
         if (Dungeon.level == null || !Dungeon.level.heroFOV[target.pos]) return;
 
+        DiceMageAudio.cast(type);
+
         switch (type) {
             case CUT:
                 CellEmitter.center(target.pos).burst(BlastParticle.FACTORY, 6);
@@ -89,6 +91,8 @@ public class DiceMageSpellFX {
 
     public static void kill(Char target, Type type) {
         if (target == null || target.sprite == null) return;
+
+        DiceMageAudio.kill(type);
 
         impact(target, type);
         if (target.sprite.parent != null) {

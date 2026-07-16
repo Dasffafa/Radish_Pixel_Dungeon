@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -84,6 +85,7 @@ public class MiningLevel extends CavesLevel {
 
 	@Override
 	public void playLevelMusic() {
+        if (DiceMageAudio.playLevelMusic()) return;
 		Music.INSTANCE.play(Assets.Music.CAVES_TENSE, true);
 	}
 

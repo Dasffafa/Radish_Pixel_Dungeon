@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -54,6 +55,7 @@ public class LastLevel extends Level {
 
 	@Override
 	public void playLevelMusic() {
+        if (DiceMageAudio.playLevelMusic()) return;
 		if (Statistics.amuletObtained) {
 			Music.INSTANCE.end();
 		} else {
