@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -50,8 +51,10 @@ public class MiasmaSpell extends DiceMageSpell {
 
                         Char ch = Actor.findChar(pos);
                         if (ch != null) {
-                            ch.damage(baseDamage, MiasmaSpell.this);
-                            Buff.affect(ch, Poison.class).set(baseDamage * 4f);
+                            DiceMageSpellFX.damage(ch, baseDamage, MiasmaSpell.this, DiceMageSpellFX.Type.MIASMA);
+                            if (ch.isAlive()) {
+                                Buff.affect(ch, Poison.class).set(baseDamage * 4f);
+                            }
                             hitCount++;
                         }
                     }

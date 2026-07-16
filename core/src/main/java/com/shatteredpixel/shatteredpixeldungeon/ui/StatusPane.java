@@ -27,7 +27,9 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CircleArc;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -84,6 +86,11 @@ public class StatusPane extends Component {
 	private CircleArc counter;
 
 	private static String asset =  !SPDSettings.NORMAL_SKIN() ? Assets.Interfaces.STATUS : Assets.Interfaces.NORMAL_STATUS;
+	private static final int DICE_DARK = 0x120F17;
+	private static final int DICE_CREAM = 0xF1E5B5;
+	private static final int DICE_GOLD = 0xB59E09;
+	private static final int DICE_BLUE = 0x217B91;
+	private static final int DICE_PURPLE = 0x6A4484;
 
 	private boolean large;
 
@@ -279,6 +286,7 @@ public class StatusPane extends Component {
 	@Override
 	public void update() {
 		super.update();
+		applyDiceMageSkin();
 		
 		int health = Dungeon.hero.HP;
 		int shield = Dungeon.hero.shielding();
@@ -356,7 +364,12 @@ public class StatusPane extends Component {
 			vitaeText.measure();
 			vitaeText.x = vitae.x + vitae.width()/2 - vitaeText.width()/2;
 
-			expText.text(Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
+			if (Dungeon.hero.subClass == HeroSubClass.DICE_MAGE) {
+				MagicPoint mp = Dungeon.hero.buff(MagicPoint.class);
+				expText.text("MP " + (mp == null ? 0 : mp.getIntPoints()) + " | " + Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
+			} else {
+				expText.text(Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
+			}
 			expText.measure();
 			expText.x = hp.x + (128 - expText.width())/2f;
 
@@ -393,6 +406,19 @@ public class StatusPane extends Component {
 		}
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);
+	}
+
+	private void applyDiceMageSkin(){
+		if (Dungeon.hero.subClass != HeroSubClass.DICE_MAGE) return;
+
+		bg.hardlight(DICE_DARK);
+		hp.hardlight(DICE_CREAM);
+		shieldedHP.hardlight(DICE_BLUE);
+		rawShielding.hardlight(DICE_PURPLE);
+		exp.hardlight(DICE_GOLD);
+		level.hardlight(DICE_GOLD);
+		hpText.hardlight(DICE_DARK);
+		if (expText != null) expText.hardlight(DICE_CREAM);
 	}
 
 	public void alpha( float value ){

@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -46,8 +47,10 @@ public class BlazeSpell extends DiceMageSpell {
 
                 if (!spendMagic(hero)) return;
 
-                target.damage(damage, BlazeSpell.this);
-                target.sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(damage));
+                if (target.sprite != null) {
+                    target.sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(damage));
+                }
+                DiceMageSpellFX.damage(target, damage, BlazeSpell.this, DiceMageSpellFX.Type.BLAZE);
                 MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.FIRE, hero.sprite, target.pos, new Callback() {
                     @Override
                     public void call() {
