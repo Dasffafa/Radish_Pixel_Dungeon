@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.StormAttackArrow;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.TacticalThrowTalen4Battlemage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -288,6 +289,12 @@ abstract public class MissileWeapon extends Weapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
+		// 小骑士：投掷武器命中附加2+区域层中毒
+		if (attacker == Dungeon.hero && Dungeon.hero.subClass == HeroSubClass.LITTLE_KNIGHT) {
+			int poisonDuration = 2 + Dungeon.depth;
+			Buff.affect(defender, Poison.class).set(poisonDuration);
+		}
+
 		//索命弯刀：投武产生毒雾
 		AshKing.FatalBladeForm fatalBlade = attacker == Dungeon.hero ? Dungeon.hero.buff(AshKing.FatalBladeForm.class) : null;
 		if (fatalBlade != null) {

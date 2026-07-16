@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CancelAttackCooldow
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.KickTracker;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.JutteChampionWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -367,11 +368,18 @@ abstract public class KindOfWeapon extends EquipableItem {
 	}
 
 	@Override
-	public String desc() {
-		String desc = super.desc();
+	public String info() {
+		String info = super.info();
+		String swordShieldKnightInfo = swordShieldKnightInfo();
+		if (!swordShieldKnightInfo.equals("")) {
+			info += "\n\n" + swordShieldKnightInfo;
+		}
+		return info;
+	}
 
+	private String swordShieldKnightInfo() {
 		// 剑盾骑士天赋：显示护甲最小值提升（仅对近战武器生效）
-		if (this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) {
+		if (this instanceof MeleeWeapon) {
 			if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MOONLIGHT) {
 				int points = Dungeon.hero.pointsInTalent(Talent.SWORD_SHIELD_KNIGHT);
 				if (points > 0 && Dungeon.hero.belongings.armor != null) {
@@ -380,12 +388,12 @@ abstract public class KindOfWeapon extends EquipableItem {
 					int talentArmorMin = Math.round(min() * multiplier);
 					int armorMax = Dungeon.hero.belongings.armor.DRMax();
 					int actualMin = Math.min(talentArmorMin, armorMax);
-					desc += "\n\n" + Messages.get(KindOfWeapon.class, "sword_shield_knight", actualMin);
+					return Messages.get(KindOfWeapon.class, "sword_shield_knight", actualMin);
 				}
 			}
 		}
 
-		return desc;
+		return "";
 	}
 
 	/**

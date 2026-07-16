@@ -63,6 +63,7 @@ public class ClusteredSkeleton extends Mob {
         maxLvl = 17;
 
         properties.add(Property.UNDEAD);
+        properties.add(Property.INORGANIC);
 
         loot = new BoneClaw();
         lootChance = 0.25f;

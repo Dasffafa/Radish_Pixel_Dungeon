@@ -25,12 +25,16 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeroDisguise;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairRush;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterGlow;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.DarkCoat;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.EnergyArmor;
@@ -81,20 +85,53 @@ public class HeroSprite extends CharSprite {
 	public void updateArmor() {
 		int t=0;
 		Armor armor = hero.belongings.armor();
-		if (armor instanceof ClassArmor){
-			t= 6;
-		} else if (armor != null) {
-				if (armor instanceof PrisonArmor) t=7;
-				else if (armor instanceof CrabArmor) t=8;
-				else if (armor instanceof DarkCoat) t=9;
-				else if (armor instanceof AfterGlow) t=10;
-				else if (armor instanceof CloakofGreyFeather) t=11;
-				else if (armor instanceof RatArmor) t=12;
+		
+		// 月华角色特殊贴图逻辑（优先级从高到低）
+		if (hero.heroClass == HeroClass.MOONLIGHT) {
+			// 第7行：薪王化身状态（HolyLanceForm/SoulStreamForm/FatalBladeForm）
+			if (hero.buff(AshKing.HolyLanceForm.class) != null ||
+				hero.buff(AshKing.SoulStreamForm.class) != null ||
+				hero.buff(AshKing.FatalBladeForm.class) != null) {
+				t = 7;
+			}
+			// 第6行：轮椅加速状态
+			else if (hero.buff(WheelchairRush.class) != null) {
+				t = 6;
+			}
+			// 第5行：剑盾骑士天赋
+			else if (hero.hasTalent(Talent.SWORD_SHIELD_KNIGHT)) {
+				t = 5;
+			}
+			// 第3行：武器掌握天赋满层
+			else if (hero.pointsInTalent(Talent.WEAPON_MASTERY) == 5) {
+				t = 3;
+			}
+			// 第2行：穿戴其他盔甲（非布甲）
+			else if (armor != null && !(armor instanceof ClothArmor)) {
+				t = 2;
+			}
+			// 第1行：光身子或布甲
+			else {
+				t = 1;
+			}
+		}
+		// 其他角色使用原有逻辑
+		else {
+			if (armor instanceof ClassArmor){
+				t= 6;
+			} else if (armor != null) {
+					if (armor instanceof PrisonArmor) t=7;
+					else if (armor instanceof CrabArmor) t=8;
+					else if (armor instanceof DarkCoat) t=9;
+					else if (armor instanceof AfterGlow) t=10;
+					else if (armor instanceof CloakofGreyFeather) t=11;
+					else if (armor instanceof RatArmor) t=12;
 
-				else if (armor instanceof EnergyArmor){
-					t= ((EnergyArmor) armor).Energy();
-				}
-			else t = armor.tier;
+					else if (armor instanceof EnergyArmor){
+						t= ((EnergyArmor) armor).Energy();
+					}
+				else t = armor.tier;
+			}
 		}
 		TextureFilm film = new TextureFilm( tiers(), t, FRAME_WIDTH, FRAME_HEIGHT );
 

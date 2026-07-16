@@ -54,6 +54,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CircleSword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Catalog;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -604,7 +605,7 @@ public class Armor extends EquipableItem {
 		// 剑盾骑士天赋：月华护甲最小值至少为武器伤害最小值的倍数
 		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MOONLIGHT) {
 			int points = Dungeon.hero.pointsInTalent(Talent.SWORD_SHIELD_KNIGHT);
-			if (points > 0 && Dungeon.hero.belongings.weapon != null) {
+			if (points > 0 && Dungeon.hero.belongings.weapon instanceof MeleeWeapon) {
 				// 获取武器伤害最小值
 				int weaponMinDamage = Dungeon.hero.belongings.weapon.min();
 				// 计算加成：+1=100%, +2=125%, +3=150%
@@ -698,15 +699,14 @@ public class Armor extends EquipableItem {
 			}
 
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			// 塑形玻璃的虚拟等级需要与国王之戒的虚拟等级叠加
 			if(hero.buff(BlessAWP.ArmorGetReady.class)!=null && hero.belongings.armor() == this && riverGlass != null){
-				return super.buffedLvl()+1 + riverGlass.level() + 1;
+				return super.buffedLvl()+1 + riverGlass.level() + 1 + RingOfKing.updateMultiplier(Dungeon.hero);
 			} else if(hero.buff(BlessAWP.ArmorGetReady.class)!=null && hero.belongings.armor() == this) {
-				return super.buffedLvl()+1;
+				return super.buffedLvl()+1 + RingOfKing.updateMultiplier(Dungeon.hero);
 			} else if(riverGlass != null){
-				return super.buffedLvl() + riverGlass.level() + 1;
+				return super.buffedLvl() + riverGlass.level() + 1 + RingOfKing.updateMultiplier(Dungeon.hero);
 			}
-
-
 
 
 			if (hero.pointsInTalent(Talent.GIFT) > 0) {

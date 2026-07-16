@@ -146,19 +146,23 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
      * @return 是否成功踹飞
      */
     private boolean kickEnemy(Hero hero, Char enemy) {
+        // 造成少量伤害（1-3点）
+        int damage = Random.NormalIntRange(1, 3);
+        enemy.damage(damage, this);
+
         // 计算击退方向（从英雄指向敌人）
         int dx = enemy.pos % Dungeon.level.width() - hero.pos % Dungeon.level.width();
         int dy = enemy.pos / Dungeon.level.width() - hero.pos / Dungeon.level.width();
 
-        // 目标位置：从敌人位置沿击退方向延伸3格
-        int targetPos = enemy.pos + dx + dy * Dungeon.level.width();
+        // 目标位置：从敌人位置沿击退方向延伸
+        int targetPos = enemy.pos + dx * KICK_RANGE + dy * KICK_RANGE * Dungeon.level.width();
 
         // 构建弹道轨迹（从敌人位置指向击退方向）
         Ballistica trajectory = new Ballistica(enemy.pos, targetPos, Ballistica.PROJECTILE);
 
-        // 使用BlastWand的throwChar方法，power=3表示踹飞3格
-        // collideDmg=false 不造成碰撞伤害，cause=this 标记来源
-        WandOfBlastWave.throwChar(enemy, trajectory, KICK_RANGE, false, false, this);
+        // 使用BlastWand的throwChar方法，power=KICK_RANGE表示踹飞3格
+        // collideDmg=true 造成碰撞伤害
+        WandOfBlastWave.throwChar(enemy, trajectory, KICK_RANGE, false, true, this);
 
         return true;
     }
