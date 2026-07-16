@@ -329,7 +329,8 @@ public class Wheelchair extends Artifact {
                 // 视觉效果2
                 CellEmitter.get(hero.pos).burst(SparkParticle.FACTORY, 6);
 
-                // 获得轮椅狂飙效果
+                // 刷新轮椅狂飙效果，避免重复使用时叠加持续时间
+                Buff.detach(hero, WheelchairRush.class);
                 Buff.affect(hero, WheelchairRush.class, duration);
 
                 hero.spendAndNext(1f);
