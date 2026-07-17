@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndChooseSubclass;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.DeviceCompat;
@@ -112,7 +113,14 @@ public class TengusMask extends Item {
 		e.start(Speck.factory(Speck.MASK), 0.05f, 20);
 		GLog.p( Messages.get(this, "used"));
 		if (way == HeroSubClass.DICE_MAGE) {
-			ShatteredPixelDungeon.seamlessResetScene();
+			WndMessage msg = new WndMessage("世界变得大不相同了！"){
+				@Override
+				public void hide() {
+					super.hide();
+					ShatteredPixelDungeon.seamlessResetScene();
+				}
+			};
+			GameScene.show(msg);
 		}
 		
 	}

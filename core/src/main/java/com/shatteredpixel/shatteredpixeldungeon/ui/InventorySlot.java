@@ -55,13 +55,13 @@ public class InventorySlot extends ItemSlot {
 
 		super.createChildren();
 
-		lineTop = new ColorBlock( 1, 1, DiceMageUI.GREY_LINE );
+		lineTop = new ColorBlock( 1, 1, 0xFF000000 | DiceMageUI.GREY_LINE );
 		add( lineTop );
-		lineBottom = new ColorBlock( 1, 1, DiceMageUI.GREY_LINE );
+		lineBottom = new ColorBlock( 1, 1, 0xFF000000 | DiceMageUI.GREY_LINE );
 		add( lineBottom );
-		lineLeft = new ColorBlock( 1, 1, DiceMageUI.GREY_LINE );
+		lineLeft = new ColorBlock( 1, 1, 0xFF000000 | DiceMageUI.GREY_LINE );
 		add( lineLeft );
-		lineRight = new ColorBlock( 1, 1, DiceMageUI.GREY_LINE );
+		lineRight = new ColorBlock( 1, 1, 0xFF000000 | DiceMageUI.GREY_LINE );
 		add( lineRight );
 	}
 

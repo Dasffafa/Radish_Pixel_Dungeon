@@ -5,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.ui.Component;
 
@@ -88,15 +89,15 @@ public class DiceMageUI {
 
         @Override
         protected void createChildren() {
-            fill = new ColorBlock(1, 1, 0xFFFFFF);
+            fill = new ColorBlock(1, 1, 0xFFFFFFFF);
             add(fill);
-            top = new ColorBlock(1, 1, 0xFFFFFF);
+            top = new ColorBlock(1, 1, 0xFFFFFFFF);
             add(top);
-            bottom = new ColorBlock(1, 1, 0xFFFFFF);
+            bottom = new ColorBlock(1, 1, 0xFFFFFFFF);
             add(bottom);
-            left = new ColorBlock(1, 1, 0xFFFFFF);
+            left = new ColorBlock(1, 1, 0xFFFFFFFF);
             add(left);
-            right = new ColorBlock(1, 1, 0xFFFFFF);
+            right = new ColorBlock(1, 1, 0xFFFFFFFF);
             add(right);
         }
 
@@ -121,6 +122,68 @@ public class DiceMageUI {
             right.x = x + width - 1;
             right.y = y;
             right.size(1, height);
+        }
+    }
+
+    // Slice&Dice 风格按钮：黑色底 + 1px 边框 + 居中文字
+    public static class DiceButton extends Button {
+
+        private Frame bg;
+        private RenderedTextBlock text;
+
+        public DiceButton(String label) {
+            super();
+            text.text(label);
+        }
+
+        public void text(String value) {
+            text.text(value);
+            layout();
+        }
+
+        public void textColor(int value) {
+            text.hardlight(value);
+        }
+
+        @Override
+        protected void createChildren() {
+            bg = new Frame(BLACK, GREY_LINE);
+            add(bg);
+
+            text = PixelScene.renderTextBlock(8);
+            text.hardlight(CREAM);
+            add(text);
+
+            super.createChildren();
+        }
+
+        @Override
+        protected void layout() {
+            bg.setRect(x, y, width, height);
+
+            text.setPos(
+                x + (width - text.width()) / 2f,
+                y + (height - text.height()) / 2f
+            );
+            PixelScene.align(text);
+
+            super.layout();
+        }
+
+        @Override
+        protected void onPointerDown() {
+            bg.top.hardlight(GOLD);
+            bg.bottom.hardlight(GOLD);
+            bg.left.hardlight(GOLD);
+            bg.right.hardlight(GOLD);
+        }
+
+        @Override
+        protected void onPointerUp() {
+            bg.top.hardlight(GREY_LINE);
+            bg.bottom.hardlight(GREY_LINE);
+            bg.left.hardlight(GREY_LINE);
+            bg.right.hardlight(GREY_LINE);
         }
     }
 }

@@ -72,14 +72,13 @@ public class WndMessage extends Window {
 		add(messageFrame);
 		add(info);
 
-		RedButton ok = new RedButton("哦", 8) {
+		DiceMageUI.DiceButton ok = new DiceMageUI.DiceButton("哦") {
 			@Override
 			protected void onClick() {
 				hide();
 			}
 		};
-		ok.textColor(DiceMageUI.CREAM);
-		ok.setRect(0, messageFrame.bottom() + MARGIN, width, BUTTON_HEIGHT);
+		ok.setRect((width - 30) / 2f, messageFrame.bottom() + MARGIN, 30, BUTTON_HEIGHT);
 		add(ok);
 
 		resize(width, (int)(ok.bottom() + MARGIN));
