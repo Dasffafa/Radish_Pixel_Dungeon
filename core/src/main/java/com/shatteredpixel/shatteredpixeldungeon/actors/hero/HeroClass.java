@@ -97,12 +97,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Starlight;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Sunless;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Turtleir;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Wastelandew;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
-import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
@@ -267,7 +262,8 @@ public enum HeroClass {
 		if (!Challenges.isItemBlocked(i)) i.collect();
 
 		// 牧师不初始携带绒布包，商人会售卖
-		if (this != RECTOR) {
+		// TODO 这里应该重构成每个职业在init里面添加对应的背包
+		if (this != RECTOR && this != MOONLIGHT) {
 			new VelvetPouch().collect();
 			Dungeon.LimitedDrops.VELVET_POUCH.drop();
 		}
@@ -393,15 +389,15 @@ public enum HeroClass {
 		(hero.belongings.weapon = new WornShortsword()).identify();
 		new Dagger().identify().collect();
 		new Gloves().identify().collect();
+		new MagicalHolster().collect();
 		new MagesStaff().identify().collect();
 
 		// 初始物品：力量药剂、升级卷轴、鉴定卷轴已鉴定
 		// 以及四种随机卷轴与药水
-		new PotionOfExperience().identify();
+		new PotionOfStrength().identify();
 		new ScrollOfUpgrade().identify();
 		new ScrollOfIdentify().identify();
 
-		// 随机鉴定：0-4种卷轴，剩余数量为药水
 		int scrollCount = Random.Int(5); // 0-4
 		int potionCount = 4 - scrollCount;
 
