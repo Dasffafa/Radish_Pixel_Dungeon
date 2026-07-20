@@ -44,6 +44,11 @@ public class LevelTransition extends Rect implements Bundlable {
 	public int destBranch;
 	public Type destType;
 
+	// ====== 新增字段：精确过渡系统 ======
+	public String id;           // 当前楼梯的唯一标识
+	public String destId;       // 目标楼梯的唯一标识
+	public String destBranchId; // 目标分支的字符串标识（如 "main", "moss", "mining"）
+
 	public int centerCell;
 
 	//for bundling
@@ -124,6 +129,11 @@ public class LevelTransition extends Rect implements Bundlable {
 	public static final String DEST_BRANCH = "dest_branch";
 	public static final String DEST_TYPE = "dest_type";
 
+	// ====== 新增常量：精确过渡系统 ======
+	public static final String ID = "id";
+	public static final String DEST_ID = "dest_id";
+	public static final String DEST_BRANCH_ID = "dest_branch_id";
+
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		bundle.put( "left", left );
@@ -137,6 +147,11 @@ public class LevelTransition extends Rect implements Bundlable {
 		bundle.put(DEST_DEPTH, destDepth);
 		bundle.put(DEST_BRANCH, destBranch);
 		bundle.put(DEST_TYPE, destType);
+
+		// 新增字段序列化
+		if (id != null) bundle.put(ID, id);
+		if (destId != null) bundle.put(DEST_ID, destId);
+		if (destBranchId != null) bundle.put(DEST_BRANCH_ID, destBranchId);
 	}
 
 	@Override
@@ -152,5 +167,10 @@ public class LevelTransition extends Rect implements Bundlable {
 		destDepth = bundle.getInt(DEST_DEPTH);
 		destBranch = bundle.getInt(DEST_BRANCH);
 		if (bundle.contains(DEST_TYPE)) destType = bundle.getEnum(DEST_TYPE, Type.class);
+
+		// 新增字段反序列化（兼容旧存档）
+		if (bundle.contains(ID)) id = bundle.getString(ID);
+		if (bundle.contains(DEST_ID)) destId = bundle.getString(DEST_ID);
+		if (bundle.contains(DEST_BRANCH_ID)) destBranchId = bundle.getString(DEST_BRANCH_ID);
 	}
 }

@@ -84,6 +84,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.VineTrap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.TransitionContract;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
@@ -103,6 +104,7 @@ import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -230,6 +232,10 @@ public class Dungeon {
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static ArrayList<Integer> generatedLevels = new ArrayList<>();
 
+	// ====== 精确过渡系统：约定表 ======
+	// 记录所有楼梯的配对信息，用于楼层生成时创建对应的入口/出口
+	public static HashMap<String, TransitionContract> transitionContracts = new HashMap<>();
+
 	public static int gold;
 	public static int energy;
 	
@@ -320,6 +326,42 @@ public class Dungeon {
 		Badges.reset();
 		
 		GamesInProgress.selectedClass.initHero( hero );
+	}
+
+	// ====== 精确过渡系统：约定表方法 ======
+
+	/**
+	 * 注册过渡约定（楼层生成时调用）
+	 */
+	public static void registerTransitionContract(TransitionContract contract) {
+		transitionContracts.put(contract.id, contract);
+	}
+
+	/**
+	 * 查找指向目标楼层的约定
+	 */
+	public static ArrayList<TransitionContract> findTransitionContractsTo(int destDepth, String destBranch) {
+		ArrayList<TransitionContract> result = new ArrayList<>();
+		for (TransitionContract c : transitionContracts.values()) {
+			if (c.destDepth == destDepth && c.destBranch.equals(destBranch)) {
+				result.add(c);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 获取当前分支的字符串标识
+	 */
+	public static String currentBranchId() {
+		// 暂时使用 int branch 映射到字符串
+		// 后续可以改为直接使用字符串
+		switch (branch) {
+			case 0: return "main";
+			case 1: return "moss";
+			case 2: return "moss_deep";
+			default: return "branch_" + branch;
+		}
 	}
 
 	public static boolean isChallenged( int mask ) {
@@ -741,6 +783,9 @@ public class Dungeon {
 	private static final String QUESTS		= "quests";
 	private static final String BADGES		= "badges";
 	
+	// 精确过渡系统：约定表存档键
+	private static final String TRANSITION_CONTRACTS = "transition_contracts";
+	
 	public static void saveGame( int save ) {
 		try {
 			Bundle bundle = new Bundle();
@@ -804,7 +849,16 @@ public class Dungeon {
 				bundleArr[i] = generatedLevels.get(i);
 			}
 			bundle.put( GENERATED_LEVELS, bundleArr);
-			
+
+			// 保存约定表
+			Bundle contractsBundle = new Bundle();
+			for (TransitionContract c : transitionContracts.values()) {
+				Bundle cBundle = new Bundle();
+				c.storeInBundle(cBundle);
+				contractsBundle.put(c.id, cBundle);
+			}
+			bundle.put(TRANSITION_CONTRACTS, contractsBundle);
+
 			Scroll.save( bundle );
 			Potion.save( bundle );
 			Ring.save( bundle );
@@ -947,6 +1001,18 @@ public class Dungeon {
 		} else  {
 			for (int i = 1; i <= Statistics.deepestFloor; i++){
 				generatedLevels.add(i);
+			}
+		}
+
+		// 恢复约定表
+		transitionContracts.clear();
+		if (bundle.contains(TRANSITION_CONTRACTS)) {
+			Bundle contractsBundle = bundle.getBundle(TRANSITION_CONTRACTS);
+			for (String key : contractsBundle.getKeys()) {
+				Bundle cBundle = contractsBundle.getBundle(key);
+				TransitionContract c = new TransitionContract();
+				c.restoreFromBundle(cBundle);
+				transitionContracts.put(c.id, c);
 			}
 		}
 

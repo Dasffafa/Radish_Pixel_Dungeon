@@ -47,20 +47,10 @@ public class GamesInProgress {
 	private static final String GAME_FILE	= "game.dat";
 	private static final String DEPTH_FILE	= "depth%d.dat";
 	private static final String DEPTH_BRANCH_FILE	= "depth%d-branch%d.dat";
-	
-	public static boolean gameExists( int slot ){
-		return FileUtils.dirExists(gameFolder(slot))
-				&& FileUtils.fileLength(gameFile(slot)) > 1;
-	}
-	
-	public static String gameFolder( int slot ){
-		return Messages.format(GAME_FOLDER, slot);
-	}
-	
-	public static String gameFile( int slot ){
-		return gameFolder(slot) + "/" + GAME_FILE;
-	}
-	
+
+	// 精确过渡系统：支持分支字符串的存档命名
+	private static final String DEPTH_BRANCH_ID_FILE = "depth%d-branch_%s.dat";
+
 	public static String depthFile( int slot, int depth, int branch ) {
 		if (branch == 0) {
 			return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE, depth);
@@ -68,7 +58,31 @@ public class GamesInProgress {
 			return gameFolder(slot) + "/" + Messages.format(DEPTH_BRANCH_FILE, depth, branch);
 		}
 	}
-	
+
+	/**
+	 * 精确过渡系统：支持分支字符串标识的存档文件路径
+	 */
+	public static String depthFileByBranchId(int slot, int depth, String branchId) {
+		if (branchId == null || branchId.equals("main")) {
+			return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE, depth);
+		} else {
+			return gameFolder(slot) + "/" + Messages.format(DEPTH_BRANCH_ID_FILE, depth, branchId);
+		}
+	}
+
+	public static boolean gameExists( int slot ){
+		return FileUtils.dirExists(gameFolder(slot))
+				&& FileUtils.fileLength(gameFile(slot)) > 1;
+	}
+
+	public static String gameFolder( int slot ){
+		return Messages.format(GAME_FOLDER, slot);
+	}
+
+	public static String gameFile( int slot ){
+		return gameFolder(slot) + "/" + GAME_FILE;
+	}
+
 	public static int firstEmpty(){
 		for (int i = 1; i <= MAX_SLOTS; i++){
 			if (check(i) == null) return i;

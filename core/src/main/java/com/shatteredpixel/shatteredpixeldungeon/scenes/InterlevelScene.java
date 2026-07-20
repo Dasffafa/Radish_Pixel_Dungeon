@@ -657,7 +657,15 @@ public class InterlevelScene extends PixelScene {
 				level = Dungeon.newLevel();
 			}
 
-			LevelTransition destTransition = level.getTransition(curTransition.destType);
+			// 精确过渡系统：优先使用 ID 定位
+			LevelTransition destTransition = null;
+			if (curTransition.destId != null) {
+				destTransition = level.getTransitionById(curTransition.destId);
+			}
+			// 兜底：使用类型查找
+			if (destTransition == null) {
+				destTransition = level.getTransition(curTransition.destType);
+			}
 			curTransition = null;
 			Dungeon.switchLevel( level, destTransition.cell() );
 		}
@@ -696,7 +704,15 @@ public class InterlevelScene extends PixelScene {
 			level = Dungeon.newLevel();
 		}
 
-		LevelTransition destTransition = level.getTransition(curTransition.destType);
+		// 精确过渡系统：优先使用 ID 定位
+		LevelTransition destTransition = null;
+		if (curTransition.destId != null) {
+			destTransition = level.getTransitionById(curTransition.destId);
+		}
+		// 兜底：使用类型查找
+		if (destTransition == null) {
+			destTransition = level.getTransition(curTransition.destType);
+		}
 		curTransition = null;
 		Dungeon.switchLevel( level, destTransition.cell() );
 	}

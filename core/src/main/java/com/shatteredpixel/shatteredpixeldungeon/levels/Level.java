@@ -48,6 +48,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.TransitionContract;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
@@ -114,6 +115,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.depth;
 
 public abstract class Level implements Bundlable {
 
@@ -259,7 +262,7 @@ public abstract class Level implements Bundlable {
 				addItemToSpawn( new TrinketCatalyst());
 			}
 
-			if (Dungeon.depth > 1) {
+			if (depth > 1) {
 				//50% chance of getting a level feeling
 				//~7.15% chance for each feeling
 				switch (Random.Int( 14 )) {
@@ -314,6 +317,9 @@ public abstract class Level implements Bundlable {
 			customWalls = new HashSet<>();
 
 		} while (!build() && !Thread.currentThread().isInterrupted());
+
+		// 精确过渡系统：根据约定表创建入口楼梯
+		createBranchEntrances();
 
 		// 如果线程被中断，直接返回不完整的地图（SeedFinder 会检测中断状态）
 		if (Thread.currentThread().isInterrupted()) {
@@ -520,12 +526,12 @@ public abstract class Level implements Bundlable {
 
 	public Mob createMob() {
 		if (mobsToSpawn == null || mobsToSpawn.isEmpty()) {
-			mobsToSpawn = Bestiary.getMobRotation(Dungeon.depth);
+			mobsToSpawn = Bestiary.getMobRotation(depth);
 
 			// Snake Bite challenge: cross-region monster spawning
 			if (Dungeon.isChallenged(Challenges.SNAKE_BITE) && !Dungeon.bossLevel()) {
-				int floorMod = Dungeon.depth % 5;
-				int currentRegion = (Dungeon.depth - 1) / 5 + 1;
+				int floorMod = depth % 5;
+				int currentRegion = (depth - 1) / 5 + 1;
 				int crossRegionDirection = 0; // 0: none, 1: next region, 2: previous region
 
 				// Near region end (floor 3,4 of each region): can spawn next region monsters
@@ -616,6 +622,71 @@ public abstract class Level implements Bundlable {
 		return null;
 	}
 
+	/**
+	 * 精确过渡系统：按 ID 查找过渡点
+	 */
+	public LevelTransition getTransitionById(String id) {
+		if (id == null || transitions.isEmpty()) {
+			return null;
+		}
+		for (LevelTransition transition : transitions) {
+			if (id.equals(transition.id)) {
+				return transition;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 精确过渡系统：根据约定表创建入口楼梯
+	 * 子类可覆盖以自定义位置选择逻辑
+	 */
+	protected void createBranchEntrances() {
+		// 只有非主线楼层需要处理
+		if (Dungeon.branch == 0) return;
+
+		String currentBranch = Dungeon.currentBranchId();
+		java.util.ArrayList<TransitionContract> contracts = Dungeon.findTransitionContractsTo(depth, currentBranch);
+
+		for (TransitionContract c : contracts) {
+			int cell = findBranchEntranceCell();
+			if (cell >= 0) {
+				LevelTransition t = new LevelTransition(this, cell, LevelTransition.Type.BRANCH_ENTRANCE);
+				t.id = c.destId;
+				t.destDepth = c.sourceDepth;
+				t.destBranch = branchFromString(c.sourceBranch);
+				t.destBranchId = c.sourceBranch;
+				t.destId = c.id;
+
+				transitions.add(t);
+				map[cell] = Terrain.ENTRANCE;
+			}
+		}
+	}
+
+	/**
+	 * 找一个合适的位置放置分支入口楼梯
+	 */
+	protected int findBranchEntranceCell() {
+		// 默认实现：找任意空位
+		for (int i = 0; i < length(); i++) {
+			if (map[i] == Terrain.EMPTY && !solid[i]) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * 分支字符串转 int（兼容旧系统）
+	 */
+	protected static int branchFromString(String branchId) {
+		if (branchId == null || branchId.equals("main")) return 0;
+		if (branchId.equals("moss")) return 1;
+		if (branchId.equals("moss_deep")) return 2;
+		return 0;
+	}
+
 	//returns true if we immediately transition, false otherwise
 	public boolean activateTransition(Hero hero, LevelTransition transition){
 //		if (locked){
@@ -684,7 +755,7 @@ public abstract class Level implements Bundlable {
 			}
 		}
 		for (HeavyBoomerang.CircleBack b : Dungeon.hero.buffs(HeavyBoomerang.CircleBack.class)){
-			if (b.activeDepth() == Dungeon.depth) items.add(b.cancel());
+			if (b.activeDepth() == depth) items.add(b.cancel());
 		}
 		return items;
 	}
@@ -790,7 +861,7 @@ public abstract class Level implements Bundlable {
 	public float respawnCooldown(){
 		float cooldown;
 		if (Statistics.amuletObtained){
-			if (Dungeon.depth == 1){
+			if (depth == 1){
 				//very fast spawns on floor 1! 0/2/4/6/8/10/12, etc.
 				cooldown = (Dungeon.level.mobCount()) * (TIME_TO_RESPAWN / 25f);
 			} else {
@@ -1514,7 +1585,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			for (TalismanOfForesight.HeapAwareness h : c.buffs(TalismanOfForesight.HeapAwareness.class)){
-				if (Dungeon.depth != h.depth || Dungeon.branch != h.branch) continue;
+				if (depth != h.depth || Dungeon.branch != h.branch) continue;
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[h.pos+i] = true;
 			}
 
@@ -1531,7 +1602,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			for (RevealedArea a : c.buffs(RevealedArea.class)){
-				if (Dungeon.depth != a.depth || Dungeon.branch != a.branch) continue;
+				if (depth != a.depth || Dungeon.branch != a.branch) continue;
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[a.pos+i] = true;
 			}
 
