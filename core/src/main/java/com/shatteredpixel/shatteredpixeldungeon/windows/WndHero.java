@@ -87,9 +87,7 @@ public class WndHero extends WndTabbed {
 				super.select( value );
 				if (selected) {
 					lastIdx = 0;
-					if (!stats.visible) {
-						stats.initialize();
-					}
+					stats.initialize(); // 每次打开都刷新数据
 				}
 				stats.visible = stats.active = selected;
 			}

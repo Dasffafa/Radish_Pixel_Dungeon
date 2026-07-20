@@ -54,7 +54,6 @@ public class LiquorSpell extends DiceMageSpell {
 
                 Buff.affect(target, Barrier.class).incShield(shieldAmount);
                 DiceMageSpellFX.impact(target, DiceMageSpellFX.Type.LIQUOR);
-                target.sprite.showStatus(CharSprite.POSITIVE, "+" + shieldAmount + " " + Messages.get(Barrier.class, "shield"));
                 GLog.p(Messages.get(LiquorSpell.this, "cast", shieldAmount));
                 hero.spendAndNext(1f);
             }
