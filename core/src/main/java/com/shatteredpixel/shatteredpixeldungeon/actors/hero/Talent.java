@@ -1194,7 +1194,7 @@ public enum Talent {
 				Collections.addAll(tierTalents, WONT_LOSE, WET_ENCHANT, LEFT_BOW_RAPID);
 				break;
 			case DICE_MAGE:
-				Collections.addAll(tierTalents, LEARN_SOOTHE, LEARN_LIQUOR, LEARN_OPERATE);
+				Collections.addAll(tierTalents, LEARN_SOOTHE, LEARN_LIQUOR, LEARN_OPERATE, LEARN_BLAZE, LEARN_CRUSH, LEARN_MIASMA);
 				break;
 			case JUTTE_CHAMPION:
 				Collections.addAll(tierTalents, ONE_JUTTE, IRON_QUENCH, SURPRISE_JUTTE);

@@ -6,11 +6,11 @@ explicit pronunciation data. Other locales should read localized item/monster
 names through game code (Messages.java) and compare their first letter/digit at
 runtime.
 
-The script reads Chinese message bundles, extracts gameplay equipment and
-monster names, uses pypinyin to compute the final of each name's last Chinese
-character, and writes:
+The script reads Chinese message bundles, extracts the last Chinese character
+of each gameplay equipment and monster name, computes its pinyin final via
+pypinyin, and writes a compact JSON map:
 
-    core/src/main/assets/rhyme/poem_rhyme_table_zh.json
+    { "<final>": ["字", "字", ...], ... }
 
 Run from the repository root:
     python3 tools/generate_poem_rhyme_table.py
@@ -22,27 +22,25 @@ import argparse
 import json
 import re
 from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
 try:
     from pypinyin import Style, lazy_pinyin
-except ImportError as exc:  # pragma: no cover - exercised only when dependency is absent
+except ImportError as exc:
     raise SystemExit(
         "pypinyin is required. Install it with: python3 -m pip install pypinyin"
     ) from exc
 
 ITEMS_ZH = Path("core/src/main/assets/messages/items/items_zh.properties")
 ACTORS_ZH = Path("core/src/main/assets/messages/actors/actors_zh.properties")
-DEFAULT_OUTPUT = Path("core/src/main/assets/rhyme/poem_rhyme_table_zh.json")
+DEFAULT_OUTPUT = Path("core/src/main/assets/poem_rhyme_table_zh.json")
 
 CJK_RE = re.compile(r"[\u4e00-\u9fff]")
 FORMAT_RE = re.compile(r"%\d*\$?[sdif]|%%")
 
 
 def decode_properties_value(value: str) -> str:
-    """Decode the subset of Java .properties escaping used by message names."""
     value = value.rstrip("\n\r")
     out: list[str] = []
     i = 0
@@ -52,7 +50,6 @@ def decode_properties_value(value: str) -> str:
             out.append(ch)
             i += 1
             continue
-
         nxt = value[i + 1]
         if nxt == "u" and i + 5 < len(value):
             hex_part = value[i + 2 : i + 6]
@@ -93,13 +90,6 @@ def last_chinese_char(text: str) -> str | None:
     return matches[-1] if matches else None
 
 
-def first_letter_or_digit(text: str) -> str | None:
-    for ch in text:
-        if ch.isalnum():
-            return ch.lower()
-    return None
-
-
 def chinese_final(ch: str) -> str | None:
     finals = lazy_pinyin(ch, style=Style.FINALS, strict=False, errors="ignore")
     return finals[0] if finals else None
@@ -127,97 +117,43 @@ def include_monster_key(key: str, include_npcs: bool, include_inner: bool) -> bo
     return True
 
 
-def build_entry(kind: str, key: str, name: str) -> dict[str, str | None]:
-    name = clean_name(name)
-    ch = last_chinese_char(name)
-    return {
-        "kind": kind,
-        "key": key,
-        "name": name,
-        "last_chinese": ch,
-        "final": chinese_final(ch) if ch else None,
-        "initial": first_letter_or_digit(name),
-    }
+def last_chars(entries: Iterable[tuple[str, str]], include_npcs: bool, include_inner: bool) -> dict[str, set[str]]:
+    """Return {final: {char, ...}} from message bundle entries."""
+    by_final: dict[str, set[str]] = defaultdict(set)
+    for key, value in entries:
+        name = clean_name(value)
+        ch = last_chinese_char(name)
+        if ch is None:
+            continue
+        final = chinese_final(ch)
+        if final is None:
+            continue
+        by_final[final].add(ch)
+    return by_final
 
 
-def sort_entries(entries: Iterable[dict[str, str | None]]) -> list[dict[str, str | None]]:
-    return sorted(entries, key=lambda e: (str(e.get("final") or ""), str(e.get("key") or "")))
-
-
-def build_table(include_npcs: bool, include_inner: bool) -> dict:
+def build_table(include_npcs: bool, include_inner: bool) -> dict[str, list[str]]:
     items = parse_properties(ITEMS_ZH)
     actors = parse_properties(ACTORS_ZH)
 
-    equipment = [
-        build_entry("equipment", key, value)
-        for key, value in items.items()
-        if include_equipment_key(key, include_inner)
-    ]
-    monsters = [
-        build_entry("monster", key, value)
-        for key, value in actors.items()
-        if include_monster_key(key, include_npcs, include_inner)
-    ]
+    eq_chars = last_chars(
+        ((k, v) for k, v in items.items() if include_equipment_key(k, include_inner)),
+        include_npcs, include_inner,
+    )
+    mon_chars = last_chars(
+        ((k, v) for k, v in actors.items() if include_monster_key(k, include_npcs, include_inner)),
+        include_npcs, include_inner,
+    )
 
-    by_final: dict[str, dict[str, list[dict[str, str | None]]]] = defaultdict(lambda: {"equipment": [], "monsters": []})
-    unmatched = {"equipment": [], "monsters": []}
-
-    for entry in equipment:
-        if entry["final"]:
-            by_final[str(entry["final"])]["equipment"].append(entry)
-        else:
-            unmatched["equipment"].append(entry)
-    for entry in monsters:
-        if entry["final"]:
-            by_final[str(entry["final"])]["monsters"].append(entry)
-        else:
-            unmatched["monsters"].append(entry)
-
-    groups = []
-    for final in sorted(by_final):
-        group = by_final[final]
-        groups.append({
-            "bucket": final,
-            "final": final,
-            "equipment": sort_entries(group["equipment"]),
-            "monsters": sort_entries(group["monsters"]),
-        })
-
-    return {
-        "schema": 2,
-        "locale": "zh",
-        "match_mode": "final",
-        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
-        "generator": "tools/generate_poem_rhyme_table.py",
-        "source_files": {
-            "items": str(ITEMS_ZH),
-            "actors": str(ACTORS_ZH),
-        },
-        "rules": {
-            "chinese": "Use pypinyin Style.FINALS on the last Chinese character of each localized name.",
-            "other_locales": "Do not generate tables. Game code should read localized names through Messages.java and compare first letter/digit at runtime.",
-            "excluded_by_default": [
-                "weapon curses",
-                "weapon enchantments",
-                "armor curses",
-                "armor glyphs",
-                "actors.mobs.npcs.*",
-                "keys containing '$'",
-            ],
-        },
-        "counts": {
-            "equipment": len(equipment),
-            "monsters": len(monsters),
-            "groups": len(groups),
-            "unmatched_equipment": len(unmatched["equipment"]),
-            "unmatched_monsters": len(unmatched["monsters"]),
-        },
-        "groups": groups,
-        "unmatched": {
-            "equipment": sort_entries(unmatched["equipment"]),
-            "monsters": sort_entries(unmatched["monsters"]),
-        },
-    }
+    # merge all finals
+    all_finals: set[str] = set(eq_chars) | set(mon_chars)
+    table: dict[str, list[str]] = {}
+    for final in sorted(all_finals):
+        chars: set[str] = set()
+        chars.update(eq_chars.get(final, set()))
+        chars.update(mon_chars.get(final, set()))
+        table[final] = sorted(chars)
+    return table
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -228,16 +164,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--compact", action="store_true", help="write compact JSON")
     args = parser.parse_args(argv)
 
-    payload = build_table(args.include_npcs, args.include_inner)
+    table = build_table(args.include_npcs, args.include_inner)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     indent = None if args.compact else 2
-    args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=indent, sort_keys=False) + "\n", encoding="utf-8")
+    args.output.write_text(json.dumps(table, ensure_ascii=False, indent=indent) + "\n", encoding="utf-8")
 
+    char_count = sum(len(v) for v in table.values())
     print(f"wrote {args.output}")
-    print(
-        f"locale=zh mode=final equipment={payload['counts']['equipment']} "
-        f"monsters={payload['counts']['monsters']} groups={payload['counts']['groups']}"
-    )
+    print(f"groups={len(table)} chars={char_count}")
     return 0
 
 

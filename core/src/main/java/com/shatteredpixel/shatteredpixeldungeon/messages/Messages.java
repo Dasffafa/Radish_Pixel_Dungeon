@@ -25,6 +25,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.I18NBundle;
 import com.shatteredpixel.shatteredpixeldungeon.*;
 import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.DeviceCompat;
 
@@ -190,6 +191,8 @@ public class Messages {
 
         String value = getFromBundle(key.toLowerCase(Locale.CHINESE));
         if (value != null) {
+            // 骰子法师模式：将无法渲染的"祛"替换为"驱"
+            value = fixTannFontChars(value);
             if (args.length > 0) return format(value, args);
             else return value;
         } else {
@@ -333,5 +336,16 @@ public class Messages {
 
     public static String lowerCase(String str) {
         return str.toLowerCase(locale);
+    }
+
+    /**
+     * 修复 TannFont 无法渲染的字符（骰子法师模式）
+     * 将"祛"替换为"驱"
+     */
+    private static String fixTannFontChars(String text) {
+        if (DiceMageUI.active() && lang == Languages.CHINESE) {
+            return text.replace("祛", "驱");
+        }
+        return text;
     }
 }

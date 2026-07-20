@@ -199,11 +199,14 @@ public abstract class PlatformSupport {
 			font.getData().setScale(size / 10f);
 			font.setUseIntegerPositions(false);
 			font.getRegion().getTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-			// 增大字间距，缓解字体重叠
+			// 只对中文等宽字符增加间距（ID >= 128 的字符）
 			for (BitmapFont.Glyph[] page : font.getData().glyphs) {
 				if (page != null) {
 					for (BitmapFont.Glyph g : page) {
-						if (g != null) g.xadvance++;
+						// 只对中文字符增加间距，英文保持原样
+						if (g != null && g.id >= 128) {
+							g.xadvance += 5;
+						}
 					}
 				}
 			}

@@ -100,14 +100,9 @@ public class WndInfoMob extends Window {
 		name.setPos(DICE_PORTRAIT + DICE_PAD * 2, DICE_PAD);
 		add(name);
 
-		RenderedTextBlock hp = PixelScene.renderTextBlock("HP " + mob.HP + "/" + mob.HT, 6);
-		hp.hardlight(DiceMageUI.RED);
-		hp.setPos(name.left(), name.bottom() + 1);
-		add(hp);
-
-		HealthBar health = new HealthBar();
+		DiceMageUI.HealthPips health = new DiceMageUI.HealthPips();
+		health.setRect(name.left(), name.bottom() + 1, DiceMageUI.pipWidth(DiceMageUI.pipCount(mob.HT)), DiceMageUI.pipHeight());
 		health.level(mob);
-		health.setRect(name.left(), hp.bottom() + 1, width - DICE_PORTRAIT - DICE_PAD * 3, health.height());
 		add(health);
 
 		BuffIndicator buffs = new BuffIndicator(mob, false);

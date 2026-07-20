@@ -57,7 +57,7 @@ public class StatusPane extends Component {
 	public static float talentBlink;
 	private float warning;
 
-	public static final float FLASH_RATE = (float)(Math.PI*1.5f); //1.5 blinks per second
+	public static final float FLASH_RATE = (float)(Math.PI*1.5f);
 
 	private int lastTier = 0;
 
@@ -65,7 +65,6 @@ public class StatusPane extends Component {
 	private Image shieldedHP;
 	private Image hp;
 
-	// DoggingDog on 20250511
 	private Image vitae;
 	private BitmapText vitaeText;
 
@@ -85,12 +84,15 @@ public class StatusPane extends Component {
 	private BusyIndicator busy;
 	private CircleArc counter;
 
+	// 骰子法师 S&D 卡片
+	private DiceMageUI.Frame diceCard;
+	private RenderedTextBlock diceName;
+	private RenderedTextBlock diceLvl;
+	private DiceMageUI.HealthPips diceHp;
+
 	private static String asset =  !SPDSettings.NORMAL_SKIN() ? Assets.Interfaces.STATUS : Assets.Interfaces.NORMAL_STATUS;
-	private static final int DICE_DARK = 0x120F17;
 	private static final int DICE_CREAM = 0xF1E5B5;
 	private static final int DICE_GOLD = 0xB59E09;
-	private static final int DICE_BLUE = 0x217B91;
-	private static final int DICE_PURPLE = 0x6A4484;
 
 	private boolean large;
 
@@ -143,17 +145,13 @@ public class StatusPane extends Component {
 		else        hp = new Image(asset, 0, 36, 50, 4);
 		add( hp );
 
-		// DoggingDog on 20250511
 		if(large) vitae =new Image(asset, 0, 121, 128, 9);
 		else        vitae = new Image(asset, 0, 121, 128, 4);
 		add(vitae);
 
 		vitaeText = new BitmapText(PixelScene.pixelFont);
 		vitaeText.alpha(0.6f);
-		if(large)
-			add(vitaeText);
-
-		//
+		if(large) add(vitaeText);
 
 		hpText = new BitmapText(PixelScene.pixelFont);
 		hpText.alpha(0.6f);
@@ -192,6 +190,25 @@ public class StatusPane extends Component {
 		counter = new CircleArc(18, 4.25f);
 		counter.color( 0x808080, true );
 		counter.show(this, busy.center(), 0f);
+
+		// 骰子法师 S&D 卡片组件（默认隐藏）
+		diceCard = new DiceMageUI.Frame(DiceMageUI.BLACK, DiceMageUI.GREY_LINE);
+		diceCard.visible = false;
+		add(diceCard);
+
+		diceName = PixelScene.renderTextBlock(8);
+		diceName.hardlight(DiceMageUI.CREAM);
+		diceName.visible = false;
+		add(diceName);
+
+		diceLvl = PixelScene.renderTextBlock(6);
+		diceLvl.hardlight(DiceMageUI.GOLD);
+		diceLvl.visible = false;
+		add(diceLvl);
+
+		diceHp = new DiceMageUI.HealthPips();
+		diceHp.visible = false;
+		add(diceHp);
 	}
 
 	@Override
@@ -201,7 +218,7 @@ public class StatusPane extends Component {
 
 		bg.x = x;
 		bg.y = y;
-		if (large)  bg.size( 160, bg.height ); //HP bars must be 128px wide atm
+		if (large)  bg.size( 160, bg.height );
 		else        bg.size( width, bg.height );
 
 		avatar.x = bg.x - avatar.width / 2f + 15;
@@ -221,7 +238,6 @@ public class StatusPane extends Component {
 			hp.x = shieldedHP.x = rawShielding.x = x + 30;
 			hp.y = shieldedHP.y = rawShielding.y = y + 19;
 
-			// DoggingDog on 20250511
 			vitae.x = hp.x;
 			vitae.y = hp.y;
 
@@ -229,7 +245,6 @@ public class StatusPane extends Component {
 			hpText.y = hp.y + 1;
 			PixelScene.align(hpText);
 
-			// DoggingDog on 20250511
 			vitaeText.x = vitae.x + vitae.width()/2f - vitaeText.width()/2f;
 			vitaeText.y = vitae.y + 1;
 			PixelScene.align(vitaeText);
@@ -251,14 +266,13 @@ public class StatusPane extends Component {
 			hp.x = shieldedHP.x = rawShielding.x = x + 30;
 			hp.y = shieldedHP.y = rawShielding.y = y + 3;
 
-			// DoggingDog on 20250511
 			vitae.x = hp.x;
 			vitae.y = hp.y;
 
 			hpText.scale.set(PixelScene.align(0.5f));
 			hpText.x = hp.x + 1;
 			hpText.y = hp.y + (hp.height - (hpText.baseLine()+hpText.scale.y))/2f;
-			hpText.y -= 0.001f; //prefer to be slightly higher
+			hpText.y -= 0.001f;
 			PixelScene.align(hpText);
 
 			heroInfoOnBar.setRect(heroInfo.right(), y, 50, 9);
@@ -270,6 +284,47 @@ public class StatusPane extends Component {
 		}
 
 		counter.point(busy.center());
+
+		// 骰子法师：S&D 卡片替换原状态面板
+		boolean dice = DiceMageUI.active();
+		if (dice) {
+			int cw = large ? 160 : 160;
+			int ch = large ? 39 : 32;
+			int pad = 2;
+
+			diceCard.setRect(x, y, cw, ch);
+
+			// 角色名：头像右侧
+			diceName.text(Messages.titleCase(Dungeon.hero.heroClass.title()));
+			diceName.setPos(x + 17 + pad, y + pad);
+			diceName.maxWidth(cw - 24);
+
+			// 等级：名称下方
+			diceLvl.text("Lv." + Dungeon.hero.lvl);
+			diceLvl.setPos(x + 17 + pad, diceName.bottom() + 1);
+
+			// 血条：先 setRect 设位置，再 level 在正确位置渲染
+			float pipX = x + 30;
+			float pipY = large ? y + 19 : y + 3;
+			diceHp.setRect(pipX, pipY,
+				DiceMageUI.pipWidth(DiceMageUI.pipCount(Dungeon.hero.HT)),
+				DiceMageUI.pipHeight());
+			diceHp.level(Dungeon.hero);
+
+			// 隐藏旧 UI，显示 S&D 卡片
+			bg.visible = false;
+			hp.visible = shieldedHP.visible = rawShielding.visible = false;
+			hpText.visible = heroInfoOnBar.visible = false;
+			exp.visible = false;
+			level.visible = false;
+			if (vitae != null) vitae.visible = false;
+			if (vitaeText != null) vitaeText.visible = false;
+			if (expText != null) expText.visible = false;
+
+			diceCard.visible = diceName.visible = diceLvl.visible = diceHp.visible = true;
+		} else {
+			diceCard.visible = diceName.visible = diceLvl.visible = diceHp.visible = false;
+		}
 	}
 	
 	private static final int[] warningColors = new int[]{0x660000, 0xCC0000, 0x660000};
@@ -277,10 +332,7 @@ public class StatusPane extends Component {
 	private int oldHP = 0;
 	private int oldShield = 0;
 	private int oldMax = 0;
-
 	private int oldvt = 0;
-
-	// DoggingDog on 20250511
 	private int oldVitae = 0;
 
 	@Override
@@ -291,8 +343,6 @@ public class StatusPane extends Component {
 		int health = Dungeon.hero.HP;
 		int shield = Dungeon.hero.shielding();
 		int max = Dungeon.hero.HT;
-
-		// DoggingDog on 20250511
 		int vt = Dungeon.hero.getVitae();
 
 		if (!Dungeon.hero.isAlive()) {
@@ -301,7 +351,7 @@ public class StatusPane extends Component {
 			warning += Game.elapsed * 5f *(0.4f - (health/(float)max));
 			warning %= 1f;
 			avatar.tint(ColorMath.interpolate(warning, warningColors), 0.5f );
-		} else if (talentBlink > 0.33f){ //stops early so it doesn't end in the middle of a blink
+		} else if (talentBlink > 0.33f){
 			talentBlink -= Game.elapsed;
 			avatar.tint(1, 1, 0, (float)Math.abs(Math.cos(talentBlink*FLASH_RATE))/2f);
 		} else {
@@ -311,7 +361,6 @@ public class StatusPane extends Component {
 		hp.scale.x = Math.max( 0, (health-shield)/(float)max);
 		shieldedHP.scale.x = health/(float)max;
 
-		// DoggingDog on 20250511
 		float vitaeMax = hp.scale.x/6f;
 		float vitaeSpan = 0;
 		for(VitaeBuff s:Dungeon.hero.buffs(VitaeBuff.class)){
@@ -341,26 +390,17 @@ public class StatusPane extends Component {
 			oldvt = vt;
 		}
 
-
-		// DoggingDog on 20250511
 		if(oldVitae != vt){
 			oldVitae = vt;
 		}
-		if(!large){
-			vitaeText.text("");
-		}
-		if(vitae.width() > 0)
-			vitaeText.text(vt+"");
-		else
-			vitaeText.text("");
+		if(!large) vitaeText.text("");
+		if(vitae.width() > 0) vitaeText.text(vt+"");
+		else vitaeText.text("");
 
 		if (large) {
 			exp.scale.x = (128 / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
-
 			hpText.measure();
 			hpText.x = hp.x + (128 - hpText.width())/2f;
-
-			// DoggingDog on 20250511
 			vitaeText.measure();
 			vitaeText.x = vitae.x + vitae.width()/2 - vitaeText.width()/2;
 
@@ -372,19 +412,13 @@ public class StatusPane extends Component {
 			}
 			expText.measure();
 			expText.x = hp.x + (128 - expText.width())/2f;
-
 		} else {
 			exp.scale.x = (width / exp.width) * Dungeon.hero.exp / Dungeon.hero.maxExp();
 		}
 
 		if (Dungeon.hero.lvl != lastLvl) {
-
-			if (lastLvl != -1) {
-				showStarParticles();
-			}
-
+			if (lastLvl != -1) showStarParticles();
 			lastLvl = Dungeon.hero.lvl;
-
 			if (large){
 				level.text( "lv. " + lastLvl );
 				level.measure();
@@ -406,19 +440,24 @@ public class StatusPane extends Component {
 		}
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);
+
+		// 骰子法师实时更新
+		if (diceHp.visible) {
+			diceHp.level(Dungeon.hero);
+			diceLvl.text("Lv." + Dungeon.hero.lvl);
+		}
 	}
 
 	private void applyDiceMageSkin(){
 		if (Dungeon.hero.subClass != HeroSubClass.DICE_MAGE) return;
-
-		bg.hardlight(DICE_DARK);
-		hp.hardlight(DICE_CREAM);
-		shieldedHP.hardlight(DICE_BLUE);
-		rawShielding.hardlight(DICE_PURPLE);
-		exp.hardlight(DICE_GOLD);
-		level.hardlight(DICE_GOLD);
-		hpText.hardlight(DICE_DARK);
-		if (expText != null) expText.hardlight(DICE_CREAM);
+		bg.hardlight(DiceMageUI.DARK);
+		hp.hardlight(DiceMageUI.CREAM);
+		shieldedHP.hardlight(DiceMageUI.BLUE);
+		rawShielding.hardlight(DiceMageUI.PURPLE);
+		exp.hardlight(DiceMageUI.GOLD);
+		level.hardlight(DiceMageUI.GOLD);
+		hpText.hardlight(DiceMageUI.DARK);
+		if (expText != null) expText.hardlight(DiceMageUI.CREAM);
 	}
 
 	public void alpha( float value ){

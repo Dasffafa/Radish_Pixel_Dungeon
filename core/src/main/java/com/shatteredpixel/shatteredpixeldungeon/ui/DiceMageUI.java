@@ -6,7 +6,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.watabou.gltextures.TextureCache;
 import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Image;
 import com.watabou.noosa.ui.Component;
 
 public class DiceMageUI {
@@ -23,6 +25,19 @@ public class DiceMageUI {
     public static final int PURPLE     = 0x6A4484;
     public static final int GREEN      = 0x388044;
     public static final int GREY_LINE  = 0x51464D;
+
+    // S&D 贴图集路径
+    public static final String SND_ATLAS = "snd/atlas_image.png";
+
+    // S&D 血量小贴图在贴图集中的坐标 (icon/hp/*)
+    private static final int HP_TEX_X = 119, HP_TEX_Y = 480; // icon/hp/bar (竖条3x3)
+    private static final int EMPTY_TEX_X = 715, EMPTY_TEX_Y = 807; // icon/hp/empty (空心3x3)
+
+    // 血量格子尺寸
+    private static final int PIP_W = 3;
+    private static final int PIP_H = 3;
+    private static final int PIP_GAP = 1;
+    private static final int PIP_PER_HP = 10; // 每格代表10点血
 
     public static boolean active() {
         return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE;
@@ -63,6 +78,73 @@ public class DiceMageUI {
             case 1: return PURPLE;
             case 2: return GOLD;
             default: return RED;
+        }
+    }
+
+    // 计算需要的格子数
+    public static int pipCount(int max) {
+        return (max + PIP_PER_HP - 1) / PIP_PER_HP;
+    }
+
+    public static int pipWidth(int count) {
+        if (count <= 0) return 0;
+        return count * PIP_W + (count - 1) * PIP_GAP;
+    }
+
+    public static int pipHeight() {
+        return PIP_H;
+    }
+
+    /** 从 S&D 贴图集中加载指定区域作为 Image（白色模板，可用 hardlight 染色） */
+    public static Image sndImage(int x, int y, int w, int h) {
+        return new Image(SND_ATLAS, x, y, w, h);
+    }
+
+    // S&D 风格血量格子条（使用实际 S&D 贴图）
+    public static class HealthPips extends Component {
+
+        private Image[] pips;
+        private int lastHp = -1, lastShield = -1, lastMax = -1;
+
+        public void level(int hp, int shield, int max) {
+            if (hp == lastHp && shield == lastShield && max == lastMax && pips != null) {
+                return; // 无变化跳过重绘
+            }
+            lastHp = hp; lastShield = shield; lastMax = max;
+            int count = pipCount(max);
+            if (pips == null || pips.length != count) {
+                if (pips != null) {
+                    for (Image p : pips) remove(p);
+                }
+                pips = new Image[count];
+                for (int i = 0; i < count; i++) {
+                    pips[i] = new Image(SND_ATLAS, HP_TEX_X, HP_TEX_Y, PIP_W, PIP_H);
+                    pips[i].hardlight(BLACK);
+                    add(pips[i]);
+                }
+            }
+
+            int filled = pipCount(hp);
+            int shldPips = pipCount(shield);
+
+            for (int i = 0; i < count; i++) {
+                float px = x + i * (PIP_W + PIP_GAP);
+                pips[i].x = px;
+                pips[i].y = y;
+                if (i < filled) {
+                    pips[i].hardlight(RED);
+                } else if (i < filled + shldPips) {
+                    pips[i].hardlight(BLUE);
+                } else {
+                    pips[i].hardlight(GREY_LINE);
+                }
+            }
+            height = PIP_H;
+            width = pipWidth(count);
+        }
+
+        public void level(com.shatteredpixel.shatteredpixeldungeon.actors.Char c) {
+            level(c.HP, c.shielding(), c.HT);
         }
     }
 

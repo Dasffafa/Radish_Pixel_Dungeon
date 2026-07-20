@@ -3,7 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnDRegeneration;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
@@ -36,7 +36,7 @@ public class SootheSpell extends DiceMageSpell {
         int allyCount = 0;
         if (Dungeon.level.heroFOV[hero.pos]) {
             hero.HP = Math.min(hero.HP + healAmount, hero.HT);
-            Buff.affect(hero, Healing.class).setHeal(regenAmount, 0, regenDuration);
+            Buff.affect(hero, SnDRegeneration.class).set(regenAmount, regenDuration);
             DiceMageSpellFX.impact(hero, DiceMageSpellFX.Type.SOOTHE);
             allyCount++;
         }
@@ -44,7 +44,7 @@ public class SootheSpell extends DiceMageSpell {
         for (Char ch : Dungeon.level.mobs) {
             if (ch.alignment == Char.Alignment.ALLY && Dungeon.level.heroFOV[ch.pos]) {
                 ch.HP = Math.min(ch.HP + healAmount, ch.HT);
-                Buff.affect(ch, Healing.class).setHeal(regenAmount, 0, regenDuration);
+                Buff.affect(ch, SnDRegeneration.class).set(regenAmount, regenDuration);
                 DiceMageSpellFX.impact(ch, DiceMageSpellFX.Type.SOOTHE);
                 allyCount++;
             }
