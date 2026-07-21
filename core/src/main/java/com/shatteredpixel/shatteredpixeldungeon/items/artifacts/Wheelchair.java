@@ -307,7 +307,6 @@ public class Wheelchair extends Artifact {
             charge--;
         }
 
-        Invisibility.dispel(hero);
         Talent.onArtifactUsed(hero);
         updateQuickslot();
 
@@ -317,24 +316,18 @@ public class Wheelchair extends Artifact {
         hero.busy();
         Sample.INSTANCE.play(Assets.Sounds.TELEPORT);
 
-        hero.sprite.jump(hero.pos, dest, 0, 0.1f, new Callback() {
-            @Override
-            public void call() {
-                // 使用 hero.move() 替代直接设置位置，确保触发 HeroMoveEvent
-                hero.move(dest);
-                Dungeon.level.occupyCell(hero);
-                Dungeon.observe();
-                GameScene.updateFog();
+        hero.sprite.jump(hero.pos, dest, 0, 0.1f, () -> {
+            hero.move(dest);
+            Dungeon.level.occupyCell(hero);
+            Dungeon.observe();
+            GameScene.updateFog();
 
-                // 视觉效果2
-                CellEmitter.get(hero.pos).burst(SparkParticle.FACTORY, 6);
+            CellEmitter.get(hero.pos).burst(SparkParticle.FACTORY, 6);
 
-                // 刷新轮椅狂飙效果，避免重复使用时叠加持续时间
-                Buff.detach(hero, WheelchairRush.class);
-                Buff.affect(hero, WheelchairRush.class, duration);
+            Buff.detach(hero, WheelchairRush.class);
+            Buff.affect(hero, WheelchairRush.class, duration);
 
-                hero.spendAndNext(1f);
-            }
+            hero.spendAndNext(1f);
         });
     }
 
@@ -362,14 +355,11 @@ public class Wheelchair extends Artifact {
     }
 
     /**
-     * 订阅英雄移动前事件
-     * 月华没有强壮体质天赋且没有装备轮椅时，取消移动并显示消息
+     * 月华没有强壮体质天赋且没有装备轮椅时就不能移动，这是猫叠的恶趣味
      */
     @SubscribeEvent(event = BeforeHeroMoveEvent.class)
     public static void onBeforeHeroMove(BeforeHeroMoveEvent event) {
         Hero hero = event.getHero();
-
-        // 月华轮椅移动限制：如果没有强壮体质天赋且没有装备轮椅，则无法移动
         if (hero.heroClass == HeroClass.MOONLIGHT && hero.pointsInTalent(Talent.STRONG_BODY) == 0) {
             if (!(hero.belongings.artifact instanceof Wheelchair)) {
                 GLog.w(Messages.get(hero, "wheelchair_needed"));

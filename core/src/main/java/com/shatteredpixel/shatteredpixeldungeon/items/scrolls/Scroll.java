@@ -261,10 +261,10 @@ public abstract class Scroll extends Item {
 		curUser.busy();
 		((HeroSprite)curUser.sprite).read();
 
-		// 发射阅读卷轴事件
-		EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
-
+		// TheCatist 2026/07/21 无序魔典的卷轴使用是anonymous不会触发天赋
 		if (!anonymous) {
+			// 发射阅读卷轴事件
+			EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
 			Catalog.countUse(getClass());
 			if (Random.Float() < talentChance) {
 				Talent.onScrollUsed(curUser, curUser.pos, talentFactor);

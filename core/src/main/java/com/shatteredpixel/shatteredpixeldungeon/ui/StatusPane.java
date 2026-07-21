@@ -146,7 +146,7 @@ public class StatusPane extends Component {
 		add( hp );
 
 		if(large) vitae =new Image(asset, 0, 121, 128, 9);
-		else        vitae = new Image(asset, 0, 121, 128, 4);
+		else        vitae = new Image(asset, 0, 121, 50, 4);
 		add(vitae);
 
 		vitaeText = new BitmapText(PixelScene.pixelFont);
@@ -322,6 +322,8 @@ public class StatusPane extends Component {
 			if (expText != null) expText.visible = false;
 
 			diceCard.visible = diceName.visible = diceLvl.visible = diceHp.visible = true;
+			// avatar 被 diceCard 覆盖，需要带到最前面
+			bringToFront(avatar);
 		} else {
 			diceCard.visible = diceName.visible = diceLvl.visible = diceHp.visible = false;
 		}
