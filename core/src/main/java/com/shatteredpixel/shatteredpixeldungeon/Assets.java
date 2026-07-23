@@ -413,6 +413,7 @@ public class Assets {
 		public static final String FUNGAL_CORE      = "sprites/fungal_core.png";
 
 		public static final String NEW_NPC="sprites/new_npc.png";
+		public static final String POWAH_CHAIR="sprites/powah_chair.png";
 
 		// Radish new Enemy
 		// Zone 1

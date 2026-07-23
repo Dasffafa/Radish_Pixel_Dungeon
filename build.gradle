@@ -24,8 +24,8 @@ allprojects {
         appName = 'Radish Pixel Dungeon'
         appPackageName = 'com.thecatist.radishpixeldungeon'
 
-        appVersionCode = 2603050
-        appVersionName = '0.7.0-base2.4.2'
+        appVersionCode = 2603060
+        appVersionName = '0.8.0-base2.4.2'
 
         appJavaCompatibility = JavaVersion.VERSION_1_8
 

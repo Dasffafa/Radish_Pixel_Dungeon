@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.WhitePlasticChair;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -160,6 +161,9 @@ public class LastLevel extends Level {
 	
 	@Override
 	protected void createMobs() {
+		WhitePlasticChair chair = new WhitePlasticChair();
+		chair.pos = AMULET_POS + 1;
+		Dungeon.level.mobs.add(chair);
 	}
 
 	public Actor addRespawner() {
