@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.watabou.gltextures.TextureCache;
 import com.watabou.input.ControllerHandler;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
@@ -69,6 +70,7 @@ public class WndSettings extends WndTabbed {
 	private DataTab     data;
 	private AudioTab    audio;
 	private LangsTab    langs;
+	private DebugTab    debug;
 
 	public static int last_index = 0;
 
@@ -186,6 +188,25 @@ public class WndSettings extends WndTabbed {
 
 		};
 		add( langsTab );
+
+		debug = new DebugTab();
+		debug.setSize(width, 0);
+		height = Math.max(height, debug.height());
+		add( debug );
+
+		add( new IconTab(Icons.get(Icons.WARNING)){
+			@Override
+			protected void select(boolean value) {
+				super.select(value);
+				debug.visible = debug.active = value;
+				if (value) last_index = 6;
+			}
+			@Override
+			protected void createChildren() {
+				super.createChildren();
+				icon.hardlight(0.5f, 0.5f, 1.0f);
+			}
+		});
 
 		resize(width, (int)Math.ceil(height));
 
@@ -1349,6 +1370,89 @@ public class WndSettings extends WndTabbed {
 				height = txtTranifex.bottom();
 			}
 
+		}
+	}
+
+	private static class DebugTab extends Component {
+
+		RenderedTextBlock title;
+		ColorBlock sep1;
+		RedButton btnReloadTexture;
+		RedButton btnReloadAllTextures;
+		RedButton btnResetScene;
+
+		@Override
+		protected void createChildren() {
+			title = PixelScene.renderTextBlock(Messages.get(this, "title"), 9);
+			title.hardlight(TITLE_COLOR);
+			add(title);
+
+			sep1 = new ColorBlock(1, 1, 0xFF000000);
+			add(sep1);
+
+			btnReloadTexture = new RedButton(Messages.get(this, "reload_texture"), 6) {
+				@Override
+				protected void onClick() {
+					super.onClick();
+					ShatteredPixelDungeon.scene().addToFront(new WndTextInput(
+							Messages.get(DebugTab.this, "reload_texture_title"),
+							Messages.get(DebugTab.this, "reload_texture_desc"),
+							Assets.Sprites.ITEMS,
+							256,
+							false,
+							Messages.get(DebugTab.this, "reload"),
+							Messages.get(DebugTab.this, "cancel")
+					) {
+						@Override
+						public void onSelect(boolean positive, String text) {
+							if (positive && text != null && !text.isEmpty()) {
+								TextureCache.reloadFromDisk(text);
+								ShatteredPixelDungeon.seamlessResetScene();
+							}
+						}
+					});
+				}
+			};
+			add(btnReloadTexture);
+
+			btnReloadAllTextures = new RedButton(Messages.get(this, "reload_all_textures"), 6) {
+				@Override
+				protected void onClick() {
+					super.onClick();
+					TextureCache.clear();
+					ShatteredPixelDungeon.seamlessResetScene();
+				}
+			};
+			add(btnReloadAllTextures);
+
+			btnResetScene = new RedButton(Messages.get(this, "reset_scene"), 6) {
+				@Override
+				protected void onClick() {
+					super.onClick();
+					ShatteredPixelDungeon.seamlessResetScene();
+				}
+			};
+			add(btnResetScene);
+		}
+
+		@Override
+		protected void layout() {
+			title.setPos((width - title.width()) / 2, y + GAP);
+			sep1.size(width, 1);
+			sep1.y = title.bottom() + 3 * GAP;
+
+			float pos = sep1.y + 1 + GAP;
+
+			btnReloadTexture.setRect(0, pos, width, BTN_HEIGHT);
+			pos = btnReloadTexture.bottom() + GAP;
+
+			btnReloadAllTextures.setRect(0, pos, width, BTN_HEIGHT);
+			pos = btnReloadAllTextures.bottom() + GAP;
+
+			btnResetScene.setRect(0, pos, width, BTN_HEIGHT);
+			pos = btnResetScene.bottom();
+
+			height = pos;
 		}
 	}
 }

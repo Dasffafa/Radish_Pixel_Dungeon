@@ -108,6 +108,11 @@ public class TextureCache {
 		}
 	}
 
+	public synchronized static void reloadFromDisk( String path ){
+		remove( path );
+		// Next get() call will re-read from disk
+	}
+
 	public synchronized static SmartTexture get( Object src ) {
 		
 		if (all.containsKey( src )) {
