@@ -74,7 +74,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     };
 
     {
-        image = ItemSpriteSheet.SNAKE_BITED_YENDOR;
+        image = ItemSpriteSheet.DART + 22;
         defaultAction = AC_THROW;
     }
 

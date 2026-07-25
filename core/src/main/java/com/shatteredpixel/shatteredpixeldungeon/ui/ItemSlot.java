@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWea
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteOptimizer;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
@@ -239,15 +240,21 @@ public class ItemSlot extends Button {
 			status.visible = extra.visible = level.visible = special.visible = true;
 		}
 
-		status.text( item.status() );
-
-		//thrown weapons on their last use show quantity in orange, unless they are single-use
-		if (item instanceof MissileWeapon
-				&& ((MissileWeapon) item).durabilityLeft() <= 50f
-				&& ((MissileWeapon) item).durabilityLeft() <= ((MissileWeapon) item).durabilityPerUse()){
-			status.hardlight(WARNING);
+		// 空贴图显示 iid
+		if (ItemSpriteOptimizer.isEmptySprite(item.image())) {
+			status.text( String.valueOf(item.image()) );
+			status.hardlight( WARNING );
+			status.measure();
 		} else {
-			status.resetColor();
+			status.text( item.status() );
+			//thrown weapons on their last use show quantity in orange, unless they are single-use
+			if (item instanceof MissileWeapon
+					&& ((MissileWeapon) item).durabilityLeft() <= 50f
+					&& ((MissileWeapon) item).durabilityLeft() <= ((MissileWeapon) item).durabilityPerUse()){
+				status.hardlight(WARNING);
+			} else {
+				status.resetColor();
+			}
 		}
 
 		if (item.icon() != -1 && (item.isIdentified() || (item instanceof Ring && ((Ring) item).isKnown()))){
