@@ -23,7 +23,6 @@ android/src/debug/google-services.json
 android/google-services.json
 
 # Documentation folder
-docs/
 the_catist/
 /android/debug/google-services.json
 /android/src/google-services.json
