@@ -42,8 +42,8 @@ public abstract class GlslShaderScript extends Script {
     protected Uniform uCamera;      // 摄像机矩阵
     
     // ============== 通用 Attribute ==============
-    protected Attribute aXYZW;      // 顶点位置
-    protected Attribute aUV;        // 纹理坐标
+    public Attribute aXYZW;      // 顶点位置
+    public Attribute aUV;        // 纹理坐标
     
     // 着色器名称（用于加载文件）
     private final String shaderName;
@@ -126,6 +126,29 @@ public abstract class GlslShaderScript extends Script {
         return src
             .replace("v_texCoords", "vUV")
             .replace("u_texture", "uTex");
+    }
+
+    /**
+     * 设置顶点属性指针
+     */
+    public void setVertexAttribPointers() {
+        if (aXYZW != null) {
+            aXYZW.enable();
+            aXYZW.vertexPointer(2, 4, null);
+        }
+        if (aUV != null) {
+            aUV.enable();
+            aUV.vertexPointer(2, 4, null);
+        }
+    }
+    
+    /**
+     * 在每次着色器绘制前调用，用于绑定额外纹理。
+     * 子类覆盖此方法以绑定自定义纹理（如噪声纹理）。
+     * 默认空实现。
+     */
+    public void bindTextures() {
+        // 默认无额外纹理需要绑定
     }
 
     /**

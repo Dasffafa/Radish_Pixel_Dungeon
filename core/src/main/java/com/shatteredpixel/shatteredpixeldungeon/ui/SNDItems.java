@@ -1,6 +1,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import com.watabou.gltextures.SmartTexture;
+import com.watabou.gltextures.TextureCache;
 import com.watabou.noosa.Image;
+import com.watabou.utils.RectF;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -494,6 +497,26 @@ public class SNDItems {
         ITEMS.put("wretched-crown", new int[]{930, 722, 14, 14});
         ITEMS.put("wristblade", new int[]{946, 724, 14, 14});
         ITEMS.put("yearn", new int[]{962, 724, 14, 14});
+    }
+    
+    /**
+     * 获取 SND atlas 的纹理（共享缓存）
+     * @return SmartTexture 对象
+     */
+    public static SmartTexture texture() {
+        return TextureCache.get(ATLAS);
+    }
+    
+    /**
+     * 获取指定名称物品的 UV 坐标
+     * @param name 物品名称
+     * @return RectF UV 坐标，如果找不到则返回 null
+     */
+    public static RectF frame(String name) {
+        int[] coords = ITEMS.get(name);
+        if (coords == null) return null;
+        SmartTexture tex = texture();
+        return tex.uvRect(coords[0], coords[1], coords[0]+coords[2], coords[1]+coords[3]);
     }
     
     /**

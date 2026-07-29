@@ -10,7 +10,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlessAWP;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Momentum;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -49,6 +48,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
+import com.shatteredpixel.shatteredpixeldungeon.items.toys.ClumsyShoes;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
@@ -359,7 +359,7 @@ public class Armor extends EquipableItem {
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.Arrow.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.BarkskinToy.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.Cloak.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.HeavyShoes.class,
+				ClumsyShoes.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.Poem.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.Mercury.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.Tincture.class,

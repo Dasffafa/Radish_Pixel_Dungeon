@@ -84,7 +84,8 @@ public class WndDiceMageSpells extends Window {
     }
 
     private String diceLabel(DiceMageSpell spell) {
-        return DiceMageUI.diceFace(spell.mpCost()) + " " + spell.name() + "  MP " + spell.mpCost();
+        // TODO 像SND一样显示带图标的mp消耗
+        return " " + spell.name() + "  MP " + spell.mpCost();
     }
 
     private int spellColor(DiceMageSpell spell) {

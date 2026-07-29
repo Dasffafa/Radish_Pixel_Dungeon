@@ -13,7 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class BarkskinToy extends ItemArmorAttachable {
 
 	{
-		image = ItemSpriteSheet.SNAKE_BITE;
+		sndImageName = "barkskin";
 	}
 
 	@Override

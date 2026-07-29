@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Languages;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -33,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.SeedFindScene;
 import com.shatteredpixel.shatteredpixeldungeon.services.news.News;
 import com.shatteredpixel.shatteredpixeldungeon.services.updates.Updates;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
@@ -46,6 +49,7 @@ import com.watabou.input.ControllerHandler;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.DeviceCompat;
@@ -1407,6 +1411,7 @@ public class WndSettings extends WndTabbed {
 						public void onSelect(boolean positive, String text) {
 							if (positive && text != null && !text.isEmpty()) {
 								TextureCache.reloadFromDisk(text);
+								refreshStaticTextureFilms(text);
 								ShatteredPixelDungeon.seamlessResetScene();
 							}
 						}
@@ -1420,6 +1425,7 @@ public class WndSettings extends WndTabbed {
 				protected void onClick() {
 					super.onClick();
 					TextureCache.clear();
+					refreshStaticTextureFilms(null);
 					ShatteredPixelDungeon.seamlessResetScene();
 				}
 			};
@@ -1433,9 +1439,21 @@ public class WndSettings extends WndTabbed {
 				}
 			};
 			add(btnResetScene);
-		}
+			}
 
-		@Override
+			private static void refreshStaticTextureFilms(String path) {
+			if (path == null || path.equals(Assets.Sprites.ITEMS)) {
+				ItemSpriteSheet.film = new TextureFilm(Assets.Sprites.ITEMS, ItemSpriteSheet.SIZE, ItemSpriteSheet.SIZE);
+			}
+			if (path == null || path.equals(Assets.Sprites.ITEM_ICONS)) {
+				ItemSpriteSheet.Icons.film = new TextureFilm(Assets.Sprites.ITEM_ICONS, ItemSpriteSheet.Icons.SIZE, ItemSpriteSheet.Icons.SIZE);
+			}
+			if (path == null || path.equals(Assets.Effects.TEXT_ICONS)) {
+				FloatingText.iconFilm = new TextureFilm(Assets.Effects.TEXT_ICONS, FloatingText.ICON_SIZE, FloatingText.ICON_SIZE);
+			}
+			}
+
+			@Override
 		protected void layout() {
 			title.setPos((width - title.width()) / 2, y + GAP);
 			sep1.size(width, 1);

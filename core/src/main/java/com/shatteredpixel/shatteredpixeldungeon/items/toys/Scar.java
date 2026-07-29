@@ -36,7 +36,7 @@ public class Scar extends ItemArmorAttachable {
 	public static final int MAX_HP_BONUS = 10;
 
 	{
-		image = ItemSpriteSheet.SNAKE_BITE;
+		sndImageName = "scar";
 	}
 
 	@Override

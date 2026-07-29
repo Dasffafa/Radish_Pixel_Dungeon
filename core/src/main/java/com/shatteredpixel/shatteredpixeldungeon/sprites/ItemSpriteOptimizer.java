@@ -145,9 +145,6 @@ public class ItemSpriteOptimizer {
         return true;
     }
 
-    /**
-     * 边界框数据类
-     */
     private static class BoundingBox {
         boolean isEmpty = true;
         int minX = Integer.MAX_VALUE;

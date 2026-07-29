@@ -13,7 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Whetstone extends ItemArmorAttachable {
 
 	{
-		image = ItemSpriteSheet.SNAKE_BITE;
+		sndImageName = "whetstone";
 	}
 
 	public static float getDamageMultiplier() {

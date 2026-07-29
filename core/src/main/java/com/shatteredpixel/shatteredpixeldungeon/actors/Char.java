@@ -45,7 +45,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
@@ -705,10 +704,6 @@ public abstract class Char extends Actor {
             if (!enemy.isAlive() && visibleFight) {
                 if (this == hero && DiceMageAudio.active()) {
                     DiceMageAudio.death();
-                    // 骰子法师普通攻击击杀特效
-                    if (enemy instanceof Mob && enemy.alignment == Alignment.ENEMY) {
-                        DiceMageSpellFX.kill(enemy, DiceMageSpellFX.Type.CUT);
-                    }
                 }
                 if (enemy == hero) {
 
@@ -1378,26 +1373,22 @@ public abstract class Char extends Actor {
     }
 
     public void die(Object src) {
-        boolean skipDeathAnimation = suppressNextDeathAnimation;
-        suppressNextDeathAnimation = false;
         destroy();
         if (src != Chasm.class && sprite != null) {
-            if (skipDeathAnimation) {
-                sprite.skipDieAnimation();
-            } else {
+            // 如果 sprite 有待处理的死亡标记（shader 即将创建），跳过死亡动画
+            if (sprite.isPendingDeathAfterShader()) {
+                // shader 会接管，不需要播放死亡动画
+                // dieAfterShader() 已经在 ShaderEffect.apply() 中调用过了
+                //TODO finish shader dev and del this
+                GLog.w("这里应有Slice&Dice着色器，但是尚未开发完成，请期待下个版本。");
+            } else if (sprite.getShaderEffect() == null) {
+                // 没有 shader，播放正常死亡动画
                 sprite.die();
+            } else {
+                // shader 已经存在，标记需要在 shader 完成后清理
+                sprite.dieAfterShader();
             }
         }
-    }
-
-    private boolean suppressNextDeathAnimation = false;
-
-    public void suppressNextDeathAnimation() {
-        suppressNextDeathAnimation = true;
-    }
-
-    public void clearDeathAnimationSuppression() {
-        suppressNextDeathAnimation = false;
     }
 
     //we cache this info to prevent having to call buff(...) in isAlive.

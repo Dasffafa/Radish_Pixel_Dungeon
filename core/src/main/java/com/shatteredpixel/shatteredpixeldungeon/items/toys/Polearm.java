@@ -13,7 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Polearm extends ItemArmorAttachable {
 
 	{
-		image = ItemSpriteSheet.SNAKE_BITE;
+		sndImageName = "polearm";
 	}
 
 	public static int getReachBonus() {
