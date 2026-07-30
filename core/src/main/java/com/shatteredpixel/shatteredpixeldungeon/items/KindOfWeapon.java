@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.Sh
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CancelAttackBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CancelAttackCooldown;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.KickTracker;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDSFX;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.JutteChampionWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
@@ -50,6 +51,9 @@ import com.watabou.utils.PathFinder;
 
 import java.util.ArrayList;
 import java.util.Objects;
+
+import static com.shatteredpixel.shatteredpixeldungeon.effects.SnDSFX.PlaySnDHitSoundVariant;
+
 
 abstract public class KindOfWeapon extends EquipableItem {
 
@@ -367,8 +371,16 @@ abstract public class KindOfWeapon extends EquipableItem {
 	}
 
 	public void hitSound( float pitch ){
-		Sample.INSTANCE.play(hitSound, 1, pitch * hitSoundPitch);
+		// TheCatist 2026.7.30 武器音效在SnDUI的时候会额外变化
+		if (!SnDSFX.active()){
+			Sample.INSTANCE.play(hitSound, 1, pitch * hitSoundPitch);
+		} else {
+			PlaySnDHitSoundVariant(hitSound);
+		}
+
 	}
+
+
 
 	/**
 	 * 在攻击前调用，检查武器是否可以攻击
@@ -424,7 +436,6 @@ abstract public class KindOfWeapon extends EquipableItem {
 
 		// 精铁淬炼天赋：让十手获得升级等级
 		if (originalLevel > 0 && hero.hasTalent(Talent.IRON_QUENCH)) {
-			// 十手获得升级等级（等于原武器的升级数）
 			jutte.level(originalLevel);
 		}
 

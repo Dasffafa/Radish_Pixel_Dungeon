@@ -22,7 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -92,7 +92,7 @@ public class PrisonBossLevel extends Level {
 
 	@Override
 	public void playLevelMusic() {
-        if (DiceMageAudio.playLevelMusic()) return;
+        if (SnDBGM.playLevelMusic()) return;
 		if (state == State.START){
 			Music.INSTANCE.end();
 		} else if (state == State.WON) {
@@ -424,7 +424,7 @@ public class PrisonBossLevel extends Level {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
-						if (!DiceMageAudio.playLevelMusic()) {
+						if (!SnDBGM.playLevelMusic()) {
 							Music.INSTANCE.play(Assets.Music.PRISON_BOSS, true);
 						}
 					}
@@ -839,12 +839,12 @@ public class PrisonBossLevel extends Level {
 	
 	public static class ExitVisual extends CustomTilemap {
 		
-		{
-			texture = Assets.Environment.PRISON_EXIT;
+			{
+				texture = Assets.Environment.BLOOD_PRISON_EXIT;
 			
-			tileW = 14;
-			tileH = 11;
-		}
+				tileW = 14;
+				tileH = 11;
+			}
 		
 		final int TEX_WIDTH = 256;
 		
@@ -885,12 +885,12 @@ public class PrisonBossLevel extends Level {
 	
 	public static class ExitVisualWalls extends CustomTilemap {
 		
-		{
-			texture = Assets.Environment.PRISON_EXIT;
+			{
+				texture = Assets.Environment.BLOOD_PRISON_EXIT;
 			
-			tileW = 14;
-			tileH = 22;
-		}
+				tileW = 14;
+				tileH = 22;
+			}
 		
 		final int TEX_WIDTH = 256;
 		

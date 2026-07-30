@@ -67,7 +67,7 @@ public class HeroSprite extends CharSprite {
 		super();
 		
 		texture( hero.heroClass.spritesheet() );
-		updateArmor();
+		updateHeroSpriteState();
 		
 		link( hero );
 
@@ -79,10 +79,10 @@ public class HeroSprite extends CharSprite {
 
 	public void disguise(HeroClass cls){
 		texture( cls.spritesheet() );
-		updateArmor();
+		updateHeroSpriteState();
 	}
 
-	public void updateArmor() {
+	public void updateHeroSpriteState() {
 		int t=0;
 		Armor armor = hero.belongings.armor();
 		

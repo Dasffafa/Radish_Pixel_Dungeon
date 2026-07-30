@@ -22,7 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -72,7 +72,7 @@ public class PrisonLevel extends RegularLevel {
 
 	@Override
 	public void playLevelMusic() {
-        if (DiceMageAudio.playLevelMusic()) return;
+        if (SnDBGM.playLevelMusic()) return;
 		if (Wandmaker.Quest.active() || Statistics.amuletObtained){
 			Music.INSTANCE.play(Assets.Music.PRISON_TENSE, true);
 		} else {

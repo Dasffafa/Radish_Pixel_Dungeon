@@ -1,17 +1,15 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.watabou.noosa.audio.Music;
-
-import java.util.ArrayList;
 
 public class SmallGrassMiniLevel extends SewerLevel {
 
     @Override
     public void playLevelMusic(){
-        if (DiceMageAudio.playLevelMusic()) return;
+        if (SnDBGM.playLevelMusic()) return;
         Music.INSTANCE.play(Assets.Music.SEWERS_TENSE, true);
     }
 
