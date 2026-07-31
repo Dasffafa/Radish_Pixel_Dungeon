@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -534,7 +535,7 @@ public class Blacksmith extends NPC {
 
 		//if the blacksmith is generated pre-v2.2.0, and the player never spawned a mining test floor
 		public static boolean oldQuestMineBlocked(){
-			return type == OLD && !Dungeon.levelHasBeenGenerated(Dungeon.depth, 1);
+			return type == OLD && !Dungeon.levelHasBeenGenerated(Dungeon.depth, Branches.MINING);
 		}
 
 		public static boolean oldBloodQuest(){

@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
@@ -94,7 +95,7 @@ public class MineEntrance extends CaveRoom {
 				entrance,
 				LevelTransition.Type.BRANCH_ENTRANCE,
 				Dungeon.depth,
-				0,
+				Branches.MAIN,
 				LevelTransition.Type.BRANCH_EXIT));
 
 		if (Blacksmith.Quest.Type() == Blacksmith.Quest.CRYSTAL){

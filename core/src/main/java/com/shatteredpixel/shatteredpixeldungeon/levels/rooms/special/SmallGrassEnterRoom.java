@@ -5,7 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.TransitionContract;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -52,37 +52,14 @@ public class SmallGrassEnterRoom extends SpecialRoom {
         vis.pos(c.x, c.y);
         level.customTiles.add(vis);
 
-        // ====== 精确过渡系统：创建带 ID 的楼梯 ======
-        // 生成楼梯 ID
-        String sourceBranch = Dungeon.currentBranchId();
-        int sourceDepth = Dungeon.depth;
-        String destBranch = "moss";
-        int destDepth = 1;
-
-        String stairId = sourceBranch + "_" + sourceDepth + "_to_" + destBranch + "_" + destDepth;
-        String destStairId = destBranch + "_" + destDepth + "_to_" + sourceBranch + "_" + sourceDepth;
-
+        // 创建通往 moss 分支的楼梯
         LevelTransition transition = new LevelTransition(level, DragonPos, LevelTransition.Type.BRANCH_EXIT);
-        transition.id = stairId;
-        transition.destDepth = destDepth;
-        transition.destBranch = 1;  // 兼容旧系统
-        transition.destBranchId = destBranch;
-        transition.destId = destStairId;
+        transition.destDepth = 1;  // moss 分支的第 1 层
+        transition.destBranchId = Branches.MOSS;
         transition.destType = LevelTransition.Type.BRANCH_ENTRANCE;
 
         level.transitions.add(transition);
         Painter.set(level, DragonPos, Terrain.EXIT);
-
-        // 注册约定，供目标楼层生成时使用
-        TransitionContract contract = new TransitionContract(
-            stairId,
-            sourceDepth,
-            sourceBranch,
-            destDepth,
-            destBranch,
-            destStairId
-        );
-        Dungeon.registerTransitionContract(contract);
 
         Door door = entrance();
         door.set(Door.Type.REGULAR);

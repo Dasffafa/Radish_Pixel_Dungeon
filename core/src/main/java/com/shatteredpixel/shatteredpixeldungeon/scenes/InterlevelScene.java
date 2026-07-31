@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.LostBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
@@ -82,7 +83,7 @@ public class InterlevelScene extends PixelScene {
 
 	public static LevelTransition curTransition = null;
 	public static int returnDepth;
-	public static int returnBranch;
+	public static String returnBranchId;
 	public static int returnPos;
 
 	public static boolean fallIntoPit;
@@ -612,17 +613,17 @@ public class InterlevelScene extends PixelScene {
 			// which ensures levelgen consistency with a regular game that was played to that depth.
 			if (DeviceCompat.isDebug()){
 				int trueDepth = Dungeon.depth;
-				int trueBranch = Dungeon.branch;
-				for (int i = 1; i < trueDepth + (trueBranch == 0 ? 0 : 1); i++){
-					if (!Dungeon.levelHasBeenGenerated(i, 0)){
+				String trueBranchId = Dungeon.branchId;
+				for (int i = 1; i < trueDepth + (trueBranchId.equals(Branches.MAIN) ? 0 : 1); i++){
+					if (!Dungeon.levelHasBeenGenerated(i, Branches.MAIN)){
 						Dungeon.depth = i;
-						Dungeon.branch = 0;
+						Dungeon.branchId = Branches.MAIN;
 						Dungeon.level = Dungeon.newLevel();
 						Dungeon.saveLevel(GamesInProgress.curSlot);
 					}
 				}
 				Dungeon.depth = trueDepth;
-				Dungeon.branch = trueBranch;
+				Dungeon.branchId = trueBranchId;
 			}
 
 			Level level = Dungeon.newLevel();
@@ -649,23 +650,16 @@ public class InterlevelScene extends PixelScene {
 
 			Level level;
 			Dungeon.depth = curTransition.destDepth;
-			Dungeon.branch = curTransition.destBranch;
+			Dungeon.branchId = curTransition.destBranchId;
 
-			if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branch)) {
+			if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
 				level = Dungeon.loadLevel( GamesInProgress.curSlot );
 			} else {
 				level = Dungeon.newLevel();
 			}
 
-			// 精确过渡系统：优先使用 ID 定位
-			LevelTransition destTransition = null;
-			if (curTransition.destId != null) {
-				destTransition = level.getTransitionById(curTransition.destId);
-			}
-			// 兜底：使用类型查找
-			if (destTransition == null) {
-				destTransition = level.getTransition(curTransition.destType);
-			}
+			// 查找目标楼梯
+			LevelTransition destTransition = level.getTransition(curTransition.destType);
 			curTransition = null;
 			Dungeon.switchLevel( level, destTransition.cell() );
 		}
@@ -682,7 +676,7 @@ public class InterlevelScene extends PixelScene {
 
 		Level level;
 		Dungeon.depth++;
-		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branch)) {
+		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
 			level = Dungeon.loadLevel( GamesInProgress.curSlot );
 		} else {
 			level = Dungeon.newLevel();
@@ -696,23 +690,16 @@ public class InterlevelScene extends PixelScene {
 
 		Level level;
 		Dungeon.depth = curTransition.destDepth;
-		Dungeon.branch = curTransition.destBranch;
+		Dungeon.branchId = curTransition.destBranchId;
 
-		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branch)) {
+		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
 			level = Dungeon.loadLevel( GamesInProgress.curSlot );
 		} else {
 			level = Dungeon.newLevel();
 		}
 
-		// 精确过渡系统：优先使用 ID 定位
-		LevelTransition destTransition = null;
-		if (curTransition.destId != null) {
-			destTransition = level.getTransitionById(curTransition.destId);
-		}
-		// 兜底：使用类型查找
-		if (destTransition == null) {
-			destTransition = level.getTransition(curTransition.destType);
-		}
+		// 查找目标楼梯
+		LevelTransition destTransition = level.getTransition(curTransition.destType);
 		curTransition = null;
 		Dungeon.switchLevel( level, destTransition.cell() );
 	}
@@ -723,8 +710,8 @@ public class InterlevelScene extends PixelScene {
 
 		Level level;
 		Dungeon.depth = returnDepth;
-		Dungeon.branch = returnBranch;
-		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branch)) {
+		Dungeon.branchId = returnBranchId;
+		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
 			level = Dungeon.loadLevel( GamesInProgress.curSlot );
 		} else {
 			level = Dungeon.newLevel();

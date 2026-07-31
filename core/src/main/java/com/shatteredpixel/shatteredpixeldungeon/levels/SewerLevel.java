@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MoonLight;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.SewerPainter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
@@ -93,10 +94,10 @@ public class SewerLevel extends RegularLevel {
 	protected ArrayList<Room> initRooms() {
 		ArrayList<Room> initRooms = super.initRooms();
 		if(Dungeon.depth == 2){
-			if(Dungeon.branch == 0){
+			if(Dungeon.branchId.equals(Branches.MAIN)){
 				initRooms.add(new SmallGrassEnterRoom());
 			}
-			if((Dungeon.branch == 2)){
+			if(Dungeon.branchId.equals(Branches.MOSS)){
 				initRooms.add(new BlessScrollRoom());
 			}
 		}
@@ -157,7 +158,7 @@ public class SewerLevel extends RegularLevel {
 
 	@Override
 	protected void createMobs() {
-		if(Dungeon.branch == 0){
+		if(Dungeon.branchId.equals(Branches.MAIN)){
 			Ghost.Quest.spawn( this, roomExit );
 		}
 		if(Dungeon.depth == 1 ){

@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.FileUtils;
@@ -47,26 +48,27 @@ public class GamesInProgress {
 	private static final String GAME_FILE	= "game.dat";
 	private static final String DEPTH_FILE	= "depth%d.dat";
 	private static final String DEPTH_BRANCH_FILE	= "depth%d-branch%d.dat";
-
-	// 精确过渡系统：支持分支字符串的存档命名
 	private static final String DEPTH_BRANCH_ID_FILE = "depth%d-branch_%s.dat";
 
-	public static String depthFile( int slot, int depth, int branch ) {
+	/**
+	 * 获取存档文件路径（使用 String branchId）
+	 */
+	public static String depthFile( int slot, int depth, String branchId ) {
+		if (branchId == null || branchId.equals(Branches.MAIN)) {
+			return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE, depth);
+		} else {
+			return gameFolder(slot) + "/" + Messages.format(DEPTH_BRANCH_ID_FILE, depth, branchId);
+		}
+	}
+	
+	/**
+	 * 兼容旧存档：使用 int branch 的路径
+	 */
+	public static String depthFileLegacy( int slot, int depth, int branch ) {
 		if (branch == 0) {
 			return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE, depth);
 		} else {
 			return gameFolder(slot) + "/" + Messages.format(DEPTH_BRANCH_FILE, depth, branch);
-		}
-	}
-
-	/**
-	 * 精确过渡系统：支持分支字符串标识的存档文件路径
-	 */
-	public static String depthFileByBranchId(int slot, int depth, String branchId) {
-		if (branchId == null || branchId.equals("main")) {
-			return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE, depth);
-		} else {
-			return gameFolder(slot) + "/" + Messages.format(DEPTH_BRANCH_ID_FILE, depth, branchId);
 		}
 	}
 

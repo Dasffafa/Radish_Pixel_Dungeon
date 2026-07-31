@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StandardRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.BurningTrap;
@@ -93,7 +94,7 @@ public class BlacksmithRoom extends StandardRoom {
 				entrancePos,
 				LevelTransition.Type.BRANCH_EXIT,
 				Dungeon.depth,
-				Dungeon.branch + 1,
+				Branches.MINING,
 				LevelTransition.Type.BRANCH_ENTRANCE));
 		Painter.set(level, entrancePos, Terrain.EXIT);
 

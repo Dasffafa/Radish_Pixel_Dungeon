@@ -78,13 +78,14 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.OldSewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WarCityLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WorkCaveLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branch;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.secret.SecretRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.VineTrap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.TransitionContract;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
@@ -224,17 +225,11 @@ public class Dungeon {
 	public static QuickSlot quickslot = new QuickSlot();
 	
 	public static int depth;
-	//determines path the hero is on. Current uses:
-	// 0 is the default path
-	// 1 is for quest sub-floors
-	public static int branch;
+	// 当前分支的字符串标识（如 "main", "moss", "mining"）
+	public static String branchId = Branches.MAIN;
 
 	//keeps track of what levels the game should try to load instead of creating fresh
-	public static ArrayList<Integer> generatedLevels = new ArrayList<>();
-
-	// ====== 精确过渡系统：约定表 ======
-	// 记录所有楼梯的配对信息，用于楼层生成时创建对应的入口/出口
-	public static HashMap<String, TransitionContract> transitionContracts = new HashMap<>();
+	public static HashSet<String> generatedLevels = new HashSet<>();
 
 	public static int gold;
 	public static int energy;
@@ -258,6 +253,9 @@ public class Dungeon {
 
 		// 初始化事件系统（自动扫描并注册订阅类）
 		EventManager.init();
+		
+		// 初始化分支系统
+		Branches.init();
 
 		initialVersion = version = Game.versionCode;
 		challenges = SPDSettings.challenges();
@@ -302,7 +300,7 @@ public class Dungeon {
 		Toolbar.swappedQuickslots = false;
 		
 		depth = 1;
-		branch = 0;
+		branchId = Branches.MAIN;
 		generatedLevels.clear();
 
 		gold = 0;
@@ -328,48 +326,22 @@ public class Dungeon {
 		GamesInProgress.selectedClass.initHero( hero );
 	}
 
-	// ====== 精确过渡系统：约定表方法 ======
-
-	/**
-	 * 注册过渡约定（楼层生成时调用）
-	 */
-	public static void registerTransitionContract(TransitionContract contract) {
-		transitionContracts.put(contract.id, contract);
-	}
-
-	/**
-	 * 查找指向目标楼层的约定
-	 */
-	public static ArrayList<TransitionContract> findTransitionContractsTo(int destDepth, String destBranch) {
-		ArrayList<TransitionContract> result = new ArrayList<>();
-		for (TransitionContract c : transitionContracts.values()) {
-			if (c.destDepth == destDepth && c.destBranch.equals(destBranch)) {
-				result.add(c);
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * 获取当前分支的字符串标识
-	 */
-	public static String currentBranchId() {
-		// 暂时使用 int branch 映射到字符串
-		// 后续可以改为直接使用字符串
-		switch (branch) {
-			case 0: return "main";
-			case 1: return "moss";
-			case 2: return "moss_deep";
-			default: return "branch_" + branch;
-		}
-	}
-
 	public static boolean isChallenged( int mask ) {
 		return (challenges & mask) != 0;
 	}
 
-	public static boolean levelHasBeenGenerated(int depth, int branch){
-		return generatedLevels.contains(depth + 1000*branch);
+	/**
+	 * 检查楼层是否已生成
+	 */
+	public static boolean levelHasBeenGenerated(int depth, String branchId){
+		return generatedLevels.contains(branchId + "_" + depth);
+	}
+	
+	/**
+	 * 生成楼层键
+	 */
+	public static String levelKey(String branchId, int depth) {
+		return branchId + "_" + depth;
 	}
 	
 	public static Level newLevel() {
@@ -379,127 +351,37 @@ public class Dungeon {
 		
 		Level level;
 		boolean randomMap = Random.Float()>=0.5f && !SPDSettings.origin_map();
-		if (branch == 0) {
-			switch (depth) {
-				case 0:
-					level = new ZeroLevel();
-					break;
-				case 1:
-					level = new SewerLevel();
-					break;
-				case 2:
-				case 3:
-				case 4:
-					if(randomMap){
-						level = new OldSewerLevel();
-					} else {
-						level = new SewerLevel();
-					}
-					break;
-				case 5:
-					level = new SewerBossLevel();
-					break;
-				case 6:
-					level = new PrisonLevel();
-					break;
-				case 7:
-				case 8:
-				case 9:
-					if(randomMap){
-						level = new BloodPrisonLevel();
-					} else {
-						level = new PrisonLevel();
-					}
-					break;
-				case 10:
-					level = new PrisonBossLevel();
-					break;
-				case 11:
-					level = new CavesLevel();
-					break;
-				case 12:
-				case 13:
-				case 14:
-					if(randomMap){
-						level = new WorkCaveLevel();
-					} else {
-						level = new CavesLevel();
-					}
-					break;
-				case 15:
-					level = GenerateCaveBossLevel();
-					break;
-				case 16:
-					level = new CityLevel();
-					break;
-				case 17:
-				case 18:
-				case 19:
-					if(randomMap){
-						level = new WarCityLevel();
-					} else {
-						level = new CityLevel();
-					}
-					break;
-				case 20:
-					level = new CityBossLevel();
-					break;
-				case 21:
-					level = new HallsLevel();
-					break;
-				case 22:
-				case 23:
-				case 24:
-					if(randomMap){
-						level = new FireHallsLevel();
-					} else {
-						level = new HallsLevel();
-					}
-					break;
-				case 25:
-					level = new HallsBossLevel();
-					break;
-				case 26:
-					level = new LastLevel();
-					break;
-				default:
-					level = new DeadEndLevel();
-			}
-		} else if (branch == 1) {
-			switch (depth) {
-				case 2:
-					level = new SmallGrassMiniLevel();
-					break;
-				case 11:
-				case 12:
-				case 13:
-				case 14:
-					level = new MiningLevel();
-					break;
-				default:
-					level = new DeadEndLevel();
-			}
-		} else if (branch == 2) {
-			switch (depth) {
-				case 2:
-					level = new SmallGrassMiniLevel();
-					break;
-				default:
-					level = new DeadEndLevel();
+		
+		// 使用 Branch 系统创建楼层
+		Branch branch = Branches.get(branchId);
+		if (branch != null) {
+			level = branch.createLevel(depth);
+			// 主线的特殊地图变体处理
+			if (branchId.equals(Branches.MAIN) && randomMap && level != null) {
+				level = createMainBranchVariant(depth);
 			}
 		} else {
 			level = new DeadEndLevel();
 		}
+		
+		// 如果分支创建失败，使用 DeadEndLevel
+		if (level == null) {
+			level = new DeadEndLevel();
+		}
+		
+		// 第15层的 Boss 选择
+		if (branchId.equals(Branches.MAIN) && depth == 15) {
+			level = GenerateCaveBossLevel();
+		}
 
 		//dead end levels get cleared, don't count as generated
 		if (!(level instanceof DeadEndLevel)){
-			//this assumes that we will never have a depth value outside the range 0 to 999
-			// or -500 to 499, etc.
-			if (!generatedLevels.contains(depth + 1000*branch)) {
-				generatedLevels.add(depth + 1000 * branch);
+			String key = levelKey(branchId, depth);
+			if (!generatedLevels.contains(key)) {
+				generatedLevels.add(key);
 			}
 
-			if (depth > Statistics.deepestFloor && branch == 0) {
+			if (depth > Statistics.deepestFloor && branchId.equals(Branches.MAIN)) {
 				Statistics.deepestFloor = depth;
 
 				if (Statistics.qualifiedForNoKilling) {
@@ -514,10 +396,40 @@ public class Dungeon {
 		
 		level.create();
 		
-		if (branch == 0) Statistics.qualifiedForNoKilling = !bossLevel();
+		if (branchId.equals(Branches.MAIN)) Statistics.qualifiedForNoKilling = !bossLevel();
 		Statistics.qualifiedForBossChallengeBadge = false;
 		
 		return level;
+	}
+	
+	/**
+	 * 创建主线分支的地图变体
+	 */
+	private static Level createMainBranchVariant(int depth) {
+		switch (depth) {
+			case 2:
+			case 3:
+			case 4:
+				return new OldSewerLevel();
+			case 7:
+			case 8:
+			case 9:
+				return new BloodPrisonLevel();
+			case 12:
+			case 13:
+			case 14:
+				return new WorkCaveLevel();
+			case 17:
+			case 18:
+			case 19:
+				return new WarCityLevel();
+			case 22:
+			case 23:
+			case 24:
+				return new FireHallsLevel();
+			default:
+				return null;
+		}
 	}
 
     public static Level GenerateCaveBossLevel()
@@ -551,12 +463,13 @@ public class Dungeon {
 	}
 
 	public static long seedCurDepth(){
-		return seedForDepth(depth, branch);
+		return seedForDepth(depth, branchId);
 	}
 
-	public static long seedForDepth(int depth, int branch){
+	public static long seedForDepth(int depth, String branchId){
 		int lookAhead = depth;
-		lookAhead += 30*branch; //Assumes depth is always 1-30, and branch is always 0 or higher
+		// 使用 branchId 的 hashCode 来生成不同的种子
+		lookAhead += 30 * Math.abs(branchId.hashCode() % 100);
 
 		Random.pushGenerator( seed );
 
@@ -596,7 +509,7 @@ public class Dungeon {
 	}
 
 	public static boolean interfloorTeleportAllowed(){
-		if (depth==0) return false;
+		if (depth==0 || !branchId.equals(Branches.MAIN)) return false;
 		if (Dungeon.level.locked
 				|| Dungeon.level instanceof MiningLevel
 				|| (Dungeon.hero != null && Dungeon.hero.belongings.getItem(Amulet.class) != null)){
@@ -676,7 +589,7 @@ public class Dungeon {
 
 	public static boolean posNeeded() {
 
-		if (depth==0 || branch != 0) return false;
+		if (depth==0 || !branchId.equals(Branches.MAIN)) return false;
 
 		//2 POS each floor set
 		int posLeftThisSet = 2 - (LimitedDrops.STRENGTH_POTIONS.count - (depth / 5) * 2);
@@ -695,7 +608,7 @@ public class Dungeon {
 	
 	public static boolean souNeeded() {
 
-		if (depth==0 || branch != 0) return false;
+		if (depth==0 || !branchId.equals(Branches.MAIN)) return false;
 
 		int souLeftThisSet;
 		//3 SOU each floor set
@@ -771,99 +684,85 @@ public class Dungeon {
 	private static final String MOBS_TO_CHAMPION	= "mobs_to_champion";
 	private static final String HERO		= "hero";
 	private static final String DEPTH		= "depth";
-	private static final String BRANCH		= "branch";
-	private static final String GENERATED_LEVELS    = "generated_levels";
-	private static final String GOLD		= "gold";
-	private static final String ENERGY		= "energy";
-	private static final String DROPPED     = "dropped%d";
-	private static final String PORTED      = "ported%d";
-	private static final String LEVEL		= "level";
-	private static final String LIMDROPS    = "limited_drops";
-	private static final String CHAPTERS	= "chapters";
-	private static final String QUESTS		= "quests";
-	private static final String BADGES		= "badges";
+		private static final String BRANCH_ID		= "branch_id";
+		private static final String GENERATED_LEVELS    = "generated_levels";
+		private static final String GOLD		= "gold";
+		private static final String ENERGY		= "energy";
+		private static final String DROPPED     = "dropped%d";
+		private static final String PORTED      = "ported%d";
+		private static final String LEVEL		= "level";
+		private static final String LIMDROPS    = "limited_drops";
+		private static final String CHAPTERS	= "chapters";
+		private static final String QUESTS		= "quests";
+		private static final String BADGES		= "badges";
 	
-	// 精确过渡系统：约定表存档键
-	private static final String TRANSITION_CONTRACTS = "transition_contracts";
-	
-	public static void saveGame( int save ) {
-		try {
-			Bundle bundle = new Bundle();
+		public static void saveGame( int save ) {
+			try {
+				Bundle bundle = new Bundle();
 
-			bundle.put( INIT_VER, initialVersion );
-			bundle.put( VERSION, version = Game.versionCode );
-			bundle.put( SEED, seed );
-			bundle.put( CUSTOM_SEED, customSeedText );
-			bundle.put( DAILY, daily );
-			bundle.put( DAILY_REPLAY, dailyReplay );
-			bundle.put( CHALLENGES, challenges );
-			bundle.put( MOBS_TO_CHAMPION, mobsToChampion );
-			bundle.put( HERO, hero );
-			bundle.put( DEPTH, depth );
-			bundle.put( BRANCH, branch );
+				bundle.put( INIT_VER, initialVersion );
+				bundle.put( VERSION, version = Game.versionCode );
+				bundle.put( SEED, seed );
+				bundle.put( CUSTOM_SEED, customSeedText );
+				bundle.put( DAILY, daily );
+				bundle.put( DAILY_REPLAY, dailyReplay );
+				bundle.put( CHALLENGES, challenges );
+				bundle.put( MOBS_TO_CHAMPION, mobsToChampion );
+				bundle.put( HERO, hero );
+				bundle.put( DEPTH, depth );
+				bundle.put( BRANCH_ID, branchId );
 
-			bundle.put( GOLD, gold );
-			bundle.put( ENERGY, energy );
+				bundle.put( GOLD, gold );
+				bundle.put( ENERGY, energy );
 
-			for (int d : droppedItems.keyArray()) {
-				bundle.put(Messages.format(DROPPED, d), droppedItems.get(d));
-			}
+				for (int d : droppedItems.keyArray()) {
+					bundle.put(Messages.format(DROPPED, d), droppedItems.get(d));
+				}
 
-			for (int p : portedItems.keyArray()){
-				bundle.put(Messages.format(PORTED, p), portedItems.get(p));
-			}
+				for (int p : portedItems.keyArray()){
+					bundle.put(Messages.format(PORTED, p), portedItems.get(p));
+				}
 
 
-			quickslot.storePlaceholders( bundle );
+				quickslot.storePlaceholders( bundle );
 
-			Bundle limDrops = new Bundle();
-			LimitedDrops.store( limDrops );
-			bundle.put ( LIMDROPS, limDrops );
+				Bundle limDrops = new Bundle();
+				LimitedDrops.store( limDrops );
+				bundle.put ( LIMDROPS, limDrops );
 			
-			int count = 0;
-			int ids[] = new int[chapters.size()];
-			for (Integer id : chapters) {
-				ids[count++] = id;
-			}
-			bundle.put( CHAPTERS, ids );
+				int count = 0;
+				int ids[] = new int[chapters.size()];
+				for (Integer id : chapters) {
+					ids[count++] = id;
+				}
+				bundle.put( CHAPTERS, ids );
 			
-			Bundle quests = new Bundle();
-			Ghost		.Quest.storeInBundle( quests );
-			Wandmaker	.Quest.storeInBundle( quests );
-			Blacksmith	.Quest.storeInBundle( quests );
-			Imp			.Quest.storeInBundle( quests );
-			bundle.put( QUESTS, quests );
+				Bundle quests = new Bundle();
+				Ghost		.Quest.storeInBundle( quests );
+				Wandmaker	.Quest.storeInBundle( quests );
+				Blacksmith	.Quest.storeInBundle( quests );
+				Imp			.Quest.storeInBundle( quests );
+				bundle.put( QUESTS, quests );
 			
-			SpecialRoom.storeRoomsInBundle( bundle );
-			SecretRoom.storeRoomsInBundle( bundle );
+				SpecialRoom.storeRoomsInBundle( bundle );
+				SecretRoom.storeRoomsInBundle( bundle );
 			
-			Statistics.storeInBundle( bundle );
-			Notes.storeInBundle( bundle );
-			Generator.storeInBundle( bundle );
+				Statistics.storeInBundle( bundle );
+				Notes.storeInBundle( bundle );
+				Generator.storeInBundle( bundle );
 
-			// Save Snake Bite Manager state
-			SnakeBiteChallengeManager.save(bundle);
+				// Save Snake Bite Manager state
+				SnakeBiteChallengeManager.save(bundle);
 
-			int[] bundleArr = new int[generatedLevels.size()];
-			for (int i = 0; i < generatedLevels.size(); i++){
-				bundleArr[i] = generatedLevels.get(i);
-			}
-			bundle.put( GENERATED_LEVELS, bundleArr);
+				// 保存已生成的楼层（String 格式）
+				String[] levelKeys = generatedLevels.toArray(new String[0]);
+				bundle.put( GENERATED_LEVELS, levelKeys);
 
-			// 保存约定表
-			Bundle contractsBundle = new Bundle();
-			for (TransitionContract c : transitionContracts.values()) {
-				Bundle cBundle = new Bundle();
-				c.storeInBundle(cBundle);
-				contractsBundle.put(c.id, cBundle);
-			}
-			bundle.put(TRANSITION_CONTRACTS, contractsBundle);
+				Scroll.save( bundle );
+				Potion.save( bundle );
+				Ring.save( bundle );
 
-			Scroll.save( bundle );
-			Potion.save( bundle );
-			Ring.save( bundle );
-
-			Actor.storeNextID( bundle );
+				Actor.storeNextID( bundle );
 			
 			Bundle badges = new Bundle();
 			Badges.saveLocal( badges );
@@ -881,7 +780,7 @@ public class Dungeon {
 		Bundle bundle = new Bundle();
 		bundle.put( LEVEL, level );
 		
-		FileUtils.bundleToFile(GamesInProgress.depthFile( save, depth, branch ), bundle);
+		FileUtils.bundleToFile(GamesInProgress.depthFile( save, depth, branchId ), bundle);
 	}
 	
 	public static void saveAll() throws IOException {
@@ -984,7 +883,16 @@ public class Dungeon {
 		hero = (Hero)bundle.get( HERO );
 		
 		depth = bundle.getInt( DEPTH );
-		branch = bundle.getInt( BRANCH );
+		// 恢复分支 ID，兼容旧存档
+		if (bundle.contains(BRANCH_ID)) {
+			branchId = bundle.getString(BRANCH_ID);
+		} else if (bundle.contains("branch")) {
+			// 旧存档迁移
+			int oldBranch = bundle.getInt("branch");
+			branchId = migrateOldBranchId(oldBranch, depth);
+		} else {
+			branchId = Branches.MAIN;
+		}
 
 		gold = bundle.getInt( GOLD );
 		energy = bundle.getInt( ENERGY );
@@ -994,25 +902,25 @@ public class Dungeon {
 
 		generatedLevels.clear();
 		if (bundle.contains(GENERATED_LEVELS)){
-			for (int i : bundle.getIntArray(GENERATED_LEVELS)){
-				generatedLevels.add(i);
+			// 新格式：String 数组
+			try {
+				for (String key : bundle.getStringArray(GENERATED_LEVELS)){
+					generatedLevels.add(key);
+				}
+			} catch (Exception e) {
+				// 兼容旧格式：int 数组
+				for (int i : bundle.getIntArray(GENERATED_LEVELS)){
+					// 旧格式迁移：int 转 String
+					int depth = i % 1000;
+					int branch = i / 1000;
+					String branchIdStr = branch == 0 ? Branches.MAIN : (branch == 1 ? Branches.MOSS : Branches.MINING);
+					generatedLevels.add(branchIdStr + "_" + depth);
+				}
 			}
 		//pre-v2.1.1 saves
 		} else  {
 			for (int i = 1; i <= Statistics.deepestFloor; i++){
-				generatedLevels.add(i);
-			}
-		}
-
-		// 恢复约定表
-		transitionContracts.clear();
-		if (bundle.contains(TRANSITION_CONTRACTS)) {
-			Bundle contractsBundle = bundle.getBundle(TRANSITION_CONTRACTS);
-			for (String key : contractsBundle.getKeys()) {
-				Bundle cBundle = contractsBundle.getBundle(key);
-				TransitionContract c = new TransitionContract();
-				c.restoreFromBundle(cBundle);
-				transitionContracts.put(c.id, c);
+				generatedLevels.add(Branches.MAIN + "_" + i);
 			}
 		}
 
@@ -1043,12 +951,27 @@ public class Dungeon {
 
 	}
 	
+	/**
+	 * 迁移旧存档的 branch ID
+	 */
+	private static String migrateOldBranchId(int oldBranch, int depth) {
+		switch (oldBranch) {
+			case 0: return Branches.MAIN;
+			case 1:
+				// branch=1 时根据 depth 判断是 moss 还是 mining
+				if (depth >= 11 && depth <= 14) return Branches.MINING;
+				return Branches.MOSS;
+			case 2: return Branches.MOSS;  // 旧的 moss_deep 合并到 moss
+			default: return Branches.MAIN;
+		}
+	}
+	
 	public static Level loadLevel( int save ) throws IOException {
 		
 		Dungeon.level = null;
 		Actor.clear();
 
-		Bundle bundle = FileUtils.bundleFromFile( GamesInProgress.depthFile( save, depth, branch ));
+		Bundle bundle = FileUtils.bundleFromFile( GamesInProgress.depthFile( save, depth, branchId ));
 
 		Level level = (Level)bundle.get( LEVEL );
 
@@ -1107,7 +1030,7 @@ public class Dungeon {
 	}
 
 	public static void updateLevelExplored(){
-		if (branch == 0 && level instanceof RegularLevel && !Dungeon.bossLevel()){
+		if (branchId.equals(Branches.MAIN) && level instanceof RegularLevel && !Dungeon.bossLevel()){
 			Statistics.floorsExplored.put( depth, level.isLevelExplored(depth));
 		}
 	}
@@ -1221,7 +1144,7 @@ public class Dungeon {
 		}
 
 		for (TalismanOfForesight.HeapAwareness h : hero.buffs(TalismanOfForesight.HeapAwareness.class)){
-			if (Dungeon.depth != h.depth || Dungeon.branch != h.branch) continue;
+			if (Dungeon.depth != h.depth || !Dungeon.branchId.equals(h.branchId)) continue;
 			BArray.or( level.visited, level.heroFOV, h.pos - 1 - level.width(), 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, h.pos - 1, 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, h.pos - 1 + level.width(), 3, level.visited );
@@ -1229,7 +1152,7 @@ public class Dungeon {
 		}
 
 		for (RevealedArea a : hero.buffs(RevealedArea.class)){
-			if (Dungeon.depth != a.depth || Dungeon.branch != a.branch) continue;
+			if (Dungeon.depth != a.depth || !Dungeon.branchId.equals(a.branchId)) continue;
 			BArray.or( level.visited, level.heroFOV, a.pos - 1 - level.width(), 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, a.pos - 1, 3, level.visited );
 			BArray.or( level.visited, level.heroFOV, a.pos - 1 + level.width(), 3, level.visited );

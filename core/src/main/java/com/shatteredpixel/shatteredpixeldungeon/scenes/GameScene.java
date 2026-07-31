@@ -46,6 +46,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Snake;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BannerSprites;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branch;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.EmoIcon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -497,7 +499,15 @@ public class GameScene extends PixelScene {
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
 			if (Dungeon.depth == Statistics.deepestFloor
 					&& (InterlevelScene.mode == InterlevelScene.Mode.DESCEND || InterlevelScene.mode == InterlevelScene.Mode.FALL)) {
-				GLog.h(Messages.get(this, "descend"), Dungeon.depth);
+
+				// 获取分支名称并显示降入消息
+				Branch branch = Branches.get(Dungeon.branchId);
+				if (branch != null && !Dungeon.branchId.equals(Branches.MAIN)) {
+					String branchName = branch.getLocalizedName();
+					GLog.h(Messages.get(this, "descend"), branchName, Dungeon.depth);
+				} else {
+					GLog.h(Messages.get(this, "descend_default"), Dungeon.depth);
+				}
 				Sample.INSTANCE.play(Assets.Sounds.DESCEND);
 				
 				for (Char ch : Actor.chars()){
@@ -1451,7 +1461,7 @@ public class GameScene extends PixelScene {
 			
 			Sample.INSTANCE.play( Assets.Sounds.BOSS );
 
-			if(Dungeon.branch == 0 && Dungeon.bossLevel()) {
+			if(Dungeon.branchId.equals(Branches.MAIN) && Dungeon.bossLevel()) {
 				Buff.detach(Dungeon.hero, BlessAWP.ArmorGetReady.class);
 				Buff.detach(Dungeon.hero, BlessAWP.WeaponGetReady.class);
 			}

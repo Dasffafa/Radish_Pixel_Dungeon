@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.testmode;
 
-import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.branch;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.depth;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -25,6 +24,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
@@ -108,20 +108,6 @@ public class LevelTeleporter extends TestItem {
                 return;
             }
 
-//            if(depth == 25 && branch == 0){
-//                TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
-//                if (timeFreeze != null) timeFreeze.disarmPresses();
-//                Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
-//                if (timeBubble != null) timeBubble.disarmPresses();
-//                InterlevelScene.mode = InterlevelScene.Mode.AMULET;
-//                InterlevelScene.curTransition = new LevelTransition();
-//                InterlevelScene.curTransition.destDepth = depth;
-//                InterlevelScene.curTransition.destType = LevelTransition.Type.REGULAR_ENTRANCE;
-//                InterlevelScene.curTransition.destBranch = 5;
-//                InterlevelScene.curTransition.type = LevelTransition.Type.REGULAR_EXIT;
-//                InterlevelScene.curTransition.centerCell  = -1;
-//                Game.switchScene( InterlevelScene.class );
-//            } else {
             TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
             if (timeFreeze != null) timeFreeze.disarmPresses();
             Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
@@ -130,11 +116,10 @@ public class LevelTeleporter extends TestItem {
             InterlevelScene.curTransition = new LevelTransition();
             InterlevelScene.curTransition.destDepth = depth + 1;
             InterlevelScene.curTransition.destType = LevelTransition.Type.REGULAR_ENTRANCE;
-            InterlevelScene.curTransition.destBranch = Dungeon.branch;
+            InterlevelScene.curTransition.destBranchId = Dungeon.branchId;
             InterlevelScene.curTransition.type = LevelTransition.Type.REGULAR_EXIT;
             InterlevelScene.curTransition.centerCell  = -1;
             Game.switchScene( InterlevelScene.class );
-//            }
 
         } else if(action.equals(AC_ASCEND)) {
             if (Dungeon.hero.buff(LockedFloor.class) != null || depth <= 0) {
@@ -142,60 +127,85 @@ public class LevelTeleporter extends TestItem {
                 return;
             }
 
-
-            if(branch == 5 && depth == 25){
-                TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
-                if (timeFreeze != null) timeFreeze.disarmPresses();
-                Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
-                if (timeBubble != null) timeBubble.disarmPresses();
-                InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-                InterlevelScene.returnDepth = depth;
-                InterlevelScene.returnPos = -1;
-                InterlevelScene.returnBranch = 0;
-                Game.switchScene(InterlevelScene.class);
-            } else {
-                TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
-                if (timeFreeze != null) timeFreeze.disarmPresses();
-                Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
-                if (timeBubble != null) timeBubble.disarmPresses();
-                InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-                InterlevelScene.returnDepth = depth - 1;
-                InterlevelScene.returnPos = -1;
-                InterlevelScene.returnBranch = Dungeon.branch;
-                Game.switchScene(InterlevelScene.class);
-            }
-
-        } else if (action.equals(AC_BRANCH_DESCEND)){
-            if(branch==6){
-                GLog.w(Messages.get(this, "cannot_asend_branch"));
-                return;
-            }
-            TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
-            if (timeFreeze != null) timeFreeze.disarmPresses();
-            Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
-            if (timeBubble != null) timeBubble.disarmPresses();
-            InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
-            InterlevelScene.curTransition = new LevelTransition();
-            InterlevelScene.curTransition.destDepth = depth;
-            InterlevelScene.curTransition.destType = LevelTransition.Type.BRANCH_ENTRANCE;
-            InterlevelScene.curTransition.destBranch = Dungeon.branch+1;
-            InterlevelScene.curTransition.type = LevelTransition.Type.BRANCH_ENTRANCE;
-            InterlevelScene.curTransition.centerCell  = -1;
-            Game.switchScene( InterlevelScene.class );
-        } else if (action.equals(AC_BRANCH_ASCEND)){
-            if(branch<1){
-                GLog.w(Messages.get(this, "cannot_dsend_branch"));
-                return;
-            }
             TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
             if (timeFreeze != null) timeFreeze.disarmPresses();
             Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
             if (timeBubble != null) timeBubble.disarmPresses();
             InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-            InterlevelScene.returnDepth = depth;
+            InterlevelScene.returnDepth = depth - 1;
             InterlevelScene.returnPos = -1;
-            InterlevelScene.returnBranch = Dungeon.branch - 1;
+            InterlevelScene.returnBranchId = Dungeon.branchId;
             Game.switchScene(InterlevelScene.class);
+
+        } else if (action.equals(AC_BRANCH_DESCEND)){
+            // 从主线进入支线分支
+            if (!Dungeon.branchId.equals(Branches.MAIN)) {
+                GLog.w(Messages.get(this, "already_in_branch"));
+                return;
+            }
+
+            // 根据当前层决定可以进入哪个分支
+            String targetBranch = null;
+            int targetDepth = 1;
+            
+            if (depth >= 11 && depth <= 14) {
+                // 黑smith区域：进入采矿分支
+                targetBranch = Branches.MINING;
+                targetDepth = 1;
+            } else if (depth >= 2 && depth <= 4) {
+                // Sewer区域：进入苔藓分支
+                targetBranch = Branches.MOSS;
+                targetDepth = 1;
+            } else {
+                GLog.w(Messages.get(this, "no_branch_here"));
+                return;
+            }
+
+            TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
+            if (timeFreeze != null) timeFreeze.disarmPresses();
+            Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
+            if (timeBubble != null) timeBubble.disarmPresses();
+            
+            InterlevelScene.curTransition = new LevelTransition();
+            InterlevelScene.curTransition.destDepth = targetDepth;
+            InterlevelScene.curTransition.destBranchId = targetBranch;
+            InterlevelScene.curTransition.destType = LevelTransition.Type.BRANCH_ENTRANCE;
+            InterlevelScene.curTransition.type = LevelTransition.Type.BRANCH_EXIT;
+            InterlevelScene.curTransition.centerCell = -1;
+            InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
+            Game.switchScene(InterlevelScene.class);
+
+        } else if (action.equals(AC_BRANCH_ASCEND)){
+            // 从支线返回主线
+            if (Dungeon.branchId.equals(Branches.MAIN)) {
+                GLog.w(Messages.get(this, "not_in_branch"));
+                return;
+            }
+
+            // 根据当前分支决定返回主线哪一层
+            int returnDepth;
+            if (Dungeon.branchId.equals(Branches.MOSS)) {
+                returnDepth = 2;  // 苔藓分支返回主线第2层
+            } else if (Dungeon.branchId.equals(Branches.MINING)) {
+                returnDepth = Dungeon.depth;  // 采矿分支返回主线对应层
+            } else {
+                returnDepth = 1;
+            }
+
+            TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
+            if (timeFreeze != null) timeFreeze.disarmPresses();
+            Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
+            if (timeBubble != null) timeBubble.disarmPresses();
+            
+            InterlevelScene.curTransition = new LevelTransition();
+            InterlevelScene.curTransition.destDepth = returnDepth;
+            InterlevelScene.curTransition.destBranchId = Branches.MAIN;
+            InterlevelScene.curTransition.destType = LevelTransition.Type.BRANCH_ENTRANCE;
+            InterlevelScene.curTransition.type = LevelTransition.Type.BRANCH_EXIT;
+            InterlevelScene.curTransition.centerCell = -1;
+            InterlevelScene.mode = InterlevelScene.Mode.RETURN;
+            Game.switchScene(InterlevelScene.class);
+
         } else if(action.equals(AC_VIEW)){
             Buff.affect( hero, Awareness.class, Awareness.DURATION );
             Buff.affect( hero, MindVision.class, MindVision.DURATION );
@@ -327,7 +337,7 @@ public class LevelTeleporter extends TestItem {
                     InterlevelScene.mode = InterlevelScene.Mode.RETURN;
                     InterlevelScene.returnDepth = selectedLevel;
                     InterlevelScene.returnPos = -1;
-                    InterlevelScene.returnBranch = Dungeon.branch;
+                    InterlevelScene.returnBranchId = Dungeon.branchId;
                     Game.switchScene( InterlevelScene.class );
                 }
             };

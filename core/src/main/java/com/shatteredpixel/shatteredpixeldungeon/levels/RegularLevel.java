@@ -38,6 +38,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branch;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Torch;
@@ -127,7 +129,20 @@ public abstract class RegularLevel extends Level {
 	protected ArrayList<Room> initRooms() {
 		ArrayList<Room> initRooms = new ArrayList<>();
 		initRooms.add(roomEntrance = EntranceRoom.createEntrance());
-		initRooms.add(roomExit = ExitRoom.createExit());
+
+		// 检查是否需要生成出口房间
+		// 主线总是需要出口；支线只有还有下一层时才需要
+		boolean needExit = true;
+		if (!Dungeon.branchId.equals(Branches.MAIN)) {
+			Branch branch = Branches.get(Dungeon.branchId);
+			needExit = branch != null && branch.hasMoreDepth(Dungeon.depth);
+		}
+
+		if (needExit) {
+			initRooms.add(roomExit = ExitRoom.createExit());
+		} else {
+			roomExit = null;
+		}
 
 		// 计算当前区域（每5层为一个区域）
 		int region = (Dungeon.depth - 1) / 5 + 1;

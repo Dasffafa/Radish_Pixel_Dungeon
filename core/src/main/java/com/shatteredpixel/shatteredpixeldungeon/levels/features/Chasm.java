@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 
-import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.branch;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.level;
 
@@ -42,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfFe
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.WeakFloorRoom;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -112,20 +112,25 @@ public class Chasm implements Hero.Doom {
 		Level.beforeTransition();
 
 		if (Dungeon.hero.isAlive()) {
-			if(branch!=0) {
+			// 检查当前分支是否有下一层可掉落
+			boolean canFallToNextLevel = Branches.get(Dungeon.branchId).hasMoreDepth(Dungeon.depth + 1);
+			
+			if (Dungeon.branchId.equals(Branches.MAIN) || canFallToNextLevel) {
+				// 主线或有下一层的支线：正常掉落流程
+				Dungeon.hero.interrupt();
+				InterlevelScene.mode = InterlevelScene.Mode.FALL;
+				if (Dungeon.level instanceof RegularLevel) {
+					Room room = ((RegularLevel)Dungeon.level).room( pos );
+					InterlevelScene.fallIntoPit = room != null && room instanceof WeakFloorRoom;
+				} else {
+					InterlevelScene.fallIntoPit = false;
+				}
+				Game.switchScene( InterlevelScene.class );
+			} else {
+				// 支线终点：传送到入口
 				ScrollOfTeleportation.appear(hero, level.entrance());
 				Dungeon.hero.interrupt();
 				Dungeon.observe();
-			} else if (Dungeon.level instanceof RegularLevel) {
-				Dungeon.hero.interrupt();
-				InterlevelScene.mode = InterlevelScene.Mode.FALL;
-				Room room = ((RegularLevel)Dungeon.level).room( pos );
-				InterlevelScene.fallIntoPit = room != null && room instanceof WeakFloorRoom;
-			} else {
-				InterlevelScene.fallIntoPit = false;
-			}
-			if(branch == 0){
-				Game.switchScene( InterlevelScene.class );
 			}
 		} else {
 			Dungeon.hero.sprite.visible = false;

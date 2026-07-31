@@ -48,7 +48,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.TransitionContract;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
@@ -81,6 +80,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.HeavyBoomerang;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deviloon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branch;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Door;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.HighGrass;
@@ -215,7 +216,7 @@ public abstract class Level implements Bundlable {
 		Random.pushGenerator( Dungeon.seedCurDepth() );
 
 		//TODO maybe just make this part of RegularLevel?
-		if (!Dungeon.bossLevel() && Dungeon.branch == 0) {
+		if (!Dungeon.bossLevel() && Dungeon.branchId.equals(Branches.MAIN)) {
 
 			addItemToSpawn(Generator.random(Generator.Category.FOOD));
 
@@ -332,6 +333,9 @@ public abstract class Level implements Bundlable {
 
 		createMobs();
 		createItems();
+
+		// 支线终点：将 Chasm 转换为普通地板
+		convertChasmOnBranchEnd();
 
 		Random.popGenerator();
 	}
@@ -623,44 +627,21 @@ public abstract class Level implements Bundlable {
 	}
 
 	/**
-	 * 精确过渡系统：按 ID 查找过渡点
-	 */
-	public LevelTransition getTransitionById(String id) {
-		if (id == null || transitions.isEmpty()) {
-			return null;
-		}
-		for (LevelTransition transition : transitions) {
-			if (id.equals(transition.id)) {
-				return transition;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * 精确过渡系统：根据约定表创建入口楼梯
+	 * 根据约定表创建入口楼梯
 	 * 子类可覆盖以自定义位置选择逻辑
 	 */
 	protected void createBranchEntrances() {
 		// 只有非主线楼层需要处理
-		if (Dungeon.branch == 0) return;
+		if (Dungeon.branchId.equals(Branches.MAIN)) return;
 
-		String currentBranch = Dungeon.currentBranchId();
-		java.util.ArrayList<TransitionContract> contracts = Dungeon.findTransitionContractsTo(depth, currentBranch);
-
-		for (TransitionContract c : contracts) {
-			int cell = findBranchEntranceCell();
-			if (cell >= 0) {
-				LevelTransition t = new LevelTransition(this, cell, LevelTransition.Type.BRANCH_ENTRANCE);
-				t.id = c.destId;
-				t.destDepth = c.sourceDepth;
-				t.destBranch = branchFromString(c.sourceBranch);
-				t.destBranchId = c.sourceBranch;
-				t.destId = c.id;
-
-				transitions.add(t);
-				map[cell] = Terrain.ENTRANCE;
-			}
+		// 目前简化实现：创建一个返回主线的入口
+		int cell = findBranchEntranceCell();
+		if (cell >= 0) {
+			LevelTransition t = new LevelTransition(this, cell, LevelTransition.Type.BRANCH_ENTRANCE);
+			t.destDepth = 2;  // 默认返回主线2层
+			t.destBranchId = Branches.MAIN;
+			transitions.add(t);
+			map[cell] = Terrain.ENTRANCE;
 		}
 	}
 
@@ -678,13 +659,26 @@ public abstract class Level implements Bundlable {
 	}
 
 	/**
-	 * 分支字符串转 int（兼容旧系统）
+	 * 支线终点：将 Chasm 转换为普通地板
+	 * 如果当前分支没有下一层，玩家不应该掉落，所以移除 Chasm
 	 */
-	protected static int branchFromString(String branchId) {
-		if (branchId == null || branchId.equals("main")) return 0;
-		if (branchId.equals("moss")) return 1;
-		if (branchId.equals("moss_deep")) return 2;
-		return 0;
+	protected void convertChasmOnBranchEnd() {
+		// 主线不处理
+		if (Dungeon.branchId.equals(Branches.MAIN)) return;
+		
+		// 检查是否有下一层
+		Branch branch = Branches.get(Dungeon.branchId);
+		if (branch != null && branch.hasMoreDepth(Dungeon.depth + 1)) {
+			// 有下一层，保留 Chasm
+			return;
+		}
+		
+		// 没有下一层，将 Chasm 转换为 EMPTY
+		for (int i = 0; i < length(); i++) {
+			if (map[i] == Terrain.CHASM) {
+				map[i] = Terrain.EMPTY;
+			}
+		}
 	}
 
 	//returns true if we immediately transition, false otherwise
@@ -1585,7 +1579,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			for (TalismanOfForesight.HeapAwareness h : c.buffs(TalismanOfForesight.HeapAwareness.class)){
-				if (depth != h.depth || Dungeon.branch != h.branch) continue;
+				if (depth != h.depth || !Dungeon.branchId.equals(h.branchId)) continue;
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[h.pos+i] = true;
 			}
 
@@ -1602,7 +1596,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			for (RevealedArea a : c.buffs(RevealedArea.class)){
-				if (depth != a.depth || Dungeon.branch != a.branch) continue;
+				if (depth != a.depth || !Dungeon.branchId.equals(a.branchId)) continue;
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[a.pos+i] = true;
 			}
 

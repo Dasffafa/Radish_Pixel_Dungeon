@@ -262,7 +262,7 @@ public class StormAttackArrow extends MissileWeapon {
             if (Actor.findChar(shotPos) == null) {
                 RevealedArea a = Buff.affect(user, RevealedArea.class, 5 * user.pointsInTalent(Talent.SEER_SHOT));
                 a.depth = Dungeon.depth;
-                a.branch = Dungeon.branch;
+                a.branchId = Dungeon.branchId;
                 a.pos = shotPos;
                 Buff.affect(user, Talent.SeerShotCooldown.class, 20f);
             }

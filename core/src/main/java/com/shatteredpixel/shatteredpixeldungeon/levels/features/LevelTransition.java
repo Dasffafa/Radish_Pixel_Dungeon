@@ -18,11 +18,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-
 package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Point;
@@ -41,13 +41,8 @@ public class LevelTransition extends Rect implements Bundlable {
 
 	public Type type;
 	public int destDepth;
-	public int destBranch;
+	public String destBranchId;  // 目标分支的字符串标识（如 "main", "moss", "mining"）
 	public Type destType;
-
-	// ====== 新增字段：精确过渡系统 ======
-	public String id;           // 当前楼梯的唯一标识
-	public String destId;       // 目标楼梯的唯一标识
-	public String destBranchId; // 目标分支的字符串标识（如 "main", "moss", "mining"）
 
 	public int centerCell;
 
@@ -56,13 +51,13 @@ public class LevelTransition extends Rect implements Bundlable {
 		super();
 	}
 
-	public LevelTransition(Level level, int cell, Type type, int destDepth, int destBranch, Type destType){
+	public LevelTransition(Level level, int cell, Type type, int destDepth, String destBranchId, Type destType){
 		centerCell = cell;
 		Point p = level.cellToPoint(cell);
 		set(p.x, p.y, p.x, p.y);
 		this.type = type;
 		this.destDepth = destDepth;
-		this.destBranch = destBranch;
+		this.destBranchId = destBranchId;
 		this.destType = destType;
 	}
 
@@ -75,17 +70,17 @@ public class LevelTransition extends Rect implements Bundlable {
 		switch (type){
 			case REGULAR_ENTRANCE: default:
 				destDepth = Dungeon.depth-1;
-				destBranch = Dungeon.branch;
+				destBranchId = Dungeon.branchId;
 				destType = Type.REGULAR_EXIT;
 				break;
 			case REGULAR_EXIT:
 				destDepth = Dungeon.depth+1;
-				destBranch = Dungeon.branch;
+				destBranchId = Dungeon.branchId;
 				destType = Type.REGULAR_ENTRANCE;
 				break;
 			case SURFACE:
 				destDepth = 1;
-				destBranch = 0;
+				destBranchId = Branches.MAIN;
 				destType = null;
 				break;
 		}
@@ -126,13 +121,8 @@ public class LevelTransition extends Rect implements Bundlable {
 
 	public static final String TYPE = "type";
 	public static final String DEST_DEPTH = "dest_depth";
-	public static final String DEST_BRANCH = "dest_branch";
-	public static final String DEST_TYPE = "dest_type";
-
-	// ====== 新增常量：精确过渡系统 ======
-	public static final String ID = "id";
-	public static final String DEST_ID = "dest_id";
 	public static final String DEST_BRANCH_ID = "dest_branch_id";
+	public static final String DEST_TYPE = "dest_type";
 
 	@Override
 	public void storeInBundle(Bundle bundle) {
@@ -145,13 +135,8 @@ public class LevelTransition extends Rect implements Bundlable {
 
 		bundle.put(TYPE, type);
 		bundle.put(DEST_DEPTH, destDepth);
-		bundle.put(DEST_BRANCH, destBranch);
+		bundle.put(DEST_BRANCH_ID, destBranchId);
 		bundle.put(DEST_TYPE, destType);
-
-		// 新增字段序列化
-		if (id != null) bundle.put(ID, id);
-		if (destId != null) bundle.put(DEST_ID, destId);
-		if (destBranchId != null) bundle.put(DEST_BRANCH_ID, destBranchId);
 	}
 
 	@Override
@@ -165,12 +150,17 @@ public class LevelTransition extends Rect implements Bundlable {
 
 		type = bundle.getEnum(TYPE, Type.class);
 		destDepth = bundle.getInt(DEST_DEPTH);
-		destBranch = bundle.getInt(DEST_BRANCH);
-		if (bundle.contains(DEST_TYPE)) destType = bundle.getEnum(DEST_TYPE, Type.class);
-
-		// 新增字段反序列化（兼容旧存档）
-		if (bundle.contains(ID)) id = bundle.getString(ID);
-		if (bundle.contains(DEST_ID)) destId = bundle.getString(DEST_ID);
-		if (bundle.contains(DEST_BRANCH_ID)) destBranchId = bundle.getString(DEST_BRANCH_ID);
+		destType = bundle.getEnum(DEST_TYPE, Type.class);
+		
+		// 兼容旧存档
+		if (bundle.contains(DEST_BRANCH_ID)) {
+			destBranchId = bundle.getString(DEST_BRANCH_ID);
+		} else if (bundle.contains("dest_branch")) {
+			// 旧格式迁移
+			int oldBranch = bundle.getInt("dest_branch");
+			destBranchId = oldBranch == 0 ? Branches.MAIN : (oldBranch == 1 ? Branches.MOSS : Branches.MINING);
+		} else {
+			destBranchId = Branches.MAIN;
+		}
 	}
 }
