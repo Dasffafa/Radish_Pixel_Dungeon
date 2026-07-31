@@ -22,7 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -62,7 +62,7 @@ public class SewerBossLevel extends SewerLevel {
 	
 	@Override
 	public void playLevelMusic() {
-        if (DiceMageAudio.playLevelMusic()) return;
+        if (SnDBGM.playLevelMusic()) return;
 		if (locked){
 			Music.INSTANCE.play(Assets.Music.SEWERS_BOSS, true);
 			return;
@@ -191,7 +191,7 @@ public class SewerBossLevel extends SewerLevel {
 			Game.runOnRenderThread(new Callback() {
 				@Override
 				public void call() {
-					if (!DiceMageAudio.playLevelMusic()) {
+					if (!SnDBGM.playLevelMusic()) {
 						Music.INSTANCE.play(Assets.Music.SEWERS_BOSS, true);
 					}
 				}

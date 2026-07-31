@@ -88,6 +88,7 @@ public class Item implements Bundlable {
 	//TODO should these be private and accessed through methods?
 	public int image = 0;
 	public int icon = -1; //used as an identifier for items with randomized images
+	public String sndImageName = null; // SND atlas 中的物品名称，如果设置则使用 SND 贴图
 	
 	public boolean stackable = false;
 	protected int quantity = 1;

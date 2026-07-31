@@ -13,7 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Cloak extends ItemArmorAttachable {
 
 	{
-		image = ItemSpriteSheet.SNAKE_BITE;
+		sndImageName = "cloak";
 	}
 
 	@Override

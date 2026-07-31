@@ -13,7 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class IronHeart extends ItemArmorAttachable {
 
 	{
-		image = ItemSpriteSheet.SNAKE_BITE;
+		sndImageName = "iron-heart";
 	}
 
 	@Override

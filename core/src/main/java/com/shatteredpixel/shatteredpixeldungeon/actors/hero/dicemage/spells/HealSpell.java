@@ -3,7 +3,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
@@ -29,7 +30,7 @@ public class HealSpell extends DiceMageSpell {
 
         int oldHP = hero.HP;
         hero.HP = Math.min(healValue, hero.HT);
-        DiceMageSpellFX.impact(hero, DiceMageSpellFX.Type.HEAL);
+        CellEmitter.center(hero.pos).start(Speck.factory(Speck.HEALING), 0.12f, 3);
         int healed = hero.HP - oldHP;
         mp.decreaseHealValue();
 

@@ -136,7 +136,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     @Override
     public int icon() {
-        return BuffIndicator.MAGIC_SLEEP; // 临时使用一个图标
+        return BuffIndicator.MAGIC_POINT;
     }
 
     @Override

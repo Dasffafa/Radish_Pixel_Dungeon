@@ -26,8 +26,6 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageSource;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
@@ -45,10 +43,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
-import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDSFX;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
@@ -300,40 +297,40 @@ public abstract class Char extends Actor {
             sprite.turnTo(from, to);
             sprite.place(to);
             return true;
-        }
-    }
+                    }
+                }
 
-    public void hitSound(float pitch) {
-        if (this == hero && DiceMageAudio.active()) {
-            DiceMageAudio.hit(pitch);
-            return;
-        }
-        Sample.INSTANCE.play(Assets.Sounds.HIT, 1, pitch);
-    }
+                public void hitSound(float pitch) {
+                    if (this == hero && SnDSFX.active()) {
+                        SnDSFX.play("impact");
+                        return;
+                    }
+                    Sample.INSTANCE.play(Assets.Sounds.HIT, 1, pitch);
+                }
 
-    public boolean blockSound(float pitch) {
-        return false;
-    }
+                public boolean blockSound(float pitch) {
+                    return false;
+                }
 
-    protected static final String POS = "pos";
-    protected static final String TAG_HP = "HP";
-    protected static final String TAG_HT = "HT";
-    protected static final String TAG_SHLD = "SHLD";
-    protected static final String BUFFS = "buffs";
+                protected static final String POS = "pos";
+                protected static final String TAG_HP = "HP";
+                protected static final String TAG_HT = "HT";
+                protected static final String TAG_SHLD = "SHLD";
+                protected static final String BUFFS = "buffs";
 
-    protected static final String KILL_PREF = "kill_pref";
+                protected static final String KILL_PREF = "kill_pref";
 
-    /**
-     * CRIT BUNDLE
-     */
-    protected static final String CRIT = "crit";
-    protected static final String CRIT_D = "crit_d";
+                /**
+                 * CRIT BUNDLE
+                 */
+                protected static final String CRIT = "crit";
+                protected static final String CRIT_D = "crit_d";
 
-    //LSD
-    protected static final String LOCK_CHAIN = "lock_chain";
+                //LSD
+                protected static final String LOCK_CHAIN = "lock_chain";
 
-    @Override
-    public void storeInBundle(Bundle bundle) {
+                @Override
+                public void storeInBundle(Bundle bundle) {
 
         super.storeInBundle(bundle);
 
@@ -703,12 +700,8 @@ public abstract class Char extends Actor {
             enemy.sprite.flash();
 
             if (!enemy.isAlive() && visibleFight) {
-                if (this == hero && DiceMageAudio.active()) {
-                    DiceMageAudio.death();
-                    // 骰子法师普通攻击击杀特效
-                    if (enemy instanceof Mob && enemy.alignment == Alignment.ENEMY) {
-                        DiceMageSpellFX.kill(enemy, DiceMageSpellFX.Type.CUT);
-                    }
+                if (this == hero && SnDSFX.active()) {
+                    SnDSFX.play("deathCute");
                 }
                 if (enemy == hero) {
 
@@ -742,8 +735,8 @@ public abstract class Char extends Actor {
 
             if (visibleFight) {
                 //TODO enemy.defenseSound? currently miss plays for monks/crab even when they parry
-                if (this == hero && DiceMageAudio.active()) {
-                    DiceMageAudio.miss();
+                if (this == hero && SnDBGM.active()) {
+                    SnDSFX.play("cloak");
                 } else {
                     Sample.INSTANCE.play(Assets.Sounds.MISS);
                 }
@@ -1378,26 +1371,24 @@ public abstract class Char extends Actor {
     }
 
     public void die(Object src) {
-        boolean skipDeathAnimation = suppressNextDeathAnimation;
-        suppressNextDeathAnimation = false;
         destroy();
         if (src != Chasm.class && sprite != null) {
-            if (skipDeathAnimation) {
-                sprite.skipDieAnimation();
-            } else {
+            // 如果 sprite 有待处理的死亡标记（shader 即将创建），跳过死亡动画
+            if (sprite.isPendingDeathAfterShader()) {
+                // shader 会接管，不需要播放死亡动画
+                // dieAfterShader() 已经在 ShaderEffect.apply() 中调用过了
+                //TODO TheCatist: finish shader dev and del this
+                GLog.w("这里应有Slice&Dice着色器，但是尚未开发完成，请期待下个版本。");
+            } else if (sprite.getShaderEffect() == null) {
+                // 没有 shader，播放正常死亡动画
                 sprite.die();
+            } else {
+                // shader 已经存在，标记需要在 shader 完成后清理
+                sprite.dieAfterShader();
             }
         }
-    }
-
-    private boolean suppressNextDeathAnimation = false;
-
-    public void suppressNextDeathAnimation() {
-        suppressNextDeathAnimation = true;
-    }
-
-    public void clearDeathAnimationSuppression() {
-        suppressNextDeathAnimation = false;
+        // 下面处理怪物死亡sfx
+        SnDSFX.playSnDDeathSoundVariant(this);
     }
 
     //we cache this info to prevent having to call buff(...) in isAlive.
@@ -1696,6 +1687,7 @@ public abstract class Char extends Actor {
         UNDEAD,
         NPC,
         DEMONIC,
+
         INORGANIC(new HashSet<Class>(),
                 new HashSet<Class>(Arrays.asList(Bleeding.class, ToxicGas.class, Poison.class))),
         FIERY(new HashSet<Class>(Arrays.asList(WandOfFireblast.class, Elemental.FireElemental.class)),

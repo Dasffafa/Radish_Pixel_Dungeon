@@ -69,7 +69,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Chains;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CheckedCell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Effects;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
@@ -144,7 +143,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seeking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CircleSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Flail;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
@@ -837,7 +835,7 @@ public class Hero extends Char {
 
 		dmg = Math.round(dmg
 				* IronHeartBuff.getDamageMultiplier()
-				* HeavyShoesBuff.getDamageMultiplier()
+				* ClumsyShoesBuff.getDamageMultiplier()
 				* WhetstoneBuff.getDamageMultiplier());
 
 		if (dmg < 0) dmg = 0;
@@ -876,7 +874,7 @@ public class Hero extends Char {
 			speed = belongings.armor().speedFactor(this, speed);
 		}
 
-		speed *= HeavyShoesBuff.getSpeedMultiplier();
+		speed *= ClumsyShoesBuff.getSpeedMultiplier();
 
 		Momentum momentum = buff(Momentum.class);
 		if (momentum != null){

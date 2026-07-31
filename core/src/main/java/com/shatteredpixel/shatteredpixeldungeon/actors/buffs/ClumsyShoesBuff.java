@@ -7,7 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 /**
  * 沉重的鞋 Buff — 伤害提升 33%，移动速度下降为 0.8
  */
-public class HeavyShoesBuff extends Buff {
+public class ClumsyShoesBuff extends Buff {
 
 	public static final float DAMAGE_MULTIPLIER = 1.33f;
 	public static final float SPEED_MULTIPLIER = 0.8f;
@@ -18,13 +18,13 @@ public class HeavyShoesBuff extends Buff {
 
 	public static float getDamageMultiplier() {
 		if (Dungeon.hero == null) return 1f;
-		HeavyShoesBuff buff = Dungeon.hero.buff(HeavyShoesBuff.class);
+		ClumsyShoesBuff buff = Dungeon.hero.buff(ClumsyShoesBuff.class);
 		return buff != null ? DAMAGE_MULTIPLIER : 1f;
 	}
 
 	public static float getSpeedMultiplier() {
 		if (Dungeon.hero == null) return 1f;
-		HeavyShoesBuff buff = Dungeon.hero.buff(HeavyShoesBuff.class);
+		ClumsyShoesBuff buff = Dungeon.hero.buff(ClumsyShoesBuff.class);
 		return buff != null ? SPEED_MULTIPLIER : 1f;
 	}
 

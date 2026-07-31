@@ -8,7 +8,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -63,7 +64,7 @@ public class OperateSpell extends DiceMageSpell {
         ally.alignment = Char.Alignment.ALLY;
         ally.state = ally.WANDERING;
         GameScene.add(ally);
-        DiceMageSpellFX.impact(ally, DiceMageSpellFX.Type.OPERATE);
+        CellEmitter.center(ally.pos).burst(PurpleParticle.BURST, 8);
         mp.clearLastKilledMob();
         mp.surgeryUsed();
         GLog.p(Messages.get(this, "cast", ally.name(), mp.surgeryCost(hero.pointsInTalent(Talent.LEARN_OPERATE))));

@@ -9,7 +9,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -53,7 +54,7 @@ public class LiquorSpell extends DiceMageSpell {
                 }
 
                 Buff.affect(target, Barrier.class).incShield(shieldAmount);
-                DiceMageSpellFX.impact(target, DiceMageSpellFX.Type.LIQUOR);
+                CellEmitter.center(target.pos).burst(SparkParticle.FACTORY, 5);
                 GLog.p(Messages.get(LiquorSpell.this, "cast", shieldAmount));
                 hero.spendAndNext(1f);
             }

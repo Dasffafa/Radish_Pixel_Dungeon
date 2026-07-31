@@ -973,6 +973,47 @@ public abstract class Mob extends Char {
 	@Override
 	public void die( Object cause ) {
 
+		// DiceMage 死亡着色器效果：根据伤害类型应用 shader
+		if (alignment == Alignment.ENEMY
+				&& Dungeon.hero != null
+				&& Dungeon.hero.subClass == HeroSubClass.DICE_MAGE
+				&& sprite != null
+				&& sprite.parent != null) {
+			com.shatteredpixel.shatteredpixeldungeon.damage.DamageType dmgType = 
+				com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.fromSource(cause);
+			
+			// 根据伤害类型选择 shader
+			com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType shaderType = null;
+			if (dmgType.isElemental()) {
+				switch (dmgType) {
+					case FIRE:
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.BURN;
+						break;
+					case FROST:
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.ALPHA;
+						break;
+					case LIGHTNING:
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.NOISE;
+						break;
+					case TOXIC:
+					case CORROSIVE:
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.ACID;
+						break;
+					default:
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.ALPHA;
+				}
+			} else if (dmgType == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL) {
+				shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.SINGULARITY;
+			} else if (dmgType.isPhysical() || dmgType == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL_NO_ARMOR) {
+				shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.CUT;
+			}
+			
+			// 应用 shader 效果
+			if (shaderType != null) {
+				com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.apply(this, shaderType, 0.5f);
+			}
+		}
+
 		if (alignment == Alignment.ENEMY
 				&& hero.subClass == HeroSubClass.DICE_MAGE
 				&& (cause == hero || cause instanceof Weapon || cause instanceof Wand || cause instanceof DiceMageSpell)){

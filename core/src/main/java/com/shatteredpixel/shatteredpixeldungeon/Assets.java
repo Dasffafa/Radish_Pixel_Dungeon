@@ -46,7 +46,8 @@ public class Assets {
 		public static final String TILES_MOSS  = "environment/tiles_moss.png";
 
 		public static final String TILES_OLD_SEWERS =   "environment/alter/tiles_old_sewers.png";
-		public static final String TILES_BLOOD_PRISON = "environment/alter/tiles_blood_prison.png";
+			public static final String TILES_BLOOD_PRISON = "environment/alter/tiles_blood_prison.png";
+		public static final String BLOOD_PRISON_EXIT  = "environment/alter/blood_prison_exit.png";
 		public static final String TILES_WORK_CAVES  =  "environment/alter/tiles_work_caves.png";
 		public static final String TILES_WAR_CITY   =   "environment/alter/tiles_war_city.png";
 		public static final String TILES_FIRE_HALLS  =  "environment/alter/tiles_fire_halls.png";
@@ -270,6 +271,7 @@ public class Assets {
 
 		public static final String JUTTE_BREAK = "sounds/weapon_break.ogg";
 
+		// TODO TheCatist: let all those sfx use snd vanilla sound loader(SnDSounds.java)
 		public static final String SND_ATTACK_HIT       = "sounds/snd/attack_hit.wav";
 		public static final String SND_ATTACK_MISS      = "sounds/snd/attack_miss.wav";
 		public static final String SND_SPELL_CUT        = "sounds/snd/spell_cut.wav";
@@ -282,6 +284,7 @@ public class Assets {
 		public static final String SND_SPELL_BLAZE      = "sounds/snd/spell_blaze.wav";
 		public static final String SND_DEATH            = "sounds/snd/death.wav";
 
+		//TODO TheCatist: Del this when SnDSound migration finish
 		public static final String[] sndAll = new String[]{
 				SND_ATTACK_HIT, SND_ATTACK_MISS, SND_SPELL_CUT, SND_SPELL_HEAL,
 				SND_SPELL_SOOTHE, SND_SPELL_LIQUOR, SND_SPELL_OPERATE,

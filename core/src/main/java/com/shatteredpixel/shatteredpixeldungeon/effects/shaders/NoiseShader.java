@@ -41,7 +41,7 @@ public class NoiseShader extends GlslShaderScript {
     }
     
     /**
-     * 设置噪声纹理
+     * 设置噪声纹理（初始化时调用一次）
      */
     public void setupNoise() {
         if (noiseTexture == null) {
@@ -50,18 +50,25 @@ public class NoiseShader extends GlslShaderScript {
             noiseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         }
         
-        // 绑定到纹理槽 1
-        Gdx.gl20.glActiveTexture(Gdx.gl20.GL_TEXTURE1);
-        noiseTexture.bind();
-        Gdx.gl20.glActiveTexture(Gdx.gl20.GL_TEXTURE0);
-        
-        // 设置噪声纹理 uniform（纹理槽索引）
-        Gdx.gl20.glUniform1i(uNoiseTexLocation, 1);
-        
         // 设置噪声纹理边界
         if (uNoiseBounds != null) {
             uNoiseBounds.value4f(0, 0, 256, 256);
         }
+    }
+    
+    /**
+     * 每次绘制前重新绑定噪声纹理到纹理槽 1
+     */
+    @Override
+    public void bindTextures() {
+        if (noiseTexture == null) return;
+        
+        Gdx.gl20.glActiveTexture(Gdx.gl20.GL_TEXTURE1);
+        noiseTexture.bind();
+        Gdx.gl20.glActiveTexture(Gdx.gl20.GL_TEXTURE0);
+        
+        // 重新设置噪声纹理 uniform（纹理槽索引）
+        Gdx.gl20.glUniform1i(uNoiseTexLocation, 1);
     }
     
     @Override

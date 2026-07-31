@@ -22,7 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageAudio;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
@@ -89,7 +89,7 @@ public class CityBossLevel extends Level {
 
 	@Override
 	public void playLevelMusic() {
-        if (DiceMageAudio.playLevelMusic()) return;
+        if (SnDBGM.playLevelMusic()) return;
 		if (locked){
 			if (BossHealthBar.isBleeding()){
 				Music.INSTANCE.play(Assets.Music.CITY_BOSS_FINALE, true);
@@ -334,7 +334,7 @@ public class CityBossLevel extends Level {
 		Game.runOnRenderThread(new Callback() {
 			@Override
 			public void call() {
-				if (!DiceMageAudio.playLevelMusic()) {
+				if (!SnDBGM.playLevelMusic()) {
 					Music.INSTANCE.play(Assets.Music.CITY_BOSS, true);
 				}
 			}

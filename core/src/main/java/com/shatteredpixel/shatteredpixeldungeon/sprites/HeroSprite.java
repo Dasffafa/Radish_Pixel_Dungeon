@@ -92,27 +92,27 @@ public class HeroSprite extends CharSprite {
 			if (hero.buff(AshKing.HolyLanceForm.class) != null ||
 				hero.buff(AshKing.SoulStreamForm.class) != null ||
 				hero.buff(AshKing.FatalBladeForm.class) != null) {
-				t = 7;
+				t = 6;
 			}
 			// 第6行：轮椅加速状态
 			else if (hero.buff(WheelchairRush.class) != null) {
-				t = 6;
+				t = 5;
 			}
 			// 第5行：剑盾骑士天赋
 			else if (hero.hasTalent(Talent.SWORD_SHIELD_KNIGHT)) {
-				t = 5;
+				t = 4;
 			}
 			// 第3行：武器掌握天赋满层
 			else if (hero.pointsInTalent(Talent.WEAPON_MASTERY) == 5) {
-				t = 3;
+				t = 2;
 			}
 			// 第2行：穿戴其他盔甲（非布甲）
 			else if (armor != null && !(armor instanceof ClothArmor)) {
-				t = 2;
+				t = 1;
 			}
 			// 第1行：光身子或布甲
 			else {
-				t = 1;
+				t = 0;
 			}
 		}
 		// 其他角色使用原有逻辑

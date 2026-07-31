@@ -199,6 +199,24 @@ public class ItemSprite extends MovieClip {
 	}
 
 	public ItemSprite view( Item item ){
+		if (item.sndImageName != null) {
+			com.watabou.gltextures.SmartTexture tex = com.shatteredpixel.shatteredpixeldungeon.ui.SNDItems.texture();
+			com.watabou.utils.RectF sndFrame = com.shatteredpixel.shatteredpixeldungeon.ui.SNDItems.frame(item.sndImageName);
+			if (tex != null && sndFrame != null) {
+				if (this.emitter != null) this.emitter.killAndErase();
+				emitter = null;
+				this.texture = tex;
+				frame(sndFrame);
+				glow(item.glowing());
+				com.watabou.noosa.particles.Emitter emitter = item.emitter();
+				if (emitter != null && parent != null) {
+					emitter.pos(this);
+					parent.add(emitter);
+					this.emitter = emitter;
+				}
+				return this;
+			}
+		}
 		view(item.image(), item.glowing());
 		Emitter emitter = item.emitter();
 		if (emitter != null && parent != null) {

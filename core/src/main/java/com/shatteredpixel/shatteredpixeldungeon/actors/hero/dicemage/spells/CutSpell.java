@@ -5,7 +5,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.effects.DiceMageSpellFX;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
@@ -38,7 +40,11 @@ public class CutSpell extends DiceMageSpell {
         int damagePerEnemy = Math.min(MAX_PER_ENEMY, TOTAL_DAMAGE / enemyCount);
         for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
             if (Dungeon.level.heroFOV[mob.pos] && mob.alignment == Char.Alignment.ENEMY) {
-                DiceMageSpellFX.damage(mob, damagePerEnemy, this, DiceMageSpellFX.Type.CUT);
+                mob.damage(damagePerEnemy, this);
+                if (mob.isAlive()) {
+                    CellEmitter.center(mob.pos).burst(BlastParticle.FACTORY, 6);
+                    CellEmitter.center(mob.pos).burst(Speck.factory(Speck.RED_LIGHT), 2);
+                }
             }
         }
 

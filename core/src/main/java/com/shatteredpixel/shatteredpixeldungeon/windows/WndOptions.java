@@ -150,7 +150,7 @@ public class WndOptions extends Window {
 			frame.setRect(x, y, cardWidth, BUTTON_HEIGHT + MARGIN * 2);
 			add(frame);
 
-			RedButton btn = new DiceOptionButton(DiceMageUI.diceFace(i + 1) + " " + options[i], lineColor) {
+			RedButton btn = new DiceOptionButton( options[i], lineColor) {
 				@Override
 				protected void onClick() {
 					hide();

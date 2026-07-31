@@ -139,6 +139,8 @@ public class BuffIndicator extends Component {
 
 	public static final int CORRUPT_SPIRIT = 86; // 术士4-4 腐化怨灵debuff
 
+	public static final int MAGIC_POINT = 87;
+
 	public static final int SIZE_SMALL  = 7;
 	public static final int SIZE_LARGE  = 16;
 

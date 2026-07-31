@@ -43,17 +43,6 @@ public class DiceMageUI {
         return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE;
     }
 
-    public static String diceFace(int value) {
-        switch (Math.min(6, Math.max(1, value))) {
-            case 1: return "[1]";
-            case 2: return "[2]";
-            case 3: return "[3]";
-            case 4: return "[4]";
-            case 5: return "[5]";
-            default: return "[6]";
-        }
-    }
-
     public static int itemLineColor(Item item, boolean equipped) {
         if (item == null) {
             return GREY_LINE;
@@ -95,12 +84,6 @@ public class DiceMageUI {
         return PIP_H;
     }
 
-    /** 从 S&D 贴图集中加载指定区域作为 Image（白色模板，可用 hardlight 染色） */
-    public static Image sndImage(int x, int y, int w, int h) {
-        return new Image(SND_ATLAS, x, y, w, h);
-    }
-
-    // S&D 风格血量格子条（使用实际 S&D 贴图）
     public static class HealthPips extends Component {
 
         private Image[] pips;
