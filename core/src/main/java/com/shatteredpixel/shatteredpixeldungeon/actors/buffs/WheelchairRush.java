@@ -21,6 +21,8 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
 
@@ -52,4 +54,9 @@ public class WheelchairRush extends FlavourBuff {
 		return Math.max(0, (DURATION - visualcooldown()) / DURATION);
 	}
 
-}
+	@Override
+		public void detach() {
+			super.detach();
+			((HeroSprite) Dungeon.hero.sprite).updateArmor();
+		}
+	}

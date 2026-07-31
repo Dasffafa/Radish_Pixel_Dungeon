@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Image;
@@ -44,7 +45,7 @@ import com.watabou.utils.Bundle;
 import java.util.ArrayList;
 
 /**
- * 芪王化身护甲技能
+ * 薪王化身护甲技能
  * 月华将神器/法杖/投武转化为三种战斗形态
  * 充能消耗：50
  */
@@ -66,6 +67,7 @@ public class AshKing extends ArmorAbility {
 
 		// 激活后等待下一次使用神器/法杖/投武时触发化身
 		Buff.affect(hero, IncarnationReady.class);
+		((HeroSprite)hero.sprite).updateArmor();
 
 		armor.charge -= chargeUse(hero);
 		armor.updateQuickslot();
@@ -117,6 +119,7 @@ public class AshKing extends ArmorAbility {
 				Buff.affect(hero, HolyLanceForm.class, duration);
 				HolyLanceForm.knockbackEnemies(hero);
 				Buff.affect(hero, Light.class, Light.DURATION);
+				hero.sprite.update();
 				detach();
 				GLog.p(Messages.get(HolyLanceForm.class, "activated", duration));
 				GLog.p(Messages.get(this, "holy_lance"));
@@ -144,12 +147,20 @@ public class AshKing extends ArmorAbility {
 		}
 	}
 
+	private static class AshKingBaseBuff extends FlavourBuff {
+		@Override
+		public void detach() {
+			super.detach();
+			((HeroSprite) Dungeon.hero.sprite).updateArmor();
+		}
+	}
+
 	/**
 	 * 神佑长枪形态
 	 * 使用神器激活
 	 * 效果：照明、攻击距离+1、击退周围敌人
 	 */
-	public static class HolyLanceForm extends FlavourBuff {
+	public static class HolyLanceForm extends AshKingBaseBuff {
 
 		{
 			type = buffType.POSITIVE;
