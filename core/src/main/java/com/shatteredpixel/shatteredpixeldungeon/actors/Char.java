@@ -44,7 +44,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
-import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SnDSFX;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -700,9 +699,6 @@ public abstract class Char extends Actor {
             enemy.sprite.flash();
 
             if (!enemy.isAlive() && visibleFight) {
-                if (this == hero && SnDSFX.active()) {
-                    SnDSFX.play("deathCute");
-                }
                 if (enemy == hero) {
 
                     if (this == hero) {
@@ -735,8 +731,8 @@ public abstract class Char extends Actor {
 
             if (visibleFight) {
                 //TODO enemy.defenseSound? currently miss plays for monks/crab even when they parry
-                if (this == hero && SnDBGM.active()) {
-                    SnDSFX.play("cloak");
+                if (this == hero && SnDSFX.active()) {
+                    SnDSFX.play("stealth");
                 } else {
                     Sample.INSTANCE.play(Assets.Sounds.MISS);
                 }
@@ -1387,8 +1383,9 @@ public abstract class Char extends Actor {
                 sprite.dieAfterShader();
             }
         }
-        // 下面处理怪物死亡sfx
-        SnDSFX.playSnDDeathSoundVariant(this);
+        if (SnDSFX.active()) {
+            SnDSFX.playSnDDeathSoundVariant(this);
+        }
     }
 
     //we cache this info to prevent having to call buff(...) in isAlive.

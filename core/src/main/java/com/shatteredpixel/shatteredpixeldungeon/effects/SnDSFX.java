@@ -261,30 +261,31 @@ public class SnDSFX {
             play("death/bones");
             return;
         } else if (Char.hasProp(mob, Char.Property.BOSS)) {
-            play("deathBig");
+            play("death/deathBig");
             return;
         } else if (mob instanceof Slime) {
-            play("deathSpawn");
+            play("death/deathSpawn");
+            return;
         }
         switch (mob.HT / 25) {
             // 血上限每多20的怪 就选择1种死亡音效-
             case 0:
-                play("deathCute");
+                play("death/deathCute");
                 break;
             case 1:
-                play("deathReg");
+                play("death/deathReg");
                 break;
             case 2:
-                play("deathSqueak");
+                play("death/deathSqueak");
                 break;
             case 3:
-                play("deathScream");
+                play("death/deathScream");
                 break;
             case 4:
-                play("deathBig");
+                play("death/deathBig");
                 break;
             default:
-                play("deathBig");
+                play("death/deathBig");
                 break;
         }
     }
