@@ -102,7 +102,7 @@ public class DemonLord extends Mob {
         buffCnt = 0;
         // accumulate without buff with no icon
         for(Object i:enemy.buffs(Buff.class).toArray()){
-            if(((Buff) i).icon()!= BuffIndicator.NONE) buffCnt+=1;
+            if(!BuffIndicator.NONE.equals(((Buff) i).icon())) buffCnt+=1;
         }
         if(enemy.buff(Light.class)!=null) buffCnt-=1;
         buffCnt = Math.max(buffCnt, 0);

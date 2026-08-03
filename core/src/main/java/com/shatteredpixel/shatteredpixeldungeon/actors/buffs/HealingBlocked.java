@@ -39,7 +39,7 @@ public class HealingBlocked extends FlavourBuff {
 	public static final float DURATION = 4f;
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.HEALING;
 	}
 

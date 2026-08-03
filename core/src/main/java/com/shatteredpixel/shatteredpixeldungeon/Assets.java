@@ -123,10 +123,6 @@ public class Assets {
 		public static final String LOADING_CITY     = "interfaces/loading_city.png";
 		public static final String LOADING_HALLS    = "interfaces/loading_halls.png";
 
-		public static final String BUFFS_SMALL      = "interfaces/buffs.png";
-		public static final String BUFFS_LARGE      = "interfaces/large_buffs.png";
-
-		public static final String TALENT_ICONS     = "interfaces/talent_icons.png";
 		public static final String TALENT_BUTTON    = "interfaces/talent_button.png";
 
 		public static final String HERO_ICONS       = "interfaces/hero_icons.png";
@@ -336,7 +332,6 @@ public class Assets {
 		public static final String AVATARS_MOONLIGHT	= "sprites/avatars_moonlight.png";
 
 
-		public static final String ITEMS        = "sprites/items.png";
 		public static final String ITEM_ICONS   = "sprites/item_icons.png";
 
 		public static final String WARRIOR  = "sprites/warrior.png";

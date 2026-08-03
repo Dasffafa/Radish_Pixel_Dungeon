@@ -1,5 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator;
 
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+
 import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -406,8 +408,7 @@ public class SpawnWeapon extends TestItem {
                         super.onClick();
                     }
                 };
-                Image im = new Image(Assets.Sprites.ITEMS);
-                im.frame(ItemSpriteSheet.film.get(Objects.requireNonNull(Reflection.newInstance(all.get(i))).image));
+                Image im = new ItemSprite(Objects.requireNonNull(Reflection.newInstance(all.get(i))).image);
                 im.scale.set(1f);
                 btn.icon(im);
 

@@ -1,5 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui.changelist.rapd;
 
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -338,7 +340,7 @@ public class RA_v0_13_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
-        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS + 21)), "新武器：改锥",
+        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.REPLACE_POINT)), "新武器：改锥",
                 "4阶，力量需求16\n" +
                         "初始2-10，成长1-2，攻速0.4\n" +
                         "一对锋利的锥子，可以捅向敌人的伤患处，越来越深。\n\n在上回合每造成一次物理伤害，此武器的伤害就越致命。"));
@@ -410,7 +412,7 @@ public class RA_v0_13_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
-        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS + 19)), "新武器：白帝圣剑",
+        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.WHITE_KING_GOD_SWORD)), "新武器：白帝圣剑",
                 "三阶，力量需求14\n" +
                         "初始3-16，成长2-3\n" +
                         "在每位敌人首次出现在你视野中时，立刻对其造成一次相当于攻击力60%+10%*等级的伤害。\n" +
@@ -440,13 +442,13 @@ public class RA_v0_13_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
-        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS + 18)), "新武器：暗影之刃",
+        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.DARK_SHADOW_SWORD)), "新武器：暗影之刃",
                 "二阶，力量需求12\n" +
                         "初始2-12，成长1-2，精准1.2\n" +
                         "视野内的每位敌人都会为这把武器提供20%+5%*等级的攻击速度。\n" +
                         "敌人越多，这把剑的思绪也就越多。"));
 
-        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS + 19)), "新武器：白帝圣剑",
+        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.WHITE_KING_GOD_SWORD)), "新武器：白帝圣剑",
                 "三阶，力量需求14\n" +
                         "初始3-16，成长2-3\n" +
                         "在每位敌人首次出现在你视野中时，立刻对其造成一次相当于攻击力60%+10%*等级的伤害。\n" +
@@ -656,7 +658,7 @@ public class RA_v0_13_X_Changes {
                         "天赋T1：餐前祈祷，心灵感应，恩惠之雨，虔诚祷告\n" +
                         "天赋T2：祝福一餐，灵魂干涉，光辉灌注，神圣护体，绝望祷言\n")));
 
-        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.DARTS + 17)), "传承武器测试",
+        changes.addButton(new ChangeButton((new ItemSprite(ItemSpriteSheet.ABERFORTH)), "传承武器测试",
                 "可在测试时间中进行测试，后续将会渐渐正式上线到正常游玩中。"));
 
 
@@ -747,7 +749,7 @@ public class RA_v0_13_X_Changes {
         changes.addButton(new ChangeButton(new ItemSprite(KILL_BOAT), "武器增强：斩舰刃",
                 "成长从2-8改为2-10。"));
 
-        changes.addButton(new ChangeButton(new ItemSprite(ItemSpriteSheet.RUNE_SLADE + 1), "新武器：轮刃",
+        changes.addButton(new ChangeButton(new ItemSprite(ItemSpriteSheet.CIRCLE_SWORD), "新武器：轮刃",
                 "你的所有护甲值都会转化为此武器的攻击力。这件武器对目标周围的敌人造成溅射效果。\n\n笨重难用的武器。挥动它，几乎意味着放弃全身上下所有的防御手段。【穿戴后防御变为0】\n\n四阶，力量需求16，初始8-20，成长1-5\n\n开发组碎碎念：好像是骰杀里面武器改，不过咱也不知道啦，祝各位玩的开心。"));
 
         changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClass.ROGUE, 6), ("盗贼恶魔天赋完全实装"),

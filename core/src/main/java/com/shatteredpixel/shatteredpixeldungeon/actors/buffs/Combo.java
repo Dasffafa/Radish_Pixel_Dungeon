@@ -69,7 +69,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 	public int couldUseTime=0;//允许使用次数
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.COMBO;
 	}
 	//buff图标颜色

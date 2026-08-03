@@ -141,7 +141,7 @@ public class Viscosity extends Glyph {
 		}
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.DEFERRED;
 		}
 

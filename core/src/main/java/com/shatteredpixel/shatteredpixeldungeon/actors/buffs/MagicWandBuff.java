@@ -22,7 +22,7 @@ public class MagicWandBuff extends Buff {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.NONE;
 	}
 

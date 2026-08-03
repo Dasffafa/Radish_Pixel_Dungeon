@@ -24,7 +24,7 @@ public class WeaponMasteryTalent {
 		private KindOfWeapon trackedWeapon;
 
 		@Override
-		public int icon() { return BuffIndicator.WEAPON; }
+		public String icon() { return BuffIndicator.WEAPON; }
 
 		@Override
 		public void tintIcon(Image icon) {

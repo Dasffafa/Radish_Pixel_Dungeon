@@ -56,7 +56,7 @@ public class FogSword extends MeleeWeapon {
         }
 
         @Override
-        public int icon() {
+        public String icon() {
             return BuffIndicator.FOG_ROAD;
         }
 

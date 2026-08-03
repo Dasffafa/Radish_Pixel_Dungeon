@@ -1,5 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator;
 
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -344,8 +346,7 @@ public class TestRing extends TestGenerator {
                     im.scale.set(1.6f);
                     btn.icon(im);
                 } else if (category == WAND_CAT) {
-                    Image im = new Image(Assets.Sprites.ITEMS);
-                    im.frame(ItemSpriteSheet.film.get(Objects.requireNonNull(Reflection.newInstance(wandList.get(i))).image));
+                    Image im = new ItemSprite(Objects.requireNonNull(Reflection.newInstance(wandList.get(i))).image);
                     im.scale.set(0.9f);
                     btn.icon(im);
                 }

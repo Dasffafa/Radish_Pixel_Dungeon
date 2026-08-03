@@ -379,7 +379,7 @@ public class ClusteredSkeleton extends Mob {
         }
 
         @Override
-        public int icon () {
+        public String icon() {
             return BuffIndicator.TERROR;
         }
 

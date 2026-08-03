@@ -185,7 +185,7 @@ public class HolyLowBurinng extends Buff implements Hero.Doom {
     }
 
     @Override
-    public int icon() {
+    public String icon() {
         return BuffIndicator.FIRE;
     }
 

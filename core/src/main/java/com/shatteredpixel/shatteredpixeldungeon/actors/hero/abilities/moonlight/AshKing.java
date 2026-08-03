@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight;
 
+import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -78,7 +79,7 @@ public class AshKing extends ArmorAbility {
 
 	@Override
 	public int icon() {
-		return BuffIndicator.FURY;
+		return HeroIcon.ENDURE;
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public class AshKing extends ArmorAbility {
 	public static class IncarnationReady extends Buff {
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.BLESS;
 		}
 
@@ -169,7 +170,7 @@ public class AshKing extends ArmorAbility {
 		public static final float DURATION = 25f;
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.BLESS;
 		}
 
@@ -244,7 +245,7 @@ public class AshKing extends ArmorAbility {
 		public int freeCasts = 5;
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.RECHARGING;
 		}
 
@@ -306,7 +307,7 @@ public class AshKing extends ArmorAbility {
 		public boolean hasEnemyNearby = false;
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.WEAPON;
 		}
 

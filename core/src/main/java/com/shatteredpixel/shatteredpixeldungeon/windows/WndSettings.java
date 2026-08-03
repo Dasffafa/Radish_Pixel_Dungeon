@@ -37,14 +37,17 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
+import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.OptionSlider;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
+import com.shatteredpixel.shatteredpixeldungeon.ui.TalentIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.gltextures.TextureCache;
+import com.watabou.gltextures.RuntimeAtlasRegistry;
 import com.watabou.input.ControllerHandler;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
@@ -1401,7 +1404,7 @@ public class WndSettings extends WndTabbed {
 					ShatteredPixelDungeon.scene().addToFront(new WndTextInput(
 							Messages.get(DebugTab.this, "reload_texture_title"),
 							Messages.get(DebugTab.this, "reload_texture_desc"),
-							Assets.Sprites.ITEMS,
+							"sprites/items/manifest.txt",
 							256,
 							false,
 							Messages.get(DebugTab.this, "reload"),
@@ -1411,7 +1414,7 @@ public class WndSettings extends WndTabbed {
 						public void onSelect(boolean positive, String text) {
 							if (positive && text != null && !text.isEmpty()) {
 								TextureCache.reloadFromDisk(text);
-								refreshStaticTextureFilms(text);
+								refreshTextures(text);
 								ShatteredPixelDungeon.seamlessResetScene();
 							}
 						}
@@ -1425,7 +1428,7 @@ public class WndSettings extends WndTabbed {
 				protected void onClick() {
 					super.onClick();
 					TextureCache.clear();
-					refreshStaticTextureFilms(null);
+					refreshTextures(null);
 					ShatteredPixelDungeon.seamlessResetScene();
 				}
 			};
@@ -1441,9 +1444,18 @@ public class WndSettings extends WndTabbed {
 			add(btnResetScene);
 			}
 
-			private static void refreshStaticTextureFilms(String path) {
-			if (path == null || path.equals(Assets.Sprites.ITEMS)) {
-				ItemSpriteSheet.film = new TextureFilm(Assets.Sprites.ITEMS, ItemSpriteSheet.SIZE, ItemSpriteSheet.SIZE);
+			private static void refreshTextures(String path) {
+			if (path == null || path.startsWith(ItemSpriteSheet.ATLAS.directory)) {
+				RuntimeAtlasRegistry.get(ItemSpriteSheet.ATLAS).invalidate();
+			}
+			if (path == null || path.startsWith(TalentIcon.ATLAS_SOURCE.directory)) {
+				RuntimeAtlasRegistry.get(TalentIcon.ATLAS_SOURCE).invalidate();
+			}
+			if (path == null || path.startsWith(BuffIcon.SMALL_ATLAS.directory)) {
+				RuntimeAtlasRegistry.get(BuffIcon.SMALL_ATLAS).invalidate();
+			}
+			if (path == null || path.startsWith(BuffIcon.LARGE_ATLAS.directory)) {
+				RuntimeAtlasRegistry.get(BuffIcon.LARGE_ATLAS).invalidate();
 			}
 			if (path == null || path.equals(Assets.Sprites.ITEM_ICONS)) {
 				ItemSpriteSheet.Icons.film = new TextureFilm(Assets.Sprites.ITEM_ICONS, ItemSpriteSheet.Icons.SIZE, ItemSpriteSheet.Icons.SIZE);

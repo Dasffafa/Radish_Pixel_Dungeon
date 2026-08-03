@@ -56,7 +56,7 @@ public class WheelchairCrashBuff extends FlavourBuff {
     }
 
     @Override
-    public int icon() {
+    public String icon() {
         return BuffIndicator.ROOTS;
     }
 

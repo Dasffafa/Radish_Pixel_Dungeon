@@ -54,6 +54,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -86,7 +87,7 @@ public class Item implements Bundlable {
 	public boolean curseInfusionBonus = false;
 
 	//TODO should these be private and accessed through methods?
-	public int image = 0;
+	public String image = ItemSpriteSheet.SOMETHING;
 	public int icon = -1; //used as an identifier for items with randomized images
 	public String sndImageName = null; // SND atlas 中的物品名称，如果设置则使用 SND 贴图
 	
@@ -575,7 +576,7 @@ public class Item implements Bundlable {
 		return Messages.get(this, "name");
 	}
 	
-	public int image() {
+	public String image() {
 		if (SnakeBiteChallengeManager.shouldReplaceItemSprite(this)) {
 			return com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.SNAKE_BITE;
 		}

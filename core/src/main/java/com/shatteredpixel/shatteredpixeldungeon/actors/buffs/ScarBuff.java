@@ -16,7 +16,7 @@ public class ScarBuff extends Buff {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.NONE; // TODO: 自定义图标
 	}
 

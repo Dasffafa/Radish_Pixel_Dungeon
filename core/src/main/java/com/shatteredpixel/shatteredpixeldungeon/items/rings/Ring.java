@@ -74,7 +74,7 @@ public class Ring extends KindofMisc {
 		handler = null;
 	}
 
-	private static final LinkedHashMap<String, Integer> gems = new LinkedHashMap<String, Integer>() {
+	private static final LinkedHashMap<String, String> gems = new LinkedHashMap<String, String>() {
 		{
 			put("garnet", ItemSpriteSheet.RING_GARNET);
 			put("ruby", ItemSpriteSheet.RING_RUBY);

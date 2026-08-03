@@ -79,7 +79,7 @@ public class Barrier extends ShieldBuff {
 	}
 	
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.ARMOR;
 	}
 	

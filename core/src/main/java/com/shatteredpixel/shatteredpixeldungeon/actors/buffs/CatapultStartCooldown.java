@@ -37,7 +37,7 @@ public class CatapultStartCooldown extends FlavourBuff {
 	public static final float DURATION = 50f;
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.TIME;
 	}
 

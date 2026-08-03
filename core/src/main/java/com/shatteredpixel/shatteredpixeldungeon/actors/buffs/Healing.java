@@ -128,7 +128,7 @@ public class Healing extends Buff {
 	}
 	
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.HEALING;
 	}
 
@@ -150,7 +150,7 @@ public class Healing extends Buff {
 		}
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.HERB_HEALING;
 		}
 	}

@@ -788,7 +788,7 @@ public class DwarfKing extends Mob {
 		}
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.NONE;
 		}
 	}

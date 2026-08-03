@@ -74,7 +74,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     };
 
     {
-        image = ItemSpriteSheet.DART + 22;
+        image = ItemSpriteSheet.JUTTE_CHAMPION_WEAPON;
         defaultAction = AC_THROW;
     }
 

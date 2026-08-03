@@ -100,7 +100,7 @@ public class Buff extends Actor {
 		return true;
 	}
 	
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.NONE;
 	}
 

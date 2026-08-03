@@ -85,7 +85,7 @@ public class SnipersMark extends FlavourBuff implements ActionIndicator.Action {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.MARK;
 	}
 

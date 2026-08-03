@@ -226,7 +226,7 @@ public class RankingsScene extends PixelScene {
 			
 			if (rec.win) {
 				// Snake Bite challenge: use special amulet sprite
-				int amuletImage = ItemSpriteSheet.AMULET;
+				String amuletImage = ItemSpriteSheet.AMULET;
 				if (rec.gameData != null) {
 					int challenges = rec.gameData.getInt(Rankings.CHALLENGES);
 					if ((challenges & Challenges.SNAKE_BITE) != 0) {
@@ -255,7 +255,7 @@ public class RankingsScene extends PixelScene {
 
 				if (rec.ascending){
 					// Snake Bite challenge: use special amulet sprite for ascending
-					int amuletImage = ItemSpriteSheet.AMULET;
+					String amuletImage = ItemSpriteSheet.AMULET;
 					if (rec.gameData != null) {
 						int challenges = rec.gameData.getInt(Rankings.CHALLENGES);
 						if ((challenges & Challenges.SNAKE_BITE) != 0) {

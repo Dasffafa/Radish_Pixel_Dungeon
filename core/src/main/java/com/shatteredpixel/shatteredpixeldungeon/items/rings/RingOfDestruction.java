@@ -21,6 +21,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
+import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -83,8 +84,8 @@ public class RingOfDestruction extends Ring {
 	public class Destruction extends RingBuff {
 
 		@Override
-		public int icon() {
-			return 0; // 隐藏状态栏图标
+		public String icon() {
+			return BuffIndicator.NONE;
 		}
 
 		@Override

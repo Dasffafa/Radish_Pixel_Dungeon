@@ -5,6 +5,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.watabou.utils.Bundle;
 
@@ -19,8 +20,8 @@ public class CrossLevelChallenge extends Buff {
 	public int direction = 0; // 0: NONE, 1: NEXT, 2: PREVIOUS
 
 	@Override
-	public int icon() {
-		return 0; // No icon for cross-level challenge
+	public String icon() {
+		return BuffIndicator.NONE;
 	}
 
 	@Override

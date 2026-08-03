@@ -814,7 +814,7 @@ public class Hero extends Char {
 		if(hero.pointsInTalent(Talent.IRON_SUN)>=1){
 			int buffCnt = 0;
 			for(Object i: buffs(Buff.class).toArray()) {
-				if(((Buff) i).icon()!= BuffIndicator.NONE){
+				if(!BuffIndicator.NONE.equals(((Buff) i).icon())){
 					buffCnt+=3;
 				}
 			}

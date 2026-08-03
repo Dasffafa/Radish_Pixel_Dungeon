@@ -48,3 +48,5 @@ allprojects {
     }
 
 }
+
+apply from: 'gradle/runtime-atlas.gradle'

@@ -69,7 +69,7 @@ public class MonkEnergy extends Buff implements ActionIndicator.Action {
 	private static final float MAX_COOLDOWN = 5;
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.MONK_ENERGY;
 	}
 
@@ -435,7 +435,7 @@ public class MonkEnergy extends Buff implements ActionIndicator.Action {
 				}
 
 				@Override
-				public int icon() {
+				public String icon() {
 					return BuffIndicator.MIND_VISION;
 				}
 

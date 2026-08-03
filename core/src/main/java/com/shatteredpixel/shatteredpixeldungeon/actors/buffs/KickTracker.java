@@ -63,7 +63,7 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     public static final int DETECT_RANGE = 3; // 检测范围
 
     @Override
-    public int icon() {
+    public String icon() {
         return BuffIndicator.COMBO;
     }
 

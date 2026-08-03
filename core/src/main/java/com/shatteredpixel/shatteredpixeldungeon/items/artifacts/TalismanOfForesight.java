@@ -357,7 +357,7 @@ public class TalismanOfForesight extends Artifact {
 		}
 
 		@Override
-		public int icon() {
+		public String icon() {
 			if (warn)
 				return BuffIndicator.FORESIGHT;
 			else

@@ -357,7 +357,7 @@ public class Generator {
 			if (catResult != -1) return catResult*100 + subResult;
 
 			//items without a category-defined order are sorted based on the spritesheet
-			return Short.MAX_VALUE+item.image();
+			return Short.MAX_VALUE + (item.image().hashCode() & 0x7FFF);
 		}
 
 		static {

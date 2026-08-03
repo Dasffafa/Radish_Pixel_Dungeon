@@ -21,7 +21,7 @@ import com.watabou.utils.Random;
 public class StormAttackArrow extends MissileWeapon {
 
     {
-        image = ItemSpriteSheet.SPIRIT_ARROW + 1;
+        image = ItemSpriteSheet.SPIRIT_ALT_ARROW;
 
         hitSound = Assets.Sounds.HIT_ARROW;
     }

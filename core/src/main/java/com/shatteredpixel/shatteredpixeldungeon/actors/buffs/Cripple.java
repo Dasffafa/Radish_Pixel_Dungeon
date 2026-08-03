@@ -59,7 +59,7 @@ public class Cripple extends FlavourBuff {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.CRIPPLE;
 	}
 

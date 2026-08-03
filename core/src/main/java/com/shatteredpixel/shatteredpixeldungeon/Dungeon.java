@@ -342,7 +342,8 @@ public class Dungeon {
 			level = branch.createLevel(depth);
 			// 主线的特殊地图变体处理
 			if (branchId.equals(Branches.MAIN) && randomMap && level != null) {
-				level = createMainBranchVariant(depth);
+				Level variant = createMainBranchVariant(depth);
+				if (variant != null) level = variant;
 			}
 			} else {
 				throw new IllegalStateException("Unknown branch: " + branchId);

@@ -22,590 +22,564 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.watabou.gltextures.AtlasSource;
 import com.watabou.noosa.TextureFilm;
 
 public class ItemSpriteSheet {
 
-	private static final int WIDTH = 32;
-	public static final int SIZE = 16;
-
-	public static TextureFilm film = new TextureFilm( Assets.Sprites.ITEMS, SIZE, SIZE );
-
-	private static int xy(int x, int y){
-		x -= 1; y -= 1;
-		return x + WIDTH*y;
-	}
+	public static final AtlasSource ATLAS = new AtlasSource( "sprites/items", "something" );
 
 	// TheCatist 2026/7/25 通过自动检测每个物品贴图的外接矩形的办法 移除了所有对assignItemRect的调用
-	private static final int PLACEHOLDERS   =                               xy(1, 1);   //16 slots
 	//SOMETHING is the default item sprite at position 0. May show up ingame if there are bugs.
-	public static final int SOMETHING       = PLACEHOLDERS+0;
-	public static final int WEAPON_HOLDER   = PLACEHOLDERS+1;
-	public static final int ARMOR_HOLDER    = PLACEHOLDERS+2;
-	public static final int MISSILE_HOLDER  = PLACEHOLDERS+3;
-	public static final int WAND_HOLDER     = PLACEHOLDERS+4;
-	public static final int RING_HOLDER     = PLACEHOLDERS+5;
-	public static final int ARTIFACT_HOLDER = PLACEHOLDERS+6;
-	public static final int TRINKET_HOLDER  = PLACEHOLDERS+7;
-	public static final int FOOD_HOLDER     = PLACEHOLDERS+8;
-	public static final int BOMB_HOLDER     = PLACEHOLDERS+9;
-	public static final int POTION_HOLDER   = PLACEHOLDERS+10;
-	public static final int SEED_HOLDER     = PLACEHOLDERS+11;
-	public static final int SCROLL_HOLDER   = PLACEHOLDERS+12;
-	public static final int STONE_HOLDER    = PLACEHOLDERS+13;
-	public static final int ELIXIR_HOLDER   = PLACEHOLDERS+14;
-	public static final int SPELL_HOLDER    = PLACEHOLDERS+15;
-//	public static final int SNAKE_BITE      = SPELL_HOLDER; // Snake Bite challenge item icon (placeholder)
+	public static final String SOMETHING = "something";
+	public static final String WEAPON_HOLDER = "weapon_holder";
+	public static final String ARMOR_HOLDER = "armor_holder";
+	public static final String MISSILE_HOLDER = "missile_holder";
+	public static final String WAND_HOLDER = "wand_holder";
+	public static final String RING_HOLDER = "ring_holder";
+	public static final String ARTIFACT_HOLDER = "artifact_holder";
+	public static final String TRINKET_HOLDER = "trinket_holder";
+	public static final String FOOD_HOLDER = "food_holder";
+	public static final String BOMB_HOLDER = "bomb_holder";
+	public static final String POTION_HOLDER = "potion_holder";
+	public static final String SEED_HOLDER = "seed_holder";
+	public static final String SCROLL_HOLDER = "scroll_holder";
+	public static final String STONE_HOLDER = "stone_holder";
+	public static final String ELIXIR_HOLDER = "elixir_holder";
+	public static final String SPELL_HOLDER = "spell_holder";
+//	public static final String SNAKE_BITE = "snake_bite"; // Snake Bite challenge item icon (placeholder)
 
-	public static final int MOB_HOLDER    	= PLACEHOLDERS+17;
-	public static final int DOCUMENT_HOLDER	= PLACEHOLDERS+18;
+	public static final String MOB_HOLDER = "mob_holder";
+	public static final String DOCUMENT_HOLDER = "document_holder";
 
-	private static final int UNCOLLECTIBLE  =                               xy(1, 2);   //16 slots
-	public static final int GOLD            = UNCOLLECTIBLE+0;
-	public static final int ENERGY          = UNCOLLECTIBLE+1;
+	public static final String GOLD = "gold";
+	public static final String ENERGY = "energy";
 
-	public static final int DEWDROP         = UNCOLLECTIBLE+3;
-	public static final int PETAL           = UNCOLLECTIBLE+4;
-	public static final int SANDBAG         = UNCOLLECTIBLE+5;
-	public static final int SPIRIT_ARROW    = UNCOLLECTIBLE+6;
-	public static final int SPIRIT_ALT_ARROW    = UNCOLLECTIBLE+7;
+	public static final String DEWDROP = "dewdrop";
+	public static final String PETAL = "petal";
+	public static final String SANDBAG = "sandbag";
+	public static final String SPIRIT_ARROW = "spirit_arrow";
+	public static final String SPIRIT_ALT_ARROW = "spirit_alt_arrow";
 	
-	public static final int TENGU_BOMB      = UNCOLLECTIBLE+8;
-	public static final int TENGU_SHOCKER   = UNCOLLECTIBLE+9;
-	public static final int GEO_BOULDER     = UNCOLLECTIBLE+10;
+	public static final String TENGU_BOMB = "tengu_bomb";
+	public static final String TENGU_SHOCKER = "tengu_shocker";
+	public static final String GEO_BOULDER = "geo_boulder";
 
-	public static final int POUL_WATER    = UNCOLLECTIBLE+12;
+	public static final String POUL_WATER = "poul_water";
 
-	private static final int CONTAINERS     =                               xy(1, 3);   //16 slots
-	public static final int BONES           = CONTAINERS+0;
-	public static final int REMAINS         = CONTAINERS+1;
-	public static final int TOMB            = CONTAINERS+2;
-	public static final int GRAVE           = CONTAINERS+3;
-	public static final int CHEST           = CONTAINERS+4;
-	public static final int LOCKED_CHEST    = CONTAINERS+5;
-	public static final int CRYSTAL_CHEST   = CONTAINERS+6;
-	public static final int EBONY_CHEST     = CONTAINERS+7;
+	public static final String BONES = "bones";
+	public static final String REMAINS = "remains";
+	public static final String TOMB = "tomb";
+	public static final String GRAVE = "grave";
+	public static final String CHEST = "chest";
+	public static final String LOCKED_CHEST = "locked_chest";
+	public static final String CRYSTAL_CHEST = "crystal_chest";
+	public static final String EBONY_CHEST = "ebony_chest";
 
-	private static final int MISC_CONSUMABLE =                              xy(1, 4);   //32 slots
-	public static final int ANKH            = MISC_CONSUMABLE +0;
-	public static final int STYLUS          = MISC_CONSUMABLE +1;
-	public static final int SEAL            = MISC_CONSUMABLE +2;
-	public static final int TORCH           = MISC_CONSUMABLE +3;
-	public static final int BEACON          = MISC_CONSUMABLE +4;
-	public static final int HONEYPOT        = MISC_CONSUMABLE +5;
-	public static final int SHATTPOT        = MISC_CONSUMABLE +6;
-	public static final int IRON_KEY        = MISC_CONSUMABLE +7;
-	public static final int GOLDEN_KEY      = MISC_CONSUMABLE +8;
-	public static final int CRYSTAL_KEY     = MISC_CONSUMABLE +9;
-	public static final int SKELETON_KEY    = MISC_CONSUMABLE +10;
-	public static final int MASK            = MISC_CONSUMABLE +11;
-	public static final int CROWN           = MISC_CONSUMABLE +12;
-	public static final int AMULET          = MISC_CONSUMABLE +13;
-	public static final int MASTERY         = MISC_CONSUMABLE +14;
-	public static final int KIT             = MISC_CONSUMABLE +15;
-	public static final int SEAL_SHARD      = MISC_CONSUMABLE +16;
-	public static final int BROKEN_STAFF    = MISC_CONSUMABLE +17;
-	public static final int CLOAK_SCRAP     = MISC_CONSUMABLE +18;
-	public static final int BOW_FRAGMENT    = MISC_CONSUMABLE +19;
-	public static final int BROKEN_HILT     = MISC_CONSUMABLE +20;
-	public static final int TRINKET_CATA    = MISC_CONSUMABLE +21;
-	public static final int TAL_MASTERY     = MISC_CONSUMABLE +22;
+	public static final String ANKH = "ankh";
+	public static final String STYLUS = "stylus";
+	public static final String SEAL = "seal";
+	public static final String TORCH = "torch";
+	public static final String BEACON = "beacon";
+	public static final String HONEYPOT = "honeypot";
+	public static final String SHATTPOT = "shattpot";
+	public static final String IRON_KEY = "iron_key";
+	public static final String GOLDEN_KEY = "golden_key";
+	public static final String CRYSTAL_KEY = "crystal_key";
+	public static final String SKELETON_KEY = "skeleton_key";
+	public static final String MASK = "mask";
+	public static final String CROWN = "crown";
+	public static final String AMULET = "amulet";
+	public static final String MASTERY = "mastery";
+	public static final String KIT = "kit";
+	public static final String SEAL_SHARD = "seal_shard";
+	public static final String BROKEN_STAFF = "broken_staff";
+	public static final String CLOAK_SCRAP = "cloak_scrap";
+	public static final String BOW_FRAGMENT = "bow_fragment";
+	public static final String BROKEN_HILT = "broken_hilt";
+	public static final String TRINKET_CATA = "trinket_cata";
+	public static final String TAL_MASTERY = "tal_mastery";
 
-	private static final int BOMBS          =                               xy(1, 6);   //16 slots
-	public static final int BOMB            = BOMBS+0;
-	public static final int DBL_BOMB        = BOMBS+1;
-	public static final int FIRE_BOMB       = BOMBS+2;
-	public static final int FROST_BOMB      = BOMBS+3;
-	public static final int REGROWTH_BOMB   = BOMBS+4;
-	public static final int FLASHBANG       = BOMBS+5;
-	public static final int SHOCK_BOMB      = BOMBS+6;
-	public static final int HOLY_BOMB       = BOMBS+7;
-	public static final int WOOLY_BOMB      = BOMBS+8;
-	public static final int NOISEMAKER      = BOMBS+9;
-	public static final int ARCANE_BOMB     = BOMBS+10;
-	public static final int SHRAPNEL_BOMB   = BOMBS+11;
+	public static final String BOMB = "bomb";
+	public static final String DBL_BOMB = "dbl_bomb";
+	public static final String FIRE_BOMB = "fire_bomb";
+	public static final String FROST_BOMB = "frost_bomb";
+	public static final String REGROWTH_BOMB = "regrowth_bomb";
+	public static final String FLASHBANG = "flashbang";
+	public static final String SHOCK_BOMB = "shock_bomb";
+	public static final String HOLY_BOMB = "holy_bomb";
+	public static final String WOOLY_BOMB = "wooly_bomb";
+	public static final String NOISEMAKER = "noisemaker";
+	public static final String ARCANE_BOMB = "arcane_bomb";
+	public static final String SHRAPNEL_BOMB = "shrapnel_bomb";
 
-	private static final int WEP_TIER1      =                               xy(1, 7);   //8 slots
-	public static final int WORN_SHORTSWORD = WEP_TIER1+0;
-	public static final int CUDGEL          = WEP_TIER1+1;
-	public static final int GLOVES          = WEP_TIER1+2;
-	public static final int RAPIER          = WEP_TIER1+3;
-	public static final int DAGGER          = WEP_TIER1+4;
-	public static final int MAGES_STAFF     = WEP_TIER1+5;
-	public static final int HOLYANKH		= WEP_TIER1+6;
+	public static final String WORN_SHORTSWORD = "worn_shortsword";
+	public static final String CUDGEL = "cudgel";
+	public static final String GLOVES = "gloves";
+	public static final String RAPIER = "rapier";
+	public static final String DAGGER = "dagger";
+	public static final String MAGES_STAFF = "mages_staff";
+	public static final String HOLYANKH = "holyankh";
 
-	private static final int WEP_TIER2      =                               xy(9, 7);   //8 slots
-	public static final int SHORTSWORD      = WEP_TIER2+0;
-	public static final int HAND_AXE        = WEP_TIER2+1;
-	public static final int SPEAR           = WEP_TIER2+2;
-	public static final int QUARTERSTAFF    = WEP_TIER2+3;
-	public static final int DIRK            = WEP_TIER2+4;
-	public static final int SICKLE          = WEP_TIER2+5;
+	public static final String SHORTSWORD = "shortsword";
+	public static final String HAND_AXE = "hand_axe";
+	public static final String SPEAR = "spear";
+	public static final String QUARTERSTAFF = "quarterstaff";
+	public static final String DIRK = "dirk";
+	public static final String SICKLE = "sickle";
 
 
 	//Radish Image WEP_TIER2
-	public static final int KATAR           = WEP_TIER2+8;
-	public static final int BLADESHIELD		= WEP_TIER2+9;
-	public static final int GLASSSWORD1		= WEP_TIER2+10;
-	public static final int GLASSSWORD2		= WEP_TIER2+11;
-	public static final int GLASSSWORD3		= WEP_TIER2+12;
-	public static final int SILVER_STING    = WEP_TIER2+13;
-	public static final int ROTTEN_LANCE    = WEP_TIER2+14;
-	public static final int REPAIRV2        = WEP_TIER2+15;
-	public static final int BONE_CLAW		= WEP_TIER2+16;
+	public static final String KATAR = "katar";
+	public static final String BLADESHIELD = "bladeshield";
+	public static final String GLASSSWORD1 = "glasssword1";
+	public static final String GLASSSWORD2 = "glasssword2";
+	public static final String GLASSSWORD3 = "glasssword3";
+	public static final String SILVER_STING = "silver_sting";
+	public static final String ROTTEN_LANCE = "rotten_lance";
+	public static final String REPAIRV2 = "repairv2";
+	public static final String BONE_CLAW = "bone_claw";
 
 
-	public static final int RLYEH_BOOK		= WEP_TIER2+19;
+	public static final String RLYEH_BOOK = "rlyeh_book";
 
-	public static final int RUNE_SLADE		= WEP_TIER2+20;
+	public static final String RUNE_SLADE = "rune_slade";
 
-	private static final int WEP_TIER3      =                               xy(1, 8);   //8 slots
-	public static final int SWORD           = WEP_TIER3+0;
-	public static final int MACE            = WEP_TIER3+1;
-	public static final int SCIMITAR        = WEP_TIER3+2;
-	public static final int ROUND_SHIELD    = WEP_TIER3+3;
-	public static final int SAI             = WEP_TIER3+4;
-	public static final int WHIP            = WEP_TIER3+5;
+	public static final String SWORD = "sword";
+	public static final String MACE = "mace";
+	public static final String SCIMITAR = "scimitar";
+	public static final String ROUND_SHIELD = "round_shield";
+	public static final String SAI = "sai";
+	public static final String WHIP = "whip";
 
-	private static final int WEP_TIER4      =                               xy(9, 8);   //8 slots
-	public static final int LONGSWORD       = WEP_TIER4+0;
-	public static final int BATTLE_AXE      = WEP_TIER4+1;
-	public static final int FLAIL           = WEP_TIER4+2;
-	public static final int RUNIC_BLADE     = WEP_TIER4+3;
-	public static final int ASSASSINS_BLADE = WEP_TIER4+4;
-	public static final int CROSSBOW        = WEP_TIER4+5;
-	public static final int KATANA          = WEP_TIER4+6;
+	public static final String LONGSWORD = "longsword";
+	public static final String BATTLE_AXE = "battle_axe";
+	public static final String FLAIL = "flail";
+	public static final String RUNIC_BLADE = "runic_blade";
+	public static final String ASSASSINS_BLADE = "assassins_blade";
+	public static final String CROSSBOW = "crossbow";
+	public static final String KATANA = "katana";
 
 	//Radish Image WEP_TIER3
 
-	public static final int BEECOMB			= WEP_TIER4+9;
-	public static final int WATERWHEEL		= WEP_TIER4+10;
-	public static final int WINGSWORD		= WEP_TIER4+11;
+	public static final String BEECOMB = "beecomb";
+	public static final String WATERWHEEL = "waterwheel";
+	public static final String WINGSWORD = "wingsword";
 
-	public static final int LOCK_CHAIN		= WEP_TIER4+12;
+	public static final String LOCK_CHAIN = "lock_chain";
 
-	public static final int DAGGER_S		= WEP_TIER4+13;
-	public static final int SNAKESPEAR		= WEP_TIER4+14;
+	public static final String DAGGER_S = "dagger_s";
+	public static final String SNAKESPEAR = "snakespear";
 
-	public static final int PNEGLOVE_FIVE   = WEP_TIER4+15;
-	public static final int PNEGLOVE_ACTIVE   = WEP_TIER4+16;
+	public static final String PNEGLOVE_FIVE = "pneglove_five";
+	public static final String PNEGLOVE_ACTIVE = "pneglove_active";
 
 
-	public static final int IAMSB_FLAG	    = WEP_TIER4+19;
-	public static final int LONG_STARK	    = WEP_TIER4+20;
+	public static final String IAMSB_FLAG = "iamsb_flag";
+	public static final String LONG_STARK = "long_stark";
 
-	private static final int WEP_TIER5      =                               xy(1, 9);   //8 slots
-	public static final int GREATSWORD      = WEP_TIER5+0;
-	public static final int WAR_HAMMER      = WEP_TIER5+1;
-	public static final int GLAIVE          = WEP_TIER5+2;
-	public static final int GREATAXE        = WEP_TIER5+3;
-	public static final int GREATSHIELD     = WEP_TIER5+4;
-	public static final int GAUNTLETS       = WEP_TIER5+5;
-	public static final int WAR_SCYTHE      = WEP_TIER5+6;
+	public static final String GREATSWORD = "greatsword";
+	public static final String WAR_HAMMER = "war_hammer";
+	public static final String GLAIVE = "glaive";
+	public static final String GREATAXE = "greataxe";
+	public static final String GREATSHIELD = "greatshield";
+	public static final String GAUNTLETS = "gauntlets";
+	public static final String WAR_SCYTHE = "war_scythe";
 	//Radish Image WEP_TIER4
-	private static final int RAD_TIER4      =                               xy(17, 9);
 
-	public static final int DARKSWORD   	= RAD_TIER4-1;
-	public static final int CRBSC           = RAD_TIER4;
-	public static final int SKYSPS          = RAD_TIER4+1;
-	public static final int BLOODBLADE1     = RAD_TIER4+2;
-	public static final int BLOODBLADE2     = RAD_TIER4+3;
-	public static final int BLOODBLADE3     = RAD_TIER4+4;
-	public static final int DIRK_B          = RAD_TIER4+5;
-	public static final int SEEKING			= RAD_TIER4+6;
-	public static final int HEADCLEAVER		= RAD_TIER4+7;
-
+	public static final String DARKSWORD = "darksword";
+	public static final String CRBSC = "crbsc";
+	public static final String SKYSPS = "skysps";
+	public static final String BLOODBLADE1 = "bloodblade1";
+	public static final String BLOODBLADE2 = "bloodblade2";
+	public static final String BLOODBLADE3 = "bloodblade3";
+	public static final String DIRK_B = "dirk_b";
+	public static final String SEEKING = "seeking";
+	public static final String HEADCLEAVER = "headcleaver";
 
 
-	public static final int ENDDAY_KILL		= RAD_TIER4+11;
-	public static final int MORELLO_BOOK	= RAD_TIER4+12;
-	public static final int SHADOW_BOOK		= RAD_TIER4+13; 	//8 free slots
 
-	private static final int MISSILE_WEP    =                               xy(1, 10);  //16 slots. 3 per tier + bow
-	public static final int SPIRIT_BOW      = MISSILE_WEP+0;
+	public static final String ENDDAY_KILL = "endday_kill";
+	public static final String MORELLO_BOOK = "morello_book";
+	public static final String SHADOW_BOOK = "shadow_book"; 	//8 free slots
+
+	public static final String SPIRIT_BOW = "spirit_bow";
 	
-	public static final int THROWING_SPIKE  = MISSILE_WEP+1;
-	public static final int THROWING_KNIFE  = MISSILE_WEP+2;
-	public static final int THROWING_STONE  = MISSILE_WEP+3;
+	public static final String THROWING_SPIKE = "throwing_spike";
+	public static final String THROWING_KNIFE = "throwing_knife";
+	public static final String THROWING_STONE = "throwing_stone";
 	
-	public static final int FISHING_SPEAR   = MISSILE_WEP+4;
-	public static final int SHURIKEN        = MISSILE_WEP+5;
-	public static final int THROWING_CLUB   = MISSILE_WEP+6;
+	public static final String FISHING_SPEAR = "fishing_spear";
+	public static final String SHURIKEN = "shuriken";
+	public static final String THROWING_CLUB = "throwing_club";
 	
-	public static final int THROWING_SPEAR  = MISSILE_WEP+7;
-	public static final int BOLAS           = MISSILE_WEP+8;
-	public static final int KUNAI           = MISSILE_WEP+9;
+	public static final String THROWING_SPEAR = "throwing_spear";
+	public static final String BOLAS = "bolas";
+	public static final String KUNAI = "kunai";
 	
-	public static final int JAVELIN         = MISSILE_WEP+10;
-	public static final int TOMAHAWK        = MISSILE_WEP+11;
-	public static final int BOOMERANG       = MISSILE_WEP+12;
+	public static final String JAVELIN = "javelin";
+	public static final String TOMAHAWK = "tomahawk";
+	public static final String BOOMERANG = "boomerang";
 	
-	public static final int TRIDENT         = MISSILE_WEP+13;
-	public static final int THROWING_HAMMER = MISSILE_WEP+14;
-	public static final int FORCE_CUBE      = MISSILE_WEP+15;
+	public static final String TRIDENT = "trident";
+	public static final String THROWING_HAMMER = "throwing_hammer";
+	public static final String FORCE_CUBE = "force_cube";
 
 	//Radish Image WEP_TIER5
-	private static final int RAD_TIER5      =                               xy(17, 10);
-	public static final int CROSSBOW_S		= RAD_TIER5+0;
-	public static final int FOGSWORD		= RAD_TIER5+1;
+	public static final String CROSSBOW_S = "crossbow_s";
+	public static final String FOGSWORD = "fogsword";
 
 
 
-	public static final int TAIKIG			= RAD_TIER5+5;
-	public static final int CALLHAMR		= RAD_TIER5+6;
-	public static final int GIANTKILL		= RAD_TIER5+7;
+	public static final String TAIKIG = "taikig";
+	public static final String CALLHAMR = "callhamr";
+	public static final String GIANTKILL = "giantkill";
 
-	public static final int CUTTERHEAD		= RAD_TIER5+9;
-	public static final int KILL_BOAT		= RAD_TIER5+10;
-	public static final int AXE_D			= RAD_TIER5+11;
-	public static final int TONFA			= RAD_TIER5+12;
-	public static final int SCYTHE			= RAD_TIER5+13;
+	public static final String CUTTERHEAD = "cutterhead";
+	public static final String KILL_BOAT = "kill_boat";
+	public static final String AXE_D = "axe_d";
+	public static final String TONFA = "tonfa";
+	public static final String SCYTHE = "scythe";
 
-	public static final int KNIGHT_GS			= RAD_TIER5+14;
+	public static final String KNIGHT_GS = "knight_gs";
 
-	public static final int DARTS    =                                      xy(1, 11);  //16 slots
-	public static final int DART            = DARTS+0;
-	public static final int ROT_DART        = DARTS+1;
-	public static final int INCENDIARY_DART = DARTS+2;
-	public static final int ADRENALINE_DART = DARTS+3;
-	public static final int HEALING_DART    = DARTS+4;
-	public static final int CHILLING_DART   = DARTS+5;
-	public static final int SHOCKING_DART   = DARTS+6;
-	public static final int POISON_DART     = DARTS+7;
-	public static final int CLEANSING_DART  = DARTS+8;
-	public static final int PARALYTIC_DART  = DARTS+9;
-	public static final int HOLY_DART       = DARTS+10;
-	public static final int DISPLACING_DART = DARTS+11;
-	public static final int BLINDING_DART   = DARTS+12;
+	public static final String DARTS = "darts";  //16 slots
+	public static final String DEVILOON_ITEM = "deviloon_item";
+	public static final String CHIBAYARI = "chibayari";
+	public static final String DUAL_DUEL_DAGGERS = "dual_duel_daggers";
+	public static final String ABERFORTH = "aberforth";
+	public static final String DARK_SHADOW_SWORD = "dark_shadow_sword";
+	public static final String WHITE_KING_GOD_SWORD = "white_king_god_sword";
+	public static final String REPLACE_POINT = "replace_point";
+	public static final String JUTTE_CHAMPION_WEAPON = "jutte_champion_weapon";
+	public static final String TURTLEIR = "turtleir";
+	public static final String SUNLESS = "sunless";
+	public static final String STARLIGHT = "starlight";
+	public static final String WASTELANDEW = "wastelandew";
+	public static final String CIRCLE_SWORD = "circle_sword";
+	public static final String DART = "dart";
+	public static final String ROT_DART = "rot_dart";
+	public static final String INCENDIARY_DART = "incendiary_dart";
+	public static final String ADRENALINE_DART = "adrenaline_dart";
+	public static final String HEALING_DART = "healing_dart";
+	public static final String CHILLING_DART = "chilling_dart";
+	public static final String SHOCKING_DART = "shocking_dart";
+	public static final String POISON_DART = "poison_dart";
+	public static final String CLEANSING_DART = "cleansing_dart";
+	public static final String PARALYTIC_DART = "paralytic_dart";
+	public static final String HOLY_DART = "holy_dart";
+	public static final String DISPLACING_DART = "displacing_dart";
+	public static final String BLINDING_DART = "blinding_dart";
 	
-	private static final int ARMOR            =                               xy(1, 12);  //16 slots
-	public static final int ARMOR_CLOTH       = ARMOR+0;
-	public static final int ARMOR_LEATHER     = ARMOR+1;
-	public static final int ARMOR_MAIL        = ARMOR+2;
-	public static final int ARMOR_SCALE       = ARMOR+3;
-	public static final int ARMOR_PLATE       = ARMOR+4;
-	public static final int ARMOR_WARRIOR     = ARMOR+5;
-	public static final int ARMOR_MAGE        = ARMOR+6;
-	public static final int ARMOR_ROGUE       = ARMOR+7;
-	public static final int ARMOR_HUNTRESS    = ARMOR+8;
-	public static final int ARMOR_DUELIST     = ARMOR+9;
-	public static final int ARMOR_CRAB        = ARMOR+10;
-	public static final int ARMOR_AFTERGLOW   = ARMOR+11;
-	public static final int ARMOR_RAT         = ARMOR+12;
-	public static final int ARMOR_GREYFEATHER = ARMOR+13;
-	public static final int ARMOR_AFTERIMAGE  = ARMOR+14;
-	public static final int ARMOR_PRISON      = ARMOR+15;
-	public static final int ARMOR_ENERGY1     = ARMOR+16;
-	public static final int ARMOR_ENERGY2     = ARMOR+17;
-	public static final int ARMOR_SILVERSCALE = ARMOR+18;
-	public static final int ARMOR_BLACKCOAT   = ARMOR+19;
-	public static final int ARMOR_MOONLIGHT   = ARMOR+20;
+	public static final String ARMOR_CLOTH = "armor_cloth";
+	public static final String ARMOR_LEATHER = "armor_leather";
+	public static final String ARMOR_MAIL = "armor_mail";
+	public static final String ARMOR_SCALE = "armor_scale";
+	public static final String ARMOR_PLATE = "armor_plate";
+	public static final String ARMOR_WARRIOR = "armor_warrior";
+	public static final String ARMOR_MAGE = "armor_mage";
+	public static final String ARMOR_ROGUE = "armor_rogue";
+	public static final String ARMOR_HUNTRESS = "armor_huntress";
+	public static final String ARMOR_DUELIST = "armor_duelist";
+	public static final String ARMOR_CRAB = "armor_crab";
+	public static final String ARMOR_AFTERGLOW = "armor_afterglow";
+	public static final String ARMOR_RAT = "armor_rat";
+	public static final String ARMOR_GREYFEATHER = "armor_greyfeather";
+	public static final String ARMOR_AFTERIMAGE = "armor_afterimage";
+	public static final String ARMOR_PRISON = "armor_prison";
+	public static final String ARMOR_ENERGY1 = "armor_energy1";
+	public static final String ARMOR_ENERGY2 = "armor_energy2";
+	public static final String ARMOR_SILVERSCALE = "armor_silverscale";
+	public static final String ARMOR_BLACKCOAT = "armor_blackcoat";
+	public static final String ARMOR_MOONLIGHT = "armor_moonlight";
 
-	private static final int WANDS              =                           xy(1, 14);  //16 slots
-	public static final int WAND_MAGIC_MISSILE  = WANDS+0;
-	public static final int WAND_FIREBOLT       = WANDS+1;
-	public static final int WAND_FROST          = WANDS+2;
-	public static final int WAND_LIGHTNING      = WANDS+3;
-	public static final int WAND_DISINTEGRATION = WANDS+4;
-	public static final int WAND_PRISMATIC_LIGHT= WANDS+5;
-	public static final int WAND_CORROSION      = WANDS+6;
-	public static final int WAND_LIVING_EARTH   = WANDS+7;
-	public static final int WAND_BLAST_WAVE     = WANDS+8;
-	public static final int WAND_CORRUPTION     = WANDS+9;
-	public static final int WAND_WARDING        = WANDS+10;
-	public static final int WAND_REGROWTH       = WANDS+11;
-	public static final int WAND_TRANSFUSION    = WANDS+12;
-	public static final int WAND_GNOLL   = WANDS+13;
-	public static final int WAND_BOMBWAVES  = WANDS+14;
-	public static final int WAND_NEWSTAR  	= WANDS+15;
+	public static final String WAND_MAGIC_MISSILE = "wand_magic_missile";
+	public static final String WAND_FIREBOLT = "wand_firebolt";
+	public static final String WAND_FROST = "wand_frost";
+	public static final String WAND_LIGHTNING = "wand_lightning";
+	public static final String WAND_DISINTEGRATION = "wand_disintegration";
+	public static final String WAND_PRISMATIC_LIGHT = "wand_prismatic_light";
+	public static final String WAND_CORROSION = "wand_corrosion";
+	public static final String WAND_LIVING_EARTH = "wand_living_earth";
+	public static final String WAND_BLAST_WAVE = "wand_blast_wave";
+	public static final String WAND_CORRUPTION = "wand_corruption";
+	public static final String WAND_WARDING = "wand_warding";
+	public static final String WAND_REGROWTH = "wand_regrowth";
+	public static final String WAND_TRANSFUSION = "wand_transfusion";
+	public static final String WAND_GNOLL = "wand_gnoll";
+	public static final String WAND_BOMBWAVES = "wand_bombwaves";
+	public static final String WAND_NEWSTAR = "wand_newstar";
 
-	private static final int RINGS          =                               xy(1, 15);  //16 slots
-	public static final int RING_GARNET     = RINGS+0;
-	public static final int RING_RUBY       = RINGS+1;
-	public static final int RING_TOPAZ      = RINGS+2;
-	public static final int RING_EMERALD    = RINGS+3;
-	public static final int RING_ONYX       = RINGS+4;
-	public static final int RING_OPAL       = RINGS+5;
-	public static final int RING_TOURMALINE = RINGS+6;
-	public static final int RING_SAPPHIRE   = RINGS+7;
-	public static final int RING_AMETHYST   = RINGS+8;
-	public static final int RING_QUARTZ     = RINGS+9;
-	public static final int RING_AGATE      = RINGS+10;
-	public static final int RING_DIAMOND    = RINGS+11;
-	public static final int RING_GOLD		= RINGS+12;
-	public static final int RING_CORAL		= RINGS+13;
-	public static final int RING_PEARL		= RINGS+14;
+	public static final String RING_GARNET = "ring_garnet";
+	public static final String RING_RUBY = "ring_ruby";
+	public static final String RING_TOPAZ = "ring_topaz";
+	public static final String RING_EMERALD = "ring_emerald";
+	public static final String RING_ONYX = "ring_onyx";
+	public static final String RING_OPAL = "ring_opal";
+	public static final String RING_TOURMALINE = "ring_tourmaline";
+	public static final String RING_SAPPHIRE = "ring_sapphire";
+	public static final String RING_AMETHYST = "ring_amethyst";
+	public static final String RING_QUARTZ = "ring_quartz";
+	public static final String RING_AGATE = "ring_agate";
+	public static final String RING_DIAMOND = "ring_diamond";
+	public static final String RING_GOLD = "ring_gold";
+	public static final String RING_CORAL = "ring_coral";
+	public static final String RING_PEARL = "ring_pearl";
 
-	public static final int RING_SKYLUE		= RINGS+18;
+	public static final String RING_SKYLUE = "ring_skylue";
 
-	private static final int ARTIFACTS          =                            xy(1, 16);  //32 slots
-	public static final int ARTIFACT_CLOAK      = ARTIFACTS+0;
-	public static final int ARTIFACT_ARMBAND    = ARTIFACTS+1;
-	public static final int ARTIFACT_CAPE       = ARTIFACTS+2;
-	public static final int ARTIFACT_TALISMAN   = ARTIFACTS+3;
-	public static final int ARTIFACT_HOURGLASS  = ARTIFACTS+4;
-	public static final int ARTIFACT_TOOLKIT    = ARTIFACTS+5;
-	public static final int ARTIFACT_SPELLBOOK  = ARTIFACTS+6;
-	public static final int ARTIFACT_BEACON     = ARTIFACTS+7;
-	public static final int ARTIFACT_CHAINS     = ARTIFACTS+8;
-	public static final int ARTIFACT_HORN1      = ARTIFACTS+9;
-	public static final int ARTIFACT_HORN2      = ARTIFACTS+10;
-	public static final int ARTIFACT_HORN3      = ARTIFACTS+11;
-	public static final int ARTIFACT_HORN4      = ARTIFACTS+12;
-	public static final int ARTIFACT_CHALICE1   = ARTIFACTS+13;
-	public static final int ARTIFACT_CHALICE2   = ARTIFACTS+14;
-	public static final int ARTIFACT_CHALICE3   = ARTIFACTS+15;
+	public static final String ARTIFACT_CLOAK = "artifact_cloak";
+	public static final String ARTIFACT_ARMBAND = "artifact_armband";
+	public static final String ARTIFACT_CAPE = "artifact_cape";
+	public static final String ARTIFACT_TALISMAN = "artifact_talisman";
+	public static final String ARTIFACT_HOURGLASS = "artifact_hourglass";
+	public static final String ARTIFACT_TOOLKIT = "artifact_toolkit";
+	public static final String ARTIFACT_SPELLBOOK = "artifact_spellbook";
+	public static final String ARTIFACT_BEACON = "artifact_beacon";
+	public static final String ARTIFACT_CHAINS = "artifact_chains";
+	public static final String ARTIFACT_HORN1 = "artifact_horn1";
+	public static final String ARTIFACT_HORN2 = "artifact_horn2";
+	public static final String ARTIFACT_HORN3 = "artifact_horn3";
+	public static final String ARTIFACT_HORN4 = "artifact_horn4";
+	public static final String ARTIFACT_CHALICE1 = "artifact_chalice1";
+	public static final String ARTIFACT_CHALICE2 = "artifact_chalice2";
+	public static final String ARTIFACT_CHALICE3 = "artifact_chalice3";
 	//ARTIFACTS Second Line
-	public static final int ARTIFACT_SANDALS    = ARTIFACTS+16+16;
-	public static final int ARTIFACT_SHOES      = ARTIFACTS+17+16;
-	public static final int ARTIFACT_BOOTS      = ARTIFACTS+18+16;
-	public static final int ARTIFACT_GREAVES    = ARTIFACTS+19+16;
-	public static final int ARTIFACT_ROSE1      = ARTIFACTS+20+16;
-	public static final int ARTIFACT_ROSE2      = ARTIFACTS+21+16;
-	public static final int ARTIFACT_ROSE3      = ARTIFACTS+22+16;
+	public static final String ARTIFACT_SANDALS = "artifact_sandals";
+	public static final String ARTIFACT_SHOES = "artifact_shoes";
+	public static final String ARTIFACT_BOOTS = "artifact_boots";
+	public static final String ARTIFACT_GREAVES = "artifact_greaves";
+	public static final String ARTIFACT_ROSE1 = "artifact_rose1";
+	public static final String ARTIFACT_ROSE2 = "artifact_rose2";
+	public static final String ARTIFACT_ROSE3 = "artifact_rose3";
 
-	public static final int ARTIFACT_CONCEAL    = ARTIFACTS+24+16;
-	public static final int ARTIFACT_ELTIE1     = ARTIFACTS+25+16;
-	public static final int ARTIFACT_ELTIE2     = ARTIFACTS+26+16;
-	public static final int ARTIFACT_ELTIE3     = ARTIFACTS+27+16;
-	public static final int ARTIFACT_ELTIE4     = ARTIFACTS+28+16;
-	public static final int ARTIFACT_ELTIE5     = ARTIFACTS+29+16;
-	public static final int ARTIFACT_ELTIE6     = ARTIFACTS+30+16;
-	public static final int ARTIFACT_ELTIE7     = ARTIFACTS+31+16;
+	public static final String ARTIFACT_CONCEAL = "artifact_conceal";
+	public static final String ARTIFACT_ELTIE1 = "artifact_eltie1";
+	public static final String ARTIFACT_ELTIE2 = "artifact_eltie2";
+	public static final String ARTIFACT_ELTIE3 = "artifact_eltie3";
+	public static final String ARTIFACT_ELTIE4 = "artifact_eltie4";
+	public static final String ARTIFACT_ELTIE5 = "artifact_eltie5";
+	public static final String ARTIFACT_ELTIE6 = "artifact_eltie6";
+	public static final String ARTIFACT_ELTIE7 = "artifact_eltie7";
 
-	public static final int MAGNETIC_CROWN     = ARTIFACTS+48;
+	public static final String MAGNETIC_CROWN = "magnetic_crown";
 
-	public static final int BLESS_SCROLL     = ARTIFACTS+50;
-	public static final int SNAKE_BITED_YENDOR = ARTIFACTS+51;
-	public static final int SNAKE_BITE = ARTIFACTS + 52;
-	public static final int SNAKE_BITE_AMULET = ARTIFACTS + 53;
-	public static final int ARTIFACT_WHEELCHAIR = ARTIFACTS + 54;
+	public static final String BLESS_SCROLL = "bless_scroll";
+	public static final String SNAKE_BITED_YENDOR = "snake_bited_yendor";
+	public static final String SNAKE_BITE = "snake_bite";
+	public static final String SNAKE_BITE_AMULET = "snake_bite_amulet";
+	public static final String ARTIFACT_WHEELCHAIR = "artifact_wheelchair";
 
-	private static final int TRINKETS        =                               xy(17, 28);  //24 slots
-	public static final int RAT_SKULL       = TRINKETS+0;
-	public static final int PARCHMENT_SCRAP = TRINKETS+1;
-	public static final int PETRIFIED_SEED  = TRINKETS+2;
-	public static final int EXOTIC_CRYSTALS = TRINKETS+3;
-	public static final int MOSSY_CLUMP     = TRINKETS+4;
-	public static final int SUNDIAL         = TRINKETS+5;
-	public static final int CLOVER          = TRINKETS+6;
-	public static final int TRAP_MECHANISM  = TRINKETS+7;
-	public static final int MIMIC_TOOTH     = TRINKETS+8;
-	public static final int WONDROUS_RESIN  = TRINKETS+9;
-	public static final int EYE_OF_NEWT     = TRINKETS+10;
-	public static final int SALT_CUBE       = TRINKETS+11;
-	public static final int OBLIVION_SHARD  = TRINKETS+12;
-	public static final int CHAOTIC_CENSER  = TRINKETS+13;
+	public static final String RAT_SKULL = "rat_skull";
+	public static final String PARCHMENT_SCRAP = "parchment_scrap";
+	public static final String PETRIFIED_SEED = "petrified_seed";
+	public static final String EXOTIC_CRYSTALS = "exotic_crystals";
+	public static final String MOSSY_CLUMP = "mossy_clump";
+	public static final String SUNDIAL = "sundial";
+	public static final String CLOVER = "clover";
+	public static final String TRAP_MECHANISM = "trap_mechanism";
+	public static final String MIMIC_TOOTH = "mimic_tooth";
+	public static final String WONDROUS_RESIN = "wondrous_resin";
+	public static final String EYE_OF_NEWT = "eye_of_newt";
+	public static final String SALT_CUBE = "salt_cube";
+	public static final String OBLIVION_SHARD = "oblivion_shard";
+	public static final String CHAOTIC_CENSER = "chaotic_censer";
 
-	public static final int RADISH 			= TRINKETS+14;
-	public static final int GOLD_RADISH 	= TRINKETS+15;
+	public static final String RADISH = "radish";
+	public static final String GOLD_RADISH = "gold_radish";
 
-	public static final int LIGHT_KING 	= TRINKETS+32;
-	public static final int RIVER_GLASS 	= TRINKETS+33;
+	public static final String LIGHT_KING = "light_king";
+	public static final String RIVER_GLASS = "river_glass";
 
-	private static final int SCROLLS        =                               xy(1, 19);  //16 slots
-	public static final int SCROLL_KAUNAN   = SCROLLS+0;
-	public static final int SCROLL_SOWILO   = SCROLLS+1;
-	public static final int SCROLL_LAGUZ    = SCROLLS+2;
-	public static final int SCROLL_YNGVI    = SCROLLS+3;
-	public static final int SCROLL_GYFU     = SCROLLS+4;
-	public static final int SCROLL_RAIDO    = SCROLLS+5;
-	public static final int SCROLL_ISAZ     = SCROLLS+6;
-	public static final int SCROLL_MANNAZ   = SCROLLS+7;
-	public static final int SCROLL_NAUDIZ   = SCROLLS+8;
-	public static final int SCROLL_BERKANAN = SCROLLS+9;
-	public static final int SCROLL_ODAL     = SCROLLS+10;
-	public static final int SCROLL_TIWAZ    = SCROLLS+11;
+	public static final String SCROLL_KAUNAN = "scroll_kaunan";
+	public static final String SCROLL_SOWILO = "scroll_sowilo";
+	public static final String SCROLL_LAGUZ = "scroll_laguz";
+	public static final String SCROLL_YNGVI = "scroll_yngvi";
+	public static final String SCROLL_GYFU = "scroll_gyfu";
+	public static final String SCROLL_RAIDO = "scroll_raido";
+	public static final String SCROLL_ISAZ = "scroll_isaz";
+	public static final String SCROLL_MANNAZ = "scroll_mannaz";
+	public static final String SCROLL_NAUDIZ = "scroll_naudiz";
+	public static final String SCROLL_BERKANAN = "scroll_berkanan";
+	public static final String SCROLL_ODAL = "scroll_odal";
+	public static final String SCROLL_TIWAZ = "scroll_tiwaz";
 
-	public static final int ARCANE_RESIN    = SCROLLS+13;
+	public static final String ARCANE_RESIN = "arcane_resin";
 
-	private static final int EXOTIC_SCROLLS =                               xy(1, 20);  //16 slots
-	public static final int EXOTIC_KAUNAN   = EXOTIC_SCROLLS+0;
-	public static final int EXOTIC_SOWILO   = EXOTIC_SCROLLS+1;
-	public static final int EXOTIC_LAGUZ    = EXOTIC_SCROLLS+2;
-	public static final int EXOTIC_YNGVI    = EXOTIC_SCROLLS+3;
-	public static final int EXOTIC_GYFU     = EXOTIC_SCROLLS+4;
-	public static final int EXOTIC_RAIDO    = EXOTIC_SCROLLS+5;
-	public static final int EXOTIC_ISAZ     = EXOTIC_SCROLLS+6;
-	public static final int EXOTIC_MANNAZ   = EXOTIC_SCROLLS+7;
-	public static final int EXOTIC_NAUDIZ   = EXOTIC_SCROLLS+8;
-	public static final int EXOTIC_BERKANAN = EXOTIC_SCROLLS+9;
-	public static final int EXOTIC_ODAL     = EXOTIC_SCROLLS+10;
-	public static final int EXOTIC_TIWAZ    = EXOTIC_SCROLLS+11;
+	public static final String EXOTIC_KAUNAN = "exotic_kaunan";
+	public static final String EXOTIC_SOWILO = "exotic_sowilo";
+	public static final String EXOTIC_LAGUZ = "exotic_laguz";
+	public static final String EXOTIC_YNGVI = "exotic_yngvi";
+	public static final String EXOTIC_GYFU = "exotic_gyfu";
+	public static final String EXOTIC_RAIDO = "exotic_raido";
+	public static final String EXOTIC_ISAZ = "exotic_isaz";
+	public static final String EXOTIC_MANNAZ = "exotic_mannaz";
+	public static final String EXOTIC_NAUDIZ = "exotic_naudiz";
+	public static final String EXOTIC_BERKANAN = "exotic_berkanan";
+	public static final String EXOTIC_ODAL = "exotic_odal";
+	public static final String EXOTIC_TIWAZ = "exotic_tiwaz";
 
-	public static final int SPELL_QUEUE_ON	= EXOTIC_SCROLLS+13;
-	public static final int SPELL_QUEUE_OFF	= EXOTIC_SCROLLS+14;
+	public static final String SPELL_QUEUE_ON = "spell_queue_on";
+	public static final String SPELL_QUEUE_OFF = "spell_queue_off";
 
-	private static final int STONES             =                           xy(1, 21);  //16 slots
-	public static final int STONE_AGGRESSION    = STONES+0;
-	public static final int STONE_AUGMENTATION  = STONES+1;
-	public static final int STONE_FEAR          = STONES+2;
-	public static final int STONE_BLAST         = STONES+3;
-	public static final int STONE_BLINK         = STONES+4;
-	public static final int STONE_CLAIRVOYANCE  = STONES+5;
-	public static final int STONE_SLEEP         = STONES+6;
-	public static final int STONE_DISARM        = STONES+7;
-	public static final int STONE_ENCHANT       = STONES+8;
-	public static final int STONE_FLOCK         = STONES+9;
-	public static final int STONE_INTUITION     = STONES+10;
-	public static final int STONE_SHOCK         = STONES+11;
+	public static final String STONE_AGGRESSION = "stone_aggression";
+	public static final String STONE_AUGMENTATION = "stone_augmentation";
+	public static final String STONE_FEAR = "stone_fear";
+	public static final String STONE_BLAST = "stone_blast";
+	public static final String STONE_BLINK = "stone_blink";
+	public static final String STONE_CLAIRVOYANCE = "stone_clairvoyance";
+	public static final String STONE_SLEEP = "stone_sleep";
+	public static final String STONE_DISARM = "stone_disarm";
+	public static final String STONE_ENCHANT = "stone_enchant";
+	public static final String STONE_FLOCK = "stone_flock";
+	public static final String STONE_INTUITION = "stone_intuition";
+	public static final String STONE_SHOCK = "stone_shock";
 
-	private static final int POTIONS        =                               xy(1, 22);  //16 slots
-	public static final int POTION_CRIMSON  = POTIONS+0;
-	public static final int POTION_AMBER    = POTIONS+1;
-	public static final int POTION_GOLDEN   = POTIONS+2;
-	public static final int POTION_JADE     = POTIONS+3;
-	public static final int POTION_TURQUOISE= POTIONS+4;
-	public static final int POTION_AZURE    = POTIONS+5;
-	public static final int POTION_INDIGO   = POTIONS+6;
-	public static final int POTION_MAGENTA  = POTIONS+7;
-	public static final int POTION_BISTRE   = POTIONS+8;
-	public static final int POTION_CHARCOAL = POTIONS+9;
-	public static final int POTION_SILVER   = POTIONS+10;
-	public static final int POTION_IVORY    = POTIONS+11;
+	public static final String POTION_CRIMSON = "potion_crimson";
+	public static final String POTION_AMBER = "potion_amber";
+	public static final String POTION_GOLDEN = "potion_golden";
+	public static final String POTION_JADE = "potion_jade";
+	public static final String POTION_TURQUOISE = "potion_turquoise";
+	public static final String POTION_AZURE = "potion_azure";
+	public static final String POTION_INDIGO = "potion_indigo";
+	public static final String POTION_MAGENTA = "potion_magenta";
+	public static final String POTION_BISTRE = "potion_bistre";
+	public static final String POTION_CHARCOAL = "potion_charcoal";
+	public static final String POTION_SILVER = "potion_silver";
+	public static final String POTION_IVORY = "potion_ivory";
 
-	public static final int LIQUID_METAL    = POTIONS+13;
-	public static final int POTION_CATALYST = POTIONS+14;
+	public static final String LIQUID_METAL = "liquid_metal";
+	public static final String POTION_CATALYST = "potion_catalyst";
 	
-	private static final int EXOTIC_POTIONS =                               xy(1, 23);  //16 slots
-	public static final int EXOTIC_CRIMSON  = EXOTIC_POTIONS+0;
-	public static final int EXOTIC_AMBER    = EXOTIC_POTIONS+1;
-	public static final int EXOTIC_GOLDEN   = EXOTIC_POTIONS+2;
-	public static final int EXOTIC_JADE     = EXOTIC_POTIONS+3;
-	public static final int EXOTIC_TURQUOISE= EXOTIC_POTIONS+4;
-	public static final int EXOTIC_AZURE    = EXOTIC_POTIONS+5;
-	public static final int EXOTIC_INDIGO   = EXOTIC_POTIONS+6;
-	public static final int EXOTIC_MAGENTA  = EXOTIC_POTIONS+7;
-	public static final int EXOTIC_BISTRE   = EXOTIC_POTIONS+8;
-	public static final int EXOTIC_CHARCOAL = EXOTIC_POTIONS+9;
-	public static final int EXOTIC_SILVER   = EXOTIC_POTIONS+10;
-	public static final int EXOTIC_IVORY    = EXOTIC_POTIONS+11;
+	public static final String EXOTIC_CRIMSON = "exotic_crimson";
+	public static final String EXOTIC_AMBER = "exotic_amber";
+	public static final String EXOTIC_GOLDEN = "exotic_golden";
+	public static final String EXOTIC_JADE = "exotic_jade";
+	public static final String EXOTIC_TURQUOISE = "exotic_turquoise";
+	public static final String EXOTIC_AZURE = "exotic_azure";
+	public static final String EXOTIC_INDIGO = "exotic_indigo";
+	public static final String EXOTIC_MAGENTA = "exotic_magenta";
+	public static final String EXOTIC_BISTRE = "exotic_bistre";
+	public static final String EXOTIC_CHARCOAL = "exotic_charcoal";
+	public static final String EXOTIC_SILVER = "exotic_silver";
+	public static final String EXOTIC_IVORY = "exotic_ivory";
 
-	private static final int SEEDS              =                           xy(1, 24);  //16 slots
-	public static final int SEED_ROTBERRY       = SEEDS+0;
-	public static final int SEED_FIREBLOOM      = SEEDS+1;
-	public static final int SEED_SWIFTTHISTLE   = SEEDS+2;
-	public static final int SEED_SUNGRASS       = SEEDS+3;
-	public static final int SEED_ICECAP         = SEEDS+4;
-	public static final int SEED_STORMVINE      = SEEDS+5;
-	public static final int SEED_SORROWMOSS     = SEEDS+6;
-	public static final int SEED_MAGEROYAL = SEEDS+7;
-	public static final int SEED_EARTHROOT      = SEEDS+8;
-	public static final int SEED_STARFLOWER     = SEEDS+9;
-	public static final int SEED_FADELEAF       = SEEDS+10;
-	public static final int SEED_BLINDWEED      = SEEDS+11;
-	private static final int BREWS          =                               xy(1, 25);  //8 slots
-	public static final int BREW_INFERNAL   = BREWS+0;
-	public static final int BREW_BLIZZARD   = BREWS+1;
-	public static final int BREW_SHOCKING   = BREWS+2;
-	public static final int BREW_CAUSTIC    = BREWS+3;
-	public static final int BREW_AQUA       = BREWS+4;
-	public static final int BREW_UNSTABLE   = BREWS+5;
+	public static final String SEED_ROTBERRY = "seed_rotberry";
+	public static final String SEED_FIREBLOOM = "seed_firebloom";
+	public static final String SEED_SWIFTTHISTLE = "seed_swiftthistle";
+	public static final String SEED_SUNGRASS = "seed_sungrass";
+	public static final String SEED_ICECAP = "seed_icecap";
+	public static final String SEED_STORMVINE = "seed_stormvine";
+	public static final String SEED_SORROWMOSS = "seed_sorrowmoss";
+	public static final String SEED_MAGEROYAL = "seed_mageroyal";
+	public static final String SEED_EARTHROOT = "seed_earthroot";
+	public static final String SEED_STARFLOWER = "seed_starflower";
+	public static final String SEED_FADELEAF = "seed_fadeleaf";
+	public static final String SEED_BLINDWEED = "seed_blindweed";
+	public static final String BREW_INFERNAL = "brew_infernal";
+	public static final String BREW_BLIZZARD = "brew_blizzard";
+	public static final String BREW_SHOCKING = "brew_shocking";
+	public static final String BREW_CAUSTIC = "brew_caustic";
+	public static final String BREW_AQUA = "brew_aqua";
+	public static final String BREW_UNSTABLE = "brew_unstable";
 
-	public static final int MAGIC_ROOT      = BREWS+7;
+	public static final String MAGIC_ROOT = "magic_root";
 	
-	private static final int ELIXIRS        =                               xy(9, 25);  //8 slots
-	public static final int ELIXIR_HONEY    = ELIXIRS+0;
-	public static final int ELIXIR_AQUA     = ELIXIRS+1;
-	public static final int ELIXIR_MIGHT    = ELIXIRS+2;
-	public static final int ELIXIR_DRAGON   = ELIXIRS+3;
-	public static final int ELIXIR_TOXIC    = ELIXIRS+4;
-	public static final int ELIXIR_ICY      = ELIXIRS+5;
-	public static final int ELIXIR_ARCANE   = ELIXIRS+6;
-	public static final int ELIXIR_FEATHER  = ELIXIRS+7;
-	private static final int SPELLS         =                               xy(1, 27);  //16 slots
-	public static final int WILD_ENERGY     = SPELLS+0;
-	public static final int PHASE_SHIFT     = SPELLS+1;
-	public static final int TELE_GRAB       = SPELLS+2;
-	public static final int UNSTABLE_SPELL  = SPELLS+3;
+	public static final String ELIXIR_HONEY = "elixir_honey";
+	public static final String ELIXIR_AQUA = "elixir_aqua";
+	public static final String ELIXIR_MIGHT = "elixir_might";
+	public static final String ELIXIR_DRAGON = "elixir_dragon";
+	public static final String ELIXIR_TOXIC = "elixir_toxic";
+	public static final String ELIXIR_ICY = "elixir_icy";
+	public static final String ELIXIR_ARCANE = "elixir_arcane";
+	public static final String ELIXIR_FEATHER = "elixir_feather";
+	public static final String WILD_ENERGY = "wild_energy";
+	public static final String PHASE_SHIFT = "phase_shift";
+	public static final String TELE_GRAB = "tele_grab";
+	public static final String UNSTABLE_SPELL = "unstable_spell";
 
-	public static final int CURSE_INFUSE    = SPELLS+5;
-	public static final int MAGIC_INFUSE    = SPELLS+6;
-	public static final int ALCHEMIZE       = SPELLS+7;
-	public static final int RECYCLE         = SPELLS+8;
+	public static final String CURSE_INFUSE = "curse_infuse";
+	public static final String MAGIC_INFUSE = "magic_infuse";
+	public static final String ALCHEMIZE = "alchemize";
+	public static final String RECYCLE = "recycle";
 
-	public static final int RECLAIM_TRAP    = SPELLS+10;
-	public static final int RETURN_BEACON   = SPELLS+11;
-	public static final int SUMMON_ELE      = SPELLS+12;
+	public static final String RECLAIM_TRAP = "reclaim_trap";
+	public static final String RETURN_BEACON = "return_beacon";
+	public static final String SUMMON_ELE = "summon_ele";
 
 	//浮空
-	public static final int FEATHER_FALL    = SPELLS+13;
-	public static final int AQUA_BLAST      = SPELLS+14;
+	public static final String FEATHER_FALL = "feather_fall";
+	public static final String AQUA_BLAST = "aqua_blast";
 
-	private static final int FOOD       =                                   xy(1, 28);  //16 slots
-	public static final int MEAT            = FOOD+0;
-	public static final int STEAK           = FOOD+1;
-	public static final int STEWED          = FOOD+2;
-	public static final int OVERPRICED      = FOOD+3;
-	public static final int CARPACCIO       = FOOD+4;
-	public static final int RATION          = FOOD+5;
-	public static final int PASTY           = FOOD+6;
-	public static final int MEAT_PIE        = FOOD+7;
-	public static final int BLANDFRUIT      = FOOD+8;
-	public static final int BLAND_CHUNKS    = FOOD+9;
-	public static final int BERRY           = FOOD+10;
-	public static final int PHANTOM_MEAT    = FOOD+11;
-	public static final int SUPPLY_RATION   = FOOD+12;
-	private static final int HOLIDAY_FOOD   =                               xy(1, 29);  //16 slots
-	public static final int STEAMED_FISH    = HOLIDAY_FOOD+0;
-	public static final int FISH_LEFTOVER   = HOLIDAY_FOOD+1;
-	public static final int CHOC_AMULET     = HOLIDAY_FOOD+2;
-	public static final int EASTER_EGG      = HOLIDAY_FOOD+3;
-	public static final int RAINBOW_POTION  = HOLIDAY_FOOD+4;
-	public static final int SHATTERED_CAKE  = HOLIDAY_FOOD+5;
-	public static final int PUMPKIN_PIE     = HOLIDAY_FOOD+6;
-	public static final int VANILLA_CAKE    = HOLIDAY_FOOD+7;
-	public static final int CANDY_CANE      = HOLIDAY_FOOD+8;
-	public static final int SPARKLING_POTION= HOLIDAY_FOOD+9;
-	private static final int QUEST  =                                       xy(1, 30);  //16 slots
-	public static final int DUST    = QUEST+1;
-	public static final int CANDLE  = QUEST+2;
-	public static final int EMBER   = QUEST+3;
-	public static final int PICKAXE = QUEST+4;
-	public static final int ORE     = QUEST+5;
-	public static final int TOKEN   = QUEST+6;
-	public static final int BLOB    = QUEST+7;
-	public static final int SHARD   = QUEST+8;
+	public static final String MEAT = "meat";
+	public static final String STEAK = "steak";
+	public static final String STEWED = "stewed";
+	public static final String OVERPRICED = "overpriced";
+	public static final String CARPACCIO = "carpaccio";
+	public static final String RATION = "ration";
+	public static final String PASTY = "pasty";
+	public static final String MEAT_PIE = "meat_pie";
+	public static final String BLANDFRUIT = "blandfruit";
+	public static final String BLAND_CHUNKS = "bland_chunks";
+	public static final String BERRY = "berry";
+	public static final String PHANTOM_MEAT = "phantom_meat";
+	public static final String SUPPLY_RATION = "supply_ration";
+	public static final String STEAMED_FISH = "steamed_fish";
+	public static final String FISH_LEFTOVER = "fish_leftover";
+	public static final String CHOC_AMULET = "choc_amulet";
+	public static final String EASTER_EGG = "easter_egg";
+	public static final String RAINBOW_POTION = "rainbow_potion";
+	public static final String SHATTERED_CAKE = "shattered_cake";
+	public static final String PUMPKIN_PIE = "pumpkin_pie";
+	public static final String VANILLA_CAKE = "vanilla_cake";
+	public static final String CANDY_CANE = "candy_cane";
+	public static final String SPARKLING_POTION = "sparkling_potion";
+	public static final String DUST = "dust";
+	public static final String CANDLE = "candle";
+	public static final String EMBER = "ember";
+	public static final String PICKAXE = "pickaxe";
+	public static final String ORE = "ore";
+	public static final String TOKEN = "token";
+	public static final String BLOB = "blob";
+	public static final String SHARD = "shard";
 
-	public static final int SPOTOA   = QUEST+9;
+	public static final String SPOTOA = "spotoa";
 
-	private static final int BAGS       =                                   xy(1, 31);  //16 slots
-	public static final int WATERSKIN   = BAGS+0;
-	public static final int BACKPACK    = BAGS+1;
-	public static final int POUCH       = BAGS+2;
-	public static final int HOLDER      = BAGS+3;
-	public static final int BANDOLIER   = BAGS+4;
-	public static final int HOLSTER     = BAGS+5;
-	public static final int VIAL        = BAGS+6;
-	public static final int HERB_MAKER  = BAGS+7;
-	public static final int HERB	    = BAGS+8;
+	public static final String WATERSKIN = "waterskin";
+	public static final String BACKPACK = "backpack";
+	public static final String POUCH = "pouch";
+	public static final String HOLDER = "holder";
+	public static final String BANDOLIER = "bandolier";
+	public static final String HOLSTER = "holster";
+	public static final String VIAL = "vial";
+	public static final String HERB_MAKER = "herb_maker";
+	public static final String HERB = "herb";
 
-	public static final int STONE_CRAD	    = BAGS+10;
-	public static final int SEED_CARD	    = BAGS+11;
+	public static final String STONE_CRAD = "stone_crad";
+	public static final String SEED_CARD = "seed_card";
 
-	public static final int CORRECT			= BAGS+13;
-	public static final int LIGHTIMUEE		= BAGS+14;
-	public static final int CLEAN			= BAGS+15;
-	public static final int PRAYERS			= BAGS+16;
+	public static final String CORRECT = "correct";
+	public static final String LIGHTIMUEE = "lightimuee";
+	public static final String CLEAN = "clean";
+	public static final String PRAYERS = "prayers";
 
-	public static final int APOWER			= BAGS+18;
-	public static final int BACKMESSAGE	    = BAGS+19;
-	public static final int DEADMODE		= BAGS+20;
+	public static final String APOWER = "apower";
+	public static final String BACKMESSAGE = "backmessage";
+	public static final String DEADMODE = "deadmode";
 
 
-	public static final int BLESS			= BAGS+22;
-	public static final int HOLYFIRE		= BAGS+23;
-	public static final int HOLYLAND		= BAGS+24;
+	public static final String BLESS = "bless";
+	public static final String HOLYFIRE = "holyfire";
+	public static final String HOLYLAND = "holyland";
 
-	private static final int DOCUMENTS  =                                   xy(1, 32);  //16 slots
-	public static final int GUIDE_PAGE  = DOCUMENTS+0;
-	public static final int ALCH_PAGE   = DOCUMENTS+1;
-	public static final int SEWER_PAGE  = DOCUMENTS+2;
-	public static final int PRISON_PAGE = DOCUMENTS+3;
-	public static final int CAVES_PAGE  = DOCUMENTS+4;
-	public static final int CITY_PAGE   = DOCUMENTS+5;
-	public static final int HALLS_PAGE  = DOCUMENTS+6;
-	public static final int LENGDS_PAGE  = DOCUMENTS+7;
+	public static final String GUIDE_PAGE = "guide_page";
+	public static final String ALCH_PAGE = "alch_page";
+	public static final String SEWER_PAGE = "sewer_page";
+	public static final String PRISON_PAGE = "prison_page";
+	public static final String CAVES_PAGE = "caves_page";
+	public static final String CITY_PAGE = "city_page";
+	public static final String HALLS_PAGE = "halls_page";
+	public static final String LENGDS_PAGE = "lengds_page";
 
 	//for smaller 8x8 icons that often accompany an item sprite
 	public static class Icons {
@@ -696,12 +670,6 @@ public class ItemSpriteSheet {
 		public static final int POTION_EARTHARMR= EXOTIC_POTIONS+9;
 		public static final int POTION_CLEANSE  = EXOTIC_POTIONS+10;
 		public static final int POTION_DIVINE   = EXOTIC_POTIONS+11;
-	}
-
-	static {
-		// 可通过设置 debugMode = true 来查看优化日志
-		// ItemSpriteOptimizer.debugMode = true;
-		ItemSpriteOptimizer.optimize(film);
 	}
 
 }

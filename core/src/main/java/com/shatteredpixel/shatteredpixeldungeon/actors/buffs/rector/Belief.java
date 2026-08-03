@@ -511,7 +511,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
         if(hero.pointsInTalent(Talent.IRON_SUN)>=1){
             int buffCnt = 0;
             for(Object i: hero.buffs(Buff.class).toArray()) {
-                if(((Buff) i).icon()!= BuffIndicator.NONE){
+                if(!BuffIndicator.NONE.equals(((Buff) i).icon())){
                     buffCnt+=3;
                 }
             }
@@ -521,7 +521,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
     }
 
     @Override
-    public int icon() {
+    public String icon() {
         return not_link ? BuffIndicator.NONE : BuffIndicator.BELIEF_LINK;
     }
 

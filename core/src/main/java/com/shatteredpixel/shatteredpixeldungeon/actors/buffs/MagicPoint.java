@@ -135,7 +135,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     @Override
-    public int icon() {
+    public String icon() {
         return BuffIndicator.MAGIC_POINT;
     }
 

@@ -57,7 +57,7 @@ public class Seeking extends Weapon.Enchantment {
         }
 
         @Override
-        public int icon() {
+        public String icon() {
             return BuffIndicator.FORESIGHT;
         }
 

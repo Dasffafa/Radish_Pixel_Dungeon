@@ -242,7 +242,7 @@ public class Hunger extends Buff implements Hero.Doom {
         }
 
         @Override
-        public int icon() {
+        public String icon() {
                 if (level < HUNGRY) {
                         return BuffIndicator.NONE;
                 } else if (level < STARVING) {

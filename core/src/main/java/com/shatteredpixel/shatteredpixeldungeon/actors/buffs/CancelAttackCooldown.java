@@ -57,7 +57,7 @@ public class CancelAttackCooldown extends FlavourBuff {
     }
 
     @Override
-    public int icon() {
+    public String icon() {
         return BuffIndicator.TIME;
     }
 

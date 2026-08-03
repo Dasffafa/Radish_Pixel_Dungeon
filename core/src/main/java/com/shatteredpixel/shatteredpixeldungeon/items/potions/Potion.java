@@ -90,7 +90,7 @@ public class Potion extends Item {
 
 	private static final float TIME_TO_DRINK = 1f;
 
-	private static final LinkedHashMap<String, Integer> colors = new LinkedHashMap<String, Integer>() {
+	private static final LinkedHashMap<String, String> colors = new LinkedHashMap<String, String>() {
 		{
 			put("crimson",ItemSpriteSheet.POTION_CRIMSON);
 			put("amber",ItemSpriteSheet.POTION_AMBER);

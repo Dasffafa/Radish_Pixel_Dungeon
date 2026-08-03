@@ -12,6 +12,7 @@ application {
     mainClass = appMainClass
 }
 processResources {
+    dependsOn rootProject.tasks.named('generateRuntimeAtlasManifests')
     from new File(project(':core').projectDir, "/src/main/assets")
     from new File(project(':desktop').projectDir,"/src/main/assets")
 }

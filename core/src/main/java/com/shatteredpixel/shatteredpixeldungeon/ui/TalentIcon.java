@@ -21,39 +21,28 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.gltextures.AtlasFrame;
+import com.watabou.gltextures.AtlasSource;
+import com.watabou.gltextures.RuntimeAtlas;
+import com.watabou.gltextures.RuntimeAtlasRegistry;
 import com.watabou.noosa.Image;
-import com.watabou.noosa.TextureFilm;
-import com.watabou.utils.RectF;
 
 public class TalentIcon extends Image {
 
-	private static TextureFilm film;
-	private static final int SIZE = 16;
+	public static final AtlasSource ATLAS_SOURCE =
+			new AtlasSource("interfaces/talents", "developing");
+	private static final RuntimeAtlas ATLAS = RuntimeAtlasRegistry.get(ATLAS_SOURCE);
 
 	public TalentIcon(Talent talent){
 		this(talent.icon());
 	}
 
-	public TalentIcon(int icon){
-		super( Assets.Interfaces.TALENT_ICONS );
-
-		if (film == null) film = new TextureFilm(texture, SIZE, SIZE);
-
-		RectF frame = film.get(icon);
-		if (frame == null) {
-			// 找不到图标时使用默认的"开发中"占位图标
-			GLog.w("天赋图标 %d 未找到，使用开发中占位图标", icon);
-			frame = film.get(0);
-			// 如果连索引0都不存在，创建一个空的默认帧防止崩溃
-			if (frame == null) {
-				GLog.w("天赋图标资源加载失败，请检查 talent_icons.png");
-				frame = new RectF(0f, 0f, 1f, 1f);
-			}
-		}
-		frame(frame);
+	public TalentIcon(String icon){
+		super();
+		AtlasFrame atlasFrame = ATLAS.frame(icon);
+		texture = atlasFrame.texture;
+		frame(atlasFrame.uv);
 	}
 
 }

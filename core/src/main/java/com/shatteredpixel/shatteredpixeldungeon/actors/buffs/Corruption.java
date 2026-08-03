@@ -71,7 +71,7 @@ public class Corruption extends AllyBuff {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return BuffIndicator.CORRUPT;
 	}
 

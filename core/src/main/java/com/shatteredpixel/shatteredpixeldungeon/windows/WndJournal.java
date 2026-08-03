@@ -280,7 +280,7 @@ public class WndJournal extends WndTabbed {
 		private RedButton[] pageButtons;
 		private static final int NUM_BUTTONS = 9;
 
-		private static final int[] sprites = {
+		private static final String[] sprites = {
 				ItemSpriteSheet.SEED_HOLDER,
 				ItemSpriteSheet.STONE_HOLDER,
 				ItemSpriteSheet.FOOD_HOLDER,

@@ -43,7 +43,7 @@ public class HolySpringUsedBuff extends Buff {
     }
 
     @Override
-    public int icon() {
+    public String icon() {
         return BuffIndicator.NONE; // 不显示图标
     }
 

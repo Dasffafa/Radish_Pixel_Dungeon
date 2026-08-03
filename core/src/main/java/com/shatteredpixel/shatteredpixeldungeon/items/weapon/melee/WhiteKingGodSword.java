@@ -18,7 +18,7 @@ public class WhiteKingGodSword extends MeleeWeapon {
 
     {
         tier = 3;
-        image = ItemSpriteSheet.DARTS+19;
+        image = ItemSpriteSheet.WHITE_KING_GOD_SWORD;
     }
 
     @Override

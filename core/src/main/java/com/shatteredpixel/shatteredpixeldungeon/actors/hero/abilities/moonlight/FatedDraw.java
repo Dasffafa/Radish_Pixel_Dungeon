@@ -78,7 +78,7 @@ public class FatedDraw extends ArmorAbility {
 		public int remainingChecks = 0;
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.BLESS;
 		}
 

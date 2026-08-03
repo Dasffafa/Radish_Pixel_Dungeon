@@ -88,7 +88,7 @@ public abstract class Scroll extends Item {
 	public static void clearLabels(){
 		handler = null;
 	}
-	private static final LinkedHashMap<String, Integer> runes = new LinkedHashMap<String, Integer>() {
+	private static final LinkedHashMap<String, String> runes = new LinkedHashMap<String, String>() {
 		{
 			put("KAUNAN",ItemSpriteSheet.SCROLL_KAUNAN);
 			put("SOWILO",ItemSpriteSheet.SCROLL_SOWILO);

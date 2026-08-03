@@ -62,6 +62,8 @@ android {
 
 configurations { natives }
 
+preBuild.dependsOn rootProject.tasks.named('generateRuntimeAtlasManifests')
+
 dependencies {
     implementation project(':core')
 

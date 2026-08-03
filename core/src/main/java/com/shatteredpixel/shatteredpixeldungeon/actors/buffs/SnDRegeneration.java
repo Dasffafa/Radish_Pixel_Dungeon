@@ -47,7 +47,7 @@ public class SnDRegeneration extends Buff {
     }
 
     @Override
-    public int icon() {
+    public String icon() {
         return BuffIndicator.HEALING;
     }
 

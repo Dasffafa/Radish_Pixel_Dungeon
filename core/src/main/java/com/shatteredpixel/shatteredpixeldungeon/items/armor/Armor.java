@@ -900,7 +900,7 @@ public class Armor extends EquipableItem {
 		BrokenSeal s = checkSeal();
 		if (s == null) return super.emitter();
 		Emitter emitter = new Emitter();
-		emitter.pos(ItemSpriteSheet.film.width(image)/2f + 2f, ItemSpriteSheet.film.height(image)/3f);
+		emitter.pos(ItemSprite.atlasFrame(image).width/2f + 2f, ItemSprite.atlasFrame(image).height/3f);
 		emitter.fillTarget = false;
 		emitter.pour(Speck.factory( Speck.RED_LIGHT ), 0.6f);
 		return emitter;

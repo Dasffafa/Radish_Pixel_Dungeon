@@ -161,7 +161,7 @@ public class CorruptSpirit extends Mob {
 		}
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.CORRUPT_SPIRIT;
 		}
 

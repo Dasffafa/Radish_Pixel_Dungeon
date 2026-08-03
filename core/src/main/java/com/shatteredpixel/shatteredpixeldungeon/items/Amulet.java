@@ -49,7 +49,7 @@ public class Amulet extends Item {
 		unique = true;
 	}
 	@Override
-	public int image() {
+	public String image() {
 		return Dungeon.isChallenged(Challenges.SNAKE_BITE) ?
 				ItemSpriteSheet.SNAKE_BITED_YENDOR : image;
 	}

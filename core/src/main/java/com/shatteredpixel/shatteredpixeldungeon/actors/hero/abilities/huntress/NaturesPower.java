@@ -85,7 +85,7 @@ public class NaturesPower extends ArmorAbility {
 		}
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return BuffIndicator.NATURE_POWER;
 		}
 

@@ -80,7 +80,7 @@ public class Endure extends ArmorAbility {
 		public int hitsLeft = 0;
 
 		@Override
-		public int icon() {
+		public String icon() {
 			return enduring ? BuffIndicator.NONE : BuffIndicator.ARMOR;
 		}
 
