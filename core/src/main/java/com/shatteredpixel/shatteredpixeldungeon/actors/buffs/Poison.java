@@ -88,6 +88,9 @@ public class Poison extends Buff implements Hero.Doom {
 
         @Override
         public boolean attachTo(Char target) {
+				if (target == Dungeon.hero && com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects.poisonImmune()) {
+					return false;
+				}
                 if (super.attachTo(target) && target.sprite != null){
                         CellEmitter.center(target.pos).burst( PoisonParticle.SPLASH, 5 );
                         return true;

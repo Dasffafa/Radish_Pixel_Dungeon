@@ -2,7 +2,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.utils.Bundle;
@@ -12,7 +11,7 @@ import com.watabou.utils.Bundle;
  */
 public class MercuryBuff extends Buff {
 
-	public static final int[] SHIELD_INTERVALS = {5, 4, 3, 2};
+	public static final int SHIELD_INTERVAL = 5;
 
 	{
 		type = buffType.POSITIVE;
@@ -21,9 +20,7 @@ public class MercuryBuff extends Buff {
 	private int turnCounter = 0;
 
 	public static int getShieldInterval() {
-		int betterItem = Dungeon.hero == null ? 0 : Dungeon.hero.pointsInTalent(Talent.BETTER_ITEM);
-		int lvl = Math.max(0, Math.min(betterItem - 1, SHIELD_INTERVALS.length - 1));
-		return SHIELD_INTERVALS[lvl];
+		return SHIELD_INTERVAL;
 	}
 
 	@Override

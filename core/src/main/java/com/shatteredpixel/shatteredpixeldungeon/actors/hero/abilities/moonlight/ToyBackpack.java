@@ -33,6 +33,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
+
+import java.util.ArrayList;
 
 /**
  * 玩具背包护甲技能
@@ -46,8 +50,22 @@ public class ToyBackpack extends ArmorAbility {
 
 	@Override
 	protected void activate(ClassArmor armor, Hero hero, Integer target) {
+		requestGeneration(armor, hero);
+	}
+
+	public void requestGeneration(ClassArmor armor, Hero hero) {
+		ArrayList<Armor.ToyRef> toys = Armor.ownedToys(hero);
+		if (toys.size() >= 5) {
+			GameScene.show(new WndDestroyToy(armor, hero, toys));
+			return;
+		}
+		finishGeneration(armor, hero);
+	}
+
+	private void finishGeneration(ClassArmor armor, Hero hero) {
 		ItemArmorAttachable toy = armor.generateRandomToy();
 		if (toy == null) return;
+		com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects.onAbilityUsed(hero);
 
 		armor.charge -= chargeUse(hero);
 		armor.updateQuickslot();
@@ -55,11 +73,36 @@ public class ToyBackpack extends ArmorAbility {
 
 		GLog.p(Messages.get(Armor.class, "toy_generated", toy.name()));
 		if (!toy.collect(hero.belongings.backpack)) {
-			Dungeon.level.drop(toy, hero.pos).sprite.drop();
+			if (toy instanceof com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal) {
+				Dungeon.level.drop(toy, hero.pos).sprite.drop();
+			} else {
+				 toy.vanishOnGround(false, hero.pos);
+			}
 		}
 
 		hero.sprite.operate(hero.pos);
 		hero.spendAndNext(Actor.TICK);
+	}
+
+	private class WndDestroyToy extends WndOptions {
+		private final ClassArmor armor;
+		private final Hero hero;
+		private final ArrayList<Armor.ToyRef> toys;
+
+		private WndDestroyToy(ClassArmor armor, Hero hero, ArrayList<Armor.ToyRef> toys) {
+			super(Messages.get(ToyBackpack.class, "destroy_title"),
+					Messages.get(ToyBackpack.class, "destroy_message"),
+					toys.stream().map(ref -> ref.toy.name()).toArray(String[]::new));
+			this.armor = armor;
+			this.hero = hero;
+			this.toys = toys;
+		}
+
+		@Override protected void onSelect(int index) {
+			if (index < 0 || index >= toys.size()) return;
+			toys.get(index).destroy(hero);
+			finishGeneration(armor, hero);
+		}
 	}
 
 	@Override

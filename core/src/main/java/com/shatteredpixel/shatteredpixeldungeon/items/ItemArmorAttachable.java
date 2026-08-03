@@ -25,6 +25,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -76,6 +78,38 @@ public abstract class ItemArmorAttachable extends Item {
 		}
 	}
 
+	@Override
+	public void doDrop(Hero hero) {
+		if (this instanceof BrokenSeal) {
+			super.doDrop(hero);
+			return;
+		}
+		detachAll(hero.belongings.backpack);
+		hero.spendAndNext(TIME_TO_DROP);
+		vanishOnGround(false, hero.pos);
+	}
+
+	@Override
+	protected void onThrow(int cell) {
+		if (this instanceof BrokenSeal) {
+			super.onThrow(cell);
+		} else {
+			vanishOnGround(false, cell);
+		}
+	}
+
+	public void vanishOnGround(boolean capacityOverflow, int cell) {
+		if (this instanceof BrokenSeal) return;
+		if (Dungeon.hero != null && Dungeon.hero.sprite != null && Dungeon.hero.sprite.parent != null) {
+			new Flare(6, 32).show(Dungeon.hero.sprite.parent,
+					DungeonTilemap.raisedTileCenterToWorld(cell), 2f);
+		}
+		if (capacityOverflow) GLog.w(Messages.get(ItemArmorAttachable.class, "cannot_hang", name()));
+		GLog.w(Messages.get(ItemArmorAttachable.class, "vanished"));
+		quantity(0);
+		updateQuickslot();
+	}
+
 	/**
 	 * 将玩具附着到护甲上。由 Armor.attachToy() 调用。
 	 */
@@ -88,8 +122,10 @@ public abstract class ItemArmorAttachable extends Item {
 	 */
 	public void detachFromArmor(Hero hero) {
 		if (attachedTo != null) {
-			attachedTo = null;
-			removeEffect(hero);
+			Armor armor = attachedTo;
+			int index = armor.getToys().indexOf(this);
+			armor.detachToy(index);
+			armor.dropExcessToysAfterCapacityChange(hero);
 			if (hero != null && !hero.belongings.backpack.contains(this)) {
 				collect(hero.belongings.backpack);
 				GLog.i(Messages.get(this, "detached", name()));
@@ -109,6 +145,10 @@ public abstract class ItemArmorAttachable extends Item {
 
 	// attachedTo 引用当前附着到的护甲（运行时）
 	public transient Armor attachedTo;
+
+	public int tier() {
+		return 1;
+	}
 
 	@Override
 	public void storeInBundle(Bundle bundle) {
@@ -153,9 +193,7 @@ public abstract class ItemArmorAttachable extends Item {
 			ItemArmorAttachable toy = (ItemArmorAttachable) curItem;
 			if (item instanceof Armor) {
 				Armor armor = (Armor) item;
-				armor.attachToy(toy);
-				toy.detach(Dungeon.hero.belongings.backpack); // 从背包移除
-				GLog.p(Messages.get(ItemArmorAttachable.class, "attached", toy.name(), armor.name()));
+				armor.requestAttachToy(Dungeon.hero, toy);
 				Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.UNLOCK);
 			}
 		}

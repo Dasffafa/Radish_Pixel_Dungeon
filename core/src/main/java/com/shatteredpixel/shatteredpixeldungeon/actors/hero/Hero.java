@@ -108,6 +108,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourg
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.CrystalKey;
+import com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.IronKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.Key;
@@ -347,6 +348,7 @@ public class Hero extends Char {
 		if(belongings.misc instanceof InversionBeta || belongings.ring instanceof InversionBeta){
 			HT = InversionBeta.betaHP(this);
 		}
+		HT = TieredToyEffects.adjustMaxHealth(HT);
 
 		HP = Math.min(HP, HT);
 	}
@@ -1905,6 +1907,8 @@ public class Hero extends Char {
 			berserk.damage(damage);
 		}
 
+		damage = TieredToyEffects.attackProc(this, enemy, damage);
+
 		return damage;
 	}
 
@@ -2139,7 +2143,16 @@ public class Hero extends Char {
 								Dungeon.depth > 5 ? 3 : 1;
 		dmg = (Dungeon.isChallenged(Challenges.BAD_POINT) && dmg <= minDmg && src instanceof Mob) ? minDmg : dmg;
 
+		if (TieredToyEffects.preventDeath(this, dmg)) {
+			dmg = Math.max(0, HP + shielding() - 1);
+		}
 		super.damage( dmg, src );
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TieredToyBuff toyState = buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TieredToyBuff.class);
+		if (dmg > 0 && isAlive() && TieredToyEffects.has(com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToy.Spinach.class)
+				&& toyState != null && !toyState.spinachUsed()) {
+			toyState.useSpinach();
+			TieredToyEffects.heal(this, 30);
+		}
 		int postHP = HP + shielding();
 		int effectiveDamage = preHP - postHP;
 		int trueDamage=preTrueHP-HP;
@@ -2904,6 +2917,9 @@ public class Hero extends Char {
 		// DoggingDog on 20250818
 		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){
 			Buff.affect(hero, Adrenaline.class,2f+hero.pointsInTalent(Talent.ADRENAL_COMBAT));
+		}
+		if (!enemy.isAlive() && wasEnemy) {
+			TieredToyEffects.onKill(this);
 		}
 		//
 

@@ -730,6 +730,8 @@ public class Item implements Bundlable {
 
 		Char enemy = Actor.findChar( cell );
 		QuickSlotButton.target(enemy);
+		final MissileWeapon.SplitShot splitShot = this instanceof MissileWeapon
+				? ((MissileWeapon) this).launchSplitProjectiles(user, cell) : null;
 		
 		final float delay = castDelay(user, dst);
 
@@ -743,7 +745,9 @@ public class Item implements Bundlable {
 						public void call() {
 							curUser = user;
 							Item i = Item.this.detach(user.belongings.backpack);
+							if (i instanceof MissileWeapon) ((MissileWeapon) i).bindSplitShot(splitShot);
 							if (i != null) i.onThrow(cell);
+							if (i instanceof MissileWeapon) ((MissileWeapon) i).finishPendingSplitShot();
 							if (curUser.hasTalent(Talent.IMPROVISED_PROJECTILES)
 									&& !(Item.this instanceof MissileWeapon)
 									&& curUser.buff(Talent.ImprovisedProjectileCooldown.class) == null){
@@ -791,8 +795,10 @@ public class Item implements Bundlable {
 						public void call() {
 							curUser = user;
 							Item i = Item.this.detach(user.belongings.backpack);
+							if (i instanceof MissileWeapon) ((MissileWeapon) i).bindSplitShot(splitShot);
 							user.spend(delay);
 							if (i != null) i.onThrow(cell);
+							if (i instanceof MissileWeapon) ((MissileWeapon) i).finishPendingSplitShot();
 							user.next();
 						}
 					});

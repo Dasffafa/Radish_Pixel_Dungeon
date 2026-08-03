@@ -303,6 +303,10 @@ public class Potion extends Item {
 		hero.spend( TIME_TO_DRINK );
 		hero.busy();
 		apply( hero );
+		if (com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects.has(
+				com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToy.BlessedWater.class)) {
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects.heal(hero, 10);
+		}
 
 		// 发射饮用药水事件
 		EventManager.emit(new DrinkPotionEvent(hero, this));

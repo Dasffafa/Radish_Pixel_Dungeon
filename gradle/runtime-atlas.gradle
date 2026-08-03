@@ -22,7 +22,7 @@ def javaStringConstants = { File sourceFile, String before = null ->
 
 def talentNames = { File sourceFile ->
     def source = sourceFile.getText('UTF-8')
-    def body = source.split('public enum Talent \{', 2)[1].split('ERROR;', 2)[0]
+    def body = source.split('public enum Talent \\{', 2)[1].split('ERROR;', 2)[0]
     body = body.replaceAll(/(?s)\/\*.*?\*\/|\/\/[^\n]*/, '')
 
     def names = [] as Set

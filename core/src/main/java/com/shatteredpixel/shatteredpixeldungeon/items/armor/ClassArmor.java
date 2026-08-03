@@ -194,6 +194,9 @@ abstract public class ClassArmor extends Armor {
 				GLog.w( Messages.get(this, "low_charge") );
 			} else  {
 				usesTargeting = hero.armorAbility.useTargeting();
+				if (!(hero.armorAbility instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack)) {
+					com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects.onAbilityUsed(hero);
+				}
 				hero.armorAbility.use(this, hero);
 			}
 

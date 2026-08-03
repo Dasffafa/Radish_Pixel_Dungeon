@@ -65,6 +65,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EndGuard;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Morello;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -498,6 +499,7 @@ public abstract class Wand extends Item {
 		updateQuickslot();
 	}
 	public void wandUsed() {
+		TieredToyEffects.onAbilityUsed(hero);
 
 		if (hero.subClass == HeroSubClass.DICE_MAGE){
 			Buff.affect(hero, MagicPoint.class).addPoints(0.5f + buffedLvl() * 0.05f);

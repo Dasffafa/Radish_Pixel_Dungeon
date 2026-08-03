@@ -49,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.toys.ClumsyShoes;
+import com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToy;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ParchmentScrap;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
@@ -254,19 +255,10 @@ public class Armor extends EquipableItem {
 			GameScene.show(new WndDetachItems(hero, this));
 
 		} else if (action.equals(AC_ATTACH)) {
-			// 消耗护甲充能生成随机玩具
 			if (this instanceof ClassArmor
 					&& hero.armorAbility instanceof ToyBackpack
 					&& ((ClassArmor)this).charge >= hero.armorAbility.chargeUse(hero)) {
-				((ClassArmor)this).charge -= hero.armorAbility.chargeUse(hero);
-				((ClassArmor)this).updateQuickslot();
-				ItemArmorAttachable toy = generateRandomToy();
-				if (toy != null) {
-					GLog.p(Messages.get(Armor.class, "toy_generated", toy.name()));
-					if (!toy.collect(hero.belongings.backpack)) {
-						Dungeon.level.drop(toy, hero.pos).sprite.drop();
-					}
-				}
+				((ToyBackpack) hero.armorAbility).requestGeneration((ClassArmor) this, hero);
 			}
 
 		} else if (action.equals(AC_TOY)) {
@@ -352,8 +344,7 @@ public class Armor extends EquipableItem {
 	 */
 	public ItemArmorAttachable generateRandomToy() {
 		try {
-			// 所有玩具类列表
-			Class<? extends ItemArmorAttachable>[] toyClasses = new Class[]{
+			Class<? extends ItemArmorAttachable>[] tierOne = new Class[]{
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.Scar.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.IronHeart.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.Arrow.class,
@@ -368,7 +359,17 @@ public class Armor extends EquipableItem {
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.MagicWand.class,
 				com.shatteredpixel.shatteredpixeldungeon.items.toys.ShieldToy.class,
 			};
-			Class<? extends ItemArmorAttachable> cls = Random.oneOf(toyClasses);
+			Class<? extends ItemArmorAttachable>[][] pools = new Class[][]{
+				tierOne,
+				{TieredToy.Buckler.class, TieredToy.TwinDaggers.class, TieredToy.BlessedWater.class, TieredToy.Spinach.class, TieredToy.Terrarium.class},
+				{TieredToy.Harpoon.class, TieredToy.EnchantedShield.class, TieredToy.IronPendant.class, TieredToy.Shortsword.class, TieredToy.BloodChalice.class},
+				{TieredToy.CrackedPlate.class, TieredToy.LifeBolt.class, TieredToy.SplittingArrows.class, TieredToy.HissingRing.class, TieredToy.Antivenom.class},
+				{TieredToy.Ambrosia.class, TieredToy.Nunchaku.class, TieredToy.Sponge.class, TieredToy.MiniCrossbow.class, TieredToy.Doomblade.class, TieredToy.BagOfHolding.class},
+				{TieredToy.BlindingBolt.class, TieredToy.Hourglass.class, TieredToy.GhostShield.class, TieredToy.ToothNecklace.class, TieredToy.Determination.class}
+			};
+			int talent = Dungeon.hero == null ? 0 : Dungeon.hero.pointsInTalent(Talent.BETTER_ITEM);
+			int tier = Random.IntRange(1 + talent, 2 + talent);
+			Class<? extends ItemArmorAttachable> cls = Random.oneOf(pools[tier - 1]);
 			ItemArmorAttachable toy = cls.getDeclaredConstructor().newInstance();
 			if (toy != null) {
 				toy.identify();
@@ -388,6 +389,90 @@ public class Armor extends EquipableItem {
 		if (Dungeon.hero != null && isEquipped(Dungeon.hero)) {
 			toy.applyEffect(Dungeon.hero);
 		}
+	}
+
+	public int toyCapacity() {
+		return hasToy(TieredToy.BagOfHolding.class) ? 4 : 2;
+	}
+
+	public static class ToyRef {
+		public final ItemArmorAttachable toy;
+		private final Armor armor;
+		private ToyRef(ItemArmorAttachable toy, Armor armor) { this.toy = toy; this.armor = armor; }
+		public void destroy(Hero hero) {
+			if (armor != null) {
+				int index = armor.attachedToys.indexOf(toy);
+				if (index >= 0) armor.detachToy(index);
+				armor.dropExcessToys(hero);
+			} else {
+				toy.detachAll(hero.belongings.backpack);
+			}
+		}
+	}
+
+	public static ArrayList<ToyRef> ownedToys(Hero hero) {
+		ArrayList<ToyRef> result = new ArrayList<>();
+		collectToyRefs(hero.belongings.backpack, result);
+		if (hero.belongings.armor != null) addArmorToyRefs(hero.belongings.armor, result);
+		return result;
+	}
+
+	private static void collectToyRefs(Bag bag, ArrayList<ToyRef> result) {
+		for (Item item : bag.items) {
+			if (item instanceof ItemArmorAttachable) result.add(new ToyRef((ItemArmorAttachable) item, null));
+			if (item instanceof Armor) addArmorToyRefs((Armor) item, result);
+			if (item instanceof Bag) collectToyRefs((Bag) item, result);
+		}
+	}
+
+	private static void addArmorToyRefs(Armor armor, ArrayList<ToyRef> result) {
+		for (ItemArmorAttachable toy : armor.attachedToys) {
+			boolean present = false;
+			for (ToyRef ref : result) if (ref.toy == toy) { present = true; break; }
+			if (!present) result.add(new ToyRef(toy, armor));
+		}
+	}
+
+	public void requestAttachToy(Hero hero, ItemArmorAttachable toy) {
+		if (attachedToys.size() < toyCapacity()) {
+			completeToyAttachment(hero, toy);
+		} else {
+			GameScene.show(new WndReplaceToy(hero, this, toy));
+		}
+	}
+
+	private void completeToyAttachment(Hero hero, ItemArmorAttachable toy) {
+		attachToy(toy);
+		toy.detach(hero.belongings.backpack);
+		GLog.p(Messages.get(ItemArmorAttachable.class, "attached", toy.name(), name()));
+	}
+
+	private void returnToy(Hero hero, ItemArmorAttachable toy) {
+		if (!toy.collect(hero.belongings.backpack)) {
+			if (toy instanceof BrokenSeal) Dungeon.level.drop(toy, hero.pos).sprite.drop();
+			else toy.vanishOnGround(false, hero.pos);
+		}
+	}
+
+	private void replaceToy(Hero hero, int index, ItemArmorAttachable replacement) {
+		ItemArmorAttachable removed = attachedToys.get(index);
+		detachToy(index);
+		returnToy(hero, removed);
+		completeToyAttachment(hero, replacement);
+		dropExcessToys(hero);
+	}
+
+	private void dropExcessToys(Hero hero) {
+		while (attachedToys.size() > toyCapacity()) {
+			ItemArmorAttachable removed = attachedToys.get(2);
+			detachToy(2);
+			if (removed instanceof BrokenSeal) Dungeon.level.drop(removed, hero.pos).sprite.drop();
+			else removed.vanishOnGround(true, hero.pos);
+		}
+	}
+
+	public void dropExcessToysAfterCapacityChange(Hero hero) {
+		if (hero != null) dropExcessToys(hero);
 	}
 
 	/**
@@ -464,6 +549,25 @@ public class Armor extends EquipableItem {
 
 	// ========== 窗口类 ==========
 
+	public class WndReplaceToy extends WndOptions {
+		private final Hero hero;
+		private final Armor armor;
+		private final ItemArmorAttachable replacement;
+
+		public WndReplaceToy(Hero hero, Armor armor, ItemArmorAttachable replacement) {
+			super(Messages.get(Armor.class, "replace_toy_title"),
+					Messages.get(Armor.class, "replace_toy_message", replacement.name()),
+					armor.attachedToys.stream().map(ItemArmorAttachable::name).toArray(String[]::new));
+			this.hero = hero;
+			this.armor = armor;
+			this.replacement = replacement;
+		}
+
+		@Override protected void onSelect(int index) {
+			if (index >= 0 && index < armor.attachedToys.size()) armor.replaceToy(hero, index, replacement);
+		}
+	}
+
 	/**
 	 * 卸下附着物品窗口
 	 */
@@ -493,11 +597,13 @@ public class Armor extends EquipableItem {
 			} else {
 				armor.detachToy(index);
 			}
+			armor.dropExcessToys(hero);
 
 			GLog.i(Messages.get(Armor.class, "detached_toy", item.name()));
 			hero.sprite.operate(hero.pos);
 			if (!item.collect()) {
-				Dungeon.level.drop(item, hero.pos).sprite.drop();
+				if (item instanceof BrokenSeal) Dungeon.level.drop(item, hero.pos).sprite.drop();
+				else item.vanishOnGround(false, hero.pos);
 			}
 		}
 	}
@@ -521,6 +627,7 @@ public class Armor extends EquipableItem {
 		StringBuilder sb = new StringBuilder();
 		int currentCharge = armor instanceof ClassArmor ? (int)Math.floor(((ClassArmor)armor).charge) : armor.toyCharge;
 		sb.append(Messages.get(Armor.class, "toy_backpack_charge", currentCharge, TOY_CHARGE_COST));
+		sb.append("\n").append(Messages.get(Armor.class, "toy_backpack_slots", armor.toyCount(), armor.toyCapacity()));
 		sb.append("\n\n");
 		if (armor.attachedToys.isEmpty()) {
 			sb.append(Messages.get(Armor.class, "toy_backpack_empty"));
