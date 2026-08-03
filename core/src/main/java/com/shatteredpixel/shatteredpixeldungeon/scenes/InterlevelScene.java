@@ -649,21 +649,7 @@ public class InterlevelScene extends PixelScene {
 			
 			Dungeon.saveAll();
 
-			Level level;
-			Dungeon.depth = curTransition.destDepth;
-			// 空值安全：如果 destBranchId 为 null，默认为主线
-			Dungeon.branchId = curTransition.destBranchId != null ? curTransition.destBranchId : Branches.MAIN;
-
-			if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
-				level = Dungeon.loadLevel( GamesInProgress.curSlot );
-			} else {
-				level = Dungeon.newLevel();
-			}
-
-			// 查找目标楼梯
-			LevelTransition destTransition = level.getTransition(curTransition.destType, curTransition.branchId);
-			curTransition = null;
-			Dungeon.switchLevel( level, destTransition.cell() );
+			travel();
 		}
 
 	}
@@ -689,38 +675,38 @@ public class InterlevelScene extends PixelScene {
 	private void ascend() throws IOException {
 		Mob.holdAllies( Dungeon.level );
 		Dungeon.saveAll();
+		travel();
+	}
 
-		Level level;
-		Dungeon.depth = curTransition.destDepth;
-		// 空值安全：如果 destBranchId 为 null，默认为主线
-		Dungeon.branchId = curTransition.destBranchId != null ? curTransition.destBranchId : Branches.MAIN;
+	private void travel() throws IOException {
+		LevelTransition source = curTransition;
+		if (source == null) throw new IllegalStateException("Missing source transition");
 
-		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
-			level = Dungeon.loadLevel( GamesInProgress.curSlot );
-		} else {
-			level = Dungeon.newLevel();
+		String sourceBranch = Dungeon.branchId;
+		int sourceDepth = Dungeon.depth;
+		Level level = Dungeon.loadOrCreateLevel(GamesInProgress.curSlot, source.destBranch, source.destDepth);
+		LevelTransition arrival = level.requireTransition(source.linkId);
+
+		if (!sourceBranch.equals(arrival.destBranch) || sourceDepth != arrival.destDepth) {
+			throw new IllegalStateException("Transition " + source.linkId + " does not point back to "
+					+ sourceBranch + ":" + sourceDepth);
+		}
+		if (arrival.direction != source.direction.opposite()) {
+			throw new IllegalStateException("Transition " + source.linkId + " has invalid directions");
 		}
 
-		// 查找目标楼梯
-		LevelTransition destTransition = level.getTransition(curTransition.destType, curTransition.branchId);
 		curTransition = null;
-		Dungeon.switchLevel( level, destTransition.cell() );
+		Dungeon.switchLevel(level, arrival.cell());
 	}
 
 	private void returnTo() throws IOException {
 		Mob.holdAllies( Dungeon.level );
 		Dungeon.saveAll();
 
-		Level level;
-		Dungeon.depth = returnDepth;
-		Dungeon.branchId = returnBranchId;
-		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
-			level = Dungeon.loadLevel( GamesInProgress.curSlot );
-		} else {
-			level = Dungeon.newLevel();
-		}
-
-		Dungeon.switchLevel( level, returnPos );
+		Level level = Dungeon.loadOrCreateLevel(GamesInProgress.curSlot, returnBranchId, returnDepth);
+		int destination = returnPos;
+		if (destination == -1) destination = level.entrance();
+		Dungeon.switchLevel(level, destination);
 	}
 
 	private void restore() throws IOException {

@@ -68,16 +68,10 @@ public class MossEntranceRoom extends StandardRoom {
 
         // 创建从主线进入苔藓分支的楼梯（BRANCH_ENTRANCE）
         // 返回主线第2层
-        LevelTransition transition = new LevelTransition(
-                level, entranceCell,
-                LevelTransition.Type.BRANCH_ENTRANCE,
-                2,  // 返回主线第2层
-                Branches.MAIN,
-                LevelTransition.Type.BRANCH_ENTRANCE
-        );
-        transition.branchId = Branches.MOSS;  // 此楼梯属于 moss 分支
+        LevelTransition transition = LevelTransition.branchUp(level, entranceCell,
+                "moss:main-2", Branches.MAIN, 2);
         level.transitions.add(transition);
-        Painter.set(level, entranceCell, Terrain.EXIT);
+        Painter.set(level, entranceCell, Terrain.ENTRANCE);
 
         // 添加视觉效果（复用 MOSS_ENTER）
         MossPortalVisual vis = new MossPortalVisual();

@@ -575,7 +575,8 @@ public abstract class Level implements Bundlable {
 	abstract protected void createItems();
 
 	public int entrance(){
-		LevelTransition l = getTransition(null);
+		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.UP);
+		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.SURFACE);
 		if (l != null){
 			return l.cell();
 		}
@@ -583,7 +584,7 @@ public abstract class Level implements Bundlable {
 	}
 
 	public int exit(){
-		LevelTransition l = getTransition(LevelTransition.Type.REGULAR_EXIT);
+		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.DOWN);
 		if (l != null){
 			return l.cell();
 		}
@@ -608,6 +609,13 @@ public abstract class Level implements Bundlable {
 		return type != null ? getTransition(null) : transitions.get(0);
 	}
 
+	public LevelTransition getTransitionByDirection(LevelTransition.Direction direction){
+		for (LevelTransition transition : transitions) {
+			if (transition.direction == direction) return transition;
+		}
+		return null;
+	}
+
 	public LevelTransition getTransition(int cell){
 		for (LevelTransition transition : transitions){
 			if (transition.inside(cell)){
@@ -617,19 +625,18 @@ public abstract class Level implements Bundlable {
 		return null;
 	}
 
-	// 按类型和分支精确查找
-	public LevelTransition getTransition(LevelTransition.Type type, String branchId){
-		if (transitions.isEmpty()){
-			return null;
-		}
+	public LevelTransition requireTransition(String linkId){
+		LevelTransition result = null;
 		for (LevelTransition transition : transitions){
-			boolean branchMatches = (branchId == null && transition.branchId == null) 
-				|| (branchId != null && branchId.equals(transition.branchId));
-			if (transition.type == type && branchMatches){
-				return transition;
+			if (linkId.equals(transition.linkId)) {
+				if (result != null) throw new IllegalStateException("Duplicate transition " + linkId
+						+ " on " + Dungeon.branchId + ":" + Dungeon.depth);
+				result = transition;
 			}
 		}
-		return getTransition(type);
+		if (result == null) throw new IllegalStateException("Missing transition " + linkId
+				+ " on " + Dungeon.branchId + ":" + Dungeon.depth);
+		return result;
 	}
 	/**
 	 * 找一个合适的位置放置分支入口楼梯
@@ -654,7 +661,7 @@ public abstract class Level implements Bundlable {
 		
 		// 检查是否有下一层
 		Branch branch = Branches.get(Dungeon.branchId);
-		if (branch != null && branch.hasMoreDepth(Dungeon.depth + 1)) {
+		if (branch != null && branch.hasMoreDepth(Dungeon.depth)) {
 			// 有下一层，保留 Chasm
 			return;
 		}
@@ -675,8 +682,7 @@ public abstract class Level implements Bundlable {
 
 		beforeTransition();
 		InterlevelScene.curTransition = transition;
-		if (transition.type == LevelTransition.Type.REGULAR_EXIT
-				|| transition.type == LevelTransition.Type.BRANCH_EXIT) {
+		if (transition.direction == LevelTransition.Direction.DOWN) {
 			InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
 		} else {
 			InterlevelScene.mode = InterlevelScene.Mode.ASCEND;

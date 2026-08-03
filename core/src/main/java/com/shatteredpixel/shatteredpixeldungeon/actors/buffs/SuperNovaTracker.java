@@ -174,15 +174,7 @@ public class SuperNovaTracker extends Buff {
         super.restoreFromBundle(bundle);
         pos = bundle.getInt(POS);
         depth = bundle.getInt(DEPTH);
-        // 兼容旧存档
-        if (bundle.contains(BRANCH_ID)) {
-            branchId = bundle.getString(BRANCH_ID);
-        } else if (bundle.contains("branch")) {
-            int oldBranch = bundle.getInt("branch");
-            branchId = oldBranch == 0 ? Branches.MAIN : (oldBranch == 1 ? Branches.MINING : Branches.MOSS);
-        } else {
-            branchId = Branches.MAIN;
-        }
+		branchId = bundle.getString(BRANCH_ID);
         turnsLeft = bundle.getInt(LEFT);
         harmsAllies = bundle.getBoolean(HARMS_ALLIES);
     }

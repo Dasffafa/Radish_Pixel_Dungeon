@@ -277,6 +277,7 @@ public class Blacksmith extends NPC {
 		private static boolean started;
 		private static boolean bossBeaten;
 		private static boolean completed;
+		private static int entranceDepth;
 
 		//reward tracking. Stores remaining favor, the pickaxe, and how many of each reward has been chosen
 		public static int favor;
@@ -300,6 +301,7 @@ public class Blacksmith extends NPC {
 			started     = false;
 			bossBeaten  = false;
 			completed	= false;
+			entranceDepth = -1;
 
 			favor       = 0;
 			pickaxe     = new Pickaxe().identify();
@@ -323,6 +325,7 @@ public class Blacksmith extends NPC {
 		private static final String STARTED		= "started";
 		private static final String BOSS_BEATEN	= "boss_beaten";
 		private static final String COMPLETED	= "completed";
+		private static final String ENTRANCE_DEPTH = "entrance_depth";
 
 		private static final String FAVOR	    = "favor";
 		private static final String PICKAXE	    = "pickaxe";
@@ -348,6 +351,7 @@ public class Blacksmith extends NPC {
 				node.put( STARTED, started );
 				node.put( BOSS_BEATEN, bossBeaten );
 				node.put( COMPLETED, completed );
+				node.put( ENTRANCE_DEPTH, entranceDepth );
 
 				node.put( FAVOR, favor );
 				if (pickaxe != null) node.put( PICKAXE, pickaxe );
@@ -379,7 +383,8 @@ public class Blacksmith extends NPC {
 				given = node.getBoolean( GIVEN );
 				started = node.getBoolean( STARTED );
 				bossBeaten = node.getBoolean( BOSS_BEATEN );
-				completed = node.getBoolean( COMPLETED );
+					completed = node.getBoolean( COMPLETED );
+					entranceDepth = node.getInt( ENTRANCE_DEPTH );
 
 				favor = node.getInt( FAVOR );
 				if (node.contains(PICKAXE)) {
@@ -413,8 +418,9 @@ public class Blacksmith extends NPC {
 		public static ArrayList<Room> spawn( ArrayList<Room> rooms ) {
 			if (!spawned && Dungeon.depth > 11 && Random.Int( 15 - Dungeon.depth ) == 0) {
 				
-				rooms.add(new BlacksmithRoom());
-				spawned = true;
+					rooms.add(new BlacksmithRoom());
+					spawned = true;
+					entranceDepth = Dungeon.depth;
 
 				//Currently cannot roll the fungi quest, as it is not fully implemented
 				type = Random.IntRange(1, 2);
@@ -425,6 +431,10 @@ public class Blacksmith extends NPC {
 				
 			}
 			return rooms;
+		}
+
+		public static int entranceDepth() {
+			return entranceDepth;
 		}
 
 		public static void generateRewards( boolean useDecks ){

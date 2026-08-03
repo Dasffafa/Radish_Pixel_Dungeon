@@ -214,15 +214,7 @@ public class BeaconOfReturning extends Spell {
 		super.restoreFromBundle(bundle);
 		returnDepth	= bundle.getInt( DEPTH );
 		returnPos	= bundle.getInt( POS );
-		// 兼容旧存档
-		if (bundle.contains(BRANCH_ID)) {
-			returnBranchId = bundle.getString(BRANCH_ID);
-		} else if (bundle.contains("branch")) {
-			int oldBranch = bundle.getInt("branch");
-			returnBranchId = oldBranch == 0 ? Branches.MAIN : (oldBranch == 1 ? Branches.MINING : Branches.MOSS);
-		} else {
-			returnBranchId = Branches.MAIN;
-		}
+		returnBranchId = bundle.getString(BRANCH_ID);
 	}
 	
 	@Override

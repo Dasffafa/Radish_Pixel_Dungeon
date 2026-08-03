@@ -45,7 +45,6 @@ public class Bones {
 	
 	private static final String LEVEL	= "level";
 	private static final String BRANCH_ID	= "branch_id";
-	private static final String BRANCH	= "branch";  // 兼容旧存档
 	private static final String ITEM	= "item";
 	private static final String HERO_CLASS	= "hero_class";
 
@@ -167,15 +166,7 @@ public class Bones {
 
 				depth = bundle.getInt( LEVEL );
 				
-				// 兼容旧存档
-				if (bundle.contains(BRANCH_ID)) {
 					branchId = bundle.getString(BRANCH_ID);
-				} else if (bundle.contains(BRANCH)) {
-					int oldBranch = bundle.getInt(BRANCH);
-					branchId = oldBranch == 0 ? Branches.MAIN : (oldBranch == 1 ? Branches.MINING : Branches.MOSS);
-				} else {
-					branchId = Branches.MAIN;
-				}
 				
 				if (depth > 0) {
 					if (bundle.contains(ITEM)) {

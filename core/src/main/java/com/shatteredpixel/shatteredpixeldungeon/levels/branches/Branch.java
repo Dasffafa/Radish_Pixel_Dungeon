@@ -45,8 +45,8 @@ public class Branch {
         if (depth < 1 || depth > maxDepth) {
             return null;
         }
-        try {
-            return levelClasses[depth].newInstance();
+		try {
+			return levelClasses[depth].getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Failed to create level for branch=" + id + " depth=" + depth, e);
         }

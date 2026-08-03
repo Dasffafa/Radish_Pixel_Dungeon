@@ -1,328 +1,243 @@
-# 支线系统整改计划 v4（简化版）
+# 分支楼层开发指南
 
-## 一、核心需求
+本文档描述当前项目的分支与楼梯系统。添加新支线时以本文档和当前代码为准，不要恢复旧的 `destType`、`destBranchId`、整数 `branch` 或模糊楼梯匹配逻辑。
 
-- 一层可以有多个下楼楼梯
-- 每个楼梯有**固定目标楼层**和**目标楼梯 ID**
-- 目标楼层生成时，**根据已记录的信息**创建对应楼梯
-- 双向精确导航
+## 核心规则
 
----
+- 一个楼层由 `branchId + depth` 唯一确定，不使用额外的 Floor ID。
+- 每个分支的层数独立计算，从 `1` 开始。
+- 一条双向楼梯连接的两端使用相同且稳定的 `linkId`。
+- `UP` 表示上楼，地形使用 `Terrain.ENTRANCE`。
+- `DOWN` 表示下楼，地形使用 `Terrain.EXIT`。
+- 连接两端必须方向相反、目标互相指回。
+- 同一楼层内，一个 `linkId` 只能出现一次。
+- 目标楼层没有生成时，系统会先生成它，再按 `linkId` 查找对应楼梯。
+- 找不到、找到多个或反向信息不一致时立即报错，不会回退到其他楼梯。
 
-## 二、核心设计
+相关实现：
 
-### 2.1 LevelTransition 增强
+- `levels/branches/Branch.java`：单个分支配置。
+- `levels/branches/Branches.java`：分支注册表。
+- `levels/features/LevelTransition.java`：楼梯数据与创建方法。
+- `levels/Level.java`：楼梯激活与严格查询。
+- `scenes/InterlevelScene.java`：加载、生成、验证和切换目标层。
+- `Dungeon.java`：根据分支和层数加载或生成楼层。
+
+## 1. 注册新分支
+
+假设添加一个两层的花园支线。
+
+首先在 `Branches.java` 定义稳定 ID：
 
 ```java
-public class LevelTransition extends Rect implements Bundlable {
-    
-    // 现有字段
-    public Type type;
-    public int centerCell;
-    public int destDepth;
-    public int destBranch;      // 改为 String 更灵活，保留 int 兼容
-    public Type destType;
-    
-    // ====== 新增字段 ======
-    public String id;           // 当前楼梯的唯一标识
-    public String destId;       // 目标楼梯的唯一标识
+public static final String GARDEN = "garden";
+```
+
+然后注册分支：
+
+```java
+public static void init() {
+    registry.clear();
+    register(createMainBranch());
+    register(createMossBranch());
+    register(createMiningBranch());
+    register(createGardenBranch());
 }
 ```
 
-### 2.2 楼梯 ID 命名规范
-
-```
-{来源分支}_{来源层数}_to_{目标分支}_{目标层数}
-
-示例：
-- main_1_to_main_2         主线1层 → 主线2层（普通下楼）
-- main_2_to_moss_1         主线2层 → 苔藓1层（进入支线）
-- moss_1_to_main_2         苔藓1层 → 主线2层（返回主线）
-- moss_3_to_garden_1       苔藓3层 → 隐藏花园1层（嵌套支线）
-- garden_1_to_moss_3       隐藏花园1层 → 苔藓3层（返回）
-- main_15_to_main_16       主线15层 → 主线16层
-```
-
-**命名规则：**
-- 来源和目标都明确标注分支和层数
-- 一眼就能看出"从哪去哪"
-- 双向楼梯互为镜像（如 `moss_1_to_main_2` 和 `main_2_to_moss_1`）
-
-### 2.3 导航逻辑
-
-```
-主线2层 → 楼梯A (id="main_2_to_moss_1", destId="moss_1_to_main_2")
-                ↓
-苔藓1层 ← 楼梯B (id="moss_1_to_main_2", destId="main_2_to_moss_1")
-```
-
----
-
-## 三、楼层生成流程
-
-### 3.1 主线楼层生成（创建入口楼梯）
+为每个局部层数指定 Level 类：
 
 ```java
-// 主线2层的 MossEntranceRoom.paint()
-public void paint(Level level) {
-    // ... 房间绘制 ...
-    
-    int cell = level.pointToCell(center());
-    
-    LevelTransition t = new LevelTransition(level, cell, Type.BRANCH_EXIT);
-    t.id = "main_2_to_moss_1";
-    t.destDepth = 1;
-    t.destBranch = "moss";
-    t.destId = "moss_1_to_main_2";  // 约定：目标楼层的楼梯 ID
-    
-    level.transitions.add(t);
-    Painter.set(level, cell, Terrain.EXIT);
+private static Branch createGardenBranch() {
+    @SuppressWarnings("unchecked")
+    Class<? extends Level>[] levels = new Class[3];
+    levels[1] = GardenLevel.class;
+    levels[2] = GardenBossLevel.class;
+    return new Branch(GARDEN, 2, "branch_garden", levels);
 }
 ```
 
-### 3.2 支线楼层生成（创建对应出口楼梯）
+注意：
+
+- 数组索引就是支线内部深度。
+- `maxDepth` 必须与最大有效索引一致。
+- 不要把来源主线层数当作支线层数。进入花园支线第一层时目标永远是 `garden:1`。
+- 非法分支或非法层数会直接报错，不再生成 `DeadEndLevel` 掩盖配置错误。
+
+根据项目消息文件的现有命名方式，为新分支补充本地化名称。
+
+## 2. 规划连接 ID
+
+每一对物理楼梯使用一个唯一 `linkId`。推荐格式：
+
+```text
+<支线>:<来源分支>-<来源层数>
+```
+
+例如主线第 7 层连接花园第一层：
+
+```text
+garden:main-7
+```
+
+如果同一对楼层间有多个独立入口，增加稳定后缀：
+
+```text
+garden:main-7:a
+garden:main-7:b
+```
+
+不要用随机数、对象哈希或生成顺序构造 `linkId`。保存并重新加载后，它必须保持不变。
+
+## 3. 创建主线端下楼梯
+
+在主线入口房间的 `paint()` 中创建通往支线的端点：
 
 ```java
-// SmallGrassMiniLevel 或 Dungeon.newLevel()
-// 检查是否有指向当前楼层的楼梯约定
-
-public void createExits() {
-    // 遍历所有已保存的过渡信息，找到指向当前楼层的
-    List<TransitionInfo> sources = findSourcesTo(depth, branch);
-    
-    for (TransitionInfo info : sources) {
-        // 创建对应的入口楼梯
-        int cell = findSuitableCell();
-        
-        LevelTransition t = new LevelTransition(this, cell, Type.BRANCH_ENTRANCE);
-        t.id = info.destId;           // 使用约定的 ID
-        t.destDepth = info.sourceDepth;
-        t.destBranch = info.sourceBranch;
-        t.destId = info.sourceId;     // 配对
-        
-        transitions.add(t);
-        map[cell] = Terrain.ENTRANCE;
-    }
-}
+String linkId = "garden:main-7";
+LevelTransition transition = LevelTransition.branchDown(
+        level,
+        cell,
+        linkId,
+        Branches.GARDEN,
+        1
+);
+level.transitions.add(transition);
+Painter.set(level, cell, Terrain.EXIT);
 ```
 
-### 3.3 问题：如何知道"有哪些楼梯指向当前楼层"？
+`branchDown()` 表示这个端点向下，并把类型设为 `BRANCH_EXIT`。目标由 `Branches.GARDEN + 1` 唯一确定。
 
-**方案：在存档中记录所有过渡点约定**
+如果入口只应在特定主线层生成，必须在主线生成逻辑中限制房间出现条件。
+
+## 4. 创建支线端上楼梯
+
+目标层生成时必须主动创建同一个 `linkId` 的另一端。系统不会自动决定房间或格子位置。
 
 ```java
-// Dungeon.java
-public class Dungeon {
-    // 新增：全局过渡点约定表
-    // 记录所有楼层生成时创建的楼梯信息
-    public static Map<String, TransitionContract> transitionContracts;
-}
-
-public class TransitionContract {
-    public String id;           // 楼梯 ID
-    public int depth;           // 所在层数
-    public String branch;       // 所在分支
-    public int destDepth;       // 目标层数
-    public String destBranch;   // 目标分支
-    public String destId;       // 目标楼梯 ID
-}
+String linkId = "garden:main-7";
+LevelTransition transition = LevelTransition.branchUp(
+        level,
+        cell,
+        linkId,
+        Branches.MAIN,
+        7
+);
+level.transitions.add(transition);
+Painter.set(level, cell, Terrain.ENTRANCE);
 ```
 
-**流程：**
+两端的完整关系必须是：
 
-```
-1. 主线2层生成 → 创建楼梯 A → 记录约定：main_2_to_moss_1 → moss_1_to_main_2
-
-2. 苔藓1层生成 → 查询约定表 → 发现有约定 destId="moss_1_to_main_2"
-              → 创建楼梯 B，id="moss_1_to_main_2"
-
-3. 玩家踩楼梯 A → 查找 moss_1_to_main_2 → 精确定位到楼梯 B
+```text
+main:7   DOWN  garden:main-7  -> garden:1
+garden:1 UP    garden:main-7  -> main:7
 ```
 
----
+玩家第一次进入时，`InterlevelScene` 会：
 
-## 四、完整实现
+1. 保存当前层。
+2. 加载 `garden:1`；如果不存在则调用其正常地图生成逻辑。
+3. 在生成后的目标层严格查找 `garden:main-7`。
+4. 验证目标端指回 `main:7`，并且方向为 `UP`。
+5. 验证成功后将英雄放到目标端点。
 
-### 4.1 TransitionContract（过渡约定）
+因此，目标 `Level` 的首次生成路径必须包含该上楼梯。遗漏它会得到明确的 `Missing transition` 错误。
+
+## 5. 支线内部普通楼梯
+
+支线相邻层之间使用普通楼梯辅助方法，不需要手写 `linkId`：
 
 ```java
-public class TransitionContract implements Bundlable {
-    public String id;
-    public int depth;
-    public String branch;
-    public int destDepth;
-    public String destBranch;
-    public String destId;
-    
-    // Bundlable 实现...
-}
+// 当前层的上楼梯
+LevelTransition up = LevelTransition.regularEntrance(level, entranceCell);
+level.transitions.add(up);
+Painter.set(level, entranceCell, Terrain.ENTRANCE);
+
+// 当前层的下楼梯
+LevelTransition down = LevelTransition.regularExit(level, exitCell);
+level.transitions.add(down);
+Painter.set(level, exitCell, Terrain.EXIT);
 ```
 
-### 4.2 Dungeon 增加约定表
+系统会生成类似 `garden:1-2` 的稳定 ID：
+
+```text
+garden:1 DOWN garden:1-2 -> garden:2
+garden:2 UP   garden:1-2 -> garden:1
+```
+
+支线第一层返回主线的楼梯不是普通入口，必须使用 `branchUp()` 和支线连接的 `linkId`。
+
+最后一层不要创建超出 `Branch.maxDepth` 的普通出口。
+
+## 6. 多个入口
+
+一个支线楼层可以有多个入口，但每一对楼梯必须使用不同的 `linkId`。
+
+例如两个主线入口都连接 `garden:1`：
+
+```text
+main:7   DOWN garden:main-7 -> garden:1
+garden:1 UP   garden:main-7 -> main:7
+
+main:9   DOWN garden:main-9 -> garden:1
+garden:1 UP   garden:main-9 -> main:9
+```
+
+`garden:1` 的生成逻辑必须放置两个上楼端点。它们可以位于不同房间，但不能共用 `linkId`。
+
+不要在玩家第一次进入后临时挑选一个未配对楼梯。动态配对会让生成顺序影响连接关系，并增加额外存档状态。
+
+## 7. 动态来源层
+
+如果入口可能出现在多个主线层，但每局只出现一次，应在入口确定时保存来源层数。Mining 分支就是参考实现：
 
 ```java
-public class Dungeon {
-    // 存档级别的约定表
-    private static final String CONTRACTS = "contracts";
-    public static Map<String, TransitionContract> transitionContracts = new HashMap<>();
-    
-    // 注册约定（楼层生成时调用）
-    public static void registerContract(TransitionContract contract) {
-        transitionContracts.put(contract.id, contract);
-    }
-    
-    // 查找指向目标楼层的约定
-    public static List<TransitionContract> findContractsTo(int destDepth, String destBranch) {
-        List<TransitionContract> result = new ArrayList<>();
-        for (TransitionContract c : transitionContracts.values()) {
-            if (c.destDepth == destDepth && c.destBranch.equals(destBranch)) {
-                result.add(c);
-            }
-        }
-        return result;
-    }
-}
+entranceDepth = Dungeon.depth;
 ```
 
-### 4.3 Level 生成时创建楼梯
+主线端和支线端使用同一保存值：
 
 ```java
-// 在 ExitRoom 或 SpecialRoom 中创建下楼楼梯
-LevelTransition t = new LevelTransition(level, cell, Type.BRANCH_EXIT);
-t.id = "main_2_to_moss_1";
-t.destDepth = 1;
-t.destBranch = "moss";
-t.destId = "moss_1_to_main_2";
-level.transitions.add(t);
-
-// 注册约定
-TransitionContract c = new TransitionContract();
-c.id = t.id;
-c.depth = Dungeon.depth;
-c.branch = "main";
-c.destDepth = t.destDepth;
-c.destBranch = t.destBranch;
-c.destId = t.destId;
-Dungeon.registerContract(c);
+String linkId = "mining:main-" + entranceDepth;
 ```
 
-### 4.4 支线楼层生成时查找并创建
+主线端目标仍然是 `mining:1`，采矿端再指回实际的 `main:entranceDepth`。这个来源层数必须随任务或地牢状态保存，不能从当前支线深度推测。
 
-```java
-// Dungeon.newLevel() 中
-public static Level newLevel() {
-    Level level = createLevelFor(depth, branch);
-    level.create();
-    
-    // 创建指向当前楼层的入口楼梯
-    List<TransitionContract> sources = findContractsTo(depth, branch);
-    for (TransitionContract c : sources) {
-        int cell = level.findSuitableEntrance();
-        
-        LevelTransition t = new LevelTransition(level, cell, Type.BRANCH_ENTRANCE);
-        t.id = c.destId;           // 约定的 ID
-        t.destDepth = c.depth;     // 来源层数
-        t.destBranch = c.branch;   // 来源分支
-        t.destId = c.id;           // 来源楼梯 ID
-        level.transitions.add(t);
-        level.map[cell] = Terrain.ENTRANCE;
-    }
-    
-    return level;
-}
-```
+## 8. 方向、类型和地形
 
-### 4.5 InterlevelScene 精确导航
+三者必须一致：
 
-```java
-// InterlevelScene.java
-case DESCEND:
-case BRANCH:
-    // 加载目标楼层
-    level = Dungeon.loadLevel(destDepth, destBranch);
-    
-    // 根据 destId 精确定位
-    LevelTransition dest = level.getTransitionById(curTransition.destId);
-    if (dest != null) {
-        hero.pos = dest.centerCell;
-    } else {
-        // 兜底：使用默认入口
-        hero.pos = level.entrance();
-    }
-```
+| 创建方法 | 方向 | 类型 | 地形 |
+|---|---|---|---|
+| `regularEntrance()` | `UP` | `REGULAR_ENTRANCE` | `Terrain.ENTRANCE` |
+| `regularExit()` | `DOWN` | `REGULAR_EXIT` | `Terrain.EXIT` |
+| `branchUp()` | `UP` | `BRANCH_ENTRANCE` | `Terrain.ENTRANCE` |
+| `branchDown()` | `DOWN` | `BRANCH_EXIT` | `Terrain.EXIT` |
 
----
+类名中的 Entrance 通常表示“玩家进入本层的位置”，所以从该位置离开时是上楼。不要把 Entrance 理解为向下进入支线。
 
-## 五、多楼梯示例
+## 9. 不属于楼梯的移动
 
-### 场景：主线2层有两个通往不同支线的楼梯
+定点传送、测试传送器、复活和法术返回不应伪造成一对物理楼梯。它们使用 `InterlevelScene.Mode.RETURN` 或各自的专用流程，并提供明确的目标分支、层数和格子。
 
-```java
-// 楼梯 A：通往苔藓
-t.id = "main_2_to_moss_1";
-t.destDepth = 1;
-t.destBranch = "moss";
-t.destId = "moss_1_to_main_2";
+坠落仍使用 `FALL` 流程。不要为这些行为创建假的 `linkId` 或绕过双向校验。
 
-// 楼梯 B：通往采矿
-t.id = "main_2_to_mining_1";
-t.destDepth = 1;
-t.destBranch = "mining";
-t.destId = "mining_1_to_main_2";
-```
+## 10. 添加完成后的检查清单
 
-### 苔藓1层生成时
+- 新 `branchId` 已在 `Branches.init()` 注册。
+- 分支层数从 `1` 开始，`maxDepth` 与 Level 数组一致。
+- 所有目标 `branchId + depth` 都合法。
+- 一对楼梯使用完全相同的稳定 `linkId`。
+- 每端的目标都准确指向另一端所在楼层。
+- 两端方向相反。
+- `UP` 使用 `Terrain.ENTRANCE`，`DOWN` 使用 `Terrain.EXIT`。
+- 目标层首次生成时一定会创建对应端点。
+- 同一楼层没有重复 `linkId`。
+- 多个入口各自使用不同 ID。
+- 动态来源层已经持久化，不能从支线局部深度猜测。
+- 没有调用模糊匹配作为跨层到达位置。
+- 没有重新引入整数分支或旧存档迁移字段。
 
-```java
-// 查找约定 → 发现 destBranch="moss" 的约定
-// 创建楼梯 id="moss_1_to_main_2"
-// 记录 destId="main_2_to_moss_1"
-```
-
-### 返回时
-
-```java
-// 玩家在苔藓1层踩上楼梯 moss_1_to_main_2
-// destId="main_2_to_moss_1"
-// 精确定位到主线2层的楼梯 A
-```
-
----
-
-## 六、迁移要点
-
-### 需要修改的文件
-
-| 文件 | 修改内容 |
-|------|----------|
-| `LevelTransition.java` | 添加 `id` 和 `destId` 字段 |
-| `Dungeon.java` | 添加约定表和查询方法 |
-| `Level.java` | 添加 `getTransitionById()` 方法 |
-| `InterlevelScene.java` | 使用 ID 精确定位 |
-| `SmallGrassEnterRoom.java` | 使用新约定系统 |
-| `SmallGrassMiniLevel.java` | 移除硬编码，使用约定表生成入口 |
-| `GamesInProgress.java` | 支持新存档命名 |
-
----
-
-## 七、简化后的 API
-
-```java
-// 创建下楼楼梯（在任意楼层）
-LevelTransition t = new LevelTransition(level, cell, Type.BRANCH_EXIT);
-t.id = "moss_3_to_garden_1";
-t.destDepth = 1;
-t.destBranch = "hidden_garden";
-t.destId = "garden_1_to_moss_3";
-level.transitions.add(t);
-
-// 注册约定
-Dungeon.registerContract(...);
-
-// 目标楼层生成时自动创建对应入口
-// 无需手动处理
-```
-
----
-
-这个方案的核心是**约定表**：楼层生成时记录楼梯信息，目标楼层生成时查询并创建对应楼梯。不需要预先在未生成的楼层中安排
+按项目约定，修改后由维护者自行执行 Gradle 编译；提交前至少运行静态搜索和 `git diff --check`。

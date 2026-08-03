@@ -55,23 +55,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
-import com.shatteredpixel.shatteredpixeldungeon.levels.CavesBossLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.CavesLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.CityLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.DeadEndLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.HallsBossLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.HallsLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.LastLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
-import com.shatteredpixel.shatteredpixeldungeon.levels.MiningLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.SmallGrassMiniLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.ZeroLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.*;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.FireHallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.OldSewerLevel;
@@ -360,13 +344,12 @@ public class Dungeon {
 			if (branchId.equals(Branches.MAIN) && randomMap && level != null) {
 				level = createMainBranchVariant(depth);
 			}
-		} else {
-			level = new DeadEndLevel();
-		}
-		
-		// 如果分支创建失败，使用 DeadEndLevel
-		if (level == null) {
-			level = new DeadEndLevel();
+			} else {
+				throw new IllegalStateException("Unknown branch: " + branchId);
+			}
+
+			if (level == null) {
+				throw new IllegalStateException("Invalid floor: " + branchId + ":" + depth);
 		}
 		
 		// 第15层的 Boss 选择
@@ -888,16 +871,8 @@ public class Dungeon {
 		hero = (Hero)bundle.get( HERO );
 		
 		depth = bundle.getInt( DEPTH );
-		// 恢复分支 ID，兼容旧存档
-		if (bundle.contains(BRANCH_ID)) {
 			branchId = bundle.getString(BRANCH_ID);
-		} else if (bundle.contains("branch")) {
-			// 旧存档迁移
-			int oldBranch = bundle.getInt("branch");
-			branchId = migrateOldBranchId(oldBranch, depth);
-		} else {
-			branchId = Branches.MAIN;
-		}
+			if (!Branches.exists(branchId)) throw new IllegalStateException("Invalid saved branch: " + branchId);
 
 		gold = bundle.getInt( GOLD );
 		energy = bundle.getInt( ENERGY );
@@ -906,28 +881,9 @@ public class Dungeon {
 		Generator.restoreFromBundle( bundle );
 
 		generatedLevels.clear();
-		if (bundle.contains(GENERATED_LEVELS)){
-			// 新格式：String 数组
-			try {
-				for (String key : bundle.getStringArray(GENERATED_LEVELS)){
-					generatedLevels.add(key);
-				}
-			} catch (Exception e) {
-				// 兼容旧格式：int 数组
-				for (int i : bundle.getIntArray(GENERATED_LEVELS)){
-					// 旧格式迁移：int 转 String
-					int depth = i % 1000;
-					int branch = i / 1000;
-					String branchIdStr = branch == 0 ? Branches.MAIN : (branch == 1 ? Branches.MOSS : Branches.MINING);
-					generatedLevels.add(branchIdStr + "_" + depth);
-				}
+			for (String key : bundle.getStringArray(GENERATED_LEVELS)){
+				generatedLevels.add(key);
 			}
-		//pre-v2.1.1 saves
-		} else  {
-			for (int i = 1; i <= Statistics.deepestFloor; i++){
-				generatedLevels.add(Branches.MAIN + "_" + i);
-			}
-		}
 
 		droppedItems = new SparseArray<>();
 		portedItems = new SparseArray<>();
@@ -956,21 +912,6 @@ public class Dungeon {
 
 	}
 	
-	/**
-	 * 迁移旧存档的 branch ID
-	 */
-	private static String migrateOldBranchId(int oldBranch, int depth) {
-		switch (oldBranch) {
-			case 0: return Branches.MAIN;
-			case 1:
-				// branch=1 时根据 depth 判断是 moss 还是 mining
-				if (depth >= 11 && depth <= 14) return Branches.MINING;
-				return Branches.MOSS;
-			case 2: return Branches.MOSS;  // 旧的 moss_deep 合并到 moss
-			default: return Branches.MAIN;
-		}
-	}
-	
 	public static Level loadLevel( int save ) throws IOException {
 		
 		Dungeon.level = null;
@@ -985,6 +926,20 @@ public class Dungeon {
 		} else {
 			return level;
 		}
+	}
+
+	public static Level loadOrCreateLevel(int save, String targetBranch, int targetDepth) throws IOException {
+		if (!Branches.exists(targetBranch)) {
+			throw new IllegalArgumentException("Unknown branch: " + targetBranch);
+		}
+		Branch branch = Branches.get(targetBranch);
+		if (targetDepth < 1 || targetDepth > branch.maxDepth) {
+			throw new IllegalArgumentException("Invalid floor: " + targetBranch + ":" + targetDepth);
+		}
+
+		depth = targetDepth;
+		branchId = targetBranch;
+		return levelHasBeenGenerated(targetDepth, targetBranch) ? loadLevel(save) : newLevel();
 	}
 	
 	public static void deleteGame( int save, boolean deleteLevels ) {

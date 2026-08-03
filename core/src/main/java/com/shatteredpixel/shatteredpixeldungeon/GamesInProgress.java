@@ -47,7 +47,6 @@ public class GamesInProgress {
 	private static final String GAME_FOLDER = "game%d";
 	private static final String GAME_FILE	= "game.dat";
 	private static final String DEPTH_FILE	= "depth%d.dat";
-	private static final String DEPTH_BRANCH_FILE	= "depth%d-branch%d.dat";
 	private static final String DEPTH_BRANCH_ID_FILE = "depth%d-branch_%s.dat";
 
 	/**
@@ -61,16 +60,6 @@ public class GamesInProgress {
 		}
 	}
 	
-	/**
-	 * 兼容旧存档：使用 int branch 的路径
-	 */
-	public static String depthFileLegacy( int slot, int depth, int branch ) {
-		if (branch == 0) {
-			return gameFolder(slot) + "/" + Messages.format(DEPTH_FILE, depth);
-		} else {
-			return gameFolder(slot) + "/" + Messages.format(DEPTH_BRANCH_FILE, depth, branch);
-		}
-	}
 
 	public static boolean gameExists( int slot ){
 		return FileUtils.dirExists(gameFolder(slot))

@@ -925,8 +925,10 @@ public abstract class RegularLevel extends Level {
 				if (t.type == LevelTransition.Type.REGULAR_EXIT && roomEntrance.inside(t.center())){
 					set(t.centerCell, Terrain.ENTRANCE, this);
 					t.type = LevelTransition.Type.REGULAR_ENTRANCE;
+					t.direction = LevelTransition.Direction.UP;
+					t.linkId = LevelTransition.regularLinkId(Dungeon.branchId, Dungeon.depth - 1);
+					t.destBranch = Dungeon.branchId;
 					t.destDepth = Dungeon.depth-1;
-					t.destType =  LevelTransition.Type.REGULAR_EXIT;
 				}
 			}
 		}
@@ -936,8 +938,10 @@ public abstract class RegularLevel extends Level {
 				if (t.type == LevelTransition.Type.REGULAR_ENTRANCE && roomExit.inside(t.center())){
 					set(t.centerCell, Terrain.EXIT, this);
 					t.type = LevelTransition.Type.REGULAR_EXIT;
+					t.direction = LevelTransition.Direction.DOWN;
+					t.linkId = LevelTransition.regularLinkId(Dungeon.branchId, Dungeon.depth);
+					t.destBranch = Dungeon.branchId;
 					t.destDepth = Dungeon.depth+1;
-					t.destType =  LevelTransition.Type.REGULAR_ENTRANCE;
 				}
 			}
 		}

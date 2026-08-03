@@ -79,12 +79,7 @@ public class DeadEndLevel extends Level {
 		if (Dungeon.branchId.equals(Branches.MAIN)) {
 			transitions.add(new LevelTransition(this, entrance, LevelTransition.Type.REGULAR_ENTRANCE));
 		} else {
-			transitions.add(new LevelTransition(this,
-					entrance,
-					LevelTransition.Type.BRANCH_ENTRANCE,
-					Dungeon.depth,
-					Branches.MAIN,
-					LevelTransition.Type.BRANCH_EXIT));
+			throw new IllegalStateException("Side branches cannot create a dead-end fallback floor");
 		}
 		map[entrance] = Terrain.ENTRANCE;
 		
