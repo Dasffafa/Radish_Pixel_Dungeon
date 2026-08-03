@@ -52,8 +52,10 @@ public class SmallGrassEnterRoom extends SpecialRoom {
         vis.pos(c.x, c.y);
         level.customTiles.add(vis);
 
-        // 创建通往 moss 分支的楼梯
-        LevelTransition transition = new LevelTransition(level, DragonPos, LevelTransition.Type.BRANCH_EXIT);
+        // 创建通往 moss 分支的楼梯（BRANCH_ENTRANCE）
+        // branchId 设置为目标分支 MOSS，用于精确配对
+        LevelTransition transition = new LevelTransition(level, DragonPos, LevelTransition.Type.BRANCH_ENTRANCE);
+        transition.branchId = Branches.MOSS;  // 关键：此楼梯属于 moss 分支
         transition.destDepth = 1;  // moss 分支的第 1 层
         transition.destBranchId = Branches.MOSS;
         transition.destType = LevelTransition.Type.BRANCH_ENTRANCE;

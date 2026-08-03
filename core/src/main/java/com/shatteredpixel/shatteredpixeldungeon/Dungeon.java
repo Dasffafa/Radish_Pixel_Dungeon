@@ -382,15 +382,20 @@ public class Dungeon {
 			}
 
 			if (depth > Statistics.deepestFloor && branchId.equals(Branches.MAIN)) {
-				Statistics.deepestFloor = depth;
+							Statistics.deepestFloor = depth;
 
-				if (Statistics.qualifiedForNoKilling) {
-					Statistics.completedWithNoKilling = true;
-				} else {
-					Statistics.completedWithNoKilling = false;
-				}
-			}
-		}
+							if (Statistics.qualifiedForNoKilling) {
+								Statistics.completedWithNoKilling = true;
+							} else {
+								Statistics.completedWithNoKilling = false;
+							}
+						}
+			
+						// 苔藓分支深度追踪
+						if (depth > Statistics.deepestMossFloor && branchId.equals(Branches.MOSS)) {
+							Statistics.deepestMossFloor = depth;
+						}
+					}
 
 		Statistics.qualifiedForBossRemainsBadge = false;
 		

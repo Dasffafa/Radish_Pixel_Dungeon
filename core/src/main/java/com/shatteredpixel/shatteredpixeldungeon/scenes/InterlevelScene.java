@@ -614,7 +614,8 @@ public class InterlevelScene extends PixelScene {
 			if (DeviceCompat.isDebug()){
 				int trueDepth = Dungeon.depth;
 				String trueBranchId = Dungeon.branchId;
-				for (int i = 1; i < trueDepth + (trueBranchId.equals(Branches.MAIN) ? 0 : 1); i++){
+				boolean isMainBranch = trueBranchId != null && trueBranchId.equals(Branches.MAIN);
+				for (int i = 1; i < trueDepth + (isMainBranch ? 0 : 1); i++){
 					if (!Dungeon.levelHasBeenGenerated(i, Branches.MAIN)){
 						Dungeon.depth = i;
 						Dungeon.branchId = Branches.MAIN;
@@ -650,7 +651,8 @@ public class InterlevelScene extends PixelScene {
 
 			Level level;
 			Dungeon.depth = curTransition.destDepth;
-			Dungeon.branchId = curTransition.destBranchId;
+			// 空值安全：如果 destBranchId 为 null，默认为主线
+			Dungeon.branchId = curTransition.destBranchId != null ? curTransition.destBranchId : Branches.MAIN;
 
 			if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
 				level = Dungeon.loadLevel( GamesInProgress.curSlot );
@@ -659,7 +661,7 @@ public class InterlevelScene extends PixelScene {
 			}
 
 			// 查找目标楼梯
-			LevelTransition destTransition = level.getTransition(curTransition.destType);
+			LevelTransition destTransition = level.getTransition(curTransition.destType, curTransition.branchId);
 			curTransition = null;
 			Dungeon.switchLevel( level, destTransition.cell() );
 		}
@@ -690,7 +692,8 @@ public class InterlevelScene extends PixelScene {
 
 		Level level;
 		Dungeon.depth = curTransition.destDepth;
-		Dungeon.branchId = curTransition.destBranchId;
+		// 空值安全：如果 destBranchId 为 null，默认为主线
+		Dungeon.branchId = curTransition.destBranchId != null ? curTransition.destBranchId : Branches.MAIN;
 
 		if (Dungeon.levelHasBeenGenerated(Dungeon.depth, Dungeon.branchId)) {
 			level = Dungeon.loadLevel( GamesInProgress.curSlot );
@@ -699,7 +702,7 @@ public class InterlevelScene extends PixelScene {
 		}
 
 		// 查找目标楼梯
-		LevelTransition destTransition = level.getTransition(curTransition.destType);
+		LevelTransition destTransition = level.getTransition(curTransition.destType, curTransition.branchId);
 		curTransition = null;
 		Dungeon.switchLevel( level, destTransition.cell() );
 	}

@@ -319,15 +319,6 @@ public abstract class Level implements Bundlable {
 
 		} while (!build() && !Thread.currentThread().isInterrupted());
 
-		// 精确过渡系统：根据约定表创建入口楼梯
-		createBranchEntrances();
-
-		// 如果线程被中断，直接返回不完整的地图（SeedFinder 会检测中断状态）
-		if (Thread.currentThread().isInterrupted()) {
-			Random.popGenerator();
-			return;
-		}
-
 		buildFlagMaps();
 		cleanWalls();
 
@@ -626,25 +617,20 @@ public abstract class Level implements Bundlable {
 		return null;
 	}
 
-	/**
-	 * 根据约定表创建入口楼梯
-	 * 子类可覆盖以自定义位置选择逻辑
-	 */
-	protected void createBranchEntrances() {
-		// 只有非主线楼层需要处理
-		if (Dungeon.branchId.equals(Branches.MAIN)) return;
-
-		// 目前简化实现：创建一个返回主线的入口
-		int cell = findBranchEntranceCell();
-		if (cell >= 0) {
-			LevelTransition t = new LevelTransition(this, cell, LevelTransition.Type.BRANCH_ENTRANCE);
-			t.destDepth = 2;  // 默认返回主线2层
-			t.destBranchId = Branches.MAIN;
-			transitions.add(t);
-			map[cell] = Terrain.ENTRANCE;
+	// 按类型和分支精确查找
+	public LevelTransition getTransition(LevelTransition.Type type, String branchId){
+		if (transitions.isEmpty()){
+			return null;
 		}
+		for (LevelTransition transition : transitions){
+			boolean branchMatches = (branchId == null && transition.branchId == null) 
+				|| (branchId != null && branchId.equals(transition.branchId));
+			if (transition.type == type && branchMatches){
+				return transition;
+			}
+		}
+		return getTransition(type);
 	}
-
 	/**
 	 * 找一个合适的位置放置分支入口楼梯
 	 */

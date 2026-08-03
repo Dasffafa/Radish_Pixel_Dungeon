@@ -32,59 +32,71 @@ import com.watabou.utils.Rect;
 public class LevelTransition extends Rect implements Bundlable {
 
 	public enum Type {
-		SURFACE,
-		REGULAR_ENTRANCE,
-		REGULAR_EXIT,
-		BRANCH_ENTRANCE,
-		BRANCH_EXIT;
-	}
+			SURFACE,
+			REGULAR_ENTRANCE,
+			REGULAR_EXIT,
+			BRANCH_ENTRANCE,
+			BRANCH_EXIT;
+		}
 
-	public Type type;
-	public int destDepth;
-	public String destBranchId;  // 目标分支的字符串标识（如 "main", "moss", "mining"）
-	public Type destType;
+		public Type type;
+		public String branchId;      // 此楼梯所属的分支（用于精确配对）
+		public int destDepth;
+		public String destBranchId;  // 目标分支的字符串标识（如 "main", "moss", "mining"）
+		public Type destType;
 
-	public int centerCell;
+		public int centerCell;
 
 	//for bundling
 	public LevelTransition(){
 		super();
 	}
 
-	public LevelTransition(Level level, int cell, Type type, int destDepth, String destBranchId, Type destType){
-		centerCell = cell;
-		Point p = level.cellToPoint(cell);
-		set(p.x, p.y, p.x, p.y);
-		this.type = type;
-		this.destDepth = destDepth;
-		this.destBranchId = destBranchId;
-		this.destType = destType;
-	}
-
-	//gives default values for common transition types
-	public LevelTransition(Level level, int cell, Type type){
-		centerCell = cell;
-		Point p = level.cellToPoint(cell);
-		set(p.x, p.y, p.x, p.y);
-		this.type = type;
-		switch (type){
-			case REGULAR_ENTRANCE: default:
-				destDepth = Dungeon.depth-1;
-				destBranchId = Dungeon.branchId;
-				destType = Type.REGULAR_EXIT;
-				break;
-			case REGULAR_EXIT:
-				destDepth = Dungeon.depth+1;
-				destBranchId = Dungeon.branchId;
-				destType = Type.REGULAR_ENTRANCE;
-				break;
-			case SURFACE:
-				destDepth = 1;
-				destBranchId = Branches.MAIN;
-				destType = null;
-				break;
+	// 完整构造函数：手动指定所有参数
+		public LevelTransition(Level level, int cell, Type type, int destDepth, String destBranchId, Type destType){
+			centerCell = cell;
+			Point p = level.cellToPoint(cell);
+			set(p.x, p.y, p.x, p.y);
+			this.type = type;
+			this.branchId = Dungeon.branchId;  // 默认为当前分支
+			this.destDepth = destDepth;
+			this.destBranchId = destBranchId;
+			this.destType = destType;
 		}
-	}
+
+		//gives default values for common transition types
+		public LevelTransition(Level level, int cell, Type type){
+			centerCell = cell;
+			Point p = level.cellToPoint(cell);
+			set(p.x, p.y, p.x, p.y);
+			this.type = type;
+			this.branchId = Dungeon.branchId;  // 默认为当前分支
+			switch (type){
+				case REGULAR_ENTRANCE: default:
+					destDepth = Dungeon.depth-1;
+					destBranchId = Dungeon.branchId;
+					destType = Type.REGULAR_EXIT;
+					break;
+				case REGULAR_EXIT:
+					destDepth = Dungeon.depth+1;
+					destBranchId = Dungeon.branchId;
+					destType = Type.REGULAR_ENTRANCE;
+					break;
+				case SURFACE:
+					destDepth = 1;
+					destBranchId = Branches.MAIN;
+					destType = null;
+					break;
+				case BRANCH_ENTRANCE:
+					// BRANCH_ENTRANCE: 支线入口，返回主线
+					// 需要手动设置 destDepth, destBranchId, destType
+					break;
+				case BRANCH_EXIT:
+					// BRANCH_EXIT: 通往支线
+					// 需要手动设置 destDepth, destBranchId, destType
+					break;
+			}
+		}
 
 	//note that the center cell isn't always the actual center.
 	// It is important when game logic needs to pick a specific cell for some action
@@ -120,47 +132,58 @@ public class LevelTransition extends Rect implements Bundlable {
 	}
 
 	public static final String TYPE = "type";
-	public static final String DEST_DEPTH = "dest_depth";
-	public static final String DEST_BRANCH_ID = "dest_branch_id";
-	public static final String DEST_TYPE = "dest_type";
+		public static final String BRANCH_ID = "branch_id";
+		public static final String DEST_DEPTH = "dest_depth";
+		public static final String DEST_BRANCH_ID = "dest_branch_id";
+		public static final String DEST_TYPE = "dest_type";
 
-	@Override
-	public void storeInBundle(Bundle bundle) {
-		bundle.put( "left", left );
-		bundle.put( "top", top );
-		bundle.put( "right", right );
-		bundle.put( "bottom", bottom );
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			bundle.put( "left", left );
+			bundle.put( "top", top );
+			bundle.put( "right", right );
+			bundle.put( "bottom", bottom );
 
-		bundle.put( "center", centerCell );
+			bundle.put( "center", centerCell );
 
-		bundle.put(TYPE, type);
-		bundle.put(DEST_DEPTH, destDepth);
-		bundle.put(DEST_BRANCH_ID, destBranchId);
-		bundle.put(DEST_TYPE, destType);
-	}
+			bundle.put(TYPE, type);
+			bundle.put(BRANCH_ID, branchId);
+			bundle.put(DEST_DEPTH, destDepth);
+			bundle.put(DEST_BRANCH_ID, destBranchId);
+			bundle.put(DEST_TYPE, destType);
+		}
 
-	@Override
-	public void restoreFromBundle(Bundle bundle) {
-		left = bundle.getInt( "left" );
-		top = bundle.getInt( "top" );
-		right = bundle.getInt( "right" );
-		bottom = bundle.getInt( "bottom" );
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			left = bundle.getInt( "left" );
+			top = bundle.getInt( "top" );
+			right = bundle.getInt( "right" );
+			bottom = bundle.getInt( "bottom" );
 
-		centerCell = bundle.getInt( "center" );
+			centerCell = bundle.getInt( "center" );
 
-		type = bundle.getEnum(TYPE, Type.class);
-		destDepth = bundle.getInt(DEST_DEPTH);
-		destType = bundle.getEnum(DEST_TYPE, Type.class);
+			type = bundle.getEnum(TYPE, Type.class);
 		
-		// 兼容旧存档
-		if (bundle.contains(DEST_BRANCH_ID)) {
-			destBranchId = bundle.getString(DEST_BRANCH_ID);
-		} else if (bundle.contains("dest_branch")) {
-			// 旧格式迁移
-			int oldBranch = bundle.getInt("dest_branch");
-			destBranchId = oldBranch == 0 ? Branches.MAIN : (oldBranch == 1 ? Branches.MOSS : Branches.MINING);
-		} else {
-			destBranchId = Branches.MAIN;
+			// branchId 兼容旧存档
+			if (bundle.contains(BRANCH_ID)) {
+				branchId = bundle.getString(BRANCH_ID);
+			} else {
+				branchId = Dungeon.branchId;  // 默认为当前分支
+			}
+		
+			destDepth = bundle.getInt(DEST_DEPTH);
+		
+			// destBranchId 兼容旧存档
+			if (bundle.contains(DEST_BRANCH_ID)) {
+				destBranchId = bundle.getString(DEST_BRANCH_ID);
+			} else if (bundle.contains("dest_branch")) {
+				// 旧格式迁移
+				int oldBranch = bundle.getInt("dest_branch");
+				destBranchId = oldBranch == 0 ? Branches.MAIN : (oldBranch == 1 ? Branches.MOSS : Branches.MINING);
+			} else {
+				destBranchId = Branches.MAIN;
+			}
+		
+			destType = bundle.getEnum(DEST_TYPE, Type.class);
 		}
 	}
-}

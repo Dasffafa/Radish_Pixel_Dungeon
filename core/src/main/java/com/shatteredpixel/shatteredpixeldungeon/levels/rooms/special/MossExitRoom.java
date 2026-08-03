@@ -67,14 +67,16 @@ public class MossExitRoom extends StandardRoom {
         Point c = center();
         int exitCell = level.pointToCell(c);
 
-        // 创建返回主线的传送门
+        // 创建返回主线的传送门（BRANCH_ENTRANCE）
+        // branchId 设置为 MOSS，用于精确配对
         LevelTransition transition = new LevelTransition(
                 level, exitCell,
-                LevelTransition.Type.BRANCH_EXIT,
+                LevelTransition.Type.BRANCH_ENTRANCE,
                 2,  // 返回主线第2层
                 Branches.MAIN,
                 LevelTransition.Type.BRANCH_ENTRANCE
         );
+        transition.branchId = Branches.MOSS;  // 此楼梯属于 moss 分支
         level.transitions.add(transition);
         Painter.set(level, exitCell, Terrain.EXIT);
 

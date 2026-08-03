@@ -161,7 +161,7 @@ public class SewerLevel extends RegularLevel {
 		if(Dungeon.branchId.equals(Branches.MAIN)){
 			Ghost.Quest.spawn( this, roomExit );
 		}
-		if(Dungeon.depth == 1 ){
+		if(Dungeon.depth == 1 && Dungeon.branchId.equals(Branches.MAIN)){
 			MoonLight npc18 = new MoonLight();
 			npc18.pos = entrance()-1;
 			mobs.add(npc18);

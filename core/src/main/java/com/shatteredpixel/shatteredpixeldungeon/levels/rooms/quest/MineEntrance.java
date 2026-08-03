@@ -91,12 +91,15 @@ public class MineEntrance extends CaveRoom {
 		vis.pos(e.x - 1, e.y - 1);
 		level.customTiles.add(vis);
 
-		level.transitions.add(new LevelTransition(level,
+		// 创建返回主线的楼梯（BRANCH_ENTRANCE）
+		LevelTransition t = new LevelTransition(level,
 				entrance,
 				LevelTransition.Type.BRANCH_ENTRANCE,
 				Dungeon.depth,
 				Branches.MAIN,
-				LevelTransition.Type.BRANCH_EXIT));
+				LevelTransition.Type.BRANCH_ENTRANCE);
+		t.branchId = Branches.MINING;  // 此楼梯属于 mining 分支
+		level.transitions.add(t);
 
 		if (Blacksmith.Quest.Type() == Blacksmith.Quest.CRYSTAL){
 			for (int i = 0; i < width()*height()/2; i ++){

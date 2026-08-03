@@ -74,7 +74,6 @@ public class LevelTeleporter extends TestItem {
 
     private static final String AC_VIEW = "view";
     private static final String AC_TP = "teleport";
-    private static final String AC_INTER_TP = "interlevel_tp";
 
     private static final String AC_RESET = "reset";
 
@@ -86,7 +85,6 @@ public class LevelTeleporter extends TestItem {
 
         actions.add(AC_VIEW);
         actions.add(AC_TP);
-        actions.add(AC_INTER_TP);
         actions.add(AC_RESET );
 
         actions.add(AC_BRANCH_ASCEND);
@@ -96,7 +94,7 @@ public class LevelTeleporter extends TestItem {
 
     @Override
     protected boolean allowChange(String action){
-        return !action.equals(AC_VIEW) && !action.equals(AC_INTER_TP) && super.allowChange(action);
+        return !action.equals(AC_VIEW) && super.allowChange(action);
     }
 
     @Override
@@ -214,12 +212,6 @@ public class LevelTeleporter extends TestItem {
             som.doRead();
         } else if(action.equals(AC_TP)){
             empoweredRead();
-        }else if(action.equals(AC_INTER_TP)){
-            if(Dungeon.hero.buff(LockedFloor.class) != null) {
-                GLog.w(Messages.get(this,"cannot_send"));
-                return;
-            }
-            GameScene.show(new WndSelectLevel());
         }else if (action.equals(AC_RESET)) {
             switch (depth){
                 case 2:

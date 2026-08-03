@@ -90,12 +90,15 @@ public class BlacksmithRoom extends StandardRoom {
 		vis.pos(entrancePos, level);
 		level.customTiles.add(vis);
 
-		level.transitions.add(new LevelTransition(level,
+		// 创建通往 mining 分支的楼梯（BRANCH_ENTRANCE）
+		LevelTransition t = new LevelTransition(level,
 				entrancePos,
-				LevelTransition.Type.BRANCH_EXIT,
+				LevelTransition.Type.BRANCH_ENTRANCE,
 				Dungeon.depth,
 				Branches.MINING,
-				LevelTransition.Type.BRANCH_ENTRANCE));
+				LevelTransition.Type.BRANCH_ENTRANCE);
+		t.branchId = Branches.MINING;  // 此楼梯属于 mining 分支
+		level.transitions.add(t);
 		Painter.set(level, entrancePos, Terrain.EXIT);
 
 		for(Point p : getPoints()) {

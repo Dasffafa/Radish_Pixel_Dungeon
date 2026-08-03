@@ -497,17 +497,23 @@ public class GameScene extends PixelScene {
 		Camera.main.panTo(hero.center(), 2.5f);
 
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
-			if (Dungeon.depth == Statistics.deepestFloor
-					&& (InterlevelScene.mode == InterlevelScene.Mode.DESCEND || InterlevelScene.mode == InterlevelScene.Mode.FALL)) {
+					// TODO 玩家进入苔藓层的时候提示的也是降入地牢的第一层
+					boolean isNewFloor = false;
+					if (Dungeon.branchId.equals(Branches.MAIN)) {
+						isNewFloor = Dungeon.depth == Statistics.deepestFloor;
+					} else if (Dungeon.branchId.equals(Branches.MOSS)) {
+						isNewFloor = Dungeon.depth == Statistics.deepestMossFloor;
+					}
+			
+					if (isNewFloor
+							&& (InterlevelScene.mode == InterlevelScene.Mode.DESCEND || InterlevelScene.mode == InterlevelScene.Mode.FALL)) {
 
-				// 获取分支名称并显示降入消息
-				Branch branch = Branches.get(Dungeon.branchId);
-				if (branch != null && !Dungeon.branchId.equals(Branches.MAIN)) {
-					String branchName = branch.getLocalizedName();
-					GLog.h(Messages.get(this, "descend"), branchName, Dungeon.depth);
-				} else {
-					GLog.h(Messages.get(this, "descend_default"), Dungeon.depth);
-				}
+						// 获取分支名称并显示降入消息
+						Branch branch = Branches.get(Dungeon.branchId);
+						if (branch != null && !Dungeon.branchId.equals(Branches.MAIN)) {
+							String branchName = branch.getLocalizedName();
+							GLog.h(Messages.get(this, "descend"), branchName, Dungeon.depth);
+						}
 				Sample.INSTANCE.play(Assets.Sounds.DESCEND);
 				
 				for (Char ch : Actor.chars()){

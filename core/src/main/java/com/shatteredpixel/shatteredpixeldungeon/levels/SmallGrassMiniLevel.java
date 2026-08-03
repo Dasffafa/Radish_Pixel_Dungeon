@@ -3,12 +3,14 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MossEntranceRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MossExitRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SpecialRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.EntranceRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.ExitRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.StandardRoom;
 import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
@@ -16,21 +18,19 @@ public class SmallGrassMiniLevel extends SewerLevel {
 
     @Override
     public void playLevelMusic(){
-        // 默认音乐
-        Music.INSTANCE.play(Assets.Music.SEWERS_1, true);
         Music.INSTANCE.play(Assets.Music.SEWERS_TENSE, true);
     }
 
     @Override
     protected int standardRooms(boolean forceMax) {
         if (forceMax) return 2;
-        return 2;
+        return 2+ Random.chances(new float[]{1, 3, 1});
     }
 
     @Override
     protected int specialRooms(boolean forceMax) {
         if (forceMax) return 1;
-        return 1;
+        return 1+Random.chances(new float[]{1, 2});
     }
 
     public String tilesTex() {
@@ -41,32 +41,17 @@ public class SmallGrassMiniLevel extends SewerLevel {
         return Assets.Environment.WATER_MOSS;
     }
 
-    /**
-     * 覆盖：在房间中找一个合适的位置放置入口楼梯
-     */
-    @Override
-    protected int findBranchEntranceCell() {
-        // 优先在普通房间中找
-        for (Room room : rooms) {
-            if (room.isExit() || room.isEntrance()) continue;
-            for (int i = 0; i < 10; i++) {
-                int cell = pointToCell(room.random());
-                if (map[cell] == Terrain.EMPTY || map[cell] == Terrain.EMPTY_DECO) {
-                    return cell;
-                }
-            }
-        }
-        // 兜底：调用父类方法
-        return super.findBranchEntranceCell();
-    }
-
-    /**
-     * 覆盖：苔藓分支第2层使用特殊出口房间
-     */
     @Override
     protected ArrayList<Room> initRooms() {
         ArrayList<Room> initRooms = new ArrayList<>();
-        initRooms.add(roomEntrance = EntranceRoom.createEntrance());
+
+        // 苔藓分支第1层使用 MossEntranceRoom（从主线进入）
+        // 第2层使用普通入口房间（从第1层进入）
+        if (Dungeon.depth == 1) {
+            initRooms.add(roomEntrance = new MossEntranceRoom());
+        } else {
+            initRooms.add(roomEntrance = EntranceRoom.createEntrance());
+        }
 
         // 苔藓分支第2层使用 MossExitRoom（返回主线）
         if (Dungeon.depth == 2) {
