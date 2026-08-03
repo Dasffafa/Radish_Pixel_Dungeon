@@ -48,6 +48,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Snake;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BannerSprites;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branch;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.EmoIcon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -497,23 +498,31 @@ public class GameScene extends PixelScene {
 		Camera.main.panTo(hero.center(), 2.5f);
 
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
-					// TODO 玩家进入苔藓层的时候提示的也是降入地牢的第一层
-					boolean isNewFloor = false;
-					if (Dungeon.branchId.equals(Branches.MAIN)) {
-						isNewFloor = Dungeon.depth == Statistics.deepestFloor;
-					} else if (Dungeon.branchId.equals(Branches.MOSS)) {
-						isNewFloor = Dungeon.depth == Statistics.deepestMossFloor;
-					}
-			
-					if (isNewFloor
-							&& (InterlevelScene.mode == InterlevelScene.Mode.DESCEND || InterlevelScene.mode == InterlevelScene.Mode.FALL)) {
+			LevelTransition travelTransition = InterlevelScene.curTransition;
+			String destinationBranch = travelTransition == null
+					? Dungeon.branchId : travelTransition.destBranch;
+			int destinationDepth = travelTransition == null
+					? Dungeon.depth : travelTransition.destDepth;
+			InterlevelScene.curTransition = null;
 
-						// 获取分支名称并显示降入消息
-						Branch branch = Branches.get(Dungeon.branchId);
-						if (branch != null && !Dungeon.branchId.equals(Branches.MAIN)) {
-							String branchName = branch.getLocalizedName();
-							GLog.h(Messages.get(this, "descend"), branchName, Dungeon.depth);
-						}
+			boolean isNewFloor = false;
+			if (destinationBranch.equals(Branches.MAIN)) {
+				isNewFloor = destinationDepth == Statistics.deepestFloor;
+			} else if (destinationBranch.equals(Branches.MOSS)) {
+				isNewFloor = destinationDepth == Statistics.deepestMossFloor;
+			}
+
+			if (isNewFloor
+					&& (InterlevelScene.mode == InterlevelScene.Mode.DESCEND
+					|| InterlevelScene.mode == InterlevelScene.Mode.FALL)) {
+
+				Branch branch = Branches.get(destinationBranch);
+				if (branch != null && !destinationBranch.equals(Branches.MAIN)) {
+					String branchName = branch.getLocalizedName();
+					GLog.h(Messages.get(this, "descend_branch"), branchName, destinationDepth);
+				} else {
+					GLog.h(Messages.get(this, "descend"), destinationDepth);
+				}
 				Sample.INSTANCE.play(Assets.Sounds.DESCEND);
 				
 				for (Char ch : Actor.chars()){
@@ -544,7 +553,13 @@ public class GameScene extends PixelScene {
 			} else if (InterlevelScene.mode == InterlevelScene.Mode.RESURRECT) {
 				GLog.h(Messages.get(this, "resurrect"), Dungeon.depth);
 			} else {
-				GLog.h(Messages.get(this, "return"), Dungeon.depth);
+				Branch branch = Branches.get(destinationBranch);
+				if (branch != null && !destinationBranch.equals(Branches.MAIN)) {
+					GLog.h(Messages.get(this, "return_branch"),
+							branch.getLocalizedName(), destinationDepth);
+				} else {
+					GLog.h(Messages.get(this, "return"), destinationDepth);
+				}
 			}
 
 //			if (Dungeon.hero.hasTalent(Talent.ROGUES_FORESIGHT)

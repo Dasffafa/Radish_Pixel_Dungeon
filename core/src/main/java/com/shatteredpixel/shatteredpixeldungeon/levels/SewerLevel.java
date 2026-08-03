@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.SewerPainter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.BlessScrollRoom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MossExitRoomInMain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SmallGrassEnterRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.AlarmTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.ChillingTrap;
@@ -100,6 +101,9 @@ public class SewerLevel extends RegularLevel {
 			if(Dungeon.branchId.equals(Branches.MOSS)){
 				initRooms.add(new BlessScrollRoom());
 			}
+		}
+		if (Dungeon.depth == 3 && Dungeon.branchId.equals(Branches.MAIN)) {
+			initRooms.add(new MossExitRoomInMain());
 		}
 		return initRooms;
 	}

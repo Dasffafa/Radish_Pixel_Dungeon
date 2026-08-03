@@ -72,11 +72,19 @@ public class MossEntranceRoom extends StandardRoom {
                 "moss:main-2", Branches.MAIN, 2);
         level.transitions.add(transition);
         Painter.set(level, entranceCell, Terrain.ENTRANCE);
+    }
 
-        // 添加视觉效果（复用 MOSS_ENTER）
-        MossPortalVisual vis = new MossPortalVisual();
-        vis.pos(c.x, c.y);
-        level.customTiles.add(vis);
+    @Override
+    public void onLevelLoad(Level level) {
+        super.onLevelLoad(level);
+        level.customTiles.removeIf(tile -> tile instanceof MossPortalVisual
+                && inside(new Point(tile.tileX, tile.tileY)));
+        for (LevelTransition transition : level.transitions) {
+            if (inside(transition.center())) {
+                Level.set(transition.cell(), Terrain.ENTRANCE, level);
+                return;
+            }
+        }
     }
 
     @Override

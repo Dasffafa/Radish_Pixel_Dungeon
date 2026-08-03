@@ -319,14 +319,15 @@ public abstract class Level implements Bundlable {
 
 		} while (!build() && !Thread.currentThread().isInterrupted());
 
+		// Branch endpoints have no lower floor, so finalize their terrain before
+		// deriving passability, pit, and other behavior flags from the map.
+		convertChasmOnBranchEnd();
+
 		buildFlagMaps();
 		cleanWalls();
 
 		createMobs();
 		createItems();
-
-		// 支线终点：将 Chasm 转换为普通地板
-		convertChasmOnBranchEnd();
 
 		Random.popGenerator();
 	}
