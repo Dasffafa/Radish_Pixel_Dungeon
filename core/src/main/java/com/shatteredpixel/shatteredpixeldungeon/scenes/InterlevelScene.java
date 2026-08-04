@@ -695,7 +695,6 @@ public class InterlevelScene extends PixelScene {
 			throw new IllegalStateException("Transition " + source.linkId + " has invalid directions");
 		}
 
-		curTransition = null;
 		Dungeon.switchLevel(level, arrival.cell());
 	}
 

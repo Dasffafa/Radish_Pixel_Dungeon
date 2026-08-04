@@ -6,7 +6,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
@@ -67,9 +66,10 @@ public class MossExitRoom extends StandardRoom {
         Point c = center();
         int exitCell = level.pointToCell(c);
 
-        LevelTransition transition = LevelTransition.regularEntrance(level, exitCell);
+        LevelTransition transition = LevelTransition.branchDown(level, exitCell,
+                "moss:main-3", Branches.MAIN, 3);
         level.transitions.add(transition);
-        Painter.set(level, exitCell, Terrain.ENTRANCE);
+        Painter.set(level, exitCell, Terrain.EXIT);
 
         // 添加视觉效果
         MossPortalVisual vis = new MossPortalVisual();
@@ -79,9 +79,25 @@ public class MossExitRoom extends StandardRoom {
 
     @Override
     public boolean connect(Room room) {
-        // 不能连接到另一个出口房间
         if (room.isExit()) return false;
         return super.connect(room);
+    }
+        // 不能连接到另一个出口房间
+
+    @Override
+    public void onLevelLoad(Level level) {
+        super.onLevelLoad(level);
+        for (LevelTransition transition : level.transitions) {
+            if (inside(transition.center())) {
+                transition.linkId = "moss:main-3";
+                transition.direction = LevelTransition.Direction.DOWN;
+                transition.destBranch = Branches.MAIN;
+                transition.destDepth = 3;
+                transition.type = LevelTransition.Type.BRANCH_EXIT;
+                Painter.set(level, transition.cell(), Terrain.EXIT);
+                return;
+            }
+        }
     }
 
     /**

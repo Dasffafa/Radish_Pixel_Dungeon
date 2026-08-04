@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -8,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
@@ -20,7 +22,7 @@ public class WeaponMasteryTalent {
 			type = buffType.POSITIVE;
 		}
 
-		private int turnCount;
+		public int turnCount;
 		private KindOfWeapon trackedWeapon;
 
 		@Override
@@ -93,8 +95,6 @@ public class WeaponMasteryTalent {
 		}
 	}
 
-	private static KindOfWeapon lastWeapon;
-
 	@SubscribeEvent(event = HeroActEvent.class, priority = 0)
 	public static void onHeroAct(HeroActEvent event) {
 		Hero hero = event.getHero();
@@ -108,7 +108,6 @@ public class WeaponMasteryTalent {
 		if (tracker.getTrackedWeapon() == null) {
 			tracker.trackedWeapon = weapon;
 		}
-		// 检测武器切换：使用 tracker 保存的武器进行比对
 		// 这里直接检测相等不行， 因为武器的equals方法没定义好
 		if (weapon != null && weapon.getClass() != tracker.getTrackedWeapon().getClass()) {
 			tracker.reset();
@@ -119,6 +118,10 @@ public class WeaponMasteryTalent {
 	public static int getBonusDamage(Hero hero) {
 		if (hero.heroClass != HeroClass.MOONLIGHT || !hero.hasTalent(Talent.WEAPON_MASTERY)) return 0;
 		MasteryTracker tracker = hero.buff(MasteryTracker.class);
-		return tracker != null ? tracker.getBonusDamage() : 0;
+		if (tracker != null) {
+			if (tracker.turnCount >= 500) ((HeroSprite) Dungeon.hero.sprite).updateArmor();
+			return tracker.getBonusDamage();
+		}
+		return 0;
 	}
 }

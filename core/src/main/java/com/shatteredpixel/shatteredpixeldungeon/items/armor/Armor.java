@@ -88,9 +88,28 @@ public class Armor extends EquipableItem {
 	public int toyCharge = 0; // 玩具背包充能
 	protected ArrayList<ItemArmorAttachable> attachedToys = new ArrayList<>();
 
-	public static final int TOY_CHARGE_COST = 35; // 生成一个玩具需要的充能
-
-
+	private static final Class<? extends ItemArmorAttachable>[][] TOY_CLASSES_BY_TIER = new Class[][]{
+		{
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Scar.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.IronHeart.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Arrow.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.BarkskinToy.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Cloak.class,
+			ClumsyShoes.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Poem.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Mercury.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Tincture.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Polearm.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.Whetstone.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.MagicWand.class,
+			com.shatteredpixel.shatteredpixeldungeon.items.toys.ShieldToy.class,
+		},
+		{TieredToy.Buckler.class, TieredToy.TwinDaggers.class, TieredToy.BlessedWater.class, TieredToy.Spinach.class, TieredToy.Terrarium.class},
+		{TieredToy.Harpoon.class, TieredToy.EnchantedShield.class, TieredToy.IronPendant.class, TieredToy.Shortsword.class, TieredToy.BloodChalice.class},
+		{TieredToy.CrackedPlate.class, TieredToy.LifeBolt.class, TieredToy.SplittingArrows.class, TieredToy.HissingRing.class, TieredToy.Antivenom.class},
+		{TieredToy.Ambrosia.class, TieredToy.Nunchaku.class, TieredToy.Sponge.class, TieredToy.MiniCrossbow.class, TieredToy.Doomblade.class, TieredToy.BagOfHolding.class},
+		{TieredToy.BlindingBolt.class, TieredToy.Hourglass.class, TieredToy.GhostShield.class, TieredToy.ToothNecklace.class, TieredToy.Determination.class}
+	};
 
 	public enum Augment {
 		EVASION (2f , -1f),
@@ -344,32 +363,9 @@ public class Armor extends EquipableItem {
 	 */
 	public ItemArmorAttachable generateRandomToy() {
 		try {
-			Class<? extends ItemArmorAttachable>[] tierOne = new Class[]{
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Scar.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.IronHeart.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Arrow.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.BarkskinToy.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Cloak.class,
-				ClumsyShoes.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Poem.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Mercury.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Tincture.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Polearm.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.Whetstone.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.MagicWand.class,
-				com.shatteredpixel.shatteredpixeldungeon.items.toys.ShieldToy.class,
-			};
-			Class<? extends ItemArmorAttachable>[][] pools = new Class[][]{
-				tierOne,
-				{TieredToy.Buckler.class, TieredToy.TwinDaggers.class, TieredToy.BlessedWater.class, TieredToy.Spinach.class, TieredToy.Terrarium.class},
-				{TieredToy.Harpoon.class, TieredToy.EnchantedShield.class, TieredToy.IronPendant.class, TieredToy.Shortsword.class, TieredToy.BloodChalice.class},
-				{TieredToy.CrackedPlate.class, TieredToy.LifeBolt.class, TieredToy.SplittingArrows.class, TieredToy.HissingRing.class, TieredToy.Antivenom.class},
-				{TieredToy.Ambrosia.class, TieredToy.Nunchaku.class, TieredToy.Sponge.class, TieredToy.MiniCrossbow.class, TieredToy.Doomblade.class, TieredToy.BagOfHolding.class},
-				{TieredToy.BlindingBolt.class, TieredToy.Hourglass.class, TieredToy.GhostShield.class, TieredToy.ToothNecklace.class, TieredToy.Determination.class}
-			};
 			int talent = Dungeon.hero == null ? 0 : Dungeon.hero.pointsInTalent(Talent.BETTER_ITEM);
 			int tier = Random.IntRange(1 + talent, 2 + talent);
-			Class<? extends ItemArmorAttachable> cls = Random.oneOf(pools[tier - 1]);
+			Class<? extends ItemArmorAttachable> cls = Random.oneOf(TOY_CLASSES_BY_TIER[tier - 1]);
 			ItemArmorAttachable toy = cls.getDeclaredConstructor().newInstance();
 			if (toy != null) {
 				toy.identify();
@@ -378,6 +374,17 @@ public class Armor extends EquipableItem {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	public static int toyTierCount() {
+		return TOY_CLASSES_BY_TIER.length;
+	}
+
+	public static Class<? extends ItemArmorAttachable>[] toyClassesForTier(int tier) {
+		if (tier < 1 || tier > TOY_CLASSES_BY_TIER.length) {
+			throw new IllegalArgumentException("Invalid toy tier: " + tier);
+		}
+		return TOY_CLASSES_BY_TIER[tier - 1].clone();
 	}
 
 	/**
@@ -626,7 +633,10 @@ public class Armor extends EquipableItem {
 	private static String buildToyBackpackMessage(Armor armor) {
 		StringBuilder sb = new StringBuilder();
 		int currentCharge = armor instanceof ClassArmor ? (int)Math.floor(((ClassArmor)armor).charge) : armor.toyCharge;
-		sb.append(Messages.get(Armor.class, "toy_backpack_charge", currentCharge, TOY_CHARGE_COST));
+		float chargeCost = Dungeon.hero != null && Dungeon.hero.armorAbility instanceof ToyBackpack
+				? Dungeon.hero.armorAbility.chargeUse(Dungeon.hero)
+				: ToyBackpack.BASE_CHARGE_COST;
+		sb.append(Messages.get(Armor.class, "toy_backpack_charge", currentCharge, (int)Math.ceil(chargeCost)));
 		sb.append("\n").append(Messages.get(Armor.class, "toy_backpack_slots", armor.toyCount(), armor.toyCapacity()));
 		sb.append("\n\n");
 		if (armor.attachedToys.isEmpty()) {

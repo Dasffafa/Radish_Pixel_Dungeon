@@ -69,6 +69,7 @@ public class SmallGrassMiniLevel extends SewerLevel {
 
         // 特殊房间
         int specials = specialRooms(false);
+        SpecialRoom.initForFloor();
         for (int i = 0; i < specials; i++) {
             initRooms.add(SpecialRoom.createRoom());
         }

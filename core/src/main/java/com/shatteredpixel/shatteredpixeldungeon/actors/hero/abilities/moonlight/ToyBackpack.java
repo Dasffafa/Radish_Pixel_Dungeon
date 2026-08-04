@@ -44,8 +44,10 @@ import java.util.ArrayList;
  */
 public class ToyBackpack extends ArmorAbility {
 
+	public static final float BASE_CHARGE_COST = 35f;
+
 	{
-		baseChargeUse = 35f;
+		baseChargeUse = BASE_CHARGE_COST;
 	}
 
 	@Override
@@ -67,7 +69,8 @@ public class ToyBackpack extends ArmorAbility {
 		if (toy == null) return;
 		com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects.onAbilityUsed(hero);
 
-		armor.charge -= chargeUse(hero);
+		float chargeCost = chargeUse(hero);
+		armor.charge -= chargeCost;
 		armor.updateQuickslot();
 		Item.updateQuickslot();
 
