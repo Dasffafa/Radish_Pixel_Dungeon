@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.WeaponMasteryTalent;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterGlow;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
@@ -88,6 +89,8 @@ public class HeroSprite extends CharSprite {
 		
 		// 月华角色特殊贴图逻辑（优先级从高到低）
 		if (hero.heroClass == HeroClass.MOONLIGHT) {
+			WeaponMasteryTalent.MasteryTracker WeaponMasteryTracker = hero.buff(WeaponMasteryTalent.MasteryTracker.class);
+
 			// 第7行：薪王化身状态（HolyLanceForm/SoulStreamForm/FatalBladeForm）
 			if (hero.buff(AshKing.HolyLanceForm.class) != null ||
 				hero.buff(AshKing.SoulStreamForm.class) != null ||
@@ -103,7 +106,7 @@ public class HeroSprite extends CharSprite {
 				t = 4;
 			}
 			// 第3行：武器掌握天赋满层
-			else if (hero.pointsInTalent(Talent.WEAPON_MASTERY) == 5) {
+			else if (WeaponMasteryTracker != null && WeaponMasteryTracker.turnCount>=500) {
 				t = 2;
 			}
 			// 第2行：穿戴其他盔甲（非布甲）
