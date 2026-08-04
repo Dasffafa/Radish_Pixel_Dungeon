@@ -720,6 +720,9 @@ public abstract class Char extends Actor {
             return true;
 
         } else {
+			if (this instanceof Hero && ((Hero) this).belongings.attackingWeapon() instanceof Yamato) {
+				((Yamato) ((Hero) this).belongings.attackingWeapon()).onMiss();
+			}
             if (enemy.buff(CloakofGreyFeather.hexDodge.class) != null) {
                 for (Char ch : Actor.chars()) {
                     if (ch.alignment != enemy.alignment && enemy.fieldOfView[ch.pos] && ch.alignment != Alignment.NEUTRAL) {

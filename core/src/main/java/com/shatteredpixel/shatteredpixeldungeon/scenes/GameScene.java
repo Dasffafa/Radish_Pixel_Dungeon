@@ -44,6 +44,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ghoul;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WhitePlasticChair;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Snake;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BannerSprites;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
@@ -1696,7 +1697,9 @@ public class GameScene extends PixelScene {
 			} else if (objects.get(0) instanceof Hero) {
 				textLines.add(0, Messages.get(GameScene.class, "go_here"));
 			} else if (objects.get(0) instanceof Mob) {
-				if (((Mob) objects.get(0)).alignment != Char.Alignment.ENEMY) {
+				if (objects.get(0) instanceof WhitePlasticChair) {
+					textLines.add(0, Messages.get(WhitePlasticChair.class, "kick"));
+				} else if (((Mob) objects.get(0)).alignment != Char.Alignment.ENEMY) {
 					textLines.add(0, Messages.get(GameScene.class, "interact"));
 				} else {
 					textLines.add(0, Messages.get(GameScene.class, "attack"));
@@ -1736,7 +1739,11 @@ public class GameScene extends PixelScene {
 				@Override
 				public void onSelect(int index) {
 					if (index == 0){
-						handleCell(cell);
+						if (objects.size() == 1 && objects.get(0) instanceof WhitePlasticChair) {
+							((WhitePlasticChair) objects.get(0)).kick(Dungeon.hero);
+						} else {
+							handleCell(cell);
+						}
 					} else {
 						if (objects.size() == 0){
 							GameScene.show(new WndInfoCell(cell));

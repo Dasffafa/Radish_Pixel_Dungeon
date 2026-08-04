@@ -49,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Frog;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WhitePlasticChair;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.events.*;
@@ -1014,7 +1015,7 @@ public class Hero extends Char {
 
 	@Override
 	public void spend( float time ) {
-
+		justMoved = false;
 		super.spend(time);
 	}
 
@@ -2444,7 +2445,11 @@ public class Hero extends Char {
 		Char ch = Actor.findChar( cell );
 		Heap heap = Dungeon.level.heaps.get( cell );
 
-		if (Dungeon.level.map[cell] == Terrain.ALCHEMY && cell != pos) {
+		if (fieldOfView[cell] && ch instanceof WhitePlasticChair) {
+			GameScene.examineObject(ch);
+			return false;
+
+		} else if (Dungeon.level.map[cell] == Terrain.ALCHEMY && cell != pos) {
 
 			curAction = new HeroAction.Alchemy( cell );
 

@@ -159,6 +159,7 @@ public class ItemSpriteSheet {
 	public static final String ASSASSINS_BLADE = "assassins_blade";
 	public static final String CROSSBOW = "crossbow";
 	public static final String KATANA = "katana";
+	public static final String YAMATO = "yamato";
 
 	//Radish Image WEP_TIER3
 

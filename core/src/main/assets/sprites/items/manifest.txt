@@ -526,3 +526,4 @@ wingsword.png
 wondrous_resin.png
 wooly_bomb.png
 worn_shortsword.png
+yamato.png
