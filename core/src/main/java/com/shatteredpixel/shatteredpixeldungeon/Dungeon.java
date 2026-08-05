@@ -214,6 +214,7 @@ public class Dungeon {
 
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static HashSet<String> generatedLevels = new HashSet<>();
+	public static boolean levelJustGenerated;
 
 	public static int gold;
 	public static int energy;
@@ -286,6 +287,7 @@ public class Dungeon {
 		depth = 1;
 		branchId = Branches.MAIN;
 		generatedLevels.clear();
+		levelJustGenerated = false;
 
 		gold = 0;
 		energy = 0;
@@ -330,6 +332,7 @@ public class Dungeon {
 	
 	public static Level newLevel() {
 		
+		levelJustGenerated = true;
 		Dungeon.level = null;
 		Actor.clear();
 		
@@ -915,6 +918,7 @@ public class Dungeon {
 	
 	public static Level loadLevel( int save ) throws IOException {
 		
+		levelJustGenerated = false;
 		Dungeon.level = null;
 		Actor.clear();
 

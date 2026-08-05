@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.CheckBox;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.GameLog;
+import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.OptionSlider;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
@@ -1456,6 +1457,9 @@ public class WndSettings extends WndTabbed {
 			}
 			if (path == null || path.startsWith(BuffIcon.LARGE_ATLAS.directory)) {
 				RuntimeAtlasRegistry.get(BuffIcon.LARGE_ATLAS).invalidate();
+			}
+			if (path == null || path.startsWith(HeroIcon.ATLAS_SOURCE.directory)) {
+				RuntimeAtlasRegistry.get(HeroIcon.ATLAS_SOURCE).invalidate();
 			}
 			if (path == null || path.equals(Assets.Sprites.ITEM_ICONS)) {
 				ItemSpriteSheet.Icons.film = new TextureFilm(Assets.Sprites.ITEM_ICONS, ItemSpriteSheet.Icons.SIZE, ItemSpriteSheet.Icons.SIZE);

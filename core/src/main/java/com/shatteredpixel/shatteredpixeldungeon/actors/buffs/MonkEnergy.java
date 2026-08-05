@@ -245,7 +245,7 @@ public class MonkEnergy extends Buff implements ActionIndicator.Action {
 	}
 
 	@Override
-	public int actionIcon() {
+	public String actionIcon() {
 		return HeroIcon.MONK_ABILITIES;
 	}
 

@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bless;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlessAWP;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChallengeToyEffects;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Momentum;
@@ -362,9 +363,13 @@ public class Armor extends EquipableItem {
 	 * 生成随机玩具
 	 */
 	public ItemArmorAttachable generateRandomToy() {
+		int talent = Dungeon.hero == null ? 0 : Dungeon.hero.pointsInTalent(Talent.BETTER_ITEM);
+		return generateRandomToy( Random.IntRange(1 + talent, 2 + talent) );
+	}
+
+	public ItemArmorAttachable generateRandomToy( int tier ) {
 		try {
-			int talent = Dungeon.hero == null ? 0 : Dungeon.hero.pointsInTalent(Talent.BETTER_ITEM);
-			int tier = Random.IntRange(1 + talent, 2 + talent);
+			if (tier < 1 || tier > TOY_CLASSES_BY_TIER.length) return null;
 			Class<? extends ItemArmorAttachable> cls = Random.oneOf(TOY_CLASSES_BY_TIER[tier - 1]);
 			ItemArmorAttachable toy = cls.getDeclaredConstructor().newInstance();
 			if (toy != null) {
@@ -399,7 +404,11 @@ public class Armor extends EquipableItem {
 	}
 
 	public int toyCapacity() {
-		return hasToy(TieredToy.BagOfHolding.class) ? 4 : 2;
+		int base = Dungeon.hero != null && Dungeon.hero.armorAbility instanceof ToyBackpack
+				? ToyBackpack.attachedToyCapacity(Dungeon.hero) : 2;
+		boolean temporaryBag = Dungeon.hero != null && isEquipped(Dungeon.hero)
+				&& ChallengeToyEffects.hasEffect(Dungeon.hero, TieredToy.BagOfHolding.class);
+		return hasToy(TieredToy.BagOfHolding.class) || temporaryBag ? base + 2 : base;
 	}
 
 	public static class ToyRef {
@@ -471,8 +480,9 @@ public class Armor extends EquipableItem {
 
 	private void dropExcessToys(Hero hero) {
 		while (attachedToys.size() > toyCapacity()) {
-			ItemArmorAttachable removed = attachedToys.get(2);
-			detachToy(2);
+			int overflowIndex = toyCapacity();
+			ItemArmorAttachable removed = attachedToys.get(overflowIndex);
+			detachToy(overflowIndex);
 			if (removed instanceof BrokenSeal) Dungeon.level.drop(removed, hero.pos).sprite.drop();
 			else removed.vanishOnGround(true, hero.pos);
 		}
@@ -489,7 +499,7 @@ public class Armor extends EquipableItem {
 		if (index >= 0 && index < attachedToys.size()) {
 			ItemArmorAttachable toy = attachedToys.remove(index);
 			if (Dungeon.hero != null && isEquipped(Dungeon.hero)) {
-				toy.removeEffect(Dungeon.hero);
+				ChallengeToyEffects.removePermanentEffect(Dungeon.hero, toy);
 			}
 			toy.attachedTo = null;
 		}
@@ -636,8 +646,13 @@ public class Armor extends EquipableItem {
 		float chargeCost = Dungeon.hero != null && Dungeon.hero.armorAbility instanceof ToyBackpack
 				? Dungeon.hero.armorAbility.chargeUse(Dungeon.hero)
 				: ToyBackpack.BASE_CHARGE_COST;
+		int ownedToyCount = Dungeon.hero == null ? armor.toyCount() : Armor.ownedToys(Dungeon.hero).size();
+		int totalToyCapacity = Dungeon.hero != null && Dungeon.hero.armorAbility instanceof ToyBackpack
+				? ToyBackpack.totalToyCapacity(Dungeon.hero) : armor.toyCapacity();
 		sb.append(Messages.get(Armor.class, "toy_backpack_charge", currentCharge, (int)Math.ceil(chargeCost)));
 		sb.append("\n").append(Messages.get(Armor.class, "toy_backpack_slots", armor.toyCount(), armor.toyCapacity()));
+		sb.append("\n").append(Messages.get(Armor.class, "toy_backpack_total",
+				ownedToyCount, totalToyCapacity));
 		sb.append("\n\n");
 		if (armor.attachedToys.isEmpty()) {
 			sb.append(Messages.get(Armor.class, "toy_backpack_empty"));
@@ -645,6 +660,18 @@ public class Armor extends EquipableItem {
 			sb.append(Messages.get(Armor.class, "toy_backpack_attached"));
 			for (ItemArmorAttachable toy : armor.attachedToys) {
 				sb.append("\n\n• ").append(toy.name()).append("\n  ").append(toy.desc());
+			}
+		}
+		ChallengeToyEffects challengeEffects = Dungeon.hero == null
+				? null : Dungeon.hero.buff(ChallengeToyEffects.class);
+		if (challengeEffects != null && !challengeEffects.effects().isEmpty()) {
+			sb.append("\n\n").append(Messages.get(Armor.class, "toy_backpack_challenge_effects"));
+			ArrayList<ItemArmorAttachable> effects = challengeEffects.effects();
+			for (int i = 0; i < effects.size(); i++) {
+				ItemArmorAttachable toy = effects.get(i);
+				sb.append("\n\n").append(Messages.get(Armor.class, "toy_backpack_challenge_effect",
+						toy.name(), challengeEffects.remainingTurns(i)));
+				sb.append("\n  ").append(toy.desc());
 			}
 		}
 		return sb.toString();
@@ -678,15 +705,15 @@ public class Armor extends EquipableItem {
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (super.doUnequip( hero, collect, single )) {
+			hero.belongings.armor = null;
 			for (ItemArmorAttachable toy : attachedToys) {
-				toy.removeEffect(hero);
+				ChallengeToyEffects.removePermanentEffect(hero, toy);
 			}
 
 			if (buff != null) {
 				buff.detach();
 				buff = null;
 			}
-			hero.belongings.armor = null;
 			((HeroSprite)hero.sprite).updateArmor();
 
 			BrokenSeal.WarriorShield sealBuff = hero.buff(BrokenSeal.WarriorShield.class);

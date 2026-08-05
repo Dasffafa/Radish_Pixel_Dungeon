@@ -59,7 +59,7 @@ public class Challenge extends ArmorAbility {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return HeroIcon.CHALLENGE;
 	}
 

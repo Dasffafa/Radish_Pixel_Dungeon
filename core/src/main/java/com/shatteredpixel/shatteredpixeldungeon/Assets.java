@@ -183,9 +183,7 @@ public class Assets {
 		public static final String HALLS_3              = "music/halls_3.ogg";
 		public static final String HALLS_TENSE          = "music/halls_tense.ogg";
 		public static final String HALLS_BOSS           = "music/halls_boss.ogg";
-		public static final String HALLS_BOSS_FINALE    = "music/halls_boss_finale.ogg";
-
-		public static final String SND_DICE_MAGE        = "music/snd/dice_mage.ogg";
+		public static final String HALLS_BOSS_FINALE = "music/halls_boss_finale.ogg";
 	}
 
 	public static class Sounds {
@@ -267,26 +265,6 @@ public class Assets {
 
 		public static final String JUTTE_BREAK = "sounds/weapon_break.ogg";
 
-		// TODO TheCatist: let all those sfx use snd vanilla sound loader(SnDSounds.java)
-		public static final String SND_ATTACK_HIT       = "sounds/snd/attack_hit.wav";
-		public static final String SND_ATTACK_MISS      = "sounds/snd/attack_miss.wav";
-		public static final String SND_SPELL_CUT        = "sounds/snd/spell_cut.wav";
-		public static final String SND_SPELL_HEAL       = "sounds/snd/spell_heal.wav";
-		public static final String SND_SPELL_SOOTHE     = "sounds/snd/spell_soothe.wav";
-		public static final String SND_SPELL_LIQUOR     = "sounds/snd/spell_liquor.wav";
-		public static final String SND_SPELL_OPERATE    = "sounds/snd/spell_operate.wav";
-		public static final String SND_SPELL_MIASMA     = "sounds/snd/spell_miasma.wav";
-		public static final String SND_SPELL_CRUSH      = "sounds/snd/spell_crush.wav";
-		public static final String SND_SPELL_BLAZE      = "sounds/snd/spell_blaze.wav";
-		public static final String SND_DEATH            = "sounds/snd/death.wav";
-
-		//TODO TheCatist: Del this when SnDSound migration finish
-		public static final String[] sndAll = new String[]{
-				SND_ATTACK_HIT, SND_ATTACK_MISS, SND_SPELL_CUT, SND_SPELL_HEAL,
-				SND_SPELL_SOOTHE, SND_SPELL_LIQUOR, SND_SPELL_OPERATE,
-				SND_SPELL_MIASMA, SND_SPELL_CRUSH, SND_SPELL_BLAZE, SND_DEATH
-		};
-
 		public static final String[] all = new String[]{
 				CLICK, BADGE, GOLD,
 
@@ -302,9 +280,6 @@ public class Assets {
 
 				//Added by TheCatist
 				LARGE_BELL,KILL_BOAT_SWORD_SLASH, KILL_BOAT_SWORD_SWING, MAN, JUTTE_BREAK,
-				SND_ATTACK_HIT, SND_ATTACK_MISS, SND_SPELL_CUT, SND_SPELL_HEAL,
-				SND_SPELL_SOOTHE, SND_SPELL_LIQUOR, SND_SPELL_OPERATE,
-				SND_SPELL_MIASMA, SND_SPELL_CRUSH, SND_SPELL_BLAZE, SND_DEATH
 		};
 	}
 

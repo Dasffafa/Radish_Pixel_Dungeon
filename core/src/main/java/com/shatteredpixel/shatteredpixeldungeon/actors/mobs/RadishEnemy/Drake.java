@@ -322,20 +322,14 @@ public class Drake extends Mob {
     }
     @Override
     public CharSprite sprite() {
-        if (Dungeon.isChallenged(Challenges.SNAKE_BITE)) {
-            if (alignment == Alignment.NEUTRAL) {
-                // Hidden state: return DrakeSprite with hideDrake animation
-                DrakeSprite sprite = (DrakeSprite) Reflection.newInstance(DrakeSprite.class);
-                sprite.hideDrake();
-                return sprite;
-            } else {
-                // Non-hidden state: return SnakeSprite for snake bite challenge
-                return new SnakeSprite();
-            }
-        } else {
-            // No challenge: always return DrakeSprite
-            return Reflection.newInstance(DrakeSprite.class);
+        if (alignment == Alignment.NEUTRAL && !isStopHiding) {
+            DrakeSprite sprite = (DrakeSprite) Reflection.newInstance(DrakeSprite.class);
+            sprite.hideDrake();
+            return sprite;
         }
+        return Dungeon.isChallenged(Challenges.SNAKE_BITE)
+                ? new SnakeSprite()
+                : Reflection.newInstance(DrakeSprite.class);
     }
     @Override
     public void onAttackComplete() {

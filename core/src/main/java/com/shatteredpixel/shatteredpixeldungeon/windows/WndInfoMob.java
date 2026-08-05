@@ -101,7 +101,9 @@ public class WndInfoMob extends Window {
 		add(name);
 
 		DiceMageUI.HealthPips health = new DiceMageUI.HealthPips();
-		health.setRect(name.left(), name.bottom() + 1, DiceMageUI.pipWidth(DiceMageUI.pipCount(mob.HT)), DiceMageUI.pipHeight());
+		int healthPips = DiceMageUI.pipCount(mob.HT);
+		health.setRect(name.left(), name.bottom() + 1,
+				DiceMageUI.pipWidth(healthPips), DiceMageUI.pipHeight(healthPips));
 		health.level(mob);
 		add(health);
 

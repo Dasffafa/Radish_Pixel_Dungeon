@@ -12,13 +12,10 @@ package com.watabou.gltextures;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.utils.BufferUtils;
 import com.watabou.noosa.Game;
 import com.watabou.utils.RectF;
 
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -244,7 +241,9 @@ public final class RuntimeAtlas {
 		} );
 
 		if (images.isEmpty()) return;
-		int maxTextureSize = maxTextureSize();
+		// Atlases can be built while InterlevelScene generates a level off the render
+		// thread. Do not query GL here: that thread has no current OpenGL context.
+		int maxTextureSize = DEFAULT_MAX_TEXTURE_SIZE;
 		long totalArea = 0;
 		int largest = 0;
 		for (SourceImage image : images) {
@@ -328,13 +327,6 @@ public final class RuntimeAtlas {
 		SmartTexture texture = TextureCache.put( key, new SmartTexture( pixmap ) );
 		textureKeys.add( key );
 		errorFrame = new AtlasFrame( texture, new RectF( 0, 0, 1, 1 ), 2, 2 );
-	}
-
-	private static int maxTextureSize() {
-		if (Gdx.gl == null) return DEFAULT_MAX_TEXTURE_SIZE;
-		IntBuffer value = BufferUtils.newIntBuffer( 1 );
-		Gdx.gl.glGetIntegerv( GL20.GL_MAX_TEXTURE_SIZE, value );
-		return Math.max( MIN_PAGE_SIZE, value.get( 0 ) );
 	}
 
 	private static int nextPowerOfTwo( int value ) {

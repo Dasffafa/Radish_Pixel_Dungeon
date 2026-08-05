@@ -167,8 +167,6 @@ public class SnDSFX {
      */
     public static void load() {
         if (loaded) return;
-        // Load old SnD sounds (for backwards compatibility)
-        Sample.INSTANCE.load(Assets.Sounds.sndAll);
         // Load new combat sounds
         Sample.INSTANCE.load(allPaths.toArray(new String[0]));
         loaded = true;

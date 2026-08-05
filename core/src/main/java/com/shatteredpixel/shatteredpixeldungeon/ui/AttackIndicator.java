@@ -186,8 +186,19 @@ public class AttackIndicator extends Tag {
 	@Override
 	protected void onClick() {
 		super.onClick();
-		if (enabled && Dungeon.hero.ready) {
-			if (Dungeon.hero.handle( lastTarget.pos )) {
+		attack();
+	}
+
+	public static void attack() {
+		AttackIndicator current = instance;
+		if (current != null) {
+			current.attackTarget();
+		}
+	}
+
+	private synchronized void attackTarget() {
+		if (enabled && Dungeon.hero.ready && lastTarget != null) {
+			if (Dungeon.hero.handle(lastTarget.pos)) {
 				Dungeon.hero.next();
 			}
 		}

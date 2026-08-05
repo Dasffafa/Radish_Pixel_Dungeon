@@ -190,7 +190,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     @Override
-    public int actionIcon() {
+    public String actionIcon() {
         return HeroIcon.DICE_MAGE;
     }
 

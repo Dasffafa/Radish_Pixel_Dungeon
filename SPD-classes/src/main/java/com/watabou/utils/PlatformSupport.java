@@ -62,6 +62,7 @@ public abstract class PlatformSupport {
 	//TODO should consider spinning this into its own class, rather than platform support getting ever bigger
 	protected static HashMap<FreeTypeFontGenerator, HashMap<Integer, BitmapFont>> fonts;
 	protected static HashMap<Integer, BitmapFont> tannFonts;
+	private static FreeTypeFontGenerator tannFontGenerator;
 	private static boolean tannFontMode;
 
 	protected int pageSize;
@@ -93,6 +94,10 @@ public abstract class PlatformSupport {
 			}
 			tannFonts.clear();
 			tannFonts = null;
+		}
+		if (tannFontGenerator != null) {
+			tannFontGenerator.dispose();
+			tannFontGenerator = null;
 		}
 	}
 
@@ -191,25 +196,24 @@ public abstract class PlatformSupport {
 	private BitmapFont getTannFont(int size, boolean flipped, boolean border) {
 		if (tannFonts == null) {
 			tannFonts = new HashMap<>();
+			tannFontGenerator = new FreeTypeFontGenerator(
+					Gdx.files.internal("fonts/fusion_pixel_10px_zh_hans.ttf"));
 		}
 
 		int key = size * 4 + (flipped ? 1 : 0) + (border ? 2 : 0);
 		if (!tannFonts.containsKey(key)) {
-			BitmapFont font = new BitmapFont(Gdx.files.internal("fonts/tann_font.fnt"), flipped);
+			FreeTypeFontGenerator.FreeTypeFontParameter parameters =
+					new FreeTypeFontGenerator.FreeTypeFontParameter();
+			parameters.size = 10;
+			parameters.flip = flipped;
+			parameters.incremental = true;
+			parameters.hinting = FreeTypeFontGenerator.Hinting.None;
+			parameters.minFilter = Texture.TextureFilter.Nearest;
+			parameters.magFilter = Texture.TextureFilter.Nearest;
+			BitmapFont font = tannFontGenerator.generateFont(parameters);
 			font.getData().setScale(size / 10f);
 			font.setUseIntegerPositions(false);
 			font.getRegion().getTexture().setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-			// 只对中文等宽字符增加间距（ID >= 128 的字符）
-			for (BitmapFont.Glyph[] page : font.getData().glyphs) {
-				if (page != null) {
-					for (BitmapFont.Glyph g : page) {
-						// 只对中文字符增加间距，英文保持原样
-						if (g != null && g.id >= 128) {
-							g.xadvance += 5;
-						}
-					}
-				}
-			}
 			tannFonts.put(key, font);
 		}
 

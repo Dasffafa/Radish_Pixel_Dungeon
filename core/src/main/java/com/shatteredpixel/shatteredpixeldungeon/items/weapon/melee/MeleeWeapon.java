@@ -515,7 +515,7 @@ public class MeleeWeapon extends Weapon {
 		}
 
 		@Override
-		public int actionIcon() {
+		public String actionIcon() {
 			return HeroIcon.WEAPON_SWAP;
 		}
 

@@ -78,7 +78,7 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     }
 
     @Override
-    public int actionIcon() {
+    public String actionIcon() {
         return HeroIcon.COMBO;
     }
 

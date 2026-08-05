@@ -153,12 +153,18 @@ public class BuffIndicator extends Component {
 	private Char ch;
 
 	private boolean large = false;
+	private boolean threeColumnGrid = false;
 
 	public BuffIndicator( Char ch, boolean large ) {
+		this(ch, large, false);
+	}
+
+	public BuffIndicator( Char ch, boolean large, boolean threeColumnGrid ) {
 		super();
 
 		this.ch = ch;
 		this.large = large;
+		this.threeColumnGrid = threeColumnGrid;
 		if (ch == Dungeon.hero) {
 			heroInstance = this;
 		}
@@ -239,6 +245,11 @@ public class BuffIndicator extends Component {
 		}
 
 		//layout
+		if (threeColumnGrid) {
+			layoutThreeColumnGrid(size);
+			return;
+		}
+
 		int pos = 0;
 		float lastIconLeft = 0;
 		for (BuffButton icon : buffButtons.values()){
@@ -274,6 +285,38 @@ public class BuffIndicator extends Component {
 				cumulativeAdjust -= leftAdjust;
 			}
 		}
+	}
+
+	private void layoutThreeColumnGrid(int size) {
+		int count = buffButtons.size();
+		if (count == 0) {
+			buffsHidden = false;
+			return;
+		}
+
+		float buttonWidth = size + 1f;
+		float buttonHeight = size + (large ? 0f : 5f);
+		float columnStep = Math.max(0f, (width - buttonWidth) / 2f);
+		int rows = (count + 2) / 3;
+		float normalRowStep = Math.max(0f, (height - buttonHeight) / 2f);
+		float rowStep = rows <= 3
+				? normalRowStep
+				: Math.max(0f, (height - buttonHeight) / (rows - 1f));
+
+		int index = 0;
+		for (BuffButton icon : buffButtons.values()) {
+			int column = index % 3;
+			int row = index / 3;
+			icon.updateIcon();
+			icon.setRect(x + column * columnStep, y + row * rowStep,
+					buttonWidth, buttonHeight);
+			icon.visible = true;
+			PixelScene.align(icon);
+			bringToFront(icon);
+			icon.givePointerPriority();
+			index++;
+		}
+		buffsHidden = false;
 	}
 
 	public boolean allBuffsVisible(){

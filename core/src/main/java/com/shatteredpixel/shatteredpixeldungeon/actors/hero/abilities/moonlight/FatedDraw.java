@@ -60,7 +60,7 @@ public class FatedDraw extends ArmorAbility {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return HeroIcon.FATED_DRAW;
 	}
 

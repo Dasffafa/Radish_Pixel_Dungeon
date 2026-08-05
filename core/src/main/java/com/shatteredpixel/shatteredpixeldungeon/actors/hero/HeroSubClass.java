@@ -45,9 +45,9 @@ public enum HeroSubClass {
 	WARDEN(HeroIcon.WARDEN),
 
 	//Rector Sub Class
-	BATTLEPREIST(HeroIcon.PATLE),
-	REDCARDINAL(HeroIcon.REDLORD),
-	DEAD_KNIGHT(HeroIcon.DEADKNIGHT),
+	BATTLEPREIST(HeroIcon.BATTLE_PRIEST),
+	REDCARDINAL(HeroIcon.RED_CARDINAL),
+	DEAD_KNIGHT(HeroIcon.DEAD_KNIGHT),
 
 	//Moonlight SubClasses
 	LITTLE_KNIGHT(HeroIcon.LITTLE_KNIGHT),
@@ -58,9 +58,9 @@ public enum HeroSubClass {
 	CHAMPION(HeroIcon.CHAMPION),
 	MONK(HeroIcon.MONK);
 
-	int icon;
+	String icon;
 
-	HeroSubClass(int icon){
+	HeroSubClass(String icon){
 		this.icon = icon;
 	}
 
@@ -93,7 +93,7 @@ public enum HeroSubClass {
 		}
 	}
 
-	public int icon(){
+	public String icon(){
 		return icon;
 	}
 

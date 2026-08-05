@@ -78,8 +78,8 @@ public class AshKing extends ArmorAbility {
 	}
 
 	@Override
-	public int icon() {
-		return HeroIcon.ENDURE;
+	public String icon() {
+		return HeroIcon.ASH_KING;
 	}
 
 	@Override

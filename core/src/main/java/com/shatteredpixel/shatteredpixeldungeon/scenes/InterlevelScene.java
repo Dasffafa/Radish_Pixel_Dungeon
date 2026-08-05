@@ -734,6 +734,7 @@ public class InterlevelScene extends PixelScene {
 
 			Dungeon.hero.resurrect();
 			level = Dungeon.newLevel();
+			Dungeon.levelJustGenerated = false;
 			Dungeon.hero.pos = level.randomRespawnCell(Dungeon.hero);
 			if (Dungeon.hero.pos == -1) Dungeon.hero.pos = level.entrance();
 
@@ -780,6 +781,7 @@ public class InterlevelScene extends PixelScene {
 		SpecialRoom.resetPitRoom(Dungeon.depth+1);
 
 		Level level = Dungeon.newLevel();
+		Dungeon.levelJustGenerated = false;
 		Dungeon.switchLevel( level, level.entrance() );
 	}
 

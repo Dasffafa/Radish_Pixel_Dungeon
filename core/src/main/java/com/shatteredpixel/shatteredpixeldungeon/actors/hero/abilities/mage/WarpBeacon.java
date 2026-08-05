@@ -266,7 +266,7 @@ public class WarpBeacon extends ArmorAbility {
 	}
 
 	@Override
-	public int icon() {
+	public String icon() {
 		return HeroIcon.WARP_BEACON;
 	}
 

@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChallengeToyEffects;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -206,10 +207,15 @@ public abstract class ItemArmorAttachable extends Item {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends ItemArmorAttachable> T getAttachedToy(Class<T> toyClass) {
-		if (Dungeon.hero == null || Dungeon.hero.belongings.armor == null) {
-			return null;
+		if (Dungeon.hero == null) return null;
+
+		if (Dungeon.hero.belongings.armor != null) {
+			T attached = Dungeon.hero.belongings.armor.getToy(toyClass);
+			if (attached != null) return attached;
 		}
-		return Dungeon.hero.belongings.armor.getToy(toyClass);
+
+		ChallengeToyEffects challengeEffects = Dungeon.hero.buff(ChallengeToyEffects.class);
+		return challengeEffects == null ? null : challengeEffects.getToy(toyClass);
 	}
 
 	/**
@@ -223,9 +229,14 @@ public abstract class ItemArmorAttachable extends Item {
 	 * 获取英雄护甲上所有附着的玩具列表
 	 */
 	public static ArrayList<ItemArmorAttachable> getAllAttachedToys() {
-		if (Dungeon.hero == null || Dungeon.hero.belongings.armor == null) {
-			return new ArrayList<>();
+		ArrayList<ItemArmorAttachable> result = new ArrayList<>();
+		if (Dungeon.hero == null) return result;
+
+		if (Dungeon.hero.belongings.armor != null) {
+			result.addAll(Dungeon.hero.belongings.armor.getToys());
 		}
-		return Dungeon.hero.belongings.armor.getToys();
+		ChallengeToyEffects challengeEffects = Dungeon.hero.buff(ChallengeToyEffects.class);
+		if (challengeEffects != null) result.addAll(challengeEffects.effects());
+		return result;
 	}
 }
