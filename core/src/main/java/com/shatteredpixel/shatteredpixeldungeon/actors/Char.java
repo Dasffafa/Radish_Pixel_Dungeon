@@ -85,7 +85,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazin
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Wet;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.WetEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.ShockingDart;
@@ -1279,7 +1279,7 @@ public abstract class Char extends Actor {
             int icon = FloatingText.PHYS_DMG;
             if (NO_ARMOR_PHYSICAL_SOURCES.contains(src.getClass())) icon = FloatingText.PHYS_DMG_NO_BLOCK;
             if (AntiMagic.RESISTS.contains(src.getClass())) icon = FloatingText.MAGIC_DMG;
-            if (src instanceof Wet.WetMagicDamage) icon = FloatingText.MAGIC_DMG;
+            if (src instanceof WetEnchantment.WetMagicDamage) icon = FloatingText.MAGIC_DMG;
             if (src instanceof Pickaxe) icon = FloatingText.PICK_DMG;
 
             //special case for sniper when using ranged attacks

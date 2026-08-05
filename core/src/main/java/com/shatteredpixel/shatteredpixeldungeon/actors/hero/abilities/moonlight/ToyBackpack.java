@@ -91,7 +91,7 @@ public class ToyBackpack extends ArmorAbility {
 	}
 
 	public static int attachedToyCapacity(Hero hero) {
-		return hero != null && hero.pointsInTalent(Talent.EXTRA_POCKET) >= 2 ? 2 : 1;
+		return hero != null && hero.pointsInTalent(Talent.EXTRA_POCKET) >= 3 ? 2 : 1;
 	}
 
 	private void finishGeneration(ClassArmor armor, Hero hero) {

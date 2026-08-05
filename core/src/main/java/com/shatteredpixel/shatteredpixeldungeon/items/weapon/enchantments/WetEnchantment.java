@@ -14,7 +14,7 @@ import com.watabou.utils.Random;
  * 濡湿附魔
  * 造成0-等级的魔法伤害，25%概率使敌人虚弱3回合
  */
-public class Wet extends Enchantment {
+public class WetEnchantment extends Enchantment {
 
     private static final int GREEN = 0x00AA88;
 

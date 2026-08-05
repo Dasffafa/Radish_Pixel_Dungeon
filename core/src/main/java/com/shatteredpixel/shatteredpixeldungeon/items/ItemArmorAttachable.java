@@ -68,6 +68,14 @@ public abstract class ItemArmorAttachable extends Item {
 	}
 
 	@Override
+	public String actionName(String action, Hero hero) {
+		if (action.equals(AC_ATTACH) || action.equals(AC_DETACH)) {
+			return Messages.get(ItemArmorAttachable.class, "ac_" + action);
+		}
+		return super.actionName(action, hero);
+	}
+
+	@Override
 	public void execute(Hero hero, String action) {
 		super.execute(hero, action);
 

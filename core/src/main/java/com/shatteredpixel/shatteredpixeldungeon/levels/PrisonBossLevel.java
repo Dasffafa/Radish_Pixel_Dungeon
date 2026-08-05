@@ -795,7 +795,7 @@ public class PrisonBossLevel extends Level {
 			return super.desc(tileX, tileY);
 		}
 		
-		private void setFade( ){
+		private void setFade(){
 			if (vis == null){
 				return;
 			}

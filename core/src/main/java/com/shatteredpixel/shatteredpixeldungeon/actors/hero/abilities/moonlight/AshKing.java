@@ -223,7 +223,6 @@ public class AshKing extends ArmorAbility {
 			}
 
 			if (enemies.size() > 0) {
-				GLog.i(Messages.get(HolyLanceForm.class, "knockback", enemies.size()));
 				Sample.INSTANCE.play(Assets.Sounds.BLAST);
 			}
 		}
@@ -272,7 +271,7 @@ public class AshKing extends ArmorAbility {
 		public boolean consumeFreeCast() {
 			if (freeCasts > 0) {
 				freeCasts--;
-				GLog.i(Messages.get(this, "cast_used", freeCasts));
+//				GLog.i(Messages.get(this, "cast_used", freeCasts));
 				return true;
 			}
 			return false;

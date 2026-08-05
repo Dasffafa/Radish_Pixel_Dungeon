@@ -70,7 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocki
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Striking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Vampiric;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Wet;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.WetEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RunicBlade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scimitar;
@@ -121,7 +121,7 @@ abstract public class Weapon extends KindOfWeapon {
 	private static final int USES_TO_ID = 20;
 
 	// 小骑士：无附魔武器使用的虚拟 Wet 附魔实例
-	private static final Wet WET_ENCHANT = new Wet();
+	private static final WetEnchantment WET_ENCHANT = new WetEnchantment();
 	private float usesLeftToID = USES_TO_ID;
 	private float availableUsesToID = USES_TO_ID/2f;
 	

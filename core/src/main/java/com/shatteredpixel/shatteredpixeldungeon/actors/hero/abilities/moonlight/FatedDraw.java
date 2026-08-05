@@ -119,16 +119,13 @@ public class FatedDraw extends ArmorAbility {
 		public boolean consume(String type) {
 			if (remainingChecks > 0) {
 				remainingChecks--;
-				GLog.i(Messages.get(this, "consume_" + type, remainingChecks));
+				//TheCatist 2026/8/5 这个太吵了！不要
+//				GLog.i(Messages.get(this, "consume_" + type, remainingChecks));
 				return true;
 			}
 			return false;
 		}
 
-		/**
-		 * 搜刮地皮：击杀敌人后消耗次数产生掉落
-		 * @return 生成的掉落物品，如果没有次数或天赋则返回 null
-		 */
 		public Item tryGenLootGroundDrop(Hero hero) {
 			if (remainingChecks > 0 && hero.hasTalent(Talent.LOOT_GROUND)) {
 				remainingChecks--;
