@@ -24,7 +24,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.WellWater;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolySpringUsedBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
@@ -44,15 +43,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes.Landmark;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
-import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Sample;
 
 public class WaterOfHealth extends WellWater {
@@ -72,39 +68,23 @@ public class WaterOfHealth extends WellWater {
 				}
 
 				if (usedBuff.canTransformHealth()) {
-					// 弹出选择窗口 - 必须在渲染线程上执行
-					Game.runOnRenderThread(() -> {
-						GameScene.show(new WndOptions(
-								Messages.get(WaterOfHealth.class, "holy_spring_title"),
-								Messages.get(WaterOfHealth.class, "holy_spring_desc"),
-								Messages.get(WaterOfHealth.class, "holy_spring_normal"),
-								Messages.get(WaterOfHealth.class, "holy_spring_transform")
-						) {
-							@Override
-							protected void onSelect(int index) {
-								if (index == 0) {
-																// 正常效果
-																normalEffect(hero);
-																// 消耗泉水
-																WellWater water = (WellWater) Dungeon.level.blobs.get(WaterOfHealth.class);
-																if (water != null) {
-																	water.cur[hero.pos] = 0;
-																	Level.set(hero.pos, Terrain.EMPTY_WELL);
-																	GameScene.updateMap(hero.pos);
-																}
-															} else if (index == 1) {
-																// 转化
-																transformEffect(hero, points);
-																// 消耗泉水
-																WellWater water = (WellWater) Dungeon.level.blobs.get(WaterOfHealth.class);
-																if (water != null) {
-																	water.cur[hero.pos] = 0;
-																	Level.set(hero.pos, Terrain.EMPTY_WELL);
-																	GameScene.updateMap(hero.pos);
-																}
-															}
+					int wellPos = hero.pos;
+					GameScene.show(new WndOptions(
+							Messages.get(WaterOfHealth.class, "holy_spring_title"),
+							Messages.get(WaterOfHealth.class, "holy_spring_desc"),
+							Messages.get(WaterOfHealth.class, "holy_spring_normal"),
+							Messages.get(WaterOfHealth.class, "holy_spring_transform")
+					) {
+						@Override
+						protected void onSelect(int index) {
+							if (index == 0) {
+								consume(wellPos);
+								normalEffect(hero);
+							} else if (index == 1) {
+								consume(wellPos);
+								transformEffect(hero, points);
 							}
-						});
+						}
 					});
 					return false; // 暂时不消耗泉水，等待玩家选择
 				}

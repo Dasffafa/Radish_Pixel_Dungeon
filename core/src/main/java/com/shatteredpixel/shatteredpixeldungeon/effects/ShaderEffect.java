@@ -15,7 +15,6 @@ import com.badlogic.gdx.Gdx;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.effects.shaders.*;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.glwrap.GlslShaderScript;
 import com.watabou.glwrap.Matrix;
 import com.watabou.glwrap.Quad;
@@ -23,10 +22,8 @@ import com.watabou.glwrap.Vertexbuffer;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Gizmo;
-import com.watabou.noosa.tweeners.AlphaTweener;
 import com.watabou.utils.RectF;
 
-import java.nio.Buffer;
 import java.nio.FloatBuffer;
 
 /**
@@ -38,14 +35,11 @@ public class ShaderEffect extends Gizmo {
     private final ShaderType shaderType;
     private final float duration;
     private float elapsed = 0;
+    private float progress = 0;
+    private final float random = (float) Math.random();
 
     private final GlslShaderScript shader;
     private float[] combinedMatrix = new float[16];
-
-    private FloatBuffer shaderVertices;
-    private Vertexbuffer shaderVBO;
-
-    private static int drawCallCount = 0;  // 诊断计数器
 
     public ShaderEffect(CharSprite target, ShaderType type, float duration) {
         super();
@@ -53,10 +47,7 @@ public class ShaderEffect extends Gizmo {
         this.shaderType = type;
         this.duration = duration;
 
-        GLog.w("ShaderEffect: 构造函数被调用, type=" + type + ", duration=" + duration);
-
         shader = getShader(type);
-        initShaderParams();
     }
 
     private GlslShaderScript getShader(ShaderType type) {
@@ -73,74 +64,64 @@ public class ShaderEffect extends Gizmo {
         }
     }
 
-    private void initShaderParams() {
-        float sx = target.x, sy = target.y;
-        float sw = target.width(), sh = target.height();
-        
+    private void uploadShaderParams() {
         shader.setAlpha(1.0f);
-        shader.setTime(0);
+        shader.setTime(elapsed);
 
         switch (shaderType) {
             case CUT:
                 if (shader instanceof CutShader) {
                     CutShader c = (CutShader) shader;
                     c.setCutLine(0.5f, 0.5f, 1.0f, 1.0f);
-                    c.setCutProgress(0);
+                    c.setCutProgress(progress);
                     c.setCutSide(1);
                 }
                 break;
             case BURN:
                 if (shader instanceof BurnShader) {
                     BurnShader b = (BurnShader) shader;
-                    b.setBounds(sx, sy, sw, sh);
-                    b.setBurnProgress(0);
-                    b.setRandom((float) Math.random());
+                    b.setBurnProgress(progress);
+                    b.setRandom(random);
                 }
                 break;
             case ELLIPSE:
                 if (shader instanceof EllipseShader) {
                     EllipseShader e = (EllipseShader) shader;
-                    e.setBounds(sx, sy, sw, sh);
-                    e.setProgress(0);
-                    e.setRandom((float) Math.random());
+                    e.setProgress(progress);
+                    e.setRandom(random);
                 }
                 break;
             case ACID:
                 if (shader instanceof AcidShader) {
                     AcidShader a = (AcidShader) shader;
-                    a.setProgress(0);
-                    a.setRandom((float) Math.random());
+                    a.setProgress(progress);
+                    a.setRandom(random);
                 }
                 break;
             case WIPE:
                 if (shader instanceof WipeShader) {
                     WipeShader w = (WipeShader) shader;
-                    w.setBounds(sx, sy, sw, sh);
-                    w.setProgress(0);
+                    w.setProgress(progress);
                     w.setDirection(1, 0);
                 }
                 break;
             case ALPHA:
                 if (shader instanceof AlphaShader) {
                     AlphaShader a = (AlphaShader) shader;
-                    a.setBounds(sx, sy, sw, sh);
-                    a.setProgress(0);
+                    a.setProgress(progress);
                 }
                 break;
             case SINGULARITY:
                 if (shader instanceof SingularityShader) {
                     SingularityShader s = (SingularityShader) shader;
-                    s.setBounds(sx, sy, sw, sh);
-                    s.setProgress(0);
-                    s.setScale(1, 1);
+                    s.setProgress(progress);
+                    s.setScale(1f - progress, 1f - progress);
                 }
                 break;
             case NOISE:
                 if (shader instanceof NoiseShader) {
                     NoiseShader n = (NoiseShader) shader;
-                    n.setupNoise();
-                    n.setTime(0);
-                    n.setProgress(0);
+                    n.setProgress(progress);
                 }
                 break;
         }
@@ -151,56 +132,15 @@ public class ShaderEffect extends Gizmo {
         super.update();
 
         elapsed += Game.elapsed;
-        float progress = Math.min(elapsed / duration, 1.0f);
-        updateShaderProgress(progress);
+        progress = Math.min(elapsed / duration, 1.0f);
 
         if (progress >= 1.0f) {
             if (target != null && target.isPendingDeathAfterShader()) {
                 target.clearPendingDeath();
                 target.setShaderEffect(null);
-                if (target.parent != null) {
-                    target.parent.add(new AlphaTweener(target, 0, 0.5f) {
-                        @Override
-                        protected void onComplete() {
-                            target.killAndErase();
-                        }
-                    });
-                } else {
-                    target.killAndErase();
-                }
+                target.killAndErase();
             }
             killAndErase();
-        }
-    }
-
-    private void updateShaderProgress(float progress) {
-        shader.setTime(elapsed);
-
-        switch (shaderType) {
-            case CUT:
-                if (shader instanceof CutShader) ((CutShader) shader).setCutProgress(progress);
-                break;
-            case BURN:
-                if (shader instanceof BurnShader) ((BurnShader) shader).setBurnProgress(progress);
-                break;
-            case ELLIPSE:
-                if (shader instanceof EllipseShader) ((EllipseShader) shader).setProgress(progress);
-                break;
-            case ACID:
-                if (shader instanceof AcidShader) ((AcidShader) shader).setProgress(progress);
-                break;
-            case WIPE:
-                if (shader instanceof WipeShader) ((WipeShader) shader).setProgress(progress);
-                break;
-            case ALPHA:
-                if (shader instanceof AlphaShader) ((AlphaShader) shader).setProgress(progress);
-                break;
-            case SINGULARITY:
-                if (shader instanceof SingularityShader) ((SingularityShader) shader).setProgress(progress);
-                break;
-            case NOISE:
-                if (shader instanceof NoiseShader) ((NoiseShader) shader).setProgress(progress);
-                break;
         }
     }
 
@@ -211,14 +151,6 @@ public class ShaderEffect extends Gizmo {
                                float spriteWidth, float spriteHeight,
                                float[] spriteMatrix,
                                FloatBuffer verticesBuffer, Vertexbuffer buffer) {
-        drawCallCount++;
-        
-        // 只每60帧输出一次，避免刷屏
-        if (drawCallCount % 60 == 1) {
-//            GLog.w("ShaderEffect.drawWithShader 被调用! count=" + drawCallCount +
-//                   " texture=" + (texture != null) + " buffer=" + (buffer != null));
-        }
-
         if (texture == null) {
 //            GLog.w("drawWithShader: texture is null!");
             return;
@@ -239,9 +171,11 @@ public class ShaderEffect extends Gizmo {
         Matrix.multiply(cam.matrix, spriteMatrix, combinedMatrix);
 
         shader.use();
+        shader.setCamera(combinedMatrix);
+        shader.setFrame(frame.left, frame.top, frame.width(), frame.height());
+        uploadShaderParams();
         shader.bindTextures();
         texture.bind();
-        shader.setCamera(combinedMatrix);
 
         if (shader.aXYZW != null) {
             shader.aXYZW.enable();
@@ -254,6 +188,7 @@ public class ShaderEffect extends Gizmo {
 //            GLog.w("drawWithShader: aUV is null!");
         }
 
+        buffer.updateGLData();
         buffer.bind();
         shader.aXYZW.vertexBuffer(2, 4, 0);
         shader.aUV.vertexBuffer(2, 4, 2);
@@ -274,9 +209,6 @@ public class ShaderEffect extends Gizmo {
         super.destroy();
         if (target != null && target.getShaderEffect() == this) {
             target.setShaderEffect(null);
-        }
-        if (shaderVBO != null) {
-            shaderVBO.delete();
         }
     }
 

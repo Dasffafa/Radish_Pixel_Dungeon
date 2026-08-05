@@ -392,14 +392,18 @@ public abstract class Wand extends Item {
 	public int buffedLvl() {
 		int lvl = super.buffedLvl();
 
-		if(Dungeon.hero.buff(Berserk.class) != null){
-			lvl += Dungeon.hero.buff(Berserk.class).WandBuffedLvl();
-			updateQuickslot();
-		}
+		boolean usedByHero = Dungeon.hero != null && (hero.belongings.contains(this)
+				|| charger != null && charger.target == hero);
+		if (usedByHero) {
+			if (Dungeon.hero.buff(Berserk.class) != null) {
+				lvl += Dungeon.hero.buff(Berserk.class).WandBuffedLvl();
+				updateQuickslot();
+			}
 
-		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
-		if(riverGlass != null){
-			return super.buffedLvl() + riverGlass.level() + 1;
+			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
+			if (riverGlass != null) {
+				return super.buffedLvl() + riverGlass.level() + 1;
+			}
 		}
 
 		if (charger != null && charger.target != null) {

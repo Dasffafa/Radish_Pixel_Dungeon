@@ -6,6 +6,7 @@ varying vec2 vUV;
 uniform sampler2D uTex;
 uniform float uAlpha;
 uniform float uRandom;
+uniform vec4 uFrame;
 
 // Simple noise function
 float noise(vec2 p) {
@@ -25,7 +26,8 @@ float fbm(vec2 p) {
 
 void main() {
   vec4 col = texture2D(uTex, vUV);
-  float noiseVal = fbm(gl_FragCoord.xy * 0.003 + uRandom * 10.0);
+  vec2 localUV = (vUV - uFrame.xy) / uFrame.zw;
+  float noiseVal = fbm(localUV * 8.0 + uRandom * 10.0);
   
   if (noiseVal < uAlpha) {
     col.a = 0.0;

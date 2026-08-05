@@ -235,7 +235,7 @@ public class MeleeWeapon extends Weapon {
 	@Override
 	public int buffedLvl() {
 
-		if(hero.belongings.weapon == this ) {
+		if (hero != null && hero.belongings.weapon == this) {
 			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
 			if(goldRadish != null){
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
@@ -278,7 +278,7 @@ public class MeleeWeapon extends Weapon {
 		}
 
 
-		if (isEquipped( hero ) || hero.belongings.contains( this )){
+		if (hero != null && (isEquipped(hero) || hero.belongings.contains(this))){
 			return super.buffedLvl();
 		} else {
 			return level();

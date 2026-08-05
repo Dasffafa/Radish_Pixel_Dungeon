@@ -117,42 +117,44 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	protected DarkBlock darkBlock;
 	protected TorchHalo light;
 	protected ShieldHalo shield;
-		protected AlphaTweener invisible;
-		protected Flare aura;
-		protected ShaderEffect shaderEffect;
-		protected boolean pendingDeathAfterShader = false;
+	protected AlphaTweener invisible;
+	protected Flare aura;
+	protected ShaderEffect shaderEffect;
+	protected boolean pendingDeathAfterShader = false;
 
-		public void setShaderEffect(ShaderEffect effect) {
-			if (shaderEffect != null) {
-				shaderEffect.killAndErase();
-			}
-			shaderEffect = effect;
+	public void setShaderEffect(ShaderEffect effect) {
+		if (shaderEffect == effect) return;
+		ShaderEffect previous = shaderEffect;
+		shaderEffect = effect;
+		if (previous != null) {
+			previous.killAndErase();
 		}
+	}
 
-		public ShaderEffect getShaderEffect() {
-			return shaderEffect;
-		}
+	public ShaderEffect getShaderEffect() {
+		return shaderEffect;
+	}
 
-		public boolean isPendingDeathAfterShader() {
-			return pendingDeathAfterShader;
-		}
+	public boolean isPendingDeathAfterShader() {
+		return pendingDeathAfterShader;
+	}
 
-		public void clearPendingDeath() {
-			pendingDeathAfterShader = false;
-		}
+	public void clearPendingDeath() {
+		pendingDeathAfterShader = false;
+	}
 
-		public void dieAfterShader() {
-			sleeping = false;
-			remove(State.PARALYSED);
-			hideEmo();
-			if (health != null) {
-				health.killAndErase();
-			}
-			pendingDeathAfterShader = true;
+	public void dieAfterShader() {
+		sleeping = false;
+		remove(State.PARALYSED);
+		hideEmo();
+		if (health != null) {
+			health.killAndErase();
 		}
+		pendingDeathAfterShader = true;
+	}
 
 	
-		protected EmoIcon emo;
+	protected EmoIcon emo;
 	protected CharHealthIndicator health;
 
 	private Tweener jumpTweener;

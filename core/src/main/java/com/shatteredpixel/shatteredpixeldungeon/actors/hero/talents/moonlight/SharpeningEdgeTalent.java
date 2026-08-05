@@ -1,22 +1,19 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 
 /**
  * 砥砺锋芒天赋
@@ -46,23 +43,22 @@ public class SharpeningEdgeTalent {
         return true;
     }
 
-    /**
-     * 获取可以作为目标的物品列表
-     * @param hero 英雄
-     * @param sacrificeType 代价物品的类型（KindOfWeapon 或 Armor）
-     * @return 可鉴定的目标物品列表
-     */
-    public static List<Item> getTargetItems(Hero hero, Class<?> sacrificeType) {
-        List<Item> targets = new ArrayList<>();
-
-        for (Item item : hero.belongings) {
-            // 同类型且未鉴定
-            if (sacrificeType.isInstance(item) && !item.isIdentified()) {
-                targets.add(item);
-            }
+    private static boolean isValidTarget(Hero hero, Item sacrificeItem, Item targetItem) {
+        if (targetItem == null || targetItem == sacrificeItem
+                || !hero.belongings.contains(targetItem) || targetItem.isIdentified()) {
+            return false;
         }
 
-        return targets;
+        return sacrificeItem instanceof KindOfWeapon
+                ? targetItem instanceof KindOfWeapon
+                : sacrificeItem instanceof Armor && targetItem instanceof Armor;
+    }
+
+    private static boolean hasValidTarget(Hero hero, Item sacrificeItem) {
+        for (Item item : hero.belongings) {
+            if (isValidTarget(hero, sacrificeItem, item)) return true;
+        }
+        return false;
     }
 
     /**
@@ -94,31 +90,39 @@ public class SharpeningEdgeTalent {
      * @param sacrificeItem 代价物品
      */
     public static void showTargetSelectionWindow(Hero hero, Item sacrificeItem) {
-        Class<?> sacrificeType = sacrificeItem instanceof KindOfWeapon ? KindOfWeapon.class : Armor.class;
-        List<Item> targets = getTargetItems(hero, sacrificeType);
-
-        if (targets.isEmpty()) {
+        if (!hasValidTarget(hero, sacrificeItem)) {
             GLog.w(Messages.get(SharpeningEdgeTalent.class, "no_target"));
             return;
         }
 
-        // 构建选项名称
-        String[] options = new String[targets.size()];
-        for (int i = 0; i < targets.size(); i++) {
-            options[i] = targets.get(i).name();
-        }
-
-        GameScene.show(new WndOptions(
-                new ItemSprite(sacrificeItem),
-                Messages.titleCase(Messages.get(SharpeningEdgeTalent.class, "title")),
-                Messages.get(SharpeningEdgeTalent.class, "prompt"),
-                options
-        ) {
+        GameScene.selectItem(new WndBag.ItemSelector() {
             @Override
-            protected void onSelect(int index) {
-                if (index >= 0 && index < targets.size()) {
-                    SharpeningEdgeTalent.execute(hero, sacrificeItem, targets.get(index));
+            public String textPrompt() {
+                return Messages.get(SharpeningEdgeTalent.class, "prompt");
+            }
+
+            @Override
+            public Class<? extends Bag> preferredBag() {
+                return Belongings.Backpack.class;
+            }
+
+            @Override
+            public boolean itemSelectable(Item item) {
+                return isValidTarget(hero, sacrificeItem, item);
+            }
+
+            @Override
+            public void onSelect(Item item) {
+                if (item == null) return;
+
+                if (!hero.belongings.contains(sacrificeItem)
+                        || !canUse(hero, sacrificeItem)
+                        || !isValidTarget(hero, sacrificeItem, item)) {
+                    GLog.w(Messages.get(SharpeningEdgeTalent.class, "no_target"));
+                    return;
                 }
+
+                execute(hero, sacrificeItem, item);
             }
         });
     }

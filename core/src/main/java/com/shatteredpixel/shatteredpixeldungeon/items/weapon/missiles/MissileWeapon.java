@@ -128,7 +128,7 @@ abstract public class MissileWeapon extends Weapon {
 	//use the parent item if this has been thrown from a parent
 	public int buffedLvl(){
 
-		if(Dungeon.hero != null){
+		if (Dungeon.hero != null && (hero.belongings.contains(this) || parent != null)) {
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			if(riverGlass != null){
 				return super.buffedLvl() + riverGlass.level() + 1;

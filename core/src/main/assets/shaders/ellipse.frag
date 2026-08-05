@@ -7,6 +7,7 @@ uniform sampler2D uTex;
 uniform float uAlpha;
 uniform float uRandom;
 uniform vec4 uBounds;
+uniform vec4 uFrame;
 
 #define PI 3.1415926538
 
@@ -47,10 +48,10 @@ float snoise(vec2 v) {
 
 void main() {
   vec4 col = texture2D(uTex, vUV);
-  vec2 ratioPos = (gl_FragCoord.xy - uBounds.xy) / uBounds.zw;
+  vec2 ratioPos = (vUV - uFrame.xy) / uFrame.zw;
   vec2 middlePos = ratioPos - 0.5;
   
-  if (1.0 - length(middlePos) < pow(uAlpha, 1.0) + snoise(gl_FragCoord.xy * 2.0 + uRandom) * 0.08) {
+  if (1.0 - length(middlePos * 2.0) < uAlpha + snoise(ratioPos * 8.0 + uRandom) * 0.08) {
     col.a = 0.0;
   }
   col.b += pow(uAlpha, 3.0) / 2.0;

@@ -8,18 +8,19 @@ uniform float uAlpha;
 uniform float uScaleX;
 uniform float uScaleY;
 uniform vec4 uBounds;
+uniform vec4 uFrame;
 
 void main() {
   vec4 col = texture2D(uTex, vUV);
-  vec2 ratioPos = (gl_FragCoord.xy - uBounds.xy) / uBounds.zw;
-  
-  if (0.5 - abs(0.5 - ratioPos.x) < uAlpha) {
-    col.a = 0.0;
-  } else if (0.5 - abs(0.5 - ratioPos.y) < uScaleY / 2.1) {
+  vec2 ratioPos = (vUV - uFrame.xy) / uFrame.zw;
+  vec2 distanceFromCenter = abs(ratioPos - 0.5);
+  float remaining = max(0.0, 0.5 * (1.0 - uAlpha));
+
+  if (distanceFromCenter.x > remaining || distanceFromCenter.y > remaining) {
     col.a = 0.0;
   }
-  
-  float factor = pow(uScaleY, 7.0);
+
+  float factor = pow(uAlpha, 3.0);
   col.r += factor * 0.6;
   col.g += factor * 0.7;
   col.b += factor * 0.9;

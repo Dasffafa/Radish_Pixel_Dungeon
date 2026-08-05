@@ -85,13 +85,25 @@ public class DiceMageUI {
 
         private Image[] pips;
         private int lastHp = -1, lastShield = -1, lastMax = -1;
+        private int columns = PIPS_PER_ROW;
+
+        public void maxWidth(float maxWidth) {
+            int nextColumns = Math.max(1,
+                    (int) ((maxWidth + PIP_GAP) / (PIP_W + PIP_GAP)));
+            if (columns != nextColumns) {
+                columns = nextColumns;
+                layout();
+            }
+        }
 
         public void level(int hp, int shield, int max) {
             if (hp == lastHp && shield == lastShield && max == lastMax && pips != null) {
                 return; // 无变化跳过重绘
             }
             lastHp = hp; lastShield = shield; lastMax = max;
-            int count = pipCount(max);
+            int filled = pipCount(hp);
+            int shldPips = pipCount(shield);
+            int count = Math.max(pipCount(max), filled + shldPips);
             if (pips == null || pips.length != count) {
                 if (pips != null) {
                     for (Image p : pips) remove(p);
@@ -103,9 +115,6 @@ public class DiceMageUI {
                     add(pips[i]);
                 }
             }
-
-            int filled = pipCount(hp);
-            int shldPips = pipCount(shield);
 
             for (int i = 0; i < count; i++) {
                 if (i < filled) {
@@ -123,13 +132,15 @@ public class DiceMageUI {
         protected void layout() {
             if (pips == null) return;
             for (int i = 0; i < pips.length; i++) {
-                int column = i % PIPS_PER_ROW;
-                int row = i / PIPS_PER_ROW;
+                int column = i % columns;
+                int row = i / columns;
                 pips[i].x = x + column * (PIP_W + PIP_GAP);
                 pips[i].y = y + row * (PIP_H + PIP_GAP);
             }
-            width = pipWidth(pips.length);
-            height = pipHeight(pips.length);
+            int usedColumns = Math.min(pips.length, columns);
+            int rows = (pips.length + columns - 1) / columns;
+            width = usedColumns == 0 ? 0 : usedColumns * PIP_W + (usedColumns - 1) * PIP_GAP;
+            height = rows == 0 ? 0 : rows * PIP_H + (rows - 1) * PIP_GAP;
         }
 
         public void alpha(float value) {

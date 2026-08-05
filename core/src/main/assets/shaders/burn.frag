@@ -9,6 +9,7 @@ uniform float uAlpha;
 uniform vec4 uBounds;
 uniform float uBurnProgress;
 uniform float uRandom;
+uniform vec4 uFrame;
 
 float noise(vec2 p) {
   return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -28,12 +29,12 @@ float fbm(vec2 p) {
 void main() {
   vec4 col = texture2D(uTex, vUV);
   
-  vec2 ratioPos = (gl_FragCoord.xy - uBounds.xy) / uBounds.zw;
+  vec2 ratioPos = (vUV - uFrame.xy) / uFrame.zw;
   
-  float noiseVal = fbm(gl_FragCoord.xy * 0.003 + uRandom * 10.0);
-  float noiseStrength = 3.8 / pow(uBounds.w, 0.5);
+  float noiseVal = fbm(ratioPos * 8.0 + uRandom * 10.0);
+  float noiseStrength = 0.35;
   
-  float burnAmt = (1.0 - ratioPos.y) - uBurnProgress * (1.0 + noiseStrength) + noiseVal * noiseStrength;
+  float burnAmt = (1.0 - ratioPos.y) - uBurnProgress * 1.8 + noiseVal * noiseStrength;
   
   if (burnAmt < 0.0) {
     col.a = 0.0;

@@ -40,6 +40,7 @@ public abstract class GlslShaderScript extends Script {
     protected Uniform uTime;        // 动画时间
     protected Uniform uAlpha;       // 整体透明度
     protected Uniform uCamera;      // 摄像机矩阵
+    protected Uniform uFrame;       // 当前 sprite 帧在图集中的 UV 范围
     
     // ============== 通用 Attribute ==============
     public Attribute aXYZW;      // 顶点位置
@@ -60,6 +61,7 @@ public abstract class GlslShaderScript extends Script {
         uTime = uniform("uTime");
         uAlpha = uniform("uAlpha");
         uCamera = uniform("uCamera");
+        uFrame = uniform("uFrame");
         aXYZW = attribute("aXYZW");
         aUV = attribute("aUV");
     }
@@ -175,6 +177,12 @@ public abstract class GlslShaderScript extends Script {
     public void setCamera(float[] matrix) {
         if (uCamera != null) {
             uCamera.valueM4(matrix);
+        }
+    }
+
+    public void setFrame(float left, float top, float width, float height) {
+        if (uFrame != null) {
+            uFrame.value4f(left, top, width, height);
         }
     }
 }

@@ -7,14 +7,16 @@ uniform sampler2D uTex;
 uniform float uAlpha;
 uniform vec2 uDirection;
 uniform vec4 uBounds;
+uniform vec4 uFrame;
 
 void main() {
   vec4 col = texture2D(uTex, vUV);
-  vec2 ratioPos = (gl_FragCoord.xy - uBounds.xy) / uBounds.zw;
+  vec2 ratioPos = (vUV - uFrame.xy) / uFrame.zw;
   
   ratioPos = ratioPos * uDirection + max(vec2(0.0, 0.0), uDirection * -1.0);
   
-  if (ratioPos.x < uAlpha && ratioPos.y < uAlpha) {
+  float amount = dot(ratioPos, abs(uDirection));
+  if (amount < uAlpha) {
     col.a = 0.0;
   }
   

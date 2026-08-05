@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.food.HalfFood;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -219,6 +220,13 @@ public class ItemSprite extends MovieClip {
 			}
 		}
 		view(item.image(), item.glowing());
+		if (item instanceof HalfFood) {
+			AtlasFrame atlasFrame = ATLAS.trimmedFrame(item.image(), MIN_VISIBLE_ALPHA);
+			float middle = (atlasFrame.uv.top + atlasFrame.uv.bottom) / 2f;
+			texture = atlasFrame.texture;
+			frame(new com.watabou.utils.RectF(
+					atlasFrame.uv.left, middle, atlasFrame.uv.right, atlasFrame.uv.bottom));
+		}
 		Emitter emitter = item.emitter();
 		if (emitter != null && parent != null) {
 			emitter.pos( this );

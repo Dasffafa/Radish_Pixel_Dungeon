@@ -1372,17 +1372,9 @@ public abstract class Char extends Actor {
     public void die(Object src) {
         destroy();
         if (src != Chasm.class && sprite != null) {
-            // 如果 sprite 有待处理的死亡标记（shader 即将创建），跳过死亡动画
-            if (sprite.isPendingDeathAfterShader()) {
-                // shader 会接管，不需要播放死亡动画
-                // dieAfterShader() 已经在 ShaderEffect.apply() 中调用过了
-                //TODO TheCatist: finish shader dev and del this
-                GLog.w("这里应有Slice&Dice着色器，但是尚未开发完成，请期待下个版本。");
-            } else if (sprite.getShaderEffect() == null) {
-                // 没有 shader，播放正常死亡动画
+            if (sprite.getShaderEffect() == null) {
                 sprite.die();
             } else {
-                // shader 已经存在，标记需要在 shader 完成后清理
                 sprite.dieAfterShader();
             }
         }

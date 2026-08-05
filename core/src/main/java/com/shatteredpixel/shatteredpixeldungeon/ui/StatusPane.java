@@ -32,13 +32,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CircleArc;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndHero;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndKeyBindings;
 import com.watabou.input.GameAction;
@@ -87,15 +84,8 @@ public class StatusPane extends Component {
 	private BusyIndicator busy;
 	private CircleArc counter;
 
-	// 骰子法师 S&D 卡片
-	private DiceMageUI.Frame diceCard;
-	private RenderedTextBlock diceName;
+	// 骰子法师使用离散生命格代替普通血条
 	private DiceMageUI.HealthPips diceHp;
-	private DiceMageUI.Frame diceBuffFrame;
-	private DiceMageUI.Frame diceWeaponFrame;
-	private ItemSprite diceWeapon;
-	private Button diceWeaponButton;
-	private Item lastDiceWeapon;
 
 	private static String asset =  !SPDSettings.NORMAL_SKIN() ? Assets.Interfaces.STATUS : Assets.Interfaces.NORMAL_STATUS;
 
@@ -186,7 +176,7 @@ public class StatusPane extends Component {
 		level.hardlight( 0xFFFFAA );
 		add( level );
 
-		buffs = new BuffIndicator( Dungeon.hero, large && !DiceMageUI.active(), DiceMageUI.active() );
+		buffs = new BuffIndicator( Dungeon.hero, large );
 		add( buffs );
 
 		busy = new BusyIndicator();
@@ -196,45 +186,9 @@ public class StatusPane extends Component {
 		counter.color( 0x808080, true );
 		counter.show(this, busy.center(), 0f);
 
-		// 骰子法师 S&D 卡片组件（默认隐藏）
-		diceCard = new DiceMageUI.Frame(DiceMageUI.BLACK, DiceMageUI.GREY_LINE);
-		diceCard.visible = false;
-		add(diceCard);
-
-		diceName = PixelScene.renderTextBlock(3);
-		diceName.hardlight(DiceMageUI.CREAM);
-		diceName.visible = false;
-		add(diceName);
-
 		diceHp = new DiceMageUI.HealthPips();
 		diceHp.visible = false;
 		add(diceHp);
-
-		diceBuffFrame = new DiceMageUI.Frame(DiceMageUI.BLACK, DiceMageUI.GREY_LINE);
-		diceBuffFrame.visible = false;
-		add(diceBuffFrame);
-
-		diceWeaponFrame = new DiceMageUI.Frame(DiceMageUI.BLACK, DiceMageUI.GOLD);
-		diceWeaponFrame.visible = false;
-		add(diceWeaponFrame);
-
-		diceWeapon = new ItemSprite(ItemSpriteSheet.WEAPON_HOLDER);
-		diceWeapon.visible = false;
-		add(diceWeapon);
-
-		diceWeaponButton = new Button() {
-			@Override
-			protected void onClick() {
-				AttackIndicator.attack();
-			}
-
-			@Override
-			protected String hoverText() {
-				return Messages.titleCase(Messages.get(WndKeyBindings.class, "tag_attack"));
-			}
-		};
-		diceWeaponButton.visible = false;
-		add(diceWeaponButton);
 	}
 
 	@Override
@@ -311,116 +265,27 @@ public class StatusPane extends Component {
 
 		counter.point(busy.center());
 
-		// 骰子法师：S&D 卡片替换原状态面板
+		layoutDiceMageHealth();
+	}
+
+	private void layoutDiceMageHealth() {
 		boolean dice = DiceMageUI.active();
-		if (dice) {
-			layoutDiceMageCard();
-		} else {
-			diceCard.visible = diceName.visible = diceHp.visible = false;
-			diceBuffFrame.visible = false;
-			diceWeaponFrame.visible = diceWeapon.visible = diceWeaponButton.visible = false;
-			compass.visible = true;
-		}
-	}
-	
-	private void layoutDiceMageCard() {
-		float cardWidth = Math.min(width, 160f);
-		float cardHeight = large ? 39f : 32f;
-		float portraitWidth = large ? 31f : 29f;
-		float slotSize = cardHeight - 4f;
-		float weaponX = x + cardWidth - slotSize - 2f;
-		float buffX = weaponX - slotSize - 2f;
-		float contentLeft = x + portraitWidth + 2f;
-		float contentRight = buffX - 2f;
-		float healthAreaWidth = Math.max(1f, contentRight - contentLeft);
-		int pipCount = DiceMageUI.pipCount(Dungeon.hero.HT);
+		diceHp.visible = dice;
+		hp.visible = shieldedHP.visible = rawShielding.visible = !dice;
+		hpText.visible = !dice;
+		vitae.visible = !dice;
+		if (vitaeText != null) vitaeText.visible = !dice;
+		if (!dice) return;
 
-		diceCard.setRect(x, y, cardWidth, cardHeight);
-
-		avatar.x = x + (portraitWidth - avatar.width()) / 2f;
-		avatar.y = y + (cardHeight - avatar.height()) / 2f;
-		PixelScene.align(avatar);
-		heroInfo.setRect(x, y, portraitWidth, cardHeight);
-
-		float titleWidth = Math.max(1f, contentRight - contentLeft);
-		diceName.maxWidth(Integer.MAX_VALUE);
-		diceName.zoom(1f);
-		diceName.text(diceTitle());
-		if (diceName.width() > titleWidth) {
-			diceName.zoom(titleWidth / diceName.width());
-		}
-		diceName.setPos(contentLeft + (titleWidth - diceName.width()) / 2f, y + 2f);
-		PixelScene.align(diceName);
-
-		float pipX = contentLeft + (healthAreaWidth - DiceMageUI.pipWidth(pipCount)) / 2f;
-		float pipY = y + (large ? 17f : 15f);
-		diceHp.setRect(
-				pipX,
-				pipY,
-				DiceMageUI.pipWidth(pipCount),
-				DiceMageUI.pipHeight(pipCount));
+		float barWidth = large ? 128f : 50f;
+		float barHeight = large ? 9f : 4f;
+		diceHp.maxWidth(barWidth);
 		diceHp.level(Dungeon.hero);
-
-		diceBuffFrame.setRect(buffX, y + 2f, slotSize, slotSize);
-		buffs.setRect(buffX + 1f, y + 3f, slotSize - 2f, slotSize - 2f);
-
-		diceWeaponFrame.setRect(weaponX, y + 2f, slotSize, slotSize);
-		diceWeaponButton.setRect(weaponX, y + 2f, slotSize, slotSize);
-		updateDiceWeapon();
-
-		bg.visible = false;
-		hp.visible = shieldedHP.visible = rawShielding.visible = false;
-		hpText.visible = heroInfoOnBar.visible = false;
-		exp.visible = false;
-		level.visible = false;
-		compass.visible = false;
-		if (vitae != null) vitae.visible = false;
-		if (vitaeText != null) vitaeText.visible = false;
-		if (expText != null) expText.visible = false;
-
-		diceCard.visible = diceName.visible = diceHp.visible = true;
-		diceBuffFrame.visible = true;
-		diceWeaponFrame.visible = diceWeapon.visible = diceWeaponButton.visible = true;
-		buffs.visible = true;
-
-		bringToFront(diceCard);
-		bringToFront(avatar);
-		bringToFront(diceName);
+		diceHp.setPos(
+				hp.x + (barWidth - diceHp.width()) / 2f,
+				hp.y + (barHeight - diceHp.height()) / 2f);
+		PixelScene.align(diceHp);
 		bringToFront(diceHp);
-		bringToFront(diceBuffFrame);
-		bringToFront(buffs);
-		bringToFront(diceWeaponFrame);
-		bringToFront(diceWeapon);
-		bringToFront(diceWeaponButton);
-		bringToFront(heroInfo);
-	}
-
-	private String diceTitle() {
-		return Messages.titleCase(Dungeon.hero.heroClass.title());
-	}
-
-	private void updateDiceWeapon() {
-		Item weapon = Dungeon.hero.belongings.weapon;
-		if (weapon != lastDiceWeapon) {
-			lastDiceWeapon = weapon;
-			if (weapon == null) {
-				diceWeapon.view(ItemSpriteSheet.WEAPON_HOLDER, null);
-			} else {
-				diceWeapon.view(weapon);
-			}
-		}
-
-		diceWeapon.scale.set(1f);
-		float available = diceWeaponFrame.width() - 4f;
-		float largestSide = Math.max(diceWeapon.width(), diceWeapon.height());
-		if (largestSide > available) {
-			diceWeapon.scale.set(PixelScene.align(available / largestSide));
-		}
-		diceWeapon.x = diceWeaponFrame.left()
-				+ (diceWeaponFrame.width() - diceWeapon.width()) / 2f;
-		diceWeapon.y = diceWeaponFrame.top()
-				+ (diceWeaponFrame.height() - diceWeapon.height()) / 2f;
-		PixelScene.align(diceWeapon);
 	}
 	private static final int[] warningColors = new int[]{0x660000, 0xCC0000, 0x660000};
 
@@ -433,13 +298,14 @@ public class StatusPane extends Component {
 	@Override
 	public void update() {
 		super.update();
-		applyDiceMageSkin();
 		
 		int health = Dungeon.hero.HP;
 		int shield = Dungeon.hero.shielding();
 		int max = Dungeon.hero.HT;
 		boolean maxChanged = oldMax != max;
 		int vt = Dungeon.hero.getVitae();
+		boolean healthDisplayChanged = oldHP != health || oldShield != shield
+				|| oldMax != max || oldvt != vt;
 
 		if (!Dungeon.hero.isAlive()) {
 			avatar.tint(0x000000, 0.5f);
@@ -470,7 +336,7 @@ public class StatusPane extends Component {
 			rawShielding.scale.x = 0;
 		}
 
-		if (oldHP != health || oldShield != shield || oldMax != max || oldvt != vt) {
+		if (healthDisplayChanged) {
 			if (shield > 0 && vt > 0) {
 				hpText.text(health + "+" + vt + "+" + shield + "/" + max);
 			} else if (shield > 0) {
@@ -537,26 +403,13 @@ public class StatusPane extends Component {
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);
 
-		// 骰子法师实时更新
+		// 骰子法师生命格实时更新
 		if (diceHp.visible) {
 			diceHp.level(Dungeon.hero);
-			updateDiceWeapon();
-			if (maxChanged || !diceTitle().equals(diceName.text())) {
-				layoutDiceMageCard();
+			if (maxChanged || healthDisplayChanged) {
+				layoutDiceMageHealth();
 			}
 		}
-	}
-
-	private void applyDiceMageSkin(){
-		if (Dungeon.hero.subClass != HeroSubClass.DICE_MAGE) return;
-		bg.hardlight(DiceMageUI.DARK);
-		hp.hardlight(DiceMageUI.CREAM);
-		shieldedHP.hardlight(DiceMageUI.BLUE);
-		rawShielding.hardlight(DiceMageUI.PURPLE);
-		exp.hardlight(DiceMageUI.GOLD);
-		level.hardlight(DiceMageUI.GOLD);
-		hpText.hardlight(DiceMageUI.DARK);
-		if (expText != null) expText.hardlight(DiceMageUI.CREAM);
 	}
 
 	public void alpha( float value ){
@@ -573,12 +426,7 @@ public class StatusPane extends Component {
 		compass.alpha(value);
 		busy.alpha(value);
 		counter.alpha(value);
-		diceCard.alpha(value);
-		diceName.alpha(value);
 		diceHp.alpha(value);
-		diceBuffFrame.alpha(value);
-		diceWeaponFrame.alpha(value);
-		diceWeapon.alpha(value);
 	}
 
 	public void showStarParticles(){

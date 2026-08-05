@@ -849,7 +849,7 @@ public class Armor extends EquipableItem {
 	//other things can equip these, for now we assume only the hero can be affected by levelling debuffs
 	@Override
 	public int buffedLvl() {
-		if(hero != null && Dungeon.hero.belongings.armor == this ) {
+		if (hero != null && hero.belongings.armor == this) {
 			GoldRadish goldRadish = hero.belongings.getItem(GoldRadish.class);
 			if(goldRadish != null){
 				return goldRadish.fixedLevel(goldRadish.buffedLvl());
@@ -893,7 +893,7 @@ public class Armor extends EquipableItem {
 					}
 		}
 
-		if (hero != null && isEquipped( Dungeon.hero ) || Dungeon.hero.belongings.contains( this )){
+		if (hero != null && (isEquipped(hero) || hero.belongings.contains(this))){
 			return super.buffedLvl();
 		} else {
 			return level();
