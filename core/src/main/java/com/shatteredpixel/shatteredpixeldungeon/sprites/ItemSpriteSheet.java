@@ -21,9 +21,11 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.watabou.gltextures.AtlasFrame;
 import com.watabou.gltextures.AtlasSource;
-import com.watabou.noosa.TextureFilm;
+import com.watabou.gltextures.RuntimeAtlas;
+import com.watabou.gltextures.RuntimeAtlasRegistry;
+import com.watabou.noosa.Image;
 
 public class ItemSpriteSheet {
 
@@ -585,92 +587,87 @@ public class ItemSpriteSheet {
 	//for smaller 8x8 icons that often accompany an item sprite
 	public static class Icons {
 
-		private static final int WIDTH = 16;
 		public static final int SIZE = 8;
+		public static final AtlasSource ATLAS_SOURCE =
+				new AtlasSource("sprites/item_icons", "ring_accuracy");
+		private static final RuntimeAtlas ATLAS = RuntimeAtlasRegistry.get(ATLAS_SOURCE);
+		public static final String RING_ACCURACY = "ring_accuracy";
+		public static final String RING_ARCANA = "ring_arcana";
+		public static final String RING_ELEMENTS = "ring_elements";
+		public static final String RING_ENERGY = "ring_energy";
+		public static final String RING_EVASION = "ring_evasion";
+		public static final String RING_FORCE = "ring_force";
+		public static final String RING_FUROR = "ring_furor";
+		public static final String RING_HASTE = "ring_haste";
+		public static final String RING_MIGHT = "ring_might";
+		public static final String RING_SHARPSHOOT = "ring_sharpshoot";
+		public static final String RING_TENACITY = "ring_tenacity";
+		public static final String RING_WEALTH = "ring_wealth";
+		public static final String RING_KING = "ring_king";
+		public static final String RING_COMPRESSION = "ring_compression";
+		public static final String RING_DESTRUCTION = "ring_destruction";
 
-		public static TextureFilm film = new TextureFilm( Assets.Sprites.ITEM_ICONS, SIZE, SIZE );
+		public static final String SCROLL_UPGRADE = "scroll_upgrade";
+		public static final String SCROLL_IDENTIFY = "scroll_identify";
+		public static final String SCROLL_REMCURSE = "scroll_remcurse";
+		public static final String SCROLL_MIRRORIMG = "scroll_mirrorimg";
+		public static final String SCROLL_RECHARGE = "scroll_recharge";
+		public static final String SCROLL_TELEPORT = "scroll_teleport";
+		public static final String SCROLL_LULLABY = "scroll_lullaby";
+		public static final String SCROLL_MAGICMAP = "scroll_magicmap";
+		public static final String SCROLL_RAGE = "scroll_rage";
+		public static final String SCROLL_RETRIB = "scroll_retrib";
+		public static final String SCROLL_TERROR = "scroll_terror";
+		public static final String SCROLL_TRANSMUTE = "scroll_transmute";
+		public static final String SCROLL_ENCHANT = "scroll_enchant";
+		public static final String SCROLL_DIVINATE = "scroll_divinate";
+		public static final String SCROLL_ANTIMAGIC = "scroll_antimagic";
+		public static final String SCROLL_PRISIMG = "scroll_prisimg";
+		public static final String SCROLL_MYSTENRG = "scroll_mystenrg";
+		public static final String SCROLL_PASSAGE = "scroll_passage";
+		public static final String SCROLL_SIREN = "scroll_siren";
+		public static final String SCROLL_FORESIGHT = "scroll_foresight";
+		public static final String SCROLL_CHALLENGE = "scroll_challenge";
+		public static final String SCROLL_PSIBLAST = "scroll_psiblast";
+		public static final String SCROLL_DREAD = "scroll_dread";
+		public static final String SCROLL_METAMORPH = "scroll_metamorph";
 
-		private static int xy(int x, int y){
-			x -= 1; y -= 1;
-			return x + WIDTH*y;
+		public static final String POTION_STRENGTH = "potion_strength";
+		public static final String POTION_HEALING = "potion_healing";
+		public static final String POTION_MINDVIS = "potion_mindvis";
+		public static final String POTION_FROST = "potion_frost";
+		public static final String POTION_LIQFLAME = "potion_liqflame";
+		public static final String POTION_TOXICGAS = "potion_toxicgas";
+		public static final String POTION_HASTE = "potion_haste";
+		public static final String POTION_INVIS = "potion_invis";
+		public static final String POTION_LEVITATE = "potion_levitate";
+		public static final String POTION_PARAGAS = "potion_paragas";
+		public static final String POTION_PURITY = "potion_purity";
+		public static final String POTION_EXP = "potion_exp";
+		public static final String POTION_MASTERY = "potion_mastery";
+		public static final String POTION_SHIELDING = "potion_shielding";
+		public static final String POTION_MAGISIGHT = "potion_magisight";
+		public static final String POTION_SNAPFREEZ = "potion_snapfreez";
+		public static final String POTION_DRGBREATH = "potion_drgbreath";
+		public static final String POTION_CORROGAS = "potion_corrogas";
+		public static final String POTION_STAMINA = "potion_stamina";
+		public static final String POTION_SHROUDFOG = "potion_shroudfog";
+		public static final String POTION_STRMCLOUD = "potion_strmcloud";
+		public static final String POTION_EARTHARMR = "potion_eartharmr";
+		public static final String POTION_CLEANSE = "potion_cleanse";
+		public static final String POTION_DIVINE = "potion_divine";
+
+		public static AtlasFrame frame(String name) {
+			return ATLAS.frame(name);
 		}
 
-		private static void assignIconRect( int item, int width, int height ){
-			int x = (item % WIDTH) * SIZE;
-			int y = (item / WIDTH) * SIZE;
-			film.add( item, x, y, x+width, y+height);
+		public static Image image(String name) {
+			AtlasFrame frame = frame(name);
+			Image image = new Image();
+			image.texture = frame.texture;
+			image.frame(frame.uv);
+			return image;
 		}
-
-		private static final int RINGS          =                            xy(1, 1);  //16 slots
-		public static final int RING_ACCURACY   = RINGS+0;
-		public static final int RING_ARCANA     = RINGS+1;
-		public static final int RING_ELEMENTS   = RINGS+2;
-		public static final int RING_ENERGY     = RINGS+3;
-		public static final int RING_EVASION    = RINGS+4;
-		public static final int RING_FORCE      = RINGS+5;
-		public static final int RING_FUROR      = RINGS+6;
-		public static final int RING_HASTE      = RINGS+7;
-		public static final int RING_MIGHT      = RINGS+8;
-		public static final int RING_SHARPSHOOT = RINGS+9;
-		public static final int RING_TENACITY   = RINGS+10;
-		public static final int RING_WEALTH     = RINGS+11;
-
-		public static final int RING_KING     = RINGS+12; 		//16 free slots
-
-		private static final int SCROLLS        =                            xy(1, 3);  //16 slots
-		public static final int SCROLL_UPGRADE  = SCROLLS+0;
-		public static final int SCROLL_IDENTIFY = SCROLLS+1;
-		public static final int SCROLL_REMCURSE = SCROLLS+2;
-		public static final int SCROLL_MIRRORIMG= SCROLLS+3;
-		public static final int SCROLL_RECHARGE = SCROLLS+4;
-		public static final int SCROLL_TELEPORT = SCROLLS+5;
-		public static final int SCROLL_LULLABY  = SCROLLS+6;
-		public static final int SCROLL_MAGICMAP = SCROLLS+7;
-		public static final int SCROLL_RAGE     = SCROLLS+8;
-		public static final int SCROLL_RETRIB   = SCROLLS+9;
-		public static final int SCROLL_TERROR   = SCROLLS+10;
-		public static final int SCROLL_TRANSMUTE= SCROLLS+11;
-		private static final int EXOTIC_SCROLLS =                            xy(1, 4);  //16 slots
-		public static final int SCROLL_ENCHANT  = EXOTIC_SCROLLS+0;
-		public static final int SCROLL_DIVINATE = EXOTIC_SCROLLS+1;
-		public static final int SCROLL_ANTIMAGIC= EXOTIC_SCROLLS+2;
-		public static final int SCROLL_PRISIMG  = EXOTIC_SCROLLS+3;
-		public static final int SCROLL_MYSTENRG = EXOTIC_SCROLLS+4;
-		public static final int SCROLL_PASSAGE  = EXOTIC_SCROLLS+5;
-		public static final int SCROLL_SIREN    = EXOTIC_SCROLLS+6;
-		public static final int SCROLL_FORESIGHT= EXOTIC_SCROLLS+7;
-		public static final int SCROLL_CHALLENGE= EXOTIC_SCROLLS+8;
-		public static final int SCROLL_PSIBLAST = EXOTIC_SCROLLS+9;
-		public static final int SCROLL_DREAD    = EXOTIC_SCROLLS+10;
-		public static final int SCROLL_METAMORPH= EXOTIC_SCROLLS+11;
-
-		private static final int POTIONS        =                            xy(1, 6);  //16 slots
-		public static final int POTION_STRENGTH = POTIONS+0;
-		public static final int POTION_HEALING  = POTIONS+1;
-		public static final int POTION_MINDVIS  = POTIONS+2;
-		public static final int POTION_FROST    = POTIONS+3;
-		public static final int POTION_LIQFLAME = POTIONS+4;
-		public static final int POTION_TOXICGAS = POTIONS+5;
-		public static final int POTION_HASTE    = POTIONS+6;
-		public static final int POTION_INVIS    = POTIONS+7;
-		public static final int POTION_LEVITATE = POTIONS+8;
-		public static final int POTION_PARAGAS  = POTIONS+9;
-		public static final int POTION_PURITY   = POTIONS+10;
-		public static final int POTION_EXP      = POTIONS+11;
-
-		private static final int EXOTIC_POTIONS =    xy(1, 7);  //16 slots
-		public static final int POTION_MASTERY  = EXOTIC_POTIONS+0;
-		public static final int POTION_SHIELDING= EXOTIC_POTIONS+1;
-		public static final int POTION_MAGISIGHT= EXOTIC_POTIONS+2;
-		public static final int POTION_SNAPFREEZ= EXOTIC_POTIONS+3;
-		public static final int POTION_DRGBREATH= EXOTIC_POTIONS+4;
-		public static final int POTION_CORROGAS = EXOTIC_POTIONS+5;
-		public static final int POTION_STAMINA  = EXOTIC_POTIONS+6;
-		public static final int POTION_SHROUDFOG= EXOTIC_POTIONS+7;
-		public static final int POTION_STRMCLOUD= EXOTIC_POTIONS+8;
-		public static final int POTION_EARTHARMR= EXOTIC_POTIONS+9;
-		public static final int POTION_CLEANSE  = EXOTIC_POTIONS+10;
-		public static final int POTION_DIVINE   = EXOTIC_POTIONS+11;
 	}
 
 }

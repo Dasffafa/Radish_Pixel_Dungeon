@@ -121,6 +121,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ShadowBooks;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndKeyBindings;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
@@ -393,7 +394,11 @@ public enum HeroClass {
 		new Gloves().identify().collect();
 		new MagicalHolster().collect();
 		new MagesStaff().identify().collect();
+		Dart knives = new Dart();
+		knives.quantity(3).collect();
 
+		Dungeon.quickslot.setSlot(0, wheelchair);
+		Dungeon.quickslot.setSlot(1, knives);
 		// 初始物品：力量药剂、升级卷轴、鉴定卷轴已鉴定
 		// 以及四种随机卷轴与药水
 		new PotionOfStrength().identify();

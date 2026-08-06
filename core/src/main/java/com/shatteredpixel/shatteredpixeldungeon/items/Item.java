@@ -88,7 +88,7 @@ public class Item implements Bundlable {
 
 	//TODO should these be private and accessed through methods?
 	public String image = ItemSpriteSheet.SOMETHING;
-	public int icon = -1; //used as an identifier for items with randomized images
+	public String icon;
 	public String sndImageName = null; // SND atlas 中的物品名称，如果设置则使用 SND 贴图
 	
 	public boolean stackable = false;
@@ -590,10 +590,10 @@ public class Item implements Bundlable {
 	// Snake Bite challenge: hide item type icon (right top corner)
 	// Skip if hero is dead (for rankings/death screen)
 	// Test mode items should always show their original icons
-	public int icon() {
+	public String icon() {
 		if (SnakeBiteChallengeManager.shouldReplaceItemSprite(this)
 				&& !(this instanceof com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem)) {
-			return -1;
+			return null;
 		}
 		return icon;
 	}

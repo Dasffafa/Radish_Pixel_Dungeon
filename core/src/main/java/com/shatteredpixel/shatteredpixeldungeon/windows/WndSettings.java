@@ -1461,8 +1461,8 @@ public class WndSettings extends WndTabbed {
 			if (path == null || path.startsWith(HeroIcon.ATLAS_SOURCE.directory)) {
 				RuntimeAtlasRegistry.get(HeroIcon.ATLAS_SOURCE).invalidate();
 			}
-			if (path == null || path.equals(Assets.Sprites.ITEM_ICONS)) {
-				ItemSpriteSheet.Icons.film = new TextureFilm(Assets.Sprites.ITEM_ICONS, ItemSpriteSheet.Icons.SIZE, ItemSpriteSheet.Icons.SIZE);
+			if (path == null || path.startsWith(ItemSpriteSheet.Icons.ATLAS_SOURCE.directory)) {
+				RuntimeAtlasRegistry.get(ItemSpriteSheet.Icons.ATLAS_SOURCE).invalidate();
 			}
 			if (path == null || path.equals(Assets.Effects.TEXT_ICONS)) {
 				FloatingText.iconFilm = new TextureFilm(Assets.Effects.TEXT_ICONS, FloatingText.ICON_SIZE, FloatingText.ICON_SIZE);

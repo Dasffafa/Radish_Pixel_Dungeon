@@ -196,6 +196,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
 
         durability -= amount;
         if (durability < 0) durability = 0;
+        updateQuickslot();
 
         if (durability <= 0 && Dungeon.hero != null) {
             Hero hero = Dungeon.hero;
@@ -223,19 +224,18 @@ public class JutteChampionWeapon extends MeleeWeapon {
 
     @Override
     public int proc(Char attacker, Char defender, int damage) {
-        if (attacker instanceof Hero) {
-            Hero hero = (Hero) attacker;
-            // Surprise Jutte talent: no durability consumption on surprise attack
-            boolean surpriseAttack = defender instanceof Mob && ((Mob) defender).surprisedBy(attacker);
-            boolean hasTalent = hero.subClass == HeroSubClass.JUTTE_CHAMPION 
-                    && hero.hasTalent(Talent.SURPRISE_JUTTE);
-            
-            if (!surpriseAttack || !hasTalent) {
-                consumeDurability(1f);
-            }
+        return super.proc(attacker, defender, damage);
+    }
+
+    public void onSuccessfulHit(Hero hero, Char defender) {
+        boolean surpriseAttack = defender instanceof Mob && ((Mob) defender).surprisedBy(hero);
+        boolean freeSurpriseAttack = surpriseAttack
+                && hero.subClass == HeroSubClass.JUTTE_CHAMPION
+                && hero.hasTalent(Talent.SURPRISE_JUTTE);
+
+        if (!freeSurpriseAttack) {
+            consumeDurability(1f);
         }
-        super.proc(attacker, defender, damage);
-        return damage;
     }
 
     @Override

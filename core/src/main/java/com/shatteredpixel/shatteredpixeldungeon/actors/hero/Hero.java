@@ -1794,6 +1794,9 @@ public class Hero extends Char {
 
 		if (wep != null){
 			damage = wep.proc( this, enemy, damage );
+			if (wep instanceof JutteChampionWeapon) {
+				((JutteChampionWeapon) wep).onSuccessfulHit(this, enemy);
+			}
 		}
 
 		damage = Talent.onAttackProc( this, enemy, damage );

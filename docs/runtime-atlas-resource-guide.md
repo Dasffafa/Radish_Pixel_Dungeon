@@ -66,7 +66,7 @@ core/src/main/assets/sprites/items/moon_blade.png
 public static final String MOON_BLADE = "moon_blade";
 ```
 
-不要把它加入 `ItemSpriteSheet.Icons`。`Icons` 是物品右上角 8x8 小图标的旧独立系统，不属于 Item Runtime Atlas。
+不要把它加入 `ItemSpriteSheet.Icons`。`Icons` 是物品右上角的 8x8 小图标系统，使用独立的 `sprites/item_icons` Runtime Atlas。新增角标时，需要把 PNG 加入该目录及其 `manifest.txt`，并在 `ItemSpriteSheet.Icons` 中声明值为文件名的字符串常量。
 
 3. 在物品类中引用常量：
 

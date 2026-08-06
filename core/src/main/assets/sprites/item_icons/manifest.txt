@@ -24,6 +24,8 @@ potion_strmcloud.png
 potion_toxicgas.png
 ring_accuracy.png
 ring_arcana.png
+ring_compression.png
+ring_destruction.png
 ring_elements.png
 ring_energy.png
 ring_evasion.png

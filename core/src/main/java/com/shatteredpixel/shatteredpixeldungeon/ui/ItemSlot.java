@@ -21,7 +21,6 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -249,11 +248,10 @@ public class ItemSlot extends Button {
 				status.resetColor();
 			}
 
-		if (item.icon() != -1 && (item.isIdentified() || (item instanceof Ring && ((Ring) item).isKnown()))){
+		if (item.icon() != null && (item.isIdentified() || (item instanceof Ring && ((Ring) item).isKnown()))){
 			extra.text( null );
 
-			itemIcon = new Image(Assets.Sprites.ITEM_ICONS);
-			itemIcon.frame(ItemSpriteSheet.Icons.film.get(item.icon()));
+			itemIcon = ItemSpriteSheet.Icons.image(item.icon());
 			add(itemIcon);
 
 		} else if (item instanceof Weapon || item instanceof Armor) {

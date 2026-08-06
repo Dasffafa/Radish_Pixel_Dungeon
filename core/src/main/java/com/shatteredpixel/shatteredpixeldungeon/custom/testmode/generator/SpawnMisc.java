@@ -537,14 +537,12 @@ public class SpawnMisc extends TestItem {
                 };
                 switch (cateSelected){
                     case 0 :{
-                        Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                        im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(potionList.get(i))).icon));
+						Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(potionList.get(i))).icon);
                         im.scale.set(1.6f);
                         btn.icon(im);
                     } break;
                     case 1:{
-                        Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                        im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(exoticPotionList.get(i))).icon));
+						Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(exoticPotionList.get(i))).icon);
                         im.scale.set(1.6f);
                         btn.icon(im);
                     } break;
@@ -561,8 +559,7 @@ public class SpawnMisc extends TestItem {
                     case 4:{
                         Image im;
                         if(i<=11) {
-                            im = new Image(Assets.Sprites.ITEM_ICONS);
-                            im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(scrollList.get(i))).icon));
+							im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(scrollList.get(i))).icon);
                             im.scale.set(1.6f);
                         }
                         else {
@@ -572,8 +569,7 @@ public class SpawnMisc extends TestItem {
                         btn.icon(im);
                     }break;
                     case 5:{
-                        Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                        im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(exoticScrollList.get(i))).icon));
+						Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(exoticScrollList.get(i))).icon);
                         im.scale.set(1.6f);
                         btn.icon(im);
                     } break;

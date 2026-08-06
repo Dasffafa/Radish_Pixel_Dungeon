@@ -31,10 +31,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
  * 当佩戴时，所有敌人受到推力的效果增加，碰撞伤害增加
  */
 public class RingOfCompression extends Ring {
-
-	// TODO: 需要为挤压之戒创建专属图标，目前使用占位符
 	{
-		icon = ItemSpriteSheet.Icons.RING_FORCE; // 临时占位，待替换
+		icon = ItemSpriteSheet.Icons.RING_COMPRESSION; // 临时占位，待替换
 	}
 
 	@Override

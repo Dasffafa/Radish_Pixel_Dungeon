@@ -174,8 +174,25 @@ public enum DamageType {
 		if (source == null) {
 			return UNKNOWN;
 		}
+		if (source instanceof DamageType) {
+			return (DamageType) source;
+		}
 		
 		String className = source.getClass().getSimpleName();
+
+		// Status and special sources must be checked before their broader elements.
+		if (className.contains("Bleeding")) return BLEEDING;
+		if (className.contains("Poison")) return POISON;
+		if (className.contains("Ooze")) return OOZE;
+		if (className.contains("Chill")) return CHILL;
+		if (className.contains("Burning")) return BURNING_STATUS;
+		if (className.contains("Toxic")) return TOXIC;
+		if (className.contains("Corrosion") || className.contains("Corrosive")) return CORROSIVE;
+		if (className.contains("StormCloud") || className.contains("Geyser")
+				|| className.contains("Water")) return WATER;
+		if (className.contains("Deferred") || className.contains("Defered")
+				|| className.contains("Viscosity")) return DEFERRED;
+		if (className.contains("Ascension") || className.contains("Amulet")) return AMULET;
 		
 		// 闪电相关
 		if (className.contains("Lightning") || className.contains("Electricity")
@@ -190,20 +207,18 @@ public enum DamageType {
 		}
 		
 		// 冰霜相关
-		if (className.contains("Frost") || className.contains("Chill")
+		if (className.contains("Frost")
 			|| className.contains("FrostImbue")) {
 			return FROST;
 		}
 		
 		// 毒素相关
-		if (className.contains("Poison") || className.contains("Toxic")
-			|| className.contains("Gas") && className.contains("Toxic")) {
+		if (className.contains("Poison")) {
 			return POISON;
 		}
 		
 		// 腐蚀相关
-		if (className.contains("Corrosion") || className.contains("Corrosive")
-			|| className.contains("Ooze")) {
+		if (className.contains("Corrosion") || className.contains("Corrosive")) {
 			return CORROSIVE;
 		}
 		
