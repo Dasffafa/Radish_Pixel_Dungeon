@@ -384,6 +384,15 @@ public abstract class Char extends Actor {
 
         if (enemy == null) return false;
 
+        // Attack animations can finish after a level transition or scene reload.
+        // Do not resolve a stale attack while the level's map/FOV is unavailable.
+        if (Dungeon.level == null || Dungeon.level.heroFOV == null
+                || pos < 0 || enemy.pos < 0
+                || pos >= Dungeon.level.heroFOV.length
+                || enemy.pos >= Dungeon.level.heroFOV.length) {
+            return false;
+        }
+
         boolean visibleFight = Dungeon.level.heroFOV[pos] || Dungeon.level.heroFOV[enemy.pos];
 
         if (enemy.isInvulnerable(getClass())) {

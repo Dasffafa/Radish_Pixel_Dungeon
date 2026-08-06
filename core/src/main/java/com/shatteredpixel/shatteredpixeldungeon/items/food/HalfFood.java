@@ -80,6 +80,11 @@ public class HalfFood extends Food {
 	}
 
 	@Override
+	protected float eatingTime() {
+		return 1f;
+	}
+
+	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
 		if (source != null) bundle.put(SOURCE, source);
