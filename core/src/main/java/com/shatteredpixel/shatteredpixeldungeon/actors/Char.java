@@ -26,6 +26,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
@@ -1065,10 +1066,21 @@ public abstract class Char extends Actor {
         }
 
         // 调用现有方法
-        damage(dmg, src);
+        damage(dmg, src, info.getType());
     }
 
     public void damage(int dmg, Object src) {
+        damage(dmg, src, DamageType.fromSource(src));
+    }
+
+    private void damage(int dmg, Object src, DamageType damageType) {
+        if (src == null) {
+            src = damageType;
+        }
+        if (damageType == null || damageType == DamageType.UNKNOWN) {
+            damageType = DamageType.fromSource(src);
+        }
+
         // 天球仪造成魔法伤害的代码移动到这里来，以便防止额外造成1次物理伤害
         boolean srcIsAHeroWieldingCS = src instanceof Hero && ((Hero) src).belongings.attackingWeapon() instanceof CelestialSphere;
         boolean srcIsCS = src instanceof CelestialSphere;
@@ -1183,14 +1195,16 @@ public abstract class Char extends Actor {
         }
 
         Class<?> srcClass = src.getClass();
-        if (isImmune(srcClass)) {
-            dmg = 0;
-        } else {
-            dmg = Math.round(dmg * resist(srcClass));
+        if (damageType != DamageType.TRUE) {
+            if (isImmune(srcClass)) {
+                dmg = 0;
+            } else {
+                dmg = Math.round(dmg * resist(srcClass));
+            }
         }
 
         //TODO improve this when I have proper damage source logic
-        if (AntiMagic.RESISTS.contains(src.getClass()) && buff(ArcaneArmor.class) != null) {
+        if (damageType.isMagical() && buff(ArcaneArmor.class) != null) {
             dmg -= combatRoll(0, buff(ArcaneArmor.class).level());
             if (dmg < 0) dmg = 0;
         }
@@ -1211,7 +1225,7 @@ public abstract class Char extends Actor {
             }
         }
 
-        if (!(src instanceof Hunger)) {
+        if (!(src instanceof Hunger) && damageType != DamageType.TRUE) {
             for (ShieldBuff s : buffs(ShieldBuff.class)) {
                 dmg = s.absorbDamage(dmg);
                 if (dmg == 0) break;
@@ -1276,7 +1290,7 @@ public abstract class Char extends Actor {
 
         if (sprite != null) {
             //defaults to normal damage icon if no other ones apply
-            int icon = FloatingText.PHYS_DMG;
+            int icon = damageType.getFloatingTextIcon();
             if (NO_ARMOR_PHYSICAL_SOURCES.contains(src.getClass())) icon = FloatingText.PHYS_DMG_NO_BLOCK;
             if (AntiMagic.RESISTS.contains(src.getClass())) icon = FloatingText.MAGIC_DMG;
             if (src instanceof WetEnchantment.WetMagicDamage) icon = FloatingText.MAGIC_DMG;

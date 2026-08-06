@@ -2,7 +2,6 @@ package com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator;
 
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -341,8 +340,7 @@ public class TestRing extends TestGenerator {
                     }
                 };
                 if (category == RING_CAT) {
-                    Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                    im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(ringList.get(i))).icon));
+					Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(ringList.get(i))).icon);
                     im.scale.set(1.6f);
                     btn.icon(im);
                 } else if (category == WAND_CAT) {

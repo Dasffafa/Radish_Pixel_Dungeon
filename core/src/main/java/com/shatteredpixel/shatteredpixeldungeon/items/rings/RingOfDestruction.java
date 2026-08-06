@@ -26,11 +26,14 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 破灭之戒 - 持续伤害戒指
@@ -38,10 +41,8 @@ import java.util.ArrayList;
  * 伤害不会致死
  */
 public class RingOfDestruction extends Ring {
-
-	// TODO: 需要为破灭之戒创建专属图标，目前使用占位符
 	{
-		icon = ItemSpriteSheet.Icons.RING_MIGHT; // 临时占位，待替换
+		icon = ItemSpriteSheet.Icons.RING_DESTRUCTION;
 	}
 
 	@Override
@@ -83,6 +84,9 @@ public class RingOfDestruction extends Ring {
 
 	public class Destruction extends RingBuff {
 
+		private float accumulatedSelfDamage;
+		private final Map<Mob, Float> accumulatedEnemyDamage = new HashMap<>();
+
 		@Override
 		public String icon() {
 			return BuffIndicator.NONE;
@@ -112,18 +116,27 @@ public class RingOfDestruction extends Ring {
 			}
 
 			if (!visibleEnemies.isEmpty()) {
+				accumulatedEnemyDamage.entrySet().removeIf(entry -> !entry.getKey().isAlive());
 				float enemyDmgPercent = enemyDamagePercent(level);
 				for (Mob mob : visibleEnemies) {
-					int damage = Math.round(mob.HT * enemyDmgPercent / 100f);
+					float accumulated = accumulatedEnemyDamage.containsKey(mob)
+							? accumulatedEnemyDamage.get(mob) : 0f;
+					accumulated += mob.HT * enemyDmgPercent / 100f;
+					int damage = (int) accumulated;
+					accumulatedEnemyDamage.put(mob, accumulated - damage);
 					if (damage > 0) {
-						mob.HP = Math.max(1, mob.HP - damage);
+						mob.damage(DamageInfo.magical(
+								Math.min(damage, Math.max(0, mob.HP - 1)), this));
 					}
 				}
 
 				float selfDmgPercent = selfDamagePercent(level);
-				int selfDamage = Math.round(Dungeon.hero.HT * selfDmgPercent / 100f);
+				accumulatedSelfDamage += Dungeon.hero.HT * selfDmgPercent / 100f;
+				int selfDamage = (int) accumulatedSelfDamage;
+				accumulatedSelfDamage -= selfDamage;
 				if (selfDamage > 0) {
-					Dungeon.hero.HP = Math.max(1, Dungeon.hero.HP - selfDamage);
+					Dungeon.hero.damage(DamageInfo.magical(
+							Math.min(selfDamage, Math.max(0, Dungeon.hero.HP - 1)), this));
 				}
 			}
 
@@ -136,7 +149,7 @@ public class RingOfDestruction extends Ring {
 		 */
 		private int getRingLevel() {
 			// 从 Ring.getBuffedBonus 获取等级
-			return combinedBuffedBonus(Dungeon.hero);
+			return RingOfDestruction.this.combinedBuffedBonus(Dungeon.hero);
 		}
 	}
 }

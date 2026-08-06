@@ -2,7 +2,6 @@ package com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator;
 
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
@@ -697,14 +696,12 @@ public class TestPotion extends TestGenerator {
                 };
                 switch (cateSelected){
                     case 0 :{
-                        Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                        im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(potionList.get(i))).icon));
+						Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(potionList.get(i))).icon);
                         im.scale.set(1.6f);
                         btn.icon(im);
                     } break;
                     case 1:{
-                        Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                        im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(exoticPotionList.get(i))).icon));
+						Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(exoticPotionList.get(i))).icon);
                         im.scale.set(1.6f);
                         btn.icon(im);
                     } break;
@@ -719,14 +716,12 @@ public class TestPotion extends TestGenerator {
                         btn.icon(im);
                     } break;
                     case 4:{
-                        Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                        im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(scrollList.get(i))).icon));
+						Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(scrollList.get(i))).icon);
                         im.scale.set(1.6f);
                         btn.icon(im);
                     }break;
                     case 5:{
-                        Image im = new Image(Assets.Sprites.ITEM_ICONS);
-                        im.frame(ItemSpriteSheet.Icons.film.get(Objects.requireNonNull(Reflection.newInstance(exoticScrollList.get(i))).icon));
+						Image im = ItemSpriteSheet.Icons.image(Objects.requireNonNull(Reflection.newInstance(exoticScrollList.get(i))).icon);
                         im.scale.set(1.6f);
                         btn.icon(im);
                     } break;
