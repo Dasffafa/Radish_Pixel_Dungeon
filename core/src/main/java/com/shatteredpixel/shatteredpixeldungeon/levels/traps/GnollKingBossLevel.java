@@ -126,8 +126,11 @@ public class GnollKingBossLevel extends Level {
 
         LevelTransition exit = new LevelTransition(this, EXIT_POS, LevelTransition.Type.REGULAR_EXIT);
         transitions.add(exit);
-        set(EXIT_POS, Terrain.LOCKED_EXIT);
+        set(EXIT_POS, Terrain.EXIT);
         GameScene.updateMap(EXIT_POS);
+
+        set(GATE_POS, Terrain.EMPTY);
+        GameScene.updateMap(GATE_POS);
 
         int entrance = RETURN_ENTRANCE_POS;
         LevelTransition enter = new LevelTransition(this, entrance, LevelTransition.Type.REGULAR_ENTRANCE);
