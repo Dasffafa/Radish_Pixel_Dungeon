@@ -497,24 +497,28 @@ public enum HeroClass {
 	}
 	
 	public boolean isUnlocked(){
-		//always unlock on debug builds
-		if (DeviceCompat.isDebug()) return true;
+			//always unlock on debug builds
+			if (DeviceCompat.isDebug()) return true;
 
-		switch (this){
-			case MAGE:
-				return Badges.isUnlocked(Badges.Badge.UNLOCK_MAGE);
-			case ROGUE:
-				return Badges.isUnlocked(Badges.Badge.UNLOCK_ROGUE);
-			case HUNTRESS:
-				return Badges.isUnlocked(Badges.Badge.UNLOCK_HUNTRESS);
-			case RECTOR:
-				return true;
-			case MOONLIGHT:
-				return true; // TODO: 添加解锁条件
-			case WARRIOR: default:
-				return true;
+			//TheCatist8.8 取消所有角色解锁限制
+			return true;
+			/*
+			switch (this){
+				case MAGE:
+					return Badges.isUnlocked(Badges.Badge.UNLOCK_MAGE);
+				case ROGUE:
+					return Badges.isUnlocked(Badges.Badge.UNLOCK_ROGUE);
+				case HUNTRESS:
+					return Badges.isUnlocked(Badges.Badge.UNLOCK_HUNTRESS);
+				case RECTOR:
+					return true;
+				case MOONLIGHT:
+					return true; // TODO: 添加解锁条件
+				case WARRIOR: default:
+					return true;
+			}
+			*/
 		}
-	}
 	
 	public String unlockMsg() {
 		return shortDesc() + "\n\n" + Messages.get(HeroClass.class, name()+"_unlock");

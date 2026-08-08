@@ -315,10 +315,8 @@ public class Wheelchair extends Artifact {
         // 检查弹射起步效果Buff
         CatapultStartBuff catapultBuff = hero.buff(CatapultStartBuff.class);
         if (catapultBuff != null) {
-            // 有弹射起步效果，不消耗充能
             Buff.detach(hero, CatapultStartBuff.class);
         } else {
-            // 消耗充能
             charge--;
         }
 

@@ -130,6 +130,7 @@ public class SnDBGM {
 
     /**
      * 根据当前层数播放对应区域的背景音乐。
+     *
      * @return true 如果 Dice Mage 激活并播放了音乐，否则false并且什么都不做
      */
     public static boolean playLevelMusic() {
@@ -164,6 +165,7 @@ public class SnDBGM {
         }
 
         Music.INSTANCE.playTracks(tracks, chances, true);
+        Music.INSTANCE.volume(1.5f);
         return true;
     }
 }

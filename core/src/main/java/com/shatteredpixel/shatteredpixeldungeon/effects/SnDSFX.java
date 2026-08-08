@@ -200,8 +200,8 @@ public class SnDSFX {
      * @return true if sound was played, false if not found
      */
     public static boolean play(String name) {
-        return play(name, 1f, 1f);
-    }
+            return play(name, 1.5f, 1f);
+        }
 
     /**
      * Play a random variant of the specified sound with volume and pitch.
