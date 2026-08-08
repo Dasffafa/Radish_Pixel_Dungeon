@@ -29,6 +29,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RoundedFrame;
+import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.ui.Component;
 
@@ -43,7 +45,7 @@ public class WndInfoMob extends Window {
 	private static final int DICE_PORTRAIT = 38;
 	
 	public WndInfoMob( Mob mob ) {
-		if (DiceMageUI.active()) {
+		if (UITheme.isDiceMage()) {
 			layoutDiceMob(mob);
 		} else {
 			layoutDefault(mob);
@@ -80,7 +82,7 @@ public class WndInfoMob extends Window {
 
 		int lineColor = mob.properties().contains(com.shatteredpixel.shatteredpixeldungeon.actors.Char.Property.BOSS)
 				? DiceMageUI.RED : DiceMageUI.PURPLE;
-		DiceMageUI.Frame portraitFrame = new DiceMageUI.Frame(DiceMageUI.BLACK, lineColor);
+		RoundedFrame portraitFrame = UITheme.roundedFrame(DiceMageUI.BLACK, lineColor);
 		portraitFrame.setRect(0, 0, DICE_PORTRAIT, DICE_PORTRAIT);
 		add(portraitFrame);
 
@@ -90,7 +92,7 @@ public class WndInfoMob extends Window {
 		PixelScene.align(image);
 		add(image);
 
-		DiceMageUI.Frame titleFrame = new DiceMageUI.Frame(DiceMageUI.PANEL_ALT, lineColor);
+		RoundedFrame titleFrame = UITheme.roundedFrame(DiceMageUI.PANEL_ALT, lineColor);
 		titleFrame.setRect(DICE_PORTRAIT + DICE_PAD, 0, width - DICE_PORTRAIT - DICE_PAD, DICE_PORTRAIT);
 		add(titleFrame);
 
@@ -122,7 +124,7 @@ public class WndInfoMob extends Window {
 		section.setPos(DICE_PAD * 2, DICE_PORTRAIT + DICE_PAD * 2);
 		add(section);
 
-		DiceMageUI.Frame body = new DiceMageUI.Frame(DiceMageUI.PANEL, lineColor);
+		RoundedFrame body = UITheme.roundedFrame(DiceMageUI.PANEL, lineColor);
 		body.setRect(0, DICE_PORTRAIT + DICE_PAD, width, info.height() + DICE_PAD * 6 + 8);
 		add(body);
 		bringToFront(section);

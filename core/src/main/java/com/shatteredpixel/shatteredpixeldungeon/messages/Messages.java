@@ -26,6 +26,7 @@ import com.badlogic.gdx.utils.I18NBundle;
 import com.shatteredpixel.shatteredpixeldungeon.*;
 import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
+import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.DeviceCompat;
 
@@ -343,7 +344,7 @@ public class Messages {
      * 将"祛"替换为"驱"
      */
     private static String fixTannFontChars(String text) {
-        if (DiceMageUI.active() && lang == Languages.CHINESE) {
+        if (UITheme.isDiceMage() && lang == Languages.CHINESE) {
             return text.replace("祛", "驱");
         }
         return text;

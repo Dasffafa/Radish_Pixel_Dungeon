@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.watabou.noosa.Game;
 
 public class WndChooseSubclass extends Window {
 	
@@ -62,15 +63,32 @@ public class WndChooseSubclass extends Window {
 			RedButton btnCls = new RedButton( subCls.shortDesc(), 6 ) {
 				@Override
 				protected void onClick() {
+					final HeroSubClass previousSubClass = hero.subClass;
+					if (subCls == HeroSubClass.DICE_MAGE) {
+						hero.subClass = subCls;
+						Game.platform.setTannFontMode(true);
+					}
 					GameScene.show(new WndOptions(new HeroIcon(subCls),
 							Messages.titleCase(subCls.title()),
 							Messages.get(WndChooseSubclass.this, "are_you_sure"),
 							Messages.get(WndChooseSubclass.this, "yes"),
 							Messages.get(WndChooseSubclass.this, "no")){
 						@Override
+						public void hide() {
+							super.hide();
+							if (subCls == HeroSubClass.DICE_MAGE) {
+								hero.subClass = previousSubClass;
+								Game.platform.setTannFontMode(previousSubClass == HeroSubClass.DICE_MAGE);
+							}
+						}
+
+						@Override
 						protected void onSelect(int index) {
-							hide();
 							if (index == 0 && WndChooseSubclass.this.parent != null){
+								if (subCls == HeroSubClass.DICE_MAGE) {
+									hero.subClass = subCls;
+									Game.platform.setTannFontMode(true);
+								}
 								WndChooseSubclass.this.hide();
 								tome.choose( subCls );
 							}

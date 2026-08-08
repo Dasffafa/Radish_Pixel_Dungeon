@@ -261,7 +261,7 @@ public class HeroSelectScene extends PixelScene {
 		startBtn.icon(Icons.get(Icons.ENTER));
 		add( startBtn );
 
-		skin = new StyledButton( Chrome.Type.BLANK,Messages.get(WndKeyBindings.class, "skin"),6 ){
+		skin = new StyledButton( Chrome.Type.GREY_BUTTON_TR,Messages.get(WndKeyBindings.class, "skin"),6 ){
 			private float time = 0;
 			@Override
 			protected void onClick() {
@@ -308,7 +308,9 @@ public class HeroSelectScene extends PixelScene {
 				Icons.get( SPDSettings.challenges() > 0 ? Icons.CHALLENGE_ON :Icons.CHALLENGE_OFF)){
 			@Override
 			protected void onClick() {
-				if (DeviceCompat.isDebug() || Badges.isUnlocked(Badges.Badge.VICTORY)) {
+				//TheCatist 2026.8.8 取消胜利过一次才能开挑战的限制
+				if (true){
+//				if (DeviceCompat.isDebug() || Badges.isUnlocked(Badges.Badge.VICTORY)) {
 					ShatteredPixelDungeon.scene().addToFront(new WndChallenges(SPDSettings.challenges(), true) {
 						public void onBackPressed() {
 							super.onBackPressed();
@@ -399,7 +401,7 @@ public class HeroSelectScene extends PixelScene {
 		PixelScene.align(nextBtn);
 		add( nextBtn );
 
-		StyledButton seedButton = new StyledButton(Chrome.Type.BLANK, "", 6){
+		StyledButton seedButton = new StyledButton(Chrome.Type.GREY_BUTTON_TR, "", 6){
 			@Override
 			protected void onClick() {
 				String existingSeedtext = SPDSettings.customSeed();

@@ -53,6 +53,7 @@ public class TalentButton extends Button {
 	Image bg;
 
 	ColorBlock fill;
+	RoundedFrame roundedFrame;
 
 	public enum Mode {
 		INFO,
@@ -85,6 +86,10 @@ public class TalentButton extends Button {
 
 		bg = new Image(Assets.Interfaces.TALENT_BUTTON);
 		add(bg);
+
+		roundedFrame = UITheme.roundedFrame(DiceMageUI.BLACK, DiceMageUI.ORANGE);
+		roundedFrame.visible = false;
+		addToBack(roundedFrame);
 	}
 
 	@Override
@@ -100,6 +105,12 @@ public class TalentButton extends Button {
 
 		bg.x = x;
 		bg.y = y;
+		bg.visible = !UITheme.isDiceMage();
+		roundedFrame.setRect(x, y, width, height);
+		roundedFrame.visible = UITheme.isDiceMage();
+		if (roundedFrame.visible) {
+			roundedFrame.setLineColor(DiceMageUI.ORANGE);
+		}
 
 		icon.x = x + 2;
 		icon.y = y + 2;

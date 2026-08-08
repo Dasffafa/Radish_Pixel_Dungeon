@@ -269,7 +269,7 @@ public class StatusPane extends Component {
 	}
 
 	private void layoutDiceMageHealth() {
-		boolean dice = DiceMageUI.active();
+		boolean dice = UITheme.isDiceMage();
 		diceHp.visible = dice;
 		hp.visible = shieldedHP.visible = rawShielding.visible = !dice;
 		hpText.visible = !dice;
