@@ -31,6 +31,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
@@ -134,7 +136,7 @@ public class WandOfTransfusion extends DamageWand {
 				
 				//harms the undead
 				} else {
-					ch.damage(damageRoll(), this);
+					ch.damage(new DamageInfo(damageRoll(), DamageType.MAGICAL, curUser, this, this));
 					ch.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10 + buffedLvl());
 					Sample.INSTANCE.play(Assets.Sounds.BURNING);
 				}
@@ -148,7 +150,7 @@ public class WandOfTransfusion extends DamageWand {
 	//this wand costs health too
 	private void damageHero(int damage){
 		
-		curUser.damage(damage, this);
+		curUser.damage(new DamageInfo(damage, DamageType.TRUE, curUser, this, this));
 
 		if (!curUser.isAlive()){
 			Badges.validateDeathFromFriendlyMagic();

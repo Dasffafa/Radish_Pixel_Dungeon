@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.rings;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
@@ -68,6 +69,11 @@ public class RingOfTenacity extends Ring {
 	}
 
 	public class Tenacity extends RingBuff {
+
+		@Override
+		public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
+			info.addDirectMultModifier(attackMultiplier(attacker), "tenacity", this);
+		}
 	}
 }
 

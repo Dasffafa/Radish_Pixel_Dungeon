@@ -61,7 +61,7 @@ public class Rlyeh extends MeleeWeapon {
         if(isIdentified()){
         			desc = Messages.get(this, "desc",Math.min(15+3*buffedLvl(),100));
         		} else {
-        			desc = Messages.get(this, "normal_desc",15);
+        			desc = Messages.get(this, "normal_desc");
         		}
 
         return desc;

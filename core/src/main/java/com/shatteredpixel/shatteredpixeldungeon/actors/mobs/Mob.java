@@ -113,6 +113,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -779,101 +780,129 @@ public abstract class Mob extends Char {
 		}
 	}
 
-	@Override
-	public int defenseProc( Char enemy, int damage ) {
+		@Override
+		public int defenseProc( Char enemy, int damage ) {
 
-		if (enemy instanceof Hero
-				&& ((Hero) enemy).belongings.attackingWeapon() instanceof MissileWeapon){
-			Statistics.thrownAttacks++;
-			Badges.validateHuntressUnlock();
-		}
-
-		if (surprisedBy(enemy)) {
-			Statistics.sneakAttacks++;
-			Badges.validateRogueUnlock();
-			//TODO this is somewhat messy, it would be nicer to not have to manually handle delays here
-			// playing the strong hit sound might work best as another property of weapon?
-			if (Dungeon.hero.belongings.attackingWeapon() instanceof SpiritBow.SpiritArrow
-					|| Dungeon.hero.belongings.attackingWeapon() instanceof Dart){
-				Sample.INSTANCE.playDelayed(Assets.Sounds.HIT_STRONG, 0.125f);
-			} else {
-				Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
-			}
-			if (enemy.buff(Preparation.class) != null) {
-				Wound.hit(this);
-			} else {
-				Surprise.hit(this);
-			}
-		}
-
-		//if attacked by something else than current target, and that thing is closer, switch targets
-		if (this.enemy == null
-				|| (enemy != this.enemy && (Dungeon.level.distance(pos, enemy.pos) < Dungeon.level.distance(pos, this.enemy.pos)))) {
-			aggro(enemy);
-			target = enemy.pos;
-		}
-
-		if (buff(SoulMark.class) != null) {
-			int restoration = Math.min(damage, HP+shielding());
-
-			//physical damage that doesn't come from the hero is less effective
-			if (enemy != Dungeon.hero){
-				restoration = Math.round(restoration * 0.4f*Dungeon.hero.pointsInTalent(Talent.SOUL_SIPHON)/3f);
+			// 拉莱耶文本反弹：怪物持有 Rlyeh 时，玩家攻击怪物可能触发反弹
+			if (enemy instanceof Hero) {
+				if (hero.belongings.weapon() instanceof Rlyeh) {
+					Rlyeh rlyeh = (Rlyeh) hero.belongings.weapon();
+					if (rlyeh.chance()) {
+						// 触发反弹：攻击者（玩家）身上显示诅咒特效 + 受到伤害
+						enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
+						Sample.INSTANCE.play(Assets.Sounds.CURSED);
+						enemy.damage(rlyeh.damageRoll(this), rlyeh);
+						// 怪物不受伤，不显示伤害数字
+						return 0;
+					}
+				} else {
+					// 检查是否有持有 Rlyeh 的雕像
+					for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+						if (mob instanceof Statue && ((Statue) mob).weapon instanceof Rlyeh) {
+							Rlyeh rlyeh = (Rlyeh) ((Statue) mob).weapon;
+							if (rlyeh.chance()) {
+								enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
+								Sample.INSTANCE.play(Assets.Sounds.CURSED);
+								enemy.damage(rlyeh.damageRoll(this), rlyeh);
+								return 0;
+							}
+						}
+					}
+				}
 			}
 
-			if (restoration > 0) {
-				Buff.affect(Dungeon.hero, Hunger.class).affectHunger(restoration*Dungeon.hero.pointsInTalent(Talent.SOUL_EATER)/3f);
-				int preHp=Dungeon.hero.HP;
+			if (enemy instanceof Hero
+					&& ((Hero) enemy).belongings.attackingWeapon() instanceof MissileWeapon){
+				Statistics.thrownAttacks++;
+				Badges.validateHuntressUnlock();
+			}
 
-				if(hero.hasTalent(Talent.DESPERATE_POWER)){
-					float mulRate =mul4DesperatePower(this);
-					restoration = (int)(restoration * mulRate);
+			if (surprisedBy(enemy)) {
+				Statistics.sneakAttacks++;
+				Badges.validateRogueUnlock();
+				//TODO this is somewhat messy, it would be nicer to not have to manually handle delays here
+				// playing the strong hit sound might work best as another property of weapon?
+				if (Dungeon.hero.belongings.attackingWeapon() instanceof SpiritBow.SpiritArrow
+						|| Dungeon.hero.belongings.attackingWeapon() instanceof Dart){
+					Sample.INSTANCE.playDelayed(Assets.Sounds.HIT_STRONG, 0.125f);
+				} else {
+					Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
+				}
+				if (enemy.buff(Preparation.class) != null) {
+					Wound.hit(this);
+				} else {
+					Surprise.hit(this);
+				}
+			}
+
+			//if attacked by something else than current target, and that thing is closer, switch targets
+			if (this.enemy == null
+					|| (enemy != this.enemy && (Dungeon.level.distance(pos, enemy.pos) < Dungeon.level.distance(pos, this.enemy.pos)))) {
+				aggro(enemy);
+				target = enemy.pos;
+			}
+
+			if (buff(SoulMark.class) != null) {
+				int restoration = Math.min(damage, HP+shielding());
+
+				//physical damage that doesn't come from the hero is less effective
+				if (enemy != Dungeon.hero){
+					restoration = Math.round(restoration * 0.4f*Dungeon.hero.pointsInTalent(Talent.SOUL_SIPHON)/3f);
 				}
 
-				Dungeon.hero.HP = (int) Math.ceil(Math.min(Dungeon.hero.HT, Dungeon.hero.HP + (restoration * 0.4f)));
+				if (restoration > 0) {
+					Buff.affect(Dungeon.hero, Hunger.class).affectHunger(restoration*Dungeon.hero.pointsInTalent(Talent.SOUL_EATER)/3f);
+					int preHp=Dungeon.hero.HP;
 
-				Dungeon.hero.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", Dungeon.hero.HP-preHp);
-				if (Dungeon.hero.buff(AfterGlow.Warmth.class)!=null){
-					Dungeon.hero.buff(AfterGlow.Warmth.class).getWarmth();
+					if(hero.hasTalent(Talent.DESPERATE_POWER)){
+						float mulRate =mul4DesperatePower(this);
+						restoration = (int)(restoration * mulRate);
+					}
+
+					Dungeon.hero.HP = (int) Math.ceil(Math.min(Dungeon.hero.HT, Dungeon.hero.HP + (restoration * 0.4f)));
+
+					Dungeon.hero.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", Dungeon.hero.HP-preHp);
+					if (Dungeon.hero.buff(AfterGlow.Warmth.class)!=null){
+						Dungeon.hero.buff(AfterGlow.Warmth.class).getWarmth();
+					}
+
+					Dungeon.hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
 				}
 
-				Dungeon.hero.sprite.emitter().burst(Speck.factory(Speck.HEALING), 1);
 			}
 
+			return super.defenseProc(enemy, damage);
 		}
 
-		return super.defenseProc(enemy, damage);
-	}
-
-	@Override
-	public float speed() {
-		return super.speed() * AscensionChallenge.enemySpeedModifier(this);
-	}
-
-	public final boolean surprisedBy( Char enemy ){
-		return surprisedBy( enemy, true);
-	}
-
-	public boolean surprisedBy( Char enemy, boolean attacking ){
-		return enemy == Dungeon.hero
-				&& (enemy.invisible > 0 || !enemySeen || (fieldOfView != null && fieldOfView.length == Dungeon.level.length() && !fieldOfView[enemy.pos]))
-				&& (!attacking || enemy.canSurpriseAttack());
-	}
-
-	//whether the hero should interact with the mob (true) or attack it (false)
-	public boolean heroShouldInteract(){
-		return alignment != Alignment.ENEMY && buff(Amok.class) == null;
-	}
-
-	public void aggro( Char ch ) {
-		enemy = ch;
-		if (state != PASSIVE){
-			state = HUNTING;
+		@Override
+		public float speed() {
+			return super.speed() * AscensionChallenge.enemySpeedModifier(this);
 		}
-	}
 
-	public void clearEnemy(){
-		enemy = null;
+		public final boolean surprisedBy( Char enemy ){
+			return surprisedBy( enemy, true);
+		}
+
+		public boolean surprisedBy( Char enemy, boolean attacking ){
+			return enemy == Dungeon.hero
+					&& (enemy.invisible > 0 || !enemySeen || (fieldOfView != null && fieldOfView.length == Dungeon.level.length() && !fieldOfView[enemy.pos]))
+					&& (!attacking || enemy.canSurpriseAttack());
+		}
+
+		//whether the hero should interact with the mob (true) or attack it (false)
+		public boolean heroShouldInteract(){
+			return alignment != Alignment.ENEMY && buff(Amok.class) == null;
+		}
+
+		public void aggro( Char ch ) {
+			enemy = ch;
+			if (state != PASSIVE){
+				state = HUNTING;
+			}
+		}
+
+		public void clearEnemy(){
+			enemy = null;
 		enemySeen = false;
 		if (state == HUNTING) state = WANDERING;
 	}
@@ -1652,74 +1681,42 @@ public abstract class Mob extends Char {
 		heldAllies.clear();
 	}
 
-	/**
-	 * 拉莱耶文本 自相残杀伤害 生物<br>
-	 * @param enemy 敌人<br>
-	 * @param damage 伤害
-	 */
-	public void RlyehMobDamage (Char enemy,int damage){
-		if (hero.belongings.weapon() instanceof Rlyeh) {
-			Rlyeh w2 = (Rlyeh) hero.belongings.weapon;
-			if (w2.chance()) {
-				damage(damage, new Rlyeh());
-				//因为再处理无伤害会更麻烦，所以这里改成打多少回多少
-				enemy.HP += Math.min(enemy.HT, damage);
-			}
-		} else {
-			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-				if (mob instanceof Statue) {
-					if (((Statue) mob).weapon instanceof Rlyeh) {
-						Rlyeh w2 =(Rlyeh) ((Statue) mob).weapon;
-						if (w2.chance()) {
-							damage(((Statue) mob).weapon.damageRoll(mob), new Rlyeh());
-							enemy.HP += Math.min(enemy.HT, damage);
-						}
+		//精英证章充能方法
+		private void EliteBadgeGetEnergy(){
+			EliteBadge.badgeRecharge bad = Dungeon.hero.buff(EliteBadge.badgeRecharge.class);
+			if (bad != null && this.alignment==Alignment.ENEMY) {
+				int ge=10;
+				float gc=0.5f+bad.itemLevel()*0.1f;
+				boolean iselite=false;
+				for (Buff b:buffs()){
+					if (b instanceof ChampionEnemy){
+						iselite=true;
 					}
 				}
-			}
-		}
-	}
-
-	//精英证章充能方法
-	private void EliteBadgeGetEnergy(){
-		EliteBadge.badgeRecharge bad = Dungeon.hero.buff(EliteBadge.badgeRecharge.class);
-		if (bad != null && this.alignment==Alignment.ENEMY) {
-			int ge=10;
-			float gc=0.5f+bad.itemLevel()*0.1f;
-			boolean iselite=false;
-			for (Buff b:buffs()){
-				if (b instanceof ChampionEnemy){
-					iselite=true;
+				if (iselite) {
+					ge=(5+(Dungeon.scalingDepth()-1)/5)*10;
+					gc=4f+bad.itemLevel()*0.4f;
+				}
+				if ( this instanceof RipperDemon || this instanceof Ghoul){
+					ge/=2;
+					gc/=2f;
+				}
+				if (!(this instanceof Wraith)) {
+					bad.gainExp(ge);
+					bad.gainCharge(gc*0.85f);
 				}
 			}
-			if (iselite) {
-				ge=(5+(Dungeon.scalingDepth()-1)/5)*10;
-				gc=4f+bad.itemLevel()*0.4f;
-			}
-			if ( this instanceof RipperDemon || this instanceof Ghoul){
-				ge/=2;
-				gc/=2f;
-			}
-			if (!(this instanceof Wraith)) {
-				bad.gainExp(ge);
-				bad.gainCharge(gc*0.85f);
-			}
-		}
-	}
-
-	@Override
-	public int attackProc( final Char enemy, int damage ) {
-		damage = super.attackProc(enemy,damage);
-
-		if(Dungeon.level.distance(enemy.pos,pos)<=1){
-			RlyehMobDamage(enemy,damage);
 		}
 
-		return damage;
-	}
+		@Override
+		public int attackProc( final Char enemy, int damage ) {
+			damage = super.attackProc(enemy,damage);
+
+			return damage;
+		}
 
 
-	public float mul4DesperatePower(Char enemy){
+		public float mul4DesperatePower(Char enemy){
 		float lvDesPow = (float) hero.pointsInTalent(Talent.DESPERATE_POWER);
 		float stolenHpRate = ((float) this.HT-(float) this.HP)/(float) this.HT*2f;
 		float howMobDesperateThanBeforeMul = 1/(1-lvDesPow*0.125f) - 1;

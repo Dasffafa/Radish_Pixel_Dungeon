@@ -1,3 +1,17 @@
+brew_aqua.png
+brew_blizzard.png
+brew_caustic.png
+brew_infernal.png
+brew_shocking.png
+brew_unstable.png
+elixir_aqua.png
+elixir_arcane.png
+elixir_dragon.png
+elixir_feather.png
+elixir_honey.png
+elixir_icy.png
+elixir_might.png
+elixir_toxic.png
 potion_cleanse.png
 potion_corrogas.png
 potion_divine.png

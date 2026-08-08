@@ -156,7 +156,7 @@ public class HeroSprite extends CharSprite {
 		operate.frames( film, 16, 17, 16, 17 );
 
 		fly = new Animation( 1, true );
-		fly.frames( film, 18 );
+		fly.frames( film, hero.heroClass == HeroClass.MOONLIGHT ? 0 : 18 );
 
 		read = new Animation( 20, false );
 		read.frames( film, 19, 20, 20, 20, 20, 20, 20, 20, 20, 19 );

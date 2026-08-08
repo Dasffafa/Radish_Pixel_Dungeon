@@ -26,7 +26,9 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamagePipeline;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
+import com.shatteredpixel.shatteredpixeldungeon.damage.OrdinaryAttackDamage;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
@@ -48,6 +50,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SnDSFX;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor;
@@ -161,6 +164,22 @@ public abstract class Char extends Actor {
 
     protected float critDamage() {
         return Math.min(critDamage, critDamageCap);
+    }
+
+    public float baseCritSkill() {
+        return critSkill();
+    }
+
+    public float baseCritDamage() {
+        return critDamage();
+    }
+
+    public float critDamageCap() {
+        return critDamageCap;
+    }
+
+    public float rawCritDamage() {
+        return critDamage;
     }
 
     public float talentProc() {//for RUNIC_TRANSFERENCE
@@ -409,251 +428,15 @@ public abstract class Char extends Actor {
             if (enemy.buff(AfterImage.Blur.class) != null) {
                 enemy.buff(AfterImage.Blur.class).gainDodge();
             }
-            // 注定一抽：防御判定消耗（当英雄是被攻击者时）
-            int dr = 0;
-            if (enemy instanceof Hero) {
-                FatedDraw.FatedDrawTracker trackerD = ((Hero) enemy).buff(FatedDraw.FatedDrawTracker.class);
-                if (trackerD != null && trackerD.remainingChecks > 0) {
-                    // 先计算防御减免（combatRoll会取最大值）
-                    dr = Math.round(enemy.drRoll() * AscensionChallenge.statModifier(enemy));
-                    // 然后消耗次数
-                    trackerD.consume("defense_block");
-                } else {
-                    dr = Math.round(enemy.drRoll() * AscensionChallenge.statModifier(enemy));
-                }
-            } else {
-                dr = Math.round(enemy.drRoll() * AscensionChallenge.statModifier(enemy));
-            }
 
-            if (this instanceof Hero) {
-                Hero h = (Hero) this;
-                if (h.belongings.weapon() instanceof MissileWeapon
-                        && h.subClass == HeroSubClass.SNIPER
-                        && !Dungeon.level.adjacent(h.pos, enemy.pos)) {
-                    dr = 0;
-                }
-                //change from budding
-
-            }
-
-            if (this instanceof Hero) {
-                Hero h = (Hero) this;
-                if (h.pointsInTalent(Talent.LAND_HEART) >= 3) {
-
-                    int ePos = enemy.pos;
-
-                    Point c = Dungeon.level.cellToPoint(pos);
-                    Point ec = Dungeon.level.cellToPoint(ePos);
-
-                    for (int y = Math.max(0, c.y - 1); y <= Math.min(Dungeon.level.height() - 1, c.y + 1); y++) {
-
-                        int left = c.x - 1;
-                        int right = Math.min(Dungeon.level.width() - 1, c.x++);
-                        left = Math.max(0, left);
-                        int curr;
-                        for (curr = left + y * Dungeon.level.width(); curr <= right + y * Dungeon.level.width(); curr++) {
-                            // 女猎手神秘调试代码
-//							GLog.n(""+Dungeon.level.map[curr]);
-                            if (Dungeon.level.map[curr] == Terrain.FURROWED_GRASS || Dungeon.level.map[curr] == Terrain.HIGH_GRASS) {
-                                dr = 0;
-
-                            }
-                        }
-                    }
-
-					/*
-					for (int y = Math.max(0, ec.y - 1); y <= Math.min(Dungeon.level.height()-1, c.y + 1); y++){
-
-						int left = ec.x - 1;
-						int right = Math.min(Dungeon.level.width()-1, ec.x ++);
-						left = Math.max(0, left);
-						int curr;
-						for (curr = left + y * Dungeon.level.width(); curr <= right + y * Dungeon.level.width(); curr++){
-							GLog.n(""+Dungeon.level.map[curr]);
-							if(Dungeon.level.map[curr] == Terrain.FURROWED_GRASS || Dungeon.level.map[curr] == Terrain.HIGH_GRASS ){
-								dr = 0;
-								GLog.n("阶段3");
-							}
-						}
-					}
-					*/
-
-
-                }
-                ;
-            }
-
-            //we use a float here briefly so that we don't have to constantly round while
-            // potentially applying various multiplier effects
-            float dmg;
-            Preparation prep = buff(Preparation.class);
-            if (prep != null) {
-                dmg = prep.damageRoll(this);
-                if (this == hero) {
-                    if (hero.hasTalent(Talent.BOUNTY_HUNTER))
-                        Buff.affect(hero, Talent.BountyHunterTracker.class, 0.0f);
-                    if (hero.hasTalent(Talent.POWER_RECYCLE))
-                        Buff.affect(this, Talent.PowerRecycleTracker.class, 0.0f);
-                }
-            } else {
-                // 注定一抽：攻击伤害判定消耗（当英雄是攻击者时）
-                if (this instanceof Hero) {
-                    FatedDraw.FatedDrawTracker trackerA = ((Hero) this).buff(FatedDraw.FatedDrawTracker.class);
-                    if (trackerA != null && trackerA.remainingChecks > 0) {
-                        // 先计算伤害（combatRoll会取最大值）
-                        dmg = damageRoll();
-                        // 然后消耗次数
-                        trackerA.consume("attack_damage");
-                    } else {
-                        dmg = damageRoll();
-                    }
-                } else {
-                    dmg = damageRoll();
-                }
-                if (this == hero) {
-                    if (hero.hasTalent(Talent.POWER_RECYCLE))
-                        if (hero.pointsInTalent(Talent.POWER_RECYCLE) == 4)
-                            if (Random.Int(2) == 0)
-                                Buff.affect(this, Talent.PowerRecycleTracker.class, 0.0f);
-                }
-            }
-            boolean crit = false;
-            boolean surprise = enemy instanceof Mob && ((Mob) enemy).surprisedBy(this);
-            float current_crit = critSkill(), current_critdamage = critDamage();
-            if (this == hero) {
-                if (hero.belongings.weapon() instanceof LongStick) {
-                    current_crit += hero.defenseSkill(hero);
-                } else if (hero.belongings.weapon() instanceof Bloodblade) {
-                    Bloodblade bb = (Bloodblade) hero.belongings.weapon;
-                    current_crit += bb.sac;
-                } else if (hero.belongings.weapon() instanceof GiantKiller) {
-                    GiantKiller ks = (GiantKiller) hero.belongings.weapon;
-                    crit = ks.isMustCrit;
-                } else if (hero.belongings.weapon() instanceof Seekingspear) {
-                    Seekingspear ss = (Seekingspear) hero.belongings.weapon;
-                    current_critdamage += 0.3f + 0.05f * ss.buffedLvl();
-                    if (surprise) {
-                        current_crit += 25f;
-                    }
-
-                } else if (hero.belongings.weapon() instanceof MissileWeapon) {
-                    Talent.HoldBreathTracker hb = buff(Talent.HoldBreathTracker.class);
-                    if (hb != null) {
-                        current_crit += hb.crit_b;
-                        current_critdamage += hb.cd_b;
-                    }
-                }
-
-                Radish.GlobalCritChance globalCritChance = hero.buff(Radish.GlobalCritChance.class);
-
-                if (hero.hasTalent(Talent.DEATHBLOW)) {
-                    current_crit += 15f;
-                }
-                if (globalCritChance != null) {
-                    current_crit += globalCritChance.critChance;
-                }
-            }
-
-
-            if (!(buff(Calm.class) != null || buff(CriticalAttack.class) != null))
-                current_critdamage = Math.min(current_critdamage, critDamageCap);
-            if (this.buff(Scythe.scytheSac.class) != null) {
-                current_crit += 10f;
-                current_critdamage += 0.1f;
-            }
-            if (this instanceof Hero) {
-                if (hero.hasTalent(Talent.DEATHBLOW) && surprise) {
-                    if (hero.pointsInTalent(Talent.DEATHBLOW) >= 2) {
-                        current_critdamage += 0.25f;
-                        if (hero.pointsInTalent(Talent.DEATHBLOW) == 3)
-                            dmg *= 1.15f;
-                    }
-                }
-            }
-
-            if (this.buff(RingOfTenacity.Tenacity.class) != null) {
-                current_crit = 0;
-            }
-
-            // 注定一抽：暴击判定不消耗随机数次数
-
-            if (Random.Float() * 100 < current_crit || crit || (critDamage >= 3 && (this instanceof Hero && hero.buff(CriticalAttack.class) != null))) {
-                dmg *= current_critdamage;
-                crit = true;
-            }
-
-            dmg = Math.round(dmg * dmgMulti);
-
-            Berserk berserk = buff(Berserk.class);
-            if (berserk != null) dmg = berserk.damageFactor(dmg);
-
-            if (buff(Fury.class) != null) {
-                dmg *= 1.5f;
-            }
-            if (buff(RingOfTenacity.Tenacity.class) != null) {
-                dmg *= RingOfTenacity.attackMultiplier(this);
-            }
-            for (ChampionEnemy buff : buffs(ChampionEnemy.class)) {
-                dmg *= buff.meleeDamageFactor();
-            }
-            for (ChampionHero buff : buffs(ChampionHero.class)) {
-                dmg *= buff.meleeDamageFactor();
-            }
-            dmg *= AscensionChallenge.statModifier(this);
-
-            //flat damage bonus is applied after positive multipliers, but before negative ones
-            dmg += dmgBonus;
-
-            //friendly endure
-            Endure.EndureTracker endure = buff(Endure.EndureTracker.class);
-            if (endure != null) dmg = endure.damageFactor(dmg);
-
-            //enemy endure
-            endure = enemy.buff(Endure.EndureTracker.class);
-            if (endure != null) {
-                dmg = endure.adjustDamageTaken(dmg);
-            }
-
-            if (enemy.buff(ScrollOfChallenge.ChallengeArena.class) != null) {
-                dmg *= 0.67f;
-            }
-
-            if (buff(Weakness.class) != null) {
-                dmg *= 0.67f;
-            }
-
-            // 板甲特效：免疫减免前低于 4+0.5*等级的伤害（仅对英雄生效）
-            if (enemy instanceof Hero && ((Hero) enemy).belongings.armor() instanceof PlateArmor) {
-                dmg = ((PlateArmor) ((Hero) enemy).belongings.armor()).damageReduce(dmg);
-            }
-
-            int effectiveDamage = enemy.defenseProc(this, Math.round(dmg));
-
-
-            // created by DoggingDog on 20240718
-            // for Torturer using
-            boolean srcIsAHeroWieldingCS = this instanceof Hero && ((Hero) this).belongings.attackingWeapon() instanceof CelestialSphere;
-            boolean srcIsAStatueWieldingCS = this instanceof Statue && ((Statue) this).weapon instanceof CelestialSphere;
-            if (!(this instanceof Torturer || srcIsAHeroWieldingCS || srcIsAStatueWieldingCS))
-                effectiveDamage = Math.max(effectiveDamage - dr, 0);
-
-            if (enemy.buff(Viscosity.ViscosityTracker.class) != null) {
-                effectiveDamage = enemy.buff(Viscosity.ViscosityTracker.class).deferDamage(effectiveDamage);
-                enemy.buff(Viscosity.ViscosityTracker.class).detach();
-            }
-
-            if (enemy.buff(Vulnerable.class) != null) {
-                effectiveDamage *= 1.33f;
-            }
-
-            effectiveDamage = attackProc(enemy, effectiveDamage);
-
-            if (this == hero) {
-                PoemBuff poem = hero.buff(PoemBuff.class);
-                if (poem != null) {
-                    effectiveDamage = poem.applyFinalDamage(hero, enemy, effectiveDamage);
-                }
-            }
+			int dr = OrdinaryAttackDamage.rollDefenseReduction(this, enemy);
+			OrdinaryAttackDamage.DamageRoll damageRoll = OrdinaryAttackDamage.rollBaseDamage(this);
+			OrdinaryAttackDamage.CriticalRoll criticalRoll = OrdinaryAttackDamage.rollCritical(this, enemy, damageRoll.damage);
+			Preparation prep = damageRoll.preparation;
+			DamageInfo attackDamage = OrdinaryAttackDamage.build(this, enemy, Math.round(criticalRoll.damage), criticalRoll.critical,
+					criticalRoll.multiplier, dmgMulti, dmgBonus);
+			OrdinaryAttackDamage.applyPlateArmor(enemy, attackDamage);
+			int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage, dr);
 
             if (visibleFight) {
                 if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
@@ -669,21 +452,7 @@ public abstract class Char extends Actor {
 
             //TODO 不会 交给狗哥）2025.2.1 19：45
 
-            // DoggingDog on 2024-02-01
-            if (crit) {
-                if (NO_ARMOR_PHYSICAL_SOURCES.contains(this.getClass()))
-                    enemy.damage(effectiveDamage, new NoArmorCritClass());
-
-                    //special case for sniper when using ranged attacks
-                else if (this == Dungeon.hero
-                        && Dungeon.hero.subClass == HeroSubClass.SNIPER
-                        && !Dungeon.level.adjacent(Dungeon.hero.pos, pos)
-                        && Dungeon.hero.belongings.attackingWeapon() instanceof MissileWeapon) {
-                    enemy.damage(effectiveDamage, new NoArmorCritClass());
-                } else
-                    enemy.damage(effectiveDamage, new CritClass());
-            } else
-                enemy.damage(effectiveDamage, this);
+            enemy.damage(attackDamage);
 
             if (buff(FireImbue.class) != null) buff(FireImbue.class).proc(enemy);
             if (buff(FrostImbue.class) != null) buff(FrostImbue.class).proc(enemy);
@@ -1060,8 +829,12 @@ public abstract class Char extends Actor {
      * @param info 伤害信息对象
      */
     public void damage(DamageInfo info) {
-        if (info == null) return;
+        DamagePipeline.apply(this, info);
+    }
 
+    /** Compatibility implementation used exclusively by DamagePipeline. */
+    public void applyDamageLegacy(DamageInfo info) {
+        if (info == null) return;
         Object src = info.getSource();
         int dmg = info.getDamage();
 
@@ -1075,12 +848,19 @@ public abstract class Char extends Actor {
         }
 
         // 调用现有方法
-        damage(dmg, src, info.getType());
+        damage(dmg, src);
     }
 
     public void damage(int dmg, Object src) {
-        damage(dmg, src, DamageType.fromSource(src));
-    }
+		DamageInfo active = DamagePipeline.activeInfo();
+		if (active != null) {
+			damage(dmg, src, active.getType());
+			return;
+		}
+		DamageInfo info = new DamageInfo(dmg, DamageType.fromSource(src));
+		info.setSource(src);
+		DamagePipeline.apply(this, info);
+	}
 
     private void damage(int dmg, Object src, DamageType damageType) {
         if (src == null) {
@@ -1088,6 +868,11 @@ public abstract class Char extends Actor {
         }
         if (damageType == null || damageType == DamageType.UNKNOWN) {
             damageType = DamageType.fromSource(src);
+        }
+
+        // NPC overrides still receive the hit, while base NPC damage remains immune.
+        if (properties.contains(Property.NPC)) {
+            return;
         }
 
         // 天球仪造成魔法伤害的代码移动到这里来，以便防止额外造成1次物理伤害
@@ -1223,7 +1008,6 @@ public abstract class Char extends Actor {
         }
 
         int shielded = dmg;
-        //FIXME: when I add proper damage properties, should add an IGNORES_SHIELDS property to use here.
 
         //受衅怒火 2024-9-17
         if (HP > 0 && shielded > 0 && shielding() == 0) {
@@ -1234,7 +1018,7 @@ public abstract class Char extends Actor {
             }
         }
 
-        if (!(src instanceof Hunger) && damageType != DamageType.TRUE) {
+        if (!damageType.ignoresShields()) {
             for (ShieldBuff s : buffs(ShieldBuff.class)) {
                 dmg = s.absorbDamage(dmg);
                 if (dmg == 0) break;
@@ -1348,6 +1132,10 @@ public abstract class Char extends Actor {
 
     //these are misc. sources of physical damage which do not apply armor, they get a different icon
     private static HashSet<Class> NO_ARMOR_PHYSICAL_SOURCES = new HashSet<>();
+
+    public static boolean isNoArmorPhysicalSource(Class<?> sourceClass) {
+        return NO_ARMOR_PHYSICAL_SOURCES.contains(sourceClass);
+    }
 
     {
         NO_ARMOR_PHYSICAL_SOURCES.add(CrystalSpire.SpireSpike.class);

@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WardSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Archs;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
 import com.watabou.gltextures.SmartTexture;
 import com.watabou.gltextures.TextureCache;
 import com.watabou.glwrap.Matrix;
@@ -59,6 +60,7 @@ import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Point;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
+import com.watabou.utils.RectF;
 
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
@@ -271,6 +273,9 @@ public class SurfaceScene extends PixelScene {
 		Dungeon.win( Amulet.class );
 		Dungeon.deleteGame( GamesInProgress.curSlot, true );
 		Badges.saveGlobal();
+		if (a.usedWarriorFallback) {
+			addToFront(new WndMessage(Messages.get(this, "avatar_missing", Dungeon.hero.heroClass.title())));
+		}
 		
 		fadeIn();
 	}
@@ -418,10 +423,17 @@ public class SurfaceScene extends PixelScene {
 		
 		private static final int WIDTH	= 24;
 		private static final int HEIGHT	= 32;
+		private boolean usedWarriorFallback;
 		
 		public Avatar( HeroClass cl ) {
 			super( Assets.Sprites.AVATARS );
-			frame( new TextureFilm( texture, WIDTH, HEIGHT ).get( cl.ordinal() ) );
+			TextureFilm avatars = new TextureFilm(texture, WIDTH, HEIGHT);
+			RectF avatarFrame = avatars.get(cl.ordinal());
+			if (avatarFrame == null) {
+				avatarFrame = avatars.get(HeroClass.WARRIOR.ordinal());
+				usedWarriorFallback = true;
+			}
+			frame(avatarFrame);
 		}
 	}
 	

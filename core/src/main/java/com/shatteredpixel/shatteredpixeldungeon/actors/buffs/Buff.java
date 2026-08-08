@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfBenediction;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -60,6 +61,18 @@ public class Buff extends Actor {
 	
 	public HashSet<Class> immunities() {
 		return new HashSet<>(immunities);
+	}
+
+	public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
+	}
+
+	public void modifyPreFinalOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
+	}
+
+	public void modifyFinalOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
+	}
+
+	public void modifyIncomingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 	}
 	
 	public boolean attachTo( Char target ) {

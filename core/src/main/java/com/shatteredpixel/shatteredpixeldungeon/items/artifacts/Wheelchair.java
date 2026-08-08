@@ -17,6 +17,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.events.BeforeHeroMoveEvent;
@@ -161,7 +163,7 @@ public class Wheelchair extends Artifact {
         for (Mob mob : new ArrayList<>(Dungeon.level.mobs)) {
             if (Dungeon.level.distance(hero.pos, mob.pos) <= 2) {
                 // 2格距离是5x5范围
-                mob.damage(damage, this);
+                mob.damage(new DamageInfo(damage, DamageType.PHYSICAL, hero, this, this));
                 CellEmitter.get(mob.pos).burst(SparkParticle.FACTORY, 6);
             }
         }

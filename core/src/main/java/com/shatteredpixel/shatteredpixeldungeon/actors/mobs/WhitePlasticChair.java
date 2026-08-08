@@ -20,6 +20,7 @@ public class WhitePlasticChair extends Mob {
 		alignment = Alignment.ENEMY;
 		state = PASSIVE;
 		properties.add(Property.IMMOVABLE);
+		properties.add(Property.NPC);
 	}
 
 	@Override

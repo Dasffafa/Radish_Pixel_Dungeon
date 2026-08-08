@@ -147,6 +147,11 @@ public enum DamageType {
 		return this == TRUE;
 	}
 	
+	/** Whether this damage skips shield buffers. */
+	public boolean ignoresShields() {
+		return this == TRUE || this == HUNGER;
+	}
+
 	/** 是否为物理伤害 */
 	public boolean isPhysical() {
 		return !magical && this != TRUE && this != UNKNOWN;

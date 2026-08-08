@@ -7,6 +7,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ShieldBuff;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BloodParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
@@ -48,7 +50,7 @@ public class HeadCleaver extends MeleeWeapon{
                 }
                 Buff.affect(defender,headCleaverTracker.class);
                 defender.HP=1;
-                defender.damage(1,new headCleaverTracker());
+                defender.damage(new DamageInfo(1, DamageType.PHYSICAL_NO_ARMOR, attacker, this, new headCleaverTracker()));
                 defender.sprite.emitter().burst(BloodParticle.BURST, 50 );
                 if (defender == Dungeon.hero && !defender.isAlive()) {
                     GLog.n(Messages.get(HeadCleaver.headCleaverTracker.class, "ondeath"));

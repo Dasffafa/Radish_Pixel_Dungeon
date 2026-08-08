@@ -889,7 +889,7 @@ public abstract class RegularLevel extends Level {
 
 		//There are no unused keys for this depth in the journal
 		for (Notes.KeyRecord rec : Notes.getRecords(Notes.KeyRecord.class)){
-			if (rec.depth() == depth){
+			if (rec.depth() == depth && Dungeon.branchId.equals(rec.branchId())){
 				return false;
 			}
 		}

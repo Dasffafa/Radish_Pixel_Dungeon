@@ -1,4 +1,4 @@
-# 伤害类型系统设计文档（v2.0）
+# 伤害类型系统设计文档（v3.0）
 
 ## 一、概述
 
@@ -8,7 +8,7 @@
 
 1. **伤害信息完整封装** - DamageInfo包含伤害值、类型、来源、modifier等所有信息
 2. **暴击是属性而非类型** - 保留原始伤害类型，暴击作为独立属性
-3. **Modifier系统** - 支持多层伤害修正（加算、乘算），便于天赋/Buff系统扩展
+3. **六阶段Modifier系统** - 支持多层伤害修正（加算、乘算），便于天赋/Buff系统扩展
 4. **调试友好** - 可追踪从基础伤害到最终伤害的完整计算过程
 
 ---
@@ -29,26 +29,31 @@ DamageInfo不再只是数据容器，而是完整的伤害计算单元：
 - 提供`getDamage()`计算并返回最终伤害
 - 包装伤害类型、来源、暴击等元信息
 
-### 2.2 Modifier计算顺序
+### 2.2 Modifier计算顺序（六阶段）
 
-采用RPG标准的四阶段计算：
+采用六阶段计算公式：
 
 ```
-最终伤害 = floor(((基础伤害 + Σ直接加算) × Σ直接乘算) × Σ最终乘算 + Σ最终加算)
+最终伤害 = floor(((((基础 + Σ直接加算) × Σ直接乘算) × 暴击倍率 + Σ最终前加算) × Σ最终乘算 + Σ最终加算))
 ```
 
 **计算阶段说明**：
 
 | 阶段 | Modifier类型 | 示例 | 叠加方式 |
 |------|-------------|------|----------|
-| 1 | 直接加算 (FlatAdditive) | 天赋+10伤害、武器附魔+5 | 累加 |
-| 2 | 直接乘算 (DirectMultiplicative) | 暴击×1.5、弱点攻击×2 | **累乘** |
-| 3 | 最终乘算 (FinalMultiplicative) | 最终伤害×1.2 | 累乘 |
-| 4 | 最终加算 (FinalAdditive) | 固定追加+50 | 累加 |
+| 1 | 直接加算 (FLAT_ADDITIVE) | 天赋+10伤害、武器附魔+5 | 累加 |
+| 2 | 直接乘算 (DIRECT_MULTIPLICATIVE) | 暴击×1.5、弱点攻击×2 | **累乘** |
+| 3 | 暴击倍率 | 独立于modifier列表，便于UI显示 | 单独处理 |
+| 4 | 最终前加算 (PRE_FINAL_ADDITIVE) | 固定追加值（在负向乘区前） | 累加 |
+| 5 | 最终乘算 (FINAL_MULTIPLICATIVE) | 最终伤害×1.2 | 累乘 |
+| 6 | 最终加算 (FINAL_ADDITIVE) | 固定追加+50 | 累加 |
 
-**注意**：乘算采用**累乘**而非累加
+**注意**：
+- 乘算采用**累乘**而非累加
 - 累乘：`×1.5 × ×1.2 × ×1.1 = ×1.98`
 - 优点：多个乘算效果叠加更合理，避免无限膨胀
+- 暴击独立于modifier列表，便于UI和旧source兼容
+- `PRE_FINAL_ADDITIVE` 是正式的第五个阶段，不得删除或并入 `FINAL_ADDITIVE`
 
 ---
 
@@ -99,10 +104,14 @@ public enum DamageType {
     // 属性方法
     public boolean isMagical();
     public boolean ignoresArmor();
+    public boolean ignoresShields();  // TRUE 和 HUNGER 无视护盾
     public boolean isTrueDamage();
     public boolean isPhysical();
     public boolean isElemental();
     public boolean isDoT();
+    
+    // 兼容方法（迁移完成后删除）
+    public static DamageType fromSource(Object source);
 }
 ```
 
@@ -117,6 +126,7 @@ public class DamageModifier {
     public enum Type {
         FLAT_ADDITIVE,           // 直接加算
         DIRECT_MULTIPLICATIVE,   // 直接乘算
+        PRE_FINAL_ADDITIVE,      // 最终乘算前加算（阶段4）
         FINAL_MULTIPLICATIVE,    // 最终乘算
         FINAL_ADDITIVE           // 最终加算
     }
@@ -132,6 +142,7 @@ public class DamageModifier {
     // 静态工厂
     public static DamageModifier flatAdd(float value, String source);
     public static DamageModifier directMult(float value, String source);
+    public static DamageModifier preFinalAdd(float value, String source);
     public static DamageModifier finalMult(float value, String source);
     public static DamageModifier finalAdd(float value, String source);
 }
@@ -146,19 +157,18 @@ public class DamageInfo {
     
     // ========== 伤害值相关 ==========
     private int baseDamage;              // 基础伤害值
-    private int cachedFinalDamage;       // 计算后的最终值（缓存）
-    private boolean calculated = false;  // 是否已计算
 
-    // ========== Modifier列表 ==========
-    private List<DamageModifier> flatAdditives;           // 直接加算
-    private List<DamageModifier> directMultiplicatives;   // 直接乘算
-    private List<DamageModifier> finalMultiplicatives;    // 最终乘算
-    private List<DamageModifier> finalAdditives;          // 最终加算
+    // ========== Modifier列表（六阶段）==========
+    private List<DamageModifier> flatAdditives;           // 阶段1：直接加算
+    private List<DamageModifier> directMultiplicatives;   // 阶段2：直接乘算
+    private List<DamageModifier> preFinalAdditives;       // 阶段4：最终乘算前加算
+    private List<DamageModifier> finalMultiplicatives;    // 阶段5：最终乘算
+    private List<DamageModifier> finalAdditives;          // 阶段6：最终加算
 
     // ========== 元信息 ==========
     private DamageType type;
     private boolean critical;
-    private float criticalMultiplier = 1.5f;  // 默认暴击倍率
+    private float criticalMultiplier = 1.5f;  // 阶段3：暴击倍率
     private Char attacker;
     private Item sourceItem;
     private Object source;
@@ -169,22 +179,11 @@ public class DamageInfo {
      * 获取最终伤害值（应用所有modifier）
      */
     public int getDamage() {
-        if (!calculated) {
-            cachedFinalDamage = calculateFinalDamage();
-            calculated = true;
-        }
-        return cachedFinalDamage;
+        return calculateFinalDamage();
     }
 
     /**
-     * 获取基础伤害值（不含modifier）
-     */
-    public int getBaseDamage() {
-        return baseDamage;
-    }
-
-    /**
-     * 核心计算方法
+     * 核心计算方法（六阶段）
      */
     private int calculateFinalDamage() {
         float result = baseDamage;
@@ -199,139 +198,81 @@ public class DamageInfo {
             result *= m.getValue();
         }
 
-        // 阶段3：最终乘算（累乘）
+        // 阶段3：暴击倍率（独立于modifier列表）
+        if (critical) {
+            result *= criticalMultiplier;
+        }
+
+        // 阶段4：最终乘算前加算
+        for (DamageModifier m : preFinalAdditives) {
+            result += m.getValue();
+        }
+
+        // 阶段5：最终乘算（累乘）
         for (DamageModifier m : finalMultiplicatives) {
             result *= m.getValue();
         }
 
-        // 阶段4：最终加算
+        // 阶段6：最终加算
         for (DamageModifier m : finalAdditives) {
             result += m.getValue();
         }
 
-        return Math.round(result);
+        // 至少为0，不会出现负伤害
+        return Math.max(0, Math.round(result));
     }
 
-    // ========== Modifier管理 ==========
+    // ========== Modifier管理（链式调用）==========
 
+    public DamageInfo addFlatModifier(float value, String source);
+    public DamageInfo addDirectMultModifier(float value, String source);
+    public DamageInfo addPreFinalAddModifier(float value, String source);
+    public DamageInfo addFinalMultModifier(float value, String source);
+    public DamageInfo addFinalAddModifier(float value, String source);
+    
     /**
-     * 添加直接加算modifier
+     * 设置暴击（独立于modifier列表）
      */
-    public DamageInfo addFlatModifier(float value, String source) {
-        flatAdditives.add(DamageModifier.flatAdd(value, source));
-        invalidateCache();
-        return this;  // 支持链式调用
-    }
-
-    /**
-     * 添加直接乘算modifier
-     */
-    public DamageInfo addDirectMultModifier(float value, String source) {
-        directMultiplicatives.add(DamageModifier.directMult(value, source));
-        invalidateCache();
-        return this;
-    }
-
-    /**
-     * 添加最终乘算modifier
-     */
-    public DamageInfo addFinalMultModifier(float value, String source) {
-        finalMultiplicatives.add(DamageModifier.finalMult(value, source));
-        invalidateCache();
-        return this;
-    }
-
-    /**
-     * 添加最终加算modifier
-     */
-    public DamageInfo addFinalAddModifier(float value, String source) {
-        finalAdditives.add(DamageModifier.finalAdd(value, source));
-        invalidateCache();
-        return this;
-    }
-
-    /**
-     * 设置暴击（自动添加暴击乘算modifier）
-     */
-    public DamageInfo setCritical(boolean critical) {
-        this.critical = critical;
-        if (critical) {
-            // 暴击作为直接乘算modifier
-            addDirectMultModifier(criticalMultiplier, "暴击");
-        }
-        return this;
-    }
-
-    /**
-     * 设置暴击并指定倍率
-     */
-    public DamageInfo setCritical(boolean critical, float multiplier) {
-        this.criticalMultiplier = multiplier;
-        return setCritical(critical);
-    }
-
-    /**
-     * 清除缓存（modifier变化时调用）
-     */
-    private void invalidateCache() {
-        calculated = false;
-    }
+    public DamageInfo setCritical(boolean critical);
+    public DamageInfo setCritical(boolean critical, float multiplier);
 
     // ========== 工厂方法 ==========
 
-    public static DamageInfo physical(int baseDamage, Char attacker) {
-        return new DamageInfo(baseDamage, DamageType.PHYSICAL, attacker);
-    }
+    public static DamageInfo physical(int baseDamage, Char attacker);
+    public static DamageInfo physical(int baseDamage, Char attacker, Item weapon);
+    public static DamageInfo physicalNoArmor(int baseDamage, Object source);
+    public static DamageInfo magical(int baseDamage, Object source);
+    public static DamageInfo fire(int baseDamage, Object source);
+    public static DamageInfo lightning(int baseDamage, Object source);
+    public static DamageInfo frost(int baseDamage, Object source);
+    public static DamageInfo poison(int baseDamage, Object source);
+    public static DamageInfo corrosive(int baseDamage, Object source);
+    public static DamageInfo bleeding(int baseDamage, Object source);
+    public static DamageInfo ooze(int baseDamage, Object source);
+    public static DamageInfo burningStatus(int baseDamage, Object source);
+    public static DamageInfo trueDamage(int baseDamage);
+    public static DamageInfo trueDamage(int baseDamage, Object source);
+    public static DamageInfo hunger(int baseDamage);
+    public static DamageInfo fall(int baseDamage);
+    public static DamageInfo chasm(int baseDamage);
+    public static DamageInfo fromSource(int baseDamage, Object source);  // 兼容方法
 
-    public static DamageInfo physical(int baseDamage, Char attacker, Item weapon) {
-        DamageInfo info = new DamageInfo(baseDamage, DamageType.PHYSICAL, attacker);
-        info.setSourceItem(weapon);
-        return info;
-    }
+    // ========== 类型便捷方法 ==========
 
-    public static DamageInfo magical(int baseDamage, Object source) {
-        return new DamageInfo(baseDamage, DamageType.MAGICAL, null, null, source);
-    }
-
-    public static DamageInfo lightning(int baseDamage, Object source) {
-        return new DamageInfo(baseDamage, DamageType.LIGHTNING, null, null, source);
-    }
-
-    public static DamageInfo fire(int baseDamage, Object source) {
-        return new DamageInfo(baseDamage, DamageType.FIRE, null, null, source);
-    }
-
-    public static DamageInfo trueDamage(int baseDamage) {
-        return new DamageInfo(baseDamage, DamageType.TRUE);
-    }
+    public boolean isPhysical();
+    public boolean isMagical();
+    public boolean isElemental();
+    public boolean isDoT();
+    public boolean ignoresArmor();
+    public boolean ignoresShields();
+    public boolean isTrueDamage();
 
     // ========== 调试工具 ==========
 
-    /**
-     * 获取伤害计算过程描述
-     */
-    public String getCalculationTrace() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("伤害计算过程:\n");
-        sb.append("  基础伤害: ").append(baseDamage).append("\n");
-        
-        if (!flatAdditives.isEmpty()) {
-            sb.append("  + 直接加算:\n");
-            for (DamageModifier m : flatAdditives) {
-                sb.append("    +").append(m.getValue()).append(" (").append(m.getSource()).append(")\n");
-            }
-        }
-        
-        if (!directMultiplicatives.isEmpty()) {
-            sb.append("  × 直接乘算:\n");
-            for (DamageModifier m : directMultiplicatives) {
-                sb.append("    ×").append(m.getValue()).append(" (").append(m.getSource()).append(")\n");
-            }
-        }
-        
-        sb.append("  = 最终伤害: ").append(getDamage());
-        return sb.toString();
-    }
+    public String getCalculationTrace();
+    public DamageInfo copy();
+    public DamageInfo withBaseDamage(int newBaseDamage);
+    public DamageInfo withCritical(boolean isCritical);
 }
 ```
 
@@ -350,15 +291,69 @@ public class DamageResistance {
     public boolean isImmune(DamageType type);
 
     /**
-     * 应用抗性减免伤害
+     * 计算最终伤害（应用抗性减免）
+     * 真实伤害无视抗性
      */
-    public int applyResistance(int damage, DamageInfo info) {
-        if (info.isTrueDamage() || isImmune(info.getType())) {
-            return damage;
-        }
-        float resist = getResistance(info.getType());
-        return Math.round(damage * (1f - resist));
-    }
+    public int calculateDamage(int baseDamage, DamageInfo info);
+    
+    /**
+     * 合并抗性（取最大值）
+     */
+    public void merge(DamageResistance other);
+}
+```
+
+### 3.5 DamagePipeline 类
+
+**文件路径**: `damage/DamagePipeline.java`
+
+当前是兼容包装器，最终将实现完整管线：
+
+```java
+public final class DamagePipeline {
+    
+    /**
+     * 获取当前活跃的 DamageInfo（ThreadLocal）
+     */
+    public static DamageInfo activeInfo();
+    
+    /**
+     * 应用伤害（当前为兼容实现）
+     */
+    public static DamageResult apply(Char target, DamageInfo info);
+}
+```
+
+**完整管线目标顺序**：
+```
+输入校验
+→ DamageInfo modifier
+→ 出手方效果
+→ 目标承伤倍率
+→ 护甲
+→ DamageType 抗性/免疫
+→ 护盾
+→ Vitae 等额外生命层
+→ HP
+→ 受伤事件和死亡
+→ UI / DamageResult
+```
+
+### 3.6 DamageResult 类
+
+**文件路径**: `damage/DamageResult.java`
+
+```java
+public final class DamageResult {
+    public final int baseDamage;
+    public final int modifiedDamage;
+    public final int shieldBlocked;
+    public final int hpDamage;
+    public final boolean immune;
+    
+    // 后续补充：
+    // public final int armorBlocked;
+    // public final int resistanceBlocked;
 }
 ```
 
@@ -388,34 +383,41 @@ enemy.damage(info);
 ```java
 DamageInfo info = DamageInfo.physical(15, hero, sword);
 
-// 设置暴击（自动添加×1.5乘算）
+// 设置暴击（独立处理，不作为modifier）
 info.setCritical(true);
 
 // 查看计算过程
 System.out.println(info.getCalculationTrace());
 // 输出:
-//   基础伤害: 15
-//   × 直接乘算:
-//     ×1.5 (暴击)
+//   伤害计算过程:
+//     基础伤害: 15
+//     × 暴击: ×1.5
 //   = 最终伤害: 22
 
 enemy.damage(info);
 ```
 
-### 4.3 复杂modifier组合
+### 4.3 复杂modifier组合（六阶段）
 
 ```java
 DamageInfo info = DamageInfo.physical(20, hero, legendarySword);
 
-// 多层modifier
-info.addFlatModifier(10, "天赋：砥砺锋芒")      // +10
-    .addFlatModifier(5, "武器附魔")              // +5
-    .setCritical(true, 2.0f)                    // ×2.0 暴击
-    .addFinalMultModifier(1.25f, "最终加成")     // ×1.25
-    .addFinalAddModifier(50, "固定追加");        // +50
+// 多阶段modifier
+info.addFlatModifier(10, "天赋：砥砺锋芒")      // 阶段1：+10
+    .addDirectMultModifier(1.3f, "弱点攻击")     // 阶段2：×1.3
+    .setCritical(true, 2.0f)                    // 阶段3：暴击×2.0
+    .addPreFinalAddModifier(15, "处决加成")      // 阶段4：+15
+    .addFinalMultModifier(1.25f, "最终加成")     // 阶段5：×1.25
+    .addFinalAddModifier(50, "固定追加");        // 阶段6：+50
 
-// 计算: ((20+10+5) × 2.0) × 1.25 + 50 = 137.5 → 137
-int damage = info.getDamage();  // 137
+// 计算: ((((20+10) × 1.3) × 2.0 + 15) × 1.25 + 50)
+//     = (((30 × 1.3) × 2.0 + 15) × 1.25 + 50)
+//     = ((39 × 2.0 + 15) × 1.25 + 50)
+//     = ((78 + 15) × 1.25 + 50)
+//     = (93 × 1.25 + 50)
+//     = 116.25 + 50
+//     = 166.25 → 166
+int damage = info.getDamage();  // 166
 ```
 
 ### 4.4 魔法伤害
@@ -437,8 +439,8 @@ public void act() {
     DamageInfo info = DamageInfo.burningStatus(baseDamage, this);
     
     // 火焰伤害可能有额外加成
-    if (target.buff(FireImbue.class) != null) {
-        info.addDirectMultModifier(0.5f, "火焰易伤");
+    if (target.buff(Vulnerable.class) != null) {
+        info.addDirectMultModifier(1.33f, "易伤");
     }
     
     target.damage(info);
@@ -447,26 +449,38 @@ public void act() {
 
 ---
 
-## 五、Char.java 修改
+## 五、Char.java 集成
 
 ```java
 /**
  * 新的伤害方法：使用DamageInfo
+ * 暴击是DamageInfo的属性，而不是特殊的伤害类型。
+ * 此方法将DamageInfo转换为旧格式调用现有逻辑，保持向后兼容。
  */
-public void damage( DamageInfo info ) {
-    if (info == null) return;
+public void damage(DamageInfo info) {
+    DamagePipeline.apply(this, info);
+}
 
-    // 获取计算后的最终伤害
+/**
+ * 兼容实现，仅由 DamagePipeline 调用
+ */
+public void applyDamageLegacy(DamageInfo info) {
     int dmg = info.getDamage();
     Object src = info.getSource();
+    // ... 调用旧实现
+}
 
-    // 处理暴击显示
-    if (info.isCritical()) {
-        src = info.ignoresArmor() ? new NoArmorCritClass() : new CritClass();
+/**
+ * 兼容入口：旧式调用
+ */
+public void damage(int dmg, Object src) {
+    DamageInfo active = DamagePipeline.activeInfo();
+    if (active != null) {
+        damage(dmg, src, active.getType());
+    } else {
+        DamageInfo info = new DamageInfo(dmg, DamageType.fromSource(src));
+        DamagePipeline.apply(this, info);
     }
-
-    // 调用现有方法（保持向后兼容）
-    damage(dmg, src);
 }
 ```
 
@@ -480,6 +494,7 @@ public void damage( DamageInfo info ) {
 DamageInfo info = DamageInfo.physical(50, hero, sword);
 info.addFlatModifier(10, "天赋A")
     .setCritical(true)
+    .addPreFinalAddModifier(15, "处决")
     .addFinalAddModifier(20, "最终加成");
 
 // 打印计算过程
@@ -489,11 +504,12 @@ GLog.i(info.getCalculationTrace());
   基础伤害: 50
   + 直接加算:
     +10.0 (天赋A)
-  × 直接乘算:
-    ×1.5 (暴击)
+  × 暴击: ×1.5
+  + 最终乘算前加算:
+    +15.0 (处决)
   + 最终加算:
     +20.0 (最终加成)
-  = 最终伤害: 95
+  = 最终伤害: 110
 */
 ```
 
@@ -513,9 +529,12 @@ core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/
 ├── damage/
 │   ├── DamageType.java              # 伤害类型枚举
 │   ├── DamageInfo.java              # 伤害计算单元（核心）
-│   ├── DamageModifier.java          # Modifier表示类
+│   ├── DamageModifier.java          # Modifier表示类（六阶段）
 │   ├── DamageResistance.java        # 抗性管理
-│   └── DamageSource.java            # 兼容工具类
+│   ├── DamagePipeline.java          # 伤害管线（兼容包装器）
+│   ├── DamageResult.java            # 伤害结果
+│   ├── DamageSource.java            # 兼容工具类
+│   └── OrdinaryAttackDamage.java    # 普通攻击构建器
 └── actors/
     └── Char.java                    # damage(DamageInfo) 方法
 ```
@@ -526,33 +545,20 @@ core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/
 
 | 组件 | 状态 | 备注 |
 |------|------|------|
-| DamageType | ✅ 已实现 | 需保持现状 |
-| DamageInfo | 🔄 需重构 | 添加modifier系统 |
-| DamageModifier | ❌ 待创建 | 新增类 |
-| DamageResistance | ✅ 已实现 | 需保持现状 |
-| DamageSource | ✅ 已实现 | 需保持现状 |
-| Char.damage(DamageInfo) | ✅ 已实现 | 需适配新getDamage() |
+| DamageType | ✅ 已实现 | 19种类型，含 `ignoresShields()` |
+| DamageInfo | ✅ 已实现 | 六阶段modifier系统 |
+| DamageModifier | ✅ 已实现 | 五种类型（含PRE_FINAL_ADDITIVE） |
+| DamageResistance | ✅ 已实现 | 抗性合并规则已明确 |
+| DamagePipeline | ⚠️ 兼容实现 | 目前是兼容包装器 |
+| DamageResult | ⚠️ 基本实现 | 缺少 armorBlocked/resistanceBlocked |
+| Char.damage(DamageInfo) | ✅ 已实现 | 委托给Pipeline |
+| OrdinaryAttackDamage | ✅ 已实现 | 普通攻击流程已迁移 |
 
 ---
 
 ## 九、迁移计划
 
-### 阶段1：重构DamageInfo
-- 添加baseDamage/finalDamage
-- 实现modifier四列表
-- 实现计算方法
-
-### 阶段2：创建DamageModifier
-- 定义Type枚举
-- 实现工厂方法
-
-### 阶段3：更新Char.damage()
-- 使用info.getDamage()获取最终值
-
-### 阶段4：迁移调用点
-- Buff类 → 使用新API
-- Item类 → 使用新API
-- 核心战斗逻辑
+详见 `docs/TODO/damage-system-migration-inventory.md`
 
 ---
 
@@ -565,3 +571,10 @@ core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/
 | **扩展性强** | 新增天赋/Buff只需添加modifier |
 | **解耦** | Char只负责"应用伤害"，不负责"计算伤害" |
 | **向后兼容** | 新方法内部调用旧方法，渐进迁移 |
+| **六阶段控制** | PRE_FINAL_ADDITIVE 允许在负向乘区前添加固定值 |
+
+---
+
+*文档版本：3.0*  
+*更新日期：2026-08-07*  
+*项目：Radish Pixel Dungeon*

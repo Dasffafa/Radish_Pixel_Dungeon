@@ -42,7 +42,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.El
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.WeaponMasteryTalent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
@@ -74,6 +73,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PurpleParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.events.BeforeHeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroMoveEvent;
@@ -831,10 +831,6 @@ public class Hero extends Char {
 			dmg += (int) (dmg * (attackDelay() + killBoatSwordBonus - 1) * pointBonus);
 		}
 
-		// 武器掌握天赋伤害加成
-		if (heroClass == HeroClass.MOONLIGHT && hasTalent(Talent.WEAPON_MASTERY)) {
-			dmg += WeaponMasteryTalent.getBonusDamage(this);
-		}
 
 		dmg = Math.round(dmg
 				* IronHeartBuff.getDamageMultiplier()
@@ -1926,6 +1922,32 @@ public class Hero extends Char {
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 
+		// 拉莱耶文本反弹：玩家持有 Rlyeh 时，怪物攻击玩家可能触发反弹
+		if (belongings.weapon() instanceof Rlyeh) {
+			Rlyeh rlyeh = (Rlyeh) belongings.weapon();
+			if (rlyeh.HeroChance()) {
+				// 触发反弹：攻击者身上显示诅咒特效 + 受到伤害
+				enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
+				Sample.INSTANCE.play(Assets.Sounds.CURSED);
+				enemy.damage(rlyeh.damageRoll(this), rlyeh);
+				// 玩家不受伤，不显示伤害数字
+				return 0;
+			}
+		} else {
+			// 检查是否有持有 Rlyeh 的雕像
+			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+				if (mob instanceof Statue && ((Statue) mob).weapon instanceof Rlyeh) {
+					Rlyeh rlyeh = (Rlyeh) ((Statue) mob).weapon;
+					if (rlyeh.HeroChance()) {
+						enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
+						Sample.INSTANCE.play(Assets.Sounds.CURSED);
+						enemy.damage(rlyeh.damageRoll(this), rlyeh);
+						return 0;
+					}
+				}
+			}
+		}
+
 		if (belongings.armor() != null) {
 			damage = belongings.armor().proc( enemy, this, damage );
 		}
@@ -2331,7 +2353,7 @@ public class Hero extends Char {
 				
 				// 检测绕路穿过迷雾的情况
 				int directDist = Dungeon.level.distance(pos, target);
-				if (newpath != null && directDist <= 8 && newpath.size() > directDist * 2) {
+				if (newpath != null && directDist <= 8 && newpath.size() > directDist * 3 && SPDSettings.detourPrompt()) {
 					// 存在绕远路，需要询问玩家
 					if (!detourConfirmed || detourTarget != target) {
 						final int finalTarget = target;
@@ -2351,6 +2373,10 @@ public class Hero extends Char {
 											detourConfirmed = true;
 											detourTarget = finalTarget;
 											path = finalNewpath;
+											curAction = new HeroAction.Move(finalTarget);
+											lastAction = null;
+											ready = false;
+											Hero.this.next();
 										} else {
 											// 玩家取消，中断移动
 											detourConfirmed = false;
@@ -3227,47 +3253,6 @@ public class Hero extends Char {
 	public void MoveBoatSword(){
 		KillBoatSword w2 = (KillBoatSword) hero.belongings.weapon;
 		if(w2 !=null) w2.delayAttack = false;
-	}
-
-	/**
-	 * 拉莱耶文本 自相残杀伤害 英雄<br>
-	 * @param enemy 敌人<br>
-	 * @param damage 伤害
-	 */
-	public void RlyehHeroDamage (Char enemy,int damage){
-		if(hero.belongings.weapon() instanceof Rlyeh){
-			Rlyeh w2 = (Rlyeh) hero.belongings.weapon;
-			if(w2.HeroChance()){
-				damage(hero.belongings.weapon.damageRoll(hero),new Rlyeh());
-				//因为再处理无伤害会更麻烦，所以这里改成打多少回多少
-				enemy.HP += Math.min(enemy.HT, damage);
-				//一个神奇的特性会导致满血额外+1点血量，所以-1
-				if(enemy.HP == enemy.HT){
-					enemy.damage(1,new Rlyeh());
-				}
-				if(!isAlive()){
-					Badges.validateDeathFromFriendlyMagic();
-				}
-			}
-		} else {
-			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
-				if (mob instanceof Statue) {
-					if(((Statue) mob).weapon instanceof Rlyeh){
-						Rlyeh w2 =(Rlyeh) ((Statue) mob).weapon;
-						if(w2.HeroChance()){
-							damage(damage, new Rlyeh());
-							enemy.HP += Math.min(enemy.HT, damage);
-							if(!enemy.isAlive() && enemy == hero){
-								Badges.validateDeathFromEnemyMagic();
-							}
-							if(enemy.HP == enemy.HT){
-								enemy.damage(1,new Rlyeh());
-							}
-						}
-					}
-				}
-			}
-		}
 	}
 
 	public int tier_for_image(){

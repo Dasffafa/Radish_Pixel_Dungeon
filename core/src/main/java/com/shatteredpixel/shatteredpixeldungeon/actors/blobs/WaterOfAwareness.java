@@ -45,6 +45,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.noosa.Game;
 
 public class WaterOfAwareness extends WellWater {
 
@@ -60,7 +61,7 @@ public class WaterOfAwareness extends WellWater {
 
 				if (usedBuff.canTransformAwareness()) {
 					int wellPos = hero.pos;
-					GameScene.show(new WndOptions(
+					Game.runOnRenderThread(() -> GameScene.show(new WndOptions(
 							Messages.get(WaterOfAwareness.class, "holy_spring_title"),
 							Messages.get(WaterOfAwareness.class, "holy_spring_desc"),
 							Messages.get(WaterOfAwareness.class, "holy_spring_normal"),
@@ -76,7 +77,7 @@ public class WaterOfAwareness extends WellWater {
 								transformEffect(hero, points);
 							}
 						}
-					});
+					}));
 					return false; // 暂时不消耗泉水，等待玩家选择
 				}
             }

@@ -375,6 +375,7 @@ public enum HeroClass {
 
 		new SmallWoodenCross().identify().collect();
 		new ScrollHolder().identify().collect();
+		Dungeon.LimitedDrops.SCROLL_HOLDER.drop();
 		new Food().identify().collect();
 
 		Buff.affect(hero, Belief.class);
@@ -393,6 +394,7 @@ public enum HeroClass {
 		new Dagger().identify().collect();
 		new Gloves().identify().collect();
 		new MagicalHolster().collect();
+		Dungeon.LimitedDrops.MAGICAL_HOLSTER.drop();
 		new MagesStaff().identify().collect();
 		Dart knives = new Dart();
 		knives.quantity(3).collect();

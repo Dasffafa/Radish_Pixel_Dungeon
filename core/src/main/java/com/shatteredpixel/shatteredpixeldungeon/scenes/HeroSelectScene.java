@@ -102,6 +102,10 @@ public class HeroSelectScene extends PixelScene {
 	private static final int FRAME_MARGIN_X        = 4;
 
 	private static final int BUTTON_HEIGHT    = 20;
+	private static final int TITLE_HEIGHT = 32;
+	private static final int TITLE_BOTTOM_GAP = 4;
+	private static final int TITLE_OFFSET_UP = 8;
+	private static final int SELECT_UI_OFFSET_DOWN = 8;
 
 	private static final int SKY_WIDTH    = 80;
 	private static final int SKY_HEIGHT    = 112;
@@ -150,7 +154,11 @@ public class HeroSelectScene extends PixelScene {
 		add( archs );
 
 		float vx = align((w - SKY_WIDTH) / 2f);
-		float vy = align((h - SKY_HEIGHT - BUTTON_HEIGHT) / 2f);
+		float centeredVy = align((h - SKY_HEIGHT - BUTTON_HEIGHT) / 2f + SELECT_UI_OFFSET_DOWN);
+		float titleY = Math.max(2, centeredVy - FRAME_MARGIN_TOP + FRAME_HEIGHT / 8f
+				- BUTTON_HEIGHT - 25 - SELECT_UI_OFFSET_DOWN - TITLE_OFFSET_UP);
+		float vy = Math.max(centeredVy,
+				titleY + TITLE_HEIGHT + TITLE_BOTTOM_GAP + FRAME_MARGIN_TOP);
 
 		Point s = Camera.main.cameraToScreen( vx, vy );
 		viewport = new Camera( s.x, s.y, SKY_WIDTH, SKY_HEIGHT, defaultZoom );
@@ -425,8 +433,8 @@ public class HeroSelectScene extends PixelScene {
 		buttons.add(seedButton);
 		add(seedButton);
 
-		Image title = new Image(Assets.Interfaces.BANNERS, 0, 0, 126, 32);
-		title.setPos(frame.x - frame.width / 5f + FRAME_MARGIN_X / 5f, frame.y + frame.height / 8 - BUTTON_HEIGHT - 25);
+		Image title = new Image(Assets.Interfaces.BANNERS, 0, 0, 126, TITLE_HEIGHT);
+		title.setPos(frame.x - frame.width / 5f + FRAME_MARGIN_X / 5f, titleY);
 		add(title);
 
 		placeTorch(title.x - 8, title.y + 42);

@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EliteBadge;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -72,6 +73,11 @@ public abstract class ChampionEnemy extends Buff {
 
 	public float meleeDamageFactor(){
 		return 1f;
+	}
+
+	@Override
+	public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
+		info.addDirectMultModifier(meleeDamageFactor(), "champion enemy", this);
 	}
 
 	public float damageTakenFactor(){

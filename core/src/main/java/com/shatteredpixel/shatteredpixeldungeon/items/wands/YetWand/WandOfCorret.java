@@ -21,6 +21,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.stats.DM100H;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualActor;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
@@ -115,7 +117,7 @@ public class WandOfCorret extends DamageWand {
                     ch.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
                     ch.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
                     Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
-                    ch.damage(finalFixedDamage + fixedDamagePlus, this);
+                    ch.damage(new DamageInfo(finalFixedDamage + fixedDamagePlus, DamageType.LIGHTNING, curUser, this, this));
                     ch.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
                     ch.sprite.flash();
                 });

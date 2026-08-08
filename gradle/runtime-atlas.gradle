@@ -3,6 +3,8 @@ def atlasJava = file('core/src/main/java/com/shatteredpixel/shatteredpixeldungeo
 
 def atlasTargets = [
         [directory: new File(atlasAssets, 'sprites/items'), exact: false],
+        [directory: new File(atlasAssets, 'sprites/item_icons'), exact: false],
+        [directory: new File(atlasAssets, 'interfaces/hero_icons'), exact: false],
         [directory: new File(atlasAssets, 'interfaces/talents'), exact: true],
         [directory: new File(atlasAssets, 'interfaces/buffs/small'), exact: true],
         [directory: new File(atlasAssets, 'interfaces/buffs/large'), exact: true]
@@ -14,6 +16,14 @@ def javaStringConstants = { File sourceFile, String before = null ->
         source = source.split(java.util.regex.Pattern.quote(before), 2)[0]
     }
 
+    def names = [] as Set
+    def matcher = source =~ /public\s+static\s+final\s+String\s+[A-Z][A-Z0-9_]*\s*=\s*"([a-z0-9_]+)"/
+    matcher.each { names.add(it[1]) }
+    return names
+}
+
+def javaStringConstantsAfter = { File sourceFile, String after ->
+    def source = sourceFile.getText('UTF-8').split(java.util.regex.Pattern.quote(after), 2)[1]
     def names = [] as Set
     def matcher = source =~ /public\s+static\s+final\s+String\s+[A-Z][A-Z0-9_]*\s*=\s*"([a-z0-9_]+)"/
     matcher.each { names.add(it[1]) }
@@ -50,6 +60,7 @@ tasks.register('generateRuntimeAtlasManifests') {
     }
     inputs.files(
             new File(atlasJava, 'sprites/ItemSpriteSheet.java'),
+            new File(atlasJava, 'ui/HeroIcon.java'),
             new File(atlasJava, 'actors/hero/Talent.java'),
             new File(atlasJava, 'ui/BuffIndicator.java')
     )
@@ -59,9 +70,14 @@ tasks.register('generateRuntimeAtlasManifests') {
                 new File(atlasJava, 'sprites/ItemSpriteSheet.java'),
                 'public static class Icons'
         )
+        def itemIconNames = javaStringConstantsAfter(
+                new File(atlasJava, 'sprites/ItemSpriteSheet.java'),
+                'public static class Icons'
+        )
         def requiredTalentNames = talentNames(new File(atlasJava, 'actors/hero/Talent.java'))
+        def heroIconNames = javaStringConstants(new File(atlasJava, 'ui/HeroIcon.java'))
         def buffNames = javaStringConstants(new File(atlasJava, 'ui/BuffIndicator.java'))
-        def requiredNames = [itemNames, requiredTalentNames, buffNames, buffNames]
+        def requiredNames = [itemNames, itemIconNames, heroIconNames, requiredTalentNames, buffNames, buffNames]
 
         atlasTargets.eachWithIndex { target, index ->
             def pngFiles = fileTree(target.directory) { include '*.png' }.files.sort { it.name }

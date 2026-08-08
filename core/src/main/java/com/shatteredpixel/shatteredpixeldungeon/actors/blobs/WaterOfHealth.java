@@ -50,6 +50,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.noosa.Game;
 
 public class WaterOfHealth extends WellWater {
 
@@ -69,7 +70,7 @@ public class WaterOfHealth extends WellWater {
 
 				if (usedBuff.canTransformHealth()) {
 					int wellPos = hero.pos;
-					GameScene.show(new WndOptions(
+					Game.runOnRenderThread(() -> GameScene.show(new WndOptions(
 							Messages.get(WaterOfHealth.class, "holy_spring_title"),
 							Messages.get(WaterOfHealth.class, "holy_spring_desc"),
 							Messages.get(WaterOfHealth.class, "holy_spring_normal"),
@@ -85,7 +86,7 @@ public class WaterOfHealth extends WellWater {
 								transformEffect(hero, points);
 							}
 						}
-					});
+					}));
 					return false; // 暂时不消耗泉水，等待玩家选择
 				}
 			}

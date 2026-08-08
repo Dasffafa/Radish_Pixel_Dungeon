@@ -107,7 +107,7 @@ public class RingOfDestruction extends Ring {
 
 			ArrayList<Mob> visibleEnemies = new ArrayList<>();
 			for (Mob mob : Dungeon.level.mobs) {
-				if (mob.alignment == Char.Alignment.ENEMY 
+				if (mob.alignment == Char.Alignment.ENEMY
 						&& Dungeon.level.heroFOV[mob.pos]
 						&& mob.isAlive()
 						&& !mob.isInvulnerable(getClass())) {

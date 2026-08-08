@@ -104,11 +104,14 @@ chasm(int damage, Object source)
 
 ## 四、阶段二：明确 modifier 阶段
 
-将 modifier 类型重命名为更容易理解的名称：
+当前实现允许五个 modifier 阶段。第五个 `PRE_FINAL_ADDITIVE` 是有意保留的：它表示“基础倍率和暴击之后、最终承伤倍率之前”的固定加成，普通攻击中的伤害奖励依赖这一语义。不能将它合并进普通最终加成。
+
+modifier 类型应使用更容易理解的名称：
 
 ```java
 BASE_ADDITIVE
 BASE_MULTIPLICATIVE
+PRE_FINAL_ADDITIVE
 FINAL_MULTIPLICATIVE
 FINAL_ADDITIVE
 ```
@@ -120,6 +123,7 @@ FINAL_ADDITIVE
 → BASE_ADDITIVE
 → BASE_MULTIPLICATIVE
 → 暴击倍率
+→ PRE_FINAL_ADDITIVE
 → FINAL_MULTIPLICATIVE
 → FINAL_ADDITIVE
 → 舍入并限制为不小于 0
@@ -127,7 +131,7 @@ FINAL_ADDITIVE
 
 统一使用 `Math.round()`。同步修正文档中写成 `floor` 的公式和边界示例。
 
-事件系统接入时，每个事件必须明确允许添加哪一阶段的 modifier，避免同一效果在事件和管线中重复应用。
+事件系统接入时，每个事件必须明确允许添加哪一阶段的 modifier，避免同一效果在事件和管线中重复应用。`PRE_FINAL_ADDITIVE` 只用于确实需要保留“承伤倍率前固定加成”语义的效果。
 
 ## 五、阶段三：新增 DamageResult
 

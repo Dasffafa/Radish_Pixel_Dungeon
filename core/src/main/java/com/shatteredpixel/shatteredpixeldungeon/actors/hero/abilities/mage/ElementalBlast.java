@@ -479,12 +479,7 @@ public class ElementalBlast extends ArmorAbility {
 								}
 							}
 						} else if (finalWandCls == WandOfShockBomb.class) {
-							WandOfShockBomb.ShockMageBombTracker existing = Dungeon.hero.buff(WandOfShockBomb.ShockMageBombTracker.class);
-							if (existing != null) {
-								existing.detach();
-							}
-
-							WandOfShockBomb.ShockMageBombTracker tracker = Buff.affect(Dungeon.hero, WandOfShockBomb.ShockMageBombTracker.class);
+							WandOfShockBomb.ShockMageBombTracker tracker = Buff.append(Dungeon.hero, WandOfShockBomb.ShockMageBombTracker.class);
 							WandOfShockBomb w = new WandOfShockBomb();
 							w.level = Random.Int(12,16);
 							tracker.damage = w.damageRoll();

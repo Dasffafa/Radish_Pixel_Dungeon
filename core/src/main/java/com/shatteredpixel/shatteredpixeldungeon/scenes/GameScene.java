@@ -1780,6 +1780,11 @@ public class GameScene extends PixelScene {
 		}
 
 		@Override
+		public boolean supportsLongPressRightClick() {
+			return true;
+		}
+
+		@Override
 		public String prompt() {
 			return null;
 		}

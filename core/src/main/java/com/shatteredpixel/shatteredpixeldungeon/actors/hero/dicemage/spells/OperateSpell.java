@@ -41,6 +41,12 @@ public class OperateSpell extends DiceMageSpell {
             return;
         }
 
+        Mob ally = Reflection.newInstance(mp.lastKilledMob());
+        if (Char.hasProp(ally, Char.Property.BOSS)) {
+            GLog.w(Messages.get(this, "too_big"));
+            return;
+        }
+
         int spawnPos = -1;
         for (int i : PathFinder.NEIGHBOURS8) {
             int pos = hero.pos + i;
@@ -58,7 +64,6 @@ public class OperateSpell extends DiceMageSpell {
 
         if (!spendMagic(hero)) return;
 
-        Mob ally = Reflection.newInstance(mp.lastKilledMob());
         ally.pos = spawnPos;
         ally.HP = ally.HT;
         ally.alignment = Char.Alignment.ALLY;

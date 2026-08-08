@@ -1,7 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui.changelist.rapd;
 
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
-
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -22,8 +20,8 @@ import java.util.ArrayList;
 import static com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.*;
 
 public class RA_v0_13_X_Changes {
-
     public static void addAllChanges(ArrayList<ChangeInfo> changeInfos) {
+        add_v08_1_Changes(changeInfos);
         add_v08_0_Changes(changeInfos);
         add_v07_4_Changes(changeInfos);
         add_v07_3_Changes(changeInfos);
@@ -54,6 +52,41 @@ public class RA_v0_13_X_Changes {
         add_v03_3_Changes(changeInfos);
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
+    }
+
+    public static void add_v08_1_Changes(ArrayList<ChangeInfo> changeInfos) {
+        ChangeInfo changes = new ChangeInfo("v0.8.1", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                "_-_ 修复武器掌握对投掷武器生效的bug\\n" +
+                        "_-_ 修复武器掌握的武器切换时没有清除红色头带的bug\\n" +
+                        "_-_ 修复吃半个食物消耗3回合的bug\\n" +
+                        "_-_ 修复节制一餐天赋触发时第一次吃食物没有触发食物特殊效果的bug\\n" +
+                        "_-_ 修复伤害系统没有正确结算导致能电死NPC的bug\\n" +
+                        "_-_ 修复神圣泉水转化泉水异常闪退的bug\\n" +
+                        "_-_ 修复月华浮空贴图错误的bug\\n" +
+                        "_-_ 修复薪王形态的贴图bug\\n" +
+                        "_-_ 修复几个天赋的文本bug\\n" +
+                        "_-_ 战争迷雾寻路改为设置里的可选项，点击后立即前往目标位置。\\n" +
+                        "_-_ 修复种子分析无法使用的bug\\n" +
+                        "_-_ 破灭之戒的伤害现在会让中立生物转为敌对并开始攻击玩家\\n" +
+                        "_-_ 移除皮甲遗留的事件订阅代码\\n" +
+                        "_-_ 修复震爆法杖的爆炸源最多只有1个的bug\\n" +
+                        "_-_ 拉莱耶文本反弹伤害触发时现在会显示诅咒特效，且玩家头上不会跳字\\n" +
+                        "_-_ 修复苔藓层2区没有生成赐福卷轴房间的bug\\n" +
+                        "_-_ 修复prison_quest相关异常\\n" +
+                        "_-_ 修复手术复活的boss异常\\n" +
+                        "_-_ 修复手机版因不能右键而踢不到凳子的bug\\n" +
+                        "_-_ 现在长按凳子可以触发右键效果，从而踢到凳子。\\n" +
+                        "_-_ 修复月华牧师商店卖的背包异常的bug\\n" +
+                        "_-_ 修复子层钥匙和主层钥匙通用的bug\\n" +
+                        "_-_ 修复轮椅狂飙状态死亡会崩溃的bug\\n"));
     }
 
     public static void add_v08_0_Changes(ArrayList<ChangeInfo> changeInfos) {
@@ -340,7 +373,7 @@ public class RA_v0_13_X_Changes {
         changes.addButton(new ChangeButton(new TalentIcon(Talent.STRONGMAN), "排山倒海修改",
                 "排山倒海天赋修改：\n\n" +
                         "_-_ 现在排山倒海天赋对斩舰刀有专属的适配:使用斩舰刀前等待的1回合也会被计算入排山倒海的伤害与精准加成中。\n" +
-                        "_-_ 重大修改：在此前的版本中，因计算公式错误，该天赋的数值异常，在低等级时增伤和精准数值偏高，高等级时增伤和精准数值偏低，_现已修复至与描述相同_。\n" +
+                        "_-_ 重大修改：在此前的版本中，因计算公式错误，该天赋的数值异常，在低等级时增伤和精准数值偏高，高等级时增伤偏高、精准数值偏低，_现已修复至与描述相同_。\n" +
                         "也许对战士来说这是个大事件……"));
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),

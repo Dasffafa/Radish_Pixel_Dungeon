@@ -147,6 +147,9 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_VIBRATION    = "vibration";
 
 	public static final String KEY_ORIGINMAP    = "origin_map";
+	public static final String KEY_DETOUR_PROMPT = "detour_prompt";
+	public static void detourPrompt(boolean value){ put(KEY_DETOUR_PROMPT, value); }
+	public static boolean detourPrompt(){ return getBoolean(KEY_DETOUR_PROMPT, true); }
 
 	public static final String KEY_SEEDDEPTH	= "seeddepth";
 
