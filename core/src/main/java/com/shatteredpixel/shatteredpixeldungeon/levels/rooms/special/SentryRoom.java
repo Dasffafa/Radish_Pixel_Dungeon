@@ -215,6 +215,11 @@ public class SentryRoom extends SpecialRoom {
 
 	public static class Sentry extends NPC {
 
+		@Override
+		protected boolean isDamageable() {
+			return true;
+		}
+
 		{
 			spriteClass = SentrySprite.class;
 
@@ -300,7 +305,7 @@ public class SentryRoom extends SpecialRoom {
 
 		@Override
 		public void damage( int dmg, Object src ) {
-			//do nothing
+			super.damage(dmg, src);
 		}
 
 		@Override

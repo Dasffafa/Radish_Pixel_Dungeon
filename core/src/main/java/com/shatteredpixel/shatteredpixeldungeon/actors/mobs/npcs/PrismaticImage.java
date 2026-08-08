@@ -46,6 +46,11 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
 public class PrismaticImage extends NPC {
+
+	@Override
+	protected boolean isDamageable() {
+		return true;
+	}
 	
 	{
 		spriteClass = PrismaticSprite.class;

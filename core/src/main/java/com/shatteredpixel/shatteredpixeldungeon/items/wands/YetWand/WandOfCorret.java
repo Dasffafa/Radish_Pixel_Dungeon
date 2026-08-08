@@ -20,7 +20,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.stats.DM100H;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
-import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualActor;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
@@ -109,18 +108,15 @@ public class WandOfCorret extends DamageWand {
                 if (ch.properties().contains(Char.Property.DEMONIC) || ch.properties().contains(Char.Property.UNDEAD)) {
                     fixedDamage = (int) (fixedDamage * 1.25f);
                 }
-                int finalFixedDamage = fixedDamage;
-                VirtualActor.delay(0f, ()->{
-                    float x = ch.sprite.center().x;
-                    float y = ch.sprite.center().y;
-                    ch.sprite.parent.add(new Lightning(ch.sprite.center(), new PointF( x, y-300f),null));
-                    ch.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
-                    ch.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
-                    Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
-                    ch.damage(new DamageInfo(finalFixedDamage + fixedDamagePlus, DamageType.LIGHTNING, curUser, this, this));
-                    ch.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
-                    ch.sprite.flash();
-                });
+                float x = ch.sprite.center().x;
+                float y = ch.sprite.center().y;
+                ch.sprite.parent.add(new Lightning(ch.sprite.center(), new PointF( x, y-300f),null));
+                ch.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
+                ch.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
+                Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
+                ch.damage(new DamageInfo(fixedDamage + fixedDamagePlus, DamageType.LIGHTNING, curUser, this, this));
+                ch.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
+                ch.sprite.flash();
                 damageDealt = true;
                 if (Dungeon.hero.pointsInTalent(Talent.FIRE_GLASS) > 0 ){
                     GameScene.add(Blob.seed(ch.pos, 2, HalomethaneFire.class));
@@ -180,4 +176,3 @@ public class WandOfCorret extends DamageWand {
     }
 
 }
-

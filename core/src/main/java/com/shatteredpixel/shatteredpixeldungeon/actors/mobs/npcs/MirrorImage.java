@@ -42,6 +42,11 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 
 public class MirrorImage extends NPC {
+
+	@Override
+	protected boolean isDamageable() {
+		return true;
+	}
 	
 	{
 		spriteClass = MirrorSprite.class;

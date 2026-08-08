@@ -57,6 +57,11 @@ import com.watabou.utils.Random;
 
 public class Ghost extends NPC {
 
+	@Override
+	protected boolean isDamageable() {
+		return true;
+	}
+
 	{
 		spriteClass = GhostSprite.class;
 		
@@ -110,7 +115,7 @@ public class Ghost extends NPC {
 
 	@Override
 	public void damage( int dmg, Object src ) {
-		//do nothing
+		super.damage(dmg, src);
 	}
 
 	@Override

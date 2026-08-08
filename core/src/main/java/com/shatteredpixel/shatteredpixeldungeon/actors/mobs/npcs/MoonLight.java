@@ -228,6 +228,8 @@ public class MoonLight extends NPC{
             }
             newWeapon.level = 0;
             newWeapon.identify(false);
+            // 移除2次诅咒以避免顽疾诅咒出现的情况
+            ScrollOfRemoveCurse.uncurse( hero, newWeapon );
             ScrollOfRemoveCurse.uncurse( hero, newWeapon );
             return newWeapon;
         }

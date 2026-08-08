@@ -6,6 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairRush;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CatapultStartBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairCrashBuff;
@@ -71,7 +72,7 @@ public class Wheelchair extends Artifact {
         if (hero.buff(MagicImmune.class) != null) {
             return actions;
         }
-        if (isEquipped(hero) && charge > 0 && !cursed) {
+        if (isEquipped(hero) && (charge > 0 || canRideWithoutCharge(hero)) && !cursed) {
             actions.add(AC_RIDE);
         }
         // 轮椅翻车：月华英雄在加速状态下可使用
@@ -104,7 +105,10 @@ public class Wheelchair extends Artifact {
             if (!isEquipped(hero)) {
                 GLog.i(Messages.get(Artifact.class, "need_to_equip"));
                 usesTargeting = false;
-            } else if (charge < 1) {
+            } else if (hero.buff(Roots.class) != null) {
+                GLog.w(Messages.get(this, "rooted"));
+                usesTargeting = false;
+            } else if (charge < 1 && !canRideWithoutCharge(hero)) {
                 GLog.i(Messages.get(this, "no_charge"));
                 usesTargeting = false;
             } else if (cursed) {
@@ -119,6 +123,10 @@ public class Wheelchair extends Artifact {
             usesTargeting = false;
             performCrash(hero);
         }
+    }
+
+    private boolean canRideWithoutCharge(Hero hero) {
+        return hero.buff(CatapultStartBuff.class) != null;
     }
 
     // 执行轮椅翻车
@@ -214,6 +222,10 @@ public class Wheelchair extends Artifact {
                 // 检查是否处于坠毁状态
                 if (curUser.buff(WheelchairCrashBuff.class) != null) {
                     GLog.w(Messages.get(Wheelchair.class, "cannot_jump_crashed"));
+                    return;
+                }
+                if (curUser.buff(Roots.class) != null) {
+                    GLog.w(Messages.get(Wheelchair.class, "rooted"));
                     return;
                 }
 

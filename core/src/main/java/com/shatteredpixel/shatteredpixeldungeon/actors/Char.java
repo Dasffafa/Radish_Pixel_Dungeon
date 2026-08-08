@@ -871,7 +871,7 @@ public abstract class Char extends Actor {
         }
 
         // NPC overrides still receive the hit, while base NPC damage remains immune.
-        if (properties.contains(Property.NPC)) {
+        if (properties.contains(Property.NPC) && !isDamageable()) {
             return;
         }
 
@@ -1008,20 +1008,20 @@ public abstract class Char extends Actor {
         }
 
         int shielded = dmg;
-
-        //受衅怒火 2024-9-17
-        if (HP > 0 && shielded > 0 && shielding() == 0) {
-            if (this instanceof Hero && ((Hero) this).hasTalent(Talent.PROVOKED_ANGER)) {
-                if (hero.buff(Talent.ProvokedAngerTracker.class) == null) {
-                    Buff.affect(this, Talent.ProvokedAngerTracker.class, 5f);
-                }
-            }
-        }
+        int shieldingBeforeHit = shielding();
 
         if (!damageType.ignoresShields()) {
             for (ShieldBuff s : buffs(ShieldBuff.class)) {
                 dmg = s.absorbDamage(dmg);
                 if (dmg == 0) break;
+            }
+
+            //受衅怒火 2024-9-17
+            // 受衅怒火 TheCatist 2026-8-8 仅有护盾从正值降低到 0 的时候才能触发
+            if (HP > 0 && shielded > 0 && shieldingBeforeHit > 0 && shielding() == 0
+                    && this instanceof Hero && ((Hero) this).hasTalent(Talent.PROVOKED_ANGER)
+                    && buff(Talent.ProvokedAngerTracker.class) == null) {
+                Buff.affect(this, Talent.ProvokedAngerTracker.class, 5f);
             }
         }
         shielded -= dmg;
@@ -1128,6 +1128,11 @@ public abstract class Char extends Actor {
         }
 
 
+    }
+
+    /** NPCs are invulnerable by default; special NPCs can opt into combat damage. */
+    protected boolean isDamageable() {
+        return !properties.contains(Property.NPC);
     }
 
     //these are misc. sources of physical damage which do not apply armor, they get a different icon

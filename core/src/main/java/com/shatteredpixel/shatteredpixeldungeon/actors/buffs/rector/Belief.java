@@ -24,7 +24,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
-import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualActor;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -132,43 +131,39 @@ public class Belief extends Buff implements ActionIndicator.Action {
                         if (mob.properties().contains(Char.Property.DEMONIC) || mob.properties().contains(Char.Property.UNDEAD)) {
                             altFixedDamage = (int) (altFixedDamage * 1.5f);
                         }
-                        int finalAltFixedDamage = altFixedDamage;
-                        VirtualActor.delay(0f, ()->{
-
-                            if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1
-                                    && hero.buff(Talent.NoBeliefUsedCooldown.class) == null
-                                    && credibility<5) {
-                                float cooldown;
-                                switch (hero.pointsInTalent(Talent.ACT_GODPROGRESS)){
-                                    default:
-                                    case 1:
-                                        cooldown = 500f;
-                                        break;
-                                    case 2:
-                                        cooldown = 425f;
-                                        break;
-                                    case 3:
-                                        cooldown = 350f;
-                                        break;
-                                }
-                                Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
-                                if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
-                                    Buff.affect(hero, Barrier.class).setShield( hero.lvl );
-                                }
-                            } else {
-                                DownBelief(5);
+                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1
+                                && hero.buff(Talent.NoBeliefUsedCooldown.class) == null
+                                && credibility<5) {
+                            float cooldown;
+                            switch (hero.pointsInTalent(Talent.ACT_GODPROGRESS)){
+                                default:
+                                case 1:
+                                    cooldown = 500f;
+                                    break;
+                                case 2:
+                                    cooldown = 425f;
+                                    break;
+                                case 3:
+                                    cooldown = 350f;
+                                    break;
                             }
+                            Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
+                            if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
+                                Buff.affect(hero, Barrier.class).setShield( hero.lvl );
+                            }
+                        } else {
+                            DownBelief(5);
+                        }
 
-                            float x = mob.sprite.center().x;
-                            float y = mob.sprite.center().y;
-                            mob.sprite.parent.add(new Lightning(mob.sprite.center(), new PointF( x, y-300f),null));
-                            mob.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
-                            mob.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
-                            Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
-                            mob.damage(finalAltFixedDamage + altFixedDamagePlus, this);
-                            mob.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
-                            mob.sprite.flash();
-                        });
+                        float x = mob.sprite.center().x;
+                        float y = mob.sprite.center().y;
+                        mob.sprite.parent.add(new Lightning(mob.sprite.center(), new PointF( x, y-300f),null));
+                        mob.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
+                        mob.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
+                        Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
+                        mob.damage(altFixedDamage + altFixedDamagePlus, this);
+                        mob.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
+                        mob.sprite.flash();
                     } else {
                         GLog.n(Messages.get(Belief.class,"no_target"));
                     }

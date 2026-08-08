@@ -144,8 +144,15 @@ public class Tengu extends Mob {
 		int beforeHitHP = HP;
 		super.damage(dmg, src);
 
-		//cannot be hit through multiple brackets at a time
-		if (HP <= (curbracket-1)*hpBracket){
+		// In the starting arena, crossing half health is the phase transition
+		// and must be locked at exactly half health, even when a single hit
+		// deals massive damage.
+		boolean phaseOneTransition = state == PrisonBossLevel.State.FIGHT_START
+				&& beforeHitHP > HT/2 && HP <= HT/2;
+		if (phaseOneTransition) {
+			HP = HT/2;
+		} else if (HP <= (curbracket-1)*hpBracket) {
+			//cannot be hit through multiple brackets at a time
 			HP = (curbracket-1)*hpBracket + 1;
 		}
 
@@ -178,7 +185,7 @@ public class Tengu extends Mob {
 		}
 
 		//phase 1 of the fight is over
-		if (state == PrisonBossLevel.State.FIGHT_START && HP <= HT/2){
+		if (phaseOneTransition){
 			HP = (HT/2);
 			yell(Messages.get(this, "interesting"));
 			((PrisonBossLevel)Dungeon.level).progress();
