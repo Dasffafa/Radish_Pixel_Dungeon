@@ -21,6 +21,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.*
 
 public class RA_v0_13_X_Changes {
     public static void addAllChanges(ArrayList<ChangeInfo> changeInfos) {
+        add_v08_2_Changes(changeInfos);
         add_v08_1_Changes(changeInfos);
         add_v08_0_Changes(changeInfos);
         add_v07_4_Changes(changeInfos);
@@ -53,6 +54,30 @@ public class RA_v0_13_X_Changes {
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
     }
+    public static void add_v08_2_Changes(ArrayList<ChangeInfo> changeInfos) {
+        ChangeInfo changes = new ChangeInfo("v0.8.2", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
+                        "_-_ 镜像受到伤害后不死亡的bug\n" +
+                                "_-_ 哨卫受到伤害后不死亡的bug\n" +
+                                "_-_ 幽灵不受到伤害的bug\n" +
+                                "_-_ 拉莱耶文本反弹伤害触发时没有特效且玩家身上跳字的bug\n" +
+                                "_-_ 月华开局交换武器可能出顽疾刻印的bug\n" +
+                                "_-_ 遗忘碎片存在时砥砺锋芒天赋不生效的bug\n" +
+                                "_-_ 重型回旋镖攻击后退出重进只需一回合飞回的bug\n" +
+                                "_-_ 牧师惩戒之力施法到造成伤害需20多秒的bug\n" +
+                                "_-_ 天狗锁血没有生效的bug\n" +
+                                "_-_ 天狗二阶段没有正确切换场景的bug\n" +
+                                "_-_ 轮椅0充能时无法用弹射起步开轮椅的bug\n" +
+                                "_-_ 战士受衅怒火在破盾后下一次受攻击才错误触发的bug"));
+            }
+
 
     public static void add_v08_1_Changes(ArrayList<ChangeInfo> changeInfos) {
         ChangeInfo changes = new ChangeInfo("v0.8.1", true, "");

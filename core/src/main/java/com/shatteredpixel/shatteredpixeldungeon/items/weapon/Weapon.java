@@ -133,6 +133,10 @@ abstract public class Weapon extends KindOfWeapon {
 	public boolean readyToIdentify(){
 		return !isIdentified() && usesLeftToID <= 0;
 	}
+
+	public void completeIdentificationProgress(){
+		usesLeftToID = 0;
+	}
 	
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {

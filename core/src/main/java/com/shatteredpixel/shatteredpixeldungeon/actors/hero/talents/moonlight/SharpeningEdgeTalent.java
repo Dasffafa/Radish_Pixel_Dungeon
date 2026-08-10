@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -75,6 +76,13 @@ public class SharpeningEdgeTalent {
         sacrificeItem.detach(hero.belongings.backpack);
 
         // 鉴定目标物品
+        if (targetItem instanceof Weapon) {
+            ((Weapon) targetItem).completeIdentificationProgress();
+        } else if (targetItem instanceof Armor) {
+            ((Armor) targetItem).completeIdentificationProgress();
+        }
+
+        // Oblivion shards block passive identification, but can identify items at full progress.
         if (!ShardOfOblivion.passiveIDDisabled()) {
             targetItem.identify();
         }

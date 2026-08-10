@@ -225,6 +225,10 @@ public class Armor extends EquipableItem {
 		return !isIdentified() && usesLeftToID <= 0;
 	}
 
+	public void completeIdentificationProgress(){
+		usesLeftToID = 0;
+	}
+
 	@Override
 	public ArrayList<String> actions(Hero hero) {
 		ArrayList<String> actions = super.actions(hero);
