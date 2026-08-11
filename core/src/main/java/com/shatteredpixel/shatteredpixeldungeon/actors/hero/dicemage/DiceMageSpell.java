@@ -98,8 +98,12 @@ public abstract class DiceMageSpell {
         }
 
         MagicPoint mp = hero.buff(MagicPoint.class);
-        if (mp == null || mp.getIntPoints() < mpCost()) return false;
-        return mp.offCooldown(getClass());
+        if (mp == null) return false;
+
+        if (mp.offCooldown(getClass()) == false) return false;
+
+        // 魔力点足够，或背包法杖充能可覆盖本次消耗，均可施放
+        return mp.getIntPoints() >= mpCost() || mp.canAfford(mpCost());
     }
 
     public void cast() {
@@ -111,7 +115,30 @@ public abstract class DiceMageSpell {
             return;
         }
 
+        MagicPoint mp = hero.buff(MagicPoint.class);
+        if (mp != null && mp.getIntPoints() < mpCost() && mp.canAfford(mpCost())) {
+            // 魔力不足但法杖充能足够：弹窗询问是否消耗法杖充能
+            GameScene.show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageWandDrain(mp, mpCost(), this));
+            return;
+        }
+
         onCast(hero);
+    }
+
+    /** 法杖充能消耗确认后，继续本次施法（魔力已被补充到足够）。 */
+    public void continueCast(Hero hero) {
+        if (hero == null) return;
+        if (!mpCheck()) return;
+        onCast(hero);
+    }
+
+    private boolean mpCheck() {
+        Hero hero = Dungeon.hero;
+        if (hero == null) return false;
+        MagicPoint mp = hero.buff(MagicPoint.class);
+        if (mp == null) return false;
+        if (!mp.offCooldown(getClass())) return false;
+        return mp.getIntPoints() >= mpCost();
     }
 
     protected boolean spendMagic(Hero hero) {

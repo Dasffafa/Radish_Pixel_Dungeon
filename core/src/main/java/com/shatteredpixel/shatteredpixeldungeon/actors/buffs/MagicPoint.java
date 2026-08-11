@@ -25,6 +25,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
@@ -35,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageSpells;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -55,6 +58,19 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     private int activeSurgerySummon = -1;
     private Class<? extends Mob> lastKilledMob;
 
+    // 每 REGEN_TURNS 回合自动获得 1 魔力点
+    public static final int REGEN_TURNS = 20;
+    private float turnsToRegen = 1f;
+    // 每 CLEAR_TURNS 回合，魔力点高于 CLEAR_THRESHOLD 的部分被清空
+    public static final int CLEAR_TURNS = 25;
+    public static final int CLEAR_THRESHOLD = 3;
+    private float turnsToClear = 1f;
+
+    // 本局魔力药水炼金的"正确答案"（各元素一个）；null 表示尚未随机
+    private Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> correctPotion = null;
+    private Class<? extends com.shatteredpixel.shatteredpixeldungeon.plants.Plant.Seed> correctSeed = null;
+    private Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll> correctScroll = null;
+
     // 法术冷却：Class -> 剩余回合数
     private final HashMap<Class<? extends DiceMageSpell>, Float> cooldowns = new HashMap<>();
     // 特殊学派本局的三个法术（按等级 1/2/3 存储），null 表示未生成
@@ -68,6 +84,11 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     private static final String COOLDOWNS = "spell_cooldowns";
     private static final String SPECIAL_SPELLS = "special_spells";
     private static final String ACTIVE_SURGERY_SUMMON = "active_surgery_summon";
+    private static final String TURNS_TO_REGEN = "turns_to_regen";
+    private static final String TURNS_TO_CLEAR = "turns_to_clear";
+    private static final String CORRECT_POTION = "correct_potion";
+    private static final String CORRECT_SEED = "correct_seed";
+    private static final String CORRECT_SCROLL = "correct_scroll";
 
     public static MagicPoint inst() {
         return Dungeon.hero != null ? Dungeon.hero.buff(MagicPoint.class) : null;
@@ -79,6 +100,73 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     public int getIntPoints() {
         return (int) currentPoints;
+    }
+
+    /** 距离下一次清空（魔力点超上限部分被清除）还有几回合。 */
+    public int turnsUntilClear() {
+        return Math.max(0, (int) Math.ceil(turnsToClear));
+    }
+
+    /** 视野内怪物死亡时调用：获得 1 魔力点。 */
+    public void gainKillPoint() {
+        addPoints(1f);
+    }
+
+    /** 每点法杖充能可转化的魔力点数：1 + 0.33 * 法杖等级。 */
+    public static float wandMpPerCharge(Wand w) {
+        return 1f + 0.33f * w.buffedLvl();
+    }
+
+    /** 背包中所有法杖当前充能可转化的最大魔力点数。 */
+    public float wandMpTotal() {
+        if (Dungeon.hero == null) return 0f;
+        float total = 0f;
+        for (Item item : Dungeon.hero.belongings) {
+            if (item instanceof Wand) {
+                Wand w = (Wand) item;
+                total += w.curCharges * wandMpPerCharge(w);
+            }
+        }
+        return total;
+    }
+
+    /** 当前魔力点 + 法杖充能可转化魔力是否足够支付 cost。 */
+    public boolean canAfford(int cost) {
+        return currentPoints + wandMpTotal() >= cost;
+    }
+
+    /** 背包中所有法杖（每把按顺序），用于弹窗列出将被消耗充能的法杖。 */
+    public ArrayList<Wand> allWands() {
+        ArrayList<Wand> result = new ArrayList<>();
+        if (Dungeon.hero == null) return result;
+        for (Item item : Dungeon.hero.belongings) {
+            if (item instanceof Wand && ((Wand) item).curCharges > 0) {
+                result.add((Wand) item);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 将法杖充能转化为魔力点，直到魔力点达到 target 或法杖耗尽。
+     * 消耗时按背包顺序逐点扣减充能。
+     */
+    public void drainWandsFor(int target) {
+        if (Dungeon.hero == null) return;
+        for (Item item : Dungeon.hero.belongings) {
+            if (currentPoints >= target) break;
+            if (item instanceof Wand) {
+                Wand w = (Wand) item;
+                float perCharge = wandMpPerCharge(w);
+                while (w.curCharges > 0 && currentPoints < target) {
+                    w.curCharges--;
+                    currentPoints += perCharge;
+                }
+                w.updateQuickslot();
+            }
+        }
+        updateAction();
+        BuffIndicator.refreshHero();
     }
 
     public void addPoints(float amount) {
@@ -178,9 +266,82 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
                 return false;
             });
         }
+
+        // 每 REGEN_TURNS 回合获得 1 魔力点
+        turnsToRegen -= 1f;
+        if (turnsToRegen <= 0f) {
+            turnsToRegen += REGEN_TURNS;
+            addPoints(1f);
+        }
+
+        // 每 CLEAR_TURNS 回合，魔力点高于 CLEAR_THRESHOLD 的部分被清空
+        turnsToClear -= 1f;
+        if (turnsToClear <= 0f) {
+            turnsToClear += CLEAR_TURNS;
+            if (currentPoints > CLEAR_THRESHOLD) {
+                currentPoints = CLEAR_THRESHOLD;
+                updateAction();
+                BuffIndicator.refreshHero();
+            }
+        }
+
         updateAction();
         spend(TICK);
         return true;
+    }
+
+    /** 保证本局魔力药水的三个"正确答案"已随机生成。排除升级卷轴与力量药水。 */
+    public void ensureMagicPotionRecipe() {
+        if (correctPotion == null || correctSeed == null || correctScroll == null) {
+            correctPotion = randomPotion();
+            correctSeed = (Class<? extends com.shatteredpixel.shatteredpixeldungeon.plants.Plant.Seed>)
+                    com.watabou.utils.Random.element(com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.SEED.classes);
+            correctScroll = randomScroll();
+        }
+    }
+
+    /** 随机一个非力量药水的药剂作为答案。 */
+    private Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> randomPotion() {
+        Class<?>[] pool = com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.POTION.classes;
+        ArrayList<Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion>> filtered = new ArrayList<>();
+        for (Class<?> c : pool) {
+            if (c == com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfStrength.class) continue;
+            if (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class.isAssignableFrom(c)) {
+                filtered.add(c.asSubclass(com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class));
+            }
+        }
+        return com.watabou.utils.Random.element(filtered);
+    }
+
+    /** 随机一个非升级卷轴的卷轴作为答案。 */
+    private Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll> randomScroll() {
+        Class<?>[] pool = com.shatteredpixel.shatteredpixeldungeon.items.Generator.Category.SCROLL.classes;
+        ArrayList<Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll>> filtered = new ArrayList<>();
+        for (Class<?> c : pool) {
+            if (c == com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade.class) continue;
+            if (com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll.class.isAssignableFrom(c)) {
+                filtered.add(c.asSubclass(com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll.class));
+            }
+        }
+        return com.watabou.utils.Random.element(filtered);
+    }
+
+    /** 判断某个药剂是否为本局炼金配方正确药剂。 */
+    public boolean isCorrectPotion(Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> cls) {
+        ensureMagicPotionRecipe();
+        return cls != null && cls == correctPotion;
+    }
+
+    /** 判断某个种子是否为本局炼金配方正确种子。 */
+    public boolean isCorrectSeed(Class<? extends com.shatteredpixel.shatteredpixeldungeon.plants.Plant.Seed> cls) {
+        ensureMagicPotionRecipe();
+        return cls != null && cls == correctSeed;
+    }
+
+    /** 判断某个卷轴是否为本局炼金配方正确卷轴。 */
+    public boolean isCorrectScroll(Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll> cls) {
+        ensureMagicPotionRecipe();
+        return cls != null && cls == correctScroll;
     }
 
     private void updateAction() {
@@ -216,7 +377,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     @Override
     public String desc() {
-        return Messages.get(this, "desc", getIntPoints(), healValue);
+        return Messages.get(this, "desc", getIntPoints(), turnsUntilClear());
     }
 
     @Override
@@ -227,6 +388,11 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         bundle.put(REFRESH_VALUE, refreshValue);
         bundle.put(SURGERY_USES, surgeryUses);
         bundle.put(ACTIVE_SURGERY_SUMMON, activeSurgerySummon);
+        bundle.put(TURNS_TO_REGEN, turnsToRegen);
+        bundle.put(TURNS_TO_CLEAR, turnsToClear);
+        if (correctPotion != null) bundle.put(CORRECT_POTION, correctPotion.getName());
+        if (correctSeed != null) bundle.put(CORRECT_SEED, correctSeed.getName());
+        if (correctScroll != null) bundle.put(CORRECT_SCROLL, correctScroll.getName());
         if (lastKilledMob != null) {
             bundle.put(LAST_KILLED_MOB, lastKilledMob.getName());
         }
@@ -254,6 +420,32 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         refreshValue = bundle.contains(REFRESH_VALUE) ? bundle.getInt(REFRESH_VALUE) : 40;
         surgeryUses = bundle.getInt(SURGERY_USES);
         activeSurgerySummon = bundle.getInt(ACTIVE_SURGERY_SUMMON);
+        turnsToRegen = bundle.contains(TURNS_TO_REGEN) ? bundle.getFloat(TURNS_TO_REGEN) : 1f;
+        turnsToClear = bundle.contains(TURNS_TO_CLEAR) ? bundle.getFloat(TURNS_TO_CLEAR) : 1f;
+        if (bundle.contains(CORRECT_POTION)) {
+            try {
+                Class<?> cls = Class.forName(bundle.getString(CORRECT_POTION));
+                if (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class.isAssignableFrom(cls)) {
+                    correctPotion = cls.asSubclass(com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class);
+                }
+            } catch (ClassNotFoundException ignored) {}
+        }
+        if (bundle.contains(CORRECT_SEED)) {
+            try {
+                Class<?> cls = Class.forName(bundle.getString(CORRECT_SEED));
+                if (com.shatteredpixel.shatteredpixeldungeon.plants.Plant.Seed.class.isAssignableFrom(cls)) {
+                    correctSeed = cls.asSubclass(com.shatteredpixel.shatteredpixeldungeon.plants.Plant.Seed.class);
+                }
+            } catch (ClassNotFoundException ignored) {}
+        }
+        if (bundle.contains(CORRECT_SCROLL)) {
+            try {
+                Class<?> cls = Class.forName(bundle.getString(CORRECT_SCROLL));
+                if (com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll.class.isAssignableFrom(cls)) {
+                    correctScroll = cls.asSubclass(com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll.class);
+                }
+            } catch (ClassNotFoundException ignored) {}
+        }
         if (bundle.contains(LAST_KILLED_MOB)) {
             try {
                 Class<?> cls = Class.forName(bundle.getString(LAST_KILLED_MOB));

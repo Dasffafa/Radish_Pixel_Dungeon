@@ -506,7 +506,7 @@ public abstract class Wand extends Item {
 		TieredToyEffects.onAbilityUsed(hero);
 
 		if (hero.subClass == HeroSubClass.DICE_MAGE){
-			Buff.affect(hero, MagicPoint.class).addPoints(0.5f + buffedLvl() * 0.05f);
+			Buff.affect(hero, MagicPoint.class).addPoints(0.2f + buffedLvl() * 0.2f);
 		}
 
 		if(hero.hasTalent(Talent.MAGIC_STICK) && hero.pointsInTalent(Talent.MAGIC_STICK) >=4 && ! isMagesStaff){

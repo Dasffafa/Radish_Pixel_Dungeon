@@ -1024,6 +1024,13 @@ public abstract class Mob extends Char {
 			Buff.affect(hero, MagicPoint.class).recordKill(getClass());
 		}
 
+		// 骰子法师：视野内的怪物死亡时获得 1 魔力点
+		if (hero.subClass == HeroSubClass.DICE_MAGE
+				&& alignment == Alignment.ENEMY
+				&& Dungeon.level.heroFOV[pos]){
+			Buff.affect(hero, MagicPoint.class).gainKillPoint();
+		}
+
 		if(hero.subClass == HeroSubClass.SNIPER){
 			next();
 		}

@@ -21,6 +21,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.*
 
 public class RA_v0_13_X_Changes {
     public static void addAllChanges(ArrayList<ChangeInfo> changeInfos) {
+        add_v08_3_Changes(changeInfos);
         add_v08_2_Changes(changeInfos);
         add_v08_1_Changes(changeInfos);
         add_v08_0_Changes(changeInfos);
@@ -54,6 +55,53 @@ public class RA_v0_13_X_Changes {
         add_v03_2_Changes(changeInfos);
         add_v03_1_Changes(changeInfos);
     }
+    public static void add_v08_3_Changes(ArrayList<ChangeInfo> changeInfos) {
+        ChangeInfo changes = new ChangeInfo("v0.8.3", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new TalentIcon(Talent.SCHOOL_FIRE), "骰子法师巨大重做",
+                ("骰子法师的法术体系全面重做为学派系统！\n\n" +
+                        "_-_ 新增火焰、刀刃、咒法、法力、血液、自然、医疗、物理、紧急、特殊十大学派，每个学派投入点数逐级习得对应法术\n" +
+                        "_-_ 新增专属学派升级窗口，升级时按权重抽取两个学派二选一，也可随机提升某学派或跳过\n" +
+                        "_-_ 施法界面只显示当前学派等级对应的可用法术\n" +
+                        "_-_ 特殊学派每局会随机分配3个特殊法术（光束、标记、充能、热量、闪耀等）\n" +
+                        "_-_ 新增魔力点冷却机制与多个学派相关Buff（标记、预言、抚慰回复、星火等）\n" +
+                        "_-_ 新增 法术图鉴：日志界面新增\"骰子法师法术\"栏目，列出所有法术的图标、名称、描述与所属学派\n" +
+                        "_-_ 学派天赋图标现在会显示\"即将解锁\"法术的贴图")));
+
+        changes.addButton(new ChangeButton(new TalentIcon(Talent.SCHOOL_MANA), "骰子法师魔力系统重做",
+                ("魔力获取、储存与消耗方式全面翻新！\n\n" +
+                        "_-_ 每_20_回合自动获得_1_点魔力点；视野内的怪物死亡时获得_1_点魔力点\n" +
+                        "_-_ 每_25_回合，超过_3_点以上的魔力会被清空（魔力Buff描述会显示剩余回合）\n" +
+                        "_-_ 魔力不足时，可消耗背包内法杖充能：每点充能提供_1+0.33×法杖等级_点魔力，施法时会弹窗询问并列出将被消耗充能的法杖\n" +
+                        "_-_ 魔力不足但法杖充能足够时，施法按钮也可点击（不再置灰）\n\n" +
+                        "_-_ 新物品：魔力药水，饮用后恢复魔力点。配方为药剂+种子+卷轴，每局随机各选一个\"正确\"要素（不含力量药水与升级卷轴），命中数量决定成品等级：全对=高等(24)、中2=中等(12)、中1=下等(6)、全错=随机合剂或秘药（不含肌肉记忆合剂、龙血秘药）\n" +
+                        "_-_ 只有骰子法师能炼制并饮用魔力药水，下等为暗淡低饱和贴图，中等正常，高等附带附魔彩色光环")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DATA), "伤害系统重构",
+                ("统一并重构底层伤害处理管线：\n\n" +
+                        "_-_ 新增 DamageInfo 修改器管线与混合伤害类型，以支持未来可能的复杂伤害计算逻辑和来源追踪逻辑；\n" +
+                        "_-_ 新增统一伤害事件系统（原始伤害、最终伤害、攻击、Buff生效等事件）\n" +
+                        "_-_ 重写多处涉及伤害的物品、法杖、附魔、符石、陷阱与Boss战逻辑\n" +
+                        "_-_ 强化伤害显示与浮动文字表现\n"
+)));
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), "素材与杂项",
+                ("_-_ 物品图标迁移与新图集整理，SND音效图集与天赋图标调整\n" +
+                        "_-_ 修复 拥有遗忘碎片时砥砺锋芒天赋不生效的bug。\n" +
+                        "_-_ 修复 替身木桩、豺狼王镜像、大地守护者、守卫雕像等NPC无法受到伤害的bug\n" +
+                        "_-_ 修复 天狗层二阶段玩家卡墙play的bug\n" +
+                        "_-_ 修复 猎杀直觉经验计数器未在存档中保存，读档后计数丢失的bug" +
+                        "_-_ 修复 天狗层二阶段玩家卡墙play的bug\n" +
+                        "_-_ 大量骰子法师法术文本从自定义文件迁移至主消息文件并补全描述\n"
+                        )));
+    }
+
     public static void add_v08_2_Changes(ArrayList<ChangeInfo> changeInfos) {
         ChangeInfo changes = new ChangeInfo("v0.8.2", true, "");
         changes.hardlight(Window.TITLE_COLOR);
