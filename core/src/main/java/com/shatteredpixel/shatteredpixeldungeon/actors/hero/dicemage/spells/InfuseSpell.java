@@ -9,14 +9,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
  * 注入（医疗学派 L2）：视野内友军获得5-9护盾。
  */
-public class InjectSpell extends DiceMageSpell {
+public class InfuseSpell extends DiceMageSpell {
 
     @Override
     public Talent school() {
@@ -32,6 +30,12 @@ public class InjectSpell extends DiceMageSpell {
     public int mpCost() {
         return 2;
     }
+    @Override
+    public String sndImageName() {
+        return "infuse";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -50,7 +54,6 @@ public class InjectSpell extends DiceMageSpell {
         CellEmitter.center(hero.pos).burst(SparkParticle.FACTORY, 4);
         count++;
 
-        GLog.p(Messages.get(InjectSpell.this, "cast", count, shield));
         hero.spendAndNext(1f);
     }
 }

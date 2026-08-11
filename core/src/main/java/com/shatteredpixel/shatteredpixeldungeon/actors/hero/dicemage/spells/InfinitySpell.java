@@ -1,14 +1,11 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -36,6 +33,12 @@ public class InfinitySpell extends DiceMageSpell {
     public int mpCost() {
         return 100;
     }
+    @Override
+    public String sndImageName() {
+        return "infinity";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -50,12 +53,12 @@ public class InfinitySpell extends DiceMageSpell {
                 }
                 if (!spendMagic(hero)) return;
 
+                // 无限：无视目标的无敌、锁血（deathMarked）、抗性及各类免疫，将 HP 归零并直接处决（含Boss单位）。
                 target.HP = 0;
-                target.damage(new DamageInfo(1, DamageType.TRUE, hero, null, InfinitySpell.this));
-                if (!target.isAlive()) target.die(InfinitySpell.this);
+                target.deathMarked = false;
+                target.die(InfinitySpell.this);
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 18);
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(InfinitySpell.this, "cast", target.name()));
                 hero.spendAndNext(1f);
             }
 

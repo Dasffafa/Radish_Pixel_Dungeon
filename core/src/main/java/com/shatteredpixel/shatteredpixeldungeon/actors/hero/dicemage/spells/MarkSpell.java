@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -40,6 +39,12 @@ public class MarkSpell extends DiceMageSpell {
     public int mpCost() {
         return 4;
     }
+    @Override
+    public String sndImageName() {
+        return "mark";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -65,7 +70,6 @@ public class MarkSpell extends DiceMageSpell {
                         Sample.INSTANCE.play(Assets.Sounds.CURSED);
                     }
                 });
-                GLog.p(Messages.get(MarkSpell.this, "cast", dmg));
                 hero.spendAndNext(1f);
             }
 

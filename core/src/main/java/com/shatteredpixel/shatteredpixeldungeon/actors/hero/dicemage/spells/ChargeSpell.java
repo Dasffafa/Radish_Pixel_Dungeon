@@ -9,8 +9,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpe
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
@@ -32,6 +30,12 @@ public class ChargeSpell extends DiceMageSpell {
     public int mpCost() {
         return 4;
     }
+    @Override
+    public String sndImageName() {
+        return "charge";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -41,7 +45,6 @@ public class ChargeSpell extends DiceMageSpell {
         Buff.affect(hero, Barrier.class).incShield(shield);
         Buff.affect(hero, ChargeBoost.class, ChargeBoost.DURATION);
         CellEmitter.center(hero.pos).burst(EnergyParticle.FACTORY, 10);
-        GLog.p(Messages.get(ChargeSpell.this, "cast", shield));
         hero.spendAndNext(1f);
     }
 }

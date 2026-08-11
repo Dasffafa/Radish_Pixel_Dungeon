@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -37,6 +36,12 @@ public class AbyssSpell extends DiceMageSpell {
     public int mpCost() {
         return 40;
     }
+    @Override
+    public String sndImageName() {
+        return "abyss";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -60,7 +65,6 @@ public class AbyssSpell extends DiceMageSpell {
                 if (!target.isAlive()) target.die(AbyssSpell.this);
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 14);
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(AbyssSpell.this, "cast", target.name()));
                 hero.spendAndNext(1f);
             }
 

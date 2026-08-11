@@ -222,6 +222,11 @@ public class WandOfWarding extends Wand {
 
 		public int totalZaps = 0;
 
+		@Override
+		protected boolean isDamageable() {
+			return true;
+		}
+
 		{
 			spriteClass = WardSprite.class;
 

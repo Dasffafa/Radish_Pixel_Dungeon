@@ -10,8 +10,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpe
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
@@ -35,6 +33,12 @@ public class BandageSpell extends DiceMageSpell {
     public int mpCost() {
         return 2;
     }
+    @Override
+    public String sndImageName() {
+        return "bandage";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -59,7 +63,6 @@ public class BandageSpell extends DiceMageSpell {
         count++;
 
         startCooldown(hero, COOLDOWN);
-        GLog.p(Messages.get(BandageSpell.this, "cast", count, heal, shield));
         hero.spendAndNext(1f);
     }
 }

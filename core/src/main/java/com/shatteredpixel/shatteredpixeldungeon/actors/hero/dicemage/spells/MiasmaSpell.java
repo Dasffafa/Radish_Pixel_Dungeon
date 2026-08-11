@@ -13,7 +13,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PoisonParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
@@ -70,7 +69,6 @@ public class MiasmaSpell extends DiceMageSpell {
                         hit++;
                     }
                 }
-                GLog.p(Messages.get(MiasmaSpell.this, "cast", hit));
                 hero.spendAndNext(1f);
             }
 

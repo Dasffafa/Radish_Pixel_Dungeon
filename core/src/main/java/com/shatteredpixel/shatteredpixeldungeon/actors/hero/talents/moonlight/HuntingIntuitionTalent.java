@@ -11,15 +11,24 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.utils.Bundle;
 
 public class HuntingIntuitionTalent {
     public static class ExperienceCounter extends Buff {
         public int count = 0;
 
+        private static final String COUNT = "count";
+
         @Override
-        public boolean act() {
-            spend(TICK);
-            return true;
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put(COUNT, count);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            count = bundle.getInt(COUNT);
         }
     }
 

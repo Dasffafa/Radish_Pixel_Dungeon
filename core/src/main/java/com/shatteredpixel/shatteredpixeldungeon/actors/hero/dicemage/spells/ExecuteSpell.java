@@ -38,6 +38,12 @@ public class ExecuteSpell extends DiceMageSpell {
     public int mpCost() {
         return 3;
     }
+    @Override
+    public String sndImageName() {
+        return "slay";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -65,7 +71,6 @@ public class ExecuteSpell extends DiceMageSpell {
                 target.damage(new DamageInfo(target.HP, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.TRUE, hero, null, ExecuteSpell.this));
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 8);
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(ExecuteSpell.this, "cast", target.name()));
                 hero.spendAndNext(1f);
             }
 

@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
@@ -38,6 +37,12 @@ public class VineSpell extends DiceMageSpell {
     public int mpCost() {
         return 1;
     }
+    @Override
+    public String sndImageName() {
+        return "vine";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {

@@ -8,8 +8,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpe
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
  * 热量（特殊学派）：驱除等量于护盾值/3 回合数层数的debuff。
@@ -30,6 +28,12 @@ public class HeatSpell extends DiceMageSpell {
     public int mpCost() {
         return 2;
     }
+    @Override
+    public String sndImageName() {
+        return "heat";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -45,7 +49,6 @@ public class HeatSpell extends DiceMageSpell {
             }
         }
         CellEmitter.center(hero.pos).burst(Speck.factory(Speck.HEALING), 6);
-        GLog.p(Messages.get(HeatSpell.this, "cast", removed));
         hero.spendAndNext(1f);
     }
 }

@@ -316,6 +316,11 @@ public class WandOfLivingEarth extends DamageWand {
 
 	public static class EarthGuardian extends NPC {
 
+		@Override
+		protected boolean isDamageable() {
+			return true;
+		}
+
 		{
 			spriteClass = EarthGuardianSprite.class;
 

@@ -38,6 +38,12 @@ public class SurgerySpell extends DiceMageSpell {
     public int mpCost() {
         return 3;
     }
+    @Override
+    public String sndImageName() {
+        return "operate";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -86,7 +92,6 @@ public class SurgerySpell extends DiceMageSpell {
         mp.setActiveSurgerySummon(ally.id());
         CellEmitter.center(ally.pos).burst(PurpleParticle.BURST, 8);
         mp.clearLastKilledMob();
-        GLog.p(Messages.get(this, "cast", ally.name()));
         hero.spendAndNext(1f);
     }
 }

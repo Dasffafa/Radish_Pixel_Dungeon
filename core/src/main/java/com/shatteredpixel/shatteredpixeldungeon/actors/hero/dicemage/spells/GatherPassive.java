@@ -29,6 +29,12 @@ public class GatherPassive extends DiceMageSpell {
     public int mpCost() {
         return 0;
     }
+    @Override
+    public String sndImageName() {
+        return "gather";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {

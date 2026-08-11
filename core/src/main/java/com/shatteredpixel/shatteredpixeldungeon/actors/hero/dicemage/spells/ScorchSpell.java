@@ -16,7 +16,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
@@ -42,6 +41,12 @@ public class ScorchSpell extends DiceMageSpell {
     public int mpCost() {
         return 2;
     }
+    @Override
+    public String sndImageName() {
+        return "scorch";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -78,7 +83,6 @@ public class ScorchSpell extends DiceMageSpell {
                     }
                 });
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(ScorchSpell.this, "cast", hit));
                 hero.spendAndNext(1f);
             }
 

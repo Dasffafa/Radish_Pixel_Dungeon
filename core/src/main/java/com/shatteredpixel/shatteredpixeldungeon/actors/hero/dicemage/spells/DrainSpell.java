@@ -37,6 +37,12 @@ public class DrainSpell extends DiceMageSpell {
     public int mpCost() {
         return 1;
     }
+    @Override
+    public String sndImageName() {
+        return "leech";
+    }
+
+
 
     private boolean hasBlood(Char ch) {
         if (ch == null || ch == Dungeon.hero) return false;
@@ -66,7 +72,6 @@ public class DrainSpell extends DiceMageSpell {
                 hero.HP = Math.min(hero.HT, hero.HP + heal);
                 hero.sprite.showStatus(CharSprite.POSITIVE, "+%d", hero.HP - oldHP);
                 CellEmitter.center(hero.pos).start(Speck.factory(Speck.HEALING), 0.12f, 3);
-                GLog.p(Messages.get(DrainSpell.this, "cast", target.name(), hero.HP - oldHP));
                 hero.spendAndNext(1f);
             }
 

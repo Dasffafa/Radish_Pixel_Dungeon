@@ -30,6 +30,12 @@ public class MendSpell extends DiceMageSpell {
     public int mpCost() {
         return 2;
     }
+    @Override
+    public String sndImageName() {
+        return "mend";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -49,7 +55,6 @@ public class MendSpell extends DiceMageSpell {
         startCooldown(hero, COOLDOWN);
         int healed = hero.HP - oldHP;
         if (healed > 0) {
-            GLog.p(Messages.get(this, "cast", healed, Math.max(0, mp.healValue())));
         } else {
             GLog.i(Messages.get(this, "no_heal", Math.max(0, mp.healValue())));
         }

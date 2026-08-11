@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -38,6 +37,12 @@ public class LightBeamSpell extends DiceMageSpell {
     public int mpCost() {
         return 5;
     }
+    @Override
+    public String sndImageName() {
+        return "beam";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -62,7 +67,6 @@ public class LightBeamSpell extends DiceMageSpell {
                         Sample.INSTANCE.play(Assets.Sounds.BLAST);
                     }
                 });
-                GLog.p(Messages.get(LightBeamSpell.this, "cast", dmg));
                 hero.spendAndNext(1f);
             }
 

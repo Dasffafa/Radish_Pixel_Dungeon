@@ -251,6 +251,11 @@ public class WandOfGnollKing extends DamageWand{
 
     public static class MirrorGnoll extends NPC {
 
+        @Override
+        protected boolean isDamageable() {
+            return true;
+        }
+
         {
             spriteClass = MirrorGnollSprite.class;
 

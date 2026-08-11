@@ -15,7 +15,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EnergyParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
@@ -37,6 +36,12 @@ public class ShineSpell extends DiceMageSpell {
     public int mpCost() {
         return 4;
     }
+    @Override
+    public String sndImageName() {
+        return "glow";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -71,7 +76,6 @@ public class ShineSpell extends DiceMageSpell {
                         hit++;
                     }
                 }
-                GLog.p(Messages.get(ShineSpell.this, "cast", hit));
                 hero.spendAndNext(1f);
             }
 

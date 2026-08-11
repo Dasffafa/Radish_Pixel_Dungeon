@@ -1,7 +1,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.AbyssSpell;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.BurstSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.ChargeSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HeatSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.InfinitySpell;
@@ -84,6 +86,47 @@ public class DiceMageSchools {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /** 根据学派天赋 Talent 反查对应学派；非学派返回 null。 */
+    public static DiceMageSchool schoolOf(Talent talent) {
+        for (DiceMageSchool s : DiceMageSchool.values()) {
+            if (s.talent == talent) return s;
+        }
+        return null;
+    }
+
+    /**
+     * 学派天赋贴图：显示"即将解锁"的法术（当前投入点+1）的 SND 贴图名；
+     * 若已升满则展示满级（第3个）法术。找不到时返回 null，调用方回退到默认图标。
+     */
+    public static String nextSpellSndName(Talent schoolTalent, int currentPoints) {
+        DiceMageSchool school = schoolOf(schoolTalent);
+        if (school == null) return null;
+        int level = Math.min(3, currentPoints + 1);
+        DiceMageSpell spell = spellForLevel(school, level);
+        return spell != null ? spell.sndImageName() : null;
+    }
+
+    /**
+     * 按顺序返回所有法术类：固定"迸发" + 各固定学派（按学派、按等级）+ 特殊学派候选池。
+     * 用于图鉴/列表展示全部法术。
+     */
+    public static List<Class<? extends DiceMageSpell>> allSpells() {
+        List<Class<? extends DiceMageSpell>> list = new ArrayList<>();
+        list.add(BurstSpell.class);
+        for (DiceMageSchool school : DiceMageSchool.values()) {
+            if (school == DiceMageSchool.SPECIAL) continue;
+            if (school.spells != null) {
+                for (Class<? extends DiceMageSpell> s : school.spells) {
+                    if (s != null) list.add(s);
+                }
+            }
+        }
+        for (Class<? extends DiceMageSpell> s : SPECIAL_POOL) {
+            list.add(s);
+        }
+        return list;
     }
 
     /** 某个学派是否还能投入天赋（未满3点）。 */

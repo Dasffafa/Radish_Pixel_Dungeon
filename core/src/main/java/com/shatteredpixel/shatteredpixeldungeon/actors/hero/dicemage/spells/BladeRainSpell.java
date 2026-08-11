@@ -35,6 +35,12 @@ public class BladeRainSpell extends DiceMageSpell {
     public int mpCost() {
         return 4;
     }
+    @Override
+    public String sndImageName() {
+        return "blades";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -55,7 +61,6 @@ public class BladeRainSpell extends DiceMageSpell {
         if (hit == 0) {
             GLog.i(Messages.get(BladeRainSpell.this, "none"));
         } else {
-            GLog.p(Messages.get(BladeRainSpell.this, "cast", hit));
         }
         hero.spendAndNext(1f);
     }

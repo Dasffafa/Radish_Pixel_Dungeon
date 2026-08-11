@@ -4,16 +4,16 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.BladeRainSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.BlazeSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.BandageSpell;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.CombustionSpell;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.BurnSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.CutSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.DrainSpell;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.EvilCurseSpell;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HexSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.ExecuteSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.FlickSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.GatherPassive;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HackPassive;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HemlockSpell;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.InjectSpell;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.InfuseSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.LacerationSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.LightPokeSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.LightningSpell;
@@ -37,11 +37,11 @@ public enum DiceMageSchool {
 
     FIRE(Talent.SCHOOL_FIRE, 1f, new Class[]{ScorchSpell.class, ScaldSpell.class, BlazeSpell.class}),
     BLADES(Talent.SCHOOL_BLADES, 1f, new Class[]{CutSpell.class, HackPassive.class, BladeRainSpell.class}),
-    CONJURATION(Talent.SCHOOL_CONJURATION, 0.2f, new Class[]{ExecuteSpell.class, LightningSpell.class, EvilCurseSpell.class}),
+    CONJURATION(Talent.SCHOOL_CONJURATION, 0.2f, new Class[]{ExecuteSpell.class, LightningSpell.class, HexSpell.class}),
     MANA(Talent.SCHOOL_MANA, 0.333f, new Class[]{GatherPassive.class, ProphecySpell.class, StarfireSpell.class}),
-    BLOOD(Talent.SCHOOL_BLOOD, 1f, new Class[]{LacerationSpell.class, CombustionSpell.class, DrainSpell.class}),
+    BLOOD(Talent.SCHOOL_BLOOD, 1f, new Class[]{LacerationSpell.class, BurnSpell.class, DrainSpell.class}),
     NATURE(Talent.SCHOOL_NATURE, 1f, new Class[]{HemlockSpell.class, VineSpell.class, MiasmaSpell.class}),
-    MEDICAL(Talent.SCHOOL_MEDICAL, 1f, new Class[]{BandageSpell.class, InjectSpell.class, SootheSpell.class}),
+    MEDICAL(Talent.SCHOOL_MEDICAL, 1f, new Class[]{BandageSpell.class, InfuseSpell.class, SootheSpell.class}),
     PHYSICAL(Talent.SCHOOL_PHYSICAL, 1f, new Class[]{LightPokeSpell.class, FlickSpell.class, ReapSpell.class}),
     EMERGENCY(Talent.SCHOOL_EMERGENCY, 1f, new Class[]{MendSpell.class, RefreshSpell.class, SurgerySpell.class}),
     SPECIAL(Talent.SCHOOL_SPECIAL, 0.1f, null); // 每局随机3个法术

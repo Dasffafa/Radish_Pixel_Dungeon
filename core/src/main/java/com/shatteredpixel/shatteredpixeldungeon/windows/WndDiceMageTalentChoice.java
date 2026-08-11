@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RoundedFrame;
+import com.shatteredpixel.shatteredpixeldungeon.ui.SNDItems;
 import com.shatteredpixel.shatteredpixeldungeon.ui.TalentIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
@@ -138,7 +139,7 @@ public class WndDiceMageTalentChoice extends Window {
         private final DiceMageSchool school;
         private final DiceMageSpell spell;
         private RoundedFrame frame;
-        private TalentIcon icon;
+        private Image icon;
         private RenderedTextBlock name;
         private RenderedTextBlock desc;
         private ColorBlock divider;
@@ -150,8 +151,18 @@ public class WndDiceMageTalentChoice extends Window {
             }
             int nextLevel = Math.min(3, Dungeon.hero.pointsInTalent(school.talent) + 1);
             this.spell = DiceMageSchools.spellForLevel(school, nextLevel);
-            icon = new TalentIcon(school.talent);
-            icon.scale.set(0.65f);
+            Image snd = null;
+            if (spell != null && spell.sndImageName() != null) {
+                snd = SNDItems.get(spell.sndImageName());
+            }
+            icon = snd != null ? snd : new TalentIcon(school.talent);
+            if (snd != null) {
+                // 与 TalentIcon(16px×0.65) 显示尺寸一致
+                float s = 0.65f * 16f / snd.width();
+                icon.scale.set(s);
+            } else {
+                icon.scale.set(0.65f);
+            }
             add(icon);
             name = PixelScene.renderTextBlock(school.talent.title(), 6);
             name.hardlight(DiceMageUI.SKY_BLUE);

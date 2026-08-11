@@ -28,6 +28,12 @@ public class BurstSpell extends DiceMageSpell {
     public int mpCost() {
         return 2;
     }
+    @Override
+    public String sndImageName() {
+        return "burst";
+    }
+
+
 
     @Override
     public Talent iconTalent() {

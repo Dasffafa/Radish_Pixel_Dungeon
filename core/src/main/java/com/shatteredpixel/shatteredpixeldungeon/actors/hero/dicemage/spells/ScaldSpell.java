@@ -32,6 +32,12 @@ public class ScaldSpell extends DiceMageSpell {
     public int mpCost() {
         return 3;
     }
+    @Override
+    public String sndImageName() {
+        return "scald";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -51,7 +57,6 @@ public class ScaldSpell extends DiceMageSpell {
         if (hit == 0) {
             GLog.i(Messages.get(ScaldSpell.this, "none"));
         } else {
-            GLog.p(Messages.get(ScaldSpell.this, "cast", hit));
         }
         hero.spendAndNext(1f);
     }

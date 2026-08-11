@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -43,6 +42,12 @@ public class LightningSpell extends DiceMageSpell {
     public int mpCost() {
         return 1;
     }
+    @Override
+    public String sndImageName() {
+        return "bolt";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -71,7 +76,6 @@ public class LightningSpell extends DiceMageSpell {
                     }
                 });
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(LightningSpell.this, "cast", target.name()));
                 hero.spendAndNext(1f);
             }
 

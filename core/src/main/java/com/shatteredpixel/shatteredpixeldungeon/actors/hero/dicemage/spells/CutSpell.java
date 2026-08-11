@@ -68,7 +68,6 @@ public class CutSpell extends DiceMageSpell {
             }
         }
 
-        GLog.p(Messages.get(this, "cast", hit));
         hero.spendAndNext(1f);
     }
 }

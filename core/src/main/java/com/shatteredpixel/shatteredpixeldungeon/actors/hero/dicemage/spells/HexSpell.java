@@ -19,7 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 /**
  * 恶咒（咒法学派 L3）：杀死视野内1个59-61生命值的敌人，冷却50回合。
  */
-public class EvilCurseSpell extends DiceMageSpell {
+public class HexSpell extends DiceMageSpell {
 
     private static final float COOLDOWN = 50f;
     private static final int MIN_HP = 59;
@@ -39,6 +39,12 @@ public class EvilCurseSpell extends DiceMageSpell {
     public int mpCost() {
         return 3;
     }
+    @Override
+    public String sndImageName() {
+        return "hex";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -48,30 +54,29 @@ public class EvilCurseSpell extends DiceMageSpell {
                 if (cell == null) return;
                 Char target = Actor.findChar(cell);
                 if (!isValidEnemy(target) || !(target instanceof Mob)) {
-                    GLog.w(Messages.get(EvilCurseSpell.this, "invalid_target"));
+                    GLog.w(Messages.get(HexSpell.this, "invalid_target"));
                     return;
                 }
                 if (!Dungeon.level.heroFOV[target.pos]) {
-                    GLog.w(Messages.get(EvilCurseSpell.this, "not_in_view"));
+                    GLog.w(Messages.get(HexSpell.this, "not_in_view"));
                     return;
                 }
                 if (target.HP < MIN_HP || target.HP > MAX_HP) {
-                    GLog.w(Messages.get(EvilCurseSpell.this, "out_of_range_hp", target.HP));
+                    GLog.w(Messages.get(HexSpell.this, "out_of_range_hp", target.HP));
                     return;
                 }
                 if (!spendMagic(hero)) return;
 
-                target.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(EvilCurseSpell.this, "executed"));
-                target.damage(new DamageInfo(target.HP, DamageType.TRUE, hero, null, EvilCurseSpell.this));
+                target.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(HexSpell.this, "executed"));
+                target.damage(new DamageInfo(target.HP, DamageType.TRUE, hero, null, HexSpell.this));
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 12);
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(EvilCurseSpell.this, "cast", target.name()));
                 hero.spendAndNext(1f);
             }
 
             @Override
             public String prompt() {
-                return Messages.get(EvilCurseSpell.this, "prompt");
+                return Messages.get(HexSpell.this, "prompt");
             }
         });
     }

@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -38,6 +37,12 @@ public class LightPokeSpell extends DiceMageSpell {
     public int mpCost() {
         return 1;
     }
+    @Override
+    public String sndImageName() {
+        return "poke";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -63,11 +68,10 @@ public class LightPokeSpell extends DiceMageSpell {
                 int dmg = Random.IntRange(8, 16);
                 target.damage(DamageInfo.physicalNoArmor(dmg, LightPokeSpell.this));
                 CellEmitter.center(target.pos).burst(BlastParticle.FACTORY, 6);
-                // 击退2格
-                WandOfBlastWave.throwChar(target, new Ballistica(hero.pos, target.pos, Ballistica.STOP_TARGET),
-                        2, false, true, LightPokeSpell.this);
+                // 击退2格，方向为远离玩家
+                WandOfBlastWave.throwChar(target, new Ballistica(target.pos, target.pos + (target.pos - hero.pos), Ballistica.MAGIC_BOLT),
+                        2, true, true, LightPokeSpell.this);
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(LightPokeSpell.this, "cast", dmg));
                 hero.spendAndNext(1f);
             }
 

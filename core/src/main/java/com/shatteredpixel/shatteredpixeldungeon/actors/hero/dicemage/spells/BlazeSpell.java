@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -13,7 +12,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
@@ -61,9 +59,6 @@ public class BlazeSpell extends DiceMageSpell {
                 MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.FIRE, hero.sprite, target.pos, new Callback() {
                     @Override
                     public void call() {
-                        if (target.sprite != null) {
-                            target.sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(damage));
-                        }
                         target.damage(DamageInfo.fire(damage, BlazeSpell.this));
                         if (target.isAlive()) {
                             CellEmitter.center(target.pos).burst(FlameParticle.FACTORY, 10);
@@ -71,7 +66,6 @@ public class BlazeSpell extends DiceMageSpell {
                         Sample.INSTANCE.play(Assets.Sounds.BLAST);
                     }
                 });
-                GLog.p(Messages.get(BlazeSpell.this, "cast", damage));
                 hero.spendAndNext(1f);
             }
 

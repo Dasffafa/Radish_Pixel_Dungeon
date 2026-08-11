@@ -4,8 +4,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicProphecy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
  * 预知（法力学派 L2）：引导2回合，20回合后获得4点魔力。
@@ -26,12 +24,17 @@ public class ProphecySpell extends DiceMageSpell {
     public int mpCost() {
         return 3;
     }
+    @Override
+    public String sndImageName() {
+        return "foretell";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
         if (!spendMagic(hero)) return;
         MagicProphecy.apply(hero);
-        GLog.p(Messages.get(ProphecySpell.this, "cast"));
         hero.spendAndNext(1f);
     }
 }

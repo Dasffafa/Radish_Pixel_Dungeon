@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -39,6 +38,12 @@ public class ReapSpell extends DiceMageSpell {
     public int mpCost() {
         return 1;
     }
+    @Override
+    public String sndImageName() {
+        return "harvest";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -60,7 +65,6 @@ public class ReapSpell extends DiceMageSpell {
                 target.damage(new DamageInfo(target.HP, DamageType.TRUE, hero, null, ReapSpell.this));
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 8);
                 Buff.affect(hero, MagicPoint.class).addPoints(3f);
-                GLog.p(Messages.get(ReapSpell.this, "cast", target.name()));
                 hero.spendAndNext(1f);
             }
 

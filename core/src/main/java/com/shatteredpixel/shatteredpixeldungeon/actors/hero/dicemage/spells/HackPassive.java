@@ -29,6 +29,12 @@ public class HackPassive extends DiceMageSpell {
     public int mpCost() {
         return 0;
     }
+    @Override
+    public String sndImageName() {
+        return "hack";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {

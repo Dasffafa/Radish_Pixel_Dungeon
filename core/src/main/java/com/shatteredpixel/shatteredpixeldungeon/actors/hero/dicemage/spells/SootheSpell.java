@@ -8,8 +8,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
@@ -56,7 +54,6 @@ public class SootheSpell extends DiceMageSpell {
         CellEmitter.center(hero.pos).start(Speck.factory(Speck.HEALING), 0.12f, 3);
         count++;
 
-        GLog.p(Messages.get(SootheSpell.this, "cast", count, heal));
         hero.spendAndNext(1f);
     }
 }

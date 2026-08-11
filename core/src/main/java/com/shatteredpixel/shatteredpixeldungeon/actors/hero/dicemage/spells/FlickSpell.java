@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -38,6 +37,12 @@ public class FlickSpell extends DiceMageSpell {
     public int mpCost() {
         return 1;
     }
+    @Override
+    public String sndImageName() {
+        return "flick";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -64,11 +69,10 @@ public class FlickSpell extends DiceMageSpell {
                 if (target.HP >= target.HT) dmg *= 2; // 满血翻倍
                 target.damage(DamageInfo.physicalNoArmor(dmg, FlickSpell.this));
                 CellEmitter.center(target.pos).burst(BlastParticle.FACTORY, 6);
-                // 击退100格
-                WandOfBlastWave.throwChar(target, new Ballistica(hero.pos, target.pos, Ballistica.STOP_TARGET),
+                // 击退100格，方向为远离玩家
+                WandOfBlastWave.throwChar(target, new Ballistica(target.pos, target.pos + (target.pos - hero.pos), Ballistica.MAGIC_BOLT),
                         100, false, true, FlickSpell.this);
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(FlickSpell.this, "cast", dmg));
                 hero.spendAndNext(1f);
             }
 

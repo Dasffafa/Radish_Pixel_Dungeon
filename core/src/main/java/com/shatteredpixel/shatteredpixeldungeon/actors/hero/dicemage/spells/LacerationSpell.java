@@ -8,7 +8,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpe
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BloodParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -38,6 +37,12 @@ public class LacerationSpell extends DiceMageSpell {
     public int mpCost() {
         return 1;
     }
+    @Override
+    public String sndImageName() {
+        return "slice";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -69,7 +74,6 @@ public class LacerationSpell extends DiceMageSpell {
         target.damage(DamageInfo.physicalNoArmor(dmg, LacerationSpell.this));
         CellEmitter.center(target.pos).burst(BloodParticle.BURST, 10);
         startCooldown(hero, COOLDOWN);
-        GLog.p(Messages.get(LacerationSpell.this, "cast", selfDmg, dmg));
         hero.spendAndNext(1f);
     }
 }

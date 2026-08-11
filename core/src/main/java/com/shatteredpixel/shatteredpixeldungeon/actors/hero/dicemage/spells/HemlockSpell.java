@@ -1,6 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -37,6 +36,12 @@ public class HemlockSpell extends DiceMageSpell {
     public int mpCost() {
         return 2;
     }
+    @Override
+    public String sndImageName() {
+        return "hemlock";
+    }
+
+
 
     @Override
     protected void onCast(Hero hero) {
@@ -58,7 +63,6 @@ public class HemlockSpell extends DiceMageSpell {
                     CellEmitter.center(target.pos).burst(PoisonParticle.SPLASH, 8);
                 }
                 startCooldown(hero, COOLDOWN);
-                GLog.p(Messages.get(HemlockSpell.this, "cast", dmg));
                 hero.spendAndNext(1f);
             }
 
