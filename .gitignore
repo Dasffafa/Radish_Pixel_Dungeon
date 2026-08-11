@@ -40,3 +40,7 @@ the_catist/
 /opencode.json
 /tools/split_image_16.py
 /.clang-format
+
+# Python tool build files
+__pycache__/
+*.pyc
