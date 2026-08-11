@@ -48,7 +48,7 @@ public class Viscosity extends Glyph {
 	public int proc( Armor armor, Char attacker, Char defender, int damage ) {
 
 		//we use a tracker so that this glyph can apply after armor
-		Buff.affect(defender, ViscosityTracker.class).level = armor.buffedLvl();
+		Buff.affect(defender, ViscosityTracker.class).level = armor.procLvl();
 
 		return damage;
 

@@ -25,6 +25,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -138,7 +140,7 @@ public class MakeshiftSlingshot extends Item {
 
 		if (enemy != null && enemy != curUser) {
 			// 对敌人造成伤害
-			enemy.damage(slingshotDamage, curUser);
+			enemy.damage(DamageInfo.of(slingshotDamage, DamageType.PHYSICAL, curUser, curUser));
 			enemy.sprite.showStatus(CharSprite.NEGATIVE, 
 				Messages.get(MakeshiftSlingshot.class, "damage_bonus", 4));
 			

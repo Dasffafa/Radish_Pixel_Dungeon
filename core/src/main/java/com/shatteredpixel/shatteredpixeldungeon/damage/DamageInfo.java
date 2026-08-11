@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -61,6 +62,9 @@ public class DamageInfo {
 	/** 直接乘算modifier列表 */
 	private List<DamageModifier> directMultiplicatives = new ArrayList<>();
 	
+	/** 叠加乘区modifier列表（百分比累加后一次乘算） */
+	private List<DamageModifier> stackMultiplicatives = new ArrayList<>();
+	
 	/** 最终乘算modifier列表 */
 	private List<DamageModifier> finalMultiplicatives = new ArrayList<>();
 
@@ -89,7 +93,15 @@ public class DamageInfo {
 	
 	/** 来源对象（Buff、Blob、Trap等，可能为空） */
 	private Object source;
-	
+
+	/** 伤害来源链：有序的因果对象列表，按「引发→中间传导→最终」顺序排列。
+	 *  例如 [玩家, 玩家武器, 烈焰附魔, 怪物身上的火, 草, 门]。
+	 *  链会随伤害/火焰/流血等传导机制逐层传递，用于死亡信息与来源追踪。 */
+	private List<Object> causeChain = new ArrayList<>();
+
+	/** 混合伤害成分（type == DamageType.MIXED 时生效），可为 null。 */
+	private MixedDamage mixed;
+
 	// ========== 构造函数 ==========
 	
 	/** 最简构造：基础伤害 + 默认类型 */
@@ -142,7 +154,6 @@ public class DamageInfo {
 	 */
 	public void setBaseDamage(int baseDamage) {
 		this.baseDamage = baseDamage;
-		invalidateCache();
 	}
 	
 	/**
@@ -157,7 +168,15 @@ public class DamageInfo {
 			result += m.getValue();
 		}
 		
-		// 阶段2：直接乘算（累乘）
+		// 阶段2：叠加乘区（百分比累加后一次乘算）
+		// 例如 +50% 与 +50% 叠加 = 1 + 0.5 + 0.5 = ×2.0
+		float stack = 0f;
+		for (DamageModifier m : stackMultiplicatives) {
+			stack += (m.getValue() - 1f);
+		}
+		result *= (1f + stack);
+
+		// 阶段3：直接乘算（依次乘算）
 		for (DamageModifier m : directMultiplicatives) {
 			result *= m.getValue();
 		}
@@ -186,21 +205,6 @@ public class DamageInfo {
 		return Math.max(0, Math.round(result));
 	}
 	
-	/**
-	 * 清除缓存（modifier变化时调用）
-	 */
-	private void invalidateCache() {
-		// Compatibility no-op: damage is calculated from current modifiers every time.
-	}
-	
-	/**
-	 * 强制重新计算
-	 */
-	public void recalculate() {
-		invalidateCache();
-		getDamage();
-	}
-	
 	// ========== Modifier管理（链式调用） ==========
 	
 	/**
@@ -210,7 +214,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo addFlatModifier(float value, String source) {
 		flatAdditives.add(DamageModifier.flatAdd(value, source));
-		invalidateCache();
 		return this;
 	}
 	
@@ -219,7 +222,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo addFlatModifier(float value, String source, Object sourceObject) {
 		flatAdditives.add(DamageModifier.flatAdd(value, source, sourceObject));
-		invalidateCache();
 		return this;
 	}
 	
@@ -230,7 +232,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo addDirectMultModifier(float value, String source) {
 		directMultiplicatives.add(DamageModifier.directMult(value, source));
-		invalidateCache();
 		return this;
 	}
 	
@@ -239,7 +240,24 @@ public class DamageInfo {
 	 */
 	public DamageInfo addDirectMultModifier(float value, String source, Object sourceObject) {
 		directMultiplicatives.add(DamageModifier.directMult(value, source, sourceObject));
-		invalidateCache();
+		return this;
+	}
+
+	/**
+	 * 添加叠加乘区modifier
+	 * @param value 乘算值（如 1.5 表示 +50%），同一乘区内多个值按百分比累加
+	 * @param source 来源描述
+	 */
+	public DamageInfo addStackMultModifier(float value, String source) {
+		stackMultiplicatives.add(DamageModifier.stackMult(value, source));
+		return this;
+	}
+
+	/**
+	 * 添加叠加乘区modifier（带来源对象）
+	 */
+	public DamageInfo addStackMultModifier(float value, String source, Object sourceObject) {
+		stackMultiplicatives.add(DamageModifier.stackMult(value, source, sourceObject));
 		return this;
 	}
 	
@@ -250,7 +268,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo addFinalMultModifier(float value, String source) {
 		finalMultiplicatives.add(DamageModifier.finalMult(value, source));
-		invalidateCache();
 		return this;
 	}
 	
@@ -259,7 +276,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo addFinalMultModifier(float value, String source, Object sourceObject) {
 		finalMultiplicatives.add(DamageModifier.finalMult(value, source, sourceObject));
-		invalidateCache();
 		return this;
 	}
 	
@@ -270,7 +286,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo addPreFinalAddModifier(float value, String source) {
 		preFinalAdditives.add(DamageModifier.preFinalAdd(value, source));
-		invalidateCache();
 		return this;
 	}
 
@@ -279,13 +294,11 @@ public class DamageInfo {
 	 */
 	public DamageInfo addPreFinalAddModifier(float value, String source, Object sourceObject) {
 		preFinalAdditives.add(DamageModifier.preFinalAdd(value, source, sourceObject));
-		invalidateCache();
 		return this;
 	}
 
 	public DamageInfo addFinalAddModifier(float value, String source) {
 		finalAdditives.add(DamageModifier.finalAdd(value, source));
-		invalidateCache();
 		return this;
 	}
 	
@@ -294,7 +307,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo addFinalAddModifier(float value, String source, Object sourceObject) {
 		finalAdditives.add(DamageModifier.finalAdd(value, source, sourceObject));
-		invalidateCache();
 		return this;
 	}
 	
@@ -309,6 +321,9 @@ public class DamageInfo {
 			case DIRECT_MULTIPLICATIVE:
 				directMultiplicatives.add(modifier);
 				break;
+			case STACK_MULTIPLICATIVE:
+				stackMultiplicatives.add(modifier);
+				break;
 			case FINAL_MULTIPLICATIVE:
 				finalMultiplicatives.add(modifier);
 				break;
@@ -319,7 +334,6 @@ public class DamageInfo {
 				finalAdditives.add(modifier);
 				break;
 		}
-		invalidateCache();
 		return this;
 	}
 	
@@ -329,11 +343,11 @@ public class DamageInfo {
 	public DamageInfo clearModifiers() {
 		flatAdditives.clear();
 		directMultiplicatives.clear();
+		stackMultiplicatives.clear();
 		finalMultiplicatives.clear();
 		preFinalAdditives.clear();
 		finalAdditives.clear();
 		critical = false;
-		invalidateCache();
 		return this;
 	}
 	
@@ -345,7 +359,6 @@ public class DamageInfo {
 	 */
 	public DamageInfo setCritical(boolean critical) {
 		this.critical = critical;
-		invalidateCache();
 		return this;
 	}
 	
@@ -403,7 +416,67 @@ public class DamageInfo {
 	public void setSource(Object source) {
 		this.source = source == null ? type : source;
 	}
-	
+
+	// ========== 伤害来源链 ==========
+
+	/** 追加一个因果对象到来源链末尾（如「烈焰附魔」「草」「门」）。 */
+	public DamageInfo addCause(Object cause) {
+		if (cause != null) {
+			causeChain.add(cause);
+		}
+		return this;
+	}
+
+	/** 批量追加因果对象到来源链末尾，保持传入顺序。 */
+	public DamageInfo addCauses(Collection<?> causes) {
+		if (causes != null) {
+			for (Object c : causes) {
+				if (c != null) causeChain.add(c);
+			}
+		}
+		return this;
+	}
+
+	/** 读取来源链副本（不可直接修改内部）。 */
+	public List<Object> getCauseChain() {
+		return new ArrayList<>(causeChain);
+	}
+
+	/** 设置整个来源链（覆盖）。 */
+	public DamageInfo setCauseChain(Collection<?> chain) {
+		causeChain.clear();
+		if (chain != null) {
+			for (Object c : chain) {
+				if (c != null) causeChain.add(c);
+			}
+		}
+		return this;
+	}
+
+	/** 是否有来源链。 */
+	public boolean hasCauseChain() {
+		return !causeChain.isEmpty();
+	}
+
+	// ========== 混合伤害 ==========
+
+	public boolean isMixed() {
+		return type == DamageType.MIXED;
+	}
+
+	public MixedDamage getMixed() {
+		return mixed;
+	}
+
+	/** 设置混合伤害成分（并自动把 type 置为 MIXED）。 */
+	public DamageInfo setMixedDamage(MixedDamage mixed) {
+		if (mixed == null) throw new IllegalArgumentException("MixedDamage cannot be null");
+		mixed.validate();
+		this.mixed = mixed;
+		this.type = DamageType.MIXED;
+		return this;
+	}
+
 	// ========== 类型便捷方法 ==========
 	
 	public boolean isPhysical() {
@@ -435,7 +508,7 @@ public class DamageInfo {
 	}
 	
 	/**
-	 * 获取浮动文字图标（考虑暴击）
+	 * 获取浮动文字图标（考虑暴击）。仅用于单一伤害类型。
 	 */
 	public int getFloatingTextIcon() {
 		if (critical) {
@@ -447,6 +520,29 @@ public class DamageInfo {
 		}
 		return type.getFloatingTextIcon();
 	}
+
+	/**
+	 * 获取浮动文字图标列表（考虑暴击）。
+	 * 混合伤害时按成分占比从高到低返回各成分图标；否则为单个元素列表。
+	 */
+	public int[] getFloatingTextIcons() {
+		if (isMixed() && mixed != null) {
+			// 按占比从高到低排序
+			int n = mixed.size();
+			Integer[] idx = new Integer[n];
+			for (int i = 0; i < n; i++) idx[i] = i;
+			java.util.Arrays.sort(idx, (a, b) ->
+					Float.compare(mixed.percentAt(b), mixed.percentAt(a)));
+			int[] icons = new int[n];
+			for (int i = 0; i < n; i++) {
+				icons[i] = critical
+						? (mixed.typeAt(idx[i]).ignoresArmor() ? FloatingText.CRIT_NO_BLOCK : FloatingText.CRIT)
+						: mixed.typeAt(idx[i]).getFloatingTextIcon();
+			}
+			return icons;
+		}
+		return new int[]{ getFloatingTextIcon() };
+	}
 	
 	// ========== Modifier列表访问 ==========
 	
@@ -456,6 +552,10 @@ public class DamageInfo {
 	
 	public List<DamageModifier> getDirectMultiplicatives() {
 		return new ArrayList<>(directMultiplicatives);
+	}
+
+	public List<DamageModifier> getStackMultiplicatives() {
+		return new ArrayList<>(stackMultiplicatives);
 	}
 	
 	public List<DamageModifier> getFinalMultiplicatives() {
@@ -477,6 +577,7 @@ public class DamageInfo {
 		List<DamageModifier> all = new ArrayList<>();
 		all.addAll(flatAdditives);
 		all.addAll(directMultiplicatives);
+		all.addAll(stackMultiplicatives);
 		all.addAll(preFinalAdditives);
 		all.addAll(finalMultiplicatives);
 		all.addAll(finalAdditives);
@@ -571,10 +672,12 @@ public class DamageInfo {
 		return new DamageInfo(baseDamage, DamageType.CHASM);
 	}
 	
-	/** 从来源自动判断类型创建 */
-	public static DamageInfo fromSource(int baseDamage, Object source) {
-		DamageType type = DamageType.fromSource(source);
-		return new DamageInfo(baseDamage, type, null, null, source);
+	/**
+	 * 通用构造：基础伤害 + 显式类型 + 攻击者 + 来源对象。
+	 * 迁移 `damage(int, Object)` 调用点的标准入口。
+	 */
+	public static DamageInfo of(int baseDamage, DamageType type, Char attacker, Object source) {
+		return new DamageInfo(baseDamage, type, attacker, null, source);
 	}
 	
 	// ========== 调试工具 ==========
@@ -597,6 +700,15 @@ public class DamageInfo {
 		if (!directMultiplicatives.isEmpty()) {
 			sb.append("  × 直接乘算:\n");
 			for (DamageModifier m : directMultiplicatives) {
+				sb.append("    ").append(m.getDescription()).append("\n");
+			}
+		}
+
+		if (!stackMultiplicatives.isEmpty()) {
+			float stack = 0f;
+			for (DamageModifier m : stackMultiplicatives) stack += (m.getValue() - 1f);
+			sb.append("  × 叠加乘区: ×").append(1f + stack).append("\n");
+			for (DamageModifier m : stackMultiplicatives) {
 				sb.append("    ").append(m.getDescription()).append("\n");
 			}
 		}
@@ -639,6 +751,14 @@ public class DamageInfo {
 		DamageInfo copy = new DamageInfo(baseDamage, type, attacker, sourceItem, source);
 		copy.critical = this.critical;
 		copy.criticalMultiplier = this.criticalMultiplier;
+		copy.setCauseChain(this.causeChain);
+		if (this.mixed != null) {
+			MixedDamage mc = new MixedDamage();
+			for (int i = 0; i < this.mixed.size(); i++) {
+				mc.add(this.mixed.typeAt(i), this.mixed.percentAt(i));
+			}
+			copy.mixed = mc;
+		}
 
 		// 复制modifier列表
 		for (DamageModifier m : flatAdditives) {
@@ -646,6 +766,9 @@ public class DamageInfo {
 		}
 		for (DamageModifier m : directMultiplicatives) {
 			copy.directMultiplicatives.add(m);
+		}
+		for (DamageModifier m : stackMultiplicatives) {
+			copy.stackMultiplicatives.add(m);
 		}
 		for (DamageModifier m : finalMultiplicatives) {
 			copy.finalMultiplicatives.add(m);
@@ -699,7 +822,7 @@ public class DamageInfo {
 			sb.append(", source=").append(source.getClass().getSimpleName());
 		}
 		int modCount = flatAdditives.size() + directMultiplicatives.size()
-			+ finalMultiplicatives.size() + preFinalAdditives.size() + finalAdditives.size();
+			+ stackMultiplicatives.size() + finalMultiplicatives.size() + preFinalAdditives.size() + finalAdditives.size();
 		if (modCount > 0) {
 			sb.append(", modifiers=").append(modCount);
 		}

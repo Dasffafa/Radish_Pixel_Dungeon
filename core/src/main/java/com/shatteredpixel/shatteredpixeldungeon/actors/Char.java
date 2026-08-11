@@ -27,12 +27,16 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamagePipeline;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageResult;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
+import com.shatteredpixel.shatteredpixeldungeon.damage.MixedDamage;
+import com.shatteredpixel.shatteredpixeldungeon.events.AttackEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.CharUnprocedDamageEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
 import com.shatteredpixel.shatteredpixeldungeon.damage.OrdinaryAttackDamage;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Electricity;
-import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.StormCloud;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
@@ -58,15 +62,13 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.DarkCoat;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Potential;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
+
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.LunarCorona;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Masamune;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Sunless;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Turtleir;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing;
-import com.shatteredpixel.shatteredpixeldungeon.items.quest.Pickaxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfBenediction;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements;
@@ -79,7 +81,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ThirteenLeafClover;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
-import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
+
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFireblast;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfFrost;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLightning;
@@ -89,15 +91,13 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazin
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.WetEnchantment;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.ShockingDart;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Door;
-import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GeyserTrap;
-import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollRockfallTrap;
+
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GrimTrap;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Earthroot;
@@ -114,8 +114,11 @@ import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.LinkedHashSet;
 
 public abstract class Char extends Actor {
@@ -147,14 +150,6 @@ public abstract class Char extends Actor {
     public boolean flying = false;
     public int invisible = 0;
 
-
-    public static class CritClass {
-    }
-
-    ;
-
-    public static class NoArmorCritClass {
-    }
 
     ;
 
@@ -378,11 +373,16 @@ public abstract class Char extends Actor {
         HP = bundle.getInt(TAG_HP);
         HT = bundle.getInt(TAG_HT);
 
-        for (Bundlable b : bundle.getCollection(BUFFS)) {
-            if (b != null) {
-                ((Buff) b).attachTo(this);
-            }
-        }
+		Buff.beginRestore();
+		try {
+			for (Bundlable b : bundle.getCollection(BUFFS)) {
+				if (b != null) {
+					((Buff) b).attachTo(this);
+				}
+			}
+		} finally {
+			Buff.endRestore();
+		}
 
         LockChainCripple = bundle.getBoolean(LOCK_CHAIN);
 
@@ -402,6 +402,11 @@ public abstract class Char extends Actor {
     public boolean attack(Char enemy, float dmgMulti, float dmgBonus, float accMulti) {
 
         if (enemy == null) return false;
+
+        // 充能（特殊学派）：英雄攻击伤害提升30%
+        if (this == hero && buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChargeBoost.class) != null) {
+            dmgMulti *= 1.3f;
+        }
 
         // Attack animations can finish after a level transition or scene reload.
         // Do not resolve a stale attack while the level's map/FOV is unavailable.
@@ -429,14 +434,26 @@ public abstract class Char extends Actor {
                 enemy.buff(AfterImage.Blur.class).gainDodge();
             }
 
-			int dr = OrdinaryAttackDamage.rollDefenseReduction(this, enemy);
 			OrdinaryAttackDamage.DamageRoll damageRoll = OrdinaryAttackDamage.rollBaseDamage(this);
 			OrdinaryAttackDamage.CriticalRoll criticalRoll = OrdinaryAttackDamage.rollCritical(this, enemy, damageRoll.damage);
 			Preparation prep = damageRoll.preparation;
 			DamageInfo attackDamage = OrdinaryAttackDamage.build(this, enemy, Math.round(criticalRoll.damage), criticalRoll.critical,
 					criticalRoll.multiplier, dmgMulti, dmgBonus);
 			OrdinaryAttackDamage.applyPlateArmor(enemy, attackDamage);
-			int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage, dr);
+
+			// 发布近战攻击事件：反弹类效果（如 Rlyeh）可在命中后、结算前取消本次攻击
+			AttackEvent attackEvent = new AttackEvent(
+					this, enemy, attackDamage.getDamage(),
+					attackingWeapon(), defendingWeapon(enemy), defendingArmor(enemy));
+			EventManager.emit(attackEvent);
+			if (attackEvent.isCancelled()) {
+				if (visibleFight) {
+					hitSound(Random.Float(0.87f, 1.15f));
+				}
+				return true;
+			}
+
+			int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage);
 
             if (visibleFight) {
                 if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
@@ -468,7 +485,7 @@ public abstract class Char extends Actor {
                     enemy.die(this);
                 } else {
                     //helps with triggering any on-damage effects that need to activate
-                    enemy.damage(-1, this);
+                    enemy.damage(DamageInfo.of(-1, DamageType.TRUE, this, this));
                     DeathMark.processFearTheReaper(enemy);
                 }
                 enemy.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(Preparation.class, "assassinated"));
@@ -748,6 +765,38 @@ public abstract class Char extends Actor {
         return damage;
     }
 
+    // ========== 攻击事件辅助 ==========
+
+    /** 该角色本次使用的攻击武器（Hero 用装备武器，Statue 用其 weapon 字段），无则为 null。 */
+    public Item attackingWeapon() {
+        if (this instanceof Hero) {
+            return ((Hero) this).belongings.attackingWeapon();
+        }
+        if (this instanceof Statue) {
+            return ((Statue) this).weapon;
+        }
+        return null;
+    }
+
+    /** 防御方持有的武器（Hero 用装备武器，Statue 用其 weapon 字段），无则为 null。 */
+    public static Item defendingWeapon(Char defender) {
+        if (defender instanceof Hero) {
+            return ((Hero) defender).belongings.weapon();
+        }
+        if (defender instanceof Statue) {
+            return ((Statue) defender).weapon;
+        }
+        return null;
+    }
+
+    /** 防御方护甲（仅 Hero 有装备护甲），无则为 null。 */
+    public static Item defendingArmor(Char defender) {
+        if (defender instanceof Hero) {
+            return ((Hero) defender).belongings.armor();
+        }
+        return null;
+    }
+
     public float speed() {
         float speed = baseSpeed;
 
@@ -829,50 +878,33 @@ public abstract class Char extends Actor {
      * @param info 伤害信息对象
      */
     public void damage(DamageInfo info) {
-        DamagePipeline.apply(this, info);
-    }
-
-    /** Compatibility implementation used exclusively by DamagePipeline. */
-    public void applyDamageLegacy(DamageInfo info) {
-        if (info == null) return;
-        Object src = info.getSource();
-        int dmg = info.getDamage();
-
-        // 处理暴击：将暴击转换为旧的CritClass/NoArmorCritClass标记
-        if (info.isCritical()) {
-            if (info.ignoresArmor()) {
-                src = new NoArmorCritClass();
-            } else {
-                src = new CritClass();
+        // 标记（特殊学派）：受标记目标受到伤害时附加最终增伤modifier
+        if (info != null) {
+            com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MarkDebuff mark =
+                    buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MarkDebuff.class);
+            if (mark != null) {
+                info.addFinalAddModifier(mark.bonusDamage(), "mark");
             }
+            DamagePipeline.apply(this, info);
         }
-
-        // 调用现有方法
-        damage(dmg, src);
     }
 
-    public void damage(int dmg, Object src) {
-		DamageInfo active = DamagePipeline.activeInfo();
-		if (active != null) {
-			damage(dmg, src, active.getType());
-			return;
-		}
-		DamageInfo info = new DamageInfo(dmg, DamageType.fromSource(src));
-		info.setSource(src);
-		DamagePipeline.apply(this, info);
-	}
+    /**
+     * 旧调用兼容入口已被移除：所有伤害必须显式构造 DamageInfo 并经 damage(DamageInfo) 进入管线。
+     */
 
-    private void damage(int dmg, Object src, DamageType damageType) {
-        if (src == null) {
-            src = damageType;
-        }
+    /** 唯一权威的伤害应用实现，由 DamagePipeline 调用。 */
+    public DamageResult applyDamage(DamageInfo info) {
+        Object src = info.getSource();
+        DamageType damageType = info.getType();
         if (damageType == null || damageType == DamageType.UNKNOWN) {
-            damageType = DamageType.fromSource(src);
+            damageType = DamageType.PHYSICAL;
         }
+        int dmg = info.getDamage();
 
         // NPC overrides still receive the hit, while base NPC damage remains immune.
         if (properties.contains(Property.NPC) && !isDamageable()) {
-            return;
+            return new DamageResult(info.getBaseDamage(), dmg, 0, 0, 0, 0, true);
         }
 
         // 天球仪造成魔法伤害的代码移动到这里来，以便防止额外造成1次物理伤害
@@ -884,7 +916,25 @@ public abstract class Char extends Actor {
         }
 
         if (!isAlive() || dmg < 0) {
-            return;
+            return new DamageResult(info.getBaseDamage(), Math.max(0, dmg), 0, 0, 0, 0, false);
+        }
+
+        // 角色未经过减免计算的原始伤害事件（伤害减免计算前）
+        {
+            Char attacker = src instanceof Char ? (Char) src : null;
+            EventManager.emit(new CharUnprocedDamageEvent(this, attacker, src, dmg, damageType));
+        }
+
+        // —— 应用护甲：直接加算（在承伤倍率乘算之前做平坦扣减）——
+        int armorBlocked = 0;
+        Char attackerChar = info.getAttacker() != null ? info.getAttacker() : (src instanceof Char ? (Char) src : null);
+        if (attackerChar != null && damageType == DamageType.PHYSICAL && !OrdinaryAttackDamage.ignoresDefenseRoll(attackerChar)) {
+            int dr = OrdinaryAttackDamage.rollDefenseReduction(attackerChar, this, true);
+            if (dr > 0) {
+                int before = dmg;
+                dmg = Math.max(dmg - dr, 0);
+                armorBlocked = before - dmg;
+            }
         }
 
         // DoggingDog on 20250710
@@ -915,7 +965,7 @@ public abstract class Char extends Actor {
 
         if (isInvulnerable(src.getClass())) {
             sprite.showStatus(CharSprite.POSITIVE, Messages.get(this, "invulnerable"));
-            return;
+            return new DamageResult(info.getBaseDamage(), Math.max(0, dmg), 0, 0, 0, 0, true);
         }
 
         if (!(src instanceof LifeLink) && buff(LifeLink.class) != null) {
@@ -930,7 +980,7 @@ public abstract class Char extends Actor {
             for (LifeLink link : links) {
                 Char ch = (Char) Actor.findById(link.object);
                 if (ch != null) {
-                    ch.damage(dmg, link);
+                    ch.damage(DamageInfo.of(dmg, damageType, this, link));
                     if (!ch.isAlive()) {
                         link.detach();
                     }
@@ -976,7 +1026,7 @@ public abstract class Char extends Actor {
                 b.set(dmg, Sickle.HarvestBleedTracker.class);
                 b.attachTo(this);
                 sprite.showStatus(CharSprite.WARNING, Messages.titleCase(b.name()) + " " + (int) b.level());
-                return;
+                return new DamageResult(info.getBaseDamage(), Math.max(0, dmg), 0, 0, 0, 0, false);
             }
         }
 
@@ -988,12 +1038,41 @@ public abstract class Char extends Actor {
             dmg = (int) Math.ceil(dmg * buff.damageTakenFactor());
         }
 
-        Class<?> srcClass = src.getClass();
-        if (damageType != DamageType.TRUE) {
-            if (isImmune(srcClass)) {
+        // 伤害类型抗性：按 DamageType 的新层 + 现有基于来源类的旧层（乘算）
+        int resistanceBlocked = 0;
+        boolean immuneHit = false;
+        if (damageType == DamageType.MIXED && info.isMixed() && info.getMixed() != null) {
+            // 混合伤害：按各成分分别判定免疫/抗性后加权
+            int before = dmg;
+            float remaining = 0f;
+            MixedDamage md = info.getMixed();
+            boolean allImmune = true;
+            for (int i = 0; i < md.size(); i++) {
+                DamageType compType = md.typeAt(i);
+                float pct = md.percentAt(i);
+                if (isImmuneTo(compType) || isImmune(src.getClass())) {
+                    continue; // 该成分被完全抵挡
+                }
+                allImmune = false;
+                remaining += pct * resistanceTo(compType) * resist(src.getClass());
+            }
+            if (allImmune) {
+                resistanceBlocked = dmg;
                 dmg = 0;
+                immuneHit = true;
             } else {
-                dmg = Math.round(dmg * resist(srcClass));
+                dmg = Math.round(dmg * remaining);
+                resistanceBlocked = Math.max(0, before - dmg);
+            }
+        } else if (damageType != DamageType.TRUE) {
+            if (isImmuneTo(damageType) || isImmune(src.getClass())) {
+                resistanceBlocked = dmg;
+                dmg = 0;
+                immuneHit = true;
+            } else {
+                int before = dmg;
+                dmg = Math.round(dmg * resistanceTo(damageType) * resist(src.getClass()));
+                resistanceBlocked = Math.max(0, before - dmg);
             }
         }
 
@@ -1039,6 +1118,7 @@ public abstract class Char extends Actor {
             }
         }
 
+        int hpBefore = HP;
         if (this.buff(ImmortalShieldAffecter.ImmortalShield.class) == null) {
             HP -= Math.max(dmg, 0);
 
@@ -1068,6 +1148,13 @@ public abstract class Char extends Actor {
             }
         }
 
+        // 角色最终伤害事件（伤害减免计算后）：携带实际造成的伤害
+        int dealt = Math.max(0, hpBefore - Math.max(0, HP));
+        if (dealt > 0) {
+            Char attacker = src instanceof Char ? (Char) src : null;
+            EventManager.emit(new CharFinalDamageEvent(this, attacker, src, dealt, damageType));
+        }
+
         if (HP < 0 && src instanceof Char && alignment == Alignment.ENEMY) {
             if (((Char) src).buff(Kinetic.KineticTracker.class) != null) {
                 int dmgToAdd = -HP;
@@ -1082,44 +1169,33 @@ public abstract class Char extends Actor {
 
 
         if (sprite != null) {
-            //defaults to normal damage icon if no other ones apply
-            int icon = damageType.getFloatingTextIcon();
-            if (NO_ARMOR_PHYSICAL_SOURCES.contains(src.getClass())) icon = FloatingText.PHYS_DMG_NO_BLOCK;
-            if (AntiMagic.RESISTS.contains(src.getClass())) icon = FloatingText.MAGIC_DMG;
-            if (src instanceof WetEnchantment.WetMagicDamage) icon = FloatingText.MAGIC_DMG;
-            if (src instanceof Pickaxe) icon = FloatingText.PICK_DMG;
+            // 图标以 DamageType 为准（含暴击）；以下仅保留 DamageType 无法表达的特例
+            if (info.isMixed() && info.getMixed() != null) {
+                // 混合伤害：按成分占比排序，左侧显示多个图标
+                sprite.showStatusWithIcons(CharSprite.NEGATIVE, Integer.toString(dmg + shielded), info.getFloatingTextIcons());
+            } else {
+                int icon = info.getFloatingTextIcon();
+                if (damageType == DamageType.PHYSICAL) {
+                    // 狙击手远程攻击无视护甲
+                    if (src == hero
+                            && hero.subClass == HeroSubClass.SNIPER
+                            && !Dungeon.level.adjacent(hero.pos, pos)
+                            && hero.belongings.attackingWeapon() instanceof MissileWeapon) {
+                        icon = FloatingText.PHYS_DMG_NO_BLOCK;
+                    }
+                    if (src instanceof WhiteKingGodSword.OnlyOneEyeAttack) icon = FloatingText.PHYS_DMG_NO_BLOCK;
+                }
+                // 抗魔法刻印抵抗的来源类（与 DamageType 不完全一一对应，保留）
+                if (AntiMagic.RESISTS.contains(src.getClass())) icon = FloatingText.MAGIC_DMG;
+                if (src instanceof Deminion.DeminionCritClass) icon = FloatingText.CRIT_NO_BLOCK;
 
-            //special case for sniper when using ranged attacks
-            if (src == hero
-                    && hero.subClass == HeroSubClass.SNIPER
-                    && !Dungeon.level.adjacent(hero.pos, pos)
-                    && hero.belongings.attackingWeapon() instanceof MissileWeapon) {
-                icon = FloatingText.PHYS_DMG_NO_BLOCK;
+                sprite.showStatusWithIcon(CharSprite.NEGATIVE, Integer.toString(dmg + shielded), icon);
             }
-            if (src instanceof WhiteKingGodSword.OnlyOneEyeAttack) icon = FloatingText.PHYS_DMG_NO_BLOCK;
-            if (src instanceof Hunger) icon = FloatingText.HUNGER;
-            if (src instanceof Burning) icon = FloatingText.BURNING;
-            if (src instanceof Chill || src instanceof Frost) icon = FloatingText.FROST;
-            if (src instanceof GeyserTrap || src instanceof StormCloud) icon = FloatingText.WATER;
-            if (src instanceof Burning) icon = FloatingText.BURNING;
-            if (src instanceof Electricity) icon = FloatingText.SHOCKING;
-            if (src instanceof Bleeding) icon = FloatingText.BLEEDING;
-            if (src instanceof ToxicGas) icon = FloatingText.TOXIC;
-            if (src instanceof Corrosion) icon = FloatingText.CORROSION;
-            if (src instanceof Poison) icon = FloatingText.POISON;
-            if (src instanceof Ooze) icon = FloatingText.OOZE;
-            if (src instanceof Viscosity.DeferedDamage) icon = FloatingText.DEFERRED;
-            if (src instanceof Corruption) icon = FloatingText.CORRUPTION;
-            if (src instanceof AscensionChallenge) icon = FloatingText.AMULET;
-
-            if (src instanceof CritClass) icon = FloatingText.CRIT;
-            if (src instanceof NoArmorCritClass) icon = FloatingText.CRIT_NO_BLOCK;
-            if (src instanceof Deminion.DeminionCritClass) icon = FloatingText.CRIT_NO_BLOCK;
-
-            sprite.showStatusWithIcon(CharSprite.NEGATIVE, Integer.toString(dmg + shielded), icon);
         }
 
         if (HP < 0) HP = 0;
+        lastDamageType = damageType;
+        lastDamageCauseChain = info.getCauseChain();
 
         if (!isAlive()) {
             die(src);
@@ -1127,7 +1203,8 @@ public abstract class Char extends Actor {
             DeathMark.processFearTheReaper(this);
         }
 
-
+        int hpDamage = Math.max(0, hpBefore - Math.max(0, HP));
+        return new DamageResult(info.getBaseDamage(), info.getDamage(), armorBlocked, resistanceBlocked, shielded, hpDamage, immuneHit);
     }
 
     /** NPCs are invulnerable by default; special NPCs can opt into combat damage. */
@@ -1135,27 +1212,11 @@ public abstract class Char extends Actor {
         return !properties.contains(Property.NPC);
     }
 
-    //these are misc. sources of physical damage which do not apply armor, they get a different icon
-    private static HashSet<Class> NO_ARMOR_PHYSICAL_SOURCES = new HashSet<>();
+    /** 最近一次受到伤害的 DamageType，供 die() 死亡特效等使用（避免 fromSource 类名猜测）。 */
+    public DamageType lastDamageType = DamageType.PHYSICAL;
 
-    public static boolean isNoArmorPhysicalSource(Class<?> sourceClass) {
-        return NO_ARMOR_PHYSICAL_SOURCES.contains(sourceClass);
-    }
-
-    {
-        NO_ARMOR_PHYSICAL_SOURCES.add(CrystalSpire.SpireSpike.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(GnollGeomancer.Boulder.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(GnollGeomancer.GnollRockFall.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(GnollRockfallTrap.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(DwarfKing.KingDamager.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(DwarfKing.Summoning.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(LifeLink.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(Chasm.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(WandOfBlastWave.Knockback.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(Heap.class); //damage from wraiths attempting to spawn from heaps
-        NO_ARMOR_PHYSICAL_SOURCES.add(Necromancer.SummoningBlockDamage.class);
-        NO_ARMOR_PHYSICAL_SOURCES.add(DriedRose.GhostHero.NoRoseDamage.class);
-    }
+    /** 最近一次受到伤害的来源链（有序因果对象），供 die()/死亡信息追踪使用。 */
+    public List<Object> lastDamageCauseChain = new ArrayList<>();
 
     public void destroy() {
         HP = 0;
@@ -1469,6 +1530,68 @@ public abstract class Char extends Actor {
         return false;
     }
 
+    // ========== 按 DamageType 的伤害抗性层 ==========
+    // 用于伤害管线。状态/时长抗性仍走上面的 resist(Class)/isImmune(Class)。
+
+    /** 按伤害类型的百分比减免（0 表示无减免，0.5 表示减半，1 表示免疫）。 */
+    protected final HashMap<DamageType, Float> typeResistances = new HashMap<>();
+
+    /** 按伤害类型的免疫集合。 */
+    protected final HashSet<DamageType> typeImmunities = new HashSet<>();
+
+    /** 汇总本角色按伤害类型的抗性（含 Property 与 Buff 贡献）。 */
+    public HashMap<DamageType, Float> typeResistances() {
+        HashMap<DamageType, Float> out = new HashMap<>(typeResistances);
+        for (Property p : properties()) {
+            for (Map.Entry<DamageType, Float> e : p.typeResistances().entrySet()) {
+                out.merge(e.getKey(), e.getValue(), Float::min);
+            }
+        }
+        for (Buff b : buffs()) {
+            for (Map.Entry<DamageType, Float> e : b.typeResistances().entrySet()) {
+                out.merge(e.getKey(), e.getValue(), Float::min);
+            }
+        }
+        return out;
+    }
+
+    /** 汇总本角色按伤害类型的免疫（含 Property 与 Buff 贡献）。 */
+    public HashSet<DamageType> typeImmunities() {
+        HashSet<DamageType> out = new HashSet<>(typeImmunities);
+        for (Property p : properties()) {
+            out.addAll(p.typeImmunities());
+        }
+        for (Buff b : buffs()) {
+            out.addAll(b.typeImmunities());
+        }
+        return out;
+    }
+
+    /**
+     * 按伤害类型返回减免系数（0..1）。TRUE 不经过本方法。
+     */
+    public float resistanceTo(DamageType type) {
+        float result = 1f;
+        for (Map.Entry<DamageType, Float> e : typeResistances().entrySet()) {
+            if (e.getKey() == type) {
+                result *= clampEffectiveness(e.getValue());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 按伤害类型判定免疫。TRUE 不经过本方法。
+     */
+    public boolean isImmuneTo(DamageType type) {
+        return typeImmunities().contains(type);
+    }
+
+    private static float clampEffectiveness(float v) {
+        if (v <= 0f) return 0f;
+        return Math.min(1f, v);
+    }
+
     //similar to isImmune, but only factors in damage.
     //Is used in AI decision-making
     public boolean isInvulnerable(Class effect) {
@@ -1498,15 +1621,18 @@ public abstract class Char extends Actor {
 
         INORGANIC(new HashSet<Class>(),
                 new HashSet<Class>(Arrays.asList(Bleeding.class, ToxicGas.class, Poison.class))),
-        FIERY(new HashSet<Class>(Arrays.asList(WandOfFireblast.class, Elemental.FireElemental.class)),
-                new HashSet<Class>(Arrays.asList(Burning.class, Blazing.class))),
-        ICY(new HashSet<Class>(Arrays.asList(WandOfFrost.class, Elemental.FrostElemental.class)),
-                new HashSet<Class>(Arrays.asList(Frost.class, Chill.class))),
-        ACIDIC(new HashSet<Class>(Arrays.asList(Corrosion.class)),
-                new HashSet<Class>(Arrays.asList(Ooze.class))),
-        ELECTRIC(new HashSet<Class>(Arrays.asList(WandOfLightning.class, Shocking.class, Potential.class,
-                Electricity.class, ShockingDart.class, Elemental.ShockElemental.class)),
-                new HashSet<Class>()),
+        FIERY(new HashSet<Class>(),
+                new HashSet<Class>(Arrays.asList(Burning.class, Blazing.class)),
+                typeRes(DamageType.FIRE)),
+        ICY(new HashSet<Class>(),
+                new HashSet<Class>(Arrays.asList(Frost.class, Chill.class)),
+                typeRes(DamageType.FROST)),
+        ACIDIC(new HashSet<Class>(),
+                new HashSet<Class>(Arrays.asList(Ooze.class)),
+                typeRes(DamageType.CORROSIVE)),
+        ELECTRIC(new HashSet<Class>(),
+                new HashSet<Class>(),
+                typeRes(DamageType.LIGHTNING)),
         LARGE,
         IMMOVABLE(new HashSet<Class>(),
                 new HashSet<Class>(Arrays.asList(Vertigo.class))),
@@ -1522,6 +1648,8 @@ public abstract class Char extends Actor {
 
         private HashSet<Class> resistances;
         private HashSet<Class> immunities;
+        private HashMap<DamageType, Float> typeResistances = new HashMap<>();
+        private HashSet<DamageType> typeImmunities = new HashSet<>();
 
         Property() {
             this(new HashSet<Class>(), new HashSet<Class>());
@@ -1532,12 +1660,33 @@ public abstract class Char extends Actor {
             this.immunities = immunities;
         }
 
+        Property(HashSet<Class> resistances, HashSet<Class> immunities, HashMap<DamageType, Float> typeResistances) {
+            this.resistances = resistances;
+            this.immunities = immunities;
+            this.typeResistances = typeResistances;
+        }
+
+        /** 构造一个按 DamageType 的 50% 减免表（元素抗性迁移用）。 */
+        private static HashMap<DamageType, Float> typeRes(DamageType t) {
+            HashMap<DamageType, Float> m = new HashMap<>();
+            m.put(t, 0.5f);
+            return m;
+        }
+
         public HashSet<Class> resistances() {
             return new HashSet<>(resistances);
         }
 
         public HashSet<Class> immunities() {
             return new HashSet<>(immunities);
+        }
+
+        public HashMap<DamageType, Float> typeResistances() {
+            return new HashMap<>(typeResistances);
+        }
+
+        public HashSet<DamageType> typeImmunities() {
+            return new HashSet<>(typeImmunities);
         }
 
     }

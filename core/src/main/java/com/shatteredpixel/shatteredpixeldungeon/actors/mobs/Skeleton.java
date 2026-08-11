@@ -24,6 +24,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -74,7 +76,7 @@ public class Skeleton extends Mob {
 				damage = Math.round( damage * AscensionChallenge.statModifier(this));
 				//armor is 2x effective against bone explosion
 				damage = Math.max( 0,  damage - (ch.drRoll() + ch.drRoll()) );
-				ch.damage( damage, this );
+				ch.damage( DamageInfo.of(damage, DamageType.PHYSICAL, this, this) );
 				if (ch == Dungeon.hero && !ch.isAlive()) {
 					heroKilled = true;
 				}

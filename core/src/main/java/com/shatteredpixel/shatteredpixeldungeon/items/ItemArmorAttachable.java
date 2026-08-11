@@ -132,8 +132,13 @@ public abstract class ItemArmorAttachable extends Item {
 	public void detachFromArmor(Hero hero) {
 		if (attachedTo != null) {
 			Armor armor = attachedTo;
-			int index = armor.getToys().indexOf(this);
-			armor.detachToy(index);
+			if (this instanceof BrokenSeal) {
+				// 破损纹章卸下时需要返还升级并（如果有天赋）携带附魔
+				armor.detachSeal(hero);
+			} else {
+				int index = armor.getToys().indexOf(this);
+				armor.detachToy(index);
+			}
 			armor.dropExcessToysAfterCapacityChange(hero);
 			if (hero != null && !hero.belongings.backpack.contains(this)) {
 				collect(hero.belongings.backpack);

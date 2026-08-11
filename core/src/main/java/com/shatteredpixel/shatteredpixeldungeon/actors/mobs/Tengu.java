@@ -20,6 +20,8 @@
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
@@ -130,10 +132,12 @@ public class Tengu extends Mob {
 	}
 
 	@Override
-	public void damage(int dmg, Object src) {
+	public void damage(DamageInfo info) {
 		if (!Dungeon.level.mobs.contains(this)){
 			return;
 		}
+		int dmg = info.getDamage();
+		Object src = info.getSource();
 
 		PrisonBossLevel.State state = ((PrisonBossLevel)Dungeon.level).state();
 		
@@ -142,7 +146,7 @@ public class Tengu extends Mob {
 		int curbracket = HP / hpBracket;
 
 		int beforeHitHP = HP;
-		super.damage(dmg, src);
+		super.damage(info);
 
 		// In the starting arena, crossing half health is the phase transition
 		// and must be locked at exactly half health, even when a single hit
@@ -637,7 +641,7 @@ public class Tengu extends Mob {
 							dmg -= ch.drRoll();
 
 							if (dmg > 0) {
-								ch.damage(dmg, Bomb.class);
+								ch.damage(DamageInfo.of(dmg, DamageType.FIRE, null, Bomb.class));
 							}
 
 							if (ch == Dungeon.hero){
@@ -871,7 +875,7 @@ public class Tengu extends Mob {
 
 							//similar to fire.burn(), but Tengu is immune, and hero loses score
 							Char ch = Actor.findChar( cell );
-							if (ch != null && !ch.isImmune(Fire.class) && !(ch instanceof Tengu)) {
+							if (ch != null && !ch.isImmuneTo(DamageType.FIRE) && !(ch instanceof Tengu)) {
 								Buff.affect( ch, Burning.class ).reignite( ch );
 							}
 							if (ch == Dungeon.hero){
@@ -1067,7 +1071,7 @@ public class Tengu extends Mob {
 							
 							Char ch = Actor.findChar(cell);
 							if (ch != null && !(ch instanceof Tengu)){
-								ch.damage(2 + Dungeon.scalingDepth(), new Electricity());
+								ch.damage(DamageInfo.of(2 + Dungeon.scalingDepth(), DamageType.LIGHTNING, null, new Electricity()));
 								
 								if (ch == Dungeon.hero){
 									Statistics.qualifiedForBossChallengeBadge = false;

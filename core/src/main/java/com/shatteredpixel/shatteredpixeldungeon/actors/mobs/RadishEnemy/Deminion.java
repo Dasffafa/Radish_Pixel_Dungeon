@@ -102,7 +102,6 @@ public class Deminion extends Mob {
             if (enemy.buff(AfterImage.Blur.class)!=null){
                 enemy.buff(AfterImage.Blur.class).gainDodge();
             }
-            int dr = OrdinaryAttackDamage.rollDefenseReduction(this, enemy, true);
 
             OrdinaryAttackDamage.DamageRoll damageRoll = OrdinaryAttackDamage.rollBaseDamage(this);
             OrdinaryAttackDamage.CriticalRoll criticalRoll = OrdinaryAttackDamage.rollCritical(this, enemy, damageRoll.damage);
@@ -114,7 +113,7 @@ public class Deminion extends Mob {
 
             // created by DoggingDog on 20240718
             // for Torturer using
-            effectiveDamage = Math.max( effectiveDamage - dr, 0 );
+            // 护甲 DR 已移入 DamagePipeline「应用护甲」阶段，此处不再扣除
 
             if (enemy.buff(Viscosity.ViscosityTracker.class) != null){
                 effectiveDamage = enemy.buff(Viscosity.ViscosityTracker.class).deferDamage(effectiveDamage);
@@ -150,7 +149,7 @@ public class Deminion extends Mob {
 
                 enemy.damage(firstAttackDamage.copy());
 
-                enemy.damage(8, new DeminionCritClass());
+                enemy.damage(DamageInfo.of(8, DamageType.TRUE, this, new DeminionCritClass()));
             } else {
                 enemy.damage(firstAttackDamage);
             }
@@ -197,7 +196,7 @@ public class Deminion extends Mob {
                     enemy.die(this);
                 } else {
                     //helps with triggering any on-damage effects that need to activate
-                    enemy.damage(-1, this);
+                    enemy.damage(DamageInfo.of(-1, DamageType.TRUE, this, this));
                     DeathMark.processFearTheReaper(enemy);
                 }
                 enemy.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(Preparation.class, "assassinated"));
@@ -254,10 +253,10 @@ public class Deminion extends Mob {
 
             if(enemy.buff(Sigil.class) != null){
                 Buff.prolong(enemy, Sigil.class, Sigil.DURATION);
-                enemy.damage(dmg, new MagicMissile());
-                enemy.damage(8, new DeminionCritClass());
+                enemy.damage(DamageInfo.of(dmg, DamageType.MAGICAL, this, new MagicMissile()));
+                enemy.damage(DamageInfo.of(8, DamageType.TRUE, this, new DeminionCritClass()));
             } else {
-                enemy.damage(dmg, new MagicMissile());
+                enemy.damage(DamageInfo.of(dmg, DamageType.MAGICAL, this, new MagicMissile()));
                 Buff.prolong(enemy,Sigil.class,Sigil.DURATION);
             }
             

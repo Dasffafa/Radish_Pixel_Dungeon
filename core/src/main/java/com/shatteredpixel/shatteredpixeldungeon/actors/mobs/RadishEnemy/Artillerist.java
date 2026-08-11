@@ -18,6 +18,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.damage.OrdinaryAttackDamage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
@@ -111,7 +112,6 @@ public class Artillerist extends Mob {
             if (enemy.buff(AfterImage.Blur.class)!=null){
                 enemy.buff(AfterImage.Blur.class).gainDodge();
             }
-            int dr = OrdinaryAttackDamage.rollDefenseReduction(this, enemy, true);
 
             OrdinaryAttackDamage.DamageRoll damageRoll = OrdinaryAttackDamage.rollBaseDamage(this);
             OrdinaryAttackDamage.CriticalRoll criticalRoll = OrdinaryAttackDamage.rollCritical(this, enemy, damageRoll.damage);
@@ -119,7 +119,7 @@ public class Artillerist extends Mob {
             DamageInfo attackDamage = OrdinaryAttackDamage.build(this, enemy, Math.round(criticalRoll.damage), criticalRoll.critical,
                     criticalRoll.multiplier, dmgMulti, dmgBonus);
 
-            int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage, dr);
+            int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage);
 
             if (visibleFight) {
                 if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
@@ -147,7 +147,7 @@ public class Artillerist extends Mob {
                     enemy.die(this);
                 } else {
                     //helps with triggering any on-damage effects that need to activate
-                    enemy.damage(-1, this);
+                    enemy.damage(DamageInfo.of(-1, DamageType.TRUE, this, this));
                     DeathMark.processFearTheReaper(enemy);
                 }
                 enemy.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(Preparation.class, "assassinated"));
@@ -202,18 +202,18 @@ public class Artillerist extends Mob {
         CellEmitter.get(cell).burst(SmokeParticle.FACTORY, 4);
         if(Dungeon.hero != null){
             if(Dungeon.hero.pos == cell){
-                Dungeon.hero.damage(dmg,new Bomb());
+                Dungeon.hero.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, null, new Bomb()));
             }
         }
         for(int c: PathFinder.NEIGHBOURS4){
             CellEmitter.get(cell+c).burst(BlastParticle.FACTORY, 20);
             Mob mob = Dungeon.level.findMob(cell+c);
             if(mob != null){
-                mob.damage(dmg,new Bomb());
+                mob.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, this, new Bomb()));
             }
             if(Dungeon.hero != null){
                 if(Dungeon.hero.pos == cell + c){
-                    Dungeon.hero.damage(dmg,new Bomb());
+                    Dungeon.hero.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, null, new Bomb()));
                 }
             }
         }

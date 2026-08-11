@@ -117,7 +117,20 @@ public class TengusMask extends Item {
 				@Override
 				public void hide() {
 					super.hide();
-					ShatteredPixelDungeon.seamlessResetScene();
+					// 转职时若已有累积的三层天赋点，切换场景后一口气让玩家选择完
+					boolean pending = com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageTalentChoice.canShow();
+					ShatteredPixelDungeon.seamlessResetScene(new com.watabou.noosa.Game.SceneChangeCallback() {
+						@Override
+						public void beforeCreate() {
+						}
+						@Override
+						public void afterCreate() {
+							if (pending) {
+								com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+										new com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageTalentChoice());
+							}
+						}
+					});
 				}
 			};
 			GameScene.show(msg);

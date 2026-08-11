@@ -26,6 +26,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
@@ -344,7 +346,7 @@ public class WandOfWarding extends Wand {
 			//always hits
 			int dmg = Char.combatRoll( 2 + wandLevel, 8 + 4*wandLevel );
 			Char enemy = this.enemy;
-			enemy.damage( dmg, this );
+			enemy.damage( DamageInfo.of( dmg, DamageType.MAGICAL, this, this ) );
 			if (enemy.isAlive()){
 				Wand.wandProc(enemy, wandLevel, 1);
 			}
@@ -363,13 +365,13 @@ public class WandOfWarding extends Wand {
 					}
 					break;
 				case 4:
-					damage(5, this);
+					damage(DamageInfo.of(5, DamageType.PHYSICAL, this, this));
 					break;
 				case 5:
-					damage(6, this);
+					damage(DamageInfo.of(6, DamageType.PHYSICAL, this, this));
 					break;
 				case 6:
-					damage(7, this);
+					damage(DamageInfo.of(7, DamageType.PHYSICAL, this, this));
 					break;
 			}
 		}

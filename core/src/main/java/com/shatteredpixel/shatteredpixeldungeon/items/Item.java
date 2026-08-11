@@ -616,6 +616,20 @@ public class Item implements Bundlable {
 		return desc();
 	}
 
+	public final String displayInfo() {
+		if (SnakeBiteChallengeManager.shouldReplaceItemText(this)) {
+			return Messages.getSnakeBiteItemDescription();
+		}
+		return info();
+	}
+
+	public final String displayDesc() {
+		if (SnakeBiteChallengeManager.shouldReplaceItemText(this)) {
+			return Messages.getSnakeBiteItemDescription();
+		}
+		return desc();
+	}
+
 	public String desc() {
 		return Messages.get(this, "desc");
 	}

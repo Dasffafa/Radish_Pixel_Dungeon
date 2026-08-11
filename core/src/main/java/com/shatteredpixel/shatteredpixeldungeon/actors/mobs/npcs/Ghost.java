@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FetidRat;
@@ -56,11 +57,6 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 public class Ghost extends NPC {
-
-	@Override
-	protected boolean isDamageable() {
-		return true;
-	}
 
 	{
 		spriteClass = GhostSprite.class;
@@ -114,8 +110,8 @@ public class Ghost extends NPC {
 	}
 
 	@Override
-	public void damage( int dmg, Object src ) {
-		super.damage(dmg, src);
+	public void damage( DamageInfo info ) {
+		//任务 NPC（Sad Ghost）：免疫所有伤害
 	}
 
 	@Override

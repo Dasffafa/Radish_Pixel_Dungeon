@@ -32,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeMana
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Adrenaline;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
@@ -101,7 +103,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Beecomb;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Rlyeh;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
@@ -783,33 +784,7 @@ public abstract class Mob extends Char {
 		@Override
 		public int defenseProc( Char enemy, int damage ) {
 
-			// 拉莱耶文本反弹：怪物持有 Rlyeh 时，玩家攻击怪物可能触发反弹
-			if (enemy instanceof Hero) {
-				if (hero.belongings.weapon() instanceof Rlyeh) {
-					Rlyeh rlyeh = (Rlyeh) hero.belongings.weapon();
-					if (rlyeh.chance()) {
-						// 触发反弹：攻击者（玩家）身上显示诅咒特效 + 受到伤害
-						enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
-						Sample.INSTANCE.play(Assets.Sounds.CURSED);
-						enemy.damage(rlyeh.damageRoll(this), rlyeh);
-						// 怪物不受伤，不显示伤害数字
-						return 0;
-					}
-				} else {
-					// 检查是否有持有 Rlyeh 的雕像
-					for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-						if (mob instanceof Statue && ((Statue) mob).weapon instanceof Rlyeh) {
-							Rlyeh rlyeh = (Rlyeh) ((Statue) mob).weapon;
-							if (rlyeh.chance()) {
-								enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
-								Sample.INSTANCE.play(Assets.Sounds.CURSED);
-								enemy.damage(rlyeh.damageRoll(this), rlyeh);
-								return 0;
-							}
-						}
-					}
-				}
-			}
+			// 拉莱耶反弹已迁移至 Rlyeh 订阅 AttackEvent 处理
 
 			if (enemy instanceof Hero
 					&& ((Hero) enemy).belongings.attackingWeapon() instanceof MissileWeapon){
@@ -912,7 +887,8 @@ public abstract class Mob extends Char {
 	}
 
 	@Override
-	public void damage( int dmg, Object src ) {
+	public void damage( DamageInfo info ) {
+		Object src = info.getSource();
 		if (!isInvulnerable(src.getClass())) {
 			if (state == SLEEPING) {
 				state = WANDERING;
@@ -923,10 +899,10 @@ public abstract class Mob extends Char {
 		}
 
 		if(buff(HolyLowBurinng.class) !=null || buff(HalomethaneBurning.class)!=null){
-			dmg *= 1.3f;
+			info.addFinalMultModifier(1.3f, "holy burn");
 		}
 
-		super.damage( dmg, src );
+		super.damage( info );
 	}
 
 
@@ -1008,8 +984,7 @@ public abstract class Mob extends Char {
 				&& Dungeon.hero.subClass == HeroSubClass.DICE_MAGE
 				&& sprite != null
 				&& sprite.parent != null) {
-			com.shatteredpixel.shatteredpixeldungeon.damage.DamageType dmgType = 
-				com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.fromSource(cause);
+			com.shatteredpixel.shatteredpixeldungeon.damage.DamageType dmgType = this.lastDamageType;
 			
 			// 根据伤害类型选择 shader
 			com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType shaderType = null;
@@ -1064,7 +1039,7 @@ public abstract class Mob extends Char {
 			for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
 				if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]) {
 					CellEmitter.center( mob.pos ).start( ShadowParticle.UP, 0.05f, 10 );
-					mob.damage(mob.EXP, new DM100.LightningBolt() );
+					mob.damage(DamageInfo.of(mob.EXP, DamageType.LIGHTNING, this, new DM100.LightningBolt()));
 				}
 				if(hero.hasTalent(Talent.BLACK_LOVE)){
 					Buff.affect(mob, Bleeding.class).set(2 * hero.pointsInTalent(Talent.BLACK_LOVE));

@@ -25,6 +25,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
@@ -124,7 +126,7 @@ public abstract class Shaman extends Mob {
 			
 			int dmg = Char.combatRoll( 6, 15 );
 			dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
-			enemy.damage( dmg, new EarthenBolt() );
+			enemy.damage( DamageInfo.of(dmg, DamageType.MAGICAL, this, new EarthenBolt()) );
 			
 			if (!enemy.isAlive() && enemy == Dungeon.hero) {
 				Badges.validateDeathFromEnemyMagic();

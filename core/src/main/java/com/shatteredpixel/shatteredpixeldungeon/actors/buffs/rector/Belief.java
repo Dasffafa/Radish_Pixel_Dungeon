@@ -24,6 +24,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -161,7 +163,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                         mob.sprite.parent.add(new Lightning(new PointF(x-5f, y), new PointF( x-5f, y-300f),null));
                         mob.sprite.parent.add(new Lightning(new PointF(x+5f, y), new PointF( x+5f, y-300f),null));
                         Sample.INSTANCE.play( Assets.Sounds.LIGHTNING, 1.5f);
-                        mob.damage(altFixedDamage + altFixedDamagePlus, this);
+                        mob.damage(DamageInfo.of(altFixedDamage + altFixedDamagePlus, DamageType.LIGHTNING, null, this));
                         mob.sprite.centerEmitter().burst( SparkParticle.FACTORY, 32 );
                         mob.sprite.flash();
                     } else {

@@ -26,6 +26,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -148,7 +150,7 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     private boolean kickEnemy(Hero hero, Char enemy) {
         // 造成少量伤害（1-3点）
         int damage = Random.NormalIntRange(1, 3);
-        enemy.damage(damage, this);
+        enemy.damage(DamageInfo.of(damage, DamageType.PHYSICAL, hero, this));
 
         // 计算击退方向（从英雄指向敌人）
         int dx = enemy.pos % Dungeon.level.width() - hero.pos % Dungeon.level.width();

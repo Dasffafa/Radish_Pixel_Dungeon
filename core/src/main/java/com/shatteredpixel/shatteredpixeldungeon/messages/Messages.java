@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.DeviceCompat;
+import com.watabou.utils.Bundle;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -75,6 +76,8 @@ public class Messages {
      * Resource grabbing methods
      */
     public static String errorName;
+    private static final String MESSAGE_THEME = "message_theme";
+    private static String theme = "";
     private static ArrayList<I18NBundle> bundles;
     private static Languages lang;
     private static Locale locale;
@@ -109,6 +112,35 @@ public class Messages {
 
     public static Locale locale() {
         return locale;
+    }
+
+    public static void useTheme(String suffix) {
+        if (suffix == null || suffix.trim().isEmpty()) {
+            theme = "";
+        } else {
+            theme = suffix.startsWith(".") ? suffix : "." + suffix;
+        }
+    }
+
+    public static String theme() {
+        return theme;
+    }
+
+    public static void storeInBundle(Bundle bundle) {
+        bundle.put(MESSAGE_THEME, theme);
+    }
+
+    public static boolean restoreFromBundle(Bundle bundle) {
+        if (!bundle.contains(MESSAGE_THEME)) return false;
+        useTheme(bundle.getString(MESSAGE_THEME));
+        return true;
+    }
+
+    public static String findVariant(String key, Object... args) {
+        String value = findVariantValue(key);
+        if (value == null) value = getFromBundle(key.toLowerCase(Locale.CHINESE));
+        if (value == null) return NO_TEXT_FOUND;
+        return args.length > 0 ? format(value, args) : value;
     }
 
     public static void setup(Languages lang) {
@@ -155,17 +187,13 @@ public class Messages {
         String keyLower = key.toLowerCase(Locale.CHINESE);
         String localKey = k != null ? k.toLowerCase(Locale.CHINESE) : null;
 
+        String variantValue = findVariantValue(key);
+        if (variantValue != null) {
+            return args.length > 0 ? format(variantValue, args) : variantValue;
+        }
+
         if (keyLower.startsWith("items.") && localKey != null) {
             if (SnakeBiteChallengeManager.shouldReplaceItemText()) {
-                // First check if key.snake_bite exists (for special overrides)
-                String specialSnakeKey = key + ".snake_bite";
-                String specialValue = getFromBundle(specialSnakeKey.toLowerCase(Locale.CHINESE));
-                if (specialValue != null) {
-                    if (args.length > 0) return format(specialValue, args);
-                    else return specialValue;
-                }
-
-                // Then apply normal transformation logic
                 String snakeItemKey = getSnakeBiteItemKey(key, localKey);
                 if (snakeItemKey != null) {
                     String snakeValue = getFromBundle(snakeItemKey.toLowerCase(Locale.CHINESE));
@@ -175,25 +203,20 @@ public class Messages {
                     }
                 }
             }
-            // Transform mobs
-            else if (keyLower.startsWith("actors.mobs.")) {
-                if (SnakeBiteChallengeManager.shouldReplaceMobText()) {
-                    String snakeMobKey = getSnakeBiteMobKey(key, localKey);
-                    if (snakeMobKey != null) {
-                        String snakeValue = getFromBundle(snakeMobKey.toLowerCase(Locale.CHINESE));
-                        if (snakeValue != null) {
-                            if (args.length > 0) return format(snakeValue, args);
-                            else return snakeValue;
-                        }
-                    }
+        } else if (keyLower.startsWith("actors.mobs.") && localKey != null
+                && SnakeBiteChallengeManager.shouldReplaceMobText()) {
+            String snakeMobKey = getSnakeBiteMobKey(key, localKey);
+            if (snakeMobKey != null) {
+                String snakeValue = getFromBundle(snakeMobKey.toLowerCase(Locale.CHINESE));
+                if (snakeValue != null) {
+                    if (args.length > 0) return format(snakeValue, args);
+                    else return snakeValue;
                 }
             }
         }
 
         String value = getFromBundle(key.toLowerCase(Locale.CHINESE));
         if (value != null) {
-            // 骰子法师模式：将无法渲染的"祛"替换为"驱"
-            value = fixTannFontChars(value);
             if (args.length > 0) return format(value, args);
             else return value;
         } else {
@@ -218,6 +241,16 @@ public class Messages {
             }
 
         }
+    }
+
+    private static String findVariantValue(String key) {
+        if (theme.isEmpty() || key == null) return null;
+        String keyLower = key.toLowerCase(Locale.CHINESE);
+        if (theme.equals(".snake_bite")) {
+            if (keyLower.startsWith("items.") && !SnakeBiteChallengeManager.shouldReplaceItemText()) return null;
+            if (keyLower.startsWith("actors.mobs.") && !SnakeBiteChallengeManager.shouldReplaceMobText()) return null;
+        }
+        return getFromBundle((key + theme).toLowerCase(Locale.CHINESE));
     }
 
     /**
@@ -254,6 +287,11 @@ public class Messages {
             return "items.snake_bite.empty";
         }
         return null;
+    }
+
+    public static String getSnakeBiteItemDescription() {
+        String value = getFromBundle("items.snake_bite.desc");
+        return value != null ? value : NO_TEXT_FOUND;
     }
 
     /**
@@ -337,16 +375,5 @@ public class Messages {
 
     public static String lowerCase(String str) {
         return str.toLowerCase(locale);
-    }
-
-    /**
-     * 修复 TannFont 无法渲染的字符（骰子法师模式）
-     * 将"祛"替换为"驱"
-     */
-    private static String fixTannFontChars(String text) {
-        if (UITheme.isDiceMage() && lang == Languages.CHINESE) {
-            return text.replace("祛", "驱");
-        }
-        return text;
     }
 }

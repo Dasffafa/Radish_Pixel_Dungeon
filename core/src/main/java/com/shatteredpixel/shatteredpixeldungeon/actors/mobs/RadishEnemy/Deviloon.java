@@ -1,4 +1,5 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -80,7 +81,7 @@ public class Deviloon extends Mob {
         lootChance = 0.20f;
     }
     {
-        resistances.add( WandOfFireblast.class );
+        typeResistances.put(DamageType.FIRE, 0.5f);
     }
 
     HashSet<BlastRune> blastRunes = new HashSet<>();
@@ -318,7 +319,6 @@ public class Deviloon extends Mob {
             if (enemy.buff(AfterImage.Blur.class)!=null){
                 enemy.buff(AfterImage.Blur.class).gainDodge();
             }
-            int dr = OrdinaryAttackDamage.rollDefenseReduction(this, enemy, true);
 
             OrdinaryAttackDamage.DamageRoll damageRoll = OrdinaryAttackDamage.rollBaseDamage(this);
             OrdinaryAttackDamage.CriticalRoll criticalRoll = OrdinaryAttackDamage.rollCritical(this, enemy, damageRoll.damage);
@@ -326,7 +326,7 @@ public class Deviloon extends Mob {
             DamageInfo attackDamage = OrdinaryAttackDamage.build(this, enemy, Math.round(criticalRoll.damage), criticalRoll.critical,
                     criticalRoll.multiplier, dmgMulti, dmgBonus);
 
-            int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage, dr);
+            int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage);
 
             if (visibleFight) {
                 if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
@@ -354,7 +354,7 @@ public class Deviloon extends Mob {
                     enemy.die(this);
                 } else {
                     //helps with triggering any on-damage effects that need to activate
-                    enemy.damage(-1, this);
+                    enemy.damage(DamageInfo.of(-1, DamageType.TRUE, this, this));
                     DeathMark.processFearTheReaper(enemy);
                 }
                 enemy.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(Preparation.class, "assassinated"));
@@ -602,7 +602,7 @@ public class Deviloon extends Mob {
                         if(ch.buff(Deminion.Sigil.class)!=null){
                             dmg *= 1.3f;
                         }
-                        ch.damage(dmg, this);
+                        ch.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, Deviloon.this, this));
                     }
                     if (ch == Dungeon.hero && !ch.isAlive()) {
                         GLog.n(Messages.get(this, "ondeath"));

@@ -244,6 +244,7 @@ public class Dungeon {
 
 		initialVersion = version = Game.versionCode;
 		challenges = SPDSettings.challenges();
+		SnakeBiteChallengeManager.initializeMessageTheme();
 		mobsToChampion = -1;
 
 		if (daily) {
@@ -751,6 +752,7 @@ public class Dungeon {
 
 				// Save Snake Bite Manager state
 				SnakeBiteChallengeManager.save(bundle);
+				Messages.storeInBundle(bundle);
 
 				// 保存已生成的楼层（String 格式）
 				String[] levelKeys = generatedLevels.toArray(new String[0]);
@@ -829,6 +831,9 @@ public class Dungeon {
 
 		// Restore Snake Bite Manager state
 		SnakeBiteChallengeManager.restore(bundle);
+		if (!Messages.restoreFromBundle(bundle)) {
+			SnakeBiteChallengeManager.initializeMessageTheme();
+		}
 
 		Dungeon.level = null;
 		Dungeon.depth = -1;

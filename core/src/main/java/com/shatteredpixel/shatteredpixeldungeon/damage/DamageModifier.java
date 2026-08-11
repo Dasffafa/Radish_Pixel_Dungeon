@@ -38,11 +38,14 @@ public class DamageModifier {
 	 * 计算顺序：(((基础 + 直接加算) × 直接乘算) + 最终乘算前加算) × 最终乘算 + 最终加算
 	 */
 	public enum Type {
-		/** 直接加算 - 在乘算前添加 */
+		/** 直接加算 - 在乘算前添加（护甲等平坦扣减） */
 		FLAT_ADDITIVE,
 		
 		/** 直接乘算 - 对加算后的结果乘算 */
 		DIRECT_MULTIPLICATIVE,
+		
+		/** 叠加乘区 - 多个百分比累加后一次乘算（1 + Σ(value-1)） */
+		STACK_MULTIPLICATIVE,
 		
 		/** 最终乘算 - 在最终加算前乘算 */
 		FINAL_MULTIPLICATIVE,
@@ -104,6 +107,16 @@ public class DamageModifier {
 	/** 创建直接乘算modifier（带来源对象） */
 	public static DamageModifier directMult(float value, String source, Object sourceObject) {
 		return new DamageModifier(Type.DIRECT_MULTIPLICATIVE, value, source, sourceObject);
+	}
+
+	/** 创建叠加乘区modifier：value 为乘算值（如 1.5 表示 +50%），同一乘区内百分比累加后一次乘算 */
+	public static DamageModifier stackMult(float value, String source) {
+		return new DamageModifier(Type.STACK_MULTIPLICATIVE, value, source);
+	}
+
+	/** 创建叠加乘区modifier（带来源对象） */
+	public static DamageModifier stackMult(float value, String source, Object sourceObject) {
+		return new DamageModifier(Type.STACK_MULTIPLICATIVE, value, source, sourceObject);
 	}
 	
 	/** 创建最终乘算modifier */
@@ -168,6 +181,7 @@ public class DamageModifier {
 				prefix = "+";
 				break;
 			case DIRECT_MULTIPLICATIVE:
+			case STACK_MULTIPLICATIVE:
 			case FINAL_MULTIPLICATIVE:
 				prefix = "×";
 				break;

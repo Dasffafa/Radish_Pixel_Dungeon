@@ -259,9 +259,9 @@ public class WandOfGnollKing extends DamageWand{
             alignment = Alignment.ALLY;
             state = HUNTING;
 
-            immunities.add( ToxicGas.class );
-            immunities.add( CorrosiveGas.class );
-            immunities.add( Burning.class );
+            typeImmunities.add(DamageType.TOXIC);
+            immunities.add(CorrosiveGas.class); typeImmunities.add(DamageType.CORROSIVE);
+            immunities.add(Burning.class); typeImmunities.add(DamageType.BURNING_STATUS);
             immunities.add( AllyBuff.class );
         }
 

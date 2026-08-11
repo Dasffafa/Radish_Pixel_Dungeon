@@ -210,12 +210,12 @@ public class OrdinaryAttackDamage {
 		}
 	}
 
-	public static int foldPostProcessing(Char attacker, Char defender, DamageInfo info, int dr) {
+	/**
+	 * 攻击后处理：defenseProc → 粘性 → 弱点 → attackProc → 诗。
+	 * 护甲 DR 已移入 DamagePipeline 的「应用护甲」阶段。
+	 */
+	public static int foldPostProcessing(Char attacker, Char defender, DamageInfo info) {
 		int effectiveDamage = defender.defenseProc(attacker, info.getDamage());
-
-		if (!ignoresDefenseRoll(attacker)) {
-			effectiveDamage = Math.max(effectiveDamage - dr, 0);
-		}
 
 		if (defender.buff(Viscosity.ViscosityTracker.class) != null) {
 			effectiveDamage = defender.buff(Viscosity.ViscosityTracker.class).deferDamage(effectiveDamage);
@@ -240,14 +240,13 @@ public class OrdinaryAttackDamage {
 	}
 
 	private static boolean ignoresArmor(Char attacker, Char defender) {
-		return Char.isNoArmorPhysicalSource(attacker.getClass())
-				|| attacker == Dungeon.hero
+		return attacker == Dungeon.hero
 				&& Dungeon.hero.subClass == HeroSubClass.SNIPER
 				&& !Dungeon.level.adjacent(Dungeon.hero.pos, defender.pos)
 				&& Dungeon.hero.belongings.attackingWeapon() instanceof MissileWeapon;
 	}
 
-	private static boolean ignoresDefenseRoll(Char attacker) {
+	public static boolean ignoresDefenseRoll(Char attacker) {
 		boolean srcIsAHeroWieldingCS = attacker instanceof Hero
 				&& ((Hero) attacker).belongings.attackingWeapon() instanceof CelestialSphere;
 		boolean srcIsAStatueWieldingCS = attacker instanceof Statue

@@ -347,13 +347,6 @@ public class Armor extends EquipableItem {
 	}
 
 	public void affixSeal(BrokenSeal seal){
-		// 升级传递逻辑：纹章等级传递给护甲，但卸下时会返还
-		if (seal.level() > 0){
-			//doesn't trigger upgrading logic such as affecting curses/glyphs
-			int newLevel = trueLevel()+1;
-			level(newLevel);
-			Badges.validateItemLevelAquired(this);
-		}
 		attachToy(seal);
 	}
 
@@ -400,6 +393,16 @@ public class Armor extends EquipableItem {
 	 * 将玩具附着到护甲上
 	 */
 	public void attachToy(ItemArmorAttachable toy) {
+		// 破损纹章升级传递：纹章等级传递给护甲，但卸下时会返还
+		if (toy instanceof BrokenSeal){
+			BrokenSeal seal = (BrokenSeal) toy;
+			if (seal.level() > 0){
+				//doesn't trigger upgrading logic such as affecting curses/glyphs
+				int newLevel = trueLevel()+1;
+				level(newLevel);
+				Badges.validateItemLevelAquired(this);
+			}
+		}
 		attachedToys.add(toy);
 		toy.attachToArmor(this);
 		if (Dungeon.hero != null && isEquipped(Dungeon.hero)) {
@@ -934,8 +937,22 @@ public class Armor extends EquipableItem {
 
 	public int proc( Char attacker, Char defender, int damage ) {
 
-		if (glyph != null && defender.buff(MagicImmune.class) == null) {
+		boolean magicImmune = defender.buff(MagicImmune.class) != null;
+
+		if (glyph != null && !magicImmune) {
 			damage = glyph.proc( this, attacker, defender, damage );
+		}
+
+		// 符文传递：纹章刻印/诅咒与护甲刻印/诅咒共存，各自触发
+		// （若纹章刻印与护甲刻印相同则只触发一次，由 procLvl 提供 +1 等级加成）
+		if (!magicImmune) {
+			BrokenSeal s = checkSeal();
+			if (s != null) {
+				Armor.Glyph sealGlyph = s.getGlyph();
+				if (sealGlyph != null && sealGlyph != glyph) {
+					damage = sealGlyph.proc( this, attacker, defender, damage );
+				}
+			}
 		}
 
 		if (!levelKnown && defender == Dungeon.hero) {

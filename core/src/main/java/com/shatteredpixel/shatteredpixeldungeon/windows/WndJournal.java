@@ -765,9 +765,9 @@ public class WndJournal extends WndTabbed {
 					title = Messages.titleCase(item.trueName());
 					//some items don't include direct stats, generally when they're not applicable
 					if (item instanceof ClassArmor || item instanceof SpiritBow){
-						desc += item.desc();
+						desc += item.displayDesc();
 					} else {
-						desc += item.info();
+						desc += item.displayInfo();
 					}
 
 					if (Catalog.useCount(itemClass) > 1) {

@@ -20,6 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ShieldBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.damage.OrdinaryAttackDamage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
@@ -111,7 +112,6 @@ public class ClusteredSkeleton extends Mob {
             if (enemy.buff(AfterImage.Blur.class)!=null){
                 enemy.buff(AfterImage.Blur.class).gainDodge();
             }
-            int dr = OrdinaryAttackDamage.rollDefenseReduction(this, enemy, true);
 
             OrdinaryAttackDamage.DamageRoll damageRoll = OrdinaryAttackDamage.rollBaseDamage(this);
             OrdinaryAttackDamage.CriticalRoll criticalRoll = OrdinaryAttackDamage.rollCritical(this, enemy, damageRoll.damage);
@@ -119,7 +119,7 @@ public class ClusteredSkeleton extends Mob {
             DamageInfo attackDamage = OrdinaryAttackDamage.build(this, enemy, Math.round(criticalRoll.damage), criticalRoll.critical,
                     criticalRoll.multiplier, dmgMulti, dmgBonus);
 
-            int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage, dr);
+            int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage);
 
             if (visibleFight) {
                 if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
@@ -147,7 +147,7 @@ public class ClusteredSkeleton extends Mob {
                     enemy.die(this);
                 } else {
                     //helps with triggering any on-damage effects that need to activate
-                    enemy.damage(-1, this);
+                    enemy.damage(DamageInfo.of(-1, DamageType.TRUE, this, this));
                     DeathMark.processFearTheReaper(enemy);
                 }
                 enemy.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(Preparation.class, "assassinated"));
@@ -246,7 +246,7 @@ public class ClusteredSkeleton extends Mob {
                 if (ch.buff(PrisonArmor.myMask.class)!=null) damage=0;
                 damage = Math.round( damage * AscensionChallenge.statModifier(this));
                 damage = Math.max( 0,  damage - (ch.drRoll() + ch.drRoll()) );
-                ch.damage( damage, this );
+                ch.damage( DamageInfo.of(damage, DamageType.PHYSICAL, this, this) );
                 if (ch == Dungeon.hero && !ch.isAlive()) {
                     heroKilled = true;
                 }

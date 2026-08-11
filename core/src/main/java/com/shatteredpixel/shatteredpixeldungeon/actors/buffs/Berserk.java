@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal.WarriorShield;
@@ -409,7 +410,7 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 				if (p>1){
 					Buff.affect( mob, Blindness.class,5f);
 					if (p>3){
-						mob.damage(Dungeon.hero.damageRoll(),Dungeon.hero);
+						mob.damage(DamageInfo.of(Dungeon.hero.damageRoll(), DamageType.PHYSICAL, Dungeon.hero, this));
 					}
 				}
 			}

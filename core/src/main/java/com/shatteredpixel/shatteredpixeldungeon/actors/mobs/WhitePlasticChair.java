@@ -29,6 +29,7 @@ public class WhitePlasticChair extends Mob {
 
 	@Override
 	protected boolean act() {
+		throwItems();
 		spend(TICK);
 		return true;
 	}

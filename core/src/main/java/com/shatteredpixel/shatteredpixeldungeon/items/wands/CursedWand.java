@@ -579,7 +579,7 @@ public class CursedWand {
 				//does not harm allies if positive only
 				if (ch.alignment != Char.Alignment.ALLY || !positiveOnly){
 					//shocking dart damage and a little stun
-					ch.damage(Random.NormalIntRange(5 + Dungeon.scalingDepth() / 4, 10 + Dungeon.scalingDepth() / 4), new Electricity());
+					ch.damage(DamageInfo.of(Random.NormalIntRange(5 + Dungeon.scalingDepth() / 4, 10 + Dungeon.scalingDepth() / 4), DamageType.LIGHTNING, null, new Electricity()));
 					if (ch.isAlive()) {
 						Buff.affect(ch, Paralysis.class, Paralysis.DURATION / 2f);
 					} else if (ch == Dungeon.hero){
@@ -820,7 +820,7 @@ public class CursedWand {
 						Burning burning = Buff.affect(ch, Burning.class);
 						burning.reignite(ch);
 						int dmg = Random.NormalIntRange(5 + Dungeon.scalingDepth(), 10 + Dungeon.scalingDepth()*2);
-						ch.damage(dmg, burning);
+						ch.damage(DamageInfo.of(dmg, DamageType.FIRE, null, burning));
 					}
 					if (Dungeon.level.flamable[i]){
 						GameScene.add(Blob.seed(i, 4, Fire.class));

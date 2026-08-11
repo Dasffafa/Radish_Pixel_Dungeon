@@ -146,16 +146,6 @@ public class Statue extends Mob {
 	}
 
 	@Override
-	public void damage( int dmg, Object src ) {
-
-		if (state == PASSIVE) {
-			state = HUNTING;
-		}
-
-		super.damage( dmg, src );
-	}
-
-	@Override
 	public int attackProc( Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 		damage = weapon.proc( this, enemy, damage );

@@ -24,6 +24,8 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Wraith;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
@@ -101,7 +103,7 @@ public class Heap implements Bundlable {
 		if (haunted){
 			if (Wraith.spawnAt( pos ) == null) {
 				hero.sprite.emitter().burst( ShadowParticle.CURSE, 6 );
-				hero.damage( hero.HP / 2, this );
+				hero.damage( DamageInfo.of( hero.HP / 2, DamageType.MAGICAL, null, this ) );
 				if (!hero.isAlive()){
 					Dungeon.fail(Wraith.class);
 					GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", Messages.get(Wraith.class, "name"))));
