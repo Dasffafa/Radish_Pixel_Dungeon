@@ -129,6 +129,7 @@ public class Assets {
 		public static final String HERO_ICONS       = "interfaces/hero_icons.png";
 
 		public static final String RADIAL_MENU      = "interfaces/radial_menu.png";
+		public static final String MAGIC_POINT      = "interfaces/magic_point.png";
 	}
 
 	//these points to resource bundles, not raw asset files
