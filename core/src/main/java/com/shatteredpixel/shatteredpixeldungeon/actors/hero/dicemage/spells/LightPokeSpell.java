@@ -1,0 +1,80 @@
+package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
+
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
+
+/**
+ * 轻戳（物理学派 L1）：贴身必中，造成8-16伤害并击退2格。冷却20回合。
+ */
+public class LightPokeSpell extends DiceMageSpell {
+
+    private static final float COOLDOWN = 20f;
+
+    @Override
+    public Talent school() {
+        return Talent.SCHOOL_PHYSICAL;
+    }
+
+    @Override
+    public int level() {
+        return 1;
+    }
+
+    @Override
+    public int mpCost() {
+        return 1;
+    }
+
+    @Override
+    protected void onCast(Hero hero) {
+        getTarget(new CellSelector.Listener() {
+            @Override
+            public void onSelect(Integer cell) {
+                if (cell == null) return;
+                Char target = Actor.findChar(cell);
+                if (!isValidEnemy(target)) {
+                    GLog.w(Messages.get(LightPokeSpell.this, "invalid_target"));
+                    return;
+                }
+                boolean adjacent = false;
+                for (int i : PathFinder.NEIGHBOURS8) {
+                    if (target.pos == hero.pos + i) adjacent = true;
+                }
+                if (!adjacent) {
+                    GLog.w(Messages.get(LightPokeSpell.this, "not_adjacent"));
+                    return;
+                }
+                if (!spendMagic(hero)) return;
+
+                int dmg = Random.IntRange(8, 16);
+                target.damage(DamageInfo.physicalNoArmor(dmg, LightPokeSpell.this));
+                CellEmitter.center(target.pos).burst(BlastParticle.FACTORY, 6);
+                // 击退2格
+                WandOfBlastWave.throwChar(target, new Ballistica(hero.pos, target.pos, Ballistica.STOP_TARGET),
+                        2, false, true, LightPokeSpell.this);
+                startCooldown(hero, COOLDOWN);
+                GLog.p(Messages.get(LightPokeSpell.this, "cast", dmg));
+                hero.spendAndNext(1f);
+            }
+
+            @Override
+            public String prompt() {
+                return Messages.get(LightPokeSpell.this, "prompt");
+            }
+        });
+    }
+}

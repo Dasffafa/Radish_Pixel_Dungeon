@@ -21,6 +21,9 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -144,7 +147,13 @@ public class WndInfoMob extends Window {
 		
 		public MobTitle( Mob mob ) {
 			
-			name = PixelScene.renderTextBlock( Messages.titleCase( mob.name() ), 9 );
+			String mobName = Messages.titleCase( mob.name() );
+			// 咒法学派：可看到怪物实际血量
+			if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE
+					&& Dungeon.hero.pointsInTalent(Talent.SCHOOL_CONJURATION) > 0){
+				mobName += "  [" + mob.HP + "/" + mob.HT + "]";
+			}
+			name = PixelScene.renderTextBlock( mobName, 9 );
 			name.hardlight( TITLE_COLOR );
 			add( name );
 			

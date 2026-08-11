@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhysicalEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Recharging;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
@@ -282,7 +283,61 @@ public enum Talent {
 	SHIELD_POKE(4), KNIGHT_SPIRIT(4), // 小骑士4-3/4-4
 
 	//Dice Mage T3
-	LEARN_SOOTHE(3), LEARN_LIQUOR(3), LEARN_OPERATE(3), LEARN_MIASMA(3), LEARN_CRUSH(3), LEARN_BLAZE(3),
+	//Legacy single-spell talents (kept for changelog/gather references; no longer granted)
+	LEARN_CUT(2) {
+		@Override
+		public String icon() {
+			return "spell_empower";
+		}
+	},
+	LEARN_HEAL(2) {
+		@Override
+		public String icon() {
+			return "egg_basket";
+		}
+	},
+	GATHER(2) {
+		@Override
+		public String icon() {
+			return "spell_queue";
+		}
+	},
+	LEARN_SOOTHE(2), LEARN_LIQUOR(2), LEARN_OPERATE(2), LEARN_MIASMA(2), LEARN_CRUSH(2), LEARN_BLAZE(2),
+	//Dice Mage schools (3 points each; school level selects the Nth spell in that school's list)
+	SCHOOL_FIRE(3) {
+		@Override public String icon() { return "learn_blaze"; }
+	},
+	SCHOOL_BLADES(3) {
+		@Override public String icon() { return "learn_crush"; }
+	},
+	SCHOOL_CONJURATION(3) {
+		@Override public String icon() { return "spell_empower"; }
+	},
+	SCHOOL_MANA(3) {
+		@Override public String icon() { return "spell_queue"; }
+	},
+	SCHOOL_BLOOD(3) {
+		@Override public String icon() { return "learn_liquor"; }
+	},
+	SCHOOL_NATURE(3) {
+		@Override public String icon() { return "learn_miasma"; }
+	},
+	SCHOOL_MEDICAL(3) {
+		@Override public String icon() { return "learn_soothe"; }
+	},
+	SCHOOL_PHYSICAL(3) {
+		@Override public String icon() { return "learn_operate"; }
+	},
+	SCHOOL_EMERGENCY(3) {
+		@Override public String icon() { return "egg_basket"; }
+	},
+	SCHOOL_SPECIAL(3) {
+		@Override public String icon() { return "fated_twice"; }
+	},
+	//Dice Mage hidden: consumes a T3 point when the player chooses to skip a school.
+	D3_SKIPPED(99) {
+		@Override public String icon() { return "error"; }
+	},
 	SPELL_EMPOWER(4), EGG_BASKET(4), // 骰子法师4-3/4-4
 
 	//Jutte Champion T3
@@ -1193,7 +1248,10 @@ public enum Talent {
 				Collections.addAll(tierTalents, WONT_LOSE, WET_ENCHANT, LEFT_BOW_RAPID);
 				break;
 			case DICE_MAGE:
-				Collections.addAll(tierTalents, LEARN_SOOTHE, LEARN_LIQUOR, LEARN_OPERATE, LEARN_BLAZE, LEARN_CRUSH, LEARN_MIASMA);
+				talents.get(2).clear();
+				Collections.addAll(tierTalents, SCHOOL_FIRE, SCHOOL_BLADES, SCHOOL_CONJURATION, SCHOOL_MANA, SCHOOL_BLOOD,
+						SCHOOL_NATURE, SCHOOL_MEDICAL, SCHOOL_PHYSICAL, SCHOOL_EMERGENCY, SCHOOL_SPECIAL, D3_SKIPPED);
+				if (Dungeon.hero != null) Buff.affect(Dungeon.hero, MagicPoint.class);
 				break;
 			case JUTTE_CHAMPION:
 				Collections.addAll(tierTalents, ONE_JUTTE, IRON_QUENCH, SURPRISE_JUTTE);
@@ -1378,6 +1436,12 @@ public enum Talent {
 				}
 			}
 		}
+	}
+
+	public static boolean isDiceMageSpellTalent(Talent talent) {
+		return talent == SCHOOL_FIRE || talent == SCHOOL_BLADES || talent == SCHOOL_CONJURATION || talent == SCHOOL_MANA
+				|| talent == SCHOOL_BLOOD || talent == SCHOOL_NATURE || talent == SCHOOL_MEDICAL || talent == SCHOOL_PHYSICAL
+				|| talent == SCHOOL_EMERGENCY || talent == SCHOOL_SPECIAL;
 	}
 	private static final HashSet<String> removedTalents = new HashSet<>();
 	static{

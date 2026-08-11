@@ -3,30 +3,39 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PoisonParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.utils.Random;
 
-public class LiquorSpell extends DiceMageSpell {
+/**
+ * 毒芹（自然学派 L1）：造成3-7绿毒伤害并附加等量中毒层数。冷却20回合。
+ */
+public class HemlockSpell extends DiceMageSpell {
+
+    private static final float COOLDOWN = 20f;
 
     @Override
-    public int mpCost() {
-        return 3;
+    public Talent school() {
+        return Talent.SCHOOL_NATURE;
     }
 
     @Override
-    public boolean canCast() {
-        Hero hero = Dungeon.hero;
-        return hero != null && hero.pointsInTalent(Talent.LEARN_LIQUOR) > 0 && super.canCast();
+    public int level() {
+        return 1;
+    }
+
+    @Override
+    public int mpCost() {
+        return 2;
     }
 
     @Override
@@ -35,33 +44,27 @@ public class LiquorSpell extends DiceMageSpell {
             @Override
             public void onSelect(Integer cell) {
                 if (cell == null) return;
-
                 Char target = Actor.findChar(cell);
-                if (target != hero && !isValidAlly(target)) {
-                    GLog.w(Messages.get(LiquorSpell.this, "invalid_target"));
+                if (!isValidEnemy(target)) {
+                    GLog.w(Messages.get(HemlockSpell.this, "invalid_target"));
                     return;
                 }
-
-                int points = hero.pointsInTalent(Talent.LEARN_LIQUOR);
-                int shieldAmount = points == 1 ? 25 : (points == 2 ? 35 : 45);
-
                 if (!spendMagic(hero)) return;
 
-                for (Buff b : target.buffs()) {
-                    if (b.type == Buff.buffType.NEGATIVE && !(b instanceof Hunger)) {
-                        b.detach();
-                    }
+                int dmg = Random.IntRange(3, 7);
+                target.damage(DamageInfo.poison(dmg, HemlockSpell.this));
+                if (target.isAlive()) {
+                    Buff.affect(target, Poison.class).set(dmg);
+                    CellEmitter.center(target.pos).burst(PoisonParticle.SPLASH, 8);
                 }
-
-                Buff.affect(target, Barrier.class).incShield(shieldAmount);
-                CellEmitter.center(target.pos).burst(SparkParticle.FACTORY, 5);
-                GLog.p(Messages.get(LiquorSpell.this, "cast", shieldAmount));
+                startCooldown(hero, COOLDOWN);
+                GLog.p(Messages.get(HemlockSpell.this, "cast", dmg));
                 hero.spendAndNext(1f);
             }
 
             @Override
             public String prompt() {
-                return Messages.get(LiquorSpell.this, "prompt");
+                return Messages.get(HemlockSpell.this, "prompt");
             }
         });
     }

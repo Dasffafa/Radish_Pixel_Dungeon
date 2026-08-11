@@ -34,6 +34,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
@@ -186,6 +188,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StatusPane;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndHero;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageTalentChoice;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndResurrect;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTradeItem;
@@ -644,6 +647,7 @@ public class Hero extends Char {
 
 		float accuracy = 1;
 		accuracy *= RingOfAccuracy.accuracyMultiplier( this );
+		accuracy *= RingOfConcentration.accuracyMultiplier( this );
 
 		int killBoatSwordBonus = wep instanceof KillBoatSword ? 1 : 0;
 		float talentPointBonus = 0.5f * pointsInTalent(Talent.STRONGMAN);
@@ -1760,7 +1764,7 @@ public class Hero extends Char {
 			if (mob.properties().contains(Property.DEMONIC) || mob.properties().contains(Property.UNDEAD)) {
 				fixedDamage = (int) (fixedDamage * 1.25f);
 			}
-			mob.damage(fixedDamage, this);
+			mob.damage(DamageInfo.of(fixedDamage, DamageType.MAGICAL, this, this));
 			mob.sprite.centerEmitter().burst(PurpleParticle.BURST, Random.IntRange(1, 2));
 			mob.sprite.flash();
 		}
@@ -1922,31 +1926,7 @@ public class Hero extends Char {
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 
-		// 拉莱耶文本反弹：玩家持有 Rlyeh 时，怪物攻击玩家可能触发反弹
-		if (belongings.weapon() instanceof Rlyeh) {
-			Rlyeh rlyeh = (Rlyeh) belongings.weapon();
-			if (rlyeh.HeroChance()) {
-				// 触发反弹：攻击者身上显示诅咒特效 + 受到伤害
-				enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
-				Sample.INSTANCE.play(Assets.Sounds.CURSED);
-				enemy.damage(rlyeh.damageRoll(this), rlyeh);
-				// 玩家不受伤，不显示伤害数字
-				return 0;
-			}
-		} else {
-			// 检查是否有持有 Rlyeh 的雕像
-			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-				if (mob instanceof Statue && ((Statue) mob).weapon instanceof Rlyeh) {
-					Rlyeh rlyeh = (Rlyeh) ((Statue) mob).weapon;
-					if (rlyeh.HeroChance()) {
-						enemy.sprite.emitter().burst(ShadowParticle.CURSE, 10);
-						Sample.INSTANCE.play(Assets.Sounds.CURSED);
-						enemy.damage(rlyeh.damageRoll(this), rlyeh);
-						return 0;
-					}
-				}
-			}
-		}
+		// 拉莱耶反弹已迁移至 Rlyeh 订阅 AttackEvent 处理
 
 		if (belongings.armor() != null) {
 			damage = belongings.armor().proc( enemy, this, damage );
@@ -1966,7 +1946,9 @@ public class Hero extends Char {
 	}
 	boolean isOnly = false;
 	@Override
-	public void damage( int dmg, Object src ) {
+	public void damage( DamageInfo info ) {
+		int dmg = info.getDamage();
+		Object src = info.getSource();
 		if (buff(TimekeepersHourglass.timeStasis.class) != null)
 			return;
 
@@ -2172,7 +2154,7 @@ public class Hero extends Char {
 		if (TieredToyEffects.preventDeath(this, dmg)) {
 			dmg = Math.max(0, HP + shielding() - 1);
 		}
-		super.damage( dmg, src );
+		super.damage( DamageInfo.of( dmg, info.getType(), info.getAttacker(), src ) );
 		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TieredToyBuff toyState = buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.TieredToyBuff.class);
 		if (dmg > 0 && isAlive() && TieredToyEffects.has(com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToy.Spinach.class)
 				&& toyState != null && !toyState.spinachUsed()) {
@@ -2658,6 +2640,10 @@ public class Hero extends Char {
 			Item.updateQuickslot();
 
 			Badges.validateLevelReached();
+
+			if (WndDiceMageTalentChoice.canShow()) {
+				GameScene.show(new WndDiceMageTalentChoice());
+			}
 		}
 	}
 

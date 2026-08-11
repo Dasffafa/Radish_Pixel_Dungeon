@@ -4,41 +4,41 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MarkDebuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
-import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
-public class BlazeSpell extends DiceMageSpell {
+/**
+ * 标记（特殊学派）：造成17-31魔法伤害，并使目标在20回合内受到的伤害额外+7-11。
+ */
+public class MarkSpell extends DiceMageSpell {
 
     @Override
     public Talent school() {
-        return Talent.SCHOOL_FIRE;
+        return Talent.SCHOOL_SPECIAL;
     }
 
     @Override
     public int level() {
-        return 3;
+        return DiceMageSchools.specialSlot(getClass());
     }
 
     @Override
     public int mpCost() {
-        return 6;
-    }
-
-    @Override
-    public String sndImageName() {
-        return "blaze";
+        return 4;
     }
 
     @Override
@@ -47,37 +47,31 @@ public class BlazeSpell extends DiceMageSpell {
             @Override
             public void onSelect(Integer cell) {
                 if (cell == null) return;
-
                 Char target = Actor.findChar(cell);
                 if (!isValidEnemy(target)) {
-                    GLog.w(Messages.get(BlazeSpell.this, "invalid_target"));
+                    GLog.w(Messages.get(MarkSpell.this, "invalid_target"));
                     return;
                 }
-
-                int damage = Random.IntRange(100, 150);
-
+                int dmg = Random.IntRange(17, 31);
                 if (!spendMagic(hero)) return;
-
-                MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.FIRE, hero.sprite, target.pos, new Callback() {
+                MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.SHADOW, hero.sprite, target.pos, new Callback() {
                     @Override
                     public void call() {
-                        if (target.sprite != null) {
-                            target.sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(damage));
-                        }
-                        target.damage(DamageInfo.fire(damage, BlazeSpell.this));
+                        target.damage(DamageInfo.magical(dmg, MarkSpell.this));
                         if (target.isAlive()) {
-                            CellEmitter.center(target.pos).burst(FlameParticle.FACTORY, 10);
+                            Buff.prolong(target, MarkDebuff.class, 20f);
+                            CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 10);
                         }
-                        Sample.INSTANCE.play(Assets.Sounds.BLAST);
+                        Sample.INSTANCE.play(Assets.Sounds.CURSED);
                     }
                 });
-                GLog.p(Messages.get(BlazeSpell.this, "cast", damage));
+                GLog.p(Messages.get(MarkSpell.this, "cast", dmg));
                 hero.spendAndNext(1f);
             }
 
             @Override
             public String prompt() {
-                return Messages.get(BlazeSpell.this, "prompt");
+                return Messages.get(MarkSpell.this, "prompt");
             }
         });
     }

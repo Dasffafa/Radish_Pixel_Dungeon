@@ -110,7 +110,7 @@ public class WndInfoItem extends Window {
 		IconTitle titlebar = new IconTitle( item );
 		titlebar.color( color );
 		
-		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.info(), 6 );
+		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.displayInfo(), 6 );
 		
 		layoutFields(titlebar, txtInfo);
 	}
@@ -171,7 +171,7 @@ public class WndInfoItem extends Window {
 		add(tags);
 
 		float topHeight = Math.max(iconFrame.bottom(), tags.bottom()) + DICE_PAD;
-		layoutDiceInfoBody(item.info(), width, topHeight, lineColor);
+		layoutDiceInfoBody(item.displayInfo(), width, topHeight, lineColor);
 	}
 
 	private void layoutDiceFields(IconTitle titlebar, String label, String body, int width, int lineColor) {

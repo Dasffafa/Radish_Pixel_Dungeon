@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -32,6 +33,10 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
  * 骰子法师法术基类。
+ *
+ * 每个法术可隶属于一个"学派"(school)，并占据该学派的某一等级位(level)。
+ * 当学派投入 N 点天赋时，只允许使用该学派列表中的第 N 个法术（前序法术不可用）。
+ * 被动技能(isPassive)不消耗魔力点、不可主动施放。
  */
 public abstract class DiceMageSpell {
 
@@ -43,14 +48,58 @@ public abstract class DiceMageSpell {
         return Messages.get(getClass(), "desc");
     }
 
+    /**
+     * 所属学派。返回 null 表示不隶属任何学派（固定初始法术，如"迸发"）。
+     */
+    public Talent school() {
+        return null;
+    }
+
+    /**
+     * 在该学派列表中的等级位(1..3)。0 表示不适用。
+     */
+    public int level() {
+        return 0;
+    }
+
+    /**
+     * 是否为被动技能（不可施放）。
+     */
+    public boolean isPassive() {
+        return false;
+    }
+
     public abstract int mpCost();
+
+    public Talent iconTalent() {
+        Talent s = school();
+        if (s != null) return s;
+        return null;
+    }
+
+    /**
+     * 该法术在 SND atlas（snd/atlas_image.png）中对应的法术图标名。
+     * 返回 null 表示不使用 SND 贴图。
+     */
+    public String sndImageName() {
+        return null;
+    }
 
     public boolean canCast() {
         Hero hero = Dungeon.hero;
         if (hero == null) return false;
 
+        if (isPassive()) return false;
+
+        Talent s = school();
+        if (s != null && hero.pointsInTalent(s) != level()) {
+            // 学派等级决定可用的第 N 个法术；其余不可用
+            return false;
+        }
+
         MagicPoint mp = hero.buff(MagicPoint.class);
-        return mp != null && mp.getIntPoints() >= mpCost();
+        if (mp == null || mp.getIntPoints() < mpCost()) return false;
+        return mp.offCooldown(getClass());
     }
 
     public void cast() {
@@ -72,6 +121,14 @@ public abstract class DiceMageSpell {
         }
         GLog.w(Messages.get(DiceMageSpell.class, "no_mp"));
         return false;
+    }
+
+    /**
+     * 施法后为当前法术设置冷却回合数。
+     */
+    protected void startCooldown(Hero hero, float turns) {
+        MagicPoint mp = hero.buff(MagicPoint.class);
+        if (mp != null) mp.setCooldown(getClass(), turns);
     }
 
     protected abstract void onCast(Hero hero);

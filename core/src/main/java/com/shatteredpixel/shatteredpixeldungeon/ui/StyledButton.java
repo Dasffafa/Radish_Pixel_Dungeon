@@ -131,6 +131,10 @@ public class StyledButton extends Button {
 	public void textColor( int value ) {
 		text.hardlight( value );
 	}
+
+	public void lineColor( int value ) {
+		skin.lineColor( value );
+	}
 	
 	public void icon( Image icon ) {
 		if (this.icon != null) {

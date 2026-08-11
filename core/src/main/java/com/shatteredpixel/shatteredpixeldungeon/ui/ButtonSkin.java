@@ -8,6 +8,7 @@ public class ButtonSkin {
 
     private final NinePatch chrome;
     private final RoundedFrame themedFrame;
+    private int lineColor = UITheme.DICE_LINE;
     private float alpha = 1.0f;
 
     public ButtonSkin(Chrome.Type type) {
@@ -22,6 +23,11 @@ public class ButtonSkin {
 
     public RoundedFrame themedFrame() {
         return themedFrame;
+    }
+
+    public void lineColor(int color) {
+        lineColor = color;
+        themedFrame.setLineColor(color);
     }
 
     public void layout(float x, float y, float width, float height) {
@@ -51,7 +57,7 @@ public class ButtonSkin {
             chrome.resetColor();
         }
         if (themedFrame.visible) {
-            themedFrame.setLineColor(UITheme.DICE_LINE);
+            themedFrame.setLineColor(lineColor);
         }
     }
 

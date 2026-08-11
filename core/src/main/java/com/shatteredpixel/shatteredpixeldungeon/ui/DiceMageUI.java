@@ -18,6 +18,7 @@ public class DiceMageUI {
     public static final int ORANGE     = 0xC45E16;
     public static final int RED        = 0xAD1F1F;
     public static final int BLUE       = 0x217B91;
+    public static final int SKY_BLUE   = 0x66CCFF;
     public static final int PURPLE     = 0x6A4484;
     public static final int GREEN      = 0x388044;
     public static final int GREY_LINE  = 0x51464D;

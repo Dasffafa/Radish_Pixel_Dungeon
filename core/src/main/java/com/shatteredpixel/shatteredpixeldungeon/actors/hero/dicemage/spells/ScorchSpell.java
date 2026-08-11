@@ -4,6 +4,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
@@ -19,7 +21,12 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
-public class BlazeSpell extends DiceMageSpell {
+/**
+ * 烧焦（火焰学派 L1）：3×3范围，3-10火焰伤害并点燃。
+ */
+public class ScorchSpell extends DiceMageSpell {
+
+    private static final float COOLDOWN = 100f;
 
     @Override
     public Talent school() {
@@ -28,17 +35,12 @@ public class BlazeSpell extends DiceMageSpell {
 
     @Override
     public int level() {
-        return 3;
+        return 1;
     }
 
     @Override
     public int mpCost() {
-        return 6;
-    }
-
-    @Override
-    public String sndImageName() {
-        return "blaze";
+        return 2;
     }
 
     @Override
@@ -47,37 +49,42 @@ public class BlazeSpell extends DiceMageSpell {
             @Override
             public void onSelect(Integer cell) {
                 if (cell == null) return;
-
-                Char target = Actor.findChar(cell);
-                if (!isValidEnemy(target)) {
-                    GLog.w(Messages.get(BlazeSpell.this, "invalid_target"));
-                    return;
-                }
-
-                int damage = Random.IntRange(100, 150);
-
                 if (!spendMagic(hero)) return;
 
-                MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.FIRE, hero.sprite, target.pos, new Callback() {
+                int width = Dungeon.level.width();
+                int cx = cell % width, cy = cell / width;
+                int hit = 0;
+                for (int x = cx - 1; x <= cx + 1; x++) {
+                    for (int y = cy - 1; y <= cy + 1; y++) {
+                        int pos = y * width + x;
+                        if (x < 0 || x >= width || pos < 0 || pos >= Dungeon.level.length()) continue;
+                        Char ch = Actor.findChar(pos);
+                        if (ch == null) continue;
+                        int dmg = Random.IntRange(3, 10);
+                        ch.damage(DamageInfo.fire(dmg, ScorchSpell.this));
+                        if (ch.isAlive()) {
+                            Buff.affect(ch, Burning.class);
+                            CellEmitter.center(ch.pos).burst(FlameParticle.FACTORY, 8);
+                        } else {
+                            ch.sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(dmg));
+                        }
+                        hit++;
+                    }
+                }
+                MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.FIRE, hero.sprite, cell, new Callback() {
                     @Override
                     public void call() {
-                        if (target.sprite != null) {
-                            target.sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(damage));
-                        }
-                        target.damage(DamageInfo.fire(damage, BlazeSpell.this));
-                        if (target.isAlive()) {
-                            CellEmitter.center(target.pos).burst(FlameParticle.FACTORY, 10);
-                        }
-                        Sample.INSTANCE.play(Assets.Sounds.BLAST);
+                        Sample.INSTANCE.play(Assets.Sounds.BURNING);
                     }
                 });
-                GLog.p(Messages.get(BlazeSpell.this, "cast", damage));
+                startCooldown(hero, COOLDOWN);
+                GLog.p(Messages.get(ScorchSpell.this, "cast", hit));
                 hero.spendAndNext(1f);
             }
 
             @Override
             public String prompt() {
-                return Messages.get(BlazeSpell.this, "prompt");
+                return Messages.get(ScorchSpell.this, "prompt");
             }
         });
     }

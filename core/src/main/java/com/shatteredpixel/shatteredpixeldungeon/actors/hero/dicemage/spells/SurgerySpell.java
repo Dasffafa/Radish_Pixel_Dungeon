@@ -16,21 +16,27 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Reflection;
 
-public class OperateSpell extends DiceMageSpell {
+/**
+ * 手术（紧急学派 L3）：召唤1个英雄（最近击杀的怪物化为盟友）攻击敌人，最多1个；
+ * 召唤死亡后冷却250回合。
+ */
+public class SurgerySpell extends DiceMageSpell {
+
+    private static final float COOLDOWN = 250f;
 
     @Override
-    public int mpCost() {
-        Hero hero = Dungeon.hero;
-        if (hero == null) return 3;
-        MagicPoint mp = hero.buff(MagicPoint.class);
-        int points = hero.pointsInTalent(Talent.LEARN_OPERATE);
-        return mp == null ? 3 : mp.surgeryCost(points);
+    public Talent school() {
+        return Talent.SCHOOL_EMERGENCY;
     }
 
     @Override
-    public boolean canCast() {
-        Hero hero = Dungeon.hero;
-        return hero != null && hero.pointsInTalent(Talent.LEARN_OPERATE) > 0 && super.canCast();
+    public int level() {
+        return 3;
+    }
+
+    @Override
+    public int mpCost() {
+        return 3;
     }
 
     @Override
@@ -39,6 +45,14 @@ public class OperateSpell extends DiceMageSpell {
         if (mp == null || mp.lastKilledMob() == null) {
             GLog.w(Messages.get(this, "no_corpse"));
             return;
+        }
+        // 最多1个召唤在场
+        if (mp.activeSurgerySummon() != -1) {
+            Mob existing = (Mob) Actor.findById(mp.activeSurgerySummon());
+            if (existing != null && existing.isAlive()) {
+                GLog.w(Messages.get(this, "already_active"));
+                return;
+            }
         }
 
         Mob ally = Reflection.newInstance(mp.lastKilledMob());
@@ -69,10 +83,10 @@ public class OperateSpell extends DiceMageSpell {
         ally.alignment = Char.Alignment.ALLY;
         ally.state = ally.WANDERING;
         GameScene.add(ally);
+        mp.setActiveSurgerySummon(ally.id());
         CellEmitter.center(ally.pos).burst(PurpleParticle.BURST, 8);
         mp.clearLastKilledMob();
-        mp.surgeryUsed();
-        GLog.p(Messages.get(this, "cast", ally.name(), mp.surgeryCost(hero.pointsInTalent(Talent.LEARN_OPERATE))));
+        GLog.p(Messages.get(this, "cast", ally.name()));
         hero.spendAndNext(1f);
     }
 }
