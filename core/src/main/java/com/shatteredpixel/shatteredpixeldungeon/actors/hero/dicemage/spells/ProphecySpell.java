@@ -35,6 +35,6 @@ public class ProphecySpell extends DiceMageSpell {
     protected void onCast(Hero hero) {
         if (!spendMagic(hero)) return;
         MagicProphecy.apply(hero);
-        hero.spendAndNext(1f);
+        hero.spendAndNext(2f);
     }
 }

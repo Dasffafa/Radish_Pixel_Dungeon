@@ -112,6 +112,15 @@ public class WndInfoMob extends Window {
 		health.level(mob);
 		add(health);
 
+		// 咒法学派：血条右侧注明怪物当前真实血量
+		if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE
+				&& Dungeon.hero.pointsInTalent(Talent.SCHOOL_CONJURATION) > 0){
+			RenderedTextBlock hpText = PixelScene.renderTextBlock(String.valueOf(mob.HP), 6);
+			hpText.hardlight(DiceMageUI.RED);
+			hpText.setPos(health.right() + DICE_PAD, health.top());
+			add(hpText);
+		}
+
 		BuffIndicator buffs = new BuffIndicator(mob, false);
 		buffs.setSize(width - DICE_PORTRAIT - DICE_PAD * 3, 8);
 		buffs.setPos(name.left(), health.bottom() + 1);

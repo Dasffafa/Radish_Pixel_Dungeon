@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchool;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
@@ -88,15 +89,34 @@ public class WndDiceMageSpells extends Window {
         resize(WIDTH, (int) (pos - MARGIN));
     }
 
-    /** 玩家当前拥有的法术：迸发固定拥有 + 每个有天赋点的学派的当前等级法术。 */
+    /** 玩家当前拥有的法术：迸发固定拥有 + 每个有天赋点的学派的当前等级法术 + 已"学会"的法术。 */
     private ArrayList<DiceMageSpell> ownedSpells() {
         ArrayList<DiceMageSpell> list = new ArrayList<>();
+        ArrayList<Class<? extends DiceMageSpell>> seen = new ArrayList<>();
         list.add(new BurstSpell());
+        seen.add(BurstSpell.class);
         for (DiceMageSchool school : DiceMageSchool.values()) {
             int points = Dungeon.hero.pointsInTalent(school.talent);
             if (points <= 0) continue;
             DiceMageSpell spell = DiceMageSchools.spellForLevel(school, points);
-            if (spell != null) list.add(spell);
+            if (spell != null && !seen.contains(spell.getClass())) {
+                list.add(spell);
+                seen.add(spell.getClass());
+            }
+        }
+        MagicPoint mp = Dungeon.hero.buff(MagicPoint.class);
+        if (mp != null) {
+            for (Class<? extends DiceMageSpell> c : mp.learnedSpells()) {
+                if (seen.contains(c)) continue;
+                try {
+                    DiceMageSpell spell = c.newInstance();
+                    if (spell != null) {
+                        list.add(spell);
+                        seen.add(c);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
         }
         return list;
     }

@@ -40,13 +40,21 @@ public class WndDiceMageTalentChoice extends Window {
             second = weightedPick();
         }
 
-        SchoolChoice firstCard = new SchoolChoice(first);
-        firstCard.setRect(PAD, PAD, WIDTH - PAD * 2, CARD_HEIGHT);
-        add(firstCard);
-
-        SchoolChoice secondCard = new SchoolChoice(second);
-        secondCard.setRect(PAD, firstCard.bottom() + PAD, WIDTH - PAD * 2, CARD_HEIGHT);
-        add(secondCard);
+        SchoolChoice firstCard = null;
+        SchoolChoice secondCard = null;
+        float cardsBottom = PAD;
+        if (first != null) {
+            firstCard = new SchoolChoice(first);
+            firstCard.setRect(PAD, PAD, WIDTH - PAD * 2, CARD_HEIGHT);
+            add(firstCard);
+            cardsBottom = firstCard.bottom();
+        }
+        if (second != null) {
+            secondCard = new SchoolChoice(second);
+            secondCard.setRect(PAD, cardsBottom + PAD, WIDTH - PAD * 2, CARD_HEIGHT);
+            add(secondCard);
+            cardsBottom = secondCard.bottom();
+        }
 
         DiceMageUI.DiceButton random = new DiceMageUI.DiceButton("随机提升某学派") {
             @Override
@@ -55,7 +63,7 @@ public class WndDiceMageTalentChoice extends Window {
             }
         };
         random.textColor(DiceMageUI.CREAM);
-        random.setRect(22, secondCard.bottom() + PAD, WIDTH - 44, BUTTON_HEIGHT);
+        random.setRect(22, cardsBottom + PAD, WIDTH - 44, BUTTON_HEIGHT);
         add(random);
 
         DiceMageUI.DiceButton skip = new DiceMageUI.DiceButton("跳过") {
@@ -91,7 +99,7 @@ public class WndDiceMageTalentChoice extends Window {
         for (DiceMageSchool s : DiceMageSchool.values()) {
             if (DiceMageSchools.canInvest(s)) pool.add(s);
         }
-        if (pool.isEmpty()) return DiceMageSchool.FIRE;
+        if (pool.isEmpty()) return null;
 
         float total = 0f;
         for (DiceMageSchool s : pool) total += s.weight;
@@ -109,6 +117,7 @@ public class WndDiceMageTalentChoice extends Window {
         for (DiceMageSchool s : DiceMageSchool.values()) {
             if (DiceMageSchools.canInvest(s)) pool.add(s);
         }
+        if (pool.isEmpty()) return null;
         return pool.get(Random.Int(pool.size()));
     }
 

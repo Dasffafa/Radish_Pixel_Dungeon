@@ -93,8 +93,11 @@ public abstract class DiceMageSpell {
 
         Talent s = school();
         if (s != null && hero.pointsInTalent(s) != level()) {
-            // 学派等级决定可用的第 N 个法术；其余不可用
-            return false;
+            MagicPoint mp = hero.buff(MagicPoint.class);
+            // 已"学会"的法术无视天赋等级限制
+            if (mp == null || !mp.isLearned(getClass())) {
+                return false;
+            }
         }
 
         MagicPoint mp = hero.buff(MagicPoint.class);
@@ -116,7 +119,7 @@ public abstract class DiceMageSpell {
         }
 
         MagicPoint mp = hero.buff(MagicPoint.class);
-        if (mp != null && mp.getIntPoints() < mpCost() && mp.canAfford(mpCost())) {
+        if (mp != null && !mp.infiniteMana() && mp.getIntPoints() < mpCost() && mp.canAfford(mpCost())) {
             // 魔力不足但法杖充能足够：弹窗询问是否消耗法杖充能
             GameScene.show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageWandDrain(mp, mpCost(), this));
             return;

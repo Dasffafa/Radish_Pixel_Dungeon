@@ -22,7 +22,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
@@ -60,7 +59,7 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.LevelTeleporter;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobAttributeViewer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobPlacer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SnakeBiteToggle;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SnDItemBox;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SnDFunctions;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TalentSetter;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TerrainPlacer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestBag;
@@ -210,7 +209,7 @@ public enum HeroClass {
 		new SpawnWeapon().collect();
 		new TestMissile().collect();
 		new TestRing().collect();
-		new SnDItemBox().collect();
+		new SnDFunctions().collect();
 		//new TestPotion().collect();
 
 		new TestTalentOFTerminalBook().collect();

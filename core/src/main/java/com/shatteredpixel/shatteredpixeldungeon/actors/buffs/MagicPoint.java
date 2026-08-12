@@ -39,6 +39,7 @@ import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * 骰子法师魔力点追踪Buff
@@ -52,6 +53,8 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     private float currentPoints = 0f;
+    private boolean infiniteMana = false;
+    private final HashSet<Class<? extends DiceMageSpell>> learnedSpells = new HashSet<>();
     private int healValue = 50;
     private int refreshValue = 40;
     private int surgeryUses = 0;
@@ -77,8 +80,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     private Class<? extends DiceMageSpell>[] specialSpells = null;
 
     private static final String POINTS = "points";
-    private static final String HEAL_VALUE = "heal_value";
-    private static final String REFRESH_VALUE = "refresh_value";
+    private static final String HEAL_VALUE = "heal_value";    private static final String REFRESH_VALUE = "refresh_value";
     private static final String SURGERY_USES = "surgery_uses";
     private static final String LAST_KILLED_MOB = "last_killed_mob";
     private static final String COOLDOWNS = "spell_cooldowns";
@@ -89,6 +91,8 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     private static final String CORRECT_POTION = "correct_potion";
     private static final String CORRECT_SEED = "correct_seed";
     private static final String CORRECT_SCROLL = "correct_scroll";
+    private static final String INFINITE_MANA = "infinite_mana";
+    private static final String LEARNED_SPELLS = "learned_spells";
 
     public static MagicPoint inst() {
         return Dungeon.hero != null ? Dungeon.hero.buff(MagicPoint.class) : null;
@@ -132,7 +136,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     /** 当前魔力点 + 法杖充能可转化魔力是否足够支付 cost。 */
     public boolean canAfford(int cost) {
-        return currentPoints + wandMpTotal() >= cost;
+        return infiniteMana || currentPoints + wandMpTotal() >= cost;
     }
 
     /** 背包中所有法杖（每把按顺序），用于弹窗列出将被消耗充能的法杖。 */
@@ -175,7 +179,52 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         BuffIndicator.refreshHero();
     }
 
+    /** 是否无限魔力点（测试工具用）。 */
+    public boolean infiniteMana() {
+        return infiniteMana;
+    }
+
+    public void setInfiniteMana(boolean value) {
+        infiniteMana = value;
+        updateAction();
+        BuffIndicator.refreshHero();
+    }
+
+    /** 是否已学会某法术（无视天赋限制）。 */
+    public boolean isLearned(Class<? extends DiceMageSpell> spellClass) {
+        return learnedSpells.contains(spellClass);
+    }
+
+    public void learnSpell(Class<? extends DiceMageSpell> spellClass) {
+        if (spellClass != null) {
+            learnedSpells.add(spellClass);
+            updateAction();
+            BuffIndicator.refreshHero();
+        }
+    }
+
+    public HashSet<Class<? extends DiceMageSpell>> learnedSpells() {
+        return learnedSpells;
+    }
+
+    /** 本局魔力药水配方的三个正确答案。 */
+    public Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> correctPotion() {
+        ensureMagicPotionRecipe();
+        return correctPotion;
+    }
+
+    public Class<? extends com.shatteredpixel.shatteredpixeldungeon.plants.Plant.Seed> correctSeed() {
+        ensureMagicPotionRecipe();
+        return correctSeed;
+    }
+
+    public Class<? extends com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll> correctScroll() {
+        ensureMagicPotionRecipe();
+        return correctScroll;
+    }
+
     public boolean spendPoints(int amount) {
+        if (infiniteMana) return true;
         if (currentPoints >= amount) {
             currentPoints -= amount;
             updateAction();
@@ -384,6 +433,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     public void storeInBundle(Bundle bundle) {
         super.storeInBundle(bundle);
         bundle.put(POINTS, currentPoints);
+        bundle.put(INFINITE_MANA, infiniteMana);
         bundle.put(HEAL_VALUE, healValue);
         bundle.put(REFRESH_VALUE, refreshValue);
         bundle.put(SURGERY_USES, surgeryUses);
@@ -410,12 +460,19 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
             }
             bundle.put(SPECIAL_SPELLS, names);
         }
+        if (!learnedSpells.isEmpty()) {
+            String[] names = new String[learnedSpells.size()];
+            int i = 0;
+            for (Class<? extends DiceMageSpell> c : learnedSpells) names[i++] = c.getName();
+            bundle.put(LEARNED_SPELLS, names);
+        }
     }
 
     @Override
     public void restoreFromBundle(Bundle bundle) {
         super.restoreFromBundle(bundle);
         currentPoints = bundle.getFloat(POINTS);
+        infiniteMana = bundle.getBoolean(INFINITE_MANA);
         healValue = bundle.contains(HEAL_VALUE) ? bundle.getInt(HEAL_VALUE) : 50;
         refreshValue = bundle.contains(REFRESH_VALUE) ? bundle.getInt(REFRESH_VALUE) : 40;
         surgeryUses = bundle.getInt(SURGERY_USES);
@@ -487,6 +544,21 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
                     }
                 }
                 specialSpells = arr;
+            }
+        }
+        if (bundle.contains(LEARNED_SPELLS)) {
+            String[] names = bundle.getStringArray(LEARNED_SPELLS);
+            if (names != null) {
+                for (String n : names) {
+                    if (n == null) continue;
+                    try {
+                        Class<?> cls = Class.forName(n);
+                        if (DiceMageSpell.class.isAssignableFrom(cls)) {
+                            learnedSpells.add(cls.asSubclass(DiceMageSpell.class));
+                        }
+                    } catch (ClassNotFoundException ignored) {
+                    }
+                }
             }
         }
         updateAction();
