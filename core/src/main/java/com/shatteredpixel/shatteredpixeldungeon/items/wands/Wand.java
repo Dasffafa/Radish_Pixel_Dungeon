@@ -402,7 +402,7 @@ public abstract class Wand extends Item {
 
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			if (riverGlass != null) {
-				return super.buffedLvl() + riverGlass.level() + 1;
+				return super.buffedLvl() + riverGlass.virtualLevel();
 			}
 		}
 

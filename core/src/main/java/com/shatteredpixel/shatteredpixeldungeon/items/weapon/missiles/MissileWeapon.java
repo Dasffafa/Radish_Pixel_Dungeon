@@ -131,7 +131,7 @@ abstract public class MissileWeapon extends Weapon {
 		if (Dungeon.hero != null && (hero.belongings.contains(this) || parent != null)) {
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			if(riverGlass != null){
-				return super.buffedLvl() + riverGlass.level() + 1;
+				return super.buffedLvl() + riverGlass.virtualLevel();
 			}
 		}
 

@@ -244,11 +244,11 @@ public class MeleeWeapon extends Weapon {
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			// 塑形玻璃的虚拟等级需要与国王之戒的虚拟等级叠加
 			if(riverGlass != null && hero.buff(BlessAWP.WeaponGetReady.class)!=null && hero.belongings.weapon() == this) {
-				return super.buffedLvl() + 1 + riverGlass.level() + 1 + RingOfKing.updateMultiplier(Dungeon.hero);
+				return super.buffedLvl() + 1 + riverGlass.virtualLevel() + RingOfKing.updateMultiplier(Dungeon.hero);
 			} else if(hero.buff(BlessAWP.WeaponGetReady.class)!=null && hero.belongings.weapon() == this){
 				return super.buffedLvl() + 1 + RingOfKing.updateMultiplier(Dungeon.hero);
 			} else if(riverGlass != null){
-				return super.buffedLvl() + riverGlass.level() + 1 + RingOfKing.updateMultiplier(Dungeon.hero);
+				return super.buffedLvl() + riverGlass.virtualLevel() + RingOfKing.updateMultiplier(Dungeon.hero);
 			}
 
 			if (hero.pointsInTalent(Talent.GIFT) > 0) {
@@ -364,7 +364,7 @@ public class MeleeWeapon extends Weapon {
 			info += "\n\n" + Messages.get(Weapon.class, "cursed_worn");
 		} else if (cursedKnown && cursed) {
 			info += "\n\n" + Messages.get(Weapon.class, "cursed");
-		} else if (!isIdentified() && cursedKnown){
+		} else if (!isIdentified() && cursedKnown && !cursed){
 			if (enchantment != null && enchantment.curse()) {
 				info += "\n\n" + Messages.get(Weapon.class, "weak_cursed");
 			} else {

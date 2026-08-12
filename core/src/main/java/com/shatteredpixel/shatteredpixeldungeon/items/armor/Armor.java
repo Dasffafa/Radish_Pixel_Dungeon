@@ -865,11 +865,11 @@ public class Armor extends EquipableItem {
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			// 塑形玻璃的虚拟等级需要与国王之戒的虚拟等级叠加
 			if(hero.buff(BlessAWP.ArmorGetReady.class)!=null && hero.belongings.armor() == this && riverGlass != null){
-				return super.buffedLvl()+1 + riverGlass.level() + 1 + RingOfKing.updateMultiplier(Dungeon.hero);
+				return super.buffedLvl()+1 + riverGlass.virtualLevel() + RingOfKing.updateMultiplier(Dungeon.hero);
 			} else if(hero.buff(BlessAWP.ArmorGetReady.class)!=null && hero.belongings.armor() == this) {
 				return super.buffedLvl()+1 + RingOfKing.updateMultiplier(Dungeon.hero);
 			} else if(riverGlass != null){
-				return super.buffedLvl() + riverGlass.level() + 1 + RingOfKing.updateMultiplier(Dungeon.hero);
+				return super.buffedLvl() + riverGlass.virtualLevel() + RingOfKing.updateMultiplier(Dungeon.hero);
 			}
 
 
@@ -1046,7 +1046,7 @@ public class Armor extends EquipableItem {
 			}
 		}
 
-		if (!isIdentified() && cursedKnown) {
+		if (!isIdentified() && cursedKnown && !cursed) {
 			if (glyph != null && glyph.curse()) {
 				info += "\n\n" + Messages.get(Armor.class, "weak_cursed");
 			} else {

@@ -32,16 +32,19 @@ public class WndDiceMageSpells extends Window {
         float pos = MARGIN;
         chrome.hardlight(DiceMageUI.DARK);
 
+        // 窄屏适配：窗口宽度不能超出 UI 相机可用宽度
+        int w = Math.min(WIDTH, PixelScene.uiCamera.width - chrome.marginHor());
+
         RenderedTextBlock title = PixelScene.renderTextBlock("[DICE] " + Messages.get(this, "title"), 9);
         title.hardlight(DiceMageUI.GOLD);
-        title.maxWidth(WIDTH - MARGIN * 2);
+        title.maxWidth(w - MARGIN * 2);
         title.setPos(MARGIN, pos);
         add(title);
         pos = title.bottom() + MARGIN;
 
         RenderedTextBlock message = PixelScene.renderTextBlock(Messages.get(this, "message"), 6);
         message.hardlight(DiceMageUI.CREAM);
-        message.maxWidth(WIDTH - MARGIN * 2);
+        message.maxWidth(w - MARGIN * 2);
         message.setPos(MARGIN, pos);
         add(message);
         pos = message.bottom() + MARGIN * 2;
@@ -51,7 +54,7 @@ public class WndDiceMageSpells extends Window {
         if (spells.isEmpty()) {
             RenderedTextBlock empty = PixelScene.renderTextBlock(Messages.get(this, "empty"), 6);
             empty.hardlight(DiceMageUI.GREY_LINE);
-            empty.maxWidth(WIDTH - MARGIN * 2);
+            empty.maxWidth(w - MARGIN * 2);
             empty.setPos(MARGIN, pos);
             add(empty);
             pos = empty.bottom() + MARGIN;
@@ -69,7 +72,7 @@ public class WndDiceMageSpells extends Window {
             btn.textColor(DiceMageUI.SKY_BLUE);
             btn.lineColor(spellColor(spell));
             btn.enable(spell.canCast());
-            btn.setRect(0, pos, WIDTH - BUTTON_HEIGHT - MARGIN, BUTTON_HEIGHT);
+            btn.setRect(0, pos, w - BUTTON_HEIGHT - MARGIN, BUTTON_HEIGHT);
             add(btn);
 
             RedButton info = new RedButton("?") {
@@ -80,13 +83,13 @@ public class WndDiceMageSpells extends Window {
                 }
             };
             info.textColor(DiceMageUI.CREAM);
-            info.setRect(WIDTH - BUTTON_HEIGHT, pos, BUTTON_HEIGHT, BUTTON_HEIGHT);
+            info.setRect(w - BUTTON_HEIGHT, pos, BUTTON_HEIGHT, BUTTON_HEIGHT);
             add(info);
 
             pos += BUTTON_HEIGHT + MARGIN;
         }
 
-        resize(WIDTH, (int) (pos - MARGIN));
+        resize(w, (int) (pos - MARGIN));
     }
 
     /** 玩家当前拥有的法术：迸发固定拥有 + 每个有天赋点的学派的当前等级法术 + 已"学会"的法术。 */

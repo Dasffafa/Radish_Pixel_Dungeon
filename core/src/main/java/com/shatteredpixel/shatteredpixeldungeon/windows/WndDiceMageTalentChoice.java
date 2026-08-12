@@ -34,6 +34,9 @@ public class WndDiceMageTalentChoice extends Window {
     public WndDiceMageTalentChoice() {
         chrome.hardlight(DiceMageUI.DARK);
 
+        // 窄屏适配：窗口宽度不能超出 UI 相机可用宽度
+        int w = Math.min(WIDTH, PixelScene.uiCamera.width - chrome.marginHor());
+
         DiceMageSchool first = weightedPick();
         DiceMageSchool second = weightedPick();
         if (second == first) {
@@ -45,13 +48,13 @@ public class WndDiceMageTalentChoice extends Window {
         float cardsBottom = PAD;
         if (first != null) {
             firstCard = new SchoolChoice(first);
-            firstCard.setRect(PAD, PAD, WIDTH - PAD * 2, CARD_HEIGHT);
+            firstCard.setRect(PAD, PAD, w - PAD * 2, CARD_HEIGHT);
             add(firstCard);
             cardsBottom = firstCard.bottom();
         }
         if (second != null) {
             secondCard = new SchoolChoice(second);
-            secondCard.setRect(PAD, cardsBottom + PAD, WIDTH - PAD * 2, CARD_HEIGHT);
+            secondCard.setRect(PAD, cardsBottom + PAD, w - PAD * 2, CARD_HEIGHT);
             add(secondCard);
             cardsBottom = secondCard.bottom();
         }
@@ -63,7 +66,7 @@ public class WndDiceMageTalentChoice extends Window {
             }
         };
         random.textColor(DiceMageUI.CREAM);
-        random.setRect(22, cardsBottom + PAD, WIDTH - 44, BUTTON_HEIGHT);
+        random.setRect(22, cardsBottom + PAD, w - 44, BUTTON_HEIGHT);
         add(random);
 
         DiceMageUI.DiceButton skip = new DiceMageUI.DiceButton("跳过") {
@@ -73,10 +76,10 @@ public class WndDiceMageTalentChoice extends Window {
             }
         };
         skip.textColor(DiceMageUI.GREY_LINE);
-        skip.setRect(22, random.bottom() + PAD, WIDTH - 44, BUTTON_HEIGHT);
+        skip.setRect(22, random.bottom() + PAD, w - 44, BUTTON_HEIGHT);
         add(skip);
 
-        resize(WIDTH, (int) (skip.bottom() + PAD));
+        resize(w, (int) (skip.bottom() + PAD));
     }
 
     public static boolean canShow() {
@@ -173,7 +176,9 @@ public class WndDiceMageTalentChoice extends Window {
                 icon.scale.set(0.65f);
             }
             add(icon);
-            name = PixelScene.renderTextBlock(school.talent.title(), 6);
+            // 标出即将被选择的法术名称（无法术时退回学派名）
+            String nameText = spell != null ? spell.name() : school.talent.title();
+            name = PixelScene.renderTextBlock(nameText, 6);
             name.hardlight(DiceMageUI.SKY_BLUE);
             add(name);
             String d = spell != null ? spell.desc() : school.talent.desc();

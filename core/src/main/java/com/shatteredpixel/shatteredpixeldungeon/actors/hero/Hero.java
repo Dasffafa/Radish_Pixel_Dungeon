@@ -772,9 +772,10 @@ public class Hero extends Char {
 
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			if(riverGlass != null){
-				int originalArmorDr = Char.combatRoll(belongings.armor().DRMin(), belongings.armor().DRMax());
-				int secondRoll = Char.combatRoll(belongings.armor().DRMin(), belongings.armor().DRMax());
-				int finalArmorDr = Math.min(originalArmorDr, secondRoll);
+				int finalArmorDr = Integer.MAX_VALUE;
+				for (int i = 0; i < riverGlass.judgeTimes(); i++){
+					finalArmorDr = Math.min(finalArmorDr, Char.combatRoll(belongings.armor().DRMin(), belongings.armor().DRMax()));
+				}
 				if (STR() < belongings.armor().STRReq()){
 					finalArmorDr -= 2*(belongings.armor().STRReq() - STR());
 				}
@@ -1811,12 +1812,13 @@ public class Hero extends Char {
 		//Roll 2 次 投掷武器等相关惩罚
 		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 		if(riverGlass != null){
-			int dmg = 0;
-
 			if(wep != null){
-				int originalDamage = wep.damageRoll(this);
-				int secondRoll = Char.combatRoll(belongings.weapon().min(), belongings.weapon().max());
-                dmg = Math.min(originalDamage, secondRoll);
+				int dmgRoll = Integer.MAX_VALUE;
+				for (int i = 0; i < riverGlass.judgeTimes(); i++){
+					int roll = (i == 0) ? wep.damageRoll(this) : Char.combatRoll(belongings.weapon().min(), belongings.weapon().max());
+					dmgRoll = Math.min(dmgRoll, roll);
+				}
+				int dmg = dmgRoll;
 
 				if (!(wep instanceof MissileWeapon)) {
 					dmg += RingOfForce.armedDamageBonus(this);
