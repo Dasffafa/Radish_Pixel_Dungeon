@@ -43,7 +43,6 @@ public class BrokenSeal extends ItemArmorAttachable {
 		return glyph != null && glyph.curse();
 	}
 	//only to be used from the quickslot, for tutorial purposes mostly.
-	public static final String AC_INFO = "INFO_WINDOW";
 
 	{
 		image = ItemSpriteSheet.SEAL;
@@ -51,8 +50,6 @@ public class BrokenSeal extends ItemArmorAttachable {
 		cursedKnown = levelKnown = true;
 		unique = true;
 		bones = false;
-
-		defaultAction = AC_INFO;
 	}
 
 	private Armor.Glyph glyph;
@@ -92,7 +89,6 @@ public class BrokenSeal extends ItemArmorAttachable {
 	@Override
 	public ArrayList<String> actions(Hero hero) {
 		ArrayList<String> actions =  super.actions(hero);
-		actions.add(AC_INFO);
 		return actions;
 	}
 
@@ -100,10 +96,6 @@ public class BrokenSeal extends ItemArmorAttachable {
 	public void execute(Hero hero, String action) {
 
 		super.execute(hero, action);
-
-		if (action.equals(AC_INFO)) {
-			GameScene.show(new WndUseItem(null, this));
-		}
 	}
 
 	@Override
