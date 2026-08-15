@@ -1,5 +1,7 @@
 # Runtime Atlas 图标资源维护指南
 
+> 状态：**已实现**。
+
 Item、Talent 和 Buff 图标已经不再使用手工拼接的整张 atlas。每个图标都是独立 PNG，游戏启动后按目录中的 `manifest.txt` 动态生成纹理页。
 
 本文中的路径均相对于项目根目录。

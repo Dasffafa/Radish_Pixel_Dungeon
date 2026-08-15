@@ -1,5 +1,7 @@
 # Radish Pixel Dungeon UI 设计与布局方案
 
+> 状态：**已实现**。
+
 ## 一、概述
 
 Radish Pixel Dungeon 的 UI 系统基于 Noosa 游戏框架构建，采用 Component（组件）层叠式布局架构。所有 UI 元素继承自 `com.watabou.noosa.ui.Component`，通过 `createChildren()` 创建子组件，`layout()` 方法计算位置和尺寸。

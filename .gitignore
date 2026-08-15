@@ -44,3 +44,5 @@ the_catist/
 # Python tool build files
 __pycache__/
 *.pyc
+/docs/.~lock.全部玩具效果.xlsx#
+/docs/.obsidian/

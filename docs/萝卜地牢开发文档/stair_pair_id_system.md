@@ -1,5 +1,7 @@
 # 楼梯配对 ID 系统（Stair Pair ID System）
 
+> 状态：**已实现**。
+
 ## 背景问题
 
 一层存在多个楼梯时，当前 `Level.getTransition(Type)` 只按类型返回**第一个**匹配楼梯（`InterlevelScene.descend()/ascend()` 均依赖此逻辑），导致：

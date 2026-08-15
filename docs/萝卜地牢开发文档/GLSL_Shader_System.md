@@ -1,5 +1,7 @@
 # GLSL 着色器系统设计文档
 
+> 状态：**已实现**。
+
 ## 一、概述
 
 本系统为 Radish Pixel Dungeon 提供自定义 GLSL 着色器支持，基于 Noosa 渲染框架和 LibGDX OpenGL 层实现。主要用途是为骰子法师（Dice Mage）提供 Slice&Dice 风格的死亡特效，同时保持架构通用性，便于后续扩展其他着色器效果。
