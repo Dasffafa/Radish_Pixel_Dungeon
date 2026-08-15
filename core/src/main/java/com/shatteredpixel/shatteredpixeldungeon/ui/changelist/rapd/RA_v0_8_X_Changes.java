@@ -22,10 +22,52 @@ import static com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.*
 
 public class RA_v0_8_X_Changes {
     public static void addAllChanges(ArrayList<ChangeInfo> changeInfos) {
+        add_v08_4_Changes(changeInfos);
         add_v08_3_Changes(changeInfos);
         add_v08_2_Changes(changeInfos);
         add_v08_1_Changes(changeInfos);
         add_v08_0_Changes(changeInfos);
+    }
+
+    public static void add_v08_4_Changes(ArrayList<ChangeInfo> changeInfos) {
+        ChangeInfo changes = new ChangeInfo("v0.8.4", true, "");
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
+        changes.hardlight(Window.TITLE_COLOR);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClasses.ROGUE, 5, HeroClasses.ROGUE_SKIN_GAMBLER), "英雄皮肤系统",
+                ("英雄角色现在可以换上来自Slice & Dice的新皮肤！\n\n" +
+                        "_-_ 盗贼新增可选皮肤：赌徒\n" +
+                        "_-_ 战士新增可选皮肤：流浪者\n" +
+                        "_-_ 月华新增可选皮肤：圆球\n" +
+                        "_-_ 新增全职业共享皮肤：杂散（Jumble）\n" +
+                        "_-_ 皮肤在英雄选择界面中挑选，包含独立的形象与专属动画")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DATA), "职业系统重构",
+                ("将职业与子职业由枚举重构为定义式框架，为后续新英雄、新子职业与新皮肤提供统一的扩展入口。\n\n" +
+                        "_-_ 职业、子职业、天赋层级、护甲技能、初始装备与皮肤统一定义,未来添加新英雄会更加简单。\n"
+                )));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
+        changes.hardlight(CharSprite.WARNING);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new TalentIcon(Talent.SCHOOL_BLADES), "骰子法师法术调整",
+                ("_-_ 刃雨投射物改为纯视觉表现，伤害改为同步结算，飞刀会穿过倒下的尸体，以避免实际投射物导致的卡顿bug。\n"
+                        )));
+
+        changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
+        changes.hardlight(CharSprite.NEGATIVE);
+        changeInfos.add(changes);
+
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16),
+                Messages.get(ChangesScene.class, "bugfixes"),
+                ("_-_ 修复 骰子法师学派升级时在部分设备会发生闪退的bug\n" +
+                        "_-_ 修复 刃雨飞刀无法穿过尸体、伤害结算不稳定的bug\n" +
+                        "_-_ 新增了一些没有被发现的bug")));
     }
     public static void add_v08_3_Changes(ArrayList<ChangeInfo> changeInfos) {
         ChangeInfo changes = new ChangeInfo("v0.8.3", true, "");
