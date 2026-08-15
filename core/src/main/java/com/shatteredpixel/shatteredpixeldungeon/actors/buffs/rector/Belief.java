@@ -20,6 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -115,7 +116,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 int altFixedDamage = 12 + Dungeon.depth;
                 int altFixedDamagePlus;
 
-                if(hero.subClass == HeroSubClass.BATTLEPREIST){
+                if(hero.subClass == HeroSubClasses.BATTLEPREIST){
                     ArrayList<Mob> visibleTargets = new ArrayList<>();
 
                     for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
@@ -182,7 +183,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     int originVitaePlus = Dungeon.depth/5 * 12 + 8;
                     int adrenaline =  Dungeon.depth/5 * 4 - 1 ;
 
-                    if(hero.subClass == HeroSubClass.BATTLEPREIST){
+                    if(hero.subClass == HeroSubClasses.BATTLEPREIST){
                         Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitaePlus * 1.5f));
                         Buff.affect(target, Adrenaline.class,adrenaline);
                     } else {
@@ -191,7 +192,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
                     Buff.affect(hero, Stamina.class,originStamina  * 1.5f);
                 } else {
-                    if(hero.subClass == HeroSubClass.BATTLEPREIST){
+                    if(hero.subClass == HeroSubClasses.BATTLEPREIST){
                         Buff.affect(hero, VitaeBuff.class).setVitae(Dungeon.depth/5 * 12);
                         Buff.affect(target, Adrenaline.class,Dungeon.depth/5 * 4-1);
                     } else {

@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CircleArc;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -366,7 +367,7 @@ public class StatusPane extends Component {
 			vitaeText.measure();
 			vitaeText.x = vitae.x + vitae.width()/2 - vitaeText.width()/2;
 
-			if (Dungeon.hero.subClass == HeroSubClass.DICE_MAGE) {
+			if (Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE) {
 				MagicPoint mp = Dungeon.hero.buff(MagicPoint.class);
 				expText.text("MP " + (mp == null ? 0 : mp.getIntPoints()) + " | " + Dungeon.hero.exp + "/" + Dungeon.hero.maxExp());
 			} else {

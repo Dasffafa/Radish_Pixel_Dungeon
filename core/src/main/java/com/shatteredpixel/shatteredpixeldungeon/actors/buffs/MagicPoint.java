@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
@@ -394,7 +395,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     private void updateAction() {
-        if (target instanceof Hero && ((Hero) target).subClass == HeroSubClass.DICE_MAGE) {
+        if (target instanceof Hero && ((Hero) target).subClass == HeroSubClasses.DICE_MAGE) {
             if (ActionIndicator.action == null || ActionIndicator.action == this) {
                 ActionIndicator.setAction(this);
             }
@@ -581,7 +582,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     @Override
     public void doAction() {
-        if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE) {
+        if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE) {
             GameScene.show(new WndDiceMageSpells());
         }
     }

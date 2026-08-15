@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
@@ -19,7 +20,7 @@ public class GatherTalent {
     @SubscribeEvent(event = HeroActEvent.class, priority = 0)
     public static void onHeroAct(HeroActEvent event) {
         Hero hero = event.getHero();
-        if (hero == null || hero.subClass != HeroSubClass.DICE_MAGE) return;
+        if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE) return;
         if (hero.pointsInTalent(Talent.SCHOOL_MANA) != 1) return;
 
         boolean slowed = hero.buff(Cripple.class) != null

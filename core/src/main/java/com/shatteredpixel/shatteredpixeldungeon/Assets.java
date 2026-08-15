@@ -423,5 +423,11 @@ public class Assets {
 
 		public static final String GNOLL_KING ="sprites/RadishBossEnemySprite/gnollking.png";
 		public static final String GNOLL_SHAMAN_KING ="sprites/RadishBossEnemySprite/gnollshamanking.png";
+
+		//Radish SnD skins
+		public static final String GAMBLER = "sprites/RadishSnDSprite/gambler.png";
+		public static final String WANDERER = "sprites/RadishSnDSprite/wanderer.png";
+		public static final String SPHERE = "sprites/RadishSnDSprite/sphere.png";
+		public static final String JUMBLE = "sprites/RadishSnDSprite/jumble.png";
 	}
 }

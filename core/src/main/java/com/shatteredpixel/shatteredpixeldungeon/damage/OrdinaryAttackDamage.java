@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -46,6 +47,12 @@ public class OrdinaryAttackDamage {
 		info.addPreFinalAddModifier(damageBonus, "attack bonus");
 		applyFinalModifiers(attacker, defender, info);
 
+		// 圆球皮肤：近战伤害最终乘以 1.2（远程/投掷不生效）
+		if (attacker instanceof Hero && ((Hero) attacker).isSphereSkin()
+				&& !(sourceItem(attacker) instanceof MissileWeapon)) {
+			info.addFinalMultModifier(1.2f, "sphere melee");
+		}
+
 		return info;
 	}
 
@@ -66,7 +73,7 @@ public class OrdinaryAttackDamage {
 		if (attacker instanceof Hero) {
 			Hero h = (Hero) attacker;
 			if (h.belongings.weapon() instanceof MissileWeapon
-					&& h.subClass == HeroSubClass.SNIPER
+					&& h.subClass == HeroSubClasses.SNIPER
 					&& !Dungeon.level.adjacent(h.pos, defender.pos)) {
 				dr = 0;
 			}
@@ -241,7 +248,7 @@ public class OrdinaryAttackDamage {
 
 	private static boolean ignoresArmor(Char attacker, Char defender) {
 		return attacker == Dungeon.hero
-				&& Dungeon.hero.subClass == HeroSubClass.SNIPER
+				&& Dungeon.hero.subClass == HeroSubClasses.SNIPER
 				&& !Dungeon.level.adjacent(Dungeon.hero.pos, defender.pos)
 				&& Dungeon.hero.belongings.attackingWeapon() instanceof MissileWeapon;
 	}

@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ArmoredStatue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalMimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GoldenMimic;
@@ -267,7 +268,7 @@ public class SeedFinder {
 
     private boolean testSeed(String seed, int floors) {
         SPDSettings.customSeed(seed);
-        GamesInProgress.selectedClass = HeroClass.WARRIOR;
+        GamesInProgress.selectedClass = HeroClasses.WARRIOR;
         Dungeon.init();
 
         boolean[] itemsFound = new boolean[itemList.size()];
@@ -381,7 +382,7 @@ public class SeedFinder {
 
     private boolean testSeedALL(String seed, int floors) {
         SPDSettings.customSeed(seed);
-        GamesInProgress.selectedClass = HeroClass.WARRIOR;
+        GamesInProgress.selectedClass = HeroClasses.WARRIOR;
         Dungeon.init();
 
         boolean[] itemsFound = new boolean[itemList.size()];
@@ -530,7 +531,7 @@ public class SeedFinder {
     public String logSeedItems(String seed, int floors) {
 
         SPDSettings.customSeed(seed);
-        GamesInProgress.selectedClass = HeroClass.WARRIOR;
+        GamesInProgress.selectedClass = HeroClasses.WARRIOR;
         Dungeon.init();
         Branch branch = Branches.get(Dungeon.branchId);
         if (branch != null) {

@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 
 /** Central access point for runtime UI skin selection. */
 public final class UITheme {
@@ -14,7 +15,7 @@ public final class UITheme {
     }
 
     public static boolean isDiceMage() {
-        return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE;
+        return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE;
     }
 
     public static RoundedFrame roundedFrame(int fillColor, int lineColor) {

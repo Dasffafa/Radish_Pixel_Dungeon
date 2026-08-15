@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
@@ -430,7 +431,7 @@ public class SurfaceScene extends PixelScene {
 			TextureFilm avatars = new TextureFilm(texture, WIDTH, HEIGHT);
 			RectF avatarFrame = avatars.get(cl.ordinal());
 			if (avatarFrame == null) {
-				avatarFrame = avatars.get(HeroClass.WARRIOR.ordinal());
+				avatarFrame = avatars.get(HeroClasses.WARRIOR.ordinal());
 				usedWarriorFallback = true;
 			}
 			frame(avatarFrame);

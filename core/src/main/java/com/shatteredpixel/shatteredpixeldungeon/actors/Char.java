@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.DeathMark;
@@ -292,7 +293,7 @@ public abstract class Char extends Actor {
         c.spend(1 / (c.speed() * speedAdj));
 
         if (c == hero) {
-            if (hero.subClass == HeroSubClass.FREERUNNER) {
+            if (hero.subClass == HeroSubClasses.FREERUNNER) {
                 Buff.affect(hero, Momentum.class).gainStack();
             }
 
@@ -473,6 +474,14 @@ public abstract class Char extends Actor {
 
             if (buff(FireImbue.class) != null) buff(FireImbue.class).proc(enemy);
             if (buff(FrostImbue.class) != null) buff(FrostImbue.class).proc(enemy);
+
+            // 圆球皮肤：近战命中时有 16% 概率使目标麻痹 2 回合
+            if (this == hero && hero.isSphereSkin()
+                    && !(((Hero) this).belongings.attackingWeapon() instanceof MissileWeapon)
+                    && enemy.isAlive()
+                    && Random.Float() < 0.16f) {
+                Buff.affect(enemy, Paralysis.class, 2f);
+            }
 
             if (this == hero && enemy.isAlive() && ArrowBuff.tryExecute(enemy)) {
                 enemy.HP = 0;
@@ -1178,7 +1187,7 @@ public abstract class Char extends Actor {
                 if (damageType == DamageType.PHYSICAL) {
                     // 狙击手远程攻击无视护甲
                     if (src == hero
-                            && hero.subClass == HeroSubClass.SNIPER
+                            && hero.subClass == HeroSubClasses.SNIPER
                             && !Dungeon.level.adjacent(hero.pos, pos)
                             && hero.belongings.attackingWeapon() instanceof MissileWeapon) {
                         icon = FloatingText.PHYS_DMG_NO_BLOCK;

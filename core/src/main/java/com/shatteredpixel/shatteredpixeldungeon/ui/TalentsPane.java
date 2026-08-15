@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.Ratmogrify;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -79,7 +80,7 @@ public class TalentsPane extends ScrollPane {
 					&& Dungeon.hero.lvl+1 >= Talent.tierLevelThresholds[tiersAvailable+1]){
 				tiersAvailable++;
 			}
-			if (tiersAvailable > 2 && Dungeon.hero.subClass == HeroSubClass.NONE){
+			if (tiersAvailable > 2 && Dungeon.hero.subClass == HeroSubClasses.NONE){
 				tiersAvailable = 2;
 			} else if (tiersAvailable > 3 && (Dungeon.hero.armorAbility == null && !Dungeon.hero.powerOfImp)){
 				tiersAvailable = 3;
@@ -184,7 +185,7 @@ public class TalentsPane extends ScrollPane {
 
 			// 骰子法师3T：隐藏未投入点数的学派与隐藏的跳过天赋
 			boolean diceT3 = tier == 3 && Dungeon.hero != null
-					&& Dungeon.hero.subClass == HeroSubClass.DICE_MAGE;
+					&& Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE;
 
 			buttons = new ArrayList<>();
 			boolean diceEmpty = diceT3;

@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Speed;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Stamina;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -76,7 +77,7 @@ public class Wheelchair extends Artifact {
             actions.add(AC_RIDE);
         }
         // 轮椅翻车：月华英雄在加速状态下可使用
-        if (isEquipped(hero) && !cursed && hero.heroClass == HeroClass.MOONLIGHT) {
+        if (isEquipped(hero) && !cursed && hero.heroClass == HeroClasses.MOONLIGHT) {
             int points = hero.pointsInTalent(Talent.WHEELCHAIR_CRASH);
             if (points > 0 && hasAnySpeedBuff(hero)) {
                 actions.add(AC_CRASH);
@@ -198,7 +199,7 @@ public class Wheelchair extends Artifact {
         int range = 2 + (int)(level() * 0.2f);
         // 检查弹射起步天赋+2
         if (curUser != null) {
-            if (curUser.heroClass == HeroClass.MOONLIGHT && curUser.pointsInTalent(Talent.CATAPULT_START) >= 2) {
+            if (curUser.heroClass == HeroClasses.MOONLIGHT && curUser.pointsInTalent(Talent.CATAPULT_START) >= 2) {
                 range += 1;
             }
         }
@@ -374,7 +375,7 @@ public class Wheelchair extends Artifact {
     @SubscribeEvent(event = BeforeHeroMoveEvent.class)
     public static void onBeforeHeroMove(BeforeHeroMoveEvent event) {
         Hero hero = event.getHero();
-        if (hero.heroClass == HeroClass.MOONLIGHT && hero.pointsInTalent(Talent.STRONG_BODY) == 0) {
+        if (hero.heroClass == HeroClasses.MOONLIGHT && hero.pointsInTalent(Talent.STRONG_BODY) == 0) {
             if (!(hero.belongings.artifact instanceof Wheelchair)) {
                 GLog.w(Messages.get(hero, "wheelchair_needed"));
                 event.cancel();

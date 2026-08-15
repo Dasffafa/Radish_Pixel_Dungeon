@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Momentum;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight.SharpeningEdgeTalent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
@@ -767,7 +768,7 @@ public class Armor extends EquipableItem {
 		}
 
 		// 剑盾骑士天赋：月华护甲最小值至少为武器伤害最小值的倍数
-		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MOONLIGHT) {
+		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClasses.MOONLIGHT) {
 			int points = Dungeon.hero.pointsInTalent(Talent.SWORD_SHIELD_KNIGHT);
 			if (points > 0 && Dungeon.hero.belongings.weapon instanceof MeleeWeapon) {
 				// 获取武器伤害最小值

@@ -30,6 +30,8 @@ import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Fireball;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -65,6 +67,7 @@ import com.watabou.noosa.audio.Music;
 import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
+import com.watabou.utils.RectF;
 
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
@@ -75,12 +78,12 @@ import java.util.List;
 public class HeroSelectScene extends PixelScene {
 
 	private static HeroClass[] heroClasses = new HeroClass[] {
-			HeroClass.WARRIOR,
-			HeroClass.MAGE,
-			HeroClass.ROGUE,
-			HeroClass.HUNTRESS,
-			HeroClass.RECTOR,
-			HeroClass.MOONLIGHT
+			HeroClasses.WARRIOR,
+			HeroClasses.MAGE,
+			HeroClasses.ROGUE,
+			HeroClasses.HUNTRESS,
+			HeroClasses.RECTOR,
+			HeroClasses.MOONLIGHT
 	};
 	private static int heroClassIndex = 0;
 	private static void addHeroClassIndex(int add) {
@@ -202,11 +205,6 @@ public class HeroSelectScene extends PixelScene {
 		}
 
 		a = new Avatar(heroClass());
-		// Removing semitransparent contour
-		a.am = 2; a.aa = -1;
-		a.x = (SKY_WIDTH - a.width) / 2;
-		a.y = SKY_HEIGHT - a.height;
-		align(a);
 		window.add(a);
 
 		window.add( new PointerArea( a ) {
@@ -450,7 +448,7 @@ public class HeroSelectScene extends PixelScene {
 	@Override
 	public void update() {
 		super.update();
-		boolean shouldShowGrass = heroClass().GetSkin() != 4;
+		boolean shouldShowGrass = heroClass().activeDefinition().showGrass();
 		for (GrassPatch patch : grassPatches) {
 			if (patch != null) {
 				patch.visible = shouldShowGrass;
@@ -630,30 +628,11 @@ public class HeroSelectScene extends PixelScene {
 	}
 
 	private static class Avatar extends Image {
-		private static final int FRAME_W = 64;
-		private static final int FRAME_H = 64;
-		private static final int SPECIAL_FRAME_W = 88;
-		private static final int SPECIAL_FRAME_H = 120;
-
-		private static final class SkinConfig {
-			public final HeroClass heroClass;
-			public final int skinId;
-			public final String texPath;
-
-			public SkinConfig(HeroClass heroClass, int skinId, String texPath) {
-				this.heroClass = heroClass;
-				this.skinId = skinId;
-				this.texPath = texPath;
-			}
-		}
-
-		/**
-		 * 皮肤配置方法
-		 */
-		private static final SkinConfig[] SPECIAL_SKINS = {
-				//new SkinConfig(HeroClass.WARRIOR,  4, "splashes/skin/giftskin_warrior.png"),
-				//new SkinConfig(HeroClass.ROGUE,    4, "splashes/skin/giftskin_rogue.png"),
-		};
+		private RectF[] idleFrames;
+		private int frameIndex;
+		private float frameTimer;
+		private float frameDelay;
+		private float s;
 
 		public Avatar(HeroClass cl) {
 			super();
@@ -664,26 +643,52 @@ public class HeroSelectScene extends PixelScene {
 			updateAvatar(cl);
 		}
 
+		/**
+		 * 用可动的像素小人（游戏内模型）替换原大头像贴图。
+		 * 皮肤外观统一由 {@link HeroClass#activeDefinition()} 定义。
+		 */
 		private void updateAvatar(HeroClass cl) {
-			int skinId = cl.GetSkin();
-			SkinConfig matchSkin = null;
-			for (SkinConfig cfg : SPECIAL_SKINS) {
-				if (cfg.heroClass == cl && cfg.skinId == skinId) {
-					matchSkin = cfg;
-					break;
-				}
+			HeroDefinition si = cl.activeDefinition();
+			texture(si.customSprite() ? si.asset() : cl.spritesheet());
+			TextureFilm film = new TextureFilm(texture, si.frameW(), si.frameH());
+			int[] idle = si.idleFrames();
+			RectF[] candidate = new RectF[idle.length];
+			for (int i = 0; i < idle.length; i++) {
+				candidate[i] = film.get(idle[i]);
 			}
-
-			if (matchSkin != null) {
-				texture(TextureCache.get(matchSkin.texPath));
-				frame(0, 0, SPECIAL_FRAME_W, SPECIAL_FRAME_H);
-				setPos(0, 0);
+			s = si.scale();
+			// 过滤掉 null 帧，防止帧索引未定义时崩溃（例如独立皮肤动画尚未划分）
+			ArrayList<RectF> valid = new ArrayList<>();
+			for (RectF r : candidate) {
+				if (r != null) valid.add(r);
+			}
+			if (valid.isEmpty()) {
+				idleFrames = new RectF[]{ new RectF(0, 0, 1, 1) };
 			} else {
-				texture(cl.GetSkinAssest());
-				TextureFilm film = new TextureFilm(texture, FRAME_W, FRAME_H);
-				frame(film.get(skinId));
-				x = (SKY_WIDTH - width()) / 2f;
-				y = SKY_HEIGHT - height();
+				idleFrames = valid.toArray(new RectF[0]);
+			}
+			frameIndex = 0;
+			frameTimer = 0;
+			frameDelay = 1f / 6f;
+			frame(idleFrames[0]);
+			scale.set(s);
+			// width()/height() 已包含 scale（width * scale.x），无需再乘 s
+			x = (SKY_WIDTH - width()) / 2f;
+			y = SKY_HEIGHT - height();
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			frameTimer += Game.elapsed;
+			boolean changed = false;
+			while (frameTimer >= frameDelay) {
+				frameTimer -= frameDelay;
+				frameIndex = (frameIndex + 1) % idleFrames.length;
+				changed = true;
+			}
+			if (changed) {
+				frame(idleFrames[frameIndex]);
 			}
 		}
 	}

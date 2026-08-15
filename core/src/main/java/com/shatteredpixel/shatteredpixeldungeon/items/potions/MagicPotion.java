@@ -5,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -71,7 +72,7 @@ public class MagicPotion extends Item {
         hero.spend(TIME_TO_DRINK);
         hero.busy();
 
-        if (hero.subClass != HeroSubClass.DICE_MAGE) {
+        if (hero.subClass != HeroSubClasses.DICE_MAGE) {
             GLog.w(Messages.get(this, "only_dicemage"));
         } else {
             MagicPoint mp = Dungeon.hero.buff(MagicPoint.class);
@@ -140,7 +141,7 @@ public class MagicPotion extends Item {
 
         @Override
         public boolean testIngredients(ArrayList<Item> ingredients) {
-            if (Dungeon.hero == null || Dungeon.hero.subClass != HeroSubClass.DICE_MAGE) return false;
+            if (Dungeon.hero == null || Dungeon.hero.subClass != HeroSubClasses.DICE_MAGE) return false;
             if (ingredients == null || ingredients.size() != 3) return false;
             boolean hasPotion = false, hasSeed = false, hasScroll = false;
             for (Item i : ingredients) {
@@ -187,7 +188,7 @@ public class MagicPotion extends Item {
 
         @Override
         public Item sampleOutput(ArrayList<Item> ingredients) {
-            if (Dungeon.hero == null || Dungeon.hero.subClass != HeroSubClass.DICE_MAGE) return null;
+            if (Dungeon.hero == null || Dungeon.hero.subClass != HeroSubClasses.DICE_MAGE) return null;
             if (ingredients == null || ingredients.size() != 3) return null;
             MagicPoint mp = Dungeon.hero.buff(MagicPoint.class);
             if (mp == null) return null;

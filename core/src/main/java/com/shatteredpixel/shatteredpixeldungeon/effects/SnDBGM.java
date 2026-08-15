@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.watabou.noosa.audio.Music;
 
 /**
@@ -118,7 +119,7 @@ public class SnDBGM {
     }
 
     public static boolean active() {
-        return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE;
+        return Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE;
     }
 
     /**

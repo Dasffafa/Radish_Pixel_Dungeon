@@ -64,7 +64,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint;
@@ -944,14 +946,14 @@ public abstract class Mob extends Char {
 				}
 
 				float Rbelief = Dungeon.hero.lvl <= maxLvl ? 1f+0.2f*Dungeon.depth/5f : 0f;
-				if(hero.heroClass == HeroClass.RECTOR){
+				if(hero.heroClass == HeroClasses.RECTOR){
 					Belief belief = Dungeon.hero.buff(Belief.class);
 					if(belief != null){
 						belief.getBelief(Rbelief);
 					}
 
 					int exExp = 10;
-					if(hero.subClass == HeroSubClass.REDCARDINAL){
+					if(hero.subClass == HeroSubClasses.REDCARDINAL){
 						if( exp >= exExp){
 							belief.getBelief(1f);
 						}
@@ -968,7 +970,7 @@ public abstract class Mob extends Char {
 
 				Dungeon.hero.earnExp(hero.rectorDeadKngithDeadMode ? 0 : exp, getClass());
 
-				if (Dungeon.hero.subClass == HeroSubClass.MONK){
+				if (Dungeon.hero.subClass == HeroSubClasses.MONK){
 					Buff.affect(Dungeon.hero, MonkEnergy.class).gainEnergy(this);
 				}
 			}
@@ -981,7 +983,7 @@ public abstract class Mob extends Char {
 		// DiceMage 死亡着色器效果：根据伤害类型应用 shader
 		if (alignment == Alignment.ENEMY
 				&& Dungeon.hero != null
-				&& Dungeon.hero.subClass == HeroSubClass.DICE_MAGE
+				&& Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE
 				&& sprite != null
 				&& sprite.parent != null) {
 			com.shatteredpixel.shatteredpixeldungeon.damage.DamageType dmgType = this.lastDamageType;
@@ -1019,19 +1021,19 @@ public abstract class Mob extends Char {
 		}
 
 		if (alignment == Alignment.ENEMY
-				&& hero.subClass == HeroSubClass.DICE_MAGE
+				&& hero.subClass == HeroSubClasses.DICE_MAGE
 				&& (cause == hero || cause instanceof Weapon || cause instanceof Wand || cause instanceof DiceMageSpell)){
 			Buff.affect(hero, MagicPoint.class).recordKill(getClass());
 		}
 
 		// 骰子法师：视野内的怪物死亡时获得 1 魔力点
-		if (hero.subClass == HeroSubClass.DICE_MAGE
+		if (hero.subClass == HeroSubClasses.DICE_MAGE
 				&& alignment == Alignment.ENEMY
 				&& Dungeon.level.heroFOV[pos]){
 			Buff.affect(hero, MagicPoint.class).gainKillPoint();
 		}
 
-		if(hero.subClass == HeroSubClass.SNIPER){
+		if(hero.subClass == HeroSubClasses.SNIPER){
 			next();
 		}
 
@@ -1074,7 +1076,7 @@ public abstract class Mob extends Char {
 
 
 		//击杀boss会直接获取15点信仰值
-		if(hero.heroClass == HeroClass.RECTOR){
+		if(hero.heroClass == HeroClasses.RECTOR){
 			Belief belief = Dungeon.hero.buff(Belief.class);
 			if(belief != null){
 				if(properties.contains(Property.BOSS)){

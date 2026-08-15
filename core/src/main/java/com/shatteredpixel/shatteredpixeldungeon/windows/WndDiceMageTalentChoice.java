@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchool;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
@@ -18,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.TalentIcon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Random;
 
@@ -30,6 +32,15 @@ public class WndDiceMageTalentChoice extends Window {
     private static final int PAD = 4;
     private static final int CARD_HEIGHT = 55;
     private static final int BUTTON_HEIGHT = 18;
+
+    /** 在渲染线程上安全地创建并显示升级窗口（内部涉及文本/UI 组件构建）。 */
+    public static void show() {
+        Game.runOnRenderThread(() -> {
+            if (canShow()) {
+                GameScene.show(new WndDiceMageTalentChoice());
+            }
+        });
+    }
 
     public WndDiceMageTalentChoice() {
         chrome.hardlight(DiceMageUI.DARK);
@@ -84,7 +95,7 @@ public class WndDiceMageTalentChoice extends Window {
 
     public static boolean canShow() {
         Hero hero = Dungeon.hero;
-        if (hero == null || hero.subClass != HeroSubClass.DICE_MAGE || hero.talentPointsAvailable(3) <= 0) {
+        if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE || hero.talentPointsAvailable(3) <= 0) {
             return false;
         }
         return hasAnyAvailableSchool();
@@ -132,13 +143,13 @@ public class WndDiceMageTalentChoice extends Window {
         }
         hero.upgradeTalent(school.talent);
         hide();
-        if (canShow()) GameScene.show(new WndDiceMageTalentChoice());
+        show();
     }
 
     private void skip() {
         Dungeon.hero.upgradeTalent(Talent.D3_SKIPPED);
         hide();
-        if (canShow()) GameScene.show(new WndDiceMageTalentChoice());
+        show();
     }
 
     @Override

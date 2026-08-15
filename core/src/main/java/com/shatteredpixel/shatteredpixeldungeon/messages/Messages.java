@@ -243,6 +243,16 @@ public class Messages {
         }
     }
 
+    /**
+     * 检查指定键是否有可用文本（非缺失）。用于皮肤等场景的"可选文本键"判断。
+     */
+    public static boolean isAvailable(Class c, String k) {
+        String key = c.getName();
+        key = key.replace("com.shatteredpixel.shatteredpixeldungeon.", "");
+        key += "." + k;
+        return getFromBundle(key.toLowerCase(Locale.CHINESE)) != null;
+    }
+
     private static String findVariantValue(String key) {
         if (theme.isEmpty() || key == null) return null;
         String keyLower = key.toLowerCase(Locale.CHINESE);

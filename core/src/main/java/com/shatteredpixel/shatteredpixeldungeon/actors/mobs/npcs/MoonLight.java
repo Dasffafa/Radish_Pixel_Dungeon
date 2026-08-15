@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -42,7 +43,7 @@ public class MoonLight extends NPC{
     }
 
     public static boolean heroIsMoonLight() {
-        return Dungeon.hero != null && Dungeon.hero.heroClass == HeroClass.MOONLIGHT;
+        return Dungeon.hero != null && Dungeon.hero.heroClass == HeroClasses.MOONLIGHT;
     }
 
     private String getMessagePrefix() {

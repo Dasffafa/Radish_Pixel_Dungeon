@@ -1,5 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -121,7 +123,7 @@ public class Goblin extends Mob {
             Item dropStone = new ThrowingStone();
             Item greatStone = new TheGreatDead();
 //            if(Dungeon.hero != null){
-//                if (Dungeon.hero.heroClass == HeroClass.WARRIOR && Random.Int(0,10)>8)
+//                if (Dungeon.hero.heroClass == HeroClasses.WARRIOR && Random.Int(0,10)>8)
 //                    Dungeon.level.drop(greatStone,enemy.pos).sprite.drop();
 //                else
 //                    Dungeon.level.drop(dropStone,enemy.pos).sprite.drop();

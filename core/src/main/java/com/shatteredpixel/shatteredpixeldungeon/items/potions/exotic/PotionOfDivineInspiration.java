@@ -137,7 +137,7 @@ public class PotionOfDivineInspiration extends ExoticPotion {
 					GLog.p(Messages.get(PotionOfDivineInspiration.class, "bonus"));
 
 					if (index == 2 && WndDiceMageTalentChoice.canShow()) {
-						GameScene.show(new WndDiceMageTalentChoice());
+						WndDiceMageTalentChoice.show();
 					}
 
 					if (!anonymous && Random.Float() < talentChance){

@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomWeapon;
@@ -144,7 +145,7 @@ abstract public class Weapon extends KindOfWeapon {
 		// 小骑士濡湿附魔天赋逻辑
 		if (attacker instanceof Hero && this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) {
 			Hero hero = (Hero) attacker;
-			if (hero.subClass == HeroSubClass.LITTLE_KNIGHT && hero.buff(MagicImmune.class) == null) {
+			if (hero.subClass == HeroSubClasses.LITTLE_KNIGHT && hero.buff(MagicImmune.class) == null) {
 				int wetTalent = hero.pointsInTalent(Talent.WET_ENCHANT);
 				
 				// +1天赋：无附魔武器视为拥有濡湿
@@ -364,7 +365,7 @@ abstract public class Weapon extends KindOfWeapon {
 			} else if (enchantment != null) {
 				// 小骑士濡湿附魔+3天赋：升级不移除附魔
 				boolean wontLose = false;
-				if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.LITTLE_KNIGHT) {
+				if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.LITTLE_KNIGHT) {
 					wontLose = Dungeon.hero.pointsInTalent(Talent.WET_ENCHANT) >= 3;
 				}
 			

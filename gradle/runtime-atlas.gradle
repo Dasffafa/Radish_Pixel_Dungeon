@@ -32,11 +32,11 @@ def javaStringConstantsAfter = { File sourceFile, String after ->
 
 def talentNames = { File sourceFile ->
     def source = sourceFile.getText('UTF-8')
-    def body = source.split('public enum Talent \\{', 2)[1].split('ERROR;', 2)[0]
-    body = body.replaceAll(/(?s)\/\*.*?\*\/|\/\/[^\n]*/, '')
-
     def names = [] as Set
-    def matcher = body =~ /(?m)\b([A-Z][A-Z0-9_]*)(?:\(\d+\))?\s*(?=,|$)/
+    // Talent 已从枚举重构为类：提取形如
+    //   public static final Talent HEARTY_MEAL = new Talent("HEARTY_MEAL");
+    //   public static final Talent HOLD_FAST   = new Talent("HOLD_FAST", 3);
+    def matcher = source =~ /public\s+static\s+final\s+Talent\s+[A-Z][A-Z0-9_]*\s*=\s*new\s+Talent\("([A-Za-z0-9_]+)"/
     matcher.each { names.add(it[1].toLowerCase(Locale.ROOT)) }
     names.addAll([
             'error',
@@ -46,6 +46,23 @@ def talentNames = { File sourceFile ->
             'heroic_energy_rogue',
             'heroic_energy_huntress',
             'heroic_energy_rat'
+    ])
+    // 这些天赋通过 icon() 重写复用了其他天赋的图标，本身不参与 runtime-atlas 打包，无需专属 PNG。
+    names.removeAll([
+            'd3_skipped',
+            'gather',
+            'learn_cut',
+            'learn_heal',
+            'school_blades',
+            'school_blood',
+            'school_conjuration',
+            'school_emergency',
+            'school_fire',
+            'school_mana',
+            'school_medical',
+            'school_nature',
+            'school_physical',
+            'school_special'
     ])
     return names
 }

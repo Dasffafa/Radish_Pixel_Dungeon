@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
@@ -55,7 +56,7 @@ public class WandOfCorret extends DamageWand {
     @Override
     public void wandUsed() {
         super.wandUsed();
-        if(hero.subClass == HeroSubClass.REDCARDINAL){
+        if(hero.subClass == HeroSubClasses.REDCARDINAL){
             float timeToZap;
             timeToZap = -hero.cooldown();
             curUser.spendAndNext(timeToZap);
@@ -140,7 +141,7 @@ public class WandOfCorret extends DamageWand {
                     break;
             }
             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
-        } else if(creaditSkills!= null && !(hero.subClass == HeroSubClass.BATTLEPREIST)) {
+        } else if(creaditSkills!= null && !(hero.subClass == HeroSubClasses.BATTLEPREIST)) {
             creaditSkills.DownBelief(5);
         }
 

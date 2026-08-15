@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
@@ -67,7 +68,7 @@ public class WeaponMasteryTalent {
 			if (!(attacker instanceof Hero)) return;
 
 			Hero hero = (Hero) attacker;
-			if (hero.heroClass != HeroClass.MOONLIGHT || !hero.hasTalent(Talent.WEAPON_MASTERY)) return;
+			if (hero.heroClass != HeroClasses.MOONLIGHT || !hero.hasTalent(Talent.WEAPON_MASTERY)) return;
 			if (!(hero.belongings.weapon instanceof MeleeWeapon)) return;
 			if (info.getSourceItem() != hero.belongings.weapon) return;
 
@@ -117,7 +118,7 @@ public class WeaponMasteryTalent {
 	public static void onHeroAct(HeroActEvent event) {
 		Hero hero = event.getHero();
 
-		if (hero.heroClass != HeroClass.MOONLIGHT || !hero.hasTalent(Talent.WEAPON_MASTERY)) return;
+		if (hero.heroClass != HeroClasses.MOONLIGHT || !hero.hasTalent(Talent.WEAPON_MASTERY)) return;
 
 		KindOfWeapon weapon = hero.belongings.weapon();
 

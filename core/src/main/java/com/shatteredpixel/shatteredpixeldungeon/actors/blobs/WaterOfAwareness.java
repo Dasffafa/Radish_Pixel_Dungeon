@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolySpringUsedBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Identification;
@@ -51,7 +52,7 @@ public class WaterOfAwareness extends WellWater {
 
     @Override
     protected boolean affectHero(Hero hero) {
-        if (hero.heroClass == HeroClass.MOONLIGHT) {
+        if (hero.heroClass == HeroClasses.MOONLIGHT) {
             int points = hero.pointsInTalent(Talent.HOLY_SPRING);
             if (points > 0) {
                 HolySpringUsedBuff usedBuff = hero.buff(HolySpringUsedBuff.class);

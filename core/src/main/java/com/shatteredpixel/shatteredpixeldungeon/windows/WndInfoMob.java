@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -113,7 +114,7 @@ public class WndInfoMob extends Window {
 		add(health);
 
 		// 咒法学派：血条右侧注明怪物当前真实血量
-		if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE
+		if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE
 				&& Dungeon.hero.pointsInTalent(Talent.SCHOOL_CONJURATION) > 0){
 			RenderedTextBlock hpText = PixelScene.renderTextBlock(String.valueOf(mob.HP), 6);
 			hpText.hardlight(DiceMageUI.RED);
@@ -158,7 +159,7 @@ public class WndInfoMob extends Window {
 			
 			String mobName = Messages.titleCase( mob.name() );
 			// 咒法学派：可看到怪物实际血量
-			if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClass.DICE_MAGE
+			if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE
 					&& Dungeon.hero.pointsInTalent(Talent.SCHOOL_CONJURATION) > 0){
 				mobName += "  [" + mob.HP + "/" + mob.HT + "]";
 			}

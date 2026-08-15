@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
@@ -129,7 +130,7 @@ public class Shockwave extends ArmorAbility {
 											|| (ch instanceof Mimic && ch.alignment == Char.Alignment.NEUTRAL);
 									damage = hero.attackProc(ch, damage);
 									ch.damage(DamageInfo.of(damage, DamageType.PHYSICAL, hero, hero));
-									if (hero.subClass == HeroSubClass.GLADIATOR && wasEnemy){
+									if (hero.subClass == HeroSubClasses.GLADIATOR && wasEnemy){
 										Buff.affect( hero, Combo.class ).hit();
 									}
 								} else {

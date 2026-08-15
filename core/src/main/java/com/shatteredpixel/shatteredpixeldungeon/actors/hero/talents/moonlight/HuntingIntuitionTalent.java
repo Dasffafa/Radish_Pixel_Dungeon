@@ -3,6 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.talents.moonlight;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
@@ -36,7 +37,7 @@ public class HuntingIntuitionTalent {
     public static void onGainExperience(HeroGainExperienceEvent event) {
         Hero hero = event.getHero();
 
-        if (hero.heroClass != HeroClass.MOONLIGHT) return;
+        if (hero.heroClass != HeroClasses.MOONLIGHT) return;
 
         int points = hero.pointsInTalent(Talent.HUNTING_INTUITION);
         if (points <= 0) return;

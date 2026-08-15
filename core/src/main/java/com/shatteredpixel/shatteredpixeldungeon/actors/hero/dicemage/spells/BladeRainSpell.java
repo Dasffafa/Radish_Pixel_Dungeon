@@ -65,8 +65,11 @@ public class BladeRainSpell extends DiceMageSpell {
                 int aimY = cell / width;
                 double baseAngle = Math.atan2(aimY - fromY, aimX - fromX);
 
-                final HashMap<Integer, Integer> hitCounts = new HashMap<>();
                 final ThrowingKnife knife = new ThrowingKnife();
+
+                // 在 onSelect 内同步结算伤害（此时 Actor 线程处于暂停等待输入状态，安全），
+                // 飞刀只作纯视觉，避免在渲染线程回调里伤害正在被 Actor 线程处理的角色导致死锁
+                final HashMap<Integer, Integer> hitCounts = new HashMap<>();
 
                 for (int i = 0; i < PROJECTILES; i++) {
                     double angle = baseAngle - FAN_HALF + i * (2d * FAN_HALF) / (PROJECTILES - 1d);
@@ -77,23 +80,44 @@ public class BladeRainSpell extends DiceMageSpell {
                     double reach = Math.min(xReach, yReach);
                     int endX = Math.max(0, Math.min(width - 1, fromX + (int) Math.round(dx * reach)));
                     int endY = Math.max(0, Math.min(height - 1, fromY + (int) Math.round(dy * reach)));
-                    int collision = new Ballistica(hero.pos, endX + endY * width, Ballistica.MAGIC_BOLT).collisionPos;
+                    // 沿射线前进：只被"活着的敌人"阻挡，尸体（HP<=0）直接穿过，直到真正的墙壁
+                    Ballistica line = new Ballistica(hero.pos, endX + endY * width, Ballistica.STOP_SOLID);
+                    final int collision;
+                    int hitCell = line.collisionPos != null ? line.collisionPos : line.path.get(line.path.size() - 1);
+                    for (Integer c : line.path) {
+                        if (c == hero.pos) continue;
+                        Char hit = Actor.findChar(c);
+                        // 只被"真正活着"（HP>0 且未标记死亡）的敌人阻挡；
+                        // 已倒下（HP<=0，即使 deathMarked）的尸体直接穿过
+                        if (hit != null && hit.alignment == Char.Alignment.ENEMY
+                                && hit.HP > 0 && !hit.deathMarked) {
+                            hitCell = c;
+                            break;
+                        }
+                    }
+                    collision = hitCell;
 
+                    // —— 同步伤害结算 ——
+                    Char target = Actor.findChar(collision);
+                    if (target != null && target != hero && target.alignment == Char.Alignment.ENEMY
+                            && target.HP > 0 && !target.deathMarked) {
+                        int prev = hitCounts.containsKey(target.id()) ? hitCounts.get(target.id()) : 0;
+                        if (prev < MAX_HITS_PER_ENEMY) {
+                            hitCounts.put(target.id(), prev + 1);
+                            int dmg = Random.IntRange(20, 30);
+                            target.damage(DamageInfo.physicalNoArmor(dmg, BladeRainSpell.this));
+                        }
+                    }
+
+                    // —— 纯视觉飞刀（无伤害回调，避免渲染线程与 Actor 线程竞态）——
+                    final int visualCollision = collision;
                     ((MissileSprite) hero.sprite.parent.recycle(MissileSprite.class)).reset(
-                            hero.sprite, collision, knife, () -> {
-                                Char target = Actor.findChar(collision);
-                                if (target == null || target == hero || target.alignment != Char.Alignment.ENEMY) {
-                                    // 命中墙体：刀刃消失，不造成伤害
-                                    CellEmitter.center(collision).burst(Speck.factory(Speck.RED_LIGHT), 2);
-                                    return;
-                                }
-                                int prev = hitCounts.containsKey(target.id()) ? hitCounts.get(target.id()) : 0;
-                                if (prev >= MAX_HITS_PER_ENEMY) return;
-                                hitCounts.put(target.id(), prev + 1);
-                                int dmg = Random.IntRange(20, 30);
-                                target.damage(DamageInfo.physicalNoArmor(dmg, BladeRainSpell.this));
-                                if (target.isAlive()) {
-                                    CellEmitter.center(target.pos).burst(Speck.factory(Speck.RED_LIGHT), 3);
+                            hero.sprite, visualCollision, knife, () -> {
+                                Char t = Actor.findChar(visualCollision);
+                                if (t != null && t.alignment == Char.Alignment.ENEMY && t.isAlive()) {
+                                    CellEmitter.center(visualCollision).burst(Speck.factory(Speck.RED_LIGHT), 3);
+                                } else {
+                                    CellEmitter.center(visualCollision).burst(Speck.factory(Speck.RED_LIGHT), 2);
                                 }
                             });
                 }
