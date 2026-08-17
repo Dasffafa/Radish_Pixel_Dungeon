@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
@@ -33,9 +34,19 @@ public class WndDiceMageTalentChoice extends Window {
     private static final int CARD_HEIGHT = 55;
     private static final int BUTTON_HEIGHT = 18;
 
+    // 当前所有已打开的升级窗口（用于选择后刷新其他窗口，以及防止旧窗口堆叠显示陈旧状态）
+    private static final ArrayList<WndDiceMageTalentChoice> open = new ArrayList<>();
+
+    private SchoolChoice firstCard = null;
+    private SchoolChoice secondCard = null;
+
     /** 在渲染线程上安全地创建并显示升级窗口（内部涉及文本/UI 组件构建）。 */
     public static void show() {
         Game.runOnRenderThread(() -> {
+            // 同一时刻只保留一个升级窗口：先关闭已打开的窗口，避免堆叠出显示陈旧"下一个法术"的窗口
+            for (int i = open.size() - 1; i >= 0; i--) {
+                open.get(i).hide();
+            }
             if (canShow()) {
                 GameScene.show(new WndDiceMageTalentChoice());
             }
@@ -54,8 +65,6 @@ public class WndDiceMageTalentChoice extends Window {
             second = weightedPick();
         }
 
-        SchoolChoice firstCard = null;
-        SchoolChoice secondCard = null;
         float cardsBottom = PAD;
         if (first != null) {
             firstCard = new SchoolChoice(first);
@@ -91,11 +100,30 @@ public class WndDiceMageTalentChoice extends Window {
         add(skip);
 
         resize(w, (int) (skip.bottom() + PAD));
+
+        open.add(this);
+    }
+
+    @Override
+    public void hide() {
+        open.remove(this);
+        super.hide();
+    }
+
+    private static void refreshOpenWindows() {
+        for (WndDiceMageTalentChoice w : new ArrayList<>(open)) {
+            w.refreshCards();
+        }
+    }
+
+    private void refreshCards() {
+        if (firstCard != null) firstCard.refresh();
+        if (secondCard != null) secondCard.refresh();
     }
 
     public static boolean canShow() {
         Hero hero = Dungeon.hero;
-        if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE || hero.talentPointsAvailable(3) <= 0) {
+        if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE) {
             return false;
         }
         return hasAnyAvailableSchool();
@@ -139,28 +167,38 @@ public class WndDiceMageTalentChoice extends Window {
         if (school == null) return;
         Hero hero = Dungeon.hero;
         if (school == DiceMageSchool.SPECIAL) {
-            DiceMageSchools.ensureSpecialRolled(hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint.class));
+            DiceMageSchools.ensureSpecialRolled(hero.buff(MagicPoint.class));
         }
+        // 有可用3阶天赋点时消耗它，否则免费升级（记账补偿）
+        boolean freeUpgrade = hero.talentPointsAvailable(3) < 1;
         hero.upgradeTalent(school.talent);
+        if (freeUpgrade) {
+            MagicPoint mp = hero.buff(MagicPoint.class);
+            if (mp != null) mp.addFreeSchoolUpgrade();
+        }
         hide();
-        show();
+        // 若仍有其他已打开的升级窗口（历史堆叠），刷新其候选法术显示
+        refreshOpenWindows();
+        // 免费升级一次即可；仅当仍有可用3阶点时才继续弹窗（如灵感药水加成）
+        if (!freeUpgrade && hero.talentPointsAvailable(3) > 0) {
+            show();
+        }
     }
 
     private void skip() {
-        Dungeon.hero.upgradeTalent(Talent.D3_SKIPPED);
+        // 跳过不消耗任何点数，留待下次升级再选
         hide();
-        show();
     }
 
     @Override
     public void onBackPressed() {
-        // 必须通过其中一个选项花费点数
+        // 必须通过其中一个选项
     }
 
     private class SchoolChoice extends Button {
 
         private final DiceMageSchool school;
-        private final DiceMageSpell spell;
+        private DiceMageSpell spell;
         private RoundedFrame frame;
         private Image icon;
         private RenderedTextBlock name;
@@ -172,11 +210,26 @@ public class WndDiceMageTalentChoice extends Window {
             if (school == DiceMageSchool.SPECIAL) {
                 DiceMageSchools.ensureSpecialRolled(Dungeon.hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint.class));
             }
+            name = PixelScene.renderTextBlock("", 6);
+            name.hardlight(DiceMageUI.SKY_BLUE);
+            desc = PixelScene.renderTextBlock("", 6);
+            desc.hardlight(Window.WHITE);
+            refresh();
+            add(name);
+            add(desc);
+        }
+
+        /** 依据当前学派投入点数刷新"即将解锁"的法术（图标、名称、描述）。 */
+        void refresh() {
             int nextLevel = Math.min(3, Dungeon.hero.pointsInTalent(school.talent) + 1);
-            this.spell = DiceMageSchools.spellForLevel(school, nextLevel);
+            DiceMageSpell newSpell = DiceMageSchools.spellForLevel(school, nextLevel);
+            if (icon != null) {
+                remove(icon);
+                icon.destroy();
+            }
             Image snd = null;
-            if (spell != null && spell.sndImageName() != null) {
-                snd = SNDItems.get(spell.sndImageName());
+            if (newSpell != null && newSpell.sndImageName() != null) {
+                snd = SNDItems.get(newSpell.sndImageName());
             }
             icon = snd != null ? snd : new TalentIcon(school.talent);
             if (snd != null) {
@@ -187,15 +240,10 @@ public class WndDiceMageTalentChoice extends Window {
                 icon.scale.set(0.65f);
             }
             add(icon);
-            // 标出即将被选择的法术名称（无法术时退回学派名）
-            String nameText = spell != null ? spell.name() : school.talent.title();
-            name = PixelScene.renderTextBlock(nameText, 6);
-            name.hardlight(DiceMageUI.SKY_BLUE);
-            add(name);
-            String d = spell != null ? spell.desc() : school.talent.desc();
-            desc = PixelScene.renderTextBlock(d, 6);
-            desc.hardlight(Window.WHITE);
-            add(desc);
+            spell = newSpell;
+            name.text(spell != null ? spell.name() : school.talent.title());
+            desc.text(spell != null ? spell.desc() : school.talent.desc());
+            layout();
         }
 
         @Override

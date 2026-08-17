@@ -1,26 +1,23 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.MiasmaGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PoisonParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
-import com.watabou.utils.Random;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.watabou.noosa.audio.Sample;
 
 /**
- * 瘴气（自然学派 L3）：特殊毒气，令怪物同时中毒并受到毒素伤害。
+ * 瘴气（自然学派 L3）：在目标格喷出浓烈瘴气（体积80，相当于+3腐蚀法杖），
+ * 瘴气每回合造成毒气瓶毒素伤害并为敌人叠加2层中毒。
  */
 public class MiasmaSpell extends DiceMageSpell {
-
-    private static final int RADIUS = 2;
 
     @Override
     public Talent school() {
@@ -50,25 +47,10 @@ public class MiasmaSpell extends DiceMageSpell {
                 if (cell == null) return;
                 if (!spendMagic(hero)) return;
 
-                int width = Dungeon.level.width();
-                int cx = cell % width, cy = cell / width;
-                int hit = 0;
-                for (int x = cx - RADIUS; x <= cx + RADIUS; x++) {
-                    for (int y = cy - RADIUS; y <= cy + RADIUS; y++) {
-                        if (x < 0 || x >= width) continue;
-                        int pos = y * width + x;
-                        if (pos < 0 || pos >= Dungeon.level.length()) continue;
-                        Char ch = Actor.findChar(pos);
-                        if (ch == null) continue;
-                        int dmg = Random.IntRange(6, 10);
-                        ch.damage(DamageInfo.poison(dmg, MiasmaSpell.this));
-                        if (ch.isAlive()) {
-                            Buff.affect(ch, Poison.class).set(dmg);
-                            CellEmitter.center(ch.pos).burst(PoisonParticle.SPLASH, 10);
-                        }
-                        hit++;
-                    }
-                }
+                Blob gas = Blob.seed(cell, 80, MiasmaGas.class);
+                GameScene.add(gas);
+                CellEmitter.get(cell).burst(PoisonParticle.SPLASH, 10);
+                Sample.INSTANCE.play(Assets.Sounds.GAS);
                 hero.spendAndNext(1f);
             }
 

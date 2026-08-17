@@ -23,6 +23,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -30,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.utils.Random;
 
 /**
  * 骰子法师法术基类。
@@ -169,6 +172,28 @@ public abstract class DiceMageSpell {
 
     protected boolean isValidEnemy(Char target) {
         return target != null && target.alignment == Char.Alignment.ENEMY;
+    }
+
+    /**
+     * 力量加成伤害：每点力量 0-2 点物理伤害（刀刃/物理学派法术）。
+     */
+    protected int strBonusDamage(Hero hero) {
+        return Random.IntRange(0, 2 * hero.STR());
+    }
+
+    /**
+     * 力量加成护盾：每点力量 0-1 点护盾。
+     */
+    protected int strBonusShield(Hero hero) {
+        return Random.IntRange(0, hero.STR());
+    }
+
+    /**
+     * 为施法者附加力量护盾。
+     */
+    protected void applyStrShield(Hero hero) {
+        int shield = strBonusShield(hero);
+        if (shield > 0) Buff.affect(hero, Barrier.class).incShield(shield);
     }
 
     protected boolean isValidAlly(Char target) {

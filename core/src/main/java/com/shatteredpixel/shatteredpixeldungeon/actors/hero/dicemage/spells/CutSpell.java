@@ -10,12 +10,14 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
- * 切割（刀刃学派 L1）：视野内所有敌人受到7-11物理伤害。
+ * 切割（刀刃学派 L1）：视野内所有敌人受到7-11物理伤害，
+ * 附加33%武器伤害与力量加成，并触发武器附魔。
  */
 public class CutSpell extends DiceMageSpell {
 
@@ -55,10 +57,16 @@ public class CutSpell extends DiceMageSpell {
 
         if (!spendMagic(hero)) return;
 
+        KindOfWeapon weapon = hero.belongings.weapon;
+        int weaponRoll = weapon != null ? weapon.damageRoll(hero) : 0;
+        int weaponBonus = weaponRoll / 3;
+
         int hit = 0;
         for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
             if (Dungeon.level.heroFOV[mob.pos] && mob.alignment == Char.Alignment.ENEMY) {
-                int dmg = Random.IntRange(7, 11);
+                int dmg = Random.IntRange(7, 11) + weaponBonus + strBonusDamage(hero);
+                dmg = Math.max(1, dmg);
+                if (weapon != null) dmg = weapon.proc(hero, mob, dmg);
                 mob.damage(DamageInfo.physicalNoArmor(dmg, CutSpell.this));
                 if (mob.isAlive()) {
                     CellEmitter.center(mob.pos).burst(BlastParticle.FACTORY, 6);
@@ -68,6 +76,7 @@ public class CutSpell extends DiceMageSpell {
             }
         }
 
+        if (hit > 0) applyStrShield(hero);
         hero.spendAndNext(1f);
     }
 }

@@ -13,11 +13,11 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.watabou.utils.Random;
 
 /**
- * 绷带（医疗学派 L1）：视野内友军恢复5-9生命并获得5-9护盾。冷却100回合。
+ * 绷带（医疗学派 L1）：视野内友军恢复5-9生命并获得5-9护盾。冷却30回合。
  */
 public class BandageSpell extends DiceMageSpell {
 
-    private static final float COOLDOWN = 100f;
+    private static final float COOLDOWN = 30f;
 
     @Override
     public Talent school() {

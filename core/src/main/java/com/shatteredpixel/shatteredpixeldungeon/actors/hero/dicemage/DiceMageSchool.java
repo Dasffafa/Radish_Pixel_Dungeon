@@ -10,8 +10,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.Drai
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HexSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.ExecuteSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.FlickSpell;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.GatherPassive;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HackPassive;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.GatherSpell;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HackSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.HemlockSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.InfuseSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.LacerationSpell;
@@ -36,9 +36,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.Vine
 public enum DiceMageSchool {
 
     FIRE(Talent.SCHOOL_FIRE, 1f, new Class[]{ScorchSpell.class, ScaldSpell.class, BlazeSpell.class}),
-    BLADES(Talent.SCHOOL_BLADES, 1f, new Class[]{CutSpell.class, HackPassive.class, BladeRainSpell.class}),
+    BLADES(Talent.SCHOOL_BLADES, 1f, new Class[]{CutSpell.class, HackSpell.class, BladeRainSpell.class}),
     CONJURATION(Talent.SCHOOL_CONJURATION, 0.2f, new Class[]{ExecuteSpell.class, LightningSpell.class, HexSpell.class}),
-    MANA(Talent.SCHOOL_MANA, 0.333f, new Class[]{GatherPassive.class, ProphecySpell.class, StarfireSpell.class}),
+    MANA(Talent.SCHOOL_MANA, 0.333f, new Class[]{GatherSpell.class, ProphecySpell.class, StarfireSpell.class}),
     BLOOD(Talent.SCHOOL_BLOOD, 1f, new Class[]{LacerationSpell.class, BurnSpell.class, DrainSpell.class}),
     NATURE(Talent.SCHOOL_NATURE, 1f, new Class[]{HemlockSpell.class, VineSpell.class, MiasmaSpell.class}),
     MEDICAL(Talent.SCHOOL_MEDICAL, 1f, new Class[]{BandageSpell.class, InfuseSpell.class, SootheSpell.class}),

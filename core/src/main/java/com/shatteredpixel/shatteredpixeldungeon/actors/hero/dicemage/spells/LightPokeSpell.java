@@ -17,11 +17,11 @@ import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
 /**
- * 轻戳（物理学派 L1）：贴身必中，造成8-16伤害并击退2格。冷却20回合。
+ * 轻戳（物理学派 L1）：贴身必中，造成8-16伤害+力量加成并击退2格。冷却10回合。
  */
 public class LightPokeSpell extends DiceMageSpell {
 
-    private static final float COOLDOWN = 20f;
+    private static final float COOLDOWN = 10f;
 
     @Override
     public Talent school() {
@@ -65,9 +65,10 @@ public class LightPokeSpell extends DiceMageSpell {
                 }
                 if (!spendMagic(hero)) return;
 
-                int dmg = Random.IntRange(8, 16);
+                int dmg = Random.IntRange(8, 16) + strBonusDamage(hero);
                 target.damage(DamageInfo.physicalNoArmor(dmg, LightPokeSpell.this));
                 CellEmitter.center(target.pos).burst(BlastParticle.FACTORY, 6);
+                applyStrShield(hero);
                 // 击退2格，方向为远离玩家
                 WandOfBlastWave.throwChar(target, new Ballistica(target.pos, target.pos + (target.pos - hero.pos), Ballistica.MAGIC_BOLT),
                         2, true, true, LightPokeSpell.this);

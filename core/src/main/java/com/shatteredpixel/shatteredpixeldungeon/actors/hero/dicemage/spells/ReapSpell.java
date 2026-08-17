@@ -64,6 +64,7 @@ public class ReapSpell extends DiceMageSpell {
 
                 target.damage(new DamageInfo(target.HP, DamageType.TRUE, hero, null, ReapSpell.this));
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 8);
+                applyStrShield(hero);
                 Buff.affect(hero, MagicPoint.class).addPoints(3f);
                 hero.spendAndNext(1f);
             }

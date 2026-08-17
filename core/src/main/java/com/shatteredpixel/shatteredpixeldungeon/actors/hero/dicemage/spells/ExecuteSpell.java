@@ -16,13 +16,12 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
- * 诛杀（咒法学派 L1）：杀死视野内1个29-31生命的敌人，冷却15回合。
+ * 诛杀（咒法学派 L1）：杀死视野内1个生命值不高于 30+力量 的敌人，冷却15回合。
  */
 public class ExecuteSpell extends DiceMageSpell {
 
     private static final float COOLDOWN = 15f;
-    private static final int MIN_HP = 29;
-    private static final int MAX_HP = 31;
+    private static final int BASE_HP = 30;
 
     @Override
     public Talent school() {
@@ -60,7 +59,7 @@ public class ExecuteSpell extends DiceMageSpell {
                     GLog.w(Messages.get(ExecuteSpell.this, "not_in_view"));
                     return;
                 }
-                if (target.HP < MIN_HP || target.HP > MAX_HP) {
+                if (target.HP > BASE_HP + hero.STR()) {
                     GLog.w(Messages.get(ExecuteSpell.this, "out_of_range_hp", target.HP));
                     return;
                 }

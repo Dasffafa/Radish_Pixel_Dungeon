@@ -676,10 +676,17 @@ public class Hero extends Char {
 			return 0;
 		} else if (buff(PotionOfDivineInspiration.DivineInspirationTracker.class) != null
 				&& buff(PotionOfDivineInspiration.DivineInspirationTracker.class).isBoosted(tier)) {
-			return 2+powerget;
+			return 2+powerget+diceMageFreeSchoolUpgrades(tier);
 		} else {
-			return 0+powerget;
+			return powerget+diceMageFreeSchoolUpgrades(tier);
 		}
+	}
+
+	// 骰子法师的免费学派升级计入 bonus，使 talentPointsAvailable(3) 的"消耗 vs 免费"结算正确
+	private int diceMageFreeSchoolUpgrades(int tier){
+		if (tier != 3 || subClass != HeroSubClasses.DICE_MAGE) return 0;
+		MagicPoint mp = buff(MagicPoint.class);
+		return mp == null ? 0 : mp.freeSchoolUpgrades();
 	}
 
 	public String className() {

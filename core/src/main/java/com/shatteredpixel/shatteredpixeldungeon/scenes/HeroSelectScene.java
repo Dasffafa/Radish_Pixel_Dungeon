@@ -265,7 +265,7 @@ public class HeroSelectScene extends PixelScene {
 			protected void onClick() {
 				super.onClick();
 				heroClass().SetSkin(heroClass().GetSkin()+1);
-				a.heroClass(heroClass());
+				setSelectedHero();
 			}
 
 			@Override
