@@ -1177,7 +1177,8 @@ public abstract class Char extends Actor {
         }
 
 
-        if (sprite != null) {
+        if (sprite != null && !immuneHit) {
+            // 免疫伤害（元素/来源免疫被完全抵挡）时不弹出 "0" 伤害数字
             // 图标以 DamageType 为准（含暴击）；以下仅保留 DamageType 无法表达的特例
             if (info.isMixed() && info.getMixed() != null) {
                 // 混合伤害：按成分占比排序，左侧显示多个图标

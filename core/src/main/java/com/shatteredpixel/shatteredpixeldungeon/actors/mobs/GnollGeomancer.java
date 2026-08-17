@@ -206,7 +206,7 @@ public class GnollGeomancer extends Mob {
 
 					dmg = Math.min(dmg, buff(RockArmor.class).shielding());
 
-					damage(DamageInfo.physical(dmg, GnollGeomancer.this, p));
+					damage(new DamageInfo(dmg, DamageType.PICK, GnollGeomancer.this, p, p));
 					sprite.bloodBurstA(Dungeon.hero.sprite.center(), dmg);
 					sprite.flash();
 
