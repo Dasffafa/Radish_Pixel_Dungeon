@@ -16,11 +16,11 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
- * 毒芹（自然学派 L1）：造成3-7绿毒伤害并附加等量中毒层数。冷却20回合。
+ * 毒芹（自然学派 L1）：造成3-7绿毒伤害并附加等量中毒层数。冷却10回合。
  */
 public class HemlockSpell extends DiceMageSpell {
 
-    private static final float COOLDOWN = 20f;
+    private static final float COOLDOWN = 10f;
 
     @Override
     public Talent school() {

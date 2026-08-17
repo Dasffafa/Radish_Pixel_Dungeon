@@ -21,11 +21,11 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 /**
- * 烧焦（火焰学派 L1）：3×3范围，3-10火焰伤害并点燃。
+ * 烧焦（火焰学派 L1）：3×3范围，3-10火焰伤害并点燃。冷却20回合。
  */
 public class ScorchSpell extends DiceMageSpell {
 
-    private static final float COOLDOWN = 100f;
+    private static final float COOLDOWN = 20f;
 
     @Override
     public Talent school() {
@@ -68,7 +68,7 @@ public class ScorchSpell extends DiceMageSpell {
                         int dmg = Random.IntRange(3, 10);
                         ch.damage(DamageInfo.fire(dmg, ScorchSpell.this));
                         if (ch.isAlive()) {
-                            Buff.affect(ch, Burning.class);
+                            Buff.affect(ch, Burning.class).reignite(ch);
                             CellEmitter.center(ch.pos).burst(FlameParticle.FACTORY, 8);
                         } else {
                             ch.sprite.showStatus(CharSprite.NEGATIVE, Integer.toString(dmg));

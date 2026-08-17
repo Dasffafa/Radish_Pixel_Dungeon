@@ -80,11 +80,13 @@ public class BladeRainSpell extends DiceMageSpell {
                     double reach = Math.min(xReach, yReach);
                     int endX = Math.max(0, Math.min(width - 1, fromX + (int) Math.round(dx * reach)));
                     int endY = Math.max(0, Math.min(height - 1, fromY + (int) Math.round(dy * reach)));
-                    // 沿射线前进：只被"活着的敌人"阻挡，尸体（HP<=0）直接穿过，直到真正的墙壁
+                    // 沿射线前进：只被"活着的敌人"阻挡，尸体（HP<=0）直接穿过；不能穿过墙壁。
+                    // 注意：Ballistica.path 会一路延伸到地图边缘（碰撞后仍继续加入后续格），
+                    // 因此只能在前段 subPath(0, dist)（即到碰撞墙为止）内搜索敌人，否则会命中墙后的敌人。
                     Ballistica line = new Ballistica(hero.pos, endX + endY * width, Ballistica.STOP_SOLID);
                     final int collision;
                     int hitCell = line.collisionPos != null ? line.collisionPos : line.path.get(line.path.size() - 1);
-                    for (Integer c : line.path) {
+                    for (Integer c : line.subPath(0, line.dist)) {
                         if (c == hero.pos) continue;
                         Char hit = Actor.findChar(c);
                         // 只被"真正活着"（HP>0 且未标记死亡）的敌人阻挡；
@@ -104,7 +106,7 @@ public class BladeRainSpell extends DiceMageSpell {
                         int prev = hitCounts.containsKey(target.id()) ? hitCounts.get(target.id()) : 0;
                         if (prev < MAX_HITS_PER_ENEMY) {
                             hitCounts.put(target.id(), prev + 1);
-                            int dmg = Random.IntRange(20, 30);
+                            int dmg = Random.IntRange(20, 30) + strBonusDamage(hero);
                             target.damage(DamageInfo.physicalNoArmor(dmg, BladeRainSpell.this));
                         }
                     }
@@ -121,6 +123,7 @@ public class BladeRainSpell extends DiceMageSpell {
                                 }
                             });
                 }
+                applyStrShield(hero);
                 hero.spendAndNext(1f);
             }
 

@@ -17,11 +17,11 @@ import com.watabou.utils.Random;
 import java.util.ArrayList;
 
 /**
- * 割破（血液学派 L1）：自身受8-12伤害，对视野内最上方随机怪物造成17-31伤害。冷却20回合。
+ * 割破（血液学派 L1）：自身受8-12伤害，对视野内最上方随机怪物造成17-31伤害。冷却10回合。
  */
 public class LacerationSpell extends DiceMageSpell {
 
-    private static final float COOLDOWN = 20f;
+    private static final float COOLDOWN = 10f;
 
     @Override
     public Talent school() {

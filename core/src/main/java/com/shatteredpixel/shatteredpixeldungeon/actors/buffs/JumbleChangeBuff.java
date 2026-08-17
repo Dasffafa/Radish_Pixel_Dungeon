@@ -11,11 +11,14 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfConcealment;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.JumbleSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
@@ -141,6 +144,8 @@ public class JumbleChangeBuff extends Buff {
 
 	private void startChange() {
 		Hero hero = (Hero) target;
+		// 变身提示
+		GLog.w(Messages.get(JumbleChangeBuff.class, "transform"));
 		if (hero.sprite instanceof JumbleSprite) {
 			JumbleSprite sprite = (JumbleSprite) hero.sprite;
 
@@ -322,6 +327,15 @@ public class JumbleChangeBuff extends Buff {
 	private void transmuteArtifact(Hero hero) {
 		Artifact old = hero.belongings.artifact();
 		if (old == null) return;
+
+		// 月华的轮椅是身份象征，变身时不会变换
+		if (hero.heroClass == HeroClasses.MOONLIGHT && old instanceof Wheelchair) {
+			return;
+		}
+
+		if (hero.heroClass == HeroClasses.ROGUE && old instanceof CloakOfConcealment) {
+			return;
+		}
 
 		//所有可生成的神器类（忽略唯一性，允许重复）
 		Class<?>[] classes = Generator.Category.ARTIFACT.classes;

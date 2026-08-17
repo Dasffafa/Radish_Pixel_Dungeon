@@ -1,12 +1,13 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicProphecy;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 
 /**
- * 预知（法力学派 L2）：引导2回合，20回合后获得4点魔力。
+ * 预知（法力学派 L2）：消耗2魔力点，获得10回合的魔能透视。
  */
 public class ProphecySpell extends DiceMageSpell {
 
@@ -22,8 +23,9 @@ public class ProphecySpell extends DiceMageSpell {
 
     @Override
     public int mpCost() {
-        return 3;
+        return 2;
     }
+
     @Override
     public String sndImageName() {
         return "foretell";
@@ -34,7 +36,7 @@ public class ProphecySpell extends DiceMageSpell {
     @Override
     protected void onCast(Hero hero) {
         if (!spendMagic(hero)) return;
-        MagicProphecy.apply(hero);
-        hero.spendAndNext(2f);
+        Buff.prolong(hero, MagicalSight.class, 10f);
+        hero.spendAndNext(1f);
     }
 }

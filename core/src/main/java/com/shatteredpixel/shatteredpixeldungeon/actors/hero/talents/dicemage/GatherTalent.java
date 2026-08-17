@@ -13,22 +13,10 @@ import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 
 /**
- * 收集（法力学派 L1，被动）：被残废、冻伤、麻痹、冰冻等状态影响时，
- * 每回合获得 0.3 点魔力。
+ * 收集被动（法力学派 L1）已改为主动技能 GatherSpell，此监听器不再生效。
  */
 public class GatherTalent {
-    @SubscribeEvent(event = HeroActEvent.class, priority = 0)
+    // 已停用：收集现为主动拉取技能，见 GatherSpell
     public static void onHeroAct(HeroActEvent event) {
-        Hero hero = event.getHero();
-        if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE) return;
-        if (hero.pointsInTalent(Talent.SCHOOL_MANA) != 1) return;
-
-        boolean slowed = hero.buff(Cripple.class) != null
-                || hero.buff(Paralysis.class) != null
-                || hero.buff(Chill.class) != null
-                || hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost.class) != null;
-        if (!slowed) return;
-
-        Buff.affect(hero, MagicPoint.class).addPoints(0.3f);
     }
 }

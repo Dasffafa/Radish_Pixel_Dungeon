@@ -3,30 +3,28 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
+import com.watabou.utils.Random;
 
 /**
- * 电闪（咒法学派 L2）：弹道雷电，杀死1个19-21生命值的敌人，冷却50回合。
+ * 电闪（咒法学派 L2）：弹道雷电，造成15-25闪电伤害+当前魔力值加成，冷却50回合。
  */
 public class LightningSpell extends DiceMageSpell {
 
     private static final float COOLDOWN = 50f;
-    private static final int MIN_HP = 19;
-    private static final int MAX_HP = 21;
 
     @Override
     public Talent school() {
@@ -60,17 +58,16 @@ public class LightningSpell extends DiceMageSpell {
                     GLog.w(Messages.get(LightningSpell.this, "invalid_target"));
                     return;
                 }
-                if (target.HP < MIN_HP || target.HP > MAX_HP) {
-                    GLog.w(Messages.get(LightningSpell.this, "out_of_range_hp", target.HP));
-                    return;
-                }
                 if (!spendMagic(hero)) return;
+
+                MagicPoint mp = hero.buff(MagicPoint.class);
+                int mpBonus = mp != null ? mp.getIntPoints() : 0;
+                final int dmg = Random.IntRange(15, 25) + mpBonus;
 
                 MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.STAR, hero.sprite, target.pos, new Callback() {
                     @Override
                     public void call() {
-                        target.sprite.showStatus(CharSprite.NEGATIVE, Messages.get(LightningSpell.this, "executed"));
-                        target.damage(new DamageInfo(target.HP, DamageType.TRUE, hero, null, LightningSpell.this));
+                        target.damage(DamageInfo.lightning(dmg, LightningSpell.this));
                         CellEmitter.center(target.pos).burst(SparkParticle.FACTORY, 10);
                         Sample.INSTANCE.play(Assets.Sounds.ZAP);
                     }

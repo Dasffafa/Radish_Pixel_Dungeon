@@ -189,6 +189,18 @@ public class HeroClass {
 					break;
 				}
 			}
+
+			// 普通头像皮肤遍历完毕后，继续寻找更高索引的独立贴图皮肤变体（如杂散/赌徒/流浪者/圆球）
+			if (skinIndex >= skinCount) {
+				isSkinUnlock = false;
+				for (SkinDefinition s : definition().skins()){
+					if (s.customSprite() && s.skinIndex() >= skinIndex){
+						skinIndex = s.skinIndex();
+						isSkinUnlock = true;
+						break;
+					}
+				}
+			}
 		}
 
 		// 独立贴图皮肤变体（如盗贼的赌徒）恒解锁

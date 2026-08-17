@@ -61,6 +61,8 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     private int surgeryUses = 0;
     private int activeSurgerySummon = -1;
     private Class<? extends Mob> lastKilledMob;
+    // 无可用3阶天赋点时免费升学派的总次数（用于 talentPointsAvailable(3) 记账补偿）
+    private int freeSchoolUpgrades = 0;
 
     // 每 REGEN_TURNS 回合自动获得 1 魔力点
     public static final int REGEN_TURNS = 20;
@@ -94,6 +96,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     private static final String CORRECT_SCROLL = "correct_scroll";
     private static final String INFINITE_MANA = "infinite_mana";
     private static final String LEARNED_SPELLS = "learned_spells";
+    private static final String FREE_SCHOOL_UPGRADES = "free_school_upgrades";
 
     public static MagicPoint inst() {
         return Dungeon.hero != null ? Dungeon.hero.buff(MagicPoint.class) : null;
@@ -302,6 +305,14 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         return activeSurgerySummon;
     }
 
+    public int freeSchoolUpgrades() {
+        return freeSchoolUpgrades;
+    }
+
+    public void addFreeSchoolUpgrade() {
+        freeSchoolUpgrades++;
+    }
+
     public void setActiveSurgerySummon(int id) {
         activeSurgerySummon = id;
     }
@@ -439,6 +450,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         bundle.put(REFRESH_VALUE, refreshValue);
         bundle.put(SURGERY_USES, surgeryUses);
         bundle.put(ACTIVE_SURGERY_SUMMON, activeSurgerySummon);
+        bundle.put(FREE_SCHOOL_UPGRADES, freeSchoolUpgrades);
         bundle.put(TURNS_TO_REGEN, turnsToRegen);
         bundle.put(TURNS_TO_CLEAR, turnsToClear);
         if (correctPotion != null) bundle.put(CORRECT_POTION, correctPotion.getName());
@@ -478,6 +490,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         refreshValue = bundle.contains(REFRESH_VALUE) ? bundle.getInt(REFRESH_VALUE) : 40;
         surgeryUses = bundle.getInt(SURGERY_USES);
         activeSurgerySummon = bundle.getInt(ACTIVE_SURGERY_SUMMON);
+        freeSchoolUpgrades = bundle.contains(FREE_SCHOOL_UPGRADES) ? bundle.getInt(FREE_SCHOOL_UPGRADES) : 0;
         turnsToRegen = bundle.contains(TURNS_TO_REGEN) ? bundle.getFloat(TURNS_TO_REGEN) : 1f;
         turnsToClear = bundle.contains(TURNS_TO_CLEAR) ? bundle.getFloat(TURNS_TO_CLEAR) : 1f;
         if (bundle.contains(CORRECT_POTION)) {
