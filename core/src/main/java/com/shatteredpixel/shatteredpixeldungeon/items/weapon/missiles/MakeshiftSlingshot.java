@@ -54,8 +54,7 @@ public class MakeshiftSlingshot extends Item {
 		defaultAction = AC_USE;
 		usesTargeting = true;
 
-		// 暂时使用石子贴图，后续需要添加专用贴图
-		image = ItemSpriteSheet.THROWING_STONE;
+		image = ItemSpriteSheet.MAKESHIFT_SLINGSHOT;
 		stackable = false;
 
 		bones = true;

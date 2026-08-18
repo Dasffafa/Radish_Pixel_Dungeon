@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfCha
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.TheGreatDead;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MakeshiftSlingshot;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -156,6 +157,10 @@ public class Goblin extends Mob {
 
     @Override
     public void die( Object cause ) {
+        // 简易投石索 10% 掉落
+        if(Random.Float() < 0.1f){
+            Dungeon.level.drop(new MakeshiftSlingshot(), pos).sprite.drop();
+        }
         // Random drop
         if(Random.Float(0,10)<5) loot=Generator.Category.MIS_T3;
         super.die( cause );

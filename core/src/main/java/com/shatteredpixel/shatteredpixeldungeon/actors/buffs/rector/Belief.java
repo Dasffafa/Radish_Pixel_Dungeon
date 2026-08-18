@@ -257,7 +257,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                             GLog.p(Messages.get(Belief.class, "curse_remove_success"));
                             break;
                         case 3:
-                            hero.HP += Math.min(hero.HT / 3, hero.HT);
+                            hero.heal(hero.HT / 3);
                             if (hero.HP > hero.HT) {
                                 hero.HP = hero.HT;
                             }
@@ -290,7 +290,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                         GLog.p(Messages.get(Belief.class, "curse_remove_success"));
                     break;
                     case 3:
-                        hero.HP += Math.min(hero.HT / 3, hero.HT);
+                        hero.heal(hero.HT / 3);
                         if (hero.HP > hero.HT) {
                             hero.HP = hero.HT;
                         }

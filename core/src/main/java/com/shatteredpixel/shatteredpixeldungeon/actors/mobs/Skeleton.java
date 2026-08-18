@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.BonePile;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PrisonArmor;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -36,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.SkeletonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
 
 public class Skeleton extends Mob {
 	
@@ -66,6 +68,11 @@ public class Skeleton extends Mob {
 		super.die( cause );
 		
 		if (cause == Chasm.class) return;
+
+		// 残骨堆 33% 掉落1个
+		if(Dungeon.hero != null && Random.Float() < 0.33f){
+			Dungeon.level.drop(new BonePile(), pos).sprite.drop();
+		}
 		
 		boolean heroKilled = false;
 		for (int i = 0; i < PathFinder.NEIGHBOURS8.length; i++) {

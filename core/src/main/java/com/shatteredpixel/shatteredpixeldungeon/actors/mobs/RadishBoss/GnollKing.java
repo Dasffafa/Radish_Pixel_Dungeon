@@ -19,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
+import com.shatteredpixel.shatteredpixeldungeon.items.FlashCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.exotic.PotionOfCleansing;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
@@ -603,6 +604,12 @@ public class GnollKing extends Mob {
     @Override
     public void die( Object cause ) {
         super.die( cause );
+
+        // 双王各 100% 掉落2个闪晶
+        if(Dungeon.LimitedDrops.FLASH_CRYSTAL_KING.count < 6){
+            Dungeon.LimitedDrops.FLASH_CRYSTAL_KING.count++;
+            Dungeon.level.drop(new FlashCrystal().quantity(2), pos).sprite.drop();
+        }
 
         Statistics.gnoll_boss++;
 

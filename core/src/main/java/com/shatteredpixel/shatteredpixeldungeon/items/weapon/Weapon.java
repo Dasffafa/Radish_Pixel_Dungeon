@@ -66,6 +66,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kineti
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamprey;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Resonance;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seeking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Striking;
@@ -483,7 +484,7 @@ abstract public class Weapon extends KindOfWeapon {
 	public static abstract class Enchantment implements Bundlable {
 
 		public static final Class<?>[] common = new Class<?>[]{
-				Blazing.class, Chilling.class, Kinetic.class, Shocking.class, Lamprey.class};
+				Blazing.class, Chilling.class, Kinetic.class, Shocking.class, Lamprey.class, Resonance.class};
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
 				Blocking.class, Blooming.class, Elastic.class,

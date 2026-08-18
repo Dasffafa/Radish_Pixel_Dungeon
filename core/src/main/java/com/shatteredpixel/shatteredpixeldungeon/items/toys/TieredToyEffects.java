@@ -108,7 +108,7 @@ public final class TieredToyEffects {
 		if (state != null && state.spongeTurns() > 0) amount = Math.round(amount * 1.5f);
 		if (state != null && has(TieredToy.Hourglass.class) && state.floorTurns() <= 10) amount = Math.round(amount * 1.5f);
 		int missing = hero.HT - hero.HP;
-		hero.HP += Math.min(missing, amount);
+		hero.heal(Math.min(missing, amount));
 		int overflow = amount - missing;
 		if (overflow > 0 && has(TieredToy.BloodChalice.class)) Buff.affect(hero, Barrier.class).incShield(overflow);
 	}

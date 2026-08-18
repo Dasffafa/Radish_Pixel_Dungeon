@@ -460,7 +460,8 @@ public class DriedRose extends Artifact {
 				}
 
 				if (spawnPoints.size() > 0) {
-					Wraith.spawnAt(Random.element(spawnPoints));
+					Wraith w = Wraith.spawnAt(Random.element(spawnPoints));
+					if (w != null) w.noSoulDrop = true;
 					Sample.INSTANCE.play(Assets.Sounds.CURSED);
 				}
 

@@ -63,17 +63,18 @@ public class VineSpell extends DiceMageSpell {
                     CellEmitter.center(target.pos).burst(SparkParticle.FACTORY, 5);
                     GLog.p(Messages.get(VineSpell.this, "shield", shield));
                 } else {
-                    int dmg = Random.IntRange(3, 7);
+                    int dmg = Random.IntRange(3, 7) + 2 * (hero.STR() - 10);
                     target.damage(DamageInfo.physicalNoArmor(dmg, VineSpell.this));
                     if (target.isAlive()) {
                         if (Random.Float() < 0.33f) {
+                            // 缠绕时长可叠加（affect 对已存在的 buff 会累加 duration）
                             Buff.affect(target, Roots.class, 2f);
                         }
                         CellEmitter.center(target.pos).burst(EarthParticle.FACTORY, 8);
                     }
                     GLog.p(Messages.get(VineSpell.this, "attack", dmg));
                 }
-                hero.spendAndNext(1f);
+                hero.spendAndNext(0.33f);
             }
 
             @Override

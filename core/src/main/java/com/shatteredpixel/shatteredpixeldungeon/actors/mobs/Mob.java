@@ -1096,9 +1096,8 @@ public abstract class Mob extends Char {
 					}
 				}
 				int effect = Math.min( hero.HT - hero.HP,hero.pointsInTalent(Talent.RAIN_GRACE));
-				hero.HP += effect;
+				hero.heal(effect);
 				hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
-				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.pointsInTalent(Talent.RAIN_GRACE)), FloatingText.HEALING);
 				Buff.affect(hero, Talent.Rain_Grace_Cooldown.class, 5f);
 			}
 		}

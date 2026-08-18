@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FireImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FrostImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HealingBlocked;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
@@ -28,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.DogLeg;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -79,6 +81,10 @@ public class Dog extends Mob {
 
     @Override
     public void die( Object cause ) {
+        // 狗腿 15% 掉落
+        if(Random.Float() < 0.15f){
+            Dungeon.level.drop(new DogLeg(), pos).sprite.drop();
+        }
         super.die( cause );
     }
     @Override
@@ -127,6 +133,9 @@ public class Dog extends Mob {
                 enemy.sprite.showStatus(CharSprite.NEGATIVE,Messages.get(this,"crit"));
             }
             enemy.damage(attackDamage);
+
+            // 攻击后给目标附加4回合禁疗（时长可叠加）
+            HealingBlocked.block(enemy, HealingBlocked.DURATION);
 
             if (buff(FireImbue.class) != null)  buff(FireImbue.class).proc(enemy);
             if (buff(FrostImbue.class) != null) buff(FrostImbue.class).proc(enemy);

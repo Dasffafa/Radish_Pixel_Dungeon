@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.BonePile;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PrisonArmor;
@@ -234,6 +235,11 @@ public class ClusteredSkeleton extends Mob {
         super.die( cause );
 
         if (cause == Chasm.class) return;
+
+        // 聚合骷髅 100% 掉落 2～4 个残骨堆
+        if(Dungeon.hero != null){
+            Dungeon.level.drop(new BonePile().quantity(Random.Int(2, 4)), pos).sprite.drop();
+        }
 
         CellEmitter.get(pos).burst(Speck.factory(Speck.BONE), 10);
 

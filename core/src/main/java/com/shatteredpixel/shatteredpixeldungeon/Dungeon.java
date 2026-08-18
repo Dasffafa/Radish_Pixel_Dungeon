@@ -143,6 +143,11 @@ public class Dungeon {
 		DM200_EQUIP,
 		GOLEM_EQUIP,
 
+		// 闪晶：每种怪物最多掉落6个
+		FLASH_CRYSTAL_GNOLL,
+		FLASH_CRYSTAL_KING,
+		FLASH_CRYSTAL_DWARF,
+
 		//containers
 		VELVET_POUCH,
 		SCROLL_HOLDER,

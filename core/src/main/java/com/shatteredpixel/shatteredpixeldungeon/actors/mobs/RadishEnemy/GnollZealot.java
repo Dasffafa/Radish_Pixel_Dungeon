@@ -14,7 +14,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FireImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FrostImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Healing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
@@ -27,7 +26,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.Deat
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman;
+import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
+import com.shatteredpixel.shatteredpixeldungeon.items.FlashCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
@@ -36,15 +37,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.plants.Sungrass;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroHealEvent;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.GnollZealotSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Random;
-
-import java.util.Collections;
-import java.util.Set;
 
 
 public class GnollZealot extends Mob {
@@ -72,19 +70,28 @@ public class GnollZealot extends Mob {
                 isFirstSeen = true;
                 GLog.n('\n'+ Messages.get(GnollZealot.class, "rage",GnollZealot.this.name()));
             }
-
-            Healing healing = Dungeon.hero.buff(Healing.class);
-            Sungrass.Health sunHealing = Dungeon.hero.buff(Sungrass.Health.class);
-
-            if((healing != null || sunHealing != null && fieldOfView[Dungeon.hero.pos])){
-                //TODO 有问题 暂时让效果失效
-//                Set<Mob> mobs = Collections.synchronizedSet(Dungeon.level.mobs);
-//                for(Mob mob:mobs){
-//                    Buff.affect(mob,Healing.class).setHeal(8,1f,0);
-//                }
-            }
         }
         return super.act();
+    }
+
+    /**
+     * 订阅英雄恢复生命事件：当英雄在豺狼狂信徒视野内回血时，
+     * 该狂信徒恢复相同数量的生命。
+     */
+    @SubscribeEvent(event = HeroHealEvent.class, priority = 0)
+    public static void onHeroHeal(HeroHealEvent event) {
+        if (Dungeon.hero == null || Dungeon.level == null) return;
+        int healAmount = event.getHealAmount();
+        if (healAmount <= 0) return;
+
+        for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+            if (mob instanceof GnollZealot
+                    && mob.isAlive()
+                    && mob.fieldOfView != null
+                    && mob.fieldOfView[Dungeon.hero.pos]) {
+                mob.heal(healAmount);
+            }
+        }
     }
 
     public int damageRoll() {
@@ -103,6 +110,11 @@ public class GnollZealot extends Mob {
 
     @Override
     public void die( Object cause ) {
+        // 闪晶：豺狼狂信徒 13% 掉1～2个，每种怪物最多6个
+        if(Dungeon.LimitedDrops.FLASH_CRYSTAL_GNOLL.count < 6 && Random.Float() < 0.13f){
+            Dungeon.LimitedDrops.FLASH_CRYSTAL_GNOLL.count++;
+            Dungeon.level.drop(new FlashCrystal().quantity(Random.Int(1, 2)), pos).sprite.drop();
+        }
         super.die( cause );
     }
     @Override

@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.HeavyCannon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -263,5 +264,14 @@ public class Artillerist extends Mob {
                 return true;
             }
         }
+    }
+
+    @Override
+    public void die( Object cause ) {
+        // 手持重炮 10% 掉落（随机生成的矮人重炮）
+        if(Random.Float() < 0.1f){
+            Dungeon.level.drop(new HeavyCannon().random(), pos).sprite.drop();
+        }
+        super.die( cause );
     }
 }

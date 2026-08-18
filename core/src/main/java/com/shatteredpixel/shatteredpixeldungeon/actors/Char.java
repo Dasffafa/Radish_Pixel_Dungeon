@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.AttackEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.CharUnprocedDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroHealEvent;
 import com.shatteredpixel.shatteredpixeldungeon.damage.OrdinaryAttackDamage;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
@@ -1217,6 +1218,46 @@ public abstract class Char extends Actor {
 
         int hpDamage = Math.max(0, hpBefore - Math.max(0, HP));
         return new DamageResult(info.getBaseDamage(), info.getDamage(), armorBlocked, resistanceBlocked, shielded, hpDamage, immuneHit);
+    }
+
+    /**
+     * 恢复生命值的统一入口。
+     * <p>
+     * 所有治疗来源（自然恢复、持续治疗、食物、药水、露水等）都应调用此方法，
+     * 而不是直接修改 {@link #HP}。此方法在英雄恢复生命时发布 {@link HeroHealEvent}。
+     *
+     * @param amount 恢复量（内部会限制不超过最大生命值，并忽略非正数）
+     * @return 本次实际恢复的生命值
+     */
+    public int heal(int amount) {
+        return heal(amount, true);
+    }
+
+    /**
+     * 恢复生命值的统一入口。
+     * <p>
+     * 所有治疗来源（自然恢复、持续治疗、食物、药水、露水等）都应调用此方法，
+     * 而不是直接修改 {@link #HP}。此方法在英雄恢复生命时发布 {@link HeroHealEvent}。
+     *
+     * @param amount 恢复量（内部会限制不超过最大生命值，并忽略非正数）
+     * @param showText 是否显示治疗绿字（自然恢复等小额/高频来源可传入 false 屏蔽）
+     * @return 本次实际恢复的生命值
+     */
+    public int heal(int amount, boolean showText) {
+        if (amount <= 0 || !isAlive() || HP >= HT) return 0;
+        int before = HP;
+        HP = Math.min(HT, HP + amount);
+        int healed = HP - before;
+        if (healed > 0) {
+            // 统一在此显示治疗绿字
+            if (showText && sprite != null) {
+                sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(healed), FloatingText.HEALING);
+            }
+            if (this == Dungeon.hero) {
+                EventManager.emit(new HeroHealEvent(healed));
+            }
+        }
+        return healed;
     }
 
     /** NPCs are invulnerable by default; special NPCs can opt into combat damage. */

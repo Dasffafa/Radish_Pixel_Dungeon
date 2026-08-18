@@ -20,7 +20,7 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 /**
- * 电闪（咒法学派 L2）：弹道雷电，造成15-25闪电伤害+当前魔力值加成，冷却50回合。
+ * 电闪（咒法学派 L2）：弹道雷电，造成15-25闪电伤害+当前魔力值 * 2加成，冷却50回合。
  */
 public class LightningSpell extends DiceMageSpell {
 
@@ -38,7 +38,7 @@ public class LightningSpell extends DiceMageSpell {
 
     @Override
     public int mpCost() {
-        return 1;
+        return 2;
     }
     @Override
     public String sndImageName() {
@@ -62,7 +62,7 @@ public class LightningSpell extends DiceMageSpell {
 
                 MagicPoint mp = hero.buff(MagicPoint.class);
                 int mpBonus = mp != null ? mp.getIntPoints() : 0;
-                final int dmg = Random.IntRange(15, 25) + mpBonus;
+                final int dmg = Random.IntRange(15, 25) + mpBonus * 2;
 
                 MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.STAR, hero.sprite, target.pos, new Callback() {
                     @Override

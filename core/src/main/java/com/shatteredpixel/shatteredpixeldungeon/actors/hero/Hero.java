@@ -915,6 +915,11 @@ public class Hero extends Char {
 				}
             }
             if (armDr > 0) dr += armDr;
+
+            // 共鸣刻印：同时装备共鸣附魔武器与共鸣刻印护甲时，护甲格挡提升50%
+            if (com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Resonance.isResonanceActive(this)) {
+                dr += Math.round(armDr * 0.5f);
+            }
         }
 		dr += ShieldToyBuff.getDRBonus();
 

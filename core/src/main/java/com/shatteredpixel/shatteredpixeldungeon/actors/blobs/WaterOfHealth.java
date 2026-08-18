@@ -105,13 +105,11 @@ public class WaterOfHealth extends WellWater {
 		hero.buff( Hunger.class ).satisfy( Hunger.STARVING );
 
 		if (Dungeon.isChallenged(Challenges.DAMAGE_NO)){
-			hero.HP += Math.min( 1 , hero.HT );
+			hero.heal(Math.min( 1 , hero.HT ));
 			hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
-			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(1), FloatingText.HEALING);
 		} else {
-			hero.HP = hero.HT;
+			hero.heal(hero.HT);
 			hero.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
-			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.HT), FloatingText.HEALING);
 		}
 
 		CellEmitter.get( hero.pos ).start( ShaftParticle.FACTORY, 0.2f, 3 );

@@ -49,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KingsCrown;
+import com.shatteredpixel.shatteredpixeldungeon.items.FlashCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.DriedRose;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.LloydsBeacon;
@@ -605,12 +606,30 @@ public class DwarfKing extends Mob {
 			partnerID = -2; //no partners
 			return super.act();
 		}
+
+		@Override
+		public void die( Object cause ) {
+			if(Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count < 6 && Random.Float() < 0.21f){
+				Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count++;
+				Dungeon.level.drop(new FlashCrystal().quantity(Random.Int(1, 2)), pos).sprite.drop();
+			}
+			super.die( cause );
+		}
 	}
 
 	public static class DKMonk extends Monk {
 		{
 			properties.add(Property.BOSS_MINION);
 			state = HUNTING;
+		}
+
+		@Override
+		public void die( Object cause ) {
+			if(Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count < 6 && Random.Float() < 0.21f){
+				Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count++;
+				Dungeon.level.drop(new FlashCrystal().quantity(Random.Int(1, 2)), pos).sprite.drop();
+			}
+			super.die( cause );
 		}
 	}
 
@@ -627,12 +646,30 @@ public class DwarfKing extends Mob {
 			}
 			super.zap();
 		}
+
+		@Override
+		public void die( Object cause ) {
+			if(Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count < 6 && Random.Float() < 0.21f){
+				Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count++;
+				Dungeon.level.drop(new FlashCrystal().quantity(Random.Int(1, 2)), pos).sprite.drop();
+			}
+			super.die( cause );
+		}
 	}
 
 	public static class DKGolem extends Golem {
 		{
 			properties.add(Property.BOSS_MINION);
 			state = HUNTING;
+		}
+
+		@Override
+		public void die( Object cause ) {
+			if(Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count < 6 && Random.Float() < 0.21f){
+				Dungeon.LimitedDrops.FLASH_CRYSTAL_DWARF.count++;
+				Dungeon.level.drop(new FlashCrystal().quantity(Random.Int(1, 2)), pos).sprite.drop();
+			}
+			super.die( cause );
 		}
 	}
 

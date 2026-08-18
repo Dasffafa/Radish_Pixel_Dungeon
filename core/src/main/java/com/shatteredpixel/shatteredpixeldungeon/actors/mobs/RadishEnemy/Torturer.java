@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.En
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.LawFragment;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
@@ -71,6 +72,10 @@ public class Torturer extends Mob {
 
     @Override
     public void die( Object cause ) {
+        // 律法残页 20% 掉落
+        if(Random.Float() < 0.2f){
+            Dungeon.level.drop(new LawFragment(), pos).sprite.drop();
+        }
         super.die( cause );
     }
     @Override

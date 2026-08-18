@@ -25,13 +25,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.En
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.LawFragment;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.FogSword;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.PrisonerSprite;
@@ -70,6 +70,10 @@ public class Prisoner extends Mob {
 
     @Override
     public void die( Object cause ) {
+        // 律法残页 30% 掉落
+        if(Random.Float() < 0.3f){
+            Dungeon.level.drop(new LawFragment(), pos).sprite.drop();
+        }
         super.die( cause );
     }
     @Override
