@@ -121,9 +121,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfFlock;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfIntuition;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfShock;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ChaoticCenser;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.CrackedSpyglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.DimensionalSundial;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.EyeOfNewt;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.FerretTuft;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.GoldRadish;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.MimicTooth;
@@ -736,9 +738,11 @@ public class Generator {
 					Radish.class,
 					GoldRadish.class,
 					LightKing.class,
-					RiverCrystal.class
+					RiverCrystal.class,
+					FerretTuft.class,
+					CrackedSpyglass.class
 			};
-			TRINKET.defaultProbs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 0.1f, 1, 1 };
+			TRINKET.defaultProbs = new float[]{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1, 0.1f, 1, 1, 1, 1 };
 			TRINKET.probs = TRINKET.defaultProbs.clone();
 
 			for (Category cat : Category.values()){

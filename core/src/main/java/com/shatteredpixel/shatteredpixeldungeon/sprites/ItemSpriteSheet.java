@@ -390,6 +390,8 @@ public class ItemSpriteSheet {
 
 	public static final String RADISH = "radish";
 	public static final String GOLD_RADISH = "gold_radish";
+	public static final String FERRET_TUFT = "ferret_tuft";
+	public static final String SPYGLASS = "spyglass";
 
 	public static final String LIGHT_KING = "light_king";
 	public static final String RIVER_GLASS = "river_glass";

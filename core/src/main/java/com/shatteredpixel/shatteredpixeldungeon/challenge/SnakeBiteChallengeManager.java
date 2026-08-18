@@ -23,8 +23,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.keys.Key;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SentryRoom;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -53,7 +51,7 @@ public class SnakeBiteChallengeManager {
 	}
 
 	public static void initializeMessageTheme() {
-		Messages.useTheme(isActive() ? ".snake_bite" : "");
+		Messages.useTextVariant(isActive() ? ".snake_bite" : "");
 	}
 
 	public static boolean isItemSpriteEnabled() {

@@ -26,7 +26,6 @@ import com.badlogic.gdx.utils.I18NBundle;
 import com.shatteredpixel.shatteredpixeldungeon.*;
 import com.shatteredpixel.shatteredpixeldungeon.challenge.SnakeBiteChallengeManager;
 import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
-import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.DeviceCompat;
 import com.watabou.utils.Bundle;
@@ -78,6 +77,10 @@ public class Messages {
     public static String errorName;
     private static final String MESSAGE_THEME = "message_theme";
     private static String theme = "";
+    // snake_bite 拥有最高优先级
+    private static final String THEME_SNAKE_BITE = ".snake_bite";
+    // 其余激活主题（按字母顺序），如 DiceMageUI 激活时的 dice_mage
+    private static final String THEME_DICE_MAGE = ".dice_mage";
     private static ArrayList<I18NBundle> bundles;
     private static Languages lang;
     private static Locale locale;
@@ -114,7 +117,7 @@ public class Messages {
         return locale;
     }
 
-    public static void useTheme(String suffix) {
+    public static void useTextVariant(String suffix) {
         if (suffix == null || suffix.trim().isEmpty()) {
             theme = "";
         } else {
@@ -126,13 +129,28 @@ public class Messages {
         return theme;
     }
 
+    /**
+     * 按优先级返回当前激活的主题后缀列表。
+     * useTheme 设置的主题（snake_bite）拥有最高优先级，其余主题按字母顺序排列。
+     */
+    private static List<String> activeThemes() {
+        List<String> result = new ArrayList<>();
+        if (!theme.isEmpty()) result.add(theme);
+        if (DiceMageUI.active()) result.add(THEME_DICE_MAGE);
+        // 未来新增主题在此追加即可
+        if (result.size() > 1) {
+            Collections.sort(result.subList(1, result.size()));
+        }
+        return result;
+    }
+
     public static void storeInBundle(Bundle bundle) {
         bundle.put(MESSAGE_THEME, theme);
     }
 
     public static boolean restoreFromBundle(Bundle bundle) {
         if (!bundle.contains(MESSAGE_THEME)) return false;
-        useTheme(bundle.getString(MESSAGE_THEME));
+        useTextVariant(bundle.getString(MESSAGE_THEME));
         return true;
     }
 
@@ -254,13 +272,21 @@ public class Messages {
     }
 
     private static String findVariantValue(String key) {
-        if (theme.isEmpty() || key == null) return null;
+        if (key == null) return null;
         String keyLower = key.toLowerCase(Locale.CHINESE);
-        if (theme.equals(".snake_bite")) {
-            if (keyLower.startsWith("items.") && !SnakeBiteChallengeManager.shouldReplaceItemText()) return null;
-            if (keyLower.startsWith("actors.mobs.") && !SnakeBiteChallengeManager.shouldReplaceMobText()) return null;
+
+        // 按优先级遍历激活主题：snake_bite 最高，其余按字母顺序
+        for (String t : activeThemes()) {
+            if (t.equals(THEME_SNAKE_BITE)) {
+                // snake_bite 只替换它应覆盖的键
+                boolean excluded = (keyLower.startsWith("items.") && !SnakeBiteChallengeManager.shouldReplaceItemText())
+                        || (keyLower.startsWith("actors.mobs.") && !SnakeBiteChallengeManager.shouldReplaceMobText());
+                if (excluded) continue;
+            }
+            String variant = getFromBundle((key + t).toLowerCase(Locale.CHINESE));
+            if (variant != null) return variant;
         }
-        return getFromBundle((key + theme).toLowerCase(Locale.CHINESE));
+        return null;
     }
 
     /**

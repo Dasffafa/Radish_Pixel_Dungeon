@@ -197,6 +197,8 @@ public class WndOptions extends Window {
 			leftJustify = true;
 			textColor(DiceMageUI.CREAM);
 			skin.chrome().hardlight(DiceMageUI.BLACK);
+			// 卡片已自带蓝色/紫色外框，隐藏按钮自身的橙色主题边框
+			skin.setThemedFrameVisible(false);
 		}
 
 		@Override

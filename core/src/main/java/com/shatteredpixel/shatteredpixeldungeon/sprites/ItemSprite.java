@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.HalfFood;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.CrackedSpyglass;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -246,6 +247,7 @@ public class ItemSprite extends MovieClip {
 	}
 
 	public ItemSprite view( Heap heap ){
+		alpha( heap.hidden ? CrackedSpyglass.hiddenAlpha() : 1f);
 		if (heap.size() <= 0 || heap.items == null){
 			return view( ItemSpriteSheet.SOMETHING, null );
 		}

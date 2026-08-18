@@ -10,11 +10,17 @@ public class ButtonSkin {
     private final RoundedFrame themedFrame;
     private int lineColor = UITheme.DICE_LINE;
     private float alpha = 1.0f;
+    private boolean themedFrameVisible = true;
 
     public ButtonSkin(Chrome.Type type) {
         chrome = Chrome.get(type);
         themedFrame = UITheme.roundedFrame(UITheme.DICE_FILL, UITheme.DICE_LINE);
         themedFrame.visible = false;
+    }
+
+    /** 控制骰子法师主题边框是否显示（用于包裹在卡片内的按钮隐藏自身外框）。 */
+    public void setThemedFrameVisible(boolean visible) {
+        themedFrameVisible = visible;
     }
 
     public NinePatch chrome() {
@@ -37,7 +43,7 @@ public class ButtonSkin {
 
         boolean themed = UITheme.isDiceMage();
         chrome.visible = !themed;
-        themedFrame.visible = themed;
+        themedFrame.visible = themed && themedFrameVisible;
         if (themed) {
             themedFrame.setRect(x, y, width, height);
         }

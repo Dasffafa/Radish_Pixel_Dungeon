@@ -30,21 +30,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * 杂散变身倒计时 Buff。
- * <p>
- * 每 90-110 回合，杂散会经历一次变身。该 buff 为永久持续的正面 Buff，
- * 不可被驱散或移除。
- * <p>
- * 变身流程（不消耗回合，仅阻塞玩家行动）：
- * <ol>
- *     <li>播放当前组的变身（消失）动画；</li>
- *     <li>随机选择 1 个目标组（可为当前组），切换并播放该组的出现动画；</li>
- *     <li>玩家每个天赋被替换为随机角色的随机天赋（保留点数，记录 metamorphed）；</li>
- *     <li>背包中装备的神器、戒指、武器、护甲各变为一个随机同类物品；</li>
- *     <li>神器变换允许重复（不受「每局只能出现一次」限制）。</li>
- * </ol>
- */
 public class JumbleChangeBuff extends Buff {
 
 	{
@@ -328,7 +313,6 @@ public class JumbleChangeBuff extends Buff {
 		Artifact old = hero.belongings.artifact();
 		if (old == null) return;
 
-		// 月华的轮椅是身份象征，变身时不会变换
 		if (hero.heroClass == HeroClasses.MOONLIGHT && old instanceof Wheelchair) {
 			return;
 		}
