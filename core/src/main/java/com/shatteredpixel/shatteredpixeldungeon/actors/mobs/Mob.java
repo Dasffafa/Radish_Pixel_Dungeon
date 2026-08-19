@@ -987,31 +987,43 @@ public abstract class Mob extends Char {
 				&& sprite != null
 				&& sprite.parent != null) {
 			com.shatteredpixel.shatteredpixeldungeon.damage.DamageType dmgType = this.lastDamageType;
-			
-			// 根据伤害类型选择 shader
+
+			// 根据伤害类型选择 shader（含火/毒等持续伤害状态：烧死、毒死等）
 			com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType shaderType = null;
-			if (dmgType.isElemental()) {
+			if (dmgType != null) {
 				switch (dmgType) {
 					case FIRE:
+					case BURNING_STATUS:
 						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.BURN;
 						break;
 					case FROST:
+					case CHILL:
 						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.ALPHA;
 						break;
 					case LIGHTNING:
-						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.NOISE;
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.SINGULARITY;
 						break;
 					case TOXIC:
 					case CORROSIVE:
+					case POISON:
+					case OOZE:
 						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.ACID;
 						break;
+					case MAGICAL:
+					case CORRUPTION:
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.NOISE;
+						break;
+					case PHYSICAL:
+					case PHYSICAL_NO_ARMOR:
+					case BLEEDING:
+					case FALL:
+					case CHASM:
+					case PICK:
+						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.CUT;
+						break;
 					default:
-						shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.ALPHA;
+						shaderType = null;
 				}
-			} else if (dmgType == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL) {
-				shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.SINGULARITY;
-			} else if (dmgType.isPhysical() || dmgType == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL_NO_ARMOR) {
-				shaderType = com.shatteredpixel.shatteredpixeldungeon.effects.ShaderEffect.ShaderType.CUT;
 			}
 			
 			// 应用 shader 效果

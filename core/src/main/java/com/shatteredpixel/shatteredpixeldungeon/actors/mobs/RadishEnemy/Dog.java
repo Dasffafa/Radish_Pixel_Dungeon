@@ -13,7 +13,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FireImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FrostImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HealingBlocked;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hex;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
@@ -134,8 +133,7 @@ public class Dog extends Mob {
             }
             enemy.damage(attackDamage);
 
-            // 攻击后给目标附加4回合禁疗（时长可叠加）
-            HealingBlocked.block(enemy, HealingBlocked.DURATION);
+            // 禁疗已由 RadishCombatEvents.onDogHit 事件订阅处理
 
             if (buff(FireImbue.class) != null)  buff(FireImbue.class).proc(enemy);
             if (buff(FrostImbue.class) != null) buff(FrostImbue.class).proc(enemy);

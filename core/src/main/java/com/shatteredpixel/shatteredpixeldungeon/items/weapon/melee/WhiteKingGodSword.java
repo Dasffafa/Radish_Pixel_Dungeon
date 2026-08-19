@@ -69,7 +69,8 @@ public class WhiteKingGodSword extends MeleeWeapon {
                         ((MissileSprite)target.sprite.parent.recycle( MissileSprite.class )).resetFromAbove(mob,mob.pos, new WKNOR(), new Callback() {
                             @Override
                             public void call() {
-                                mob.damage(DamageInfo.of(damage, DamageType.PHYSICAL, Dungeon.hero, this));
+                                int enchantedDamage = weapon.proc(Dungeon.hero, mob, damage);
+                                mob.damage(DamageInfo.of(enchantedDamage, DamageType.PHYSICAL, Dungeon.hero, this));
                                 Buff.detach( mob, Paralysis.class);
                             }
                         });

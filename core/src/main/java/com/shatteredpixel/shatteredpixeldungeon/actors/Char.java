@@ -1208,6 +1208,7 @@ public abstract class Char extends Actor {
 
         if (HP < 0) HP = 0;
         lastDamageType = damageType;
+        lastAttacker = src instanceof Char ? (Char) src : info.getAttacker();
         lastDamageCauseChain = info.getCauseChain();
 
         if (!isAlive()) {
@@ -1268,6 +1269,9 @@ public abstract class Char extends Actor {
     /** 最近一次受到伤害的 DamageType，供 die() 死亡特效等使用（避免 fromSource 类名猜测）。 */
     public DamageType lastDamageType = DamageType.PHYSICAL;
 
+    /** 最近一次受到伤害的攻击者（可为 null）。投射物来源（如 LIGHTNING 弹）丢失凶手身份时，用它恢复。 */
+    public Char lastAttacker = null;
+
     /** 最近一次受到伤害的来源链（有序因果对象），供 die()/死亡信息追踪使用。 */
     public List<Object> lastDamageCauseChain = new ArrayList<>();
 
@@ -1302,7 +1306,12 @@ public abstract class Char extends Actor {
     public void die(Object src) {
         destroy();
         if (src != Chasm.class && sprite != null) {
-            if (sprite.getShaderEffect() == null) {
+            // 如果 sprite 有待处理的死亡标记（shader 即将创建），跳过死亡动画。
+            // dieAfterShader() 已经在 ShaderEffect.apply() 中同步调用过（shaderEffect
+            // 是在渲染线程延迟设置的，因此这里不能依赖 getShaderEffect() 判空）。
+            if (sprite.isPendingDeathAfterShader()) {
+                // shader 会接管，不需要播放死亡动画
+            } else if (sprite.getShaderEffect() == null) {
                 sprite.die();
             } else {
                 sprite.dieAfterShader();

@@ -516,7 +516,7 @@ public abstract class Elemental extends Mob {
 			}
 
 			for (Char ch : affected) {
-				ch.damage( DamageInfo.lightning( Math.round( damage * 0.4f ), new Shocking() ) );
+				ch.damage( DamageInfo.of( Math.round( damage * 0.4f ), DamageType.LIGHTNING, this, new Shocking() ) );
 				if (ch == Dungeon.hero && !ch.isAlive()){
 					Dungeon.fail(this);
 					GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", name())) );

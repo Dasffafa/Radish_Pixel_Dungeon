@@ -28,6 +28,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
+import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -198,5 +203,36 @@ public abstract class DiceMageSpell {
 
     protected boolean isValidAlly(Char target) {
         return target != null && target.alignment == Char.Alignment.ALLY;
+    }
+
+    /**
+     * 处决目标（深渊/无限等斩杀类法术共用）。
+     *
+     * 天狗与矮人国王拥有阶段化的特殊死亡规则：
+     * - 天狗的死亡（含开门 unseal、掉落面具）由 PrisonBossLevel.progress() 状态机驱动，
+     *   直接调用 die() 会跳过流程导致 Boss 房不开门，因此这里连续推进状态机到 WON；
+     * - 矮人国王的 isAlive() 被阶段锁住（phase != 3 时恒为 true），
+     *   直接 HP=0 + damage() 永远不会触发 die()，因此强制进入最终阶段再走原生 die()
+     *   （其 die() 内含掉落王冠、unseal 开门、清除随从等完整流程）。
+     */
+    protected void executeKill(Char target, Hero hero) {
+        if (target instanceof Tengu && Dungeon.level instanceof PrisonBossLevel) {
+            final PrisonBossLevel lvl = (PrisonBossLevel) Dungeon.level;
+            target.HP = 0;
+            target.deathMarked = false;
+            // FIGHT_ARENA 分支会执行 unseal() 并调用 tengu.die()，完成全部收尾
+            while (lvl.state() != PrisonBossLevel.State.WON) {
+                lvl.progress();
+            }
+            return;
+        }
+        if (target instanceof DwarfKing) {
+            ((DwarfKing) target).forcedExecute(this);
+            return;
+        }
+        target.HP = 0;
+        target.deathMarked = false;
+        target.damage(new DamageInfo(1, DamageType.TRUE, hero, null, this));
+        if (!target.isAlive()) target.die(this);
     }
 }

@@ -53,10 +53,9 @@ public class InfinitySpell extends DiceMageSpell {
                 }
                 if (!spendMagic(hero)) return;
 
-                // 无限：无视目标的无敌、锁血（deathMarked）、抗性及各类免疫，将 HP 归零并直接处决（含Boss单位）。
-                target.HP = 0;
-                target.deathMarked = false;
-                target.die(InfinitySpell.this);
+                // 无限：无视目标的无敌、锁血（deathMarked）、抗性及各类免疫，直接处决（含Boss单位，
+                // 天狗/矮人国王等带流程的 Boss 会走其原生死亡流程，保证开门等关卡逻辑正常触发）。
+                executeKill(target, hero);
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 18);
                 startCooldown(hero, COOLDOWN);
                 hero.spendAndNext(1f);

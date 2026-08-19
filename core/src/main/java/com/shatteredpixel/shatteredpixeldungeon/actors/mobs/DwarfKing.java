@@ -545,6 +545,18 @@ public class DwarfKing extends Mob {
 		return super.isAlive() || phase != 3;
 	}
 
+	/**
+	 * 骰子法师斩杀类法术（深渊/无限）的强制处决入口：
+	 * 无视阶段锁血直接进入最终阶段并死亡，保证 die() 中的
+	 * 掉落王冠、unseal 开门、清除随从等完整流程得以执行。
+	 */
+	public void forcedExecute(Object src) {
+		phase = 3;
+		HP = 0;
+		deathMarked = false;
+		die(src);
+	}
+
 	@Override
 	public void die(Object cause) {
 

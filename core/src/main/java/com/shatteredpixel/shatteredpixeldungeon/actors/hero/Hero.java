@@ -2949,6 +2949,16 @@ public class Hero extends Char {
 
 		Actor.fixTime();
 		super.die( cause );
+
+		// 死亡原因由最后受到的伤害类型推导；凶手优先取 Char 来源，
+		// 投射物类来源（LIGHTNING 弹等）丢失凶手身份时回退到 lastAttacker
+		Char killer = cause instanceof Char ? (Char) cause : lastAttacker;
+		HeroDeathEvent.DeathCause deathCause = HeroDeathEvent.DeathCause.fromDamageType( lastDamageType );
+		if (deathCause == null) {
+			deathCause = killer != null ? HeroDeathEvent.DeathCause.COMBAT : HeroDeathEvent.DeathCause.OTHER;
+		}
+		EventManager.emit( new HeroDeathEvent( this, killer, deathCause ) );
+
 		reallyDie( cause );
 	}
 

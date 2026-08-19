@@ -44,5 +44,14 @@ the_catist/
 # Python tool build files
 __pycache__/
 *.pyc
+
+# Eclipse / jdtls (LSP generated)
+.project
+.classpath
+.factorypath
+.settings/
+bin/
+start_jdtls.sh
+request.txt
 /docs/.~lock.全部玩具效果.xlsx#
 /docs/.obsidian/

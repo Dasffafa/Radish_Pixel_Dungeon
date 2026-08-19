@@ -217,7 +217,7 @@ public abstract class Level implements Bundlable {
 		Random.pushGenerator( Dungeon.seedCurDepth() );
 
 		//TODO maybe just make this part of RegularLevel?
-		if (!Dungeon.bossLevel() && Dungeon.branchId.equals(Branches.MAIN)) {
+		if (!Dungeon.bossLevel()) {
 
 			addItemToSpawn(Generator.random(Generator.Category.FOOD));
 
@@ -225,6 +225,9 @@ public abstract class Level implements Bundlable {
 			if(Random.Float()<0.33f){
 				addItemToSpawn(Generator.random(Generator.Category.FOOD));
 			}
+
+			//分支层只生成食物，限量道具（力量药水/升级卷轴/奥术笔/石头/催化剂等）仍只在主线生成
+			if (Dungeon.branchId.equals(Branches.MAIN)) {
 
 			//没入黑暗挑战的情况下，有25%的几率获得一个火把
 			if(Dungeon.isChallenged(Challenges.DARKNESS)){
@@ -262,6 +265,8 @@ public abstract class Level implements Bundlable {
 			if ( Dungeon.trinketCataNeeded() ){
 				Dungeon.LimitedDrops.TRINKET_CATA.drop();
 				addItemToSpawn( new TrinketCatalyst());
+			}
+
 			}
 
 			if (depth > 1) {

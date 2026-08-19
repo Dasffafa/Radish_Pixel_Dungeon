@@ -680,6 +680,16 @@ public class DamageInfo {
 		return new DamageInfo(baseDamage, type, attacker, null, source);
 	}
 	
+	/**
+	 * 按类型封装来源：将原本以任意 Object 表示的伤害来源归类到指定 DamageType，
+	 * 便于用伤害类型统一推导死亡原因/文案。来源为 Char 时同时视为攻击者。
+	 */
+	public static DamageInfo of(int baseDamage, DamageType type, Object source) {
+		Char attacker = source instanceof Char ? (Char) source : null;
+		Item sourceItem = source instanceof Item ? (Item) source : null;
+		return new DamageInfo(baseDamage, type, attacker, sourceItem, source);
+	}
+	
 	// ========== 调试工具 ==========
 	
 	/**

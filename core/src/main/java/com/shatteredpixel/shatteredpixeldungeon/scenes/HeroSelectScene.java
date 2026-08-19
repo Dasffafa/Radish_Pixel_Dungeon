@@ -652,9 +652,16 @@ public class HeroSelectScene extends PixelScene {
 			texture(si.customSprite() ? si.asset() : cl.spritesheet());
 			TextureFilm film = new TextureFilm(texture, si.frameW(), si.frameH());
 			int[] idle = si.idleFrames();
+			// 基础职业默认皮肤：统一使用穿戴布甲的站立动画。
+			// 标准职业的布甲在第1行；月华的光身子/布甲外观在第0行（见 HeroSprite.updateArmor）。
+			int row = 0;
+			if (!si.customSprite() && cl != HeroClasses.MOONLIGHT) {
+				row = 1;
+			}
+			int cols = Math.max(1, texture.width / si.frameW());
 			RectF[] candidate = new RectF[idle.length];
 			for (int i = 0; i < idle.length; i++) {
-				candidate[i] = film.get(idle[i]);
+				candidate[i] = film.get(row * cols + idle[i]);
 			}
 			s = si.scale();
 			// 过滤掉 null 帧，防止帧索引未定义时崩溃（例如独立皮肤动画尚未划分）

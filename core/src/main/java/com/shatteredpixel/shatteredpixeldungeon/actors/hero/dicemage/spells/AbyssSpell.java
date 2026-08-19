@@ -7,8 +7,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -60,9 +58,7 @@ public class AbyssSpell extends DiceMageSpell {
                 }
                 if (!spendMagic(hero)) return;
 
-                target.HP = 0;
-                target.damage(new DamageInfo(1, DamageType.TRUE, hero, null, AbyssSpell.this));
-                if (!target.isAlive()) target.die(AbyssSpell.this);
+                executeKill(target, hero);
                 CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 14);
                 startCooldown(hero, COOLDOWN);
                 hero.spendAndNext(1f);
