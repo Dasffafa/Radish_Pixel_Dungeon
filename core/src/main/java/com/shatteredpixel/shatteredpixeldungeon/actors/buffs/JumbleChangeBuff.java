@@ -25,6 +25,7 @@ import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -192,7 +193,8 @@ public class JumbleChangeBuff extends Buff {
 	// ---- 天赋替换：逐天赋换成随机角色的随机天赋 ----
 
 	private void doTalentMetamorph(Hero hero) {
-		for (int tier = 0; tier < hero.talents.size(); tier++) {
+		// Only regular talent tiers metamorph. Armor ability talents (tier 4) stay unchanged.
+		for (int tier = 0; tier < Math.min(3, hero.talents.size()); tier++) {
 			LinkedHashMap<Talent, Integer> oldTier = hero.talents.get(tier);
 			if (oldTier == null || oldTier.isEmpty()) continue;
 
@@ -200,11 +202,8 @@ public class JumbleChangeBuff extends Buff {
 
 			for (Talent oldTalent : oldTier.keySet()) {
 				int points = oldTier.get(oldTalent);
-				//跳过没有投入点数的天赋（保持结构，0 点也保留在栏位里）
-				Talent replacement = oldTalent;
-				if (points > 0) {
-					replacement = randomTalent(hero, oldTalent);
-				}
+				//所有普通层天赋都参与蜕变；点数仅随天赋槽位保留，不影响替换流程。
+				Talent replacement = randomTalent(hero, oldTalent, tier);
 				newTier.put(replacement, points);
 
 				if (replacement != oldTalent) {
@@ -217,16 +216,25 @@ public class JumbleChangeBuff extends Buff {
 		}
 	}
 
-	/** 从所有职业天赋里随机一个与 oldTalent 不同的天赋。 */
-	private Talent randomTalent(Hero hero, Talent oldTalent) {
+	/** 与蜕变秘卷一致，只从其他职业的同阶天赋中选择替代项。 */
+	private Talent randomTalent(Hero hero, Talent oldTalent, int tierIndex) {
 		List<Talent> pool = new ArrayList<>();
 		Set<Talent> alreadyUsed = new LinkedHashSet<>(hero.metamorphedTalents.values());
+		Set<Talent> currentTier = hero.talents.get(tierIndex).keySet();
+		HashMap<Talent, com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass> restricted = new HashMap<>();
+		restricted.put(Talent.RUNIC_TRANSFERENCE, HeroClasses.WARRIOR);
+		restricted.put(Talent.WAND_PRESERVATION, HeroClasses.MAGE);
 
 		for (com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass cls : HeroClasses.ALL) {
 			ArrayList<LinkedHashMap<Talent, Integer>> clsTalents = new ArrayList<>();
 			Talent.initClassTalents(cls, clsTalents);
-			for (LinkedHashMap<Talent, Integer> tier : clsTalents) {
-				pool.addAll(tier.keySet());
+			if (tierIndex >= clsTalents.size()) continue;
+			for (Talent talent : clsTalents.get(tierIndex).keySet()) {
+				if (talent != oldTalent
+						&& !currentTier.contains(talent)
+						&& (!restricted.containsKey(talent) || restricted.get(talent) == hero.heroClass)) {
+					pool.add(talent);
+				}
 			}
 		}
 
@@ -235,16 +243,7 @@ public class JumbleChangeBuff extends Buff {
 
 		if (pool.isEmpty()) return oldTalent;
 
-		Talent chosen = oldTalent;
-		//尝试挑一个不同的天赋
-		List<Talent> candidates = new ArrayList<>();
-		for (Talent t : pool) {
-			if (t != oldTalent) candidates.add(t);
-		}
-		if (!candidates.isEmpty()) {
-			chosen = Random.element(candidates);
-		}
-		return chosen;
+		return Random.element(pool);
 	}
 
 	private void recordMetamorph(Hero hero, Talent oldTalent, Talent newTalent) {
@@ -305,6 +304,11 @@ public class JumbleChangeBuff extends Buff {
 		replacement.levelKnown = old.levelKnown;
 		replacement.cursedKnown = old.cursedKnown;
 		replacement.cursed = old.cursed;
+		replacement.inscribe(old.glyph);
+		replacement.curseInfusionBonus = old.curseInfusionBonus;
+		replacement.glyphHardened = old.glyphHardened;
+		replacement.masteryPotionBonus = old.masteryPotionBonus;
+		replacement.augment = old.augment;
 
 		replaceEquipped(hero, old, replacement);
 	}
@@ -363,6 +367,8 @@ public class JumbleChangeBuff extends Buff {
 				Dungeon.level.drop(result, hero.pos).sprite.drop();
 			}
 		}
+		//装备 API 会正常扣除装备/卸下时间；蜕变是即时效果，抵消本次冷却。
+		hero.spend(-hero.cooldown());
 
 		//恢复快捷栏
 		if (slot != -1

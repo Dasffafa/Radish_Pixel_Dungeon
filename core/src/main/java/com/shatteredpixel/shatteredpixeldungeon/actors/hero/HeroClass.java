@@ -85,7 +85,10 @@ public class HeroClass {
 	public ArmorAbility[] armorAbilities() { return definition().armorAbilities(); }
 
 	public void initHero( Hero hero ) {
-		activeDefinition().initHero( hero );
+		// A newly-created Hero defaults to rogue/skin 0, so activeDefinition()
+		// would ignore the skin selected for a new rogue before initialization.
+		SkinDefinition selectedSkin = skin(getGlobalSkin());
+		(selectedSkin != null ? selectedSkin : definition()).initHero(hero);
 	}
 
 	public TalentSet talentSet() { return definition == null ? null : definition.talents(); }
