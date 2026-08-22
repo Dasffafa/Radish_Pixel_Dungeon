@@ -53,6 +53,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WhitePlasticChair;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Surprise;
 import com.shatteredpixel.shatteredpixeldungeon.events.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Artillerist;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GnollZealot;
@@ -193,6 +194,7 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageTalentChoice;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndResurrect;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTradeItem;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndHeapSelect;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.Delayer;
@@ -258,6 +260,11 @@ public class Hero extends Char {
 	/** 是否为月华的圆球皮肤。 */
 	public boolean isSphereSkin(){
 		return heroClass == HeroClasses.MOONLIGHT && skin == HeroClasses.MOONLIGHT_SKIN_SPHERE;
+	}
+
+	/** 是否为盗贼的赌徒皮肤。 */
+	public boolean isGamblerSkin(){
+		return heroClass == HeroClasses.ROGUE && skin == HeroClasses.ROGUE_SKIN_GAMBLER;
 	}
 
 	/**
@@ -442,7 +449,7 @@ public class Hero extends Char {
 			HT += ScarBuff.MAX_HP_BONUS;
 		}
 		if (buff(BarkskinToyBuff.class) != null) {
-			HT -= BarkskinToyBuff.MAX_HP_PENALTY;
+			HT += BarkskinToyBuff.MAX_HP_BONUS;
 		}
 		float multiplier = RingOfMight.HTMultiplier(this);
 		HT = Math.round(multiplier * HT);
@@ -801,6 +808,9 @@ public class Hero extends Char {
 		if (isSphereSkin()){
 			accuracy *= 1.2f;
 		}
+		if (isGamblerSkin()){
+			accuracy *= 0.9f;
+		}
 
 		if (hero.buff(RingOfForce.Force.class) == null) {
 			if(wep != null)
@@ -940,11 +950,26 @@ public class Hero extends Char {
 	}
 
 	@Override
+	public int shielding() {
+		// 树肤玩具：不再能获得护盾
+		if (buff(BarkskinToyBuff.class) != null) {
+			return 0;
+		}
+		return super.shielding();
+	}
+
+	@Override
 	public int damageRoll() {  //TODO FIX
-		KindOfWeapon wep = belongings.weapon();
+		KindOfWeapon wep = isGamblerSkin() ? belongings.attackingWeapon() : belongings.weapon();
 		int dmg;
 		if (wep!=null){
-			dmg = wep.damageRoll( this );
+			if (isGamblerSkin()) {
+				int roll = Random.Int(10);
+				int max = wep.max();
+				dmg = roll < 2 ? 1 : roll < 6 ? max / 2 : max;
+			} else {
+				dmg = wep.damageRoll( this );
+			}
 			if (!(wep instanceof MissileWeapon)) {
 				dmg += RingOfForce.armedDamageBonus(this);
 				if (hasTalent(Talent.DEVASTATE)){
@@ -1058,6 +1083,16 @@ public class Hero extends Char {
 		if (w instanceof Flail)                 return false;
 
 		return super.canSurpriseAttack();
+	}
+
+	// 怪物能否偷袭英雄：攻击者不在英雄当前视野内（如门后/黑暗中）即视为偷袭。
+	// 只影响命中判定与感叹号特效，不改变英雄的防御/DR。
+	public boolean surprisedBy( Char enemy ) {
+		return enemy instanceof Mob
+				&& Dungeon.level != null
+				&& fieldOfView != null
+				&& fieldOfView.length == Dungeon.level.length()
+				&& !fieldOfView[enemy.pos];
 	}
 
 	public boolean canAttack(Char enemy){
@@ -1391,6 +1426,24 @@ public class Hero extends Char {
 
 		AttackIndicator.updateState();
 
+		//多物品堆连续拾取：刚通过选择窗口拾取且堆中仍有物品时，英雄就绪后重新打开选择窗口
+		if (pickupWindowCell >= 0) {
+			int cell = pickupWindowCell;
+			pickupWindowCell = -1;
+			if (Dungeon.level != null) {
+				Heap heap = Dungeon.level.heaps.get( cell );
+				if (heap != null && !heap.isEmpty()) {
+					//窗口会测量文字并加载物品贴图，必须在渲染线程创建
+					Game.runOnRenderThread(new Callback() {
+						@Override
+						public void call() {
+							GameScene.show( new WndHeapSelect( heap, cell ) );
+						}
+					});
+				}
+			}
+		}
+
 		GameScene.ready();
 	}
 
@@ -1523,15 +1576,56 @@ public class Hero extends Char {
 	// so that the hero spends a turn even if the fail to pick up an item
 	public boolean waitOrPickup = false;
 
+	//多物品堆拾取：弹出选择窗口后记录玩家选中的物品，抵达后拾取该物品
+	public Item pendingPickupItem = null;
+
+	//多物品堆连续拾取：本次选择窗口拾取后，若堆中仍有物品，记录格子以便下回合重新打开选择窗口（-1 表示无需重新打开）
+	public int pickupWindowCell = -1;
+
 	private boolean actPickUp( HeroAction.PickUp action ) {
 		int dst = action.dst;
 		if (pos == dst) {
 
 			Heap heap = Dungeon.level.heaps.get( pos );
 			if (heap != null) {
-				Item item = heap.peek();
-				if (item.doPickUp( this )) {
-					heap.pickUp();
+				Item item = null;
+				boolean windowPick = false;
+				if (pendingPickupItem != null) {
+					//从选择窗口记录中取出选中的物品（堆可能已变化，找不到则回退到堆顶）
+					if (heap.items.contains(pendingPickupItem)) {
+						item = pendingPickupItem;
+						windowPick = true;
+					}
+					pendingPickupItem = null;
+				}
+				if (item == null && !heap.isEmpty()) {
+					//多物品堆自动拾取：弹出选择窗口，选择要自动拾取哪个物品
+					if (heap.size() > 1) {
+						pendingPickupItem = null;
+						pickupWindowCell = -1;
+						final Heap fHeap = heap;
+						Game.runOnRenderThread(new Callback() {
+							@Override
+							public void call() {
+								GameScene.show(new WndHeapSelect(fHeap, pos));
+							}
+						});
+						ready();
+						return false;
+					}
+					item = heap.peek();
+				}
+				if (heap.isEmpty()) {
+					ready();
+				} else if (item.doPickUp( this )) {
+					heap.pickUp(item);
+
+					//多物品堆连续拾取：本次来自选择窗口且堆中仍有物品时，记录格子，下回合英雄就绪后重新打开选择窗口
+					if (windowPick && !heap.isEmpty()) {
+						pickupWindowCell = pos;
+					} else {
+						pickupWindowCell = -1;
+					}
 
 					if (item instanceof Dewdrop
 							|| item instanceof TimekeepersHourglass.sandBag
@@ -1857,10 +1951,9 @@ public class Hero extends Char {
 			LockChain lk = (LockChain) hero.belongings.weapon;
 			if(Dungeon.level.distance( enemy.pos, pos ) <= 1){
 				sprite.attack(enemy.pos);
-			} else if(Dungeon.level.distance( enemy.pos,pos ) <= lk.RCH) {
-				if(chain(enemy.pos)){
-					chain(enemy.pos);
-				} else {
+			} else if(Dungeon.level.distance( enemy.pos,pos ) <= lk.RCH
+					|| enemy.buff(Seeking.SeekingBuff.class) != null) {
+				if (!chain(enemy.pos)) {
 					ready();
 					GLog.w( Messages.get(LockChain.class, "cant_attack_2"));
 				}
@@ -2114,6 +2207,11 @@ public class Hero extends Char {
 
 		// 拉莱耶反弹已迁移至 Rlyeh 订阅 AttackEvent 处理
 
+		// 怪物偷袭英雄：视野外攻击弹感叹号（只特效，不改变伤害/防御）
+		if (surprisedBy(enemy)) {
+			Surprise.hit(this);
+		}
+
 		if (belongings.armor() != null) {
 			damage = belongings.armor().proc( enemy, this, damage );
 		}
@@ -2127,6 +2225,16 @@ public class Hero extends Char {
 
 		return super.defenseProc( enemy, damage );
 	}
+
+	@Override
+	public int wandLevel() {
+		int total = 0;
+		for (Wand w : belongings.getAllItems(Wand.class)) {
+			total += w.buffedLvl();
+		}
+		return total;
+	}
+
 	boolean isOnly = false;
 	@Override
 	public void damage( DamageInfo info ) {
@@ -2667,6 +2775,8 @@ public class Hero extends Char {
 
 			switch (heap.type) {
 				case HEAP:
+					pendingPickupItem = null;
+					pickupWindowCell = -1;
 					curAction = new HeroAction.PickUp( cell );
 					break;
 				case FOR_SALE:

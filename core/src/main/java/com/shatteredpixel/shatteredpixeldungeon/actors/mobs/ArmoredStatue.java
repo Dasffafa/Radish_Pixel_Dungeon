@@ -73,6 +73,9 @@ public class ArmoredStatue extends Statue {
 
 	@Override
 	public int drRoll() {
+		// 轮刃放弃所有防御：护甲 DR 也随之失效
+		if (wieldsCircleSword()) return 0;
+		// Statue.drRoll 不委托 super，这里在武器 DR 之外补上护甲 DR（与改动前一致）
 		return super.drRoll() + Char.combatRoll( armor.DRMin(), armor.DRMax());
 	}
 
@@ -93,7 +96,7 @@ public class ArmoredStatue extends Statue {
 
 	@Override
 	public int defenseProc(Char enemy, int damage) {
-		damage = armor.proc(enemy, this, damage);
+		// 护甲 glyph 统一由 Char.defenseProc 通过 armor() 访问器触发
 		return super.defenseProc(enemy, damage);
 	}
 

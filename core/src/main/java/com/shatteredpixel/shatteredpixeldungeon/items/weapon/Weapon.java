@@ -26,6 +26,8 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ai.AIModifier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ai.WeaponAITag;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Degrade;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
@@ -93,6 +95,17 @@ abstract public class Weapon extends KindOfWeapon {
 	public float    ACC = 1f;	// Accuracy modifier
 	public float	DLY	= 1f;	// Speed modifier
 	public int      RCH = 1;    // Reach modifier (only applies to melee hits)
+
+	// 怪物持有时授予的 AI 标签（由各武器子类在初始化块中设定）
+	public WeaponAITag aiTag = WeaponAITag.NONE;
+	// 按 aiTag 惰性创建、缓存在本武器实例上的 AI 行为（每武器/每怪独立，不序列化）
+	public transient AIModifier ai;
+
+	/** 返回本武器授予怪物的 AI 行为，无则 null。 */
+	public AIModifier aiModifier() {
+		if (ai == null) ai = aiTag.create();
+		return ai;
+	}
 
 	public enum Augment {
 		SPEED   (0.7f, 2/3f),

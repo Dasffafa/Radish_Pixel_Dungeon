@@ -15,7 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.dict.DictBook;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.BackpackCleaner;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomPlayer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.EffectOffsetTweaker;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.AnimationTweaker;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.EnemyAttributeModifier;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.LevelTeleporter;
@@ -275,7 +275,10 @@ public abstract class HeroDefinition {
 
 		new TalentSetter().collect();
 
-		new TestBag().collect();
+		TestBag testBag = new TestBag();
+		testBag.collect();
+		TestBag testbag2 = new TestBag();
+		testbag2.collect();
 
 		new TrapPlacer().collect();
 
@@ -285,7 +288,7 @@ public abstract class HeroDefinition {
 
 		new BackpackCleaner().collect();
 
-		new EffectOffsetTweaker().collect();
+		new AnimationTweaker().collect( testbag2 );
 
 		new LevelTeleporter().collect();
 

@@ -157,6 +157,20 @@ public class Heap implements Bundlable {
 	public Item peek() {
 		return items.peek();
 	}
+
+	/** 取走堆中指定的物品（用于多物品堆中选取特定物品拾取）。 */
+	public Item pickUp( Item item ) {
+		if (item == null || !items.contains( item )) {
+			return null;
+		}
+		items.remove( item );
+		if (items.isEmpty()) {
+			destroy();
+		} else if (sprite != null) {
+			sprite.view(this).place( pos );
+		}
+		return item;
+	}
 	
 	public void drop( Item item ) {
 		hidden = false;

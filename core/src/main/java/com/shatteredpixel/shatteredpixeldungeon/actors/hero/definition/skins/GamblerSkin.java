@@ -1,10 +1,16 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.GamblerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 
@@ -35,4 +41,22 @@ public class GamblerSkin extends SkinDefinition {
 	@Override public int frameH() { return 16; }
 
 	@Override public int[] idleFrames() { return new int[]{ 0, 1, 0, 2, 3, 4, 3, 2 }; }
+
+	@Override
+	protected void initClassLoadout(Hero hero) {
+		(hero.belongings.weapon = new WornShortsword()).identify();
+
+		CloakOfShadows cloak = new CloakOfShadows();
+		(hero.belongings.artifact = cloak).identify();
+		hero.belongings.artifact.activate(hero);
+
+		ThrowingKnife knives = new ThrowingKnife();
+		knives.quantity(3).collect();
+
+		Dungeon.quickslot.setSlot(0, cloak);
+		Dungeon.quickslot.setSlot(1, knives);
+
+		new ScrollOfMagicMapping().identify();
+		new PotionOfInvisibility().identify();
+	}
 }

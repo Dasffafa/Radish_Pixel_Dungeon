@@ -1,33 +1,25 @@
 package com.shatteredpixel.shatteredpixeldungeon.damage;
 
-import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
-
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
-import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.Radish;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Bloodblade;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.GiantKiller;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LongStick;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scythe;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Seekingspear;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
+
+import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 
 public class OrdinaryAttackDamage {
 
@@ -64,7 +56,7 @@ public class OrdinaryAttackDamage {
 		int dr = Math.round(defender.drRoll() * AscensionChallenge.statModifier(defender));
 
 		if (defender instanceof Hero) {
-			FatedDraw.FatedDrawTracker trackerD = ((Hero) defender).buff(FatedDraw.FatedDrawTracker.class);
+			FatedDraw.FatedDrawTracker trackerD = defender.buff(FatedDraw.FatedDrawTracker.class);
 			if (trackerD != null && trackerD.remainingChecks > 0) {
 				trackerD.consume("defense_block");
 			}
@@ -109,7 +101,7 @@ public class OrdinaryAttackDamage {
 		} else {
 			damage = attacker.damageRoll();
 			if (attacker instanceof Hero) {
-				FatedDraw.FatedDrawTracker trackerA = ((Hero) attacker).buff(FatedDraw.FatedDrawTracker.class);
+				FatedDraw.FatedDrawTracker trackerA = attacker.buff(FatedDraw.FatedDrawTracker.class);
 				if (trackerA != null && trackerA.remainingChecks > 0) {
 					trackerA.consume("attack_damage");
 				}
@@ -130,27 +122,30 @@ public class OrdinaryAttackDamage {
 		float multiplier = attacker.baseCritDamage();
 		float damage = baseDamage;
 
-		if (attacker == hero) {
-			if (hero.belongings.weapon() instanceof LongStick) {
-				chance += hero.defenseSkill(hero);
-			} else if (hero.belongings.weapon() instanceof Bloodblade) {
-				chance += ((Bloodblade) hero.belongings.weapon).sac;
-			} else if (hero.belongings.weapon() instanceof GiantKiller) {
-				critical = ((GiantKiller) hero.belongings.weapon).isMustCrit;
-			} else if (hero.belongings.weapon() instanceof Seekingspear) {
-				Seekingspear ss = (Seekingspear) hero.belongings.weapon;
-				multiplier += 0.3f + 0.05f * ss.buffedLvl();
-				if (surprise) {
-					chance += 25f;
-				}
-			} else if (hero.belongings.weapon() instanceof MissileWeapon) {
-				Talent.HoldBreathTracker hb = attacker.buff(Talent.HoldBreathTracker.class);
-				if (hb != null) {
-					chance += hb.crit_b;
-					multiplier += hb.cd_b;
-				}
+		Item weapon = attacker instanceof Hero
+				? ((Hero) attacker).belongings.weapon()
+				: attacker.attackingWeapon();
+		if (weapon instanceof LongStick) {
+			chance += attacker.defenseSkill(attacker);
+		} else if (weapon instanceof Bloodblade) {
+			chance += ((Bloodblade) weapon).sac;
+		} else if (weapon instanceof GiantKiller) {
+			critical = ((GiantKiller) weapon).isMustCrit;
+		} else if (weapon instanceof Seekingspear) {
+			Seekingspear ss = (Seekingspear) weapon;
+			multiplier += 0.3f + 0.05f * ss.buffedLvl();
+			if (surprise) {
+				chance += 25f;
 			}
+		} else if (weapon instanceof MissileWeapon) {
+			Talent.HoldBreathTracker hb = attacker.buff(Talent.HoldBreathTracker.class);
+			if (hb != null) {
+				chance += hb.crit_b;
+				multiplier += hb.cd_b;
+			}
+		}
 
+		if (attacker == hero) {
 			Radish.GlobalCritChance globalCritChance = hero.buff(Radish.GlobalCritChance.class);
 
 			if (hero.hasTalent(Talent.DEATHBLOW)) {
@@ -211,23 +206,20 @@ public class OrdinaryAttackDamage {
 	}
 
 	public static void applyPlateArmor(Char defender, DamageInfo info) {
-		if (defender instanceof Hero && ((Hero) defender).belongings.armor() instanceof PlateArmor) {
+		Item armor = Char.defendingArmor(defender);
+		if (armor instanceof PlateArmor) {
 			int before = info.getDamage();
-			info.addFinalAddModifier(((PlateArmor) ((Hero) defender).belongings.armor()).damageReduce(before) - before, "plate armor");
+			info.addFinalAddModifier(((PlateArmor) armor).damageReduce(before) - before, "plate armor");
 		}
 	}
 
 	/**
-	 * 攻击后处理：defenseProc → 粘性 → 弱点 → attackProc → 诗。
-	 * 护甲 DR 已移入 DamagePipeline 的「应用护甲」阶段。
+	 * 攻击后处理：defenseProc → 弱点 → attackProc → 诗。
+	 * 护甲 DR 已移入 DamagePipeline 的「应用护甲」阶段；
+	 * 黏稠刻印（Viscosity）延迟伤害改在「应用护甲」之后结算，优先级在护甲之后。
 	 */
 	public static int foldPostProcessing(Char attacker, Char defender, DamageInfo info) {
 		int effectiveDamage = defender.defenseProc(attacker, info.getDamage());
-
-		if (defender.buff(Viscosity.ViscosityTracker.class) != null) {
-			effectiveDamage = defender.buff(Viscosity.ViscosityTracker.class).deferDamage(effectiveDamage);
-			defender.buff(Viscosity.ViscosityTracker.class).detach();
-		}
 
 		if (defender.buff(Vulnerable.class) != null) {
 			effectiveDamage *= 1.33f;
@@ -254,21 +246,13 @@ public class OrdinaryAttackDamage {
 	}
 
 	public static boolean ignoresDefenseRoll(Char attacker) {
-		boolean srcIsAHeroWieldingCS = attacker instanceof Hero
-				&& ((Hero) attacker).belongings.attackingWeapon() instanceof CelestialSphere;
-		boolean srcIsAStatueWieldingCS = attacker instanceof Statue
-				&& ((Statue) attacker).weapon instanceof CelestialSphere;
-		return attacker instanceof Torturer || srcIsAHeroWieldingCS || srcIsAStatueWieldingCS;
+		Item weapon = attacker.attackingWeapon();
+		boolean srcIsWieldingCS = weapon instanceof CelestialSphere;
+		return attacker instanceof Torturer || srcIsWieldingCS;
 	}
 
 	private static Item sourceItem(Char attacker) {
-		if (attacker instanceof Hero) {
-			return ((Hero) attacker).belongings.attackingWeapon();
-		}
-		if (attacker instanceof Statue) {
-			return ((Statue) attacker).weapon;
-		}
-		return null;
+		return attacker.attackingWeapon();
 	}
 
 	private static boolean nearbyGrass(int pos) {

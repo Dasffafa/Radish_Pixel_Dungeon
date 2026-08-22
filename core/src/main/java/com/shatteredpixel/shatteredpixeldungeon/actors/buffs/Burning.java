@@ -214,6 +214,16 @@ public class Burning extends Buff implements Hero.Doom {
 		}
 		left = duration;
 	}
+
+	/** 剩余引燃将持续造成的总火焰伤害（供"烧焦"等法术立即结算）。 */
+	public int remainingDamage() {
+		int turns = Math.max(1, (int) Math.ceil(left));
+		int total = 0;
+		for (int i = 0; i < turns; i++) {
+			total += Char.combatRoll( 1, 3 + Dungeon.scalingDepth()/4 );
+		}
+		return total;
+	}
 	
 	@Override
 	public String icon() {

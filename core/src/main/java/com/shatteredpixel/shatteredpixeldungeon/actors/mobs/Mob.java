@@ -77,6 +77,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollShamanKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollKing;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ai.AIModifier;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SentryRoom;
 import com.shatteredpixel.shatteredpixeldungeon.effects.*;
@@ -888,6 +889,36 @@ public abstract class Mob extends Char {
 		return enemy == ch;
 	}
 
+	public Char getEnemy(){
+		return enemy;
+	}
+
+	/** 查找当前可影响 AI 的修改器：先看 Buff，再看攻击武器的 aiTag。 */
+	public AIModifier aiModifier() {
+		for (Buff b : buffs()) {
+			if (b instanceof AIModifier) return (AIModifier) b;
+		}
+		Item w = attackingWeapon();
+		if (w instanceof Weapon) return ((Weapon) w).aiModifier();
+		return null;
+	}
+
+	/** AIModifier 执行原语：朝目标移动一步（走原有路径/开门逻辑），返回是否成功移动。 */
+	public boolean aiMoveTo(int target) {
+		int oldPos = pos;
+		if (getCloser(target)) {
+			spend(1f / speed());
+			moveSprite(oldPos, pos);
+			return true;
+		}
+		return false;
+	}
+
+	/** AIModifier 执行原语：原地等待一段时间。 */
+	public void aiWait(float time) {
+		spend(time);
+	}
+
 	@Override
 	public void damage( DamageInfo info ) {
 		Object src = info.getSource();
@@ -1418,6 +1449,11 @@ public abstract class Mob extends Char {
 				return noticeEnemy();
 
 			} else {
+
+				AIModifier ai = aiModifier();
+				if (ai != null && ai.onWander(Mob.this)) {
+					return true;
+				}
 
 				return continueWandering();
 

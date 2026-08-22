@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
@@ -48,6 +49,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rogue.Deat
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deminion;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.RoyalGuard;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
@@ -58,12 +60,14 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.DarkCoat;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.AntiMagic;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Potential;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Viscosity;
 
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.LunarCorona;
@@ -564,6 +568,17 @@ public abstract class Char extends Actor {
         float acuStat = attacker.attackSkill(defender);
         float defStat = defender.defenseSkill(attacker);
 
+		Item attackWeapon = attacker instanceof Hero
+				? ((Hero) attacker).belongings.attackingWeapon()
+				: attacker.attackingWeapon();
+		AfterImage.absoluteEvasion attackEvasion = attacker.buff(AfterImage.absoluteEvasion.class);
+		if (attacker instanceof Hero && !magic && attackEvasion != null
+				&& attacker.buff(AfterImage.AnotabsoluteEvasion.class) == null
+				&& attackWeapon instanceof CircleSword) {
+			attackEvasion.detach();
+			return true;
+		}
+
         if (defender instanceof Hero && ((Hero) defender).damageInterrupt) {
             ((Hero) defender).interrupt();
         }
@@ -574,7 +589,10 @@ public abstract class Char extends Actor {
             return false;
         }
 
-        if (defender.buff(AfterImage.absoluteEvasion.class) != null) {
+        boolean defenderWieldsCircleSword = defender instanceof Hero
+				&& ((Hero) defender).belongings.attackingWeapon() instanceof CircleSword;
+		if (defender.buff(AfterImage.absoluteEvasion.class) != null
+				&& !defenderWieldsCircleSword) {
             Buff.detach(defender, AfterImage.absoluteEvasion.class);
             return false;
         }
@@ -585,36 +603,26 @@ public abstract class Char extends Actor {
         }
 
         if (defender.HP < defender.HT) {
-            if (attacker instanceof Hero) {
-                if (((Hero) attacker).belongings.weapon() instanceof Axe_D) {
-                    return true;
-                }
-            } else if (attacker instanceof Statue) {
-                if (((Statue) attacker).weapon instanceof Axe_D) {
-                    return true;
-                }
+            if (attackWeapon instanceof Axe_D) {
+                return true;
             }
         }
 
-
-        if (attacker instanceof Hero) {
-            if (((Hero) attacker).belongings.weapon() instanceof PneumFistGloves) {
-                if (((PneumFistGloves) ((Hero) attacker).belongings.weapon()).active && Dungeon.energy > 0) {
-                    return true;
-                }
-
-            }
-        } else if (attacker instanceof Statue) {
-            if (((Statue) attacker).weapon instanceof PneumFistGloves) {
-                if (((PneumFistGloves) ((Statue) attacker).weapon()).active && Dungeon.energy > 0) {
-                    return true;
-                }
+        if (attackWeapon instanceof PneumFistGloves) {
+            if (((PneumFistGloves) attackWeapon).active && Dungeon.energy > 0) {
+                return true;
             }
         }
 
 
         //invisible chars always hit (for the hero this is surprise attacking)
         if (attacker.invisible > 0 && attacker.canSurpriseAttack()) {
+            acuStat = INFINITE_ACCURACY;
+        }
+
+        // 怪物偷袭英雄：攻击者不在英雄当前视野内（如门后/黑暗中）时攻击必定命中。
+        // 只必中，不改变防御/DR（与英雄偷袭怪物不同，没有防御归零逻辑）。
+        if (defender instanceof Hero && ((Hero) defender).surprisedBy(attacker)) {
             acuStat = INFINITE_ACCURACY;
         }
 
@@ -717,9 +725,19 @@ public abstract class Char extends Actor {
     }
 
     public int drRoll() {
+        // 轮刃会放弃所有防御：手持轮刃时基础防御与护甲防御全部失效
+        if (wieldsCircleSword()) return 0;
         int dr = 0;
 
         dr += combatRoll(0, Barkskin.currentLevel(this));
+
+        // 护甲统一接入：Hero 在 Hero.drRoll 处理，其余持甲角色（ArmoredStatue/未来挑战怪）在此统一结算护甲 DR
+        if (!(this instanceof Hero)) {
+            Item armorItem = defendingArmor(this);
+            if (armorItem != null) {
+                dr += combatRoll(((Armor) armorItem).DRMin(), ((Armor) armorItem).DRMax());
+            }
+        }
 
         return dr;
     }
@@ -774,12 +792,20 @@ public abstract class Char extends Actor {
             damage = armor.absorb(damage);
         }
 
+        // 护甲统一接入：Hero 在 Hero.defenseProc 处理，其余持甲角色（ArmoredStatue/未来挑战怪）在此统一触发护甲 glyph
+        if (!(this instanceof Hero)) {
+            Item armorItem = defendingArmor(this);
+            if (armorItem != null) {
+                damage = ((Armor) armorItem).proc(enemy, this, damage);
+            }
+        }
+
         return damage;
     }
 
     // ========== 攻击事件辅助 ==========
 
-    /** 该角色本次使用的攻击武器（Hero 用装备武器，Statue 用其 weapon 字段），无则为 null。 */
+    /** 该角色本次使用的攻击武器（Hero 用装备武器，Statue 用其 weapon 字段，RoyalGuard 用其 equipment 字段），无则为 null。 */
     public Item attackingWeapon() {
         if (this instanceof Hero) {
             return ((Hero) this).belongings.attackingWeapon();
@@ -787,10 +813,18 @@ public abstract class Char extends Actor {
         if (this instanceof Statue) {
             return ((Statue) this).weapon;
         }
+        if (this instanceof RoyalGuard) {
+            return ((RoyalGuard) this).equipment;
+        }
         return null;
     }
 
-    /** 防御方持有的武器（Hero 用装备武器，Statue 用其 weapon 字段），无则为 null。 */
+    /** 该角色当前是否手持轮刃（CircleSword），手持时放弃全部防御。 */
+    public boolean wieldsCircleSword() {
+        return defendingWeapon(this) instanceof CircleSword;
+    }
+
+    /** 防御方持有的武器（Hero 用装备武器，Statue 用其 weapon 字段，RoyalGuard 用其 equipment 字段），无则为 null。 */
     public static Item defendingWeapon(Char defender) {
         if (defender instanceof Hero) {
             return ((Hero) defender).belongings.weapon();
@@ -798,15 +832,28 @@ public abstract class Char extends Actor {
         if (defender instanceof Statue) {
             return ((Statue) defender).weapon;
         }
+        if (defender instanceof RoyalGuard) {
+            return ((RoyalGuard) defender).equipment;
+        }
         return null;
     }
 
-    /** 防御方护甲（仅 Hero 有装备护甲），无则为 null。 */
+    /** 该角色当前穿着的护甲（Hero 在 belongings，ArmoredStatue/未来挑战怪覆写），无则为 null。 */
+    public Armor armor() {
+        return null;
+    }
+
+    /** 防御方护甲（Hero 用装备护甲，其余用其 armor() 访问器），无则为 null。 */
     public static Item defendingArmor(Char defender) {
         if (defender instanceof Hero) {
             return ((Hero) defender).belongings.armor();
         }
-        return null;
+        return defender.armor();
+    }
+
+    /** 该角色可用的法杖等级总和（CelestialSphere 等按持有者结算法杖加成）。普通角色无法杖为 0，Hero 累加装备法杖，法杖型远程怪可覆写为随机数值。 */
+    public int wandLevel() {
+        return 0;
     }
 
     public float speed() {
@@ -842,6 +889,21 @@ public abstract class Char extends Actor {
     //currently only used by invisible chars, or by the hero
     public boolean canSurpriseAttack() {
         return true;
+    }
+
+    // 取当前攻击目标：英雄/怪物通用（用于武器偷袭判定）
+    public static Char enemyOf( Char ch ) {
+        if (ch instanceof Hero) return ((Hero) ch).enemy();
+        if (ch instanceof Mob)  return ((Mob) ch).getEnemy();
+        return null;
+    }
+
+    // 对称的偷袭判定：英雄偷袭怪物 / 怪物偷袭英雄（视野外攻击）都算偷袭
+    public static boolean isSurpriseAttack( Char attacker, Char defender ) {
+        if (defender == null) return false;
+        if (defender instanceof Mob && ((Mob) defender).surprisedBy(attacker)) return true;
+        if (defender instanceof Hero && ((Hero) defender).surprisedBy(attacker)) return true;
+        return false;
     }
 
     //used so that buffs(Shieldbuff.class) isn't called every time unnecessarily
@@ -947,6 +1009,12 @@ public abstract class Char extends Actor {
                 dmg = Math.max(dmg - dr, 0);
                 armorBlocked = before - dmg;
             }
+        }
+
+        // —— 黏稠刻印：在护甲之后结算延迟伤害（优先级在护甲之后，护甲先阻挡再延迟剩余部分）——
+        if (buff(Viscosity.ViscosityTracker.class) != null) {
+            dmg = buff(Viscosity.ViscosityTracker.class).deferDamage(dmg);
+            buff(Viscosity.ViscosityTracker.class).detach();
         }
 
         // DoggingDog on 20250710

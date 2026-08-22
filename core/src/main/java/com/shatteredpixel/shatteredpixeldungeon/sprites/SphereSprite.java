@@ -58,11 +58,11 @@ public class SphereSprite extends HeroSprite {
 		zap = operate.clone();
 
 		// 卷轴阅读：第 2 行帧 24-27
-		read = new Animation( 20, false );
+		read = new Animation( 15, false );
 		read.frames( film, 23, 24, 25, 26, 27, 27, 27, 27);
 
 		// 死亡裂开：第 3 行帧 28-31
-		die = new Animation( 20, false );
+		die = new Animation( 10, false );
 		die.frames( film, 28, 29, 30, 31 );
 
 		fly = idle.clone();

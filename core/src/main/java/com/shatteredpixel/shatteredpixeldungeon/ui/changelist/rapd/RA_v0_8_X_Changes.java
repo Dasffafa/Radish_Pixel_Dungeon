@@ -1,15 +1,11 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui.changelist.rapd;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.ChangesScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.*;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.DeminionSprite;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.GiantWormSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.*;
 import com.shatteredpixel.shatteredpixeldungeon.ui.changelist.ChangeButton;
@@ -37,18 +33,43 @@ public class RA_v0_8_X_Changes {
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "new"), false, null);
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
-
+        changes.addButton(new ChangeButton(new ItemSprite(BONE_PILE),"一些新物品",
+                ("_-_ 一些怪物会掉落新物品。\n\n" +
+                        "_-_ 哥布林：简易投石索，使用投石索会消耗一颗石头投掷，将它的伤害提升4倍，此道具和石头会一并摧毁。\n\n" +
+                        "_-_ 狗：狗腿，可以丢出去吸引怪物。\n\n" +
+                        "_-_ 监狱内敌人：律法碎片，可以作为某一些炼金配方中卷轴的替代品，也可以令视野中的犯人和狱警短暂麻痹。\n\n" +
+                        "_-_ 灵魂： 灵魂余烬，可以分解为1炼金能量。日后会有其他用途。\n\n" +
+                        "_-_ 机械类敌人：机械碎片，一堆废铁能用来做啥啊……\n\n" +
+                        "_-_ 矮人和豺狼人：闪晶， 用于+3以下装备，50%概率令其上升一级，50%概率令其下降一级。0级装备会被闪晶摧毁。"+
+                        "_-_ 矮人炮手： 大炮，可以用来发射炸弹出去，并造成多倍的爆炸伤害。" +
+                        "_目前大部分物品的效果不是很让我满意，如果有更好的想法，欢迎从首页加入群聊向开发者投稿。_")));
+        changes.addButton(new ChangeButton(new ItemSprite(LOCK_CHAIN), "锁镰兼容性修复",
+                ("_-_ 攻击被追寻附魔标记的敌人时，会把不管多远的敌人都拉过来并且攻击。\n\n" +
+                        "_-_ 原来不能拉拽的情况，依然不能拉拽，"))
+        );
+        changes.addButton(new ChangeButton(new ItemSprite(CIRCLE_SWORD), "环刃调整",
+                ("_-_ 环刃增加了1攻击距离。\n\n" +
+                        "_-_ 环刃现在的成长是4阶武器的成长。" +
+                        "_-_ 环刃的防御转攻击效果会对树肤生效。" +
+                        "_-_ 环刃的防御转攻击效果会令你命中敌人时消耗所有护盾，并将其转化为伤害。" +
+                        "_-_ 环刃的防御转攻击效果会令残像的必定闪避效果变为一次必定命中效果。"))
+        );
+        changes.addButton(new ChangeButton(new ItemSprite(HEADCLEAVER), "斩首者调整", "" +
+                "_-_ 斩首者对大于30%血量的英雄生效时，会给英雄保留1点血量。" +
+                "_-_ 小于30%的英雄如果不幸被斩首，仍会直接死亡。"));
         changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClasses.ROGUE, 5, HeroClasses.ROGUE_SKIN_GAMBLER), "英雄皮肤系统",
                 ("英雄角色现在可以换上来自Slice & Dice的新皮肤！\n\n" +
                         "_-_ 盗贼新增可选皮肤：赌徒\n" +
                         "_-_ 战士新增可选皮肤：流浪者\n" +
                         "_-_ 月华新增可选皮肤：圆球\n" +
                         "_-_ 新增全职业共享皮肤：杂散（Jumble）\n" +
-                        "_-_ 皮肤在英雄选择界面中挑选，包含独立的形象与专属动画")));
+                        "_-_ 这些皮肤都有独立的特殊效果，选择前请仔细查看英雄选择界面。" +
+                        "_-_ 另有几个新皮肤的实现方式还没有想好，会在后续版本中缓慢添加。"
+                        )));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.DATA), "职业系统重构",
                 ("将职业与子职业由枚举重构为定义式框架，为后续新英雄、新子职业与新皮肤提供统一的扩展入口。\n\n" +
-                        "_-_ 职业、子职业、天赋层级、护甲技能、初始装备与皮肤统一定义,未来添加新英雄会更加简单。\n"
+                        "_-_ 职业、子职业、天赋层级、护甲技能、初始装备与皮肤统一定义,未来添加新英雄和皮肤会更加简单。\n"
                 )));
 
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
@@ -56,8 +77,17 @@ public class RA_v0_8_X_Changes {
         changeInfos.add(changes);
 
         changes.addButton(new ChangeButton(new TalentIcon(Talent.SCHOOL_BLADES), "骰子法师法术调整",
-                ("_-_ 刃雨投射物改为纯视觉表现，伤害改为同步结算，飞刀会穿过倒下的尸体，以避免实际投射物导致的卡顿bug。\n"
-                        )));
+                ("_-_ 刃雨：获得力量加成，投射物改为纯视觉表现，伤害改为同步结算，飞刀会穿过倒下的尸体，以避免实际投射物导致的卡顿bug。在大部分情况下，这不会对这个法术的结算造成严重区别。\n\n" +
+                        "_-_ 收集：效果改为将7格内的物品全部拉到自己脚下。这也会回收范围内怪物身上的投掷物。\n\n" +
+                        "_-_ 预知：效果改为给予英雄20回合的魔能透视。施法不会消耗回合。\n\n" +
+                        "_-_ 藤蔓：现在施法消耗0.33回合。缠绕的回合数会叠加。\n\n" +
+                        "_-_ 电闪：它现在类似于电法的注能面，会随着当前法力值提高伤害。\n\n" +
+                        "_-_ 恶咒：效果改为给3格内的一个目标7-15回合的虚弱、易伤、幻惑、失明、残废、禁疗，每个效果的时间会独立计算，然而对boss单位的效果是25%。冷却50回合。\n\n" +
+                        "_-_ 切割：额外附加33%武器伤害与力量加成，并触发武器附魔。\n\n" +
+                        "_-_ 劈砍：效果改为对扇形敌人使用手中武器进行一次高强度打击。该法术享受力量加成。\n\n" +
+                        "_-_ 烧焦：效果改为令3x3范围内的敌人的火焰伤害立刻全部燃烧完毕，并再次点燃这些敌人。范围内正在燃烧的地形，会立刻燃烧完毕。\n\n" +
+                        "_-_ 爆燃：消耗6魔力点，对一个正在燃烧的敌人造成100-150火焰伤害并将其引爆：目标自身的引燃立刻结束，火焰扩散到周围5×5范围的敌人与地面。不再拥有冷却时间。来自某个异世界火系法师的力量。\n\n"
+                )));
 
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
         changes.hardlight(CharSprite.NEGATIVE);
@@ -65,10 +95,13 @@ public class RA_v0_8_X_Changes {
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16),
                 Messages.get(ChangesScene.class, "bugfixes"),
-                ("_-_ 修复 骰子法师学派升级时在部分设备会发生闪退的bug\n" +
-                        "_-_ 修复 刃雨飞刀无法穿过尸体、伤害结算不稳定的bug\n" +
+                ("_-_ 修复 骰子法师学派升级时在部分设备会发生闪退的bug\n\n" +
+                        "_-_ 修复 刃雨飞刀无法穿过尸体、伤害结算不稳定的bug\n\n" +
+                        "_-_ 修复 黏稠刻印延迟伤害优先级错误的bug（护甲减伤全被计入延迟伤害，现改为护甲先阻挡、再对剩余伤害做延迟）\n\n" +
+                        "_-_ 修复 血色哨卫能被打死的bug"+
                         "_-_ 新增了一些没有被发现的bug")));
     }
+
     public static void add_v08_3_Changes(ArrayList<ChangeInfo> changeInfos) {
         ChangeInfo changes = new ChangeInfo("v0.8.3", true, "");
         changes.hardlight(Window.TITLE_COLOR);
@@ -137,19 +170,19 @@ public class RA_v0_8_X_Changes {
         changeInfos.add(changes);
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
-                        "_-_ 镜像受到伤害后不死亡的bug\n" +
-                                "_-_ 哨卫受到伤害后不死亡的bug\n" +
-                                "_-_ 幽灵不受到伤害的bug\n" +
-                                "_-_ 拉莱耶文本反弹伤害触发时没有特效且玩家身上跳字的bug\n" +
-                                "_-_ 月华NPC开局交换武器可能出顽疾刻印的bug\n" +
-                                "_-_ 遗忘碎片存在时砥砺锋芒天赋不生效的bug\n" +
-                                "_-_ 重型回旋镖攻击后退出重进只需一回合飞回的bug\n" +
-                                "_-_ 牧师惩戒之力施法到造成伤害需20多秒的bug\n" +
-                                "_-_ 天狗锁血没有生效的bug\n" +
-                                "_-_ 天狗二阶段没有正确切换场景的bug\n" +
-                                "_-_ 轮椅0充能时无法用弹射起步开轮椅的bug\n" +
-                                "_-_ 战士受衅怒火在破盾后下一次受攻击才错误触发的bug"));
-            }
+                "_-_ 镜像受到伤害后不死亡的bug\n" +
+                        "_-_ 哨卫受到伤害后不死亡的bug\n" +
+                        "_-_ 幽灵不受到伤害的bug\n" +
+                        "_-_ 拉莱耶文本反弹伤害触发时没有特效且玩家身上跳字的bug\n" +
+                        "_-_ 月华NPC开局交换武器可能出顽疾刻印的bug\n" +
+                        "_-_ 遗忘碎片存在时砥砺锋芒天赋不生效的bug\n" +
+                        "_-_ 重型回旋镖攻击后退出重进只需一回合飞回的bug\n" +
+                        "_-_ 牧师惩戒之力施法到造成伤害需20多秒的bug\n" +
+                        "_-_ 天狗锁血没有生效的bug\n" +
+                        "_-_ 天狗二阶段没有正确切换场景的bug\n" +
+                        "_-_ 轮椅0充能时无法用弹射起步开轮椅的bug\n" +
+                        "_-_ 战士受衅怒火在破盾后下一次受攻击才错误触发的bug"));
+    }
 
 
     public static void add_v08_1_Changes(ArrayList<ChangeInfo> changeInfos) {

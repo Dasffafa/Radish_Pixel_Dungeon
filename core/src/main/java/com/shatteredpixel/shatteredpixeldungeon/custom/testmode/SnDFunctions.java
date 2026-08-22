@@ -283,7 +283,7 @@ public class SnDFunctions extends TestItem {
 				final Class<? extends DiceMageSpell> spellClass = c;
 				final String spellLabel = label;
 
-				RedButton btn = new RedButton((already ? "[✓] " : "") + label) {
+				RedButton btn = new RedButton((already ? "[O] " : "") + label) {
 					@Override
 					protected void onClick() {
 						if (Dungeon.hero == null || Dungeon.hero.buff(MagicPoint.class) == null) {

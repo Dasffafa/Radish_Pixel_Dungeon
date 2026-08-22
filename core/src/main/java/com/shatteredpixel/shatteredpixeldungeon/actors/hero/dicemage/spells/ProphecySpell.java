@@ -36,7 +36,7 @@ public class ProphecySpell extends DiceMageSpell {
     @Override
     protected void onCast(Hero hero) {
         if (!spendMagic(hero)) return;
-        Buff.prolong(hero, MagicalSight.class, 10f);
-        hero.spendAndNext(1f);
+        Buff.prolong(hero, MagicalSight.class, 20f);
+        hero.spendAndNext(0f);
     }
 }

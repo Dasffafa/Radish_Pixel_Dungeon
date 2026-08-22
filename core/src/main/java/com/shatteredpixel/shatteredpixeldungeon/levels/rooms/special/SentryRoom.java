@@ -307,7 +307,7 @@ public class SentryRoom extends SpecialRoom {
 
 		@Override
 		public void damage(DamageInfo info) {
-			super.damage(info);
+			return;
 		}
 
 		@Override

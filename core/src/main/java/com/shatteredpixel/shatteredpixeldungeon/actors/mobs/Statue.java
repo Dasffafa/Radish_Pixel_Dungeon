@@ -134,6 +134,7 @@ public class Statue extends Mob {
 
 	@Override
 	public int drRoll() {
+		if (wieldsCircleSword()) return 0;
 		return Random.NormalIntRange(0, Dungeon.depth + weapon.defenseFactor(this));
 	}
 

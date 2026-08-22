@@ -29,6 +29,7 @@ public final class HeroClasses {
 
 	/** 盗贼的可选皮肤：赌徒。数值需大于普通头像皮肤索引。 */
 	public static final int ROGUE_SKIN_GAMBLER = 5;
+	public static final int ROGUE_SKIN_AGENT = 7;
 
 	/** 战士的可选皮肤：流浪者。数值需大于普通头像皮肤索引。 */
 	public static final int WARRIOR_SKIN_WANDERER = 5;

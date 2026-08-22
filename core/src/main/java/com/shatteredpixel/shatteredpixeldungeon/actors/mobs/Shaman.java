@@ -60,6 +60,13 @@ public abstract class Shaman extends Mob {
 	public int damageRoll() {
 		return Char.combatRoll( 5, 10 );
 	}
+
+	@Override
+	public int wandLevel() {
+		// 法杖型远程怪：无实体法杖，用随机「伪法杖等级」代替。
+		// 未来挑战令其手持 CelestialSphere 时，该数值将决定法杖加成（NormalIntRange(level, level*2)）。
+		return Random.NormalIntRange( 4, 12 );
+	}
 	
 	@Override
 	public int attackSkill( Char target ) {

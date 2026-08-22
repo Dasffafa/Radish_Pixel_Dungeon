@@ -57,14 +57,13 @@ public class GamblerSprite extends HeroSprite {
 		die = new Animation( 20, false );
 		die.frames( film, 8, 9, 10, 11, 12, 13 );
 
-		// 特殊动画：第 3 行（帧 40-59）
-		enterInvisible = new Animation( 12, false );
-		enterInvisible.frames( film, 40, 41, 42, 43, 44, 45, 46, 47 );
+		Animation enterInvisible = new Animation( 8, false );
+		enterInvisible.frames( film, 40, 41, 42, 43, 44, 45, 46, 47, 18, 19 );
 
 		slash = new Animation( 12, false );
 		slash.frames( film, 48, 49, 50, 51, 52, 53, 54 );
 
-		exitInvisible = new Animation( 12, false );
+		exitInvisible = new Animation( 8, false );
 		exitInvisible.frames( film, 55, 56, 57, 58, 59 );
 
 		fly = idle.clone();

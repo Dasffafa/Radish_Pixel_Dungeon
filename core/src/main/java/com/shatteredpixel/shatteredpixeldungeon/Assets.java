@@ -426,6 +426,7 @@ public class Assets {
 
 		//Radish SnD skins
 		public static final String GAMBLER = "sprites/RadishSnDSprite/gambler.png";
+		public static final String AGENT = "sprites/RadishSnDSprite/agent.png";
 		public static final String WANDERER = "sprites/RadishSnDSprite/wanderer.png";
 		public static final String SPHERE = "sprites/RadishSnDSprite/sphere.png";
 		public static final String JUMBLE = "sprites/RadishSnDSprite/jumble.png";

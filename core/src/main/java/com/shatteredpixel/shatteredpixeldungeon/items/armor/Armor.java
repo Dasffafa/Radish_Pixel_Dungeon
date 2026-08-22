@@ -617,6 +617,9 @@ public class Armor extends EquipableItem {
 			if (index < 0 || index >= armor.attachedToys.size()) return;
 			ItemArmorAttachable item = armor.attachedToys.get(index);
 
+			// 若卸下会导致死亡则拒绝卸下
+			if (!item.tryDetach(hero)) return;
+
 			// 破损纹章有特殊卸下逻辑
 			if (item instanceof BrokenSeal) {
 				armor.detachSeal(hero);

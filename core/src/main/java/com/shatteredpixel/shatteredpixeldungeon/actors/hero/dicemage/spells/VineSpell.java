@@ -12,10 +12,14 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.RotLasherSprite;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
+import com.watabou.noosa.tweeners.ScaleTweener;
+import com.watabou.utils.PointF;
+import com.watabou.noosa.Game;
 
 /**
  * 藤蔓（自然学派 L2）：提供3-11护盾，或造成3-7伤害并有33%概率缠绕2回合（二选一）。
@@ -63,6 +67,7 @@ public class VineSpell extends DiceMageSpell {
                     CellEmitter.center(target.pos).burst(SparkParticle.FACTORY, 5);
                     GLog.p(Messages.get(VineSpell.this, "shield", shield));
                 } else {
+                    playLasherVisual(target.pos);
                     int dmg = Random.IntRange(3, 7) + 2 * (hero.STR() - 10);
                     target.damage(DamageInfo.physicalNoArmor(dmg, VineSpell.this));
                     if (target.isAlive()) {
@@ -80,6 +85,24 @@ public class VineSpell extends DiceMageSpell {
             @Override
             public String prompt() {
                 return Messages.get(VineSpell.this, "prompt");
+            }
+        });
+    }
+
+    private static void playLasherVisual(final int pos) {
+        final RotLasherSprite lasher = new RotLasherSprite();
+        lasher.place(pos);
+        lasher.scale.set(0.05f, 0.05f);
+        Game.scene().add(lasher);
+        Game.scene().add(new ScaleTweener(lasher, new PointF(1, 1), 0.25f) {
+            @Override
+            protected void onComplete() {
+                lasher.playVisualAttack(new com.watabou.utils.Callback() {
+                    @Override
+                    public void call() {
+                        lasher.killAndErase();
+                    }
+                });
             }
         });
     }

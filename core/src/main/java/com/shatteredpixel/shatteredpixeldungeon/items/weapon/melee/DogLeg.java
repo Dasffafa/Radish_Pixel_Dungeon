@@ -25,9 +25,12 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -83,37 +86,23 @@ public class DogLeg extends Item {
 		public void onSelect(Integer cell) {
 			if (cell == null || curUser == null || curItem == null) return;
 
-			// 必须相邻（1 距离）
-			if (!Dungeon.level.adjacent(curUser.pos, cell)) {
+			if (cell < 0 || cell >= Dungeon.level.length() || Dungeon.level.solid[cell]) {
 				GLog.w(Messages.get(DogLeg.class, "too_far"));
-				return;
-			}
-
-			Char enemy = Actor.findChar(cell);
-			if (enemy == null || enemy == curUser) {
-				GLog.w(Messages.get(DogLeg.class, "no_target"));
 				return;
 			}
 
 			// 消耗狗腿
 			curItem.detach(curUser.belongings.backpack);
-			curUser.spendAndNext(1f);
-
-			Sample.INSTANCE.play(Assets.Sounds.HIT_STAB);
-			curUser.sprite.attack(cell, new com.watabou.utils.Callback() {
-				@Override
-				public void call() {
-					// 16 点必中伤害（法术/真实伤害，忽略防御）
-					enemy.damage(DamageInfo.of(16, DamageType.TRUE, curUser, curItem));
-					enemy.sprite.bloodBurstA(enemy.sprite.center(), 16);
-					enemy.sprite.flash();
-
-					if (!enemy.isAlive() && enemy == Dungeon.hero) {
-						Dungeon.fail(DogLeg.class);
-						GLog.n(Messages.get(DogLeg.class, "kill_desc"));
-					}
+			Heap lure = Dungeon.level.drop(new DogLeg(), cell);
+			LureBuff.start(cell, lure);
+			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+				if (Dungeon.level.distance(mob.pos, cell) <= 5) {
+					mob.beckon(cell);
+					Buff.affect(mob, LureBuff.class);
 				}
-			});
+			}
+			curUser.spendAndNext(1f);
+			Sample.INSTANCE.play(Assets.Sounds.ALERT);
 		}
 
 		@Override
@@ -122,9 +111,46 @@ public class DogLeg extends Item {
 		}
 	};
 
+	public static class LureBuff extends Buff {
+		private static int lurePos = -1;
+		private static Heap lure;
+
+		public static void start(int pos, Heap heap) {
+			lurePos = pos;
+			lure = heap;
+		}
+
+		public static boolean isActive(int pos) {
+			return lurePos == pos && lure != null;
+		}
+
+		@Override
+		public boolean act() {
+			if (target.pos == lurePos) {
+				if (lure != null) lure.destroy();
+				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+					LureBuff buff = mob.buff(LureBuff.class);
+					if (buff != null) buff.detach();
+					mob.notice();
+				}
+				lure = null;
+				lurePos = -1;
+			} else {
+				spend(1f);
+			}
+			return true;
+		}
+	}
+
 	@Override
 	public boolean isUpgradable() {
 		return false;
+	}
+
+	@Override
+	public boolean doPickUp(Hero hero, int pos) {
+		if (LureBuff.isActive(pos)) return false;
+		return super.doPickUp(hero, pos);
 	}
 
 	@Override
