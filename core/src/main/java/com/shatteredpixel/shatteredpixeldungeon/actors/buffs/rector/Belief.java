@@ -437,7 +437,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
             credibility += exp;
         }
 
-        hero.sprite.showStatusWithIcon(Window.TITLE_COLOR, String.valueOf(roundedValue + exp), FloatingText.BELIEF);
+        hero.sprite.showStatusWithIcon(Window.TITLE_COLOR,
+                Integer.toString((int) Math.floor(roundedValue + exp)), FloatingText.BELIEF);
     }
 
 
@@ -448,7 +449,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
     public void DownBelief(float value) {
         float actualValue = (float) (Math.floor(value * 100) / 100);
         credibility = Math.max(0, credibility - actualValue);
-        hero.sprite.showStatus(Window.RADISH, "-" + actualValue);
+        hero.sprite.showStatus(Window.RADISH, "-" + (int) Math.floor(actualValue));
 
         // Rector armor skill : taichi poise
         // DoggingDog 20260116
@@ -478,7 +479,11 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
     @Override
     public String iconTextDisplay() {
-        return String.valueOf(Math.floor(credibility * 100) / 100);
+        return Integer.toString(displayedCredibility());
+    }
+
+    private int displayedCredibility() {
+        return (int) Math.floor(credibility);
     }
 
     public static String CREDIBILITY = "credibility";
@@ -513,9 +518,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     buffCnt+=3;
                 }
             }
-            return Messages.get(this, "desc2",Math.floor(credibility * 100) / 100, buffCnt);
+            return Messages.get(this, "desc2", displayedCredibility(), buffCnt);
         }
-        return Messages.get(this, "desc",Math.floor(credibility * 100) / 100);
+        return Messages.get(this, "desc", displayedCredibility());
     }
 
     @Override

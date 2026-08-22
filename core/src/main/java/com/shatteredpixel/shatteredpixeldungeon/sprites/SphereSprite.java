@@ -42,27 +42,27 @@ public class SphereSprite extends HeroSprite {
 		TextureFilm film = new TextureFilm( texture, FRAME_W, FRAME_H );
 
 		// 闪烁待机：第 1 行帧 0-4，首帧（帧 0）重复 7 次实现 7 倍时长
-		idle = new Animation( 2, true );
-		idle.frames( film, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4 );
+		idle = new Animation( 10, true );
+		idle.frames( film, 0, 0, 0, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0, 0, 1, 2, 3, 4 );
 
 		// 滚动：第 1 行帧 0、5-13
-		run = new Animation( 20, true );
+		run = new Animation( 30, true );
 		run.frames( film, 0, 5, 6, 7, 8, 9, 10, 11, 12, 13 );
 
 		// 跳跃（互动）：第 2 行帧 14-23
-		operate = new Animation( 15, false );
-		operate.frames( film, 14, 15, 16, 17, 18, 19, 20, 21, 22);
+		operate = new Animation( 30, false );
+		operate.frames( film, 14, 15, 16, 17, 17,18,18, 19, 20, 21, 22,0);
 
 		// 攻击：滚动跳跃，复用跳跃帧
 		attack = operate.clone();
 		zap = operate.clone();
 
 		// 卷轴阅读：第 2 行帧 24-27
-		read = new Animation( 15, false );
+		read = new Animation( 10, false );
 		read.frames( film, 23, 24, 25, 26, 27, 27, 27, 27);
 
 		// 死亡裂开：第 3 行帧 28-31
-		die = new Animation( 10, false );
+		die = new Animation( 5, false );
 		die.frames( film, 28, 29, 30, 31 );
 
 		fly = idle.clone();
@@ -80,7 +80,7 @@ public class SphereSprite extends HeroSprite {
 		// 移动耗时放大一倍：从一格移动到另一格的速度降低 50%，
 		// 以便滚动动画有更充足的时间播放。
 		if (motion != null) {
-			motion.interval *= 2f;
+			motion.interval *= 1.5f;
 		}
 	}
 

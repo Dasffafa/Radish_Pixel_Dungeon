@@ -40,30 +40,18 @@ public class RA_v0_8_X_Changes {
                         "_-_ 监狱内敌人：律法碎片，可以作为某一些炼金配方中卷轴的替代品，也可以令视野中的犯人和狱警短暂麻痹。\n\n" +
                         "_-_ 灵魂： 灵魂余烬，可以分解为1炼金能量。日后会有其他用途。\n\n" +
                         "_-_ 机械类敌人：机械碎片，一堆废铁能用来做啥啊……\n\n" +
-                        "_-_ 矮人和豺狼人：闪晶， 用于+3以下装备，50%概率令其上升一级，50%概率令其下降一级。0级装备会被闪晶摧毁。"+
-                        "_-_ 矮人炮手： 大炮，可以用来发射炸弹出去，并造成多倍的爆炸伤害。" +
+                        "_-_ 矮人和豺狼人：闪晶， 用于+3以下装备，50%概率令其上升一级，50%概率令其下降一级。0级装备会被闪晶摧毁。\n\n"+
+                        "_-_ 矮人炮手： 大炮，可以用来发射炸弹出去，并造成多倍的爆炸伤害。\n\n" +
                         "_目前大部分物品的效果不是很让我满意，如果有更好的想法，欢迎从首页加入群聊向开发者投稿。_")));
-        changes.addButton(new ChangeButton(new ItemSprite(LOCK_CHAIN), "锁镰兼容性修复",
-                ("_-_ 攻击被追寻附魔标记的敌人时，会把不管多远的敌人都拉过来并且攻击。\n\n" +
-                        "_-_ 原来不能拉拽的情况，依然不能拉拽，"))
-        );
-        changes.addButton(new ChangeButton(new ItemSprite(CIRCLE_SWORD), "环刃调整",
-                ("_-_ 环刃增加了1攻击距离。\n\n" +
-                        "_-_ 环刃现在的成长是4阶武器的成长。" +
-                        "_-_ 环刃的防御转攻击效果会对树肤生效。" +
-                        "_-_ 环刃的防御转攻击效果会令你命中敌人时消耗所有护盾，并将其转化为伤害。" +
-                        "_-_ 环刃的防御转攻击效果会令残像的必定闪避效果变为一次必定命中效果。"))
-        );
-        changes.addButton(new ChangeButton(new ItemSprite(HEADCLEAVER), "斩首者调整", "" +
-                "_-_ 斩首者对大于30%血量的英雄生效时，会给英雄保留1点血量。" +
-                "_-_ 小于30%的英雄如果不幸被斩首，仍会直接死亡。"));
+
+
         changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClasses.ROGUE, 5, HeroClasses.ROGUE_SKIN_GAMBLER), "英雄皮肤系统",
                 ("英雄角色现在可以换上来自Slice & Dice的新皮肤！\n\n" +
-                        "_-_ 盗贼新增可选皮肤：赌徒\n" +
-                        "_-_ 战士新增可选皮肤：流浪者\n" +
-                        "_-_ 月华新增可选皮肤：圆球\n" +
-                        "_-_ 新增全职业共享皮肤：杂散（Jumble）\n" +
-                        "_-_ 这些皮肤都有独立的特殊效果，选择前请仔细查看英雄选择界面。" +
+                        "_-_ 盗贼新增可选皮肤：赌徒\n\n" +
+                        "_-_ 战士新增可选皮肤：流浪者\n\n" +
+                        "_-_ 月华新增可选皮肤：圆球\n\n" +
+                        "_-_ 新增全职业共享皮肤：杂散（Jumble）\n\n" +
+                        "_-_ 这些皮肤都有独立的特殊效果，选择前请仔细查看英雄选择界面。\n\n" +
                         "_-_ 另有几个新皮肤的实现方式还没有想好，会在后续版本中缓慢添加。"
                         )));
 
@@ -75,6 +63,20 @@ public class RA_v0_8_X_Changes {
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
         changes.hardlight(CharSprite.WARNING);
         changeInfos.add(changes);
+        changes.addButton(new ChangeButton(new ItemSprite(HEADCLEAVER), "斩首者调整", "" +
+                "_-_ 斩首者对大于30%血量的英雄生效时，会给英雄保留1点血量。\n\n" +
+                "_-_ 小于30%的英雄如果不幸被斩首，仍会直接死亡。\n"));
+        changes.addButton(new ChangeButton(new ItemSprite(LOCK_CHAIN), "锁镰兼容性修复",
+                ("_-_ 攻击被追寻附魔标记的敌人时，会把不管多远的敌人都拉过来并且攻击。\n\n" +
+                        "_-_ 原来不能拉拽的情况，依然不能拉拽，"))
+        );
+        changes.addButton(new ChangeButton(new ItemSprite(CIRCLE_SWORD), "环刃调整",
+                ("_-_ 环刃增加了1攻击距离。\n\n" +
+                        "_-_ 环刃现在的成长是4阶武器的成长。\n\n" +
+                        "_-_ 环刃的防御转攻击效果会对树肤生效。\n\n" +
+                        "_-_ 环刃会令你命中敌人时消耗所有护盾，并将其转化为伤害。\n\n" +
+                        "_-_ 环刃会令残像的必定闪避效果变为一次必定命中效果。\n\n"))
+        );
 
         changes.addButton(new ChangeButton(new TalentIcon(Talent.SCHOOL_BLADES), "骰子法师法术调整",
                 ("_-_ 刃雨：获得力量加成，投射物改为纯视觉表现，伤害改为同步结算，飞刀会穿过倒下的尸体，以避免实际投射物导致的卡顿bug。在大部分情况下，这不会对这个法术的结算造成严重区别。\n\n" +
@@ -89,16 +91,14 @@ public class RA_v0_8_X_Changes {
                         "_-_ 爆燃：消耗6魔力点，对一个正在燃烧的敌人造成100-150火焰伤害并将其引爆：目标自身的引燃立刻结束，火焰扩散到周围5×5范围的敌人与地面。不再拥有冷却时间。来自某个异世界火系法师的力量。\n\n"
                 )));
 
-        changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
-        changes.hardlight(CharSprite.NEGATIVE);
-        changeInfos.add(changes);
-
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16),
                 Messages.get(ChangesScene.class, "bugfixes"),
                 ("_-_ 修复 骰子法师学派升级时在部分设备会发生闪退的bug\n\n" +
                         "_-_ 修复 刃雨飞刀无法穿过尸体、伤害结算不稳定的bug\n\n" +
                         "_-_ 修复 黏稠刻印延迟伤害优先级错误的bug（护甲减伤全被计入延迟伤害，现改为护甲先阻挡、再对剩余伤害做延迟）\n\n" +
-                        "_-_ 修复 血色哨卫能被打死的bug"+
+                        "_-_ 修复 血色哨卫能被打死的bug\n\n"+
+                        "_-_ 修复 牧师信仰值是小数而非整数的bug\n\n"+
+                        "_-_ 调整 圆球的动画速度加快了1.5倍\n\n"+
                         "_-_ 新增了一些没有被发现的bug")));
     }
 
@@ -136,37 +136,30 @@ public class RA_v0_8_X_Changes {
 
         changes.addButton(new ChangeButton(Icons.get(Icons.DATA), "伤害系统重构",
                 ("统一并重构底层伤害处理管线：\n\n" +
-                        "_-_ 新增 DamageInfo 修改器管线与混合伤害类型，以支持未来可能的复杂伤害计算逻辑和来源追踪逻辑；\n" +
-                        "_-_ 新增统一伤害事件系统（原始伤害、最终伤害、攻击、Buff生效等事件）\n" +
-                        "_-_ 重写多处涉及伤害的物品、法杖、附魔、符石、陷阱与Boss战逻辑\n" +
+                        "_-_ 新增 DamageInfo 修改器管线与混合伤害类型，以支持未来可能的复杂伤害计算逻辑和来源追踪逻辑；\n\n" +
+                        "_-_ 新增统一伤害事件系统（原始伤害、最终伤害、攻击、Buff生效等事件）\n\n" +
+                        "_-_ 重写多处涉及伤害的物品、法杖、附魔、符石、陷阱与Boss战逻辑\n\n" +
                         "_-_ 强化伤害显示与浮动文字表现\n")));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.DISPLAY), "素材与视觉更新",
                 ("_-_ 物品图标迁移与新图集整理，SND音效图集与天赋图标调整\n")));
 
-        changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
-        changes.hardlight(CharSprite.NEGATIVE);
-        changeInfos.add(changes);
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
                 ("_-_ 修复 拥有遗忘碎片时砥砺锋芒天赋不生效的bug。\n" +
-                        "_-_ 修复 替身木桩、豺狼王镜像、大地守护者、守卫雕像等NPC无法受到伤害的bug\n" +
-                        "_-_ 修复 天狗层二阶段玩家卡墙play的bug\n" +
-                        "_-_ 修复 猎杀直觉经验计数器未在存档中保存，读档后计数丢失的bug\n" +
-                        "_-_ 修复 天狗层二阶段玩家卡墙play的bug\n" +
-                        "_-_ 修复 大量文本位置不太正确的bug\n" +
-                        "_-_ 修复 战士精巧纹章天赋受击刻印不正常触发的bug（原版本中战斗外刻印仍正常触发）\n" +
-                        "_-_ 修复 战士破损纹章行为异常的bug\n" +
+                        "_-_ 修复 替身木桩、豺狼王镜像、大地守护者、守卫雕像等NPC无法受到伤害的bug\n\n" +
+                        "_-_ 修复 天狗层二阶段玩家卡墙play的bug\n\n" +
+                        "_-_ 修复 猎杀直觉经验计数器未在存档中保存，读档后计数丢失的bug\n\n" +
+                        "_-_ 修复 天狗层二阶段玩家卡墙play的bug\n\n" +
+                        "_-_ 修复 大量文本位置不太正确的bug\n\n" +
+                        "_-_ 修复 战士精巧纹章天赋受击刻印不正常触发的bug（原版本中战斗外刻印仍正常触发）\n\n" +
+                        "_-_ 修复 战士破损纹章行为异常的bug\n\n" +
                         "_-_ 修复 豺狼双王不再掉落一把骷髅钥匙\n")));
     }
 
     public static void add_v08_2_Changes(ArrayList<ChangeInfo> changeInfos) {
         ChangeInfo changes = new ChangeInfo("v0.8.2", true, "");
         changes.hardlight(Window.TITLE_COLOR);
-        changeInfos.add(changes);
-
-        changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
-        changes.hardlight(CharSprite.NEGATIVE);
         changeInfos.add(changes);
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16), Messages.get(ChangesScene.class, "bugfixes"),
@@ -309,10 +302,6 @@ public class RA_v0_8_X_Changes {
                         "_-_ 精铁淬炼返还升级卷轴改为有等级的十手损坏时触发\n" +
                         "_-_ 钥匙栏仅在上一层仍有未使用钥匙时显示空钥匙提示\n" +
                         "_-_ 部分装备等级计算统一使用实际增益等级\n")));
-
-        changes = new ChangeInfo(Messages.get(ChangesScene.class, "bugfixes"), false, null);
-        changes.hardlight(CharSprite.NEGATIVE);
-        changeInfos.add(changes);
 
         changes.addButton(new ChangeButton(new Image(Assets.Sprites.SPINNER, 144, 0, 16, 16),
                 Messages.get(ChangesScene.class, "bugfixes"),
