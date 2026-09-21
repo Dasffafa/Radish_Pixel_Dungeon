@@ -308,12 +308,8 @@ public enum MobBestiary {
     }
 
     public static boolean isSeen(Class<?> cls){
-        for (MobBestiary cat : values()) {
-            if (cat.seen.containsKey(cls)) {
-                return cat.seen.get(cls);
-            }
-        }
-        return false;
+        //TheCatist: 生物图鉴默认全部解锁，不随 debug 模式变化
+        return true;
     }
 
     public static void setSeen(Class<?> cls){

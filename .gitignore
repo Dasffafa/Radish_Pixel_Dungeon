@@ -9,6 +9,7 @@
 
 # Gradle build files
 .gradle/
+.obsidian/*
 build/
 release/
 server/
