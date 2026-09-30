@@ -160,9 +160,9 @@ public class SpiritBow extends Weapon {
 				STRReq());
 		
 		if (STRReq() > Dungeon.hero.STR()) {
-			info += " " + Messages.get(Weapon.class, "too_heavy");
+			info += "\n\n" + Messages.get(Weapon.class, "too_heavy");
 		} else if (Dungeon.hero.STR() > STRReq()){
-			info += " " + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
+			info += "\n\n" + Messages.get(Weapon.class, "excess_str", Dungeon.hero.STR() - STRReq());
 		}
 		
 		switch (augment) {

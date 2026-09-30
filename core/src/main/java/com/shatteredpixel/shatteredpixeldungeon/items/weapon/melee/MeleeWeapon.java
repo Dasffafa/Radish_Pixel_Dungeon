@@ -61,6 +61,8 @@ import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 
+import java.util.ArrayList;
+
 public class MeleeWeapon extends Weapon {
 
 	public static String AC_ABILITY = "ABILITY";
@@ -324,6 +326,7 @@ public class MeleeWeapon extends Weapon {
 
 		String info = super.info();
 
+		// 数值
 		if (levelKnown) {
 			info += "\n\n" + Messages.get(MeleeWeapon.class, "stats_known", tier, augment.damageFactor(min()), augment.damageFactor(max()), STRReq());
 			if (Dungeon.hero != null) {
@@ -340,8 +343,13 @@ public class MeleeWeapon extends Weapon {
 			}
 		}
 
+		// 效果
 		String statsInfo = statsInfo();
 		if (!statsInfo.equals("")) info += "\n\n" + statsInfo;
+
+		// 武器特性
+		String traits = traitsInfo();
+		if (!traits.equals("")) info += "\n\n" + traits;
 
 		switch (augment) {
 			case SPEED:
@@ -378,6 +386,28 @@ public class MeleeWeapon extends Weapon {
 	
 	public String statsInfo(){
 		return Messages.get(this, "stats_desc");
+	}
+
+	/** 武器特性：根据攻击速度、攻击距离、精准与力量需求自动生成。 */
+	public String traitsInfo() {
+		ArrayList<String> traits = new ArrayList<>();
+		if (DLY < 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_fast"));
+		} else if (DLY > 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_slow"));
+		}
+		if (RCH > 1) {
+			traits.add(Messages.get(Weapon.class, "trait_reach"));
+		}
+		if (ACC < 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_inaccurate"));
+		} else if (ACC > 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_accurate"));
+		}
+		if (STRReq(0) > 2 * tier + 8) {
+			traits.add(Messages.get(Weapon.class, "trait_heavy"));
+		}
+		return String.join(" ", traits);
 	}
 
 	public String abilityInfo() {

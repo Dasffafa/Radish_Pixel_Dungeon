@@ -622,7 +622,8 @@ abstract public class MissileWeapon extends Weapon {
 	public String info() {
 
 		String info = desc();
-		
+
+		// 数值
 		info += "\n\n" + Messages.get( MissileWeapon.class, "stats",
 				tier,
 				Math.round(augment.damageFactor(min())),
@@ -637,11 +638,34 @@ abstract public class MissileWeapon extends Weapon {
 			}
 		}
 
+		// 效果
+		String statsInfo = statsInfo();
+		if (!statsInfo.equals("")) info += "\n\n" + statsInfo;
+
+		// 武器特性
+		String traits = traitsInfo();
+		if (!traits.equals("")) info += "\n\n" + traits;
+
+		// 攻击距离
+		info += "\n\n" + Messages.get(MissileWeapon.class, "distance");
+
+		// 耐久
+		info += "\n\n" + Messages.get(this, "durability");
+		if (durabilityPerUse() > 0){
+			info += " " + Messages.get(this, "uses_left",
+					(int)Math.ceil(durability/durabilityPerUse()),
+					(int)Math.ceil(MAX_DURABILITY/durabilityPerUse()));
+		} else {
+			info += " " + Messages.get(this, "unlimited_uses");
+		}
+
+		// 附魔
 		if (enchantment != null && (cursedKnown || !enchantment.curse())){
 			info += "\n\n" + Messages.get(Weapon.class, "enchanted", enchantment.name());
 			info += " " + Messages.get(enchantment, "desc");
 		}
 
+		// 诅咒
 		if (cursed && isEquipped( Dungeon.hero )) {
 			info += "\n\n" + Messages.get(Weapon.class, "cursed_worn");
 		} else if (cursedKnown && cursed) {
@@ -650,20 +674,31 @@ abstract public class MissileWeapon extends Weapon {
 			info += "\n\n" + Messages.get(Weapon.class, "not_cursed");
 		}
 
-		info += "\n\n" + Messages.get(MissileWeapon.class, "distance");
-		
-		info += "\n\n" + Messages.get(this, "durability");
-		
-		if (durabilityPerUse() > 0){
-			info += " " + Messages.get(this, "uses_left",
-					(int)Math.ceil(durability/durabilityPerUse()),
-					(int)Math.ceil(MAX_DURABILITY/durabilityPerUse()));
-		} else {
-			info += " " + Messages.get(this, "unlimited_uses");
-		}
-		
-		
 		return info;
+	}
+
+	/** 效果（默认读取 stats_desc）。 */
+	public String statsInfo(){
+		return Messages.get(this, "stats_desc");
+	}
+
+	/** 投掷武器特性：根据攻击速度、精准与力量需求自动生成。 */
+	public String traitsInfo(){
+		ArrayList<String> traits = new ArrayList<>();
+		if (DLY < 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_fast"));
+		} else if (DLY > 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_slow"));
+		}
+		if (ACC < 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_inaccurate"));
+		} else if (ACC > 1f) {
+			traits.add(Messages.get(Weapon.class, "trait_accurate"));
+		}
+		if (STRReq(0) > 2 * tier + 8) {
+			traits.add(Messages.get(Weapon.class, "trait_heavy"));
+		}
+		return String.join(" ", traits);
 	}
 	
 	@Override

@@ -1003,24 +1003,24 @@ public class Armor extends EquipableItem {
 	public String info() {
 		String info = desc();
 
+		// 数值
 		if (levelKnown) {
 			if(hero.belongings.weapon() instanceof CircleSword && hero.belongings.armor() == this){
 				info += "\n\n" + Messages.get(Armor.class, "curr_absorb", tier, 0, 0, STRReq());
 			} else {
 				info += "\n\n" + Messages.get(Armor.class, "curr_absorb", tier, DRMin(), DRMax(), STRReq());
 			}
-
 			if (Dungeon.hero != null && STRReq() > Dungeon.hero.STR()) {
 				info += " " + Messages.get(Armor.class, "too_heavy");
 			}
 		} else {
 			info += "\n\n" + Messages.get(Armor.class, "avg_absorb", tier, DRMin(0), DRMax(0), STRReq(0));
-
 			if (Dungeon.hero != null && STRReq(0) > Dungeon.hero.STR()) {
 				info += " " + Messages.get(Armor.class, "probably_too_heavy");
 			}
 		}
 
+		// 效果
 		String statsInfo = statsInfo();
 		if (!statsInfo.equals("")) info += "\n\n" + statsInfo;
 
@@ -1069,6 +1069,7 @@ public class Armor extends EquipableItem {
 	public String statsInfo(){
 		return Messages.get(this, "stats_desc");
 	}
+
 	@Override
 	public Emitter emitter() {
 		BrokenSeal s = checkSeal();
