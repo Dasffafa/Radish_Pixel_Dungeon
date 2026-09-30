@@ -112,7 +112,8 @@ public class SpectralNecromancer extends Necromancer {
 		if (Actor.findChar(summoningPos) != null) {
 
 			//cancel if character cannot be moved
-			if (Char.hasProp(Actor.findChar(summoningPos), Property.IMMOVABLE)){
+			if (Char.hasProp(Actor.findChar(summoningPos), Property.IMMOVABLE)
+					|| com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment.blocksPassiveDisplacement(Actor.findChar(summoningPos))){
 				summoning = false;
 				if (sprite instanceof SpectralNecromancerSprite) {
 					((SpectralNecromancerSprite)sprite).finishSummoning();

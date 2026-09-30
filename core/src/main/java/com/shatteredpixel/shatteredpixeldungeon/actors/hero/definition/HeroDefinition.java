@@ -58,6 +58,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Sunless;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Turtleir;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Wastelandew;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Belladonna;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EchoplexHammer;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EnemyFlag;
@@ -239,31 +241,13 @@ public abstract class HeroDefinition {
 	private static void doChallengeSpawn() {
 		new ChallengeBag().collect();
 
-		//TODO
-		new MagneticCrown().identify().collect();
-
 		new DictBook().collect();
-		new EchoplexHammer().collect();
-		new EnemyFlag().collect();
-		new ShadowBooks().collect();
-		new CelestialSphere().collect();
-
-		new Aberforth().identify().collect();
-		new DualDuelDaggers().identify().collect();
-		new Chibayari().identify().collect();
-		new Wastelandew().identify().collect();
-		new Turtleir().identify().collect();
-		new Showdarker().identify().collect();
-		new Sunless().identify().collect();
-		new Starlight().identify().collect();
-		new LunarCorona().identify().collect();
-
-		new InversionBeta().identify().collect();
 
 		new SpawnMisc().collect();
 		new MobPlacer().collect();
 
-		new PneumFistGloves().collect();
+		new Belladonna().identify().collect();
+		new SpaceFragment().identify().collect();
 
 		CustomWeapon customWeapon = new CustomWeapon();
 		customWeapon.adjustStatus();

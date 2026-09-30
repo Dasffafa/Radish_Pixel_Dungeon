@@ -73,6 +73,10 @@ public class Guard extends Mob {
 		if (chainsUsed || enemy.properties().contains(Property.IMMOVABLE))
 			return false;
 
+		// 空间碎片：免疫来自外部的位移，直接放弃拉拽（不生成动画）
+		if (com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment.blocksPassiveDisplacement(enemy))
+			return false;
+
 		Ballistica chain = new Ballistica(pos, target, Ballistica.PROJECTILE);
 
 		if (chain.collisionPos != enemy.pos
@@ -121,6 +125,10 @@ public class Guard extends Mob {
 	}
 
 	private void pullEnemy( Char enemy, int pullPos ){
+		// 空间碎片：免疫来自外部的位移
+		if (com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment.blocksPassiveDisplacement(enemy)) {
+			return;
+		}
 		enemy.pos = pullPos;
 		enemy.sprite.place(pullPos);
 		Dungeon.level.occupyCell(enemy);

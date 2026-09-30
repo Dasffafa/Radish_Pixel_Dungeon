@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deminion
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.RoyalGuard;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
+import com.shatteredpixel.shatteredpixeldungeon.custom.buffs.SpellVulnerable;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.ImmortalShieldAffecter;
 import com.shatteredpixel.shatteredpixeldungeon.damage.*;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
@@ -1159,6 +1160,11 @@ public abstract class Char extends Actor {
                 dmg = Math.round(dmg * resistanceTo(damageType) * resist(src.getClass()));
                 resistanceBlocked = Math.max(0, before - dmg);
             }
+        }
+
+        // 法术易伤：受到魔法/元素伤害时提高
+        if (damageType.isMagical() && buff(SpellVulnerable.class) != null) {
+            dmg = Math.round(dmg * SpellVulnerable.DAMAGE_FACTOR);
         }
 
         //TODO improve this when I have proper damage source logic

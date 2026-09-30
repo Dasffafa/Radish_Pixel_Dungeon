@@ -67,6 +67,7 @@ roots.png
 sacrifice.png
 scythe_s.png
 shadows.png
+spell_vulnerable.png
 starvation.png
 tai_cold.png
 tai_crit.png

@@ -71,6 +71,7 @@ bandolier.png
 battle_axe.png
 beacon.png
 beecomb.png
+belladonna.png
 berry.png
 bladeshield.png
 bland_chunks.png
@@ -389,6 +390,7 @@ snake_bited_yendor.png
 snakespear.png
 something.png
 soul_ember.png
+space_fragment.png
 sparkling_potion.png
 spear.png
 spell_holder.png

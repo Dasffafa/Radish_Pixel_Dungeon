@@ -203,7 +203,8 @@ public class Necromancer extends Mob {
 		if (Actor.findChar(summoningPos) != null) {
 
 			//cancel if character cannot be moved
-			if (Char.hasProp(Actor.findChar(summoningPos), Property.IMMOVABLE)){
+			if (Char.hasProp(Actor.findChar(summoningPos), Property.IMMOVABLE)
+					|| com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment.blocksPassiveDisplacement(Actor.findChar(summoningPos))){
 				summoning = false;
 				// Snake Bite challenge: call finishSummoning() via reflection
 				try {

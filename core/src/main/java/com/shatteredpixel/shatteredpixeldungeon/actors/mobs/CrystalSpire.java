@@ -152,7 +152,8 @@ public class CrystalSpire extends Mob {
 					}
 
 					if (ch.isAlive()){
-						if (movePos != i){
+						if (movePos != i
+								&& !com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment.blocksPassiveDisplacement(ch)){
 							Actor.add(new Pushing(ch, i, movePos));
 							ch.pos = movePos;
 							Dungeon.level.occupyCell(ch);

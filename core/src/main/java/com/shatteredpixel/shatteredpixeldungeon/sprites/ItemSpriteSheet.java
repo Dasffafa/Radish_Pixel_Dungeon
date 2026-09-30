@@ -174,6 +174,9 @@ public class ItemSpriteSheet {
 	public static final String DAGGER_S = "dagger_s";
 	public static final String SNAKESPEAR = "snakespear";
 
+	public static final String BELLADONNA = "belladonna";
+	public static final String SPACE_FRAGMENT = "space_fragment";
+
 	public static final String PNEGLOVE_FIVE = "pneglove_five";
 	public static final String PNEGLOVE_ACTIVE = "pneglove_active";
 

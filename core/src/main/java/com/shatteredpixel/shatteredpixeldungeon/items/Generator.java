@@ -163,6 +163,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfTransfusion;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Axe_D;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Beecomb;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Belladonna;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.BladeShield;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Bloodblade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.BoneClaw;
@@ -512,8 +513,9 @@ public class Generator {
 					SufferingDagger.class,
 					PneumFistGloves.class,
 					GrapplingHook.class,
+					Belladonna.class,
 			};
-			WEP_T3.probs = new float[]{ 5, 5, 5, 5,5, 5, 6, 5, 5, 5, 5 };
+			WEP_T3.probs = new float[]{ 5, 5, 5, 5,5, 5, 6, 5, 5, 5, 5, 5 };
 
 			WEP_T3_NEW.classes = new Class<?>[]{
 					Beecomb.class,
@@ -523,8 +525,9 @@ public class Generator {
 					SufferingDagger.class,
 					PneumFistGloves.class,
 					GrapplingHook.class,
+					Belladonna.class,
 			};
-			WEP_T3_NEW.probs = new float[]{ 5, 5, 6, 5, 5, 5, 5 };
+			WEP_T3_NEW.probs = new float[]{ 5, 5, 6, 5, 5, 5, 5, 5 };
 
 			WEP_T4.classes = new Class<?>[]{
 					Morello.class,
