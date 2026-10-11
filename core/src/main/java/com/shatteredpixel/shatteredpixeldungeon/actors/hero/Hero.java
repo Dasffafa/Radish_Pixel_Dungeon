@@ -2139,6 +2139,11 @@ public class Hero extends Char {
 
 		damage = Talent.onAttackProc( this, enemy, damage );
 
+		// 子职业命中钩子：传入真实伤害（原先在 onAttackComplete 里传 0，导致附魔附加伤害/耐久等失效）
+		boolean subWasEnemy = enemy.alignment == Alignment.ENEMY
+				|| (enemy instanceof Mimic && enemy.alignment == Alignment.NEUTRAL);
+		subClass.onAttackProc( this, enemy, damage, true, subWasEnemy );
+
 		//Roll 2 次 投掷武器等相关惩罚
 		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 		if(riverGlass != null){
@@ -3281,7 +3286,7 @@ public class Hero extends Char {
 			spend(delay);
 		}
 
-		subClass.onAttackProc(this, enemy, 0, hit, wasEnemy);
+		// 子职业命中钩子已移到 Hero.attackProc（带真实伤害），此处不再重复调用
 
 		// DoggingDog on 20250818
 		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){
