@@ -140,6 +140,7 @@ public class ShadowDancer extends HeroSubClass {
 	}
 
 	public static boolean rushing = false;
+	private static boolean selecting = false;
 
 	/** 只要处于任意隐身（主动隐身/斗篷之下/闪避触发）即可突袭。 */
 	public static boolean hasVeil( Hero hero ) {
@@ -186,6 +187,10 @@ public class ShadowDancer extends HeroSubClass {
 			return;
 		}
 
+		if (rushing || selecting) {
+			return;
+		}
+
 		// 非攻击破隐：弹出选择突袭目标点
 		openSelector( hero );
 	}
@@ -195,6 +200,7 @@ public class ShadowDancer extends HeroSubClass {
 			new com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer target ) {
+			selecting = false;
 			Hero hero = Dungeon.hero;
 			if (target == null || hero == null) {
 				return;
@@ -217,6 +223,8 @@ public class ShadowDancer extends HeroSubClass {
 		if (hero == null || Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
 			return;
 		}
+		if (selecting) return;
+		selecting = true;
 		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.selectCell( rushListener );
 	}
 
@@ -258,6 +266,9 @@ public class ShadowDancer extends HeroSubClass {
 					break;
 				}
 			}
+			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( next ).burst(
+					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STEAM ), 3 );
 			pos = next;
 			if (pos == dest) {
 				break;
@@ -372,15 +383,12 @@ public class ShadowDancer extends HeroSubClass {
 		}
 	}
 
-	// 由闪避触发的隐身；结束时冲刺
+	// 由闪避触发的隐身；结束时由 Invisibility.detach 统一触发突袭选点
 	public static class ShadowVeil extends Invisibility {
 
 		@Override
 		public void detach() {
 			super.detach();
-			if (!rushing && target instanceof Hero && target.isAlive()) {
-				onVeilEnd( (Hero) target );
-			}
 		}
 	}
 }
