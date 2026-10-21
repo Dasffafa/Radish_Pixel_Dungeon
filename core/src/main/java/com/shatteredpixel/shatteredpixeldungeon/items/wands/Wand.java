@@ -507,6 +507,10 @@ public abstract class Wand extends Item {
 	public void wandUsed() {
 		TieredToyEffects.onAbilityUsed(hero);
 
+		if (hero.subClass == HeroSubClasses.JOKER) {
+			com.shatteredpixel.shatteredpixeldungeon.items.cards.CardEffects.onWandUsed(hero);
+		}
+
 		if (hero.subClass == HeroSubClasses.DICE_MAGE){
 			Buff.affect(hero, MagicPoint.class).addPoints(0.2f + buffedLvl() * 0.2f);
 		}

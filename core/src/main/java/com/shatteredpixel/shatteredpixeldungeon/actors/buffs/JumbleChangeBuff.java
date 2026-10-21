@@ -289,9 +289,15 @@ public class JumbleChangeBuff extends Buff {
 			}
 			hero.talents.set(tier, newTier);
 			// 回调必须在新层写回后执行，否则 pointsInTalent(replacement) 会错误地返回 0。
+			// 重塑/洗牌不是“花费天赋点”，不得重复触发获得型天赋。
 			for (Talent talent : upgradedTalents) {
 				try {
-					Talent.onTalentUpgraded(hero, talent);
+					Talent.suppressGain = true;
+					try {
+						Talent.onTalentUpgraded(hero, talent);
+					} finally {
+						Talent.suppressGain = false;
+					}
 				} catch (Throwable t) {
 					logMetamorphError(t);
 				}

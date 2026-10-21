@@ -67,6 +67,15 @@ public final class CardEffects {
 
 		switch (card.type) {
 			case BLANK: {
+				// 陷阱师：对陷阱使用空白卡 -> 记录该陷阱，卡片转为陷阱卡
+				Trap trap = Dungeon.level.traps.get(pos);
+				if (trap != null && hero.subClass == HeroSubClasses.JOKER) {
+					card.type = CardType.TRAP;
+					card.trapClass = trap.getClass();
+					GLog.i(Messages.get(CardEffects.class, "trap_recorded", trap.name()));
+					ActionIndicator.refresh();
+					return;
+				}
 				if (ch == hero) {
 					// 收藏家：对自己使用空白卡 -> 选择一件装备转化为攻击/防御卡
 					collectorTransform(hero, card);
@@ -135,6 +144,8 @@ public final class CardEffects {
 				int amount = card.power >= 3 ? 5 : card.power == 2 ? 4 : 3;
 				int spun = hero.cardDeck.spinBlank(amount);
 				GLog.i(Messages.get(CardEffects.class, "spin_done", amount, spun));
+				if (hero.pointsInTalent(Talent.FANCY_SHUFFLE) >= 4) CardDrawer.cancelCooldown(hero);
+				fancySpin(hero, spun);
 				finish(hero, card, false, card.type.time);
 				break;
 			}
@@ -151,7 +162,7 @@ public final class CardEffects {
 					dmg += Math.round(weaponAverage(card) / 3f);
 				}
 				dealCardDamage(hero, ch, card, dmg);
-				hero.cardDeck.spinBlank(card.power >= 2 ? 3 : 2);
+				fancySpin(hero, hero.cardDeck.spinBlank(card.power >= 2 ? 3 : 2));
 				finish(hero, card, false, card.type.time);
 				break;
 			}
@@ -172,6 +183,7 @@ public final class CardEffects {
 										hero.cardDeck.noteCycle(1);
 									}
 								}
+								if (hero.pointsInTalent(Talent.FANCY_SHUFFLE) >= 4) CardDrawer.cancelCooldown(hero);
 								finish(hero, card, false, card.type.time);
 							}));
 				}
@@ -283,7 +295,23 @@ public final class CardEffects {
 				Dungeon.observe();
 				GameScene.updateFog();
 				CardDrawer.cancelCooldown(hero);
-				finish(hero, card, false, 0f);
+				int swift = hero.pointsInTalent(Talent.SWIFT_STEP);
+				if (swift > 0) {
+					Buff.affect(hero, Haste.class, swift);
+					CardDrawer.reduceCooldown(hero, swift);
+				}
+				finish(hero, card, true, 0f);
+				// 传送卡变回原卡
+				if (hero.cardDeck.stashedCard != null) {
+					hero.cardDeck.held = hero.cardDeck.stashedCard;
+					hero.cardDeck.stashedCard = null;
+					HeldCardTracker.sync(hero);
+					ActionIndicator.refresh();
+				}
+				if (hero.armorAbility instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.cardtrickster.CardBarrage) {
+					((com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.cardtrickster.CardBarrage) hero.armorAbility)
+							.grantRepeat(hero.pointsInTalent(Talent.EMERGENCY_REPEAT));
+				}
 				break;
 			}
 		}
@@ -366,6 +394,10 @@ public final class CardEffects {
 			return;
 		}
 		ch.damage(new DamageInfo(dmg, DamageType.PHYSICAL, hero, null, card));
+		if (!ch.isAlive()) {
+			BoneToGold gold = hero.buff(BoneToGold.class);
+			if (gold != null) gold.onCardKill(hero, ch.pos);
+		}
 	}
 
 	private static void finish(Hero hero, Card card, boolean exhaust, float time) {
@@ -391,6 +423,21 @@ public final class CardEffects {
 		if (time > 0) hero.busy();
 		if (exhaust) {
 			hero.cardDeck.held = null;
+		} else if (card.fromStorage) {
+			card.fromStorage = false;
+			int eff = hero.pointsInTalent(Talent.EFFECTIVE_USE);
+			if (eff > 0 && Random.Float() < 0.1f * eff) {
+				hero.cardDeck.held = null;
+				hero.cardDeck.stored.add(card);
+			} else {
+				hero.cardDeck.playDone(card);
+			}
+		} else if (hero.pointsInTalent(Talent.FANCY_SHUFFLE) >= 3
+				&& (card.type == CardType.SPIN || card.type == CardType.GRAND_FINALE
+					|| card.type == CardType.PREPARED)) {
+			// 花式切牌 +3：打出后随机插入牌组
+			hero.cardDeck.held = null;
+			hero.cardDeck.insertRandom(card);
 		} else {
 			hero.cardDeck.playDone(card);
 		}
@@ -434,8 +481,59 @@ public final class CardEffects {
 		GLog.i(Messages.get(CardEffects.class, "eaten", (int) energy));
 	}
 
-	public static void onDeckCycled(Hero hero) {
-		if (hero.subClass != HeroSubClasses.SPIN_MASTER || hero.cardDeck == null) return;
+	/** 临时管理：把存储槽内的卡打出。 */
+	public static void playStored(Hero hero, Card card) {
+		CardDeck deck = hero.cardDeck;
+		if (deck == null || card == null || deck.held != null) return;
+		if (!deck.stored.contains(card)) return;
+		deck.stored.remove(card);
+		deck.held = card;
+		card.fromStorage = true;
+		HeldCardTracker.sync(hero);
+		CardTargeter.play(hero, card);
+	}
+
+	/** 存储槽到期：把卡打出。 */
+	public static void releaseStored(Hero hero) {
+		CardDeck deck = hero.cardDeck;
+		if (deck == null || deck.stored.isEmpty() || deck.held != null) return;
+		playStored(hero, deck.stored.get(0));
+	}
+
+	/** 花式切牌 +1：空转出的空白卡中随机一张打到视野内随机敌人。 */
+	public static void fancySpin(Hero hero, int spunBlanks) {
+		if (spunBlanks <= 0 || hero.pointsInTalent(Talent.FANCY_SHUFFLE) < 1) return;
+		ArrayList<Char> targets = new ArrayList<>();
+		for (Char c : Actor.chars()) {
+			if (c.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[c.pos]) targets.add(c);
+		}
+		if (targets.isEmpty()) return;
+		Char ch = targets.get(Random.Int(targets.size()));
+		int dmg = Random.NormalIntRange(1, 5);
+		int emp = hero.pointsInTalent(Talent.BLANK_EMPOWERMENT);
+		if (emp == 1) dmg += Random.NormalIntRange(0, 2);
+		else if (emp == 2) dmg += Random.NormalIntRange(1, 3);
+		int wind = hero.pointsInTalent(Talent.BORROW_WIND_CUT);
+		if (wind > 0) {
+			int dist = Math.min(4, Math.round(Dungeon.level.trueDistance(hero.pos, ch.pos)));
+			dmg += dist * (wind == 2 ? Random.NormalIntRange(2, 3) : Random.NormalIntRange(1, 2));
+		}
+		dealCardDamage(hero, ch, null, dmg);
+		GLog.i(Messages.get(CardEffects.class, "fancy_spin", ch.name()));
+	}
+
+	/** 陷阱师「灵力协调」：使用法杖后减少陷阱卡与抽卡冷却。 */
+	public static void onWandUsed(Hero hero) {
+		int p = hero.pointsInTalent(Talent.SPIRIT_COORDINATION);
+		if (p <= 0) return;
+		CardDrawer.reduceCooldown(hero, p);
+		TrapCooldown cd = hero.buff(TrapCooldown.class);
+		if (cd != null) {
+			cd.reduce(p);
+		}
+	}
+
+	public static void onDeckCycled(Hero hero) {		if (hero.subClass != HeroSubClasses.SPIN_MASTER || hero.cardDeck == null) return;
 		int dmg = Math.max(1, hero.lvl);
 		for (Char ch : Actor.chars()) {
 			if (ch.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[ch.pos]) {
@@ -488,6 +586,44 @@ public final class CardEffects {
 		return card.gearTier * (2 + card.gearLevel);
 	}
 
+	/** 临时管理：存储槽计时。 */
+	public static class CardStorage extends FlavourBuff {
+		public String icon() { return BuffIndicator.TIME; }
+		public void tintIcon(Image icon) { icon.hardlight(0.45f, 0.65f, 1f); }
+
+		@Override
+		public boolean act() {
+			if (cooldown() <= 0) {
+				releaseStored((Hero) target);
+				detach();
+				return true;
+			}
+			spend(TICK);
+			return true;
+		}
+	}
+
+	/** 点骨成金：卡牌击杀额外掉落。 */
+	public static class BoneToGold extends FlavourBuff {
+		public String icon() { return BuffIndicator.UPGRADE; }
+		public void tintIcon(Image icon) { icon.hardlight(1f, 0.85f, 0.3f); }
+
+		public int wealthLevel(Hero hero) {
+			return 2 + hero.pointsInTalent(Talent.HEAVY_REWARD);
+		}
+
+		public void onCardKill(Hero hero, int pos) {
+			int gold = Math.max(1, Dungeon.depth * 6 * wealthLevel(hero));
+			Dungeon.level.drop(new com.shatteredpixel.shatteredpixeldungeon.items.Gold(gold), pos).sprite.drop();
+			int heal = hero.pointsInTalent(Talent.EXTRA_BLESSING);
+			if (heal > 0) {
+				int amount = Math.round(hero.HT * (0.02f + 0.01f * heal));
+				hero.HP = Math.min(hero.HT, hero.HP + amount);
+				hero.sprite.showStatus(CharSprite.POSITIVE, "+" + amount);
+			}
+		}
+	}
+
 	/** 小口粮卡的 100 回合内部冷却。 */
 	public static class RationCooldown extends FlavourBuff {
 		public String icon() { return BuffIndicator.TIME; }
@@ -520,6 +656,11 @@ public final class CardEffects {
 		public String icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.45f, 0.3f, 0.1f); }
 		public float iconFadePercent() { return Math.max(0, visualcooldown() / 25f); }
+
+		public void reduce(float amount) {
+			if (cooldown() <= amount) detach();
+			else spend(-amount);
+		}
 	}
 
 	/** 危险感知（隧穿凝视 +4）。 */

@@ -153,6 +153,36 @@ public class WndCardDrawer extends Window {
 		add(delete);
 		pos = delete.bottom() + GAP;
 
+		if (deck.cleansesLeft > 0) {
+			RedButton cleanse = new RedButton(Messages.get(this, "cleanse", deck.cleansesLeft)) {
+				@Override
+				protected void onClick() {
+					if (deck.cleansesLeft <= 0) return;
+					ArrayList<Card> all = new ArrayList<>();
+					for (Card c : deck.allCards()) {
+						if (c.type != com.shatteredpixel.shatteredpixeldungeon.items.cards.CardType.BLANK) {
+							all.add(c);
+						}
+					}
+					GameScene.show(new WndCardSelect(
+							Messages.get(WndCardDrawer.class, "cleanse_title"),
+							Messages.get(WndCardDrawer.class, "cleanse_desc"),
+							all, 1, false, selected -> {
+								if (selected.isEmpty()) return;
+								Card c = selected.get(0);
+								c.type = com.shatteredpixel.shatteredpixeldungeon.items.cards.CardType.BLANK;
+								c.trapClass = null;
+								deck.cleansesLeft--;
+								hide();
+								GameScene.show(new WndCardDrawer(hero));
+							}));
+				}
+			};
+			cleanse.setRect(MARGIN, pos, inner, BUTTON_HEIGHT);
+			add(cleanse);
+			pos = cleanse.bottom() + GAP;
+		}
+
 		if (hero.subClass == HeroSubClasses.ILLUSIONIST) {
 			RedButton transform = new RedButton(Messages.get(this, "transform")) {
 				@Override
@@ -178,6 +208,30 @@ public class WndCardDrawer extends Window {
 			compress.setRect(MARGIN, pos, inner, BUTTON_HEIGHT);
 			add(compress);
 			pos = compress.bottom() + GAP;
+		}
+
+		if (!deck.stored.isEmpty()) {
+			RenderedTextBlock storedInfo = PixelScene.renderTextBlock(
+					Messages.get(this, "stored_info", deck.stored.size()), 6);
+			storedInfo.maxWidth(inner);
+			storedInfo.setPos(MARGIN, pos);
+			add(storedInfo);
+			pos = storedInfo.bottom() + GAP;
+
+			for (Card c : new ArrayList<>(deck.stored)) {
+				RedButton playStored = new RedButton(Messages.get(this, "stored_card", c.name())) {
+					@Override
+					protected void onClick() {
+						hide();
+						com.shatteredpixel.shatteredpixeldungeon.items.cards.CardEffects.playStored(hero, c);
+					}
+				};
+				playStored.icon(new ItemSprite(c.type.image));
+				playStored.leftJustify = true;
+				playStored.setRect(MARGIN, pos, inner, BUTTON_HEIGHT);
+				add(playStored);
+				pos = playStored.bottom() + GAP;
+			}
 		}
 
 		RedButton close = new RedButton(Messages.get(this, "close")) {

@@ -20,9 +20,13 @@ public class CardDeck implements Bundlable {
 	/** 旧存档兼容字段，新逻辑不再写入。 */
 	public final ArrayList<Card> discardPile = new ArrayList<>();
 	public Card held;
+	/** 「紧急避险」临时替换下来的原卡。 */
+	public Card stashedCard;
 
 	public int deletesLeft;
 	public int freeDraws;
+	/** 数据清洗次数（恶魔之力 T4）。 */
+	public int cleansesLeft;
 	/** 轮换计数：抽到/空转到底的牌数，达到牌堆大小时记一次轮换。 */
 	public int drawCountThisCycle;
 	public int cycleSize;
@@ -193,7 +197,9 @@ public class CardDeck implements Bundlable {
 	private static final String DRAW_PILE = "draw_pile";
 	private static final String DISCARD_PILE = "discard_pile";
 	private static final String HELD = "held";
+	private static final String STASHED = "stashed";
 	private static final String DELETES = "deletes";
+	private static final String CLEANSES = "cleanses";
 	private static final String FREE_DRAWS = "free_draws";
 	private static final String DRAW_COUNT = "draw_count";
 	private static final String CYCLE_SIZE = "cycle_size";
@@ -206,7 +212,9 @@ public class CardDeck implements Bundlable {
 		bundle.put(DISCARD_PILE, new ArrayList<Bundlable>(discardPile));
 		bundle.put(STORED, new ArrayList<Bundlable>(stored));
 		bundle.put(HELD, held);
+		bundle.put(STASHED, stashedCard);
 		bundle.put(DELETES, deletesLeft);
+		bundle.put(CLEANSES, cleansesLeft);
 		bundle.put(FREE_DRAWS, freeDraws);
 		bundle.put(DRAW_COUNT, drawCountThisCycle);
 		bundle.put(CYCLE_SIZE, cycleSize);
@@ -228,7 +236,9 @@ public class CardDeck implements Bundlable {
 			if (b instanceof Card) stored.add((Card) b);
 		}
 		held = (Card) bundle.get(HELD);
+		stashedCard = (Card) bundle.get(STASHED);
 		deletesLeft = bundle.getInt(DELETES);
+		cleansesLeft = bundle.getInt(CLEANSES);
 		freeDraws = bundle.getInt(FREE_DRAWS);
 		drawCountThisCycle = bundle.getInt(DRAW_COUNT);
 		cycleSize = bundle.getInt(CYCLE_SIZE);

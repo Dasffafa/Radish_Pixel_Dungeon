@@ -1156,6 +1156,8 @@ public class Talent {
 				}
 			} else if (talent == MINIMALISM) {
 				deck.deletesLeft++;
+			} else if (talent == DATA_CLEANSE) {
+				deck.cleansesLeft++;
 			}
 			return;
 		}

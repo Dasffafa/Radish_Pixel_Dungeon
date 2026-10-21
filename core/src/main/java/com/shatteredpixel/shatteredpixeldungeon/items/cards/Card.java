@@ -18,6 +18,9 @@ public class Card implements Bundlable {
 	/** 传送卡的传送距离。 */
 	public int teleportRange;
 
+	/** 运行时标记：这张卡是从临时存储槽打出的（不入档）。 */
+	public boolean fromStorage;
+
 	public Card() {
 	}
 
