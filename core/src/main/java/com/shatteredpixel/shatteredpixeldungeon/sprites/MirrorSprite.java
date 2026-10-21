@@ -57,7 +57,8 @@ public class MirrorSprite extends MobSprite {
 	}
 	
 	public void updateArmor( int tier ) {
-		TextureFilm film = new TextureFilm( HeroSprite.tiers(), tier, FRAME_WIDTH, FRAME_HEIGHT );
+		String asset = Dungeon.hero != null ? Dungeon.hero.heroClass.spritesheet() : HeroClasses.WARRIOR.spritesheet();
+		TextureFilm film = new TextureFilm( HeroSprite.tiers(asset), tier, FRAME_WIDTH, FRAME_HEIGHT );
 		
 		idle = new Animation( 1, true );
 		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
