@@ -652,7 +652,7 @@ public class Druid extends HeroSubClass {
 		@Override
 		public void doAction() {
 			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-					new com.shatteredpixel.shatteredpixeldungeon.windows.WndDruidSkills( this ) );
+					new com.shatteredpixel.shatteredpixeldungeon.windows.WndDruidSkills( this, false ) );
 		}
 
 		private static final String ENERGY = "energy";
