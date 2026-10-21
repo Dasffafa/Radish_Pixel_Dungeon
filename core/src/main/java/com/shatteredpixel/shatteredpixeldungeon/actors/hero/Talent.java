@@ -90,6 +90,11 @@ import java.util.Locale;
 
 public class Talent {
 
+	/**
+	 * 蜕变/重塑等非“花费天赋点”来源不应重复触发获得型天赋（原案注）。
+	 */
+	public static boolean suppressGain = false;
+
 	protected final String name;
 	protected final int maxPoints;
 
@@ -695,6 +700,40 @@ public class Talent {
 	public static final Talent GRAND_FINALE = new Talent("GRAND_FINALE", 3);
 	public static final Talent PREPARED = new Talent("PREPARED", 3);
 
+	// 恶魔之力（职业通用 T4）
+	public static final Talent GAZE_CARD = new Talent("GAZE_CARD", 4);
+	public static final Talent DATA_CLEANSE = new Talent("DATA_CLEANSE", 4);
+
+	// 收藏家 T4
+	public static final Talent CT_VENDETTA = new Talent("CT_VENDETTA", 4);
+	public static final Talent CT_LAST_STAND = new Talent("CT_LAST_STAND", 4);
+
+	// 空转大师 T4
+	public static final Talent MINIMALISM = new Talent("MINIMALISM", 4);
+	public static final Talent FANCY_SHUFFLE = new Talent("FANCY_SHUFFLE", 4);
+
+	// 陷阱师 T3
+	public static final Talent TRAP_CRAFT = new Talent("TRAP_CRAFT", 3);
+	public static final Talent SPIRIT_COORDINATION = new Talent("SPIRIT_COORDINATION", 3);
+	public static final Talent DECK_COMBO = new Talent("DECK_COMBO", 3);
+
+	// 陷阱师 T4
+	public static final Talent TRAP_MASTERY = new Talent("TRAP_MASTERY", 4);
+	public static final Talent CAREFUL_SELECTION = new Talent("CAREFUL_SELECTION", 4);
+
+	// 护甲技能天赋
+	public static final Talent SWIFT_STEP = new Talent("SWIFT_STEP", 4);
+	public static final Talent EMERGENCY_REPEAT = new Talent("EMERGENCY_REPEAT", 4);
+	public static final Talent MOMENTUM_TP = new Talent("MOMENTUM_TP", 4);
+
+	public static final Talent LONG_STORAGE = new Talent("LONG_STORAGE", 4);
+	public static final Talent BAG_EXPANSION = new Talent("BAG_EXPANSION", 4);
+	public static final Talent EFFECTIVE_USE = new Talent("EFFECTIVE_USE", 4);
+
+	public static final Talent HEAVY_REWARD = new Talent("HEAVY_REWARD", 4);
+	public static final Talent LINGERING = new Talent("LINGERING", 4);
+	public static final Talent EXTRA_BLESSING = new Talent("EXTRA_BLESSING", 4);
+
 	public static final Talent PLACEHOLDER_T3_1 = new Talent("PLACEHOLDER_T3_1", 3);
 	public static final Talent PLACEHOLDER_T3_2 = new Talent("PLACEHOLDER_T3_2", 3);
 	public static final Talent PLACEHOLDER_T3_3 = new Talent("PLACEHOLDER_T3_3", 3);
@@ -1044,6 +1083,7 @@ public class Talent {
 	}
 
 	private static void handleCardTricksterTalent(Hero hero, Talent talent) {
+		if (suppressGain) return;
 		int points = hero.pointsInTalent(talent);
 		boolean cardHero = hero.heroClass == HeroClasses.CARDTRICKSTER;
 		com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDeck deck =
@@ -1051,11 +1091,7 @@ public class Talent {
 
 		if (cardHero) {
 			if (talent == FOOD_CARD) {
-				deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.smallRation());
-			} else if (talent == ADVANCED_FOOD) {
-				if (points == 1) {
-					deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.ration());
-				}
+				deck.addToTop(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.smallRation());
 			} else if (talent == IDENTIFY_CARD) {
 				if (points == 1) {
 					deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.identify());
@@ -1114,6 +1150,12 @@ public class Talent {
 						}
 					}
 				}
+			} else if (talent == GAZE_CARD) {
+				if (points == 1) {
+					deck.addToTop(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.gaze());
+				}
+			} else if (talent == MINIMALISM) {
+				deck.deletesLeft++;
 			}
 			return;
 		}

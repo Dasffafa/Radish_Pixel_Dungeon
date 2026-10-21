@@ -121,11 +121,39 @@ public class CardDrawer extends Item {
 		return true;
 	}
 
+	/** 自动抽卡：冷却结束且没有手牌时触发，不消耗回合。 */
+	public static boolean autoDraw(Hero hero) {
+		if (hero == null || !hero.isAlive() || !hero.ready) return false;
+		CardDeck deck = CardDeck.getOrCreate(hero);
+		if (deck.held != null || deck.totalSize() == 0) return false;
+		DrawCooldown cd = hero.buff(DrawCooldown.class);
+		if (cd != null && cd.cooldown() > 0) return false;
+		if (deck.freeDraws > 0) {
+			deck.freeDraws--;
+			if (cd != null) cd.detach();
+		} else {
+			if (cd != null) cd.detach();
+			Buff.affect(hero, DrawCooldown.class, 10f);
+		}
+		Card card = deck.draw();
+		if (card == null) return false;
+		HeldCardTracker.sync(hero);
+		ActionIndicator.refresh();
+		GLog.i(Messages.get(CardDrawer.class, "drew", card.name()));
+		return true;
+	}
+
 	public static void reduceCooldown(Hero hero, float amount) {
 		DrawCooldown cd = hero.buff(DrawCooldown.class);
 		if (cd != null) {
 			cd.reduce(amount);
 		}
+	}
+
+	/** 直接取消抽卡冷却。 */
+	public static void cancelCooldown(Hero hero) {
+		DrawCooldown cd = hero.buff(DrawCooldown.class);
+		if (cd != null) cd.detach();
 	}
 
 	public static void beginTransform(Hero hero) {

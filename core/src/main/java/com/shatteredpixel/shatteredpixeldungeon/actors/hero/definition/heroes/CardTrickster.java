@@ -61,7 +61,7 @@ public class CardTrickster extends HeroDefinition {
 				Talent.ADVANCED_FOOD, Talent.SCROLL_CONDITIONING, Talent.RIGID_CARD,
 				Talent.HORMONE_CARD, Talent.BORROW_WIND_CUT });
 		set.setTier3(new Talent[]{ Talent.STREAMLINE, Talent.BLANK_FILL });
-		set.setTier4(new Talent[0]);
+		set.setTier4(new Talent[]{ Talent.GAZE_CARD, Talent.DATA_CLEANSE });
 		return set;
 	}
 
