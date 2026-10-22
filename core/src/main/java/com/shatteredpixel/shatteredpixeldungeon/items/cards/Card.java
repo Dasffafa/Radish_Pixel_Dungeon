@@ -34,11 +34,11 @@ public class Card implements Bundlable {
 	}
 
 	public String name() {
-		return type.title();
+		return type == null ? Messages.get(CardType.class, "blank.name") : type.title();
 	}
 
 	public String desc() {
-		return type.desc();
+		return type == null ? Messages.get(CardType.class, "blank.desc") : type.desc();
 	}
 
 	public Card copyPower(int newPower) {

@@ -248,8 +248,19 @@ public class WndCardDrawer extends Window {
 	}
 
 	private void openPile(ArrayList<Card> pile, String title) {
-		ArrayList<Card> shown = new ArrayList<>(pile);
+		ArrayList<Card> shown = new ArrayList<>();
+		if (pile != null) {
+			for (Card c : pile) {
+				if (c != null && c.type != null) shown.add(c);
+			}
+		}
 		Collections.sort(shown, Comparator.comparingInt(c -> c.type.ordinal()));
+		if (shown.isEmpty()) {
+			hide();
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.i(
+					Messages.get(WndCardDrawer.class, "pile_empty"));
+			return;
+		}
 		GameScene.show(new WndCardSelect(title,
 				Messages.get(this, "pile_desc", shown.size()),
 				shown, 1, false, selected -> {

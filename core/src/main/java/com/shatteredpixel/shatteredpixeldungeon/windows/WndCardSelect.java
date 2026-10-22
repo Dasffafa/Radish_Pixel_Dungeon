@@ -55,6 +55,7 @@ public class WndCardSelect extends Window {
 		Component content = new Component();
 		float y = 0;
 		for (Card card : cards) {
+			if (card == null || card.type == null) continue;
 			CardButton button = new CardButton(card);
 			button.setRect(0, y, inner, BUTTON_HEIGHT);
 			content.add(button);
