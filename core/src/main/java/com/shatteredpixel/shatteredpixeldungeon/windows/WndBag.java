@@ -88,6 +88,8 @@ public class WndBag extends WndTabbed {
 	/** 物品格的可滚动容器（容量超过窗口时上下滑动）。 */
 	private Component content;
 	private ScrollPane scroll;
+	private int scrollHeight;
+	private boolean scrollSized;
 	
 	private static Bag lastBag;
 
@@ -139,7 +141,7 @@ public class WndBag extends WndTabbed {
 		int contentRows = Math.max(nRows, row);
 		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN));
 		scroll = new ScrollPane(content);
-		scroll.setRect(0, TITLE_HEIGHT, windowWidth, visibleHeight);
+		scrollHeight = visibleHeight;
 		add(scroll);
 
 		resize( windowWidth, windowHeight );
@@ -251,6 +253,16 @@ public class WndBag extends WndTabbed {
 		add( txtTitle );
 	}
 	
+	@Override
+	public void update() {
+		super.update();
+		// 窗口挂进场景后才设置 ScrollPane（它的 layout 需要 camera()）
+		if (!scrollSized && scroll != null && camera() != null) {
+			scroll.setRect(0, TITLE_HEIGHT, width, scrollHeight);
+			scrollSized = true;
+		}
+	}
+
 	protected void placeItems( Bag container ) {
 		
 		// Equipped items
