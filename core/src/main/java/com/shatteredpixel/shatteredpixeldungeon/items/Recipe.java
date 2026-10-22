@@ -169,7 +169,9 @@ public abstract class Recipe {
 	//*******
 
 	private static Recipe[] variableRecipes = new Recipe[]{
-			new LiquidMetal.Recipe()
+			new LiquidMetal.Recipe(),
+			new com.shatteredpixel.shatteredpixeldungeon.items.recipes.ArtificerRecipes.MissileCombine(),
+			new com.shatteredpixel.shatteredpixeldungeon.items.recipes.ArtificerRecipes.PotionCombine()
 	};
 	
 	private static Recipe[] oneIngredientRecipes = new Recipe[]{

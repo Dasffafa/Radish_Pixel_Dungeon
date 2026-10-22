@@ -203,14 +203,23 @@ public class Artificer extends HeroSubClass {
 			return false;
 		}
 		ArrayList<MissileWeapon> missiles = new ArrayList<>( hero.belongings.getAllItems( MissileWeapon.class ) );
+		// 最多三合一：优先投出力量需求最高、攻速最慢的三件
+		missiles.sort( (a, b) -> {
+			int sa = a.STRReq( a.buffedLvl() ), sb = b.STRReq( b.buffedLvl() );
+			if (sa != sb) return sb - sa;
+			return Float.compare( b.delayFactor( hero ), a.delayFactor( hero ) );
+		} );
 		boolean any = false;
+		int thrown = 0;
 		for (MissileWeapon m : missiles) {
+			if (thrown >= 3) break;
 			if (m != null && m.durabilityLeft() > 0) {
 				m.cast( hero, cell );
 				if (m.durabilityLeft() > 0) {
 					m.repair( -Math.min( 1f, m.durabilityLeft() ) );
 				}
 				any = true;
+				thrown++;
 			}
 		}
 		return any;
@@ -224,8 +233,11 @@ public class Artificer extends HeroSubClass {
 		}
 		ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> potions =
 				new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class ) );
+		potions.sort( (a, b) -> b.value() - a.value() );
 		boolean any = false;
+		int thrown = 0;
 		for (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion p : potions) {
+			if (thrown >= 3) break;
 			if (p != null && p.quantity() > 0) {
 				p.shatter( cell );
 				if (p.quantity() > 1) {
@@ -234,6 +246,7 @@ public class Artificer extends HeroSubClass {
 					p.detach( hero.belongings.backpack );
 				}
 				any = true;
+				thrown++;
 			}
 		}
 		return any;
