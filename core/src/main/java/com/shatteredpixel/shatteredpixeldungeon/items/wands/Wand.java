@@ -842,11 +842,15 @@ public abstract class Wand extends Item {
 						}
 
 						curWand.curCharges = 0;
+						curUser.sprite.showStatusWithIcon(
+								com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.POSITIVE,
+								Integer.toString(Math.round(shield)),
+								com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText.SHIELDING);
 						curUser.sprite.operate(curUser.pos);
 						Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);
 						ScrollOfRecharging.charge(curUser);
 						updateQuickslot();
-						curUser.spend(Actor.TICK);
+						curUser.spendAndNext(Actor.TICK);
 						return;
 					}
 					GLog.i( Messages.get(Wand.class, "self_target") );
