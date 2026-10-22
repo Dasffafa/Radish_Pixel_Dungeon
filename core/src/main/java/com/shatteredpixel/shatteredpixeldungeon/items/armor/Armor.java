@@ -1048,7 +1048,7 @@ public class Armor extends EquipableItem {
 
 		if (glyph != null  && (cursedKnown || !glyph.curse())) {
 			info += "\n\n" +  Messages.capitalize(Messages.get(Armor.class, "inscribed", glyph.name()));
-			info += "\n" + glyph.desc();
+			info += " " + glyph.desc();
 		}
 
 		if (cursed && isEquipped( Dungeon.hero )) {
