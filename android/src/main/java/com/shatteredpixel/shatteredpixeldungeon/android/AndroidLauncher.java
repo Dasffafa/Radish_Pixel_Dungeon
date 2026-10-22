@@ -65,7 +65,7 @@ public class AndroidLauncher extends AndroidApplication {
 				.minTimeBetweenCrashesMs(2000) //default: 3000
 				.errorActivity(ErrorActivity.class) //default: null (default error activity)
 				.apply();
-		// 本地测试版：移除 Firebase 初始化，避免无有效配置时启动崩溃
+		FirebaseApp.initializeApp(this);
 		try {
 			GdxNativesLoader.load();
 			FreeType.initFreeType();

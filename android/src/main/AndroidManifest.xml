@@ -34,15 +34,6 @@
 		android:allowBackup="true"
 		android:fullBackupOnly="true"
 		android:backupAgent=".AndroidBackupHandler">
-		<!-- 本地测试版：移除 Firebase 自动初始化 provider，避免无效 API key 导致启动崩溃 -->
-		<provider
-			android:name="com.google.firebase.provider.FirebaseInitProvider"
-			android:authorities="${applicationId}.firebaseinitprovider"
-			tools:node="remove" />
-		<provider
-			android:name="com.google.firebase.crashlytics.internal.common.CrashlyticsInitProvider"
-			android:authorities="${applicationId}.crashlyticsinitprovider"
-			tools:node="remove" />
 		<activity
 			android:name=".ErrorActivity"
 			android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize"
