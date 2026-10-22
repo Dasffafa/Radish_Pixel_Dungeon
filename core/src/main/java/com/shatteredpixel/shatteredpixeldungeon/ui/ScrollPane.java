@@ -191,6 +191,8 @@ public class ScrollPane extends Component {
 		public PointerController() {
 			super( 0, 0, 0, 0 );
 			dragThreshold = PixelScene.defaultZoom * 8;
+			// 不阻挡点击：内容里的按钮/物品格必须能收到 DOWN/UP
+			blockLevel = NEVER_BLOCK;
 		}
 		
 		@Override
