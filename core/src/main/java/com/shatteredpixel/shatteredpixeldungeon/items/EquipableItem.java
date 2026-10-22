@@ -110,7 +110,6 @@ public abstract class EquipableItem extends Item {
 			slotOfUnequipped = -1;
 			doEquip(hero);
 			// 魔武士：装备被诅咒的物品时把诅咒转化为随机附魔
-			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.purgeCurseOnEquip( hero, this );
 			if (slot != -1) {
 				Dungeon.quickslot.setSlot( slot, this );
 				updateQuickslot();
