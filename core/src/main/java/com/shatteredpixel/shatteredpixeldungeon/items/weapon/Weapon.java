@@ -63,19 +63,26 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Temporal;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Ultralight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Wayward;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazing;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.BlazingFury;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blocking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blooming;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Chilling;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Combos;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Corrupting;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Elastic;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Eclipse;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Euphoria;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Flawless;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.FlowingLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Jealousy;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamprey;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Midas;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Rainstorm;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reaping;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Resonance;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seeking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
@@ -563,10 +570,11 @@ abstract public class Weapon extends KindOfWeapon {
 				Blazing.class, Chilling.class, Shocking.class, Lamprey.class};
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
-				Projecting.class, Combos.class, Seeking.class, Sweeping.class};
+				Projecting.class, Combos.class, Seeking.class, Sweeping.class, FlowingLight.class};
 
 		public static final Class<?>[] rare = new Class<?>[]{
-				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class, Survival.class, Jealousy.class};
+				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class, Survival.class, Jealousy.class,
+				Eclipse.class, Rainstorm.class, Midas.class, BlazingFury.class, Flawless.class, Reaping.class};
 
 		public static final float[] typeChances = new float[]{
 				50, //12.5% each
