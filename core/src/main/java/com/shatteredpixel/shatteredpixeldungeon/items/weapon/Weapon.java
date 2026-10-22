@@ -71,6 +71,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Clash;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Combos;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Corrupting;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Crystal;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Distortion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Elastic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Eclipse;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Euphoria;
@@ -89,6 +90,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insigh
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Pulse;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Propulsion;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Overwrite;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reaping;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reversal;
@@ -100,6 +102,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocki
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Striking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Survival;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Saturation;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.SoulRend;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Sweeping;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Vampiric;
@@ -596,12 +599,13 @@ abstract public class Weapon extends KindOfWeapon {
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
 				Projecting.class, Combos.class, Seeking.class, Sweeping.class, FlowingLight.class,
-				Pulse.class, Insight.class, Clash.class, Lamp.class, Crystal.class};
+				Pulse.class, Insight.class, Clash.class, Lamp.class, Crystal.class,
+				Distortion.class, Propulsion.class};
 
 		public static final Class<?>[] rare = new Class<?>[]{
 				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class, Survival.class, Jealousy.class,
 				Eclipse.class, Rainstorm.class, Midas.class, BlazingFury.class, Flawless.class, Reaping.class, Overwrite.class,
-				Refined.class, Fluctuation.class, Reversal.class, Saturation.class, Harmony.class, Meteor.class};
+				Refined.class, Fluctuation.class, Reversal.class, Saturation.class, Harmony.class, Meteor.class, SoulRend.class};
 
 		public static final float[] typeChances = new float[]{
 				50, //12.5% each
