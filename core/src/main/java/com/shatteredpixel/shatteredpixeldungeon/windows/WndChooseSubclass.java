@@ -94,6 +94,12 @@ public class WndChooseSubclass extends Window {
 								}
 								WndChooseSubclass.this.hide();
 								tome.choose( subCls );
+								if (subCls == HeroSubClasses.DRUID
+										&& hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid.DruidEnergy.class ) == null) {
+									com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff
+											.affect( hero, com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid.DruidEnergy.class )
+											.gain( 50f );
+								}
 							}
 						}
 					});
