@@ -3,16 +3,16 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 /**
  * 炽炎附魔：命中后在目标身后划出一条 1 格宽的火径，点燃路径上的敌人。
+ * 火径使用会自行熄灭的火团，不会永久留下余烬。
  */
 public class BlazingFury extends Weapon.Enchantment {
 
@@ -45,17 +45,9 @@ public class BlazingFury extends Weapon.Enchantment {
             if (Dungeon.level.solid[cell]) {
                 break;
             }
-            int terrain = Dungeon.level.map[cell];
-            if (terrain != Terrain.EMPTY && terrain != Terrain.EMPTY_SP && terrain != Terrain.EMPTY_DECO
-                    && terrain != Terrain.GRASS && terrain != Terrain.HIGH_GRASS
-                    && terrain != Terrain.FURROWED_GRASS && terrain != Terrain.EMBERS) {
-                break;
+            if (!Dungeon.level.water[cell]) {
+                Blob.seed( cell, 1, Fire.class );
             }
-
-            Level.set( cell, Terrain.EMBERS );
-            Dungeon.level.flamable[cell] = true;
-            Dungeon.level.water[cell] = false;
-            GameScene.updateMap( cell );
 
             Char ch = Actor.findChar( cell );
             if (ch != null && ch != attacker) {

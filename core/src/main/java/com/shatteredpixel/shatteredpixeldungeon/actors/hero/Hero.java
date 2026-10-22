@@ -1471,7 +1471,7 @@ public class Hero extends Char {
 			pickupWindowCell = -1;
 			if (Dungeon.level != null) {
 				Heap heap = Dungeon.level.heaps.get( cell );
-				if (heap != null && !heap.isEmpty()) {
+				if (heap != null && !heap.isEmpty() && heap.type == Heap.Type.HEAP) {
 					//窗口会测量文字并加载物品贴图，必须在渲染线程创建
 					Game.runOnRenderThread(new Callback() {
 						@Override
@@ -1495,8 +1495,8 @@ public class Hero extends Char {
 			if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
 					&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).enchantment
 					instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamp) {
-				baseView = Math.max( baseView,
-						3 + Math.max( 0, ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).buffedLvl() ) );
+				baseView = baseView + 3 + Math.max( 0,
+						((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).buffedLvl() );
 			}
 			if (viewDistance != baseView) {
 				viewDistance = baseView;
@@ -1508,6 +1508,8 @@ public class Hero extends Char {
 		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
 		// 推进附魔：待处理的突进询问
 		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Propulsion.onHeroReady( this );
+		// 脉冲附魔：装备期间即开始计时
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Pulse.onHeroReady( this );
 	}
 
 	public void interrupt() {

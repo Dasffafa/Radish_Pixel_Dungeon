@@ -43,6 +43,19 @@ public class Harmony extends Weapon.Enchantment {
     }
 
     @Override
+    public float panelDamageMultiplier( Weapon weapon, Char owner, boolean max ) {
+        if (!(owner instanceof Hero)) {
+            return 1f;
+        }
+        Hero hero = (Hero) owner;
+        Armor armor = hero.belongings.armor();
+        int gap = armor == null ? 6
+                : Math.abs( weapon.buffedLvl() - armor.buffedLvl() )
+                + Math.abs( weapon.STRReq() - armor.STRReq() );
+        return 1f + Math.max( 0f, MAX_BONUS - PENALTY_PER_GAP * gap );
+    }
+
+    @Override
     public ItemSprite.Glowing glowing() {
         return TEAL;
     }

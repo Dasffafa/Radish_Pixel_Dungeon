@@ -25,6 +25,11 @@ public class Clash extends Weapon.Enchantment {
     }
 
     @Override
+    public float panelDamageMultiplier( Weapon weapon, Char owner, boolean max ) {
+        return 1f + BONUS_DAMAGE;
+    }
+
+    @Override
     public ItemSprite.Glowing glowing() {
         return RED;
     }
@@ -57,7 +62,7 @@ public class Clash extends Weapon.Enchantment {
 
         @Override
         public String icon() {
-            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.NONE;
+            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.VULNERABLE;
         }
     }
 }

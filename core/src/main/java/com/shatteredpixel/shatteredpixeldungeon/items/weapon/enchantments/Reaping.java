@@ -40,6 +40,12 @@ public class Reaping extends Weapon.Enchantment {
         return DARK_RED;
     }
 
+    @Override
+    public int panelFlatBonus( Weapon weapon, Char owner ) {
+        ReapingTracker tracker = owner == null ? null : owner.buff( ReapingTracker.class );
+        return tracker == null ? 0 : tracker.stacks;
+    }
+
     /** 收割层数，永久保留。 */
     public static class ReapingTracker extends Buff {
 
@@ -66,7 +72,7 @@ public class Reaping extends Weapon.Enchantment {
 
         @Override
         public String icon() {
-            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.NONE;
+            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.UPGRADE;
         }
     }
 }

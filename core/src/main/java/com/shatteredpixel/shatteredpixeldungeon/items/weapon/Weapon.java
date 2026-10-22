@@ -627,6 +627,12 @@ abstract public class Weapon extends KindOfWeapon {
 		/** 在伤害构建完成后修改最终伤害（精制、波动、协调等数值类附魔）。 */
 		public void modifyDamageInfo( Weapon weapon, Char attacker, Char defender, DamageInfo info ) { }
 
+		/** 面板显示用：该附魔对最小/最大伤害的乘率（不改实际掷骰）。 */
+		public float panelDamageMultiplier( Weapon weapon, Char owner, boolean max ) { return 1f; }
+
+		/** 面板显示用：该附魔提供的固定伤害加成。 */
+		public int panelFlatBonus( Weapon weapon, Char owner ) { return 0; }
+
 		/** 是否会在命中时释放持有者身上储存的恒动伤害（Kinetic / Unstable），由 Kinetic.ConservedDamage 读取。 */
 		public boolean releasesConservedDamage(){
 			return false;

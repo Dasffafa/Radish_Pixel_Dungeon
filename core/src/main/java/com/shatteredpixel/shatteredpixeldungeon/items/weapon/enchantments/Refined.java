@@ -25,6 +25,11 @@ public class Refined extends Weapon.Enchantment {
     }
 
     @Override
+    public float panelDamageMultiplier( Weapon weapon, Char owner, boolean max ) {
+        return 1f + PERFORMANCE_BONUS;
+    }
+
+    @Override
     public ItemSprite.Glowing glowing() {
         return PLATINUM;
     }

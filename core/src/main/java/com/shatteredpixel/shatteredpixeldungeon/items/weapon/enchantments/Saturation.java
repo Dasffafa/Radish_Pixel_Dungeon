@@ -33,6 +33,17 @@ public class Saturation extends Weapon.Enchantment {
     }
 
     @Override
+    public float panelDamageMultiplier( Weapon weapon, Char owner, boolean max ) {
+        if (!(owner instanceof Hero)) {
+            return 1f;
+        }
+        Hero hero = (Hero) owner;
+        int surplus = Math.max( 0, hero.STR() - weapon.STRReq() );
+        int highTier = Math.max( 0, weapon.STRReq() - 8 );
+        return 1f + Math.min( 1.0f, 0.05f * surplus + 0.02f * highTier );
+    }
+
+    @Override
     public ItemSprite.Glowing glowing() {
         return ORANGE;
     }

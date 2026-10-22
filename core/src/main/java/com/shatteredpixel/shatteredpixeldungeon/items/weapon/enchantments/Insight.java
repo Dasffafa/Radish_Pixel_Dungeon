@@ -16,8 +16,8 @@ public class Insight extends Weapon.Enchantment {
 
     private static final ItemSprite.Glowing LIGHT_BLUE = new ItemSprite.Glowing( 0x66CCFF );
 
-    public static final float CRIT_CHANCE_PER_STACK = 3f;
-    public static final float CRIT_DAMAGE_PER_STACK = 0.05f;
+    public static final float CRIT_CHANCE_PER_STACK = 5f;
+    public static final float CRIT_DAMAGE_PER_STACK = 0.10f;
     public static final float MAX_CRIT_CHANCE = 60f;
 
     @Override
@@ -78,7 +78,7 @@ public class Insight extends Weapon.Enchantment {
 
         @Override
         public String icon() {
-            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.NONE;
+            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.COMBO;
         }
     }
 }

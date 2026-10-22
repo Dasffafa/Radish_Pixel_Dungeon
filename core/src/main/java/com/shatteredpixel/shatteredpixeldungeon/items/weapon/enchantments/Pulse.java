@@ -31,6 +31,23 @@ public class Pulse extends Weapon.Enchantment {
     }
 
     @Override
+    public float panelDamageMultiplier( Weapon weapon, Char owner, boolean max ) {
+        return owner != null && owner.buff( PulseBoost.class ) != null ? 1f + DAMAGE_BONUS : 1f;
+    }
+
+    /** 装备该武器时即可开始计时，不必先打中敌人。 */
+    public static void onHeroReady( Hero hero ) {
+        if (hero == null || !(hero.belongings.weapon() instanceof Weapon)) {
+            return;
+        }
+        Weapon weapon = (Weapon) hero.belongings.weapon();
+        if (weapon.enchantment instanceof Pulse) {
+            PulseTracker tracker = Buff.affect( hero, PulseTracker.class );
+            tracker.interval = Math.max( 2, 5 - Math.max( 0, weapon.buffedLvl() ) / 2 );
+        }
+    }
+
+    @Override
     public ItemSprite.Glowing glowing() {
         return YELLOW;
     }
@@ -58,7 +75,7 @@ public class Pulse extends Weapon.Enchantment {
             turns++;
             if (turns >= Math.max( 2, interval )) {
                 turns = 0;
-                Buff.prolong( target, PulseBoost.class, 3f );
+                Buff.prolong( target, PulseBoost.class, 1f );
             }
             spend( TICK );
             return true;
@@ -80,7 +97,7 @@ public class Pulse extends Weapon.Enchantment {
 
         @Override
         public String icon() {
-            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.NONE;
+            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.HASTE;
         }
     }
 }

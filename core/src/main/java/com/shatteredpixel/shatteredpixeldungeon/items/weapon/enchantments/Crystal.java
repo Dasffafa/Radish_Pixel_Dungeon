@@ -46,7 +46,7 @@ public class Crystal extends Weapon.Enchantment {
 
         @Override
         public String icon() {
-            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.NONE;
+            return com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator.FROST;
         }
     }
 }

@@ -27,6 +27,12 @@ public class Fluctuation extends Weapon.Enchantment {
     }
 
     @Override
+    public float panelDamageMultiplier( Weapon weapon, Char owner, boolean max ) {
+        float swing = 0.50f + 0.05f * Math.max( 0, weapon.buffedLvl() );
+        return max ? 1f + swing : 1f - 0.66f * swing;
+    }
+
+    @Override
     public ItemSprite.Glowing glowing() {
         return PURPLE;
     }
