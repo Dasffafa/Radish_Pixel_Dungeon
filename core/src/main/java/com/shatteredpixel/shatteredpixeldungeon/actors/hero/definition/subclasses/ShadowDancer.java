@@ -17,9 +17,12 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
 
 /**
  * 影舞者：盗贼的第三转职。
@@ -34,8 +37,8 @@ public class ShadowDancer extends HeroSubClass {
 	}
 
 	/**
-	 * 破隐攻击替换为突袭：处于隐身时，本次普通攻击被取消，改为弹出突袭目标点选择。
-	 * 由攻击前事件驱动；取消后 {@code attack()} 视为该次行动已被消耗。
+	 * 隐身中以攻击破隐：攻击照常结算（保留必中与伏击加成），不再替换为突袭。
+	 * 这里只做标记，让解除隐身时不再额外弹出突袭选点。
 	 */
 	@SubscribeEvent(event = PreAttackEvent.class, priority = 1000)
 	public static void onPreAttack(PreAttackEvent event) {
@@ -44,8 +47,9 @@ public class ShadowDancer extends HeroSubClass {
 		Hero hero = (Hero) attacker;
 		if (hero.subClass != HeroSubClasses.SHADOW_DANCER) return;
 		if (!hasVeil(hero)) return;
-		openSelector(hero);
-		event.cancel();
+		if (event.getDefender() != null && event.getDefender().alignment == Char.Alignment.ENEMY) {
+			attackBreak = true;
+		}
 	}
 
 	/** 闪避敌人攻击时累计连击（由攻击未命中事件驱动）。 */
@@ -97,6 +101,12 @@ public class ShadowDancer extends HeroSubClass {
 		}
 	}
 
+	@Override
+	public void onAttackComplete( Hero hero, Char enemy, boolean hit, boolean wasEnemy ) {
+		// 攻击动作已完整结束，下一轮破隐重新按正常流程判断
+		attackBreak = false;
+	}
+
 	/** 影舞者：斗篷之下的闪避加成倍率（阴影之赐 +2/+3）。 */
 	public static float stealthEvasionMultiplier( Char ch ) {
 		if (!(ch instanceof Hero)) {
@@ -113,6 +123,10 @@ public class ShadowDancer extends HeroSubClass {
 		com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows cloak =
 				hero.belongings.getItem( com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows.class );
 		if (cloak == null) {
+			return 1f;
+		}
+		// 「斗篷之下」＝斗篷隐身生效期间，效果不应常驻
+		if (hero.buff( com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows.cloakStealth.class ) == null) {
 			return 1f;
 		}
 		float per = pts >= 3 ? 0.23f : 0.15f;
@@ -141,6 +155,10 @@ public class ShadowDancer extends HeroSubClass {
 
 	public static boolean rushing = false;
 	private static boolean selecting = false;
+	/** 已结束隐身、等待英雄就绪后弹出突袭选点。 */
+	private static boolean pendingRush = false;
+	/** 本次破隐来自攻击：攻击已照常结算，不再追加突袭。 */
+	private static boolean attackBreak = false;
 
 	/** 只要处于任意隐身（主动隐身/斗篷之下/闪避触发）即可突袭。 */
 	public static boolean hasVeil( Hero hero ) {
@@ -178,21 +196,64 @@ public class ShadowDancer extends HeroSubClass {
 		}
 	}
 
-	/** 隐身结束（解除隐身）时冲刺，按影子闪袭层数可连续多次。 */
+	/** 隐身结束（非攻击破隐）时，待英雄可操作后再弹出突袭选点。 */
 	public static void onVeilEnd( Hero hero ) {
 		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER) {
+			return;
+		}
+		// 攻击破隐：攻击本身已经结算（含必中与伏击），不再追加突袭
+		if (attackBreak) {
+			attackBreak = false;
 			return;
 		}
 		if (Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
 			return;
 		}
-
 		if (rushing || selecting) {
 			return;
 		}
 
-		// 非攻击破隐：弹出选择突袭目标点
-		openSelector( hero );
+		pendingRush = true;
+		tryOpenSelector( hero );
+	}
+
+	/** 英雄就绪时补开待处理的突袭选点（由 Hero.ready() 调用，演员线程）。 */
+	public static void onHeroReady( Hero hero ) {
+		// 上一轮攻击未走到 onAttackComplete 时兜底清理
+		attackBreak = false;
+		tryOpenSelector( hero );
+	}
+
+	/**
+	 * 突袭选点必须在渲染线程创建（提示条会测量文字），
+	 * 且要等英雄真正可操作（否则 CellSelector 会被置为禁用）。
+	 */
+	private static void tryOpenSelector( Hero hero ) {
+		if (!pendingRush) {
+			return;
+		}
+		if (hero == null || Dungeon.hero != hero || !hero.isAlive()
+				|| Dungeon.level == null || Dungeon.level.heroFOV == null) {
+			pendingRush = false;
+			return;
+		}
+		if (!hero.ready || hero.curAction != null || selecting) {
+			return;
+		}
+
+		pendingRush = false;
+		selecting = true;
+		Game.runOnRenderThread( new Callback() {
+			@Override
+			public void call() {
+				if (Dungeon.hero != null && Dungeon.hero.ready && Dungeon.hero.isAlive()
+						&& Dungeon.level != null && Dungeon.level.heroFOV != null) {
+					GameScene.selectCell( rushListener );
+				} else {
+					selecting = false;
+				}
+			}
+		});
 	}
 
 	/** 选择突袭方向：对所选位置附近的最近敌人发动突袭。 */
@@ -217,16 +278,6 @@ public class ShadowDancer extends HeroSubClass {
 			return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( HeroSubClass.class, "shadow_dancer_rush_prompt" );
 		}
 	};
-
-	/** 打开突袭目标点选择。 */
-	public static void openSelector( Hero hero ) {
-		if (hero == null || Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
-			return;
-		}
-		if (selecting) return;
-		selecting = true;
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.selectCell( rushListener );
-	}
 
 	/** 突袭：向指定目标点冲刺，途中最多穿过 1 名敌人并造成 125% 武器伤害。 */
 	public static void dashTo( Hero hero, int dest ) {

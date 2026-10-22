@@ -1484,6 +1484,9 @@ public class Hero extends Char {
 		}
 
 		GameScene.ready();
+
+		// 影舞者：隐身结束后等英雄可操作时再弹出突袭选点
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
 	}
 
 	public void interrupt() {

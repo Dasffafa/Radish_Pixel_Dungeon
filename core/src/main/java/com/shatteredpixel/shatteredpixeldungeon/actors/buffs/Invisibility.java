@@ -67,7 +67,8 @@ public class Invisibility extends FlavourBuff {
 		super.detach();
 		// 影舞者：任意来源的隐身结束时，触发破隐突袭选点
 		if (target.invisible == 0 && target instanceof Hero
-				&& ((Hero) target).subClass == HeroSubClasses.SHADOW_DANCER) {
+				&& ((Hero) target).subClass == HeroSubClasses.SHADOW_DANCER
+				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.rushing) {
 			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onVeilEnd((Hero) target);
 		}
 	}
