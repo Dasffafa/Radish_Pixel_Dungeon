@@ -7,7 +7,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.watabou.noosa.Camera;
+import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.tweeners.Tweener;
 
 /**
  * 日蚀附魔：装备者不处于房间边缘时，攻击会波及视野内的其他敌人。
@@ -29,6 +34,30 @@ public class Eclipse extends Weapon.Enchantment {
         // 只有站在房间内部才触发，贴墙时无效
         if (atRoomEdge( hero.pos )) {
             return damage;
+        }
+
+        // 屏幕先变暗再恢复
+        if (Camera.main != null) {
+            final ColorBlock dark = new ColorBlock( Camera.main.width, Camera.main.height, 0xFF000000 );
+            dark.camera = Camera.main;
+            dark.alpha( 0f );
+            GameScene.effectOverFog( dark );
+            if (Game.scene() != null) {
+                Game.scene().add( new Tweener( dark, 0.7f ) {
+                    @Override
+                    protected void updateValues( float progress ) {
+                        float a = progress < 0.35f
+                                ? progress / 0.35f * 0.55f
+                                : (1f - progress) / 0.65f * 0.55f;
+                        dark.alpha( Math.max( 0f, a ) );
+                    }
+
+                    @Override
+                    protected void onComplete() {
+                        dark.killAndErase();
+                    }
+                } );
+            }
         }
 
         int level = Math.max( 0, weapon.buffedLvl() );

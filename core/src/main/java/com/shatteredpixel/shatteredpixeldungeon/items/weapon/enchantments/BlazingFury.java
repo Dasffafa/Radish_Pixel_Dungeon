@@ -7,6 +7,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
@@ -47,6 +49,7 @@ public class BlazingFury extends Weapon.Enchantment {
             }
             if (!Dungeon.level.water[cell]) {
                 Blob.seed( cell, 1, Fire.class );
+                CellEmitter.get( cell ).burst( Speck.factory( Speck.LIGHT ), 2 );
             }
 
             Char ch = Actor.findChar( cell );
