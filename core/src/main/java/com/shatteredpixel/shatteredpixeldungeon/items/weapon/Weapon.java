@@ -67,6 +67,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazin
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blocking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blooming;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Chilling;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Clash;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Combos;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Corrupting;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Elastic;
@@ -74,15 +75,20 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Eclips
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Euphoria;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Flawless;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.FlowingLight;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Fluctuation;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Jealousy;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamprey;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Midas;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Rainstorm;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Pulse;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Overwrite;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Reaping;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Rainstorm;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Resonance;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seeking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
@@ -287,6 +293,11 @@ abstract public class Weapon extends KindOfWeapon {
 			ACC *= Survival.accuracyMultiplier(owner, Math.max(0, buffedLvl()));
 		}
 
+		//脉冲附魔：强化期间命中提高
+		if (enchantment instanceof Pulse && owner.buff(Pulse.PulseBoost.class) != null){
+			ACC *= Pulse.ACCURACY_BONUS;
+		}
+
 		return encumbrance > 0 ? (float)(ACC / Math.pow( 1.5, encumbrance )) : ACC;
 	}
 	
@@ -425,6 +436,11 @@ abstract public class Weapon extends KindOfWeapon {
 
 		public Item upgrade(boolean enchant ) {
 
+			// 精制附魔：性能更好，但无法再升级
+			if (enchantment instanceof Refined) {
+				return this;
+			}
+
 			if (enchant){
 				if (enchantment == null){
 					enchant(Enchantment.random());
@@ -518,6 +534,9 @@ abstract public class Weapon extends KindOfWeapon {
 	 * 例：天球仪把来源改写成魔法来源（{@link com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100.LightningBolt}）。
 	 */
 	public void modifyDamageInfo(Char attacker, Char defender, DamageInfo info) {
+		if (enchantment != null) {
+			enchantment.modifyDamageInfo(this, attacker, defender, info);
+		}
 	}
 
 	/** 该武器的普通攻击是否无视防御掷骰（护甲 DR）——如天球仪。 */
@@ -570,11 +589,13 @@ abstract public class Weapon extends KindOfWeapon {
 				Blazing.class, Chilling.class, Shocking.class, Lamprey.class};
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
-				Projecting.class, Combos.class, Seeking.class, Sweeping.class, FlowingLight.class};
+				Projecting.class, Combos.class, Seeking.class, Sweeping.class, FlowingLight.class,
+				Pulse.class, Insight.class, Clash.class};
 
 		public static final Class<?>[] rare = new Class<?>[]{
 				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class, Survival.class, Jealousy.class,
-				Eclipse.class, Rainstorm.class, Midas.class, BlazingFury.class, Flawless.class, Reaping.class};
+				Eclipse.class, Rainstorm.class, Midas.class, BlazingFury.class, Flawless.class, Reaping.class, Overwrite.class,
+				Refined.class, Fluctuation.class};
 
 		public static final float[] typeChances = new float[]{
 				50, //12.5% each
@@ -590,6 +611,9 @@ abstract public class Weapon extends KindOfWeapon {
 		
 			
 		public abstract int proc( Weapon weapon, Char attacker, Char defender, int damage );
+
+		/** 在伤害构建完成后修改最终伤害（精制、波动、协调等数值类附魔）。 */
+		public void modifyDamageInfo( Weapon weapon, Char attacker, Char defender, DamageInfo info ) { }
 
 		/** 是否会在命中时释放持有者身上储存的恒动伤害（Kinetic / Unstable），由 Kinetic.ConservedDamage 读取。 */
 		public boolean releasesConservedDamage(){
