@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.cards;
 
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 
