@@ -4,7 +4,6 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -32,43 +31,33 @@ public class Propulsion extends Weapon.Enchantment {
         return damage;
     }
 
-    @SubscribeEvent(event = AttackHitEvent.class, priority = 0)
-    public static void onAttackHit( AttackHitEvent event ) {
-        if (!(event.getAttacker() instanceof Hero)) {
-            return;
-        }
-        if (!(event.getAttackerWeapon() instanceof Weapon)) {
-            return;
-        }
-        if (!(((Weapon) event.getAttackerWeapon()).enchantment instanceof Propulsion)) {
-            return;
-        }
-        Hero hero = (Hero) event.getAttacker();
-        Char target = event.getDefender();
-        if (target != null && Dungeon.level != null
-                && Dungeon.level.distance( hero.pos, target.pos ) >= 2) {
-            queue( hero, target );
-        }
-    }
-
     @SubscribeEvent(event = CharFinalDamageEvent.class, priority = 0)
-    public static void onDamaged( CharFinalDamageEvent event ) {
-        if (!(event.getTarget() instanceof Hero)) {
+    public static void onFinalDamage( CharFinalDamageEvent event ) {
+        Hero hero = null;
+        Char target = null;
+
+        // 英雄造成的远程伤害（含武器与法术）
+        if (event.getAttacker() instanceof Hero) {
+            hero = (Hero) event.getAttacker();
+            target = event.getTarget();
+        }
+        // 英雄受到的远程伤害
+        else if (event.getTarget() instanceof Hero) {
+            hero = (Hero) event.getTarget();
+            target = event.getAttacker();
+        }
+
+        if (hero == null || target == null || target == hero) {
             return;
         }
-        Hero hero = (Hero) event.getTarget();
         if (!(hero.belongings.weapon() instanceof Weapon)) {
             return;
         }
         if (!(((Weapon) hero.belongings.weapon()).enchantment instanceof Propulsion)) {
             return;
         }
-        Char attacker = event.getAttacker();
-        if (attacker == null || attacker == hero) {
-            return;
-        }
-        if (Dungeon.level != null && Dungeon.level.distance( hero.pos, attacker.pos ) >= 2) {
-            queue( hero, attacker );
+        if (Dungeon.level != null && Dungeon.level.distance( hero.pos, target.pos ) >= 2) {
+            queue( hero, target );
         }
     }
 

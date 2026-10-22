@@ -23,6 +23,21 @@ public class Meteor extends Weapon.Enchantment {
         return damage;
     }
 
+    /** 浮空结束（落地）时也触发，不再只依赖坠落伤害。 */
+    public static void onLanding( Char ch ) {
+        if (!(ch instanceof Hero)) {
+            return;
+        }
+        Hero hero = (Hero) ch;
+        if (!(hero.belongings.weapon() instanceof Weapon)) {
+            return;
+        }
+        Weapon weapon = (Weapon) hero.belongings.weapon();
+        if (weapon.enchantment instanceof Meteor) {
+            Buff.prolong( hero, MeteorBuff.class, 5f );
+        }
+    }
+
     @SubscribeEvent(event = CharUnprocedDamageEvent.class, priority = 0)
     public static void onFallDamage( CharUnprocedDamageEvent event ) {
         if (event.getType() != DamageType.FALL) {
