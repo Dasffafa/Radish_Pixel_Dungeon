@@ -129,86 +129,24 @@ public class TestMelee extends TestGenerator {
         weapon_id = bundle.getInt("weapon_id");
     }
 
+    private static final Class<?>[][] ENCH_LISTS = {
+            null,
+            Weapon.Enchantment.common,
+            Weapon.Enchantment.uncommon,
+            Weapon.Enchantment.rare,
+            Weapon.Enchantment.curses
+    };
+
+    @SuppressWarnings("unchecked")
     private Class<? extends Weapon.Enchantment> generateEnchant(int category, int id) {
-        if (category == 1) switch (id) {
-            case 0:
-                return Blazing.class;
-            case 1:
-                return Shocking.class;
-            case 2:
-                return Chilling.class;
-            case 3:
-                return Kinetic.class;
-            case 4:
-                return Lamprey.class;
-            default:
-                return null;
+        if (category <= 0 || category >= ENCH_LISTS.length) {
+            return null;
         }
-        else if (category == 2) switch (id) {
-            case 0:
-                return Blocking.class;
-            case 1:
-                return Blooming.class;
-            case 2:
-                return Projecting.class;
-            case 3:
-                return Elastic.class;
-            case 4:
-                return Lucky.class;
-            case 5:
-                return Unstable.class;
-            case 6:
-                return Combos.class;
-            case 7:
-                return Seeking.class;
-            default:
-                return null;
+        Class<?>[] list = ENCH_LISTS[category];
+        if (list == null || list.length == 0) {
+            return null;
         }
-        else if (category == 3) switch (id) {
-            case 0:
-                return Corrupting.class;
-            case 1:
-                return Grim.class;
-            case 2:
-                return Vampiric.class;
-            case 3:
-                return Striking.class;
-            case 4:
-                return Euphoria.class;
-            default:
-                return null;
-        }
-        else if (category == 4) switch (id) {
-            case 0:
-                return Annoying.class;
-            case 1:
-                return Displacing.class;
-            case 2:
-                return Explosive.class;
-            case 3:
-                return Dazzling.class;
-            case 4:
-                return Friendly.class;
-            case 5:
-                return Polarized.class;
-            case 6:
-                return Sacrificial.class;
-            case 7:
-                return Wayward.class;
-            case 8:
-                return Stubbornness.class;
-            case 9:
-                return Temporal.class;
-            case 10:
-                return DoubleEdged.class;
-            case 11:
-                return Heavy.class;
-            case 12:
-                return Ultralight.class;
-            default:
-                return null;
-        }
-        return null;
+        return (Class<? extends Weapon.Enchantment>) list[Math.min(id, list.length - 1)];
     }
 
     private Class<? extends Weapon>[] weaponList(int t) {
@@ -319,7 +257,13 @@ public class TestMelee extends TestGenerator {
             o_enchant_rarity.setSelectedValue(enchant_rarity);
             add(o_enchant_rarity);
 
-            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", "7", 0, 7) {
+            int maxEnchantId = 0;
+            for (int i = 1; i < ENCH_LISTS.length; i++) {
+                if (ENCH_LISTS[i] != null) {
+                    maxEnchantId = Math.max(maxEnchantId, ENCH_LISTS[i].length - 1);
+                }
+            }
+            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", Integer.toString(maxEnchantId), 0, maxEnchantId) {
                 @Override
                 protected void onChange() {
                     enchant_id = getSelectedValue();

@@ -218,7 +218,13 @@ public class TestArmor extends TestGenerator {
             o_enchant_rarity.setSelectedValue(enchant_rarity);
             add(o_enchant_rarity);
 
-            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", "7", 0, 7) {
+            int maxGlyphId = 0;
+            for (int i = 1; i < GLYPH_LISTS.length; i++) {
+                if (GLYPH_LISTS[i] != null) {
+                    maxGlyphId = Math.max(maxGlyphId, GLYPH_LISTS[i].length - 1);
+                }
+            }
+            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", Integer.toString(maxGlyphId), 0, maxGlyphId) {
                 @Override
                 protected void onChange() {
                     enchant_id = getSelectedValue();

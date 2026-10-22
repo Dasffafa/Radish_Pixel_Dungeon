@@ -79,34 +79,18 @@ public class CustomWeapon extends MeleeWeapon {
     public static ArrayList<Enchantment> enchList = new ArrayList<>();
     public static LinkedHashMap<Class<? extends Enchantment>, Integer> enchPrio = new LinkedHashMap<>();
     static{
-        enchPrio.put(Blazing.class,1);
-        enchPrio.put(Blocking.class, 0);
-        enchPrio.put(Blooming.class, 0);
-        enchPrio.put(Chilling.class, 1);
-        enchPrio.put(Corrupting.class, 0);
-        enchPrio.put(Elastic.class, 1);
-        enchPrio.put(Grim.class, 0);
-        enchPrio.put(Jealousy.class, 1);
-        enchPrio.put(Kinetic.class, 0);
-        enchPrio.put(Lucky.class, 0);
-        enchPrio.put(Projecting.class, 2);
-        enchPrio.put(Shocking.class, 1);
-        enchPrio.put(Vampiric.class, 1);
-        enchPrio.put(Striking.class, 1);
-        enchPrio.put(Survival.class, 1);
+        // 由附魔池驱动，新增附魔无需再手工登记
+        addEnchants(Weapon.Enchantment.common, 1);
+        addEnchants(Weapon.Enchantment.uncommon, 2);
+        addEnchants(Weapon.Enchantment.rare, 2);
+        addEnchants(Weapon.Enchantment.curses, 0);
+    }
 
-        enchPrio.put(Annoying.class, 0);
-        enchPrio.put(Displacing.class, 1);
-        enchPrio.put(Dazzling.class, 0);
-        enchPrio.put(Explosive.class, 2);
-        enchPrio.put(Friendly.class, 0);
-        enchPrio.put(Polarized.class, 2);
-        enchPrio.put(Sacrificial.class, 1);
-        enchPrio.put(Wayward.class, 2);
-        enchPrio.put(Temporal.class, 2);
-        enchPrio.put(DoubleEdged.class, 2);
-        enchPrio.put(Heavy.class, 2);
-        enchPrio.put(Ultralight.class, 2);
+    @SuppressWarnings("unchecked")
+    private static void addEnchants(Class<?>[] classes, int priority) {
+        for (Class<?> c : classes) {
+            enchPrio.put((Class<? extends Enchantment>) c, priority);
+        }
     }
 
     @Override
@@ -117,7 +101,7 @@ public class CustomWeapon extends MeleeWeapon {
                 int i = 0;
                 for(Class<? extends Enchantment> e: enchPrio.keySet()){
                     if (ench.getClass() == e){
-                        enchOn += 1L<<i;
+                        enchOn |= 1L << i;
                         break;
                     }
                     ++i;
@@ -143,7 +127,8 @@ public class CustomWeapon extends MeleeWeapon {
             //so scan 3 times instead.
             for(int i=2;i>=0;--i){
                 for(Enchantment e: enchList){
-                    if(enchPrio.get(e.getClass())==i) damage = e.proc(this, attacker, defender, damage);
+                    Integer prio = enchPrio.get(e.getClass());
+                    if (prio != null && prio == i) damage = e.proc(this, attacker, defender, damage);
                 }
             }
 
@@ -154,14 +139,17 @@ public class CustomWeapon extends MeleeWeapon {
 
     public boolean dispelEnchant(Class<? extends Enchantment> ench){
         if(ench!=null){
-            int id = 0;
-            for(Enchantment e: enchList){
+            for (Enchantment e : enchList){
                 if (e.getClass() == ench){
                     enchList.remove(e);
-                    enchOn -= 1<<id;
+                    int id = 0;
+                    for (Class<? extends Enchantment> c : enchPrio.keySet()){
+                        if (c == ench) break;
+                        ++id;
+                    }
+                    enchOn &= ~(1L << id);
                     return true;
                 }
-                ++id;
             }
         }
         return false;
