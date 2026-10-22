@@ -763,13 +763,14 @@ public class AlchemyScene extends PixelScene {
 		for (int i = 0; i < potions.size(); i++) {
 			opts[i] = potions.get( i ).name();
 		}
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-				new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions(
+		// 注意：必须挂到当前 AlchemyScene 上；GameScene.show 会把窗口加到非当前场景，导致完全看不到
+		addToFront( new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions(
 						Messages.get( AlchemyScene.class, "distill_title" ),
 						Messages.get( AlchemyScene.class, "distill_body" ),
 						opts ) {
 					@Override
 					protected void onSelect( int index ) {
+						if (index < 0 || index >= potions.size()) return;
 						potions.get( index ).apply( Dungeon.hero );
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer
 								.startDistillCooldown( Dungeon.hero );
