@@ -72,6 +72,9 @@ public class InventoryPane extends Component {
 
 	private ArrayList<InventorySlot> equipped;
 	private ArrayList<InventorySlot> bagItems;
+	/** 背包物品的可滚动容器（带上下滚动条）。 */
+	private Component bagContent;
+	private ScrollPane bagScroll;
 
 	private Image gold;
 	private BitmapText goldTxt;
@@ -91,6 +94,8 @@ public class InventoryPane extends Component {
 	private WndBag.ItemSelector selector;
 
 	public static Bag lastBag;
+	/** 当前展示的背包，用于切换背包时把滚动条归位。 */
+	private Bag shownBag;
 
 	private boolean lastEnabled = true;
 
@@ -188,10 +193,14 @@ public class InventoryPane extends Component {
 		add(promptTxt);
 
 		bagItems = new ArrayList<>();
-		for (int i = 0; i < 25; i++){
+		bagContent = new Component();
+		bagScroll = new ScrollPane( bagContent );
+		add( bagScroll );
+		// 最大容量（测试背包 60）也放得下，超出的部分靠滚动查看
+		for (int i = 0; i < 60; i++){
 			InventorySlot btn = new InventoryPaneSlot(null);
 			bagItems.add(btn);
-			add(btn);
+			bagContent.add(btn);
 		}
 
 		bags = new ArrayList<>();
@@ -289,17 +298,19 @@ public class InventoryPane extends Component {
 			}
 		}
 
-		// 更新 bagItems 的起始位置
-		left = x+4;
-		float top = y + 14 + 14 + 1;
-		for (InventorySlot b : bagItems){
-			b.setRect(left, top, SLOT_WIDTH, SLOT_HEIGHT);
-			left = b.right()+1;
-			if (left - x > width - 17){
-				left = x+4;
-				top += SLOT_HEIGHT+1;
-			}
+		// 背包物品：5 列可滚动网格（超出部分用右侧滚动条查看）
+		int cols = 5;
+		for (int i = 0; i < bagItems.size(); i++){
+			InventorySlot b = bagItems.get(i);
+			b.setRect((i % cols) * (SLOT_WIDTH + 1), (i / cols) * (SLOT_HEIGHT + 1),
+					SLOT_WIDTH, SLOT_HEIGHT);
 		}
+		int rows = (bagItems.size() + cols - 1) / cols;
+		bagContent.setSize(cols * (SLOT_WIDTH + 1), rows * (SLOT_HEIGHT + 1));
+
+		float bagTop = y + 14 + 14 + 1;
+		float viewportH = height - (bagTop - y) - 2;
+		bagScroll.setRect(x + 4, bagTop, width - 10, Math.max(1, viewportH));
 
 		super.layout();
 	}
@@ -357,7 +368,7 @@ public class InventoryPane extends Component {
 		}
 
 		int j = 0;
-		for (int i = 0; i < 25; i++){
+		for (int i = 0; i < bagItems.size(); i++){
 			if (i == 0 && lastBag != stuff.backpack){
 				bagItems.get(i).item(lastBag);
 				continue;
@@ -424,7 +435,12 @@ public class InventoryPane extends Component {
 		energyTxt.alpha( lastEnabled ? 1f : 0.3f );
 		energy.alpha( lastEnabled ? 1f : 0.3f );
 
+		boolean resetScroll = lastBag != shownBag;
+		shownBag = lastBag;
 		layout();
+		if (resetScroll){
+			bagScroll.scrollTo(0, 0);
+		}
 	}
 
 	public void setSelector(WndBag.ItemSelector selector){
