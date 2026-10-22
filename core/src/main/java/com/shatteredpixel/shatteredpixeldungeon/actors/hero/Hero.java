@@ -1506,6 +1506,8 @@ public class Hero extends Char {
 
 		// 影舞者：隐身结束后等英雄可操作时再弹出突袭选点
 		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
+		// 推进附魔：待处理的突进询问
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Propulsion.onHeroReady( this );
 	}
 
 	public void interrupt() {
