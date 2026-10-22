@@ -156,6 +156,11 @@ public class ScrollPane extends Component {
 	@Override
 	protected void layout() {
 
+		// 窗口尚未挂到场景时 camera() 为 null，调用 cameraToScreen 会 NPE
+		if (camera() == null) {
+			return;
+		}
+
 		content.setPos( 0, 0 );
 		controller.x = x;
 		controller.y = y;
