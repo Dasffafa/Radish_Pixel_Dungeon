@@ -18,6 +18,9 @@ public class Midas extends Weapon.Enchantment {
 
     @Override
     public int proc( Weapon weapon, Char attacker, Char defender, int damage ) {
+        if (!(attacker instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero)) {
+            return damage;
+        }
         if (damage <= 0 || defender.alignment != Char.Alignment.ENEMY) {
             return damage;
         }

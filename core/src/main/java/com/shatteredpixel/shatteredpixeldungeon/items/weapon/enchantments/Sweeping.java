@@ -24,7 +24,8 @@ public class Sweeping extends Weapon.Enchantment {
             return damage;
         }
 
-        float ratio = BASE_RATIO * genericProcChanceMultiplier( attacker );
+        float ratio = BASE_RATIO * com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana
+                .enchantPowerMultiplier( attacker );
         int sideDamage = Math.round( damage * ratio );
         if (sideDamage <= 0) {
             return damage;

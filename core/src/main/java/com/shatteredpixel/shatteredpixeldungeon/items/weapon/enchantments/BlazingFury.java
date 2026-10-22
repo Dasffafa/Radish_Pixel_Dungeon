@@ -53,6 +53,8 @@ public class BlazingFury extends Weapon.Enchantment {
             }
 
             Level.set( cell, Terrain.EMBERS );
+            Dungeon.level.flamable[cell] = true;
+            Dungeon.level.water[cell] = false;
             GameScene.updateMap( cell );
 
             Char ch = Actor.findChar( cell );

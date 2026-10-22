@@ -43,7 +43,7 @@ public class Reversal extends Weapon.Enchantment {
             return;
         }
 
-        int dmg = Math.max( 1, attacker.damageRoll() );
+        int dmg = Math.max( 1, weapon.damageRoll( attacker ) );
         defender.damage( new DamageInfo( dmg, DamageType.PHYSICAL, attacker, weapon, attacker ) );
     }
 

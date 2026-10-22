@@ -49,6 +49,8 @@ public class Rainstorm extends Weapon.Enchantment {
                 continue;
             }
             Level.set( cell, Terrain.WATER );
+            Dungeon.level.water[cell] = true;
+            Dungeon.level.flamable[cell] = false;
             GameScene.updateMap( cell );
             flooded = true;
         }

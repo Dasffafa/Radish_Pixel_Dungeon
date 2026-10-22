@@ -49,7 +49,7 @@ public class Pulse extends Weapon.Enchantment {
         @Override
         public boolean act() {
             if (target instanceof Hero) {
-                KindOfWeapon weapon = ((Hero) target).belongings.attackingWeapon();
+                KindOfWeapon weapon = ((Hero) target).belongings.weapon();
                 if (!(weapon instanceof Weapon) || !(((Weapon) weapon).enchantment instanceof Pulse)) {
                     detach();
                     return true;

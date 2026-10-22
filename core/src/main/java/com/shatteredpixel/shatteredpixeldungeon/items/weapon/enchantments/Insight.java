@@ -66,7 +66,7 @@ public class Insight extends Weapon.Enchantment {
         @Override
         public boolean act() {
             if (target instanceof Hero) {
-                KindOfWeapon w = ((Hero) target).belongings.attackingWeapon();
+                KindOfWeapon w = ((Hero) target).belongings.weapon();
                 if (!(w instanceof Weapon) || !(((Weapon) w).enchantment instanceof Insight)) {
                     detach();
                     return true;
