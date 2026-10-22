@@ -1485,6 +1485,25 @@ public class Hero extends Char {
 
 		GameScene.ready();
 
+		// 明灯附魔：未失明时至少拥有 3+等级 格视野；放下武器后恢复基础视野
+		if (Dungeon.level != null && buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness.class ) == null) {
+			int baseView = buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light.class ) != null
+					? Math.max( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light.DISTANCE,
+							Dungeon.level.viewDistance )
+					: Dungeon.level.viewDistance;
+			com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon w = belongings.weapon();
+			if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
+					&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).enchantment
+					instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamp) {
+				baseView = Math.max( baseView,
+						3 + Math.max( 0, ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).buffedLvl() ) );
+			}
+			if (viewDistance != baseView) {
+				viewDistance = baseView;
+				Dungeon.observe();
+			}
+		}
+
 		// 影舞者：隐身结束后等英雄可操作时再弹出突袭选点
 		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
 	}
