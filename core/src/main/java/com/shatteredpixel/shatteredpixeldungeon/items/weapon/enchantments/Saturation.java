@@ -26,7 +26,7 @@ public class Saturation extends Weapon.Enchantment {
         Hero hero = (Hero) attacker;
         int surplus = Math.max( 0, hero.STR() - weapon.STRReq() );
         int highTier = Math.max( 0, weapon.STRReq() - 8 );
-        float bonus = 0.05f * surplus + 0.02f * highTier;
+        float bonus = Math.min( 1.0f, 0.05f * surplus + 0.02f * highTier );
         if (bonus > 0) {
             info.addFinalMultModifier( 1f + bonus, "saturation" );
         }

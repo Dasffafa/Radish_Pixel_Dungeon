@@ -60,7 +60,7 @@ public class Propulsion extends Weapon.Enchantment {
     /** 传送到目标相邻的空格。 */
     private static void dashAdjacent( Hero hero, Char target ) {
         if (hero == null || target == null || !hero.isAlive() || !target.isAlive()
-                || Dungeon.level == null) {
+                || Dungeon.level == null || hero.rooted) {
             return;
         }
         if (Dungeon.level.distance( hero.pos, target.pos ) < 2) {

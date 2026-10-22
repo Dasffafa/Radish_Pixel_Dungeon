@@ -2,6 +2,8 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.utils.Bundle;
@@ -59,6 +61,19 @@ public class Insight extends Weapon.Enchantment {
             stacks = bundle.getInt( STACKS );
             critChance = bundle.getFloat( CRIT_CHANCE );
             critDamage = bundle.getFloat( CRIT_DAMAGE );
+        }
+
+        @Override
+        public boolean act() {
+            if (target instanceof Hero) {
+                KindOfWeapon w = ((Hero) target).belongings.attackingWeapon();
+                if (!(w instanceof Weapon) || !(((Weapon) w).enchantment instanceof Insight)) {
+                    detach();
+                    return true;
+                }
+            }
+            spend( TICK );
+            return true;
         }
 
         @Override

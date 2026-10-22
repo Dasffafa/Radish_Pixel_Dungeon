@@ -22,6 +22,9 @@ public class Eclipse extends Weapon.Enchantment {
         if (!(attacker instanceof Hero) || damage <= 0) {
             return damage;
         }
+        if (Dungeon.level == null || Dungeon.level.heroFOV == null) {
+            return damage;
+        }
         Hero hero = (Hero) attacker;
         // 只有站在房间内部才触发，贴墙时无效
         if (atRoomEdge( hero.pos )) {

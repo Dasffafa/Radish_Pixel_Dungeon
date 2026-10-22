@@ -595,17 +595,19 @@ abstract public class Weapon extends KindOfWeapon {
 	public static abstract class Enchantment implements Bundlable {
 
 		public static final Class<?>[] common = new Class<?>[]{
-				Blazing.class, Chilling.class, Shocking.class, Lamprey.class};
+				Blazing.class, Chilling.class, Shocking.class, Lamprey.class,
+				FlowingLight.class, Midas.class, BlazingFury.class, Crystal.class,
+				Pulse.class, Seeking.class, Sweeping.class, Projecting.class};
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
-				Projecting.class, Combos.class, Seeking.class, Sweeping.class, FlowingLight.class,
-				Pulse.class, Insight.class, Clash.class, Lamp.class, Crystal.class,
-				Distortion.class, Propulsion.class};
+				Combos.class, Insight.class, Clash.class, Distortion.class, Propulsion.class,
+				Lamp.class, Rainstorm.class, Flawless.class, Overwrite.class,
+				Fluctuation.class, Reaping.class, Eclipse.class};
 
 		public static final Class<?>[] rare = new Class<?>[]{
-				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class, Survival.class, Jealousy.class,
-				Eclipse.class, Rainstorm.class, Midas.class, BlazingFury.class, Flawless.class, Reaping.class, Overwrite.class,
-				Refined.class, Fluctuation.class, Reversal.class, Saturation.class, Harmony.class, Meteor.class, SoulRend.class};
+				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class,
+				Survival.class, Jealousy.class, Refined.class, Reversal.class,
+				Saturation.class, Harmony.class, Meteor.class, SoulRend.class};
 
 		public static final float[] typeChances = new float[]{
 				50, //12.5% each

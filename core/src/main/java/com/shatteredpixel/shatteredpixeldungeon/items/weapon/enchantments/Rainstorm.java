@@ -39,6 +39,9 @@ public class Rainstorm extends Weapon.Enchantment {
             if (Dungeon.level.map[cell] == Terrain.WATER) {
                 continue;
             }
+            if (Dungeon.level.plants.get( cell ) != null) {
+                continue;
+            }
             int terrain = Dungeon.level.map[cell];
             if (terrain != Terrain.EMPTY && terrain != Terrain.EMPTY_SP && terrain != Terrain.EMPTY_DECO
                     && terrain != Terrain.GRASS && terrain != Terrain.EMBERS

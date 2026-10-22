@@ -63,6 +63,10 @@ public class Slippery extends Weapon.Enchantment {
         public boolean act() {
             if (target instanceof Hero) {
                 Hero hero = (Hero) target;
+                if (!hero.isAlive()) {
+                    detach();
+                    return true;
+                }
                 KindOfWeapon weapon = hero.belongings.weapon;
                 if (weapon instanceof Weapon && ((Weapon) weapon).enchantment instanceof Slippery) {
                     hero.belongings.weapon = null;

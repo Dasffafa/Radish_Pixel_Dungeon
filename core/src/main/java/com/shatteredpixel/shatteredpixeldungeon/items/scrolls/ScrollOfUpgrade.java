@@ -62,6 +62,14 @@ public class ScrollOfUpgrade extends InventoryScroll {
 	}
 
 	public Item upgradeItem( Item item ){
+		// 精制附魔无法升级，直接拒绝并保留卷轴
+		if (item instanceof Weapon
+				&& ((Weapon) item).enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined) {
+			GLog.w( Messages.get( com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined.class,
+					"cannot_upgrade" ) );
+			return item;
+		}
+
 		upgrade( curUser );
 
 		Degrade.detach( curUser, Degrade.class );
