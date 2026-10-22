@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Friendly;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Heavy;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Polarized;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Sacrificial;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Slippery;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Stubbornness;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Temporal;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Ultralight;
@@ -80,6 +81,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seekin
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Striking;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Survival;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Sweeping;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Vampiric;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.WetEnchantment;
@@ -558,11 +560,10 @@ abstract public class Weapon extends KindOfWeapon {
 	public static abstract class Enchantment implements Bundlable {
 
 		public static final Class<?>[] common = new Class<?>[]{
-				Blazing.class, Chilling.class, Kinetic.class, Shocking.class, Lamprey.class, Resonance.class};
+				Blazing.class, Chilling.class, Shocking.class, Lamprey.class};
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
-				Blocking.class, Blooming.class, Elastic.class,
-				Lucky.class, Projecting.class, Unstable.class, Combos.class, Seeking.class};
+				Projecting.class, Combos.class, Seeking.class, Sweeping.class};
 
 		public static final Class<?>[] rare = new Class<?>[]{
 				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class, Survival.class, Jealousy.class};
@@ -576,7 +577,7 @@ abstract public class Weapon extends KindOfWeapon {
 		public static final Class<?>[] curses = new Class<?>[]{
 				Annoying.class, Displacing.class, Dazzling.class, Explosive.class,
 				Sacrificial.class, Wayward.class, Polarized.class, Friendly.class, Stubbornness.class,
-				Temporal.class, DoubleEdged.class, Heavy.class, Ultralight.class
+				Temporal.class, DoubleEdged.class, Heavy.class, Ultralight.class, Slippery.class
 		};
 		
 			
