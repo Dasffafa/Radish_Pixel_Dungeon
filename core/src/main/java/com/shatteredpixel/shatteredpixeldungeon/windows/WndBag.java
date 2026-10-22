@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.InventorySlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RightClickMenu;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.input.GameAction;
@@ -51,6 +52,7 @@ import com.watabou.input.PointerEvent;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.noosa.ui.Component;
 import com.watabou.utils.PointF;
 
 public class WndBag extends WndTabbed {
@@ -82,6 +84,10 @@ public class WndBag extends WndTabbed {
 	protected int count;
 	protected int col;
 	protected int row;
+
+	/** 物品格的可滚动容器（容量超过窗口时上下滑动）。 */
+	private Component content;
+	private ScrollPane scroll;
 	
 	private static Bag lastBag;
 
@@ -124,8 +130,17 @@ public class WndBag extends WndTabbed {
 		}
 
 		placeTitle( bag, windowWidth );
-		
+
+		content = new Component();
 		placeItems( bag );
+
+		// 可见区域保持 6 行左右，内容按容量增长，超出部分用滚动条查看
+		int visibleHeight = slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+		int contentRows = Math.max(nRows, row);
+		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN));
+		scroll = new ScrollPane(content);
+		scroll.setRect(0, TITLE_HEIGHT, windowWidth, visibleHeight);
+		add(scroll);
 
 		resize( windowWidth, windowHeight );
 
@@ -278,7 +293,7 @@ public class WndBag extends WndTabbed {
 		count++;
 
 		int x = col * (slotWidth + SLOT_MARGIN);
-		int y = TITLE_HEIGHT + row * (slotHeight + SLOT_MARGIN);
+		int y = row * (slotHeight + SLOT_MARGIN);
 
 		InventorySlot slot = new InventorySlot( item ){
 			@Override
@@ -346,7 +361,7 @@ public class WndBag extends WndTabbed {
 			}
 		};
 		slot.setRect( x, y, slotWidth, slotHeight );
-		add(slot);
+		content.add(slot);
 
 		if (item == null || (selector != null && !selector.itemSelectable(item))){
 			slot.enable(false);
