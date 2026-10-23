@@ -28,10 +28,20 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.watabou.noosa.particles.Emitter;
 
 //The eye of a tornado created by the Potion of Tornadoes. Every turn it drags
 //all enemies within a 9x9 area one tile closer to its center.
 public class Tornado extends Blob {
+
+	//spawns a looping cyclone animation at each blob cell instead of a steam speck
+	private static final Emitter.Factory CYCLONE = new Emitter.Factory() {
+		@Override
+		public void emit( Emitter emitter, int index, float x, float y ) {
+			CycloneParticle p = (CycloneParticle)emitter.recycle( CycloneParticle.class );
+			p.reset( x, y );
+		}
+	};
 
 	@Override
 	protected void evolve() {
@@ -94,7 +104,7 @@ public class Tornado extends Blob {
 	@Override
 	public void use(BlobEmitter emitter) {
 		super.use(emitter);
-		emitter.pour(Speck.factory(Speck.STORM), 0.4f);
+		emitter.pour(CYCLONE, 0.25f);
 	}
 
 	@Override
