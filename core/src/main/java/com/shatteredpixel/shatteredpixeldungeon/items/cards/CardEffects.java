@@ -449,7 +449,7 @@ public final class CardEffects {
 
 	private static void advanceEnhanced(Hero hero) {
 		ArrayList<Card> pile = hero.cardDeck.drawPile;
-		for (int i = 0; i < pile.size() - 1; i++) {
+		for (int i = pile.size() - 2; i >= 0; i--) {
 			Card c = pile.get(i);
 			if ((c.type == CardType.RIGID || c.type == CardType.HORMONE) && c.power >= 2) {
 				pile.remove(i);
