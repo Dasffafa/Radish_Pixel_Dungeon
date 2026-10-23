@@ -39,7 +39,8 @@ public final class ArtificerRecipes {
 
 		@Override
 		public boolean testIngredients(ArrayList<Item> ingredients) {
-			if (!isArtificer() || ingredients.size() < 2 || ingredients.size() > 3) return false;
+			if (!isArtificer() || ingredients.isEmpty() || ingredients.size() > 3) return false;
+			if (ingredients.size() == 1 && ingredients.get(0).quantity() < 2) return false;
 			for (Item i : ingredients) {
 				if (!(i instanceof MissileWeapon) || !i.isIdentified()) return false;
 			}
@@ -48,7 +49,9 @@ public final class ArtificerRecipes {
 
 		@Override
 		public int cost(ArrayList<Item> ingredients) {
-			return ingredients.size();
+			return ingredients.size() == 1
+					? Math.min(3, ingredients.get(0).quantity())
+					: ingredients.size();
 		}
 
 		/** 力量需求最高优先；同力量时取攻速最慢（delay 最大）的。 */
@@ -82,7 +85,12 @@ public final class ArtificerRecipes {
 			if (!testIngredients(ingredients)) return null;
 			MissileWeapon best = best(ingredients);
 			Item out = copyOf(best);
-			for (Item i : ingredients) i.quantity(i.quantity() - 1);
+			if (ingredients.size() == 1) {
+				Item only = ingredients.get(0);
+				only.quantity(Math.max(0, only.quantity() - Math.min(3, only.quantity())));
+			} else {
+				for (Item i : ingredients) i.quantity(i.quantity() - 1);
+			}
 			return out;
 		}
 	}
@@ -91,7 +99,8 @@ public final class ArtificerRecipes {
 
 		@Override
 		public boolean testIngredients(ArrayList<Item> ingredients) {
-			if (!isArtificer() || ingredients.size() < 2 || ingredients.size() > 3) return false;
+			if (!isArtificer() || ingredients.isEmpty() || ingredients.size() > 3) return false;
+			if (ingredients.size() == 1 && ingredients.get(0).quantity() < 2) return false;
 			for (Item i : ingredients) {
 				if (!(i instanceof Potion) || !i.isIdentified()) return false;
 			}
@@ -100,7 +109,9 @@ public final class ArtificerRecipes {
 
 		@Override
 		public int cost(ArrayList<Item> ingredients) {
-			return ingredients.size();
+			return ingredients.size() == 1
+					? Math.min(3, ingredients.get(0).quantity())
+					: ingredients.size();
 		}
 
 		private Potion best(ArrayList<Item> ingredients) {
@@ -123,7 +134,12 @@ public final class ArtificerRecipes {
 			if (!testIngredients(ingredients)) return null;
 			Potion best = best(ingredients);
 			Item out = copyOf(best);
-			for (Item i : ingredients) i.quantity(i.quantity() - 1);
+			if (ingredients.size() == 1) {
+				Item only = ingredients.get(0);
+				only.quantity(Math.max(0, only.quantity() - Math.min(3, only.quantity())));
+			} else {
+				for (Item i : ingredients) i.quantity(i.quantity() - 1);
+			}
 			return out;
 		}
 	}
