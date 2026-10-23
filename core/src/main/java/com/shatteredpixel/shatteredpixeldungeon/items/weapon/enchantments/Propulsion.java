@@ -4,7 +4,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -16,8 +17,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 
 /**
- * 推进附魔：命中远处目标或受到远程攻击后，询问玩家是否突进到目标身边。
- * 玩家可以拒绝，不会自动位移。
+ * 推进附魔：不贴脸的攻击（近战加距离、法术、远程物理）命中或未命中后，
+ * 询问玩家是否突进到目标身边。玩家可以拒绝，不会自动位移。
  */
 public class Propulsion extends Weapon.Enchantment {
 
@@ -31,29 +32,42 @@ public class Propulsion extends Weapon.Enchantment {
         return damage;
     }
 
-    @SubscribeEvent(event = CharFinalDamageEvent.class, priority = 0)
-    public static void onFinalDamage( CharFinalDamageEvent event ) {
-        Hero hero = null;
-        Char target = null;
+    @SubscribeEvent(event = AttackHitEvent.class, priority = 0)
+    public static void onAttackHit( AttackHitEvent event ) {
+        onAttack( event.getAttacker(), event.getDefender() );
+    }
 
-        // 英雄造成的远程伤害（含武器与法术）
-        if (event.getAttacker() instanceof Hero) {
-            hero = (Hero) event.getAttacker();
-            target = event.getTarget();
-        }
-        // 英雄受到的远程伤害
-        else if (event.getTarget() instanceof Hero) {
-            hero = (Hero) event.getTarget();
-            target = event.getAttacker();
-        }
+    @SubscribeEvent(event = AttackMissEvent.class, priority = 0)
+    public static void onAttackMiss( AttackMissEvent event ) {
+        onAttack( event.getAttacker(), event.getDefender() );
+    }
 
-        if (hero == null || target == null || target == hero) {
+    /** 统一入口：不管是近战远距、法术还是远程，只要不是贴脸就排队询问。 */
+    private static void onAttack( Char attacker, Char defender ) {
+        if (attacker == null || defender == null || attacker == defender) {
             return;
         }
+
+        Hero hero;
+        Char target;
+        if (attacker instanceof Hero) {
+            hero = (Hero) attacker;
+            target = defender;
+        } else if (defender instanceof Hero) {
+            // 英雄被不贴脸的攻击命中/未命中，同样可以反推过去
+            hero = (Hero) defender;
+            target = attacker;
+        } else {
+            return;
+        }
+
         if (!(hero.belongings.weapon() instanceof Weapon)) {
             return;
         }
         if (!(((Weapon) hero.belongings.weapon()).enchantment instanceof Propulsion)) {
+            return;
+        }
+        if (!target.isAlive()) {
             return;
         }
         if (Dungeon.level != null && Dungeon.level.distance( hero.pos, target.pos ) >= 2) {

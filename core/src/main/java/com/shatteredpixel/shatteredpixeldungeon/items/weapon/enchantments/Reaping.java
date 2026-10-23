@@ -24,7 +24,7 @@ public class Reaping extends Weapon.Enchantment {
         ReapingTracker tracker = attacker.buff( ReapingTracker.class );
 
         if (defender.isAlive() && defender.alignment == Char.Alignment.ENEMY
-                && defender.HP <= Math.max( 1, damage )) {
+                && defender.HP <= 1) {
             tracker = Buff.affect( attacker, ReapingTracker.class );
             if (tracker.stacks < 10) {
                 tracker.stacks++;
