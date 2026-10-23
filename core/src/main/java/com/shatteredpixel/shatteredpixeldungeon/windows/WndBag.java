@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -114,6 +115,17 @@ public class WndBag extends WndTabbed {
 		slotHeight = PixelScene.landscape() ? SLOT_HEIGHT_L : SLOT_HEIGHT_P;
 
 		nCols = PixelScene.landscape() ? COLS_L : COLS_P;
+
+		//电脑大屏时按可用宽度加列，避免背包窗口窄窄一条
+		if (SPDSettings.interfaceSize() > 0) {
+			int availCols = (int)((PixelScene.uiCamera.width - chrome.marginHor())
+					/ (float)(slotWidth + SLOT_MARGIN));
+			if (availCols > nCols) {
+				//留一列余量，避免贴边
+				nCols = Math.min(availCols - 1, 8);
+			}
+		}
+
 		nRows = (int)Math.ceil(30/(float)nCols); //we expect to lay out 25 slots in all cases
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);

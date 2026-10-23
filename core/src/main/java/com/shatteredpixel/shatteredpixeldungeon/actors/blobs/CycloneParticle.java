@@ -24,7 +24,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.MovieClip;
 import com.watabou.noosa.TextureFilm;
-import com.watabou.utils.Random;
 
 //A looping 3-frame cyclone drawn over a tornado blob cell.
 public class CycloneParticle extends MovieClip {
@@ -39,7 +38,7 @@ public class CycloneParticle extends MovieClip {
 			film = new TextureFilm( texture, 16, 16 );
 		}
 		if (anim == null) {
-			anim = new MovieClip.Animation( 8, true );
+			anim = new Animation( 8, true );
 			anim.frames( film, 0, 1, 2 );
 		}
 		play( anim );
@@ -49,12 +48,7 @@ public class CycloneParticle extends MovieClip {
 		revive();
 		this.x = x - width / 2f;
 		this.y = y - height / 2f;
-		//每帧随机起点，避免所有粒子完全同步
-		frame( film.get( Random.Int( 3 ) ) );
-	}
-
-	@Override
-	public void update() {
-		super.update();
+		//强制重播，避免复用对象时动画已结束导致 frame 为空
+		play( anim, true );
 	}
 }
