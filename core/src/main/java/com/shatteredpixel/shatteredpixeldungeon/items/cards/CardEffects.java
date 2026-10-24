@@ -78,7 +78,14 @@ public final class CardEffects {
 					card.type = CardType.TRAP;
 					card.trapClass = trap.getClass();
 					GLog.i(Messages.get(CardEffects.class, "trap_recorded", trap.name()));
-					ActionIndicator.refresh();
+
+					// 吸收后沉入牌堆底，而不是留在手上
+					if (hero.cardDeck.held == card) {
+						hero.cardDeck.held = null;
+						hero.cardDeck.addToBottom(card);
+						HeldCardTracker.clear(hero);
+						ActionIndicator.refresh();
+					}
 					return;
 				}
 				if (ch == hero) {

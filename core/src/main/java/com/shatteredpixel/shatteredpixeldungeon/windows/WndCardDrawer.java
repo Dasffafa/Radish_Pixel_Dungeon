@@ -47,7 +47,7 @@ public class WndCardDrawer extends Window {
 
 		CardDrawer.DrawCooldown cd = hero.buff(CardDrawer.DrawCooldown.class);
 		int cooldown = cd == null ? 0 : (int) cd.cooldown() + 1;
-		String status = Messages.get(this, "counts", deck.drawPile.size(), deck.discardPile.size());
+		String status = Messages.get(this, "counts_no_discard", deck.drawPile.size());
 		if (deck.freeDraws > 0) {
 			status += "\n" + Messages.get(this, "free_draws", deck.freeDraws);
 		} else if (cooldown > 0) {
@@ -64,7 +64,14 @@ public class WndCardDrawer extends Window {
 
 		if (deck.held != null) {
 			Card card = deck.held;
-			RedButton play = new RedButton(Messages.get(this, "held", card.name())) {
+			String heldLabel = Messages.get(this, "held", card.name());
+			// 陷阱卡：显示出吸收的陷阱名称
+			if (card.type == com.shatteredpixel.shatteredpixeldungeon.items.cards.CardType.TRAP
+					&& card.trapClass != null) {
+				heldLabel += "\n" + Messages.get(this, "trap_content",
+						Messages.get(card.trapClass, "name"));
+			}
+			RedButton play = new RedButton(heldLabel) {
 				@Override
 				protected void onClick() {
 					hide();
@@ -115,17 +122,8 @@ public class WndCardDrawer extends Window {
 				openPile(deck.drawPile, Messages.get(WndCardDrawer.class, "draw_pile"));
 			}
 		};
-		viewDraw.setRect(MARGIN, pos, inner / 2f - 1, BUTTON_HEIGHT);
+		viewDraw.setRect(MARGIN, pos, inner, BUTTON_HEIGHT);
 		add(viewDraw);
-
-		RedButton viewDiscard = new RedButton(Messages.get(this, "view_discard")) {
-			@Override
-			protected void onClick() {
-				openPile(deck.discardPile, Messages.get(WndCardDrawer.class, "discard_pile"));
-			}
-		};
-		viewDiscard.setRect(viewDraw.right() + 2, pos, inner / 2f - 1, BUTTON_HEIGHT);
-		add(viewDiscard);
 		pos = viewDraw.bottom() + GAP;
 
 		RedButton delete = new RedButton(Messages.get(this, "delete", deck.deletesLeft)) {

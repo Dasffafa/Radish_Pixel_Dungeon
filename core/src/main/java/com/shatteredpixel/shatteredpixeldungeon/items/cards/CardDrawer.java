@@ -33,8 +33,12 @@ public class CardDrawer extends Item {
 		image = ItemSpriteSheet.CARD_DRAWER;
 		unique = true;
 		keptThoughLostInvent = true;
-		defaultAction = AC_OPEN;
+		// 快捷栏点击直接抽卡；查看牌堆请在背包中打开
+		defaultAction = AC_DRAW;
 		bones = false;
+		// 抽卡器是固定独特物品，无需鉴定
+		levelKnown = true;
+		cursedKnown = true;
 	}
 
 	@Override
