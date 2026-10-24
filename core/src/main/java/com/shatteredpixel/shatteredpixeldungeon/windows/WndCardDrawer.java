@@ -62,6 +62,9 @@ public class WndCardDrawer extends Window {
 		add(info);
 		pos = info.bottom() + MARGIN;
 
+		// 卡面预览：手上卡牌 + 牌堆顶
+		pos = addCardPreview(deck, pos);
+
 		if (deck.held != null) {
 			Card card = deck.held;
 			String heldLabel = Messages.get(this, "held", card.name());
@@ -232,6 +235,34 @@ public class WndCardDrawer extends Window {
 		pos = close.bottom() + MARGIN;
 
 		resize(width, (int) pos);
+	}
+
+	/** 卡面预览行：显示手上卡牌与牌堆顶的卡图。 */
+	private float addCardPreview(CardDeck deck, float top) {
+		ArrayList<Card> preview = new ArrayList<>();
+		if (deck.held != null) preview.add(deck.held);
+		if (!deck.drawPile.isEmpty()) {
+			Card next = deck.drawPile.get(deck.drawPile.size() - 1);
+			if (next != null && next != deck.held) preview.add(next);
+		}
+		if (preview.isEmpty()) return top;
+
+		int scale = 3;            // 16px 放大 3 倍
+		int iconSize = 16 * scale;
+		int gap = 6;
+		float x = MARGIN;
+
+		for (Card c : preview) {
+			if (c == null || c.type == null) continue;
+			com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite sprite =
+					new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite(c.type.image);
+			sprite.scale.set(scale);
+			sprite.x = x;
+			sprite.y = top;
+			add(sprite);
+			x += iconSize + gap;
+		}
+		return top + iconSize + MARGIN;
 	}
 
 	private void openPile(ArrayList<Card> pile, String title) {
