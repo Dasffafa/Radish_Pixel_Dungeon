@@ -236,9 +236,10 @@ public class Druid extends HeroSubClass {
 	public static boolean summonVines( Hero hero ) {
 		DruidVines vines = new DruidVines();
 		vines.grassTiles = countGrass( hero.pos, 1 );
+		vines.lvl = hero.lvl;
 		int pts = hero.pointsInTalent( Talent.NATURE_BOND );
 		float hpMul = pts >= 1 ? 1.5f : 1f;
-		vines.HP = vines.HT = Math.max( 1, Math.round( (20 + 4 * vines.grassTiles) * hpMul ) );
+		vines.HP = vines.HT = Math.max( 1, Math.round( (40 + hero.lvl * 3) * hpMul ) );
 		return spawnPlant( hero, vines, 10f );
 	}
 
