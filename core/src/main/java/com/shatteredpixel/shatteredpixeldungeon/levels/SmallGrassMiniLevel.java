@@ -3,8 +3,6 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GoblinRider;
-import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
-import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.BlessScrollRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MossEntranceRoom;
@@ -104,26 +102,6 @@ public class SmallGrassMiniLevel extends SewerLevel {
             if (cell != -1) {
                 rider.pos = cell;
                 mobs.add(rider);
-            }
-        }
-    }
-
-    @Override
-    protected void createItems() {
-        super.createItems();
-
-        // 第2层固定生成一个金宝箱（上锁），钥匙由哥布林骑手掉落
-        if (Dungeon.depth == 2) {
-            int chestCell;
-            int guard = 0;
-            do {
-                chestCell = randomDropCell();
-                guard++;
-            } while ((chestCell == -1 || solid[chestCell] || chestCell == entrance()
-                    || findMob(chestCell) != null) && guard < 200);
-
-            if (chestCell != -1) {
-                drop(new TrinketCatalyst(), chestCell).type = Heap.Type.LOCKED_CHEST;
             }
         }
     }
