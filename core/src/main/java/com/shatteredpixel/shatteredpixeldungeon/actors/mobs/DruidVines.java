@@ -18,10 +18,11 @@ public class DruidVines extends Mob {
 	}
 
 	public int grassTiles = 0;
+	public int lvl = 1;
 
 	@Override
 	public int damageRoll() {
-		return Char.combatRoll( 4, 8 ) + grassTiles;
+		return Char.combatRoll( 10, 16 ) + grassTiles;
 	}
 
 	@Override
@@ -37,12 +38,22 @@ public class DruidVines extends Mob {
 
 	@Override
 	public int drRoll() {
-		return super.drRoll() + Char.combatRoll( 4, 8 ) + 3 * grassTiles;
+		return super.drRoll() + Char.combatRoll( 4, 8 ) + grassTiles;
 	}
 
 	@Override
 	public void move( int step, boolean travelling ) {
 		// 荆棘藤无法移动
+	}
+
+	/** 75% 法术抗性（所有魔法伤害减免到 25%）。 */
+	@Override
+	public float resistanceTo( DamageType type ) {
+		float base = super.resistanceTo( type );
+		if (type.isMagical()) {
+			return base * 0.25f;
+		}
+		return base;
 	}
 
 	@Override
@@ -56,16 +67,19 @@ public class DruidVines extends Mob {
 	}
 
 	private static final String GRASS = "grass";
+	private static final String LVL = "lvl";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( GRASS, grassTiles );
+		bundle.put( LVL, lvl );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		grassTiles = bundle.getInt( GRASS );
+		lvl = bundle.getInt( LVL );
 	}
 }

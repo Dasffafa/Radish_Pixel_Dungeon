@@ -22,7 +22,7 @@ public class DruidSunflower extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Math.round( (Char.combatRoll( 15, 25 ) + 5 * grassTiles) * power );
+		return Math.round( (Char.combatRoll( 15, 25 ) + grassTiles) * power );
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class DruidSunflower extends Mob {
 
 	@Override
 	public int drRoll() {
-		return super.drRoll() + Char.combatRoll( 8, 12 ) + 5 * grassTiles;
+		return super.drRoll() + Char.combatRoll( 8, 12 ) + grassTiles;
 	}
 
 	@Override
