@@ -21,24 +21,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Stubbornness
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Temporal;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Ultralight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Wayward;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazing;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blocking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blooming;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Chilling;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Combos;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Corrupting;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Elastic;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Euphoria;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamprey;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lucky;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Projecting;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Seeking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Shocking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Striking;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Unstable;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Vampiric;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -107,6 +89,8 @@ public class TestMelee extends TestGenerator {
         }
     }
 
+    private static final Class<?>[][] ENCH_LISTS = {null, Weapon.Enchantment.common, Weapon.Enchantment.uncommon, Weapon.Enchantment.rare, Weapon.Enchantment.curses};
+
     @Override
     public void storeInBundle(Bundle bundle) {
         super.storeInBundle(bundle);
@@ -129,24 +113,18 @@ public class TestMelee extends TestGenerator {
         weapon_id = bundle.getInt("weapon_id");
     }
 
-    private static final Class<?>[][] ENCH_LISTS = {
-            null,
-            Weapon.Enchantment.common,
-            Weapon.Enchantment.uncommon,
-            Weapon.Enchantment.rare,
-            Weapon.Enchantment.curses
-    };
-
+    // 池数组驱动(与TestArmor的GLYPH_LISTS同思路)：直接引用四个附魔池，新增附魔入池后自动可选。
+    // 超出列表长度时取最后一项(与TestArmor的越界钳制一致)。
     @SuppressWarnings("unchecked")
     private Class<? extends Weapon.Enchantment> generateEnchant(int category, int id) {
         if (category <= 0 || category >= ENCH_LISTS.length) {
             return null;
         }
-        Class<?>[] list = ENCH_LISTS[category];
-        if (list == null || list.length == 0) {
+        Class<?>[] enchs = ENCH_LISTS[category];
+        if (enchs == null || enchs.length == 0) {
             return null;
         }
-        return (Class<? extends Weapon.Enchantment>) list[Math.min(id, list.length - 1)];
+        return (Class<? extends Weapon.Enchantment>) enchs[Math.min(id, enchs.length - 1)];
     }
 
     private Class<? extends Weapon>[] weaponList(int t) {
