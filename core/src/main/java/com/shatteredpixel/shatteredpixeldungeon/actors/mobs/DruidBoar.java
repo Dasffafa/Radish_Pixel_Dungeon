@@ -24,7 +24,7 @@ public class DruidBoar extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Math.round( (Char.combatRoll( 8, 16 ) + lvl / 2f) * power );
+		return Math.round( (Char.combatRoll( 6, 12 ) + lvl / 2f) * power );
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class DruidBoar extends Mob {
 
 	@Override
 	public float speed() {
-		return 1.5f;
+		return 1.2f;
 	}
 
 	@Override
