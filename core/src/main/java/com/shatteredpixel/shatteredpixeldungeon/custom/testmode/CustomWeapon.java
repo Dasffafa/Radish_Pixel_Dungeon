@@ -79,17 +79,45 @@ public class CustomWeapon extends MeleeWeapon {
     public static ArrayList<Enchantment> enchList = new ArrayList<>();
     public static LinkedHashMap<Class<? extends Enchantment>, Integer> enchPrio = new LinkedHashMap<>();
     static{
-        // 由附魔池驱动，新增附魔无需再手工登记
-        addEnchants(Weapon.Enchantment.common, 1);
-        addEnchants(Weapon.Enchantment.uncommon, 2);
-        addEnchants(Weapon.Enchantment.rare, 2);
-        addEnchants(Weapon.Enchantment.curses, 0);
-    }
+        enchPrio.put(Blazing.class,1);
+        enchPrio.put(Blocking.class, 0);
+        enchPrio.put(Blooming.class, 0);
+        enchPrio.put(Chilling.class, 1);
+        enchPrio.put(Corrupting.class, 0);
+        enchPrio.put(Elastic.class, 1);
+        enchPrio.put(Grim.class, 0);
+        enchPrio.put(Jealousy.class, 1);
+        enchPrio.put(Kinetic.class, 0);
+        enchPrio.put(Lucky.class, 0);
+        enchPrio.put(Projecting.class, 2);
+        enchPrio.put(Shocking.class, 1);
+        enchPrio.put(Vampiric.class, 1);
+        enchPrio.put(Striking.class, 1);
+        enchPrio.put(Survival.class, 1);
 
-    @SuppressWarnings("unchecked")
-    private static void addEnchants(Class<?>[] classes, int priority) {
-        for (Class<?> c : classes) {
-            enchPrio.put((Class<? extends Enchantment>) c, priority);
+        enchPrio.put(Annoying.class, 0);
+        enchPrio.put(Displacing.class, 1);
+        enchPrio.put(Dazzling.class, 0);
+        enchPrio.put(Explosive.class, 2);
+        enchPrio.put(Friendly.class, 0);
+        enchPrio.put(Polarized.class, 2);
+        enchPrio.put(Sacrificial.class, 1);
+        enchPrio.put(Wayward.class, 2);
+        enchPrio.put(Temporal.class, 2);
+        enchPrio.put(DoubleEdged.class, 2);
+        enchPrio.put(Heavy.class, 2);
+        enchPrio.put(Ultralight.class, 2);
+
+        // 池数组驱动扫描(与TestArmor的GLYPH_LISTS同思路)：追加四个池中未显式注册的附魔，
+        // 使新增附魔入池后自动出现在选框。追加在末尾，保证既有存档 ench_on 位掩码的位序不变。
+        for (Class<?>[] pool : new Class<?>[][]{Enchantment.common, Enchantment.uncommon, Enchantment.rare, Enchantment.curses}) {
+            for (Class<?> c : pool) {
+                @SuppressWarnings("unchecked")
+                Class<? extends Enchantment> e = (Class<? extends Enchantment>) c;
+                if (!enchPrio.containsKey(e)) {
+                    enchPrio.put(e, e.getName().endsWith(".curses.") ? 2 : 1);
+                }
+            }
         }
     }
 
