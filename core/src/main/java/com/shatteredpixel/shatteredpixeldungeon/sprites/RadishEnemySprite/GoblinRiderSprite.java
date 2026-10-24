@@ -5,7 +5,19 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.MobSprite;
 import com.watabou.noosa.MovieClip;
 import com.watabou.noosa.TextureFilm;
 
-/** 哥布林骑手：15 帧（16x18），待机 0-5、攻击 6-8、受击 9-12、死亡 13-14。 */
+/**
+ * 哥布林骑手（青蛙坐骑）。
+ *
+ * 贴图：16 帧，每帧 16x18（比标准 16x16 高 2px）。
+ * 高度超出格子时，CharSprite.worldToCamera() 会把精灵整体上抬，
+ * 导致脚底离地。因此按 WardSprite 的做法补偿 perspectiveRaise。
+ *
+ * 帧分布（共 16 帧）：
+ *   0-5   待机
+ *   6-8   攻击
+ *   9-11  受击 / 远程投矛
+ *   12-15 死亡
+ */
 public class GoblinRiderSprite extends MobSprite {
 
     public GoblinRiderSprite() {
@@ -27,9 +39,12 @@ public class GoblinRiderSprite extends MobSprite {
         zap.frames(frames, 9, 10, 11);
 
         die = new MovieClip.Animation(9, false);
-        die.frames(frames, 13, 14);
+        die.frames(frames, 12, 13, 14, 15);
 
         play(idle);
+
+        // play() 之后 height 才是真实的帧高度，此时补偿才有效
+        perspectiveRaise = (6 + (height() - 16)) / 16f;
     }
 
     @Override

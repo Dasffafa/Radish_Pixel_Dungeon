@@ -6,8 +6,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
-import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
-import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.FishingSpear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
@@ -20,16 +18,18 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
 /**
- * 哥布林骑手：一区跆拳洞穴小 Boss。
- * 远程投掷长矛（伤害略高于石子），近战与青蛙一起攻击。
- * 掉落 3 只捕鱼矛 + 金钥匙。
+ * 哥布林骑手：一区跆拳洞穴（苔藓分支第 2 层）的小 Boss。
+ *
+ * 远程：投掷长矛，伤害略高于石子（3~6）。
+ * 近战：与坐骑青蛙一起攻击（哥布林 2~3 + 青蛙 1~5）。
+ * 掉落：3 只捕鱼矛 + 金钥匙。
  */
 public class GoblinRider extends Goblin {
 
     {
         spriteClass = GoblinRiderSprite.class;
 
-        // 在普通哥布林基础上上调
+        // 在普通哥布林（HP 20、命中 14）基础上上调
         HP = HT = 26;
         defenseSkill = 5;
 
@@ -42,6 +42,9 @@ public class GoblinRider extends Goblin {
 
     private static final String SPEARREMAIN = "SpearRemain";
     private int spearRemain = 3;
+
+    // 本次攻击是否为远程投矛（由 doAttack 设置，onAttackComplete 读取）
+    private boolean rangedAttack = false;
 
     @Override
     public void storeInBundle(Bundle bundle) {
@@ -57,7 +60,7 @@ public class GoblinRider extends Goblin {
 
     @Override
     public int damageRoll() {
-        // 哥布林 2~3 + 青蛙 1~5
+        // 哥布林 2~3 + 青蛙 1~5，一起打一次
         return Random.NormalIntRange(2, 3) + Char.combatRoll(1, 5);
     }
 
@@ -73,30 +76,81 @@ public class GoblinRider extends Goblin {
 
     @Override
     protected boolean canAttack(Char enemy) {
-        return new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos
-                && (spearRemain > 0 || Dungeon.level.adjacent(pos, enemy.pos));
+        if (Dungeon.level.adjacent(pos, enemy.pos)) {
+            return true;
+        }
+        if (spearRemain <= 0) {
+            return false;
+        }
+        return new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos;
     }
 
+    /**
+     * 近战走标准流程（sprite.attack），远程走投矛流程（sprite.zap）。
+     * 两者都必须返回 false 让动画先播，并在动画结束时统一由
+     * onAttackComplete / onZapComplete 结算并 spend()，否则回合不结束会卡死。
+     */
     @Override
     protected boolean doAttack(Char enemy) {
+        boolean visible = sprite != null && (sprite.visible || enemy.sprite.visible);
+
         if (Dungeon.level.adjacent(pos, enemy.pos)) {
-            return super.doAttack(enemy);
+            rangedAttack = false;
+            if (visible) {
+                sprite.attack(enemy.pos);
+                return false;
+            } else {
+                attack(enemy);
+                Invisibility.dispel(this);
+                spend(attackDelay());
+                return true;
+            }
         }
-        spearRemain--;
-        spearRemain = Math.max(spearRemain, 0);
-        if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
+
+        // 远程投矛
+        rangedAttack = true;
+        spearRemain = Math.max(spearRemain - 1, 0);
+        if (visible) {
             sprite.zap(enemy.pos);
             return false;
         } else {
             throwSpear();
+            Invisibility.dispel(this);
+            spend(attackDelay());
+            rangedAttack = false;
             return true;
         }
     }
 
-    /** 投掷长矛：伤害等于石子伤害再略高。 */
+    @Override
+    public void onAttackComplete() {
+        if (rangedAttack) {
+            throwSpear();
+            rangedAttack = false;
+            Invisibility.dispel(this);
+            spend(attackDelay());
+            // 不调用 super，避免再次造成近战伤害
+            next();
+        } else {
+            super.onAttackComplete();
+        }
+    }
+
+    @Override
+    public void onZapComplete() {
+        if (rangedAttack) {
+            throwSpear();
+            rangedAttack = false;
+            Invisibility.dispel(this);
+            spend(attackDelay());
+        }
+        next();
+    }
+
+    /** 投掷长矛：伤害 3~6（石子为 2~4）。 */
     private void throwSpear() {
-        spend(1f);
-        Invisibility.dispel(this);
+        if (enemy == null || !enemy.isAlive()) return;
+
         if (hit(this, enemy, true)) {
             int dmg = Random.NormalIntRange(3, 6);
             dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
@@ -114,18 +168,12 @@ public class GoblinRider extends Goblin {
     }
 
     @Override
-    public void onZapComplete() {
-        throwSpear();
-        next();
-    }
-
-    @Override
     public void die(Object cause) {
         // 掉落 3 只捕鱼矛
         for (int i = 0; i < 3; i++) {
             Dungeon.level.drop(new FishingSpear(), pos).sprite.drop();
         }
-        // 金钥匙（用于开启本层的固定商城金宝箱）
+        // 金钥匙（用于开启本层赐福卷轴房间的金宝箱）
         Dungeon.level.drop(new GoldenKey(Dungeon.depth), pos).sprite.drop();
         super.die(cause);
     }
