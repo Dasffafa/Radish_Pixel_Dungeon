@@ -70,7 +70,9 @@ public class WndImp extends Window{
 		pos = tfTitle.bottom() + 2*MARGIN;
 
 
-		layoutBody(pos, Messages.get(WndImp.class, "message"), Messages.get(WndImp.class, "reward"),Messages.get(WndImp.class, "power"));
+		layoutBody(pos, Messages.get(WndImp.class, "message"),
+				heroHasSubClass() ? new String[]{ Messages.get(WndImp.class, "reward"), Messages.get(WndImp.class, "power") }
+						: new String[]{ Messages.get(WndImp.class, "reward") });
 
 
 	}
@@ -160,8 +162,14 @@ public class WndImp extends Window{
 	protected boolean enabled( int index ){
 		switch (index) {
 			case 0: default:	return true;
-			case 1:return Dungeon.hero.armorAbility==null;
+			// 只有已转职时才有“激发潜力”选项
+			case 1: return heroHasSubClass();
 		}
+	}
+
+	/** 是否已选择专精（未专精时无法激活四阶天赋）。 */
+	private static boolean heroHasSubClass() {
+		return Dungeon.hero != null && Dungeon.hero.subClass != HeroSubClasses.NONE;
 	}
 
 	protected void onSelect( int index ) {
@@ -205,9 +213,13 @@ public class WndImp extends Window{
 	}
 
 	private void gainTalent(Imp imp, DwarfToken tokens, Hero hero) {
-		if (hero.subClass== HeroSubClasses.NONE){
+		if (!heroHasSubClass()) {
+			// 兜底：未专精时不应走到这里
 			GLog.n( Messages.get(this, "deny"));
-		} else {
+			hide();
+			return;
+		}
+		{
 			hero.powerOfImp=true;
 			Buff.affect(hero, powerGainTracker.class);
 			hero.spend(Actor.TICK);
