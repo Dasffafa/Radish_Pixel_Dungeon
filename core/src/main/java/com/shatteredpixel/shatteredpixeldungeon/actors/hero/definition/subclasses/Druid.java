@@ -104,7 +104,7 @@ public class Druid extends HeroSubClass {
 		DruidBoar boar = new DruidBoar();
 		boar.lvl = hero.lvl;
 		boar.power = animalPower( hero );
-		boar.HP = boar.HT = Math.round( (40 + hero.lvl * 2) * boar.power );
+		boar.HP = boar.HT = Math.round( (30 + hero.lvl * 1.5f) * boar.power );
 		return spawnAnimal( hero, boar, animalCost( hero, 12f ) );
 	}
 
@@ -130,7 +130,7 @@ public class Druid extends HeroSubClass {
 			DruidWolf wolf = new DruidWolf();
 			wolf.lvl = hero.lvl;
 			wolf.power = animalPower( hero );
-			wolf.HP = wolf.HT = Math.round( (30 + hero.lvl / 2f) * wolf.power );
+			wolf.HP = wolf.HT = Math.round( (22 + hero.lvl / 2f) * wolf.power );
 			place( wolf, hero );
 		}
 		return true;
@@ -140,7 +140,7 @@ public class Druid extends HeroSubClass {
 		DruidBear bear = new DruidBear();
 		bear.lvl = hero.lvl;
 		bear.power = animalPower( hero );
-		bear.HP = bear.HT = Math.round( (80 + hero.lvl * 3) * bear.power );
+		bear.HP = bear.HT = Math.round( (60 + hero.lvl * 2.2f) * bear.power );
 		return spawnAnimal( hero, bear, animalCost( hero, 20f ) );
 	}
 
@@ -239,7 +239,7 @@ public class Druid extends HeroSubClass {
 		vines.lvl = hero.lvl;
 		int pts = hero.pointsInTalent( Talent.NATURE_BOND );
 		float hpMul = pts >= 1 ? 1.5f : 1f;
-		vines.HP = vines.HT = Math.max( 1, Math.round( (40 + hero.lvl * 3) * hpMul ) );
+		vines.HP = vines.HT = Math.max( 1, Math.round( (30 + hero.lvl * 2.2f) * hpMul ) );
 		return spawnPlant( hero, vines, 10f );
 	}
 
@@ -248,7 +248,7 @@ public class Druid extends HeroSubClass {
 		flower.grassTiles = countGrass( hero.pos, 2 );
 		int pts = hero.pointsInTalent( Talent.NATURE_BOND );
 		float hpMul = pts >= 2 ? 1.5f : 1f;
-		flower.HP = flower.HT = Math.round( (100 + Dungeon.depth * 2) * hpMul );
+		flower.HP = flower.HT = Math.round( (80 + Dungeon.depth * 1.5f) * hpMul );
 		flower.power = pts >= 2 ? 1.5f : 1f;
 		return spawnPlant( hero, flower, 30f );
 	}

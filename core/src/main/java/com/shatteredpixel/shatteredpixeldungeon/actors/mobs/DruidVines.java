@@ -22,7 +22,7 @@ public class DruidVines extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Char.combatRoll( 10, 16 ) + grassTiles;
+		return Char.combatRoll( 8, 13 ) + grassTiles;
 	}
 
 	@Override

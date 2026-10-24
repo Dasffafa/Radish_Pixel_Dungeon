@@ -24,7 +24,7 @@ public class DruidWolf extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Math.round( (Char.combatRoll( 5, 10 ) + lvl / 3f) * power );
+		return Math.round( (Char.combatRoll( 4, 8 ) + lvl / 3f) * power );
 	}
 
 	@Override
@@ -41,12 +41,12 @@ public class DruidWolf extends Mob {
 
 	@Override
 	public float speed() {
-		return 2f;
+		return 1.6f;
 	}
 
 	@Override
 	public float attackDelay() {
-		return 0.75f;
+		return 1f;
 	}
 
 	@Override

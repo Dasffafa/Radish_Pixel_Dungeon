@@ -27,7 +27,7 @@ public class DruidBear extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Math.round( (Char.combatRoll( 16, 26 ) + lvl) * power );
+		return Math.round( (Char.combatRoll( 12, 20 ) + lvl) * power );
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class DruidBear extends Mob {
 
 	@Override
 	public float attackDelay() {
-		return 1.5f;
+		return 1.8f;
 	}
 
 	@Override
