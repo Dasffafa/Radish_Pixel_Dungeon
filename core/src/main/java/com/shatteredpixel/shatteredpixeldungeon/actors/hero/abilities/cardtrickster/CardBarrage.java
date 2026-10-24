@@ -67,7 +67,7 @@ public class CardBarrage extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[]{ Talent.SWIFT_STEP, Talent.EMERGENCY_REPEAT, Talent.MOMENTUM_TP };
+		return new Talent[]{ Talent.SWIFT_STEP, Talent.EMERGENCY_REPEAT, Talent.MOMENTUM_TP, Talent.HEROIC_ENERGY };
 	}
 
 	private static final String REPEAT = "repeat";

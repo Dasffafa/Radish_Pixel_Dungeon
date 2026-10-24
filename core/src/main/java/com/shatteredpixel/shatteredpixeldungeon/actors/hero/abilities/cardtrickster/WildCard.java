@@ -39,6 +39,6 @@ public class WildCard extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[]{ Talent.HEAVY_REWARD, Talent.LINGERING, Talent.EXTRA_BLESSING };
+		return new Talent[]{ Talent.HEAVY_REWARD, Talent.LINGERING, Talent.EXTRA_BLESSING, Talent.HEROIC_ENERGY };
 	}
 }

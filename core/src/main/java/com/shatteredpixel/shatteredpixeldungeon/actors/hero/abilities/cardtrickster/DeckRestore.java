@@ -57,6 +57,6 @@ public class DeckRestore extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[]{ Talent.LONG_STORAGE, Talent.BAG_EXPANSION, Talent.EFFECTIVE_USE };
+		return new Talent[]{ Talent.LONG_STORAGE, Talent.BAG_EXPANSION, Talent.EFFECTIVE_USE, Talent.HEROIC_ENERGY };
 	}
 }

@@ -575,11 +575,18 @@ public final class CardEffects {
 		CardTargeter.play(hero, card);
 	}
 
-	/** 存储槽到期：把卡打出。 */
+	/** 存储槽到期：把存储的卡放回牌堆底（不等玩家选目标）。 */
 	public static void releaseStored(Hero hero) {
 		CardDeck deck = hero.cardDeck;
-		if (deck == null || deck.stored.isEmpty() || deck.held != null) return;
-		playStored(hero, deck.stored.get(0));
+		if (deck == null || deck.stored.isEmpty()) return;
+		// 逐张放回牌堆底，避免手上已有卡时被阻塞
+		for (Card c : new ArrayList<>(deck.stored)) {
+			deck.stored.remove(c);
+			deck.addToBottom(c);
+			GLog.i(Messages.get(CardEffects.class, "storage_to_bottom", c.name()));
+		}
+		HeldCardTracker.sync(hero);
+		ActionIndicator.refresh();
 	}
 
 	/** 花式切牌 +1：空转出的空白卡中随机一张打到视野内随机敌人。 */

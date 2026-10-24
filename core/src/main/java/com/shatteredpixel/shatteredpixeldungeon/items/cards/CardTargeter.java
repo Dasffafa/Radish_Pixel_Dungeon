@@ -139,9 +139,11 @@ public final class CardTargeter {
 		if (card.type == CardType.TELEPORT) {
 			int range = card.teleportRange > 0 ? card.teleportRange : 2;
 			if (Dungeon.level.distance(hero.pos, cell) > range) return false;
-			if (Actor.findChar(cell) != null) return false;
-			Ballistica b = new Ballistica(hero.pos, cell, Ballistica.STOP_SOLID);
-			return b.collisionPos == cell;
+			if (!Dungeon.level.passable[cell]) return false;
+			// 允许传送到自己脚下以外的空地；有生物站着的格子不可落点
+			if (cell != hero.pos && Actor.findChar(cell) != null) return false;
+			// 传送不需要视线，只要能走到的平面即可
+			return true;
 		}
 		// 陷阱卡：视野内 8 格，只需可达且非实体墙（不被生物/软障碍阻挡）
 		if (Dungeon.level.distance(hero.pos, cell) > 8) return false;
