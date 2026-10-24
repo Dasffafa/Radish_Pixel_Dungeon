@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.BigSnake_
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GoblinRider;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.Builder;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.FigureEightBuilder;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -153,6 +154,18 @@ public class SewerBossLevel extends SewerLevel {
 	@Override
 	protected void createItems() {
 		Random.pushGenerator(Random.Long());
+		// 本层固定生成一个金宝箱（上锁），钥匙由哥布林骑手掉落
+		{
+			int chestCell;
+			int guard = 0;
+			do {
+				chestCell = pointToCell(roomEntrance.random());
+				guard++;
+			} while ((chestCell == entrance() || solid[chestCell] || findMob(chestCell) != null) && guard < 200);
+			if (guard < 200) {
+				drop(new TrinketCatalyst(), chestCell).type = Heap.Type.LOCKED_CHEST;
+			}
+		}
 			ArrayList<Item> bonesItems = Bones.get();
 			if (bonesItems != null) {
 				int pos;

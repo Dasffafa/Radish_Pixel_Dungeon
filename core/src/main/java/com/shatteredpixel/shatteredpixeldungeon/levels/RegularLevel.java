@@ -475,7 +475,10 @@ public abstract class RegularLevel extends Level {
 					Heap dropped = drop(toDrop, cell);
 					if (heaps.get(cell) == dropped) {
 						dropped.type = Heap.Type.LOCKED_CHEST;
-						addItemToSpawn(new GoldenKey(Dungeon.depth));
+						// 一区 Boss 层的金钥匙改由哥布林骑手掉落，不在此随机生成
+						if (!(Dungeon.level instanceof SewerBossLevel)) {
+							addItemToSpawn(new GoldenKey(Dungeon.depth));
+						}
 					}
 				}
 			} else {
@@ -492,11 +495,14 @@ public abstract class RegularLevel extends Level {
 			int cell = randomDropCell();
 			if (item instanceof TrinketCatalyst){
 				drop( item, cell ).type = Heap.Type.LOCKED_CHEST;
-				int keyCell = randomDropCell();
-				drop( new GoldenKey(Dungeon.depth), keyCell ).type = Heap.Type.HEAP;
-				if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
-					map[keyCell] = Terrain.GRASS;
-					losBlocking[keyCell] = false;
+				// 一区 Boss 层的金钥匙改由哥布林骑手掉落，这里不再随机生成
+				if (!(this instanceof SewerBossLevel)) {
+					int keyCell = randomDropCell();
+					drop( new GoldenKey(Dungeon.depth), keyCell ).type = Heap.Type.HEAP;
+					if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
+						map[keyCell] = Terrain.GRASS;
+						losBlocking[keyCell] = false;
+					}
 				}
 			} else {
 				drop( item, cell ).type = Heap.Type.HEAP;

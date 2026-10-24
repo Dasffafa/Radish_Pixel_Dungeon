@@ -8,7 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.keys.SkeletonKey;
+import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.FishingSpear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -125,8 +125,8 @@ public class GoblinRider extends Goblin {
         for (int i = 0; i < 3; i++) {
             Dungeon.level.drop(new FishingSpear(), pos).sprite.drop();
         }
-        // 金钥匙
-        Dungeon.level.drop(new SkeletonKey(Dungeon.depth), pos).sprite.drop();
+        // 金钥匙（用于开启本层的固定商城金宝箱）
+        Dungeon.level.drop(new GoldenKey(Dungeon.depth), pos).sprite.drop();
         super.die(cause);
     }
 
