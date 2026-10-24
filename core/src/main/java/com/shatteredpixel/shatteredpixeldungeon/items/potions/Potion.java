@@ -314,7 +314,9 @@ public class Potion extends Item {
 
 		Sample.INSTANCE.play( Assets.Sounds.DRINK );
 
-		hero.sprite.operate( hero.pos );
+		if (hero.sprite != null) {
+			hero.sprite.operate( hero.pos );
+		}
 
 		if (!anonymous) {
 			Catalog.countUse(getClass());
