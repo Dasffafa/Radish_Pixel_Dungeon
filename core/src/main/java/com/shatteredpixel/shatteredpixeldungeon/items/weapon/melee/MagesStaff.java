@@ -26,6 +26,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
@@ -646,7 +647,12 @@ public class MagesStaff extends MeleeWeapon {
 	public Emitter emitter() {
 		if (wand == null) return null;
 		Emitter emitter = new Emitter();
-		emitter.pos(12.5f, 3);
+		// 各职业角色贴图的杖头位置不同，光效需按职业对齐
+		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClasses.CARDTRICKSTER) {
+			emitter.pos(12.5f, 5);
+		} else {
+			emitter.pos(12.5f, 3);
+		}
 		emitter.fillTarget = false;
 		emitter.pour(StaffParticleFactory, 0.1f);
 		return emitter;
