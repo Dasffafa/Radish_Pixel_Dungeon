@@ -30,10 +30,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.BigSnake_Zikk;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GoblinRider;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.TrinketCatalyst;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.Builder;
 import com.shatteredpixel.shatteredpixeldungeon.levels.builders.FigureEightBuilder;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
@@ -136,15 +134,6 @@ public class SewerBossLevel extends SewerLevel {
 
 	@Override
 	protected void createMobs() {
-		// 一区小 Boss：哥布林骑手
-		GoblinRider rider = new GoblinRider();
-		int cell;
-		do {
-			cell = pointToCell(roomEntrance.random());
-		} while (cell == entrance() || solid[cell]);
-		rider.pos = cell;
-		mobs.add(rider);
-		GameScene.add(rider);
 	}
 	
 	public Actor addRespawner() {
@@ -154,18 +143,6 @@ public class SewerBossLevel extends SewerLevel {
 	@Override
 	protected void createItems() {
 		Random.pushGenerator(Random.Long());
-		// 本层固定生成一个金宝箱（上锁），钥匙由哥布林骑手掉落
-		{
-			int chestCell;
-			int guard = 0;
-			do {
-				chestCell = pointToCell(roomEntrance.random());
-				guard++;
-			} while ((chestCell == entrance() || solid[chestCell] || findMob(chestCell) != null) && guard < 200);
-			if (guard < 200) {
-				drop(new TrinketCatalyst(), chestCell).type = Heap.Type.LOCKED_CHEST;
-			}
-		}
 			ArrayList<Item> bonesItems = Bones.get();
 			if (bonesItems != null) {
 				int pos;
