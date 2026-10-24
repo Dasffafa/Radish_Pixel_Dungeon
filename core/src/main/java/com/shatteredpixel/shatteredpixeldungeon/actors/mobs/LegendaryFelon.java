@@ -99,9 +99,18 @@ public class LegendaryFelon extends Prisoner {
 	protected class FelonHunting extends Hunting {
 		@Override
 		public boolean act( boolean enemyInFOV, boolean justAlerted ) {
-			if (skillCd <= 0 && enemyInFOV && enemy != null && enemy.isAlive()
-					&& Dungeon.level.distance( pos, enemy.pos ) <= 8) {
-				markedCell = enemy.pos;
+			// 技能锁定英雄，而不是被召唤物带偏
+			Char target = null;
+			if (Dungeon.hero != null && Dungeon.hero.isAlive()
+					&& fieldOfView[Dungeon.hero.pos]) {
+				target = Dungeon.hero;
+			} else if (enemyInFOV && enemy != null && enemy.isAlive()) {
+				target = enemy;
+			}
+
+			if (skillCd <= 0 && target != null
+					&& Dungeon.level.distance( pos, target.pos ) <= 8) {
+				markedCell = target.pos;
 				state = CHARGING;
 				// 立刻亮出预警
 				warn( markedCell );
