@@ -195,7 +195,8 @@ public final class CardEffects {
 					return;
 				}
 				boolean free = Buff.affect(hero, NextAttackFree.class).consume();
-				int dmg = Random.NormalIntRange(1, 5);
+				// 基础伤害 1~5，再附加一份 1~5 的额外伤害
+				int dmg = Random.NormalIntRange(1, 5) + Random.NormalIntRange(1, 5);
 
 				int emp = hero.pointsInTalent(Talent.BLANK_EMPOWERMENT);
 				if (emp == 1) dmg += Random.NormalIntRange(0, 2);

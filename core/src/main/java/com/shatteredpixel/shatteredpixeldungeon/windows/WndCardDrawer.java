@@ -184,17 +184,6 @@ public class WndCardDrawer extends Window {
 		}
 
 		if (hero.subClass == HeroSubClasses.ILLUSIONIST) {
-			RedButton transform = new RedButton(Messages.get(this, "transform")) {
-				@Override
-				protected void onClick() {
-					hide();
-					CardDrawer.beginTransform(hero);
-				}
-			};
-			transform.setRect(MARGIN, pos, inner, BUTTON_HEIGHT);
-			add(transform);
-			pos = transform.bottom() + GAP;
-
 			RedButton compress = new RedButton(Messages.get(this, "compress")) {
 				@Override
 				protected void onClick() {
