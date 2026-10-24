@@ -115,7 +115,10 @@ public final class CardTargeter {
 			case SELF:
 				return ch == hero;
 			case ENEMY:
-				return ch != null && ch != hero && ch.alignment != Char.Alignment.ALLY;
+				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) return false;
+				// 卡牌攻击不能穿墙：需要视线可达
+				return new Ballistica(hero.pos, ch.pos, Ballistica.STOP_SOLID)
+						.collisionPos == ch.pos;
 			case ANY:
 				if (card.type == CardType.BLANK && ch == hero) {
 					// 空白卡指定自己：仅收藏家可用（转化为攻击/防御卡）。

@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Preparation;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeldCardTracker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
@@ -504,7 +505,28 @@ public final class CardEffects {
 			ch.sprite.showStatus(CharSprite.NEUTRAL, Messages.get(CardEffects.class, "miss"));
 			return;
 		}
+
+		// 伏击加成：隐身攻击时按准备等级提升伤害
+		boolean sneaking = hero.invisible > 0 && hero.canSurpriseAttack();
+		if (sneaking) {
+			float bonus = 0.10f; // 默认最低档
+			Preparation prep = hero.buff(Preparation.class);
+			if (prep != null) {
+				// attackLevel() 返回 1~4 的准备等级
+				int lvlIndex = Math.max(1, Math.min(4, prep.attackLevel()));
+				bonus = new float[]{0.10f, 0.20f, 0.35f, 0.50f}[lvlIndex - 1];
+			}
+			dmg = Math.round(dmg * (1f + bonus));
+			ch.sprite.showStatus(CharSprite.POSITIVE, Messages.get(CardEffects.class, "ambush"));
+		}
+
 		ch.damage(new DamageInfo(dmg, DamageType.PHYSICAL, hero, null, card));
+
+		// 让目标走一次受击反应（蝇群分裂等逻辑挂在 defenseProc 里）
+		if (ch.isAlive()) {
+			ch.defenseProc(hero, dmg);
+		}
+
 		if (!ch.isAlive()) {
 			BoneToGold gold = hero.buff(BoneToGold.class);
 			if (gold != null) gold.onCardKill(hero, ch.pos);
@@ -680,16 +702,22 @@ public final class CardEffects {
 						: roll == 1 ? Generator.Category.POTION : Generator.Category.RING;
 				item = Generator.random(cat);
 				if (item != null) {
+					// 先记录名字再鉴定，便于提示玩家具体是什么
+					String itemName = item.name();
 					item.identify();
 					if (!item.collect(hero.belongings.backpack)) {
 						Dungeon.level.drop(item, hero.pos).sprite.drop();
 					}
+					GLog.p(Messages.get(CardEffects.class, "identified_one", item.name()));
+					continue;
 				}
 			} else {
 				item.identify();
+				GLog.p(Messages.get(CardEffects.class, "identified_one", item.name()));
+				continue;
 			}
+			GLog.i(Messages.get(CardEffects.class, "identified"));
 		}
-		GLog.i(Messages.get(CardEffects.class, "identified"));
 	}
 
 	private static Item findUnidentified(Hero hero) {
