@@ -96,9 +96,9 @@ public class WndChooseSubclass extends Window {
 								tome.choose( subCls );
 								if (subCls == HeroSubClasses.DRUID
 										&& hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid.DruidEnergy.class ) == null) {
+									// 不在转职时赠送能量，按设计从 0 开始积累
 									com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff
-											.affect( hero, com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid.DruidEnergy.class )
-											.gain( 50f );
+											.affect( hero, com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid.DruidEnergy.class );
 								}
 							}
 						}
