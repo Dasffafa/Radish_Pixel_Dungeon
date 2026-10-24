@@ -35,11 +35,12 @@ public class GoblinRiderSprite extends MobSprite {
         attack = new MovieClip.Animation(12, false);
         attack.frames(frames, 6, 7, 8);
 
+        // 远程投矛：与攻击共用前倾扑出的动作
         zap = new MovieClip.Animation(12, false);
-        zap.frames(frames, 9, 10, 11);
+        zap.frames(frames, 6, 7, 8);
 
         die = new MovieClip.Animation(9, false);
-        die.frames(frames, 12, 13, 14, 15);
+        die.frames(frames, 13, 14, 15);
 
         play(idle);
 

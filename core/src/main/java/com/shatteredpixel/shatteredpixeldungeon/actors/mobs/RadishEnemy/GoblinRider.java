@@ -12,9 +12,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSt
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.GoblinRiderSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 /**
@@ -114,7 +116,7 @@ public class GoblinRider extends Goblin {
             sprite.zap(enemy.pos);
             return false;
         } else {
-            throwSpear();
+            throwSpear(enemy);
             Invisibility.dispel(this);
             spend(attackDelay());
             rangedAttack = false;
@@ -125,12 +127,9 @@ public class GoblinRider extends Goblin {
     @Override
     public void onAttackComplete() {
         if (rangedAttack) {
-            throwSpear();
+            launchSpear();
             rangedAttack = false;
-            Invisibility.dispel(this);
-            spend(attackDelay());
             // 不调用 super，避免再次造成近战伤害
-            next();
         } else {
             super.onAttackComplete();
         }
@@ -139,31 +138,54 @@ public class GoblinRider extends Goblin {
     @Override
     public void onZapComplete() {
         if (rangedAttack) {
-            throwSpear();
+            launchSpear();
             rangedAttack = false;
-            Invisibility.dispel(this);
-            spend(attackDelay());
+        } else {
+            next();
         }
-        next();
     }
 
-    /** 投掷长矛：伤害 3~6（石子为 2~4）。 */
-    private void throwSpear() {
-        if (enemy == null || !enemy.isAlive()) return;
+    /** 投出飞行中的捕鱼矛，命中后结算伤害。 */
+    private void launchSpear() {
+        final Char target = enemy;
+        if (target == null || !target.isAlive() || sprite == null || sprite.parent == null) {
+            next();
+            return;
+        }
 
-        if (hit(this, enemy, true)) {
+        int cell = new Ballistica(pos, target.pos, Ballistica.PROJECTILE).collisionPos;
+
+        ((MissileSprite) sprite.parent.recycle(MissileSprite.class)).reset(
+                sprite, cell, new FishingSpear(), new Callback() {
+                    @Override
+                    public void call() {
+                        throwSpear(target);
+                        Invisibility.dispel(GoblinRider.this);
+                        spend(attackDelay());
+                        next();
+                    }
+                });
+    }
+
+    /** 投矛命中结算：伤害 3~6（石子为 2~4）。 */
+    private void throwSpear(Char target) {
+        if (target == null || !target.isAlive()) return;
+
+        if (hit(this, target, true)) {
             int dmg = Random.NormalIntRange(3, 6);
             dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
-            dmg = defenseProc(enemy, dmg);
-            dmg -= enemy.drRoll();
-            enemy.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, this, new ThrowingStone()));
+            dmg = defenseProc(target, dmg);
+            dmg -= target.drRoll();
+            target.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, this, new ThrowingStone()));
 
-            if (!enemy.isAlive() && enemy == Dungeon.hero) {
+            if (!target.isAlive() && target == Dungeon.hero) {
                 Dungeon.fail(getClass());
                 GLog.n(Messages.get(this, "kill"));
             }
         } else {
-            enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
+            target.sprite.showStatus(CharSprite.NEUTRAL, target.defenseVerb());
+            // 未命中，矛掉落在目标脚下
+            Dungeon.level.drop(new FishingSpear(), target.pos).sprite.drop();
         }
     }
 
