@@ -26,12 +26,16 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
+import com.watabou.noosa.particles.Emitter;
 
 //The eye of a tornado created by the Potion of Tornadoes. Every turn it drags
 //all enemies within a 9x9 area one tile closer to its center.
 public class Tornado extends Blob {
+
+	//the cell where the potion landed; only this cell draws a cyclone
+	private int centerCell = -1;
 
 	@Override
 	protected void evolve() {
@@ -43,6 +47,10 @@ public class Tornado extends Blob {
 			}
 			off[cell] = cur[cell] - 1;
 			volume += off[cell];
+
+			if (centerCell < 0 || cur[cell] > cur[centerCell]) {
+				centerCell = cell;
+			}
 
 			if (Dungeon.level.insideMap(cell)) {
 				pullToward(cell, width);
@@ -94,8 +102,30 @@ public class Tornado extends Blob {
 	@Override
 	public void use(BlobEmitter emitter) {
 		super.use(emitter);
-		emitter.pour(Speck.factory(Speck.STORM), 0.4f);
+		//initialize the eye right away so the first frame draws at the right cell
+		if (centerCell < 0) {
+			for (int cell = 0; cell < cur.length; cell++) {
+				if (cur[cell] > 0 && (centerCell < 0 || cur[cell] > cur[centerCell])) {
+					centerCell = cell;
+				}
+			}
+		}
+		emitter.start(CYCLONE, 0, 1);
 	}
+
+	//only the eye of the storm draws a cyclone
+	private final Emitter.Factory CYCLONE = new Emitter.Factory() {
+		@Override
+		public void emit( Emitter emitter, int index, float x, float y ) {
+			if (centerCell < 0 || cur[centerCell] <= 0) {
+				return;
+			}
+			float cx = (centerCell % Dungeon.level.width()) + 0.5f;
+			float cy = (centerCell / Dungeon.level.width()) + 0.5f;
+			CycloneParticle p = (CycloneParticle)emitter.recycle( CycloneParticle.class );
+			p.reset( cx * DungeonTilemap.SIZE, cy * DungeonTilemap.SIZE );
+		}
+	};
 
 	@Override
 	public String tileDesc() {

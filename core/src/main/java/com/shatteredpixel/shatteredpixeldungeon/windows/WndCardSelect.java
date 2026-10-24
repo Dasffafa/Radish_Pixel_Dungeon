@@ -29,6 +29,10 @@ public class WndCardSelect extends Window {
 	private final Listener listener;
 	private final ArrayList<CardButton> buttons = new ArrayList<>();
 
+	private ScrollPane pane;
+	private boolean paneSized;
+	private int paneX, paneY, paneW, paneH;
+
 	public WndCardSelect(String title, String desc, ArrayList<Card> cards,
 	                     int maxSelect, boolean multi, Listener listener) {
 		super();
@@ -55,6 +59,7 @@ public class WndCardSelect extends Window {
 		Component content = new Component();
 		float y = 0;
 		for (Card card : cards) {
+			if (card == null || card.type == null) continue;
 			CardButton button = new CardButton(card);
 			button.setRect(0, y, inner, BUTTON_HEIGHT);
 			content.add(button);
@@ -64,8 +69,12 @@ public class WndCardSelect extends Window {
 		content.setSize(inner, Math.max(y, BUTTON_HEIGHT));
 
 		int listHeight = (int) Math.min(MAX_LIST_HEIGHT, Math.max(BUTTON_HEIGHT, y));
-		ScrollPane pane = new ScrollPane(content);
-		pane.setRect(MARGIN, pos, inner, listHeight);
+		pane = new ScrollPane(content);
+		paneX = MARGIN;
+		paneY = (int) pos;
+		paneW = inner;
+		paneH = listHeight;
+		// ScrollPane.layout 需要 camera()；窗口尚未挂到场景时 camera 为 null，延后到 update()
 		add(pane);
 		pos += listHeight + MARGIN;
 
@@ -89,6 +98,16 @@ public class WndCardSelect extends Window {
 		add(cancel);
 
 		resize(width, (int) (cancel.bottom() + MARGIN));
+	}
+
+	@Override
+	public void update() {
+		super.update();
+		// 窗口挂到场景之前 camera() 为 null，ScrollPane.layout 会 NPE
+		if (!paneSized && pane != null && camera() != null) {
+			pane.setRect( paneX, paneY, paneW, paneH );
+			paneSized = true;
+		}
 	}
 
 	private class CardButton extends RedButton {

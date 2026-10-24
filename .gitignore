@@ -65,3 +65,6 @@ request.txt
 /core/src/main/assets/interfaces/talents/manifest.txt
 /core/src/main/assets/interfaces/buffs/small/manifest.txt
 /core/src/main/assets/interfaces/buffs/large/manifest.txt
+
+# 本地上游参考仓库（只读，勿提交）
+_upstream/

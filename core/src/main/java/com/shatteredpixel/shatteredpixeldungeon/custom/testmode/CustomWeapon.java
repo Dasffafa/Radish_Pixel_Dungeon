@@ -129,7 +129,7 @@ public class CustomWeapon extends MeleeWeapon {
                 int i = 0;
                 for(Class<? extends Enchantment> e: enchPrio.keySet()){
                     if (ench.getClass() == e){
-                        enchOn += 1L<<i;
+                        enchOn |= 1L << i;
                         break;
                     }
                     ++i;
@@ -155,7 +155,8 @@ public class CustomWeapon extends MeleeWeapon {
             //so scan 3 times instead.
             for(int i=2;i>=0;--i){
                 for(Enchantment e: enchList){
-                    if(enchPrio.get(e.getClass())==i) damage = e.proc(this, attacker, defender, damage);
+                    Integer prio = enchPrio.get(e.getClass());
+                    if (prio != null && prio == i) damage = e.proc(this, attacker, defender, damage);
                 }
             }
 
@@ -166,14 +167,17 @@ public class CustomWeapon extends MeleeWeapon {
 
     public boolean dispelEnchant(Class<? extends Enchantment> ench){
         if(ench!=null){
-            int id = 0;
-            for(Enchantment e: enchList){
+            for (Enchantment e : enchList){
                 if (e.getClass() == ench){
                     enchList.remove(e);
-                    enchOn -= 1<<id;
+                    int id = 0;
+                    for (Class<? extends Enchantment> c : enchPrio.keySet()){
+                        if (c == ench) break;
+                        ++id;
+                    }
+                    enchOn &= ~(1L << id);
                     return true;
                 }
-                ++id;
             }
         }
         return false;

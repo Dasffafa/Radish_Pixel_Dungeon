@@ -92,6 +92,11 @@ public class Jealousy extends Weapon.Enchantment {
 	}
 
 	@Override
+	public float panelDamageMultiplier(Weapon weapon, Char owner, boolean max) {
+		return performanceMultiplier(weapon.buffedLvl(), jealousy);
+	}
+
+	@Override
 	public ItemSprite.Glowing glowing() {
 		return PURPLE;
 	}

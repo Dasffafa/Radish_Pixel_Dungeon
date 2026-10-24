@@ -402,6 +402,12 @@ public class MagesStaff extends MeleeWeapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
+		// 线路串联：手持老魔杖时近战伤害翻倍
+		if (attacker instanceof Hero
+				&& ((Hero) attacker).subClass == HeroSubClasses.ARTIFICER
+				&& ((Hero) attacker).pointsInTalent(Talent.CIRCUIT_CHAIN) > 0) {
+			damage *= 2;
+		}
 		if (attacker instanceof Hero && ((Hero) attacker).hasTalent(Talent.MYSTICAL_CHARGE)){
 			Hero hero = (Hero) attacker;
 			ArtifactRecharge.chargeArtifacts(hero, hero.pointsInTalent(Talent.MYSTICAL_CHARGE)/2f);

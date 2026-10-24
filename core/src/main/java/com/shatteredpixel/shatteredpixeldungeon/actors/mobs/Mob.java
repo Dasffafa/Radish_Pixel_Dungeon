@@ -370,6 +370,12 @@ public abstract class Mob extends Char {
 
 		boolean enemyInFOV = enemy != null && enemy.isAlive() && fieldOfView[enemy.pos] && enemy.invisible <= 0;
 
+		// 邪秽刻印：亡灵/恶魔更难发现穿戴者
+		if (enemyInFOV && enemy == Dungeon.hero
+				&& com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Profane.hides( this, Dungeon.hero )) {
+			enemyInFOV = false;
+		}
+
 		//prevents action, but still updates enemy seen status
 		if (buff(Feint.AfterImage.FeintConfusion.class) != null){
 			enemySeen = enemyInFOV;

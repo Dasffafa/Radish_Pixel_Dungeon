@@ -1471,7 +1471,7 @@ public class Hero extends Char {
 			pickupWindowCell = -1;
 			if (Dungeon.level != null) {
 				Heap heap = Dungeon.level.heaps.get( cell );
-				if (heap != null && !heap.isEmpty()) {
+				if (heap != null && !heap.isEmpty() && heap.type == Heap.Type.HEAP) {
 					//窗口会测量文字并加载物品贴图，必须在渲染线程创建
 					Game.runOnRenderThread(new Callback() {
 						@Override
@@ -1484,6 +1484,32 @@ public class Hero extends Char {
 		}
 
 		GameScene.ready();
+
+		// 明灯附魔：未失明时至少拥有 3+等级 格视野；放下武器后恢复基础视野
+		if (Dungeon.level != null && buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness.class ) == null) {
+			int baseView = buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light.class ) != null
+					? Math.max( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light.DISTANCE,
+							Dungeon.level.viewDistance )
+					: Dungeon.level.viewDistance;
+			com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon w = belongings.weapon();
+			if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
+					&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).enchantment
+					instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamp) {
+				baseView = baseView + 3 + Math.max( 0,
+						((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).buffedLvl() );
+			}
+			if (viewDistance != baseView) {
+				viewDistance = baseView;
+				Dungeon.observe();
+			}
+		}
+
+		// 影舞者：隐身结束后等英雄可操作时再弹出突袭选点
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
+		// 推进附魔：待处理的突进询问
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Propulsion.onHeroReady( this );
+		// 脉冲附魔：装备期间即开始计时
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Pulse.onHeroReady( this );
 	}
 
 	public void interrupt() {
@@ -2243,6 +2269,11 @@ public class Hero extends Char {
 			}
 
 		damage = TieredToyEffects.attackProc(this, enemy, damage);
+
+		// 子职业命中钩子：必须传入真实伤害（魔武士附加魔法伤害、影舞者双重打击等）
+		if (subClass != null && enemy != null) {
+			subClass.onAttackProc(this, enemy, damage, true, enemy.alignment == Char.Alignment.ENEMY);
+		}
 
 		return damage;
 	}
@@ -3281,7 +3312,7 @@ public class Hero extends Char {
 			spend(delay);
 		}
 
-		subClass.onAttackProc(this, enemy, 0, hit, wasEnemy);
+		subClass.onAttackComplete(this, enemy, hit, wasEnemy);
 
 		// DoggingDog on 20250818
 		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){

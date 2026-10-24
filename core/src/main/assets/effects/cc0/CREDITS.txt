@@ -21,3 +21,8 @@ simplefx.png
   Source: https://opengameart.org/content/16x16-simple-fantasy-rpg-fx
   License: CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
   Sheet of 16x16 frames (16 columns x 13 rows).
+
+cyclone.png
+  3-frame 16x16 cyclone used by the Potion of Tornadoes blob.
+  48x16 horizontal strip.
+

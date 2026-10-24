@@ -404,6 +404,17 @@ public class WndUpgrade extends Window {
             protected void onClick() {
                 super.onClick();
 
+                // 精制附魔无法升级：不消耗卷轴/法术，也不执行升级
+                if (toUpgrade instanceof Weapon
+                        && ((Weapon) toUpgrade).enchantment
+                        instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined) {
+                    com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( Messages.get(
+                            com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined.class,
+                            "cannot_upgrade" ) );
+                    hide();
+                    return;
+                }
+
                 ScrollOfUpgrade.upgrade(Dungeon.hero);
 
                 Item upgraded = toUpgrade;

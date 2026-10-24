@@ -48,6 +48,10 @@ public class ScrollPane extends Component {
 	protected Component content;
 	protected ColorBlock thumb;
 
+	/** 滚动条在无操作后自动隐藏。 */
+	private float thumbTimer = 0f;
+	private static final float THUMB_HOLD = 1.2f;
+
 	private float keyScroll = 0;
 
 	public ScrollPane( Component content ) {
@@ -119,6 +123,24 @@ public class ScrollPane extends Component {
 		if (keyScroll != 0){
 			scrollTo(content.camera.scroll.x, content.camera.scroll.y + (keyScroll * 150 * Game.elapsed));
 		}
+		if (thumbTimer > 0){
+			thumbTimer -= Game.elapsed;
+			if (thumbTimer <= 0){
+				thumbTimer = 0;
+				thumb.am = 0;
+			} else {
+				thumb.am = THUMB_ALPHA * Math.min(1f, thumbTimer / 0.3f);
+			}
+		}
+	}
+
+	/** 显示滚动条，并重置自动隐藏计时。 */
+	protected void showThumb(){
+		thumbTimer = THUMB_HOLD;
+		if (thumb != null){
+			thumb.visible = height < content.height();
+			thumb.am = THUMB_ALPHA;
+		}
 	}
 
 	@Override
@@ -127,12 +149,17 @@ public class ScrollPane extends Component {
 		add( controller );
 
 		thumb = new ColorBlock( 1, 1, THUMB_COLOR );
-		thumb.am = THUMB_ALPHA;
+		thumb.am = 0;
 		add( thumb );
 	}
 
 	@Override
 	protected void layout() {
+
+		// 窗口尚未挂到场景时 camera() 为 null，调用 cameraToScreen 会 NPE
+		if (camera() == null) {
+			return;
+		}
 
 		content.setPos( 0, 0 );
 		controller.x = x;
@@ -151,6 +178,7 @@ public class ScrollPane extends Component {
 			thumb.scale.set( 2, height * height / content.height() );
 			thumb.x = right() - thumb.width();
 			thumb.y = y + height * content.camera.scroll.y / content.height();
+			if (thumbTimer <= 0) thumb.am = 0;
 		}
 	}
 
@@ -168,6 +196,8 @@ public class ScrollPane extends Component {
 		public PointerController() {
 			super( 0, 0, 0, 0 );
 			dragThreshold = PixelScene.defaultZoom * 8;
+			// 不阻挡点击：内容里的按钮/物品格必须能收到 DOWN/UP
+			blockLevel = NEVER_BLOCK;
 		}
 		
 		@Override
@@ -176,6 +206,7 @@ public class ScrollPane extends Component {
 			newPt.y -= event.amount * content.camera.zoom * 10;
 			scroll(newPt);
 			dragging = false;
+			showThumb();
 		}
 
 		@Override
@@ -183,7 +214,7 @@ public class ScrollPane extends Component {
 			if (dragging) {
 
 				dragging = false;
-				thumb.am = THUMB_ALPHA;
+				showThumb();
 
 			} else {
 
@@ -201,12 +232,14 @@ public class ScrollPane extends Component {
 			if (dragging) {
 
 				scroll(event.current);
+				showThumb();
 
 			} else if (PointF.distance( event.current, event.start ) > dragThreshold) {
 
 				dragging = true;
 				lastPos.set( event.current );
 				thumb.am = 1;
+				showThumb();
 
 			}
 		}

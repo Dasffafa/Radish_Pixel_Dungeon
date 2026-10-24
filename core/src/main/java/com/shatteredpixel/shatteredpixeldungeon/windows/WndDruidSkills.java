@@ -1,112 +1,190 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.Image;
+import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.NinePatch;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.noosa.ui.Component;
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.watabou.utils.DeviceCompat;
+
+import java.util.ArrayList;
 
 /**
- * 德鲁伊技能面板（点击侧边栏自然能量图标打开）。
- * 排布与牧师（Rector）的 {@code WndBless} 一致：两列图标格，点格子后弹确认。
+ * 德鲁伊法术书。
+ *
+ * <p>布局与破碎的 {@code WndClericSpells} 一致：120 宽，法术按阶分行，
+ * 每行居中排列 20×20 图标；右上角按钮在「施放 / 说明」之间切换；
+ * 点图标直接施放，长按或右键查看说明。</p>
  */
 public class WndDruidSkills extends Window {
 
-	private static final int WIDTH = 100;
-	private static final int BTN_SIZE = 32;
-	private static final int BTN_GAP = 6;
-	private static final int GAP = 6;
+	protected static final int WIDTH = 120;
+	public static int BTN_SIZE = 20;
 
 	private static final String[] KEYS = {
 			"boar", "wolves", "bear", "oak_sage", "vines",
 			"sunflower", "enchant_arrow", "firestorm", "thundercloud", "cataclysm"
 	};
 	private static final int[] COSTS = { 12, 16, 20, 15, 10, 30, 5, 10, 16, 30 };
+	private static final int[][] TIERS = {
+			{ 0, 1, 2 },
+			{ 3, 4, 5 },
+			{ 6, 7, 8, 9 }
+	};
 
-	public WndDruidSkills( Druid.DruidEnergy energy ) {
+	private final Druid.DruidEnergy energy;
 
-		IconTitle titlebar = new IconTitle();
-		titlebar.setRect( 0, -3, WIDTH, 0 );
-		titlebar.icon( new HeroIcon( HeroIcon.DRUID_SKILL ) );
-		titlebar.label( Messages.get( this, "title" ) );
-		add( titlebar );
+	public WndDruidSkills( Druid.DruidEnergy energy, boolean info ) {
+		this.energy = energy;
 
-		RenderedTextBlock message = PixelScene.renderTextBlock(
-				Messages.get( this, "energy", Math.round( Druid.energy( Dungeon.hero ) ), (int) Druid.maxEnergy( Dungeon.hero ) ), 6 );
-		message.maxWidth( WIDTH );
-		message.setPos( 0, titlebar.bottom() + GAP );
-		add( message );
+		IconTitle title;
+		if (!info) {
+			title = new IconTitle( new HeroIcon( HeroIcon.DRUID_SKILL ),
+					Messages.titleCase( Messages.get( this, "cast_title" ) ) );
+		} else {
+			title = new IconTitle( Icons.INFO.get(),
+					Messages.titleCase( Messages.get( this, "info_title" ) ) );
+		}
+		title.setRect( 0, 0, WIDTH, 0 );
+		add( title );
 
-		float top = message.top() + message.height() + BTN_GAP;
+		IconButton btnInfo = new IconButton( info ? new HeroIcon( HeroIcon.DRUID_SKILL ) : Icons.INFO.get() ) {
+			@Override
+			protected void onClick() {
+				GameScene.show( new WndDruidSkills( energy, !info ) );
+				hide();
+			}
+		};
+		btnInfo.setRect( WIDTH - 16, 0, 16, 16 );
+		add( btnInfo );
 
-		for (int i = 0; i < KEYS.length; i++) {
-			float x = (i % 2 == 0) ? (WIDTH / 2f - BTN_SIZE) : (WIDTH / 2f);
-			float y = top + (i / 2) * (BTN_SIZE + BTN_GAP);
-			SkillButton b = new SkillButton( i );
-			b.setRect( x, y, BTN_SIZE, BTN_SIZE );
-			add( b );
+		RenderedTextBlock msg;
+		if (info) {
+			msg = PixelScene.renderTextBlock( Messages.get( this, "info_desc" ), 6 );
+		} else {
+			String energyLine = Messages.get( this, "energy",
+					Math.round( Druid.energy( Dungeon.hero ) ), (int) Druid.maxEnergy( Dungeon.hero ) );
+			String hint = DeviceCompat.isDesktop()
+					? Messages.get( this, "cast_desc_desktop" )
+					: Messages.get( this, "cast_desc_mobile" );
+			msg = PixelScene.renderTextBlock( energyLine + "\n" + hint, 6 );
+		}
+		msg.maxWidth( WIDTH );
+		msg.setPos( 0, title.bottom() + 4 );
+		add( msg );
+
+		int top = (int) msg.bottom() + 4;
+
+		for (int t = 0; t < TIERS.length; t++) {
+			if (t > 0) {
+				top += BTN_SIZE + 2;
+				ColorBlock sep = new ColorBlock( WIDTH, 1, 0xFF000000 );
+				sep.y = top;
+				add( sep );
+				top += 3;
+			}
+
+			ArrayList<IconButton> btns = new ArrayList<>();
+			for (int idx : TIERS[t]) {
+				IconButton b = new SpellButton( idx, info );
+				add( b );
+				btns.add( b );
+			}
+
+			int left = 2 + (WIDTH - btns.size() * (BTN_SIZE + 4)) / 2;
+			for (IconButton b : btns) {
+				b.setRect( left, top, BTN_SIZE, BTN_SIZE );
+				left += (int) b.width() + 4;
+			}
 		}
 
-		resize( WIDTH, (int) (top + ((KEYS.length + 1) / 2) * (BTN_SIZE + BTN_GAP)) );
+		resize( WIDTH, top + BTN_SIZE );
+
+		if (SPDSettings.interfaceSize() != 2) {
+			offset( 0, (int) (GameScene.uiCamera.height / 2 - 30 - height / 2) );
+		}
 	}
 
-	private class SkillButton extends com.shatteredpixel.shatteredpixeldungeon.ui.Button {
+	public class SpellButton extends IconButton {
 
 		private final int index;
+		private final boolean info;
+		private NinePatch bg;
 
-		protected NinePatch bg;
-		protected Image icon;
-
-		SkillButton( int index ) {
+		public SpellButton( int index, boolean info ) {
+			super( new HeroIcon( HeroIcon.DRUID_SKILL ) );
 			this.index = index;
+			this.info = info;
 
-			bg = Chrome.get( Chrome.Type.WINDOW );
-			add( bg );
+			if (!canCast()) {
+				icon.alpha( 0.3f );
+			}
 
-			// 占位图标（待替换为正式技能图标）
-			icon = new HeroIcon( HeroIcon.DRUID_SKILL );
-			add( icon );
+			bg = Chrome.get( Chrome.Type.TOAST );
+			addToBack( bg );
+		}
+
+		private boolean canCast() {
+			return Druid.energy( Dungeon.hero ) >= COSTS[index];
+		}
+
+		@Override
+		protected void onPointerUp() {
+			super.onPointerUp();
+			icon.alpha( canCast() ? 1f : 0.3f );
 		}
 
 		@Override
 		protected void layout() {
 			super.layout();
-
-			bg.x = x;
-			bg.y = y;
-			bg.size( width, height );
-
-			icon.x = x + (width - icon.width()) / 2f;
-			icon.y = y + (height - icon.height()) / 2f;
+			if (bg != null) {
+				bg.size( width, height );
+				bg.x = x;
+				bg.y = y;
+			}
 		}
 
 		@Override
 		protected void onClick() {
-			GameScene.show( new WndOptions(
-					Messages.get( WndDruidSkills.this, KEYS[index] ),
-					Messages.get( WndDruidSkills.this, "cost", COSTS[index] ),
-					Messages.get( WndDruidSkills.this, "cast" ),
-					Messages.get( WndDruidSkills.this, "cancel" ) ) {
-				@Override
-				protected void onSelect( int i ) {
-					if (i == 0) {
-						hide();
-						WndDruidSkills.this.hide();
-						runSkill( index );
-					}
-				}
-			} );
+			if (info) {
+				GameScene.show( new WndTitledMessage( new HeroIcon( HeroIcon.DRUID_SKILL ),
+						Messages.titleCase( Messages.get( WndDruidSkills.this, KEYS[index] ) ),
+						Messages.get( WndDruidSkills.this, KEYS[index] + ".desc" ) ) );
+				return;
+			}
+			hide();
+			if (!canCast()) {
+				GLog.w( Messages.get( WndDruidSkills.this, "no_energy" ) );
+				return;
+			}
+			runSkill( index );
+		}
+
+		@Override
+		protected boolean onLongClick() {
+			GameScene.show( new WndTitledMessage( new HeroIcon( HeroIcon.DRUID_SKILL ),
+					Messages.titleCase( Messages.get( WndDruidSkills.this, KEYS[index] ) ),
+					Messages.get( WndDruidSkills.this, KEYS[index] + ".desc" ) ) );
+			return true;
+		}
+
+		@Override
+		protected String hoverText() {
+			return "_" + Messages.titleCase( Messages.get( WndDruidSkills.this, KEYS[index] ) ) + "_\n"
+					+ Messages.get( WndDruidSkills.this, "cost", COSTS[index] );
 		}
 	}
 

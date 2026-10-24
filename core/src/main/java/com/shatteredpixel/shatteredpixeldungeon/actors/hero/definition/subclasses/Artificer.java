@@ -203,14 +203,23 @@ public class Artificer extends HeroSubClass {
 			return false;
 		}
 		ArrayList<MissileWeapon> missiles = new ArrayList<>( hero.belongings.getAllItems( MissileWeapon.class ) );
+		// 最多三合一：优先投出力量需求最高、攻速最慢的三件
+		missiles.sort( (a, b) -> {
+			int sa = a.STRReq( a.buffedLvl() ), sb = b.STRReq( b.buffedLvl() );
+			if (sa != sb) return sb - sa;
+			return Float.compare( b.delayFactor( hero ), a.delayFactor( hero ) );
+		} );
 		boolean any = false;
+		int thrown = 0;
 		for (MissileWeapon m : missiles) {
+			if (thrown >= 3) break;
 			if (m != null && m.durabilityLeft() > 0) {
 				m.cast( hero, cell );
 				if (m.durabilityLeft() > 0) {
 					m.repair( -Math.min( 1f, m.durabilityLeft() ) );
 				}
 				any = true;
+				thrown++;
 			}
 		}
 		return any;
@@ -224,8 +233,11 @@ public class Artificer extends HeroSubClass {
 		}
 		ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> potions =
 				new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class ) );
+		potions.sort( (a, b) -> b.value() - a.value() );
 		boolean any = false;
+		int thrown = 0;
 		for (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion p : potions) {
+			if (thrown >= 3) break;
 			if (p != null && p.quantity() > 0) {
 				p.shatter( cell );
 				if (p.quantity() > 1) {
@@ -234,6 +246,7 @@ public class Artificer extends HeroSubClass {
 					p.detach( hero.belongings.backpack );
 				}
 				any = true;
+				thrown++;
 			}
 		}
 		return any;
@@ -246,7 +259,8 @@ public class Artificer extends HeroSubClass {
 				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
 			return false;
 		}
-		if (ally.alignment != Char.Alignment.ALLY) {
+		// 友方包括所有非敌对单位（召唤物、宠物、被安抚的中立单位）
+		if (ally.alignment == Char.Alignment.ENEMY) {
 			return false;
 		}
 		int pts = hero.pointsInTalent( Talent.READY_MODIFICATION );
@@ -255,26 +269,59 @@ public class Artificer extends HeroSubClass {
 		}
 
 		int tier = 0, level = 0;
+		boolean isWeapon = false;
 		com.shatteredpixel.shatteredpixeldungeon.items.Item gear = null;
+
+		// 优先投掷背包里的备用武器
+		com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon active =
+				hero.belongings.attackingWeapon();
 		for (com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg
 				: new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.class ) )) {
-			if (wg != hero.belongings.attackingWeapon()) {
+			if (wg != active && wg != hero.belongings.weapon && wg != hero.belongings.secondWep) {
 				gear = wg;
+				isWeapon = true;
 				tier = Math.min(5, Math.max(1, wg.level() + 1));
 				level = wg.level();
 				break;
 			}
 		}
+		// 没有备用武器时，允许把当前装备的武器改装出去
+		if (gear == null) {
+			if (hero.belongings.weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg =
+						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) hero.belongings.weapon;
+				gear = wg;
+				isWeapon = true;
+				tier = Math.min(5, Math.max(1, wg.level() + 1));
+				level = wg.level();
+			} else if (hero.belongings.secondWep instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg =
+						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) hero.belongings.secondWep;
+				gear = wg;
+				isWeapon = true;
+				tier = Math.min(5, Math.max(1, wg.level() + 1));
+				level = wg.level();
+			}
+		}
+		// 再找背包里的备用护甲
 		if (gear == null) {
 			for (com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor ag
 					: new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor.class ) )) {
 				if (ag != hero.belongings.armor) {
 					gear = ag;
+					isWeapon = false;
 					tier = ag.tier;
 					level = ag.level();
 					break;
 				}
 			}
+		}
+		// 最后允许把当前装备的护甲改装出去
+		if (gear == null && hero.belongings.armor != null) {
+			gear = hero.belongings.armor;
+			isWeapon = false;
+			tier = hero.belongings.armor.tier;
+			level = hero.belongings.armor.level();
 		}
 		if (gear == null) {
 			return false;
@@ -283,14 +330,37 @@ public class Artificer extends HeroSubClass {
 		int hp = (tier + level) * (pts >= 3 ? 8 : pts >= 2 ? 6 : 4);
 		int def = (tier + level) * 2;
 
+		// 从装备槽或背包中移除
+		if (gear == hero.belongings.weapon) {
+			hero.belongings.weapon = null;
+		} else if (gear == hero.belongings.secondWep) {
+			hero.belongings.secondWep = null;
+		} else if (gear == hero.belongings.armor) {
+			hero.belongings.armor = null;
+		}
 		gear.detach( hero.belongings.backpack );
+
+		// 直接装备到友方单位上，让它真正获得攻击/防御
+		if (ally instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
+					(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) ally;
+			if (isWeapon && gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon) {
+				mob.mobEquipment.weapon = (com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon) gear;
+			} else if (!isWeapon && gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) {
+				mob.mobEquipment.armor = (com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) gear;
+			}
+			if (gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) {
+				((com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) gear).activate( ally );
+			}
+		}
+
 		Buff.affect( ally, ReadyMod.class ).apply( hp, def );
 		return true;
 	}
 
 	public static class ReadyMod extends Buff {
 
-		{
+		public ReadyMod() {
 			type = buffType.POSITIVE;
 			announced = false;
 		}
@@ -329,7 +399,7 @@ public class Artificer extends HeroSubClass {
 
 		@Override
 		public String icon() {
-			return BuffIndicator.NONE;
+			return BuffIndicator.UPGRADE;
 		}
 
 		private static final String HP = "bonus_hp";

@@ -5,6 +5,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeldCardTracker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -21,6 +23,33 @@ public final class CardTargeter {
 		}
 		if (!hero.isAlive() || !hero.ready) return;
 
+		// 陷阱师：空白卡可以对陷阱使用，因此改用格子选择
+		if (card.type == CardType.BLANK && hero.subClass == HeroSubClasses.JOKER) {
+			if (!hasValidTarget(hero, card)) {
+				offerSafeReturn(hero, card);
+			} else {
+				GameScene.selectCell(new CellSelector.Listener() {
+					@Override
+					public void onSelect(Integer cell) {
+						if (cell == null || !isValidTarget(hero, card, cell)) {
+							if (cell != null) {
+								com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(
+										Messages.get(CardTargeter.class, "bad_target"));
+							}
+							return;
+						}
+						CardEffects.play(hero, card, cell);
+					}
+
+					@Override
+					public String prompt() {
+						return Messages.get(CardTargeter.class, "prompt", card.name());
+					}
+				});
+			}
+			return;
+		}
+
 		switch (card.type.target) {
 			case NONE:
 			case SELF:
@@ -28,6 +57,30 @@ public final class CardTargeter {
 				break;
 			case ENEMY:
 			case ANY:
+				if (!hasValidTarget(hero, card)) {
+					offerSafeReturn(hero, card);
+				} else {
+					GameScene.selectCell(new CellSelector.Listener() {
+						@Override
+						public void onSelect(Integer cell) {
+							if (cell == null || !isValidTarget(hero, card, cell)) {
+								if (cell != null) {
+									com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(
+											Messages.get(CardTargeter.class, "bad_target"));
+								}
+								return;
+							}
+							CardEffects.play(hero, card, cell);
+						}
+
+						@Override
+						public String prompt() {
+							return Messages.get(CardTargeter.class, "prompt", card.name());
+						}
+					});
+				}
+				break;
+			case CELL:
 				if (!hasValidTarget(hero, card)) {
 					offerSafeReturn(hero, card);
 				} else {
@@ -64,15 +117,52 @@ public final class CardTargeter {
 			case ENEMY:
 				return ch != null && ch != hero && ch.alignment != Char.Alignment.ALLY;
 			case ANY:
+				if (card.type == CardType.BLANK && ch == hero) {
+					// 空白卡指定自己：仅收藏家可用（转化为攻击/防御卡）。
+					return hero.subClass == HeroSubClasses.ILLUSIONIST;
+				}
+				if (card.type == CardType.BLANK && hero.subClass == HeroSubClasses.JOKER) {
+					// 陷阱师：陷阱格或敌人
+					return Dungeon.level.traps.get(cell) != null
+							|| (ch != null && ch != hero && ch.alignment != Char.Alignment.ALLY);
+				}
 				return ch != null && (ch == hero || ch.alignment != Char.Alignment.ALLY);
+			case CELL:
+				return isValidCell(hero, card, cell);
 			default:
 				return false;
 		}
 	}
 
+	private static boolean isValidCell(Hero hero, Card card, int cell) {
+		if (Dungeon.level.solid[cell]) return false;
+		if (card.type == CardType.TELEPORT) {
+			int range = card.teleportRange > 0 ? card.teleportRange : 2;
+			if (Dungeon.level.distance(hero.pos, cell) > range) return false;
+			if (Actor.findChar(cell) != null) return false;
+			Ballistica b = new Ballistica(hero.pos, cell, Ballistica.STOP_SOLID);
+			return b.collisionPos == cell;
+		}
+		// 陷阱卡：视野内 8 格、可放置的格子
+		if (Dungeon.level.distance(hero.pos, cell) > 8) return false;
+		Ballistica b = new Ballistica(hero.pos, cell, Ballistica.STOP_SOLID);
+		return b.collisionPos == cell;
+	}
+
 	public static boolean hasValidTarget(Hero hero, Card card) {
 		if (card.type.target == CardType.Target.SELF || card.type.target == CardType.Target.NONE) {
 			return true;
+		}
+		if (card.type.target == CardType.Target.CELL) {
+			for (int i = 0; i < Dungeon.level.length(); i++) {
+				if (Dungeon.level.heroFOV[i] && isValidCell(hero, card, i)) return true;
+			}
+			return false;
+		}
+		if (card.type == CardType.BLANK && hero.subClass == HeroSubClasses.JOKER) {
+			for (int i = 0; i < Dungeon.level.length(); i++) {
+				if (Dungeon.level.heroFOV[i] && Dungeon.level.traps.get(i) != null) return true;
+			}
 		}
 		for (Char ch : Actor.chars()) {
 			if (isValidTarget(hero, card, ch.pos)) return true;

@@ -34,6 +34,7 @@ public class Assets {
 		public static final String SWORD_SLASH    = "effects/cc0/sword_slash.png";
 		public static final String PIXEL_EXPLOSION= "effects/cc0/pixel_explosion.png";
 		public static final String SIMPLE_FX      = "effects/cc0/simplefx.png";
+		public static final String CYCLONE        = "effects/cc0/cyclone.png";
 	}
 
 	public static class Environment {
@@ -398,6 +399,7 @@ public class Assets {
 		public static final String CRYSTAL_WISP     = "sprites/crystal_wisp.png";
 		public static final String CRYSTAL_GUARDIAN = "sprites/crystal_guardian.png";
 		public static final String CRYSTAL_SPIRE    = "sprites/crystal_spire.png";
+		public static final String ICE_BLOCK        = "sprites/ice_block.png";
 		public static final String GNOLL_GUARD      = "sprites/gnoll_guard.png";
 		public static final String GNOLL_SAPPER     = "sprites/gnoll_sapper.png";
 		public static final String GNOLL_GEOMANCER  = "sprites/gnoll_geomancer.png";

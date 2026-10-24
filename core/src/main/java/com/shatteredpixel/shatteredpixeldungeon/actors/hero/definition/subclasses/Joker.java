@@ -13,11 +13,11 @@ public class Joker extends HeroSubClass {
 
 	@Override
 	public Talent[] subclassT3() {
-		return new Talent[]{ Talent.PLACEHOLDER_T3_1, Talent.PLACEHOLDER_T3_2, Talent.PLACEHOLDER_T3_3 };
+		return new Talent[]{ Talent.TRAP_CRAFT, Talent.SPIRIT_COORDINATION, Talent.DECK_COMBO };
 	}
 
 	@Override
 	public Talent[] subclassT4() {
-		return new Talent[]{ Talent.PLACEHOLDER_T4_1, Talent.PLACEHOLDER_T4_2 };
+		return new Talent[]{ Talent.TRAP_MASTERY, Talent.CAREFUL_SELECTION };
 	}
 }

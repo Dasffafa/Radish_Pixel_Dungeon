@@ -262,12 +262,9 @@ public abstract class HeroDefinition {
 
 		new TalentSetter().collect();
 
+		// 测试模式只保留一个测试背包，避免背包按钮被无用背包占满
 		TestBag testBag = new TestBag();
 		testBag.collect();
-		TestBag testbag2 = new TestBag();
-		testbag2.collect();
-		TestBag testbag3 = new TestBag();
-		testbag3.collect();
 
 		new TrapPlacer().collect();
 
@@ -277,25 +274,25 @@ public abstract class HeroDefinition {
 
 		new BackpackCleaner().collect();
 
-		new AnimationTweaker().collect( testbag2 );
+		new AnimationTweaker().collect( testBag );
 
-		new EffectTester().collect( testbag2 );
+		new EffectTester().collect( testBag );
 
 		new LevelTeleporter().collect();
 
-		new LazyTest().collect( testbag3 );
+		new LazyTest().collect( testBag );
 
-		new TestArmor().collect( testbag3 );
-		new TestArtifact().collect( testbag3 );
-		new SpawnWeapon().collect( testbag3 );
-		new TestMissile().collect( testbag3 );
-		new TestRing().collect( testbag3 );
-		new SnDFunctions().collect( testbag3 );
-		new TestPotion().collect( testbag3 );
+		new TestArmor().collect( testBag );
+		new TestArtifact().collect( testBag );
+		new SpawnWeapon().collect( testBag );
+		new TestMissile().collect( testBag );
+		new TestRing().collect( testBag );
+		new SnDFunctions().collect( testBag );
+		new TestPotion().collect( testBag );
 
-		new TestTalentOFTerminalBook().collect( testbag3 );
+		new TestTalentOFTerminalBook().collect( testBag );
 
-		new FloorTester().collect( testbag3 );
+		new FloorTester().collect( testBag );
 
 		new ScrollHolder().collect();
 		Dungeon.LimitedDrops.SCROLL_HOLDER.drop();
@@ -321,3 +318,4 @@ public abstract class HeroDefinition {
 
 	}
 }
+

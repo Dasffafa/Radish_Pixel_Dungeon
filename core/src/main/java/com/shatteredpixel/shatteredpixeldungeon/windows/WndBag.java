@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.SPDAction;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Belongings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -42,6 +43,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.InventorySlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RightClickMenu;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.input.GameAction;
@@ -51,6 +53,7 @@ import com.watabou.input.PointerEvent;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.noosa.ui.Component;
 import com.watabou.utils.PointF;
 
 public class WndBag extends WndTabbed {
@@ -82,6 +85,12 @@ public class WndBag extends WndTabbed {
 	protected int count;
 	protected int col;
 	protected int row;
+
+	/** 物品格的可滚动容器（容量超过窗口时上下滑动）。 */
+	private Component content;
+	private ScrollPane scroll;
+	private int scrollHeight;
+	private boolean scrollSized;
 	
 	private static Bag lastBag;
 
@@ -106,6 +115,17 @@ public class WndBag extends WndTabbed {
 		slotHeight = PixelScene.landscape() ? SLOT_HEIGHT_L : SLOT_HEIGHT_P;
 
 		nCols = PixelScene.landscape() ? COLS_L : COLS_P;
+
+		//电脑大屏时按可用宽度加列，避免背包窗口窄窄一条
+		if (SPDSettings.interfaceSize() > 0) {
+			int availCols = (int)((PixelScene.uiCamera.width - chrome.marginHor())
+					/ (float)(slotWidth + SLOT_MARGIN));
+			if (availCols > nCols) {
+				//留一列余量，避免贴边
+				nCols = Math.min(availCols - 1, 8);
+			}
+		}
+
 		nRows = (int)Math.ceil(30/(float)nCols); //we expect to lay out 25 slots in all cases
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
@@ -124,8 +144,17 @@ public class WndBag extends WndTabbed {
 		}
 
 		placeTitle( bag, windowWidth );
-		
+
+		content = new Component();
 		placeItems( bag );
+
+		// 可见区域保持 6 行左右，内容按容量增长，超出部分用滚动条查看
+		int visibleHeight = slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+		int contentRows = Math.max(nRows, row);
+		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN));
+		scroll = new ScrollPane(content);
+		scrollHeight = visibleHeight;
+		add(scroll);
 
 		resize( windowWidth, windowHeight );
 
@@ -236,6 +265,16 @@ public class WndBag extends WndTabbed {
 		add( txtTitle );
 	}
 	
+	@Override
+	public void update() {
+		super.update();
+		// 窗口挂进场景后才设置 ScrollPane（它的 layout 需要 camera()）
+		if (!scrollSized && scroll != null && camera() != null) {
+			scroll.setRect(0, TITLE_HEIGHT, width, scrollHeight);
+			scrollSized = true;
+		}
+	}
+
 	protected void placeItems( Bag container ) {
 		
 		// Equipped items
@@ -278,7 +317,7 @@ public class WndBag extends WndTabbed {
 		count++;
 
 		int x = col * (slotWidth + SLOT_MARGIN);
-		int y = TITLE_HEIGHT + row * (slotHeight + SLOT_MARGIN);
+		int y = row * (slotHeight + SLOT_MARGIN);
 
 		InventorySlot slot = new InventorySlot( item ){
 			@Override
@@ -346,7 +385,7 @@ public class WndBag extends WndTabbed {
 			}
 		};
 		slot.setRect( x, y, slotWidth, slotHeight );
-		add(slot);
+		content.add(slot);
 
 		if (item == null || (selector != null && !selector.itemSelectable(item))){
 			slot.enable(false);
