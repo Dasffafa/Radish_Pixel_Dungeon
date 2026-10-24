@@ -60,6 +60,30 @@ public class RA_v0_8_X_Changes {
                         "_-_ 职业、子职业、天赋层级、护甲技能、初始装备与皮肤统一定义,未来添加新英雄和皮肤会更加简单。\n"
                 )));
 
+        changes.addButton(new ChangeButton(new Image(Assets.Sprites.GOBLIN_RIDER, 0, 0, 16, 18), "新小Boss：哥布林骑手",
+                ("苔藓洞穴（跆拳洞穴）第2层新增一只小Boss：哥布林骑手。\n\n" +
+                        "_-_ 哥布林族群中具有开创性的一只哥布林，驾驭了青蛙作为他的坐骑，擅长使用投矛。\n\n" +
+                        "_-_ 远程会投出捕鱼矛，伤害高于普通哥布林的投石。\n\n" +
+                        "_-_ 近战时会和坐骑青蛙一起攻击，伤害叠加。\n\n" +
+                        "_-_ 击败后掉落3只捕鱼矛与本层金钥匙；该层原本随机刷新的金钥匙改由它固定掉落。\n\n" +
+                        "_-_ 赐福卷轴房间的金宝箱保留原样，用这把钥匙开启。"
+                )));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DISPLAY), "选人界面重构",
+                ("英雄选择界面重新设计，职业与皮肤选择更直观，并可直接在选人界面查看与开关挑战。"
+                )));
+
+        changes.addButton(new ChangeButton(new ItemSprite(SPIRIT_ARROW), "箭矢贴图还原",
+                ("灵能宫与猎头蟹射出的箭，先前因自动检测外接矩形而按整张贴图绘制，显得比原作大一圈。\n\n" +
+                        "_-_ 现已还原为破碎地牢女猎手箭矢的原版尺寸与形状。"
+                )));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.DISPLAY), "合剂特效更新",
+                ("冰晶合剂的冰块、龙卷合剂的气旋均改用专属贴图。\n\n" +
+                        "_-_ 龙卷只保留风眼气旋，不再有杂乱的外圈。\n\n" +
+                        "_-_ 同时修复了气旋空帧导致的崩溃。"
+                )));
+
         changes = new ChangeInfo(Messages.get(ChangesScene.class, "changes"), false, null);
         changes.hardlight(CharSprite.WARNING);
         changeInfos.add(changes);
@@ -100,6 +124,19 @@ public class RA_v0_8_X_Changes {
                         "_-_ 修复 牧师信仰值是小数而非整数的bug\n\n"+
                         "_-_ 调整 圆球的动画速度加快了1.5倍\n\n"+
                         "_-_ 新增了一些没有被发现的bug")));
+
+        changes.addButton(new ChangeButton(Icons.get(Icons.SCROLL_GREY), "其他修复与调整",
+                ("_-_ 修复 商品堆可免费拾取的漏洞\n\n" +
+                        "_-_ 修复 传奇重犯的技能会被召唤物带偏，现在优先锁定英雄\n\n" +
+                        "_-_ 修复 影舞斗篷隐身结束后无法触发破隐突袭\n\n" +
+                        "_-_ 修复 矮人护卫师会给敌对目标套盾，现在只对同阵营生效\n\n" +
+                        "_-_ 修复 普通炼金界面使用药水时英雄贴图为空导致的崩溃\n\n" +
+                        "_-_ 修复 戏卡者能量胸甲贴图缺帧、法杖光效不随职业偏移\n\n" +
+                        "_-_ 修复 小恶魔未专精时仍显示“激发潜力”选项，避免浪费奖励\n\n" +
+                        "_-_ 修复 推进附魔需贴脸才能触发；收割改为击杀成长\n\n" +
+                        "_-_ 修复 投石索卡死与伤害丢失\n\n" +
+                        "_-_ 修复 卡牌选择窗口在挂载前布局滚动面板导致的闪退\n\n" +
+                        "_-_ 调整 电脑端背包按屏幕可用宽度自动增加列数，不再窄窄一条")));
     }
 
     public static void add_v08_3_Changes(ArrayList<ChangeInfo> changeInfos) {

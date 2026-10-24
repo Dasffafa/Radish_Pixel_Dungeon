@@ -43,9 +43,6 @@ public class GoblinRiderSprite extends MobSprite {
         die.frames(frames, 13, 14, 15);
 
         play(idle);
-
-        // play() 之后 height 才是真实的帧高度，此时补偿才有效
-        perspectiveRaise = (6 + (height() - 16)) / 16f;
     }
 
     @Override

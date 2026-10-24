@@ -204,4 +204,9 @@ public class GoblinRider extends Goblin {
     public String description() {
         return Messages.get(this, "desc");
     }
+
+    @Override
+    protected String heroKilledMessage() {
+        return Messages.capitalize(Messages.get(GoblinRider.class, "kill"));
+    }
 }
