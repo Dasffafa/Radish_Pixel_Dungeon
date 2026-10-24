@@ -46,7 +46,8 @@ public class Druid extends HeroSubClass {
 	}
 
 	public static float maxEnergy( Hero hero ) {
-		return (hero.lvl + Dungeon.depth) * 10f;
+		// 设计稿：上限 = 当前等级 + 当前楼层 + 10
+		return hero.lvl + Dungeon.depth + 10;
 	}
 
 	public static void gainEnergy( Hero hero, float amount ) {
@@ -84,6 +85,11 @@ public class Druid extends HeroSubClass {
 		Hero hero = event.getHero();
 		if (hero == null
 				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID) {
+			return;
+		}
+		// 只有踩到真正的绿草（高草）才获得能量，枯草不计
+		int terr = event.getLevel().map[event.getCell()];
+		if (terr != com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.HIGH_GRASS) {
 			return;
 		}
 		gainEnergy( hero, 0.5f );
@@ -615,7 +621,8 @@ public class Druid extends HeroSubClass {
 
 		public float max() {
 			Hero hero = Dungeon.hero;
-			return ((hero == null ? 1 : hero.lvl) + Dungeon.depth) * 10f;
+			// 设计稿：上限 = 当前等级 + 当前楼层 + 10
+			return (hero == null ? 1 : hero.lvl) + Dungeon.depth + 10;
 		}
 
 		public void gain( float amount ) {
