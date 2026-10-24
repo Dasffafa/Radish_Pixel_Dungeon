@@ -67,9 +67,14 @@ public final class CardEffects {
 
 		switch (card.type) {
 			case BLANK: {
-				// 陷阱师：对陷阱使用空白卡 -> 记录该陷阱，卡片转为陷阱卡
+				// 陷阱师：对未触发的陷阱使用空白卡 -> 记录该陷阱，卡片转为陷阱卡
 				Trap trap = Dungeon.level.traps.get(pos);
 				if (trap != null && hero.subClass == HeroSubClasses.JOKER) {
+					// 只能吸收尚未触发的陷阱（active == true 表示未触发）
+					if (!trap.active) {
+						GLog.w(Messages.get(CardEffects.class, "trap_already_used"));
+						return;
+					}
 					card.type = CardType.TRAP;
 					card.trapClass = trap.getClass();
 					GLog.i(Messages.get(CardEffects.class, "trap_recorded", trap.name()));
@@ -94,6 +99,20 @@ public final class CardEffects {
 					}
 					dealCardDamage(hero, ch, card, dmg);
 				}
+
+				// 卡组连携 +3：空白卡使用后自动转化为随机陷阱卡
+				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 3
+						&& hero.subClass == HeroSubClasses.JOKER) {
+					Class<?> trapCls = randomTrapClass();
+					if (trapCls != null) {
+						card.type = CardType.TRAP;
+						card.trapClass = trapCls;
+						GLog.i(Messages.get(CardEffects.class, "trap_recorded",
+								Messages.get(trapCls, "name")));
+						ActionIndicator.refresh();
+					}
+				}
+
 				finish(hero, card, false, card.type.time);
 				break;
 			}
@@ -281,6 +300,23 @@ public final class CardEffects {
 					return;
 				}
 				triggerTrap(card, pos);
+
+				// 卡组连携 +2：同时把牌堆顶的空白卡打到同一落点
+				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 2) {
+					Card topBlank = null;
+					for (int i = hero.cardDeck.drawPile.size() - 1; i >= 0; i--) {
+						Card c = hero.cardDeck.drawPile.get(i);
+						if (c.type == CardType.BLANK) {
+							topBlank = c;
+							break;
+						}
+					}
+					if (topBlank != null) {
+						hero.cardDeck.drawPile.remove(topBlank);
+						triggerTrap(topBlank, pos);
+					}
+				}
+
 				Buff.affect(hero, TrapCooldown.class, trapCooldown(hero));
 				card.type = CardType.BLANK;
 				card.trapClass = null;
@@ -361,6 +397,34 @@ public final class CardEffects {
 		});
 	}
 
+	/** 随机取一个陷阱类型（卡组连携 +3）。优先用当前楼层已生成的陷阱。 */
+	private static Class<?> randomTrapClass() {
+		java.util.ArrayList<Class<?>> types = new java.util.ArrayList<>();
+		for (Trap t : Dungeon.level.traps.values()) {
+			if (t != null && !types.contains(t.getClass())) types.add(t.getClass());
+		}
+		if (types.isEmpty()) {
+			// 退化：给一组常见陷阱
+			types.add(com.shatteredpixel.shatteredpixeldungeon.levels.traps.AlarmTrap.class);
+			types.add(com.shatteredpixel.shatteredpixeldungeon.levels.traps.ToxicTrap.class);
+			types.add(com.shatteredpixel.shatteredpixeldungeon.levels.traps.BurningTrap.class);
+			types.add(com.shatteredpixel.shatteredpixeldungeon.levels.traps.ChillingTrap.class);
+		}
+		return types.get(Random.Int(types.size()));
+	}
+
+	/** 给英雄身上所有法杖与神器充能（卡组连携 +1）。 */
+	private static void rechargeWandsAndArtifacts(Hero hero, float amount) {
+		if (hero == null) return;
+		com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand wand =
+				hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.class);
+		if (wand != null) wand.gainCharge(amount);
+		for (com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact art
+				: hero.belongings.getAllItems(com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact.class)) {
+			if (art != null) art.charge(hero, amount);
+		}
+	}
+
 	private static void triggerTrap(Card card, int pos) {
 		if (card.trapClass == null) return;
 		try {
@@ -418,6 +482,16 @@ public final class CardEffects {
 		// 僵化/激素强化：每打出一张卡，前置一格
 		if (card.type != CardType.RIGID && card.type != CardType.HORMONE) {
 			advanceEnhanced(hero);
+		}
+
+		// 卡组连携 +1：陷阱卡打出后，若牌堆顶不是陷阱卡，获得法杖/神器充能
+		int combo = hero.pointsInTalent(Talent.DECK_COMBO);
+		if (combo >= 1 && card.type == CardType.TRAP) {
+			Card next = hero.cardDeck.drawPile.isEmpty() ? null
+					: hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
+			if (next == null || next.type != CardType.TRAP) {
+				rechargeWandsAndArtifacts(hero, 2f);
+			}
 		}
 
 		hero.sprite.operate(hero.pos);

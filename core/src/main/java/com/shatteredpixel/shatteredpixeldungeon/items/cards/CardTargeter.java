@@ -143,9 +143,9 @@ public final class CardTargeter {
 			Ballistica b = new Ballistica(hero.pos, cell, Ballistica.STOP_SOLID);
 			return b.collisionPos == cell;
 		}
-		// 陷阱卡：视野内 8 格、可放置的格子
+		// 陷阱卡：视野内 8 格，只需可达且非实体墙（不被生物/软障碍阻挡）
 		if (Dungeon.level.distance(hero.pos, cell) > 8) return false;
-		Ballistica b = new Ballistica(hero.pos, cell, Ballistica.STOP_SOLID);
+		Ballistica b = new Ballistica(hero.pos, cell, Ballistica.IGNORE_SOFT_SOLID);
 		return b.collisionPos == cell;
 	}
 
