@@ -248,7 +248,37 @@ public final class CardEffects {
 					dmg += Math.round(weaponAverage(card) * frac);
 				}
 
+				// 以牙还牙：把存储的伤害一并打出
+				Vendetta vend = hero.buff(Vendetta.class);
+				if (vend != null && vend.stored > 0) {
+					int bonus = vend.take();
+					dmg += bonus;
+					hero.sprite.showStatus(CharSprite.POSITIVE, "+" + bonus);
+				}
+
 				dealCardDamage(hero, ch, card, dmg);
+
+				// 背水一战：牌堆顶仍是攻击卡时追加额外攻击
+				int lastStand = hero.pointsInTalent(Talent.CT_LAST_STAND);
+				if (lastStand > 0 && !hero.cardDeck.drawPile.isEmpty()) {
+					Card top = hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
+					if (top != null && top.type == CardType.ATTACK) {
+						float frac = lastStand >= 3 ? 0.75f : 0.5f;
+						if (lastStand >= 4) frac = 1.0f;
+						int targets = lastStand >= 2 ? 2 : 1;
+						ArrayList<Char> others = new ArrayList<>();
+						for (Char c : Actor.chars()) {
+							if (c != hero && c.alignment == Char.Alignment.ENEMY && c.isAlive()) {
+								others.add(c);
+							}
+						}
+						for (int i = 0; i < targets && !others.isEmpty(); i++) {
+							Char t = others.remove(Random.Int(others.size()));
+							dealCardDamage(hero, t, card, Math.max(1, Math.round(dmg * frac)));
+						}
+					}
+				}
+
 				finish(hero, card, false, free ? 0f : card.type.time);
 				break;
 			}
@@ -285,6 +315,15 @@ public final class CardEffects {
 				}
 				if (guard >= 3) {
 					Buff.affect(hero, NextAttackFree.class);
+				}
+
+				// 以牙还牙：防御卡使用后按天赋等级存储所受伤害
+				int vend = hero.pointsInTalent(Talent.CT_VENDETTA);
+				if (vend > 0) {
+					if (hero.buff(Vendetta.class) == null) {
+						Buff.affect(hero, Vendetta.class);
+					}
+					hero.buff(Vendetta.class).ratio = 0.15f * vend;
 				}
 
 				CardDrawer.cancelCooldown(hero);
@@ -713,8 +752,7 @@ public final class CardEffects {
 		}
 	}
 
-	/** 小口粮卡的 100 回合内部冷却。 */
-	public static class RationCooldown extends FlavourBuff {
+	/** 小口粮卡的 100 回合内部冷却。 */	public static class RationCooldown extends FlavourBuff {
 		public String icon() { return BuffIndicator.TIME; }
 		public void tintIcon(Image icon) { icon.hardlight(0.8f, 0.6f, 0.2f); }
 	}
@@ -813,4 +851,62 @@ public final class CardEffects {
 			strength = bundle.getFloat(STRENGTH);
 		}
 	}
+
+	/**
+	 * 以牙还牙：使用防御卡后，按天赋等级把受到的伤害按比例存入。
+	 * 下一次攻击卡命中时一并打出。
+	 */
+	public static class Vendetta extends Buff {
+
+		{
+			type = buffType.POSITIVE;
+			announced = false;
+		}
+
+		/** 已存储的伤害。 */
+		public int stored = 0;
+
+		/** 存储比例：0.15 / 0.30 / 0.45 / 0.60。 */
+		public float ratio = 0.15f;
+
+		@Override
+		public void onDamageTaken(int dealt, DamageInfo info) {
+			if (dealt <= 0) return;
+			stored += Math.max(1, Math.round(dealt * ratio));
+		}
+
+		/** 取出并清空，用于攻击卡结算。 */
+		public int take() {
+			int v = stored;
+			stored = 0;
+			return v;
+		}
+
+		@Override
+		public String icon() {
+			return BuffIndicator.INVERT_MARK;
+		}
+
+		private static final String STORED = "stored";
+		private static final String RATIO = "ratio";
+
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			super.storeInBundle(bundle);
+			bundle.put(STORED, stored);
+			bundle.put(RATIO, ratio);
+		}
+
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			super.restoreFromBundle(bundle);
+			stored = bundle.getInt(STORED);
+			ratio = bundle.getFloat(RATIO);
+		}
+	}
+
+	/**
+	 * 背水一战：攻击卡打出时，若牌堆顶仍是攻击卡，追加若干次额外攻击。
+	 * 效果直接写在 ATTACK 结算里，不需要独立 Buff。
+	 */
 }
