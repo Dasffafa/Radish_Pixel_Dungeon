@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Bones;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.debug.DebugStateExporter;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
@@ -1417,6 +1418,10 @@ public class Hero extends Char {
 		if(hasTalent(Talent.BARKSKIN) && Dungeon.level.map[pos] == Terrain.FURROWED_GRASS){
 			Barkskin.conditionallyAppend(this, (lvl*pointsInTalent(Talent.BARKSKIN))/2, 1 );
 		}
+
+		// 调试状态导出：每回合收尾时刷新一次 debug/state.json，供外部 AI / 调试脚本读取。
+		// 内部自带 60ms 节流且全程静默，任何异常都不会打断游戏；不参与任何游戏逻辑分支。
+		DebugStateExporter.tick();
 
 		return actResult;
 	}
