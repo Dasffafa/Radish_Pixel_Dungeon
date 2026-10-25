@@ -41,14 +41,18 @@ import java.nio.charset.StandardCharsets;
  *
  * <p>设计原则（遵循 AGENTS.md §12 最小侵入）：
  * 本类**只读**游戏状态，不修改任何既有类，不参与游戏逻辑分支。
- * 唯一的副作用是往磁盘写一个 {@code debug_state.json}。
+ * 唯一的副作用是往磁盘写一个 {@code debug/state.json}。
  *
- * <p>输出位置：
+ * <p>输出位置由 {@link #stateFile()} 决定，它走 {@code FileUtils.getFileHandle}，
+ * 即「游戏数据目录」下的 {@code debug/} 子目录：
  * <ul>
- *   <li>桌面端：{@code %APPDATA%/.mypd/<appName>/debug_state.json} 同目录</li>
- *   <li>Android：{@code getFilesDir()/debug_state.json}</li>
+ *   <li>桌面端实测为
+ *       {@code %APPDATA%\.shatteredpixel\Radish Pixel Dungeon\debug\state.json}
+ *       （目录名 = {@code .<appPackageName 第二段>} + {@code \} + {@code <appName>}，
+ *       均取自根 {@code build.gradle}，改产品名会跟着变）</li>
+ *   <li>Android 为 {@code getFilesDir()/debug/state.json}</li>
  * </ul>
- * 具体由 {@link #stateFile()} 调用方决定实际路径，本类只负责内容生成。
+ * 它与 {@code game1..game6} 存档槽同级，但位于独立子目录，可整体删除、不影响存档。
  */
 public final class DebugStateExporter {
 
@@ -194,9 +198,9 @@ public final class DebugStateExporter {
      * 导出文件的绝对位置：{@code <游戏数据目录>/debug/state.json}。
      *
      * <p>用 {@link FileUtils#getFileHandle(String)} 而不是手拼路径——它读的是启动时
-     * 由各平台 Launcher 注入的 {@code defaultPath}，桌面端是
-     * {@code AppData/Roaming/.shatteredpixel/<title>/}，Android 是应用私有目录，
-     * 手拼必然在某个平台上错。
+     * 由各平台 Launcher 注入的 {@code defaultPath}（桌面端拼自根 {@code build.gradle}
+     * 的 {@code appName} 与 {@code appPackageName}，Android 是应用私有目录），
+     * 手拼必然在某个平台上错，也会在产品改名后失效。
      */
     public static File stateFile() {
         return FileUtils.getFileHandle(EXPORT_DIR).child(EXPORT_FILE).file();
@@ -223,14 +227,22 @@ public final class DebugStateExporter {
     // 内部工具
     // ---------------------------------------------------------------
 
-    private static float distance(int a, int b, int width) {
+    /**
+     * 两个格位之间的欧氏距离，保留一位小数。
+     *
+     * <p>不做四舍五入到整数：斜向相邻的两格距离是 1.4 而不是 1，这个区别对
+     * 「能不能一步走到」的判断有意义。保留一位小数是为了别把
+     * {@code 1.4142135} 这种噪声塞进 JSON。
+     */
+    private static String distance(int a, int b, int width) {
         int ax = a % width;
         int ay = a / width;
         int bx = b % width;
         int by = b / width;
         int dx = ax - bx;
         int dy = ay - by;
-        return (float) Math.sqrt((double) (dx * dx + dy * dy));
+        double d = Math.sqrt((double) (dx * dx + dy * dy));
+        return String.format(java.util.Locale.ROOT, "%.1f", d);
     }
 
     private static String safeName(Object o) {
