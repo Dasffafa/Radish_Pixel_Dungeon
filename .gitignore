@@ -68,3 +68,8 @@ request.txt
 
 # 本地上游参考仓库（只读，勿提交）
 _upstream/
+
+# Local TDR fix tooling (not part of the game)
+_tdr_backup/
+fix-tdr-delay.ps1
+
