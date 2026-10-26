@@ -448,6 +448,7 @@ public class GameScene extends PixelScene {
 				break;
 		}
 
+
 		ArrayList<Item> dropped = Dungeon.droppedItems.get( Dungeon.depth );
 		if (dropped != null) {
 			for (Item item : dropped) {

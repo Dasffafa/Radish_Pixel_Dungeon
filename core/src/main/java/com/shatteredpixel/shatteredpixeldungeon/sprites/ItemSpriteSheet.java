@@ -222,6 +222,8 @@ public class ItemSpriteSheet {
 	public static final String THROWING_SPEAR = "throwing_spear";
 	public static final String BOLAS = "bolas";
 	public static final String KUNAI = "kunai";
+	public static final String THROWING_CHAIN = "throwing_chain";
+	public static final String POTION_PACK = "potion_pack";
 	
 	public static final String JAVELIN = "javelin";
 	public static final String TOMAHAWK = "tomahawk";

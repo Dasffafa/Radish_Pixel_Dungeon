@@ -6,16 +6,19 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionPack;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingChain;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 
 /**
- * 奇械师的炼金配方：把最多 3 件投掷武器 / 药剂合成 1 件。
+ * 奇械师的炼金配方。
  *
- * <p>投掷武器按「力量需求最高、攻速最慢」的那一件作为结算结果；
- * 药剂按价值最高的一瓶作为结果。</p>
+ * <p>把最多 3 件投掷武器 / 药剂打包成 1 件物品：
+ * 投掷武器 → 投掷武器链，药剂 → 投掷药水包。
+ * 这两件物品都可以整包投出，一次性使用其中的全部内容物。</p>
  */
 public final class ArtificerRecipes {
 
@@ -35,6 +38,7 @@ public final class ArtificerRecipes {
 		return copy;
 	}
 
+	/** 投掷武器 → 投掷武器链 */
 	public static class MissileCombine extends Recipe {
 
 		@Override
@@ -54,47 +58,37 @@ public final class ArtificerRecipes {
 					: ingredients.size();
 		}
 
-		/** 力量需求最高优先；同力量时取攻速最慢（delay 最大）的。 */
-		private MissileWeapon best(ArrayList<Item> ingredients) {
-			Hero hero = Dungeon.hero;
-			MissileWeapon best = null;
+		private ThrowingChain packOf(ArrayList<Item> ingredients) {
+			ThrowingChain chain = new ThrowingChain();
+			int remaining = 3;
 			for (Item i : ingredients) {
-				MissileWeapon m = (MissileWeapon) i;
-				if (best == null) {
-					best = m;
-					continue;
+				int n = Math.min(remaining, i.quantity());
+				for (int k = 0; k < n; k++) {
+					Item copy = copyOf(i);
+					if (copy instanceof MissileWeapon) chain.add((MissileWeapon) copy);
 				}
-				int s = m.STRReq(m.buffedLvl()), bs = best.STRReq(best.buffedLvl());
-				if (s > bs) {
-					best = m;
-				} else if (s == bs && m.delayFactor(hero) > best.delayFactor(hero)) {
-					best = m;
-				}
+				remaining -= n;
+				if (remaining <= 0) break;
 			}
-			return best;
+			return chain;
 		}
 
 		@Override
 		public Item sampleOutput(ArrayList<Item> ingredients) {
 			if (!testIngredients(ingredients)) return null;
-			return copyOf(best(ingredients));
+			return packOf(ingredients);
 		}
 
 		@Override
 		public Item brew(ArrayList<Item> ingredients) {
 			if (!testIngredients(ingredients)) return null;
-			MissileWeapon best = best(ingredients);
-			Item out = copyOf(best);
-			if (ingredients.size() == 1) {
-				Item only = ingredients.get(0);
-				only.quantity(Math.max(0, only.quantity() - Math.min(3, only.quantity())));
-			} else {
-				for (Item i : ingredients) i.quantity(i.quantity() - 1);
-			}
+			ThrowingChain out = packOf(ingredients);
+			consume(ingredients);
 			return out;
 		}
 	}
 
+	/** 药剂 → 投掷药水包 */
 	public static class PotionCombine extends Recipe {
 
 		@Override
@@ -114,33 +108,43 @@ public final class ArtificerRecipes {
 					: ingredients.size();
 		}
 
-		private Potion best(ArrayList<Item> ingredients) {
-			Potion best = null;
+		private PotionPack packOf(ArrayList<Item> ingredients) {
+			PotionPack pack = new PotionPack();
+			int remaining = 3;
 			for (Item i : ingredients) {
-				Potion p = (Potion) i;
-				if (best == null || p.value() > best.value()) best = p;
+				int n = Math.min(remaining, i.quantity());
+				for (int k = 0; k < n; k++) {
+					Item copy = copyOf(i);
+					if (copy instanceof Potion) pack.add((Potion) copy);
+				}
+				remaining -= n;
+				if (remaining <= 0) break;
 			}
-			return best;
+			return pack;
 		}
 
 		@Override
 		public Item sampleOutput(ArrayList<Item> ingredients) {
 			if (!testIngredients(ingredients)) return null;
-			return copyOf(best(ingredients));
+			return packOf(ingredients);
 		}
 
 		@Override
 		public Item brew(ArrayList<Item> ingredients) {
 			if (!testIngredients(ingredients)) return null;
-			Potion best = best(ingredients);
-			Item out = copyOf(best);
-			if (ingredients.size() == 1) {
-				Item only = ingredients.get(0);
-				only.quantity(Math.max(0, only.quantity() - Math.min(3, only.quantity())));
-			} else {
-				for (Item i : ingredients) i.quantity(i.quantity() - 1);
-			}
+			PotionPack out = packOf(ingredients);
+			consume(ingredients);
 			return out;
+		}
+	}
+
+	/** 扣除投入的材料（单堆时最多扣 3 个，多堆时每堆扣 1 个）。 */
+	private static void consume(ArrayList<Item> ingredients) {
+		if (ingredients.size() == 1) {
+			Item only = ingredients.get(0);
+			only.quantity(Math.max(0, only.quantity() - Math.min(3, only.quantity())));
+		} else {
+			for (Item i : ingredients) i.quantity(i.quantity() - 1);
 		}
 	}
 }
