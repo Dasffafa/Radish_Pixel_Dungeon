@@ -298,8 +298,9 @@ public class InventoryPane extends Component {
 			}
 		}
 
-		// 背包物品：5 列可滚动网格（超出部分用右侧滚动条查看）
-		int cols = 5;
+		// 背包物品：按可用宽度自动分列（最多 10 列，超出部分用右侧滚动条查看）
+		int cols = Math.max( 5, (int)((width - 10) / (SLOT_WIDTH + 1)) );
+		cols = Math.min( cols, 10 );
 		for (int i = 0; i < bagItems.size(); i++){
 			InventorySlot b = bagItems.get(i);
 			b.setRect((i % cols) * (SLOT_WIDTH + 1), (i / cols) * (SLOT_HEIGHT + 1),

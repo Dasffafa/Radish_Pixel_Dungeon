@@ -57,7 +57,6 @@ public class Druid extends HeroSubClass {
 			}
 			Buff.affect( hero, DruidEnergy.class ).gain( amount );
 		} catch (Throwable t) {
-			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( "Druid energy gain error: " + t );
 		}
 	}
 
@@ -69,7 +68,6 @@ public class Druid extends HeroSubClass {
 			DruidEnergy e = hero.buff( DruidEnergy.class );
 			return e != null && e.useEnergy( amount );
 		} catch (Throwable t) {
-			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( "Druid energy spend error: " + t );
 			return false;
 		}
 	}
@@ -201,6 +199,13 @@ public class Druid extends HeroSubClass {
 		}
 	}
 
+	private static boolean mobAt( int cell ) {
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m : Dungeon.level.mobs) {
+			if (m.pos == cell) return true;
+		}
+		return false;
+	}
+
 	private static boolean place( com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, Hero hero ) {
 		int w = Dungeon.level.width();
 		int hx = hero.pos % w, hy = hero.pos / w;
@@ -216,7 +221,8 @@ public class Druid extends HeroSubClass {
 					}
 					int c = ny * w + nx;
 					if (Dungeon.level.passable[c] && !Dungeon.level.solid[c]
-							&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null) {
+							&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null
+							&& !mobAt( c )) {
 						m.pos = c;
 						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( m );
 						com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( c ).burst(
