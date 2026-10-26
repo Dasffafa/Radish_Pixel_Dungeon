@@ -50,9 +50,8 @@ public class DruidSunflower extends Mob {
 	public int attackProc( Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 		// 吸取等量生命；自身满血则分给盟友
-		int heal = damage;
-		if (HP < HT) {
-			heal = Math.min( heal, HT - HP );
+		int heal = Math.min( damage, Math.max( 0, HT - HP ) );
+		if (heal > 0) {
 			HP += heal;
 		}
 		int left = damage - heal;
