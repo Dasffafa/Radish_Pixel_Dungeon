@@ -8,7 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.GolemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidBearSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -16,7 +16,7 @@ import com.watabou.utils.Random;
 public class DruidBear extends Mob {
 
 	{
-		spriteClass = GolemSprite.class;
+		spriteClass = DruidBearSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}

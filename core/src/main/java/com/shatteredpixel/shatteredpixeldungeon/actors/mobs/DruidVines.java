@@ -5,14 +5,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidVinesSprite;
 import com.watabou.utils.Bundle;
 
 /** 德鲁伊召唤物：荆棘藤（就地反击）。 */
 public class DruidVines extends Mob {
 
 	{
-		spriteClass = RatSprite.class;
+		spriteClass = DruidVinesSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}
