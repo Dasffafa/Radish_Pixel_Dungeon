@@ -122,8 +122,8 @@ public class WndBag extends WndTabbed {
 			int availCols = (int)((PixelScene.uiCamera.width - chrome.marginHor())
 					/ (float)(slotWidth + SLOT_MARGIN));
 			if (availCols > nCols) {
-				//留一列余量，避免贴边
-				nCols = Math.min(availCols - 1, 10);
+				//留一列余量，避免贴边；手机上宽度小，自然还是 5 列
+				nCols = Math.min(availCols - 1, 16);
 			}
 		}
 

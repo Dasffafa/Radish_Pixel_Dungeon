@@ -56,7 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.*;
-import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestArenaLevel;import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.FireHallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.OldSewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WarCityLevel;
@@ -364,6 +364,12 @@ public class Dungeon {
 			} else {
 				throw new IllegalStateException("Unknown branch: " + branchId);
 			}
+
+		// 测试场：测试模式专用空白地图（不参与正常楼层生成记录）
+		if (TestArenaLevel.requested) {
+			TestArenaLevel.requested = false;
+			level = new TestArenaLevel();
+		}
 
 			if (level == null) {
 				throw new IllegalStateException("Invalid floor: " + branchId + ":" + depth);

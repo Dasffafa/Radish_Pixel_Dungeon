@@ -89,6 +89,22 @@ public class InventoryPane extends Component {
 
 	private static final int SLOT_WIDTH = 17;
 	private static final int SLOT_HEIGHT = 24;
+
+	/**
+	 * 桌面大屏时把背包面板加宽，让一行能放下更多物品；手机端保持原宽度。
+	 * 面板总宽 = 10px 内边距 + 每列 (SLOT_WIDTH+1)。
+	 */
+	public static int paneWidth(){
+		int w = WIDTH;
+		if (PixelScene.uiCamera != null && PixelScene.uiCamera.width > 0){
+			int avail = (int)(PixelScene.uiCamera.width - 12);
+			int fitCols = (int)((avail - 10) / (float)(SLOT_WIDTH + 1));
+			if (fitCols > 5){
+				w = Math.max(w, 10 + fitCols * (SLOT_WIDTH + 1));
+			}
+		}
+		return Math.min(w, 300);
+	}
 //	private static final int MIN_BAG_BUTTON_WIDTH = 12; // 背包按钮最小宽度
 
 	private WndBag.ItemSelector selector;
@@ -223,14 +239,15 @@ public class InventoryPane extends Component {
 		lastEnabled = true;
 		updateInventory();
 
-		width = WIDTH;
+		width = paneWidth();
 		height = HEIGHT;
 	}
 
 	@Override
 	protected void layout() {
-		width = WIDTH;
+		width = paneWidth();
 		height = HEIGHT;
+
 
 		bg.x = bg2.x = x;
 		bg.y = bg2.y = y;
