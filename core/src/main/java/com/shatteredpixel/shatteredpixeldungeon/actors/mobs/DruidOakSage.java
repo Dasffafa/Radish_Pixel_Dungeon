@@ -7,14 +7,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidOakSageSprite;
 import com.watabou.utils.Bundle;
 
 /** 德鲁伊召唤物：橡木智者（无敌支援）。 */
 public class DruidOakSage extends Mob {
 
 	{
-		spriteClass = RatSprite.class;
+		spriteClass = DruidOakSageSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}

@@ -5,7 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidWolfSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -13,7 +13,7 @@ import com.watabou.utils.Random;
 public class DruidWolf extends Mob {
 
 	{
-		spriteClass = SnakeSprite.class;
+		spriteClass = DruidWolfSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}

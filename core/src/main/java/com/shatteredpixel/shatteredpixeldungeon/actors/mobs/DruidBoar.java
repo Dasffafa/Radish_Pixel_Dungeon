@@ -5,7 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidBoarSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -13,7 +13,7 @@ import com.watabou.utils.Random;
 public class DruidBoar extends Mob {
 
 	{
-		spriteClass = RatSprite.class;
+		spriteClass = DruidBoarSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}

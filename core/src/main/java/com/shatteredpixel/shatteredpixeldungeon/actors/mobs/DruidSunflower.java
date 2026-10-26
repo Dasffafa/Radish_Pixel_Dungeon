@@ -4,14 +4,14 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidSunflowerSprite;
 import com.watabou.utils.Bundle;
 
 /** 德鲁伊召唤物：太阳花（远程吸血）。 */
 public class DruidSunflower extends Mob {
 
 	{
-		spriteClass = RatSprite.class;
+		spriteClass = DruidSunflowerSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}
