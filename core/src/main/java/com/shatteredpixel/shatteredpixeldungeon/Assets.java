@@ -407,6 +407,14 @@ public class Assets {
 		public static final String FUNGAL_SENTRY    = "sprites/fungal_sentry.png";
 		public static final String FUNGAL_CORE      = "sprites/fungal_core.png";
 
+		// 德鲁伊召唤物（素材来自 德鲁伊召唤物.zip）
+		public static final String DRUID_BEAR       = "sprites/bear.png";
+		public static final String DRUID_BOAR       = "sprites/boar.png";
+		public static final String DRUID_WOLF       = "sprites/wolf.png";
+		public static final String DRUID_SUNFLOWER  = "sprites/sunflower.png";
+		public static final String DRUID_VINES      = "sprites/thorn_creeper.png";
+		public static final String DRUID_OAK_SAGE   = "sprites/oak_sage.png";
+
 		public static final String NEW_NPC="sprites/new_npc.png";
 
 		// Radish new Enemy
