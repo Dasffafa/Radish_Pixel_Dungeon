@@ -127,7 +127,14 @@ public class WndBag extends WndTabbed {
 			}
 		}
 
-		nRows = (int)Math.ceil(30/(float)nCols); //we expect to lay out 25 slots in all cases
+		// 行数必须按「实际要塞的格子数」算，不能用写死的常量：
+		// placeItems() 先放 5 格装备栏，再补到 bag.capacity() 个空格 ⇒ 总数 = 5 + capacity()。
+		// 原先写 ceil(30/nCols)，而 Bag.capacity() 是 35 ⇒ 实际需 40 格，
+		// 5 列时算出 6 行却要放 8 行 ⇒ 大屏上一眼少一行；加宽到 8 列时更明显。
+		int capacity = (bag != null) ? bag.capacity() : 25;
+		int neededSlots = 5 + capacity;
+		int minRows = (int)Math.ceil(25/(float)nCols);	//保底：原版 25 格布局的行数
+		nRows = Math.max(minRows, (int)Math.ceil(neededSlots/(float)nCols));
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
 		int windowHeight = TITLE_HEIGHT + slotHeight * nRows + SLOT_MARGIN * (nRows - 1);

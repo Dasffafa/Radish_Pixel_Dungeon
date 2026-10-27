@@ -28,7 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PeddlerCatalog;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.ui.ItemButton;
+import com.shatteredpixel.shatteredpixeldungeon.ui.InventorySlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
@@ -126,23 +126,23 @@ public class WndPeddlerShop extends Window {
 				float bx = col * (slotW + GAP);
 				float by = row * rowH;
 
-				ItemButton btn = new ItemButton() {
+				// 格子用 InventorySlot：和按 B 打开的背包是同一个类，
+				// 底色、四边描线、圆角框全部一致，不再自己画一套 ItemButton。
+				InventorySlot btn = new InventorySlot( item ) {
 					@Override
 					protected void onClick() {
 						buy( item );
 					}
 
 					// 与玩家背包完全一致的预览逻辑：
-					// WndBag 里长按物品就是 WndInfoItem(item)，这里照抄同一条链路，
-					// 单击仍是直接购买（对应背包里单击即选中）。
+					// WndBag.placeItem 里长按就是 Game.scene().addToFront(new WndInfoItem(item))，
+					// 这里走同一条链路，单击仍是直接购买（对应背包里单击即选中）。
 					@Override
 					protected boolean onLongClick() {
-						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-								new WndInfoItem( item ) );
+						Game.scene().addToFront( new WndInfoItem( item ) );
 						return true;
 					}
 				};
-				btn.item( item );
 				btn.setRect( bx, by, slotW, BUTTON_SIZE );
 				content.add( btn );
 
