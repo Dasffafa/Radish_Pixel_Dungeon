@@ -302,12 +302,16 @@ public class InventoryPane extends Component {
 		// 背包物品：按可用宽度自动分列（最多 10 列）
 		// 列数必须由「滚动区实际看得见的宽度」反推，并且滚动区宽度要正好等于网格宽度：
 		// ScrollPane 只在高度不够时画滚动条、没有横向滚动，内容一旦比它宽就会被它的相机
-		// 直接裁掉（症状就是背包右边少一列、缺一块）。原先两处都用 width - 10 却不保证
-		// 整除，网格会比视口宽出几像素，最右列被切。
-		float availW = width - 10;
-		int cols = (int)(availW / (SLOT_WIDTH + 1));
+		// 直接裁掉（症状就是背包右边少一列、缺一块）。
+		// 口径（与上游 SPD 的原版 10 列布局对齐）：左右各留 4，且「最后一列后面不需要
+		// 1px 间隙」⇒ 能放下的列数 = floor((可用宽 + 1) / 步距)，网格宽 = 列数*SLOT_WIDTH
+		// + (列数-1)*间隙。187 宽 ⇒ 可用 179、列数 10、网格宽 179，正好铺满整行；
+		// 原先用 width-10 再按整步距算，187 只算出 9 列、网格仅 162 宽，右侧空出 18px，
+		// 看上去就是一整列缺失（截图里的「缺一块」）。
+		float availW = width - 8;
+		int cols = (int)((availW + 1) / (SLOT_WIDTH + 1));
 		cols = Math.max( 5, Math.min( cols, 10 ) );
-		float gridW = cols * (SLOT_WIDTH + 1);
+		float gridW = cols * SLOT_WIDTH + (cols - 1);
 
 		for (int i = 0; i < bagItems.size(); i++){
 			InventorySlot b = bagItems.get(i);
