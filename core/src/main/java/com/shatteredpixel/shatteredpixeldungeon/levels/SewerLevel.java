@@ -210,6 +210,11 @@ public class SewerLevel extends RegularLevel {
 			if (cell == start) {
 				continue;
 			}
+			// 只放在房间内部：room(cell) 为 null ⇒ 这格在走廊、门洞或通道上。
+			// Room.inside() 已经把紧贴墙的那一圈排除了，所以不会贴着门站。
+			if (room(cell) == null) {
+				continue;
+			}
 			candidates.add(cell);
 		}
 		if (candidates.isEmpty()) {
