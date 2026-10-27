@@ -181,44 +181,77 @@ public class SewerLevel extends RegularLevel {
 		super.createMobs();
 	}
 
+	/** 游商之间至少隔开的格数（按真实地图距离，不是格子编号差）。 */
+	private static final int PEDDLER_SPACING = 5;
+
 	/**
-	 * 把 7 位游商摆到一楼入口附近。
-	 * 逐格找可站立的空格，找不到就跳过这一位，绝不覆盖已有单位。
+	 * 把 7 位游商分散撒到一楼各处。
+	 *
+	 * 做法：先收集全图所有可以站人的空格（排除不可站立、坑洞、已有物品、已有单位、以及紧贴入口的格子），
+	 * 打乱顺序后按 {@link #PEDDLER_SPACING} 格的最小真实距离贪心抽取；
+	 * 一次没抽够就把最小距离放宽一格重来，直到放下足够人数。
+	 * 这样他们散布在整个楼层，而不是在入口排成一队；实在放不下就少放几位，绝不覆盖已有单位或物品。
 	 */
 	private void spawnPeddlers() {
-		int placed = 0;
+		int total = length();
 		int start = entrance();
-		for (int i = 0; i < PeddlerCatalog.COUNT; i++) {
-			int cell = findFreeCell(start, placed + 1);
-			if (cell < 0) {
-				break;
-			}
-			Peddler p = new Peddler(i);
-			p.pos = cell;
-			mobs.add(p);
-			placed++;
-		}
-	}
-
-	/** 从 from 向右逐格找可站立且无人的格子，超出范围就返回 -1。 */
-	private int findFreeCell(int from, int minDistance) {
-		for (int cell = Math.max(0, from - 3); cell < passable.length; cell++) {
-			if (!passable[cell]) {
+		ArrayList<Integer> candidates = new ArrayList<>();
+		for (int cell = 0; cell < total; cell++) {
+			if (!passable[cell] || pit[cell]) {
 				continue;
 			}
-			if (Dungeon.level != null && Dungeon.level.heaps.get(cell) != null) {
+			if (heaps.get(cell) != null) {
 				continue;
 			}
 			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(cell) != null) {
 				continue;
 			}
-			if (Math.abs(cell - from) < minDistance) {
+			// 别堵在入口格上
+			if (cell == start) {
 				continue;
 			}
-			return cell;
+			candidates.add(cell);
 		}
-		return -1;
+		if (candidates.isEmpty()) {
+			return;
+		}
+
+		ArrayList<Integer> chosen = new ArrayList<>();
+		// 从宽到窄逐步放宽间距，保证尽可能放下全部游商
+		for (int spacing = PEDDLER_SPACING; spacing >= 2 && chosen.size() < PeddlerCatalog.COUNT; spacing--) {
+			chosen.clear();
+			ArrayList<Integer> pool = new ArrayList<>(candidates);
+			// 用 SPD 自带随机源做 Fisher-Yates 洗牌，保证每次开局的散布位置都不同
+			for (int i = pool.size() - 1; i > 0; i--) {
+				int j = com.watabou.utils.Random.Int(i + 1);
+				int tmp = pool.get(i);
+				pool.set(i, pool.get(j));
+				pool.set(j, tmp);
+			}
+			for (int cell : pool) {
+				if (chosen.size() >= PeddlerCatalog.COUNT) {
+					break;
+				}
+				boolean ok = true;
+				for (int other : chosen) {
+					if (distance(cell, other) < spacing) {
+						ok = false;
+						break;
+					}
+				}
+				if (ok) {
+					chosen.add(cell);
+				}
+			}
+		}
+
+		for (int i = 0; i < chosen.size() && i < PeddlerCatalog.COUNT; i++) {
+			Peddler p = new Peddler(i);
+			p.pos = chosen.get(i);
+			mobs.add(p);
+		}
 	}
+
 	
 	@Override
 	public boolean activateTransition(Hero hero, LevelTransition transition) {

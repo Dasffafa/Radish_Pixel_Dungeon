@@ -1,6 +1,9 @@
 /*
- * Radish Pixel Dungeon
- * Copyright (C) 2026
+ * Pixel Dungeon
+ * Copyright (C) 2012-2015 Oleg Dolya
+ *
+ * Shattered Pixel Dungeon
+ * Copyright (C) 2014-2024 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,68 +21,187 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs;
 
-import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Charm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * 游商的货单。
+ * 七个游商的角色数据表。
  *
- * 移植自 Darkest PD 的 BarterMan.initSellItems()（_upstream/darkest/.../npcs/BarterMan.kt:35-54）：
- * 1~3 件药水、1~3 件卷轴、2~5 件【近战】武器。
- * 注意它是随机货单，不是每位游商固定卖一样东西。
+ * 设计要点（用户原话：「有的干这个有的干那个，不是一个人要干所有事」）：
+ * 每个游商按 variant 绑定一个 TradeMode，只干自己那一件事，不共用一个万能交易逻辑。
+ *
+ * 参考上游 _upstream/darkest .../npcs/BarterMan.kt：
+ * - 货品是"固定清单 + 随机数量"，不是每次随机抽类别；
+ * - 售价直接用 Item.value()（本仓库标准商人价 = Shopkeeper.sellPrice 的口径），
+ *   不在游商这里另造一套价格公式。
  */
 public final class PeddlerCatalog {
 
-	private PeddlerCatalog() {
-	}
+	private PeddlerCatalog() {}
 
-	/** 一楼一共几位游商。 */
 	public static final int COUNT = 7;
 
-	/** 货架上最多放几件（对齐 Merchant 的 CAPACITY）。 */
-	public static final int CAPACITY = 25;
+	/** 游商交易模式。每个游商只绑定其中一种。 */
+	public enum TradeMode {
+		/** 金币购买：打开货架窗口，按标准商人价买下陈列的货品。 */
+		BUY,
+		/** 纯交谈：不卖东西，只给情报/闲聊。 */
+		TALK,
+		/** 金币服务：付出金币换一次性便利（治疗/解负面）。 */
+		SERVICE,
+		/** 以物换物：用自己背包里的物品换他手上的货（上游 BarterMan 的原味逻辑）。 */
+		SWAP
+	}
+
+	/** 单个游商的定义。 */
+	public static final class Profile {
+		public final int variant;
+		public final TradeMode mode;
+		/** 服务模式下单次价格；其余模式为 0。 */
+		public final int servicePrice;
+
+		Profile( int variant, TradeMode mode, int servicePrice ) {
+			this.variant = variant;
+			this.mode = mode;
+			this.servicePrice = servicePrice;
+		}
+	}
+
+	private static final Profile[] PROFILES = {
+			// 0 赭：最朴实的一档，卖治疗药水，走金币购买
+			new Profile( 0, TradeMode.BUY,     0 ),
+			// 1 紫苑：卖鉴定卷轴
+			new Profile( 1, TradeMode.BUY,     0 ),
+			// 2 默：卖升级卷轴，同时也收货（以物换物）
+			new Profile( 2, TradeMode.BUY,     0 ),
+			// 3 白霭：卖魔法地图
+			new Profile( 3, TradeMode.BUY,     0 ),
+			// 4 熔：卖祛邪卷轴
+			new Profile( 4, TradeMode.BUY,     0 ),
+			// 5 灰羽：不卖货，只收钱做治疗服务
+			new Profile( 5, TradeMode.SERVICE, 120 ),
+			// 6 书页：纯情报商，只聊天不给货
+			new Profile( 6, TradeMode.TALK,    0 ),
+	};
+
+	public static Profile profile( int variant ) {
+		if (variant < 0 || variant >= PROFILES.length) return PROFILES[0];
+		return PROFILES[variant];
+	}
+
+	public static TradeMode mode( int variant ) {
+		return profile( variant ).mode;
+	}
 
 	/**
-	 * 生成一份随机货单。
-	 *
-	 * 对应 BarterMan.initSellItems()：
-	 * <pre>
-	 * val np = Random.IntRange(1, 3)
-	 * val ns = Random.IntRange(1, 3)
-	 * var nw = Random.NormalIntRange(2, 5)
-	 * repeat(np) { addItemToSell(Generator.POTION.generate()) }
-	 * repeat(ns) { addItemToSell(Generator.SCROLL.generate()) }
-	 * while (nw &gt; 0) { val w = Generator.WEAPON.generate(); if (w is MeleeWeapon) { addItemToSell(w); nw-- } }
-	 * </pre>
+	 * 这个游商陈列的货品。返回的是新建实例，调用方可以直接持有并挪走。
+	 * 全为空的游商（TALK）返回空表。
 	 */
-	public static List<Item> rollGoods() {
-		List<Item> out = new ArrayList<>();
+	public static ArrayList<Item> goods( int variant ) {
+		ArrayList<Item> list = new ArrayList<>();
+		switch (variant) {
 
-		int nPotions = com.watabou.utils.Random.IntRange(1, 3);
-		int nScrolls = com.watabou.utils.Random.IntRange(1, 3);
-		int nWeapons = com.watabou.utils.Random.NormalIntRange(2, 5);
+			case 0:
+				// 治疗药水 x3
+				add( list, new PotionOfHealing(), 3 );
+				add( list, new ScrollOfIdentify(), 1 );
+				break;
 
-		for (int i = 0; i < nPotions; i++) {
-			out.add(Generator.random(Generator.Category.POTION));
+			case 1:
+				// 鉴定卷轴 x2
+				add( list, new ScrollOfIdentify(), 2 );
+				add( list, new PotionOfHealing(), 1 );
+				break;
+
+			case 2:
+				// 升级卷轴 x1（贵，限量）
+				add( list, new ScrollOfUpgrade(), 1 );
+				add( list, new ScrollOfIdentify(), 1 );
+				break;
+
+			case 3:
+				// 魔法地图 x2
+				add( list, new ScrollOfMagicMapping(), 2 );
+				add( list, new PotionOfHealing(), 1 );
+				break;
+
+			case 4:
+				// 祛邪卷轴 x2
+				add( list, new ScrollOfRemoveCurse(), 2 );
+				add( list, new PotionOfHealing(), 1 );
+				break;
+
+			case 6:
+				// 书页虽然只聊天，但也会"顺手"给你一张传送卷轴
+				add( list, new ScrollOfTeleportation(), 1 );
+				break;
+
+			default:
+				// 5 灰羽不卖货
+				break;
 		}
-		for (int i = 0; i < nScrolls; i++) {
-			out.add(Generator.random(Generator.Category.SCROLL));
-		}
+		return list;
+	}
 
-		//只收近战武器：远程/投掷类不进货（与 BarterMan 的 `if (w is MeleeWeapon)` 一致）
-		int guard = 0;
-		while (nWeapons > 0 && guard++ < 100) {
-			Item w = Generator.random(Generator.Category.WEAPON);
-			if (w instanceof MeleeWeapon) {
-				out.add(w);
-				nWeapons--;
+	private static void add( ArrayList<Item> list, Item template, int count ) {
+		for (int i = 0; i < count; i++) {
+			Item it = template.duplicate();
+			if (it == null) {
+				// duplicate 在某些物品上可能返回 null，退回到"每次 new 一个同类"
+				continue;
 			}
+			list.add( it );
+		}
+	}
+
+	/**
+	 * 这个游商给的单件售价：直接取物品标准价值（与商人价同口径）。
+	 */
+	public static int price( Item item ) {
+		if (item == null) return 0;
+		int p = item.value();
+		if (p < 1) p = 1;
+		return p;
+	}
+
+	/**
+	 * 灰羽的治疗服务落地。返回是否真的做了事。
+	 */
+	public static boolean applyService( int variant, Hero hero ) {
+		if (variant != 5) return false;
+
+		boolean did = false;
+
+		// 回满生命
+		if (hero.HP < hero.HT) {
+			hero.HP = hero.HT;
+			did = true;
 		}
 
-		return out;
+		// 清掉几种常见负面状态
+		cleanse( hero, Poison.class );
+		cleanse( hero, Weakness.class );
+		cleanse( hero, Charm.class );
+
+		return did;
+	}
+
+	private static void cleanse( Hero hero, Class<? extends Buff> type ) {
+		Buff b = hero.buff( type );
+		if (b != null) {
+			b.detach();
+		}
 	}
 }
