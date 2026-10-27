@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Journal;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Archs;
@@ -34,9 +35,12 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ExitButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndGameInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Image;
@@ -48,6 +52,8 @@ public class StartScene extends PixelScene {
 	
 	private static final int SLOT_WIDTH = 120;
 	private static final int SLOT_HEIGHT = 30;
+	private static final int CLEAR_SAVES_HEIGHT = 18;
+	private static final int CLEAR_SAVES_MARGIN = 6;
 	
 	@Override
 	public void create() {
@@ -110,12 +116,67 @@ public class StartScene extends PixelScene {
 			add(newGame);
 		}
 		
+		//[新增] 存档列表下方：一键清除全部存档（删完重建本界面，列表随之清空）
+		if (!games.isEmpty()) {
+			RedButton clearSaves = new RedButton( Messages.get(this, "clear_saves_short"), 8 ) {
+				@Override
+				protected void onClick() {
+					confirmClearSaves();
+				}
+
+				@Override
+				protected String hoverText() {
+					return Messages.get(StartScene.class, "clear_saves_title");
+				}
+			};
+			clearSaves.setRect( (w - SLOT_WIDTH) / 2f,
+					Math.min(yPos + CLEAR_SAVES_MARGIN, h - CLEAR_SAVES_HEIGHT - 2),
+					SLOT_WIDTH, CLEAR_SAVES_HEIGHT );
+			align(clearSaves);
+			add(clearSaves);
+		}
 		GamesInProgress.curSlot = 0;
 		
 		fadeIn();
 		
 	}
 	
+	/**
+	 * 一键清除全部存档。
+	 * 先数一遍进行中的存档，再弹确认框；确认后逐个走 Dungeon.deleteGame(slot, true)，
+	 * 与“放弃游戏”删档同一条路径（连同该槽位的 depth 层文件一起删），不会留下半截存档。
+	 * 删完重建本界面，存档列表随之清空。
+	 */
+	private void confirmClearSaves() {
+		int count = 0;
+		for (int slot = 1; slot <= GamesInProgress.MAX_SLOTS; slot++) {
+			if (GamesInProgress.gameExists(slot)) count++;
+		}
+
+		if (count == 0) {
+			add(new WndMessage(Messages.get(this, "clear_saves_none")));
+			return;
+		}
+
+		add(new WndOptions(Icons.get(Icons.WARNING),
+				Messages.get(this, "clear_saves_title"),
+				Messages.get(this, "clear_saves_desc", count),
+				Messages.get(this, "clear_saves_confirm"),
+				Messages.get(this, "clear_saves_cancel")) {
+			@Override
+			protected void onSelect(int index) {
+				if (index != 0) return;
+
+				for (int slot = 1; slot <= GamesInProgress.MAX_SLOTS; slot++) {
+					if (!GamesInProgress.gameExists(slot)) continue;
+					GamesInProgress.setUnknown(slot);
+					Dungeon.deleteGame(slot, true);
+				}
+				ShatteredPixelDungeon.switchNoFade(StartScene.class);
+			}
+		});
+	}
+
 	@Override
 	protected void onBackPressed() {
 		ShatteredPixelDungeon.switchNoFade( TitleScene.class );

@@ -41,7 +41,6 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Archs;
 import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
-import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
@@ -49,7 +48,6 @@ import com.shatteredpixel.shatteredpixeldungeon.windows.WndChallenges;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndHeroInfo;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndKeyBindings;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndTextInput;
 import com.watabou.gltextures.SmartTexture;
 import com.watabou.gltextures.TextureCache;
@@ -116,7 +114,6 @@ public class HeroSelectScene extends PixelScene {
 	private static final int TITLE_BOTTOM_GAP = 14;
 	private static final int ROW_GAP = 6;
 
-	private static final int CLEAR_SAVES_WIDTH = 44;	//只容纳 2 个汉字 / 5 个字母，够宽且不挤
 	private static final int SKY_WIDTH    = 80;
 	private static final int SKY_HEIGHT    = 112;
 
@@ -185,22 +182,6 @@ public class HeroSelectScene extends PixelScene {
 		PixelScene.align(btnExit);
 		add(btnExit);
 
-		//[新增] 右上角：一键清除全部存档（参照破碎地牢的删档确认流程，删除走 Dungeon.deleteGame）
-		RedButton clearSaves = new RedButton( Messages.get(this, "clear_saves_short") ) {
-			@Override
-			protected void onClick() {
-				confirmClearSaves();
-			}
-
-			@Override
-			protected String hoverText() {
-				return Messages.get(HeroSelectScene.class, "clear_saves_title");
-			}
-		};
-		clearSaves.setSize( CLEAR_SAVES_WIDTH, BUTTON_HEIGHT );
-		clearSaves.setPos( w - CLEAR_SAVES_WIDTH - 2, 2 );
-		PixelScene.align(clearSaves);
-		add(clearSaves);
 
 		float vx = align((w - SKY_WIDTH) / 2f);
 		float belowFrame = ROW_GAP + BUTTON_HEIGHT;
@@ -520,44 +501,6 @@ public class HeroSelectScene extends PixelScene {
 				patch.visible = shouldShowGrass;
 			}
 		}
-	}
-
-	/**
-	 * 一键清除全部存档。
-	 * 先用 GamesInProgress.gameExists 数一遍，再弹确认框；确认后逐个走 Dungeon.deleteGame(slot, true)，
-	 * 和游戏里“放弃游戏”删档是同一条路径（连同该槽位的 depth 层文件一起删），不会留下半截存档。
-	 */
-	private void confirmClearSaves() {
-		int count = 0;
-		for (int slot = 1; slot <= GamesInProgress.MAX_SLOTS; slot++) {
-			if (GamesInProgress.gameExists(slot)) count++;
-		}
-
-		if (count == 0) {
-			add(new WndMessage(Messages.get(this, "clear_saves_none")));
-			return;
-		}
-
-		add(new WndOptions(
-				Messages.get(this, "clear_saves_title"),
-				Messages.get(this, "clear_saves_desc", count),
-				Messages.get(this, "clear_saves_confirm"),
-				Messages.get(this, "clear_saves_cancel")) {
-			@Override
-			protected void onSelect(int index) {
-				if (index != 0) return;
-
-				int deleted = 0;
-				for (int slot = 1; slot <= GamesInProgress.MAX_SLOTS; slot++) {
-					if (!GamesInProgress.gameExists(slot)) continue;
-					GamesInProgress.setUnknown(slot);
-					Dungeon.deleteGame(slot, true);
-					deleted++;
-				}
-				HeroSelectScene.this.add(
-						new WndMessage(Messages.get(HeroSelectScene.class, "clear_saves_done", deleted)));
-			}
-		});
 	}
 
 	private void placeTorch(float x, float y ) {
