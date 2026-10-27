@@ -90,7 +90,10 @@ public class StartScene extends PixelScene {
 		int slotGap = 10 - slotCount;
 		int slotsHeight = slotCount*SLOT_HEIGHT + (slotCount-1)* slotGap;
 
-		while (slotsHeight > (h-title.bottom()-2)){
+		//[改动] 有存档时要给下方“清档”按钮留出一行，避免列表把按钮挤到底边重叠；slotGap 加下限防止死循环
+		int reservedSpace = games.isEmpty() ? 0 : CLEAR_SAVES_HEIGHT + CLEAR_SAVES_MARGIN;
+
+		while (slotsHeight > (h-title.bottom()-2-reservedSpace) && slotGap > -SLOT_HEIGHT){
 			slotGap--;
 			slotsHeight -= slotCount-1;
 		}
