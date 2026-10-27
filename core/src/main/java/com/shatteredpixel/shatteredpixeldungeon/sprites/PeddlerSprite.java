@@ -26,8 +26,17 @@ import com.watabou.noosa.TextureFilm;
  *
  * 素材来自桌面 ai 文件夹那张 256x512 的 NPC 图集，按行拆成 7 张独立贴图
  * （npc_peddler0~6.png，每张 176x16 = 11 帧 x 16x16）。
- * 每个游商只取自己那一行的 idle 帧，走位/攻击直接复用 idle，
- * 因为他们站着不动、也不会打人。
+ *
+ * <p><b>注意：图集里并不是每一格都画了内容。</b>实测逐帧像素统计（透明像素视为空）：
+ * <ul>
+ *   <li>variant 0/1/2/3/6：11 帧全部有内容，可以整排循环；</li>
+ *   <li>variant 4（熔）：只有第 1~5 帧有内容，第 0、6~10 帧是空白格；</li>
+ *   <li>variant 5（灰羽）：只有第 0、9、10 帧有内容，第 1~8 帧是空白格。</li>
+ * </ul>
+ * 若把整排 11 帧无脑塞进 idle 动画，variant 4 和 5 就会在播放时不停闪出空白。
+ * 因此这里为每个 variant 声明<b>各自的有效帧序列</b>，空帧一律不进动画。
+ *
+ * <p>游商站着不动、也不会打人，所以走位/攻击/死亡都复用 idle 的有效帧。
  */
 public class PeddlerSprite extends MobSprite {
 
@@ -42,8 +51,26 @@ public class PeddlerSprite extends MobSprite {
 			Assets.Sprites.NPC_PEDDLER6,
 	};
 
-	/** 每行有效帧数（原图每行 11 格，个别行尾部是空的，多填几帧无害）。 */
-	private static final int FRAMES = 11;
+	/**
+	 * 每个 variant 的有效帧序列（只列真正画了内容的格子，空帧全部剔除）。
+	 * 新增变体时务必先用 {@code _tools} 里的逐帧检查确认哪些帧有像素。
+	 */
+	private static final int[][] VALID_FRAMES = {
+			// variant 0：11 帧全满
+			{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+			// variant 1：11 帧全满
+			{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+			// variant 2：11 帧全满
+			{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+			// variant 3：11 帧全满
+			{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+			// variant 4（熔）：只有 1~5 有内容
+			{ 1, 2, 3, 4, 5 },
+			// variant 5（灰羽）：只有 0、9、10 有内容
+			{ 0, 9, 10 },
+			// variant 6：11 帧全满
+			{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+	};
 
 	public PeddlerSprite(int variant) {
 		super();
@@ -55,8 +82,21 @@ public class PeddlerSprite extends MobSprite {
 
 		TextureFilm film = new TextureFilm(texture, 16, 16);
 
+		int[] frames = VALID_FRAMES[variant];
+		// 防御：万一某个变体的有效帧表被写空，退回第 0 帧，绝不让动画没有任何帧可播
+		if (frames == null || frames.length == 0) {
+			frames = new int[] { 0 };
+		}
+
+		// frames() 的签名是 frames(TextureFilm, Object...)：
+		// 直接把 int[] 传进去会被当成「一个 Object 元素」而不是逐个帧号，必须逐帧装箱。
+		Object[] frameObjects = new Object[frames.length];
+		for (int i = 0; i < frames.length; i++) {
+			frameObjects[i] = frames[i];
+		}
+
 		idle = new Animation(6, true);
-		idle.frames(film, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+		idle.frames(film, frameObjects);
 
 		run = idle.clone();
 		attack = idle.clone();
