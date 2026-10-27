@@ -216,7 +216,7 @@ public class Peddler extends NPC {
 				cbs.add( new Callback() {
 					@Override
 					public void call() {
-						PeddlerCatalog.applyService( variant, Dungeon.hero );
+						buyService( variant );
 					}
 				} );
 				labels.add( Messages.get( Peddler.class, "opt_talk" ) );
@@ -266,6 +266,29 @@ public class Peddler extends NPC {
 		return true;
 	}
 
+	/**
+	 * 收费服务：先验金币，再真的做事，做成了才扣钱。
+	 * 三处反馈都要给（没钱 / 没什么可治 / 收钱治好了），否则点了选项毫无动静。
+	 */
+	private static void buyService( int variant ) {
+		final Hero hero = Dungeon.hero;
+		if (hero == null) return;
+
+		final int price = PeddlerCatalog.profile( variant ).servicePrice;
+
+		if (Dungeon.gold < price) {
+			GLog.w( Messages.get( Peddler.class, "service_poor", price ) );
+			return;
+		}
+
+		if (!PeddlerCatalog.applyService( variant, hero )) {
+			GLog.i( Messages.get( Peddler.class, "service_idle" ) );
+			return;
+		}
+
+		Dungeon.gold -= price;
+		GLog.p( Messages.get( Peddler.class, "service_done", price ) );
+	}
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );

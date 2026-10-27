@@ -222,18 +222,20 @@ public final class PeddlerCatalog {
 			did = true;
 		}
 
-		// 清掉几种常见负面状态
-		cleanse( hero, Poison.class );
-		cleanse( hero, Weakness.class );
-		cleanse( hero, Charm.class );
+		// 清掉几种常见负面状态（清掉任意一种也算"做了事"，照样该收费）
+		if (cleanse( hero, Poison.class )) did = true;
+		if (cleanse( hero, Weakness.class )) did = true;
+		if (cleanse( hero, Charm.class )) did = true;
 
 		return did;
 	}
 
-	private static void cleanse( Hero hero, Class<? extends Buff> type ) {
+	private static boolean cleanse( Hero hero, Class<? extends Buff> type ) {
 		Buff b = hero.buff( type );
 		if (b != null) {
 			b.detach();
+			return true;
 		}
+		return false;
 	}
 }
