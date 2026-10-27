@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndDialogue;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndPeddlerShop;
 import com.watabou.noosa.Game;
+import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 
@@ -55,6 +56,7 @@ public class Peddler extends NPC {
 
 	private static final String VARIANT = "variant";
 	private static final String STOCKED = "stocked";
+	private static final String GOODS   = "goods";
 
 	private int variant = 0;
 	private boolean stocked = false;
@@ -269,6 +271,9 @@ public class Peddler extends NPC {
 		super.storeInBundle( bundle );
 		bundle.put( VARIANT, variant );
 		bundle.put( STOCKED, stocked );
+		// 货架内容必须一起存：里面既有「还剩什么」，也隐含「已经卖掉了什么」。
+		// 只存 stocked 不存 goods，读档后就成了「标记为已铺货 + 空货架」，stock() 永远不会再补货。
+		bundle.put( GOODS, goods );
 	}
 
 	@Override
@@ -276,7 +281,18 @@ public class Peddler extends NPC {
 		super.restoreFromBundle( bundle );
 		variant = bundle.getInt( VARIANT );
 		stocked = bundle.getBoolean( STOCKED );
-		// 货架内容按 variant 重建；玩家已经买走的会在下次 stock 时重新铺（框架阶段可接受）
+
 		goods = new ArrayList<>();
+		if (bundle.contains( GOODS )) {
+			// 旧档没有 GOODS 键：这类档要当作「还没铺过货」，把 stocked 放回去让 stock() 重建，
+			// 否则会复现「货架永远空」的老 bug。
+			for (Bundlable b : bundle.getCollection( GOODS )) {
+				if (b instanceof Item) {
+					goods.add( (Item)b );
+				}
+			}
+		} else {
+			stocked = false;
+		}
 	}
 }
