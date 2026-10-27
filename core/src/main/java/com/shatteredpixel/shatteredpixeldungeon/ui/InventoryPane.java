@@ -299,20 +299,27 @@ public class InventoryPane extends Component {
 			}
 		}
 
-		// 背包物品：按可用宽度自动分列（最多 10 列，超出部分用右侧滚动条查看）
-		int cols = Math.max( 5, (int)((width - 10) / (SLOT_WIDTH + 1)) );
-		cols = Math.min( cols, 10 );
+		// 背包物品：按可用宽度自动分列（最多 10 列）
+		// 列数必须由「滚动区实际看得见的宽度」反推，并且滚动区宽度要正好等于网格宽度：
+		// ScrollPane 只在高度不够时画滚动条、没有横向滚动，内容一旦比它宽就会被它的相机
+		// 直接裁掉（症状就是背包右边少一列、缺一块）。原先两处都用 width - 10 却不保证
+		// 整除，网格会比视口宽出几像素，最右列被切。
+		float availW = width - 10;
+		int cols = (int)(availW / (SLOT_WIDTH + 1));
+		cols = Math.max( 5, Math.min( cols, 10 ) );
+		float gridW = cols * (SLOT_WIDTH + 1);
+
 		for (int i = 0; i < bagItems.size(); i++){
 			InventorySlot b = bagItems.get(i);
 			b.setRect((i % cols) * (SLOT_WIDTH + 1), (i / cols) * (SLOT_HEIGHT + 1),
 					SLOT_WIDTH, SLOT_HEIGHT);
 		}
 		int rows = (bagItems.size() + cols - 1) / cols;
-		bagContent.setSize(cols * (SLOT_WIDTH + 1), rows * (SLOT_HEIGHT + 1));
+		bagContent.setSize(gridW, rows * (SLOT_HEIGHT + 1));
 
 		float bagTop = y + 14 + 14 + 1;
 		float viewportH = height - (bagTop - y) - 2;
-		bagScroll.setRect(x + 4, bagTop, width - 10, Math.max(1, viewportH));
+		bagScroll.setRect(x + 4, bagTop, gridW, Math.max(1, viewportH));
 
 		super.layout();
 	}

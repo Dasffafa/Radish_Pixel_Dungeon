@@ -128,11 +128,17 @@ public class WndBag extends WndTabbed {
 		}
 
 		// 行数必须按「实际要塞的格子数」算，不能用写死的常量：
-		// placeItems() 先放 5 格装备栏，再补到 bag.capacity() 个空格 ⇒ 总数 = 5 + capacity()。
-		// 原先写 ceil(30/nCols)，而 Bag.capacity() 是 35 ⇒ 实际需 40 格，
-		// 5 列时算出 6 行却要放 8 行 ⇒ 大屏上一眼少一行；加宽到 8 列时更明显。
+		// placeItems() 先放 5 格装备栏（可能再多 1 格副手），再补到 bag.capacity() 个空格。
+		// 原先写 ceil(30/nCols)，而 Bag.capacity() 是 35 ⇒ 实际要 40+ 格，
+		// 5 列时算出 6 行却要放 8 行 ⇒ 大屏上一眼少一行；加宽列数时更明显。
 		int capacity = (bag != null) ? bag.capacity() : 25;
-		int neededSlots = 5 + capacity;
+		// 装备栏固定 5 格，装备了副手武器时再多 1 格（写清括号，别靠 && 优先级）
+		int equippedMin = 5;
+		if (Dungeon.hero != null && Dungeon.hero.belongings.secondWep != null) equippedMin = 6;
+		int neededSlots = equippedMin + capacity;
+		// 非根容器会把自己也占一格，再留 1 格余量
+		boolean isBackpack = (bag == null) || (Dungeon.hero != null && bag == Dungeon.hero.belongings.backpack);
+		if (!isBackpack) neededSlots++;
 		int minRows = (int)Math.ceil(25/(float)nCols);	//保底：原版 25 格布局的行数
 		nRows = Math.max(minRows, (int)Math.ceil(neededSlots/(float)nCols));
 
@@ -156,15 +162,18 @@ public class WndBag extends WndTabbed {
 		content = new Component();
 		placeItems( bag );
 
-		// 可见区域保持 6 行左右，内容按容量增长，超出部分用滚动条查看
-		int visibleHeight = slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
-		int contentRows = Math.max(nRows, row);
-		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN));
+		// 可见高度必须覆盖「真正会画出来的行数」，否则 ScrollPane 会把最后一行裁掉，
+		// 表现就是窗口右边/下面缺出一块。placeItem() 结束时 row 已经多加过一次，
+		// 实际占用行数 = row（不是 row+1），这里两者取大值兜底。
+		int actualRows = Math.max(nRows, row);
+		int visibleHeight = slotHeight * actualRows + SLOT_MARGIN * (actualRows - 1);
+		content.setSize(windowWidth, actualRows * (slotHeight + SLOT_MARGIN));
 		scroll = new ScrollPane(content);
 		scrollHeight = visibleHeight;
 		add(scroll);
 
-		resize( windowWidth, windowHeight );
+		// 窗口高度也要按实际行数算，不能只按预先估的 nRows
+		resize( windowWidth, TITLE_HEIGHT + visibleHeight );
 
 		int i = 1;
 		for (Bag b : Dungeon.hero.belongings.getBags()) {
