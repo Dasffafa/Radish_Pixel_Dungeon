@@ -417,6 +417,15 @@ public class Assets {
 
 		public static final String NEW_NPC="sprites/new_npc.png";
 
+		// 游商贴图（素材来自桌面 ai 文件夹的 NPC 图集，按行拆分，每张 176x16 = 11帧 x 16x16）
+		public static final String NPC_PEDDLER0 = "sprites/npc_peddler0.png";
+		public static final String NPC_PEDDLER1 = "sprites/npc_peddler1.png";
+		public static final String NPC_PEDDLER2 = "sprites/npc_peddler2.png";
+		public static final String NPC_PEDDLER3 = "sprites/npc_peddler3.png";
+		public static final String NPC_PEDDLER4 = "sprites/npc_peddler4.png";
+		public static final String NPC_PEDDLER5 = "sprites/npc_peddler5.png";
+		public static final String NPC_PEDDLER6 = "sprites/npc_peddler6.png";
+
 		// Radish new Enemy
 		// Zone 1
 		public static final String GIANT_WORM="sprites/RadishEnemySprite/ZoneOne/giant_worm.png";

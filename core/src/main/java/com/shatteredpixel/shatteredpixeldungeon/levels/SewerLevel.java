@@ -28,6 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MoonLight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Peddler;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PeddlerCatalog;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
@@ -171,7 +173,51 @@ public class SewerLevel extends RegularLevel {
 			mobs.add(npc18);
 		}
 
+		//一楼游商（仿暗黑地牢 BarterMan）：名字/台词/货单全在 PeddlerCatalog 里
+		if(Dungeon.depth == 1 && Dungeon.branchId.equals(Branches.MAIN)){
+			spawnPeddlers();
+		}
+
 		super.createMobs();
+	}
+
+	/**
+	 * 把 7 位游商摆到一楼入口附近。
+	 * 逐格找可站立的空格，找不到就跳过这一位，绝不覆盖已有单位。
+	 */
+	private void spawnPeddlers() {
+		int placed = 0;
+		int start = entrance();
+		for (int i = 0; i < PeddlerCatalog.COUNT; i++) {
+			int cell = findFreeCell(start, placed + 1);
+			if (cell < 0) {
+				break;
+			}
+			Peddler p = new Peddler(i);
+			p.pos = cell;
+			mobs.add(p);
+			placed++;
+		}
+	}
+
+	/** 从 from 向右逐格找可站立且无人的格子，超出范围就返回 -1。 */
+	private int findFreeCell(int from, int minDistance) {
+		for (int cell = Math.max(0, from - 3); cell < passable.length; cell++) {
+			if (!passable[cell]) {
+				continue;
+			}
+			if (Dungeon.level != null && Dungeon.level.heaps.get(cell) != null) {
+				continue;
+			}
+			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(cell) != null) {
+				continue;
+			}
+			if (Math.abs(cell - from) < minDistance) {
+				continue;
+			}
+			return cell;
+		}
+		return -1;
 	}
 	
 	@Override
