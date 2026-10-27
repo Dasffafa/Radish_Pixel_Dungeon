@@ -27,11 +27,23 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfFrost;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHaste;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLevitation;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfPurity;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfLullaby;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMirrorImage;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTerror;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 
 import java.util.ArrayList;
@@ -114,42 +126,62 @@ public final class PeddlerCatalog {
 		switch (variant) {
 
 			case 0:
-				// 治疗药水 x3
-				add( list, new PotionOfHealing(), 3 );
-				add( list, new ScrollOfIdentify(), 1 );
+				// 赭：最朴实的杂货摊，药水管够
+				add( list, new PotionOfHealing(), 4 );
+				add( list, new PotionOfPurity(), 2 );
+				add( list, new ScrollOfIdentify(), 2 );
+				add( list, new ScrollOfRemoveCurse(), 1 );
 				break;
 
 			case 1:
-				// 鉴定卷轴 x2
-				add( list, new ScrollOfIdentify(), 2 );
-				add( list, new PotionOfHealing(), 1 );
+				// 紫苑：鉴定为主，兼卖侦查类
+				add( list, new ScrollOfIdentify(), 4 );
+				add( list, new PotionOfMindVision(), 2 );
+				add( list, new ScrollOfMagicMapping(), 2 );
+				add( list, new PotionOfHealing(), 2 );
 				break;
 
 			case 2:
-				// 升级卷轴 x1（贵，限量）
-				add( list, new ScrollOfUpgrade(), 1 );
-				add( list, new ScrollOfIdentify(), 1 );
+				// 默：强化与充盈，最贵的一档
+				add( list, new ScrollOfUpgrade(), 2 );
+				add( list, new ScrollOfRecharging(), 2 );
+				add( list, new ScrollOfIdentify(), 3 );
+				add( list, new PotionOfExperience(), 1 );
 				break;
 
 			case 3:
-				// 魔法地图 x2
-				add( list, new ScrollOfMagicMapping(), 2 );
-				add( list, new PotionOfHealing(), 1 );
+				// 白霭：探路、机动、逃生
+				add( list, new ScrollOfMagicMapping(), 3 );
+				add( list, new ScrollOfTeleportation(), 2 );
+				add( list, new PotionOfLevitation(), 2 );
+				add( list, new PotionOfHaste(), 1 );
 				break;
 
 			case 4:
-				// 祛邪卷轴 x2
-				add( list, new ScrollOfRemoveCurse(), 2 );
-				add( list, new PotionOfHealing(), 1 );
+				// 熔：祛邪、解异常、火与寒
+				add( list, new ScrollOfRemoveCurse(), 3 );
+				add( list, new PotionOfPurity(), 2 );
+				add( list, new PotionOfLiquidFlame(), 2 );
+				add( list, new PotionOfFrost(), 2 );
+				break;
+
+			case 5:
+				// 灰羽：治疗与保命（同时仍提供收费治療服务）
+				add( list, new PotionOfHealing(), 4 );
+				add( list, new PotionOfPurity(), 2 );
+				add( list, new ScrollOfLullaby(), 2 );
+				add( list, new PotionOfInvisibility(), 1 );
 				break;
 
 			case 6:
-				// 书页虽然只聊天，但也会"顺手"给你一张传送卷轴
-				add( list, new ScrollOfTeleportation(), 1 );
+				// 书页：情报与扰乱
+				add( list, new ScrollOfTeleportation(), 3 );
+				add( list, new ScrollOfMagicMapping(), 2 );
+				add( list, new ScrollOfTerror(), 2 );
+				add( list, new ScrollOfMirrorImage(), 2 );
 				break;
 
 			default:
-				// 5 灰羽不卖货
 				break;
 		}
 		return list;

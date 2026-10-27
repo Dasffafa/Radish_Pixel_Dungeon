@@ -30,12 +30,14 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.PeddlerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
+import com.watabou.noosa.ui.Component;
 
 import java.util.ArrayList;
 
@@ -54,9 +56,17 @@ public class WndPeddlerShop extends Window {
 	private static final int COLS = 5;
 	private static final int BUTTON_SIZE = 24;
 	private static final int LABEL_HEIGHT = 10;
+	/** 商品区最多露出的行数，超出的部分靠滚动条看（货品多时防止窗口顶出屏幕）。 */
+	private static final int MAX_VISIBLE_ROWS = 4;
 
 	private final Peddler peddler;
 	private final Hero hero;
+
+	/** 商品区在窗口内的顶边与可见高度，以及滚动容器本身。挂进场景后才排版。 */
+	private float scrollTop = 0;
+	private float scrollVisibleHeight = 0;
+	private ScrollPane scroll = null;
+	private boolean scrollSized = false;
 
 	public WndPeddlerShop( Peddler peddler ) {
 		super();
@@ -92,23 +102,49 @@ public class WndPeddlerShop extends Window {
 			int count = goods.size();
 			float slotW = (WIDTH_MAX - GAP * (COLS - 1)) / (float) COLS;
 
+			// 货品多了以后整窗会顶出屏幕：把商品区塞进 ScrollPane（照 WndBag 的做法），
+			// 标题栏与金币提示保持固定，只有商品格滚动。
+			int rows = (count + COLS - 1) / COLS;
+			float rowH = BUTTON_SIZE + LABEL_HEIGHT + GAP * 2;
+
+			ScrollPane scroll;
+			Component content = new Component();
+			content.setSize( WIDTH_MAX, rows * rowH );
+			scroll = new ScrollPane( content );
+			add( scroll );
+
+			// 可见区高度：在窗口真正挂进场景后才知道（camera() 为空时不能排版）
+			scrollTop = pos;
+			scrollVisibleHeight = Math.min( rows * rowH, MAX_VISIBLE_ROWS * rowH );
+			this.scroll = scroll;
+
 			for (int i = 0; i < count; i++) {
 				final Item item = goods.get( i );
 				int col = i % COLS;
 				int row = i / COLS;
 
 				float bx = col * (slotW + GAP);
-				float by = pos + row * (BUTTON_SIZE + LABEL_HEIGHT + GAP * 2);
+				float by = row * rowH;
 
 				ItemButton btn = new ItemButton() {
 					@Override
 					protected void onClick() {
 						buy( item );
 					}
+
+					// 与玩家背包完全一致的预览逻辑：
+					// WndBag 里长按物品就是 WndInfoItem(item)，这里照抄同一条链路，
+					// 单击仍是直接购买（对应背包里单击即选中）。
+					@Override
+					protected boolean onLongClick() {
+						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+								new WndInfoItem( item ) );
+						return true;
+					}
 				};
 				btn.item( item );
 				btn.setRect( bx, by, slotW, BUTTON_SIZE );
-				add( btn );
+				content.add( btn );
 
 				int price = PeddlerCatalog.price( item );
 				boolean affordable = Dungeon.gold >= price;
@@ -118,11 +154,10 @@ public class WndPeddlerShop extends Window {
 				if (!affordable) tfPrice.hardlight( 0xFF4400 );
 				tfPrice.maxWidth( (int) slotW );
 				tfPrice.setPos( bx + (slotW - tfPrice.width()) / 2f, by + BUTTON_SIZE + 1 );
-				add( tfPrice );
+				content.add( tfPrice );
 			}
 
-			int rows = (count + COLS - 1) / COLS;
-			pos += rows * (BUTTON_SIZE + LABEL_HEIGHT + GAP * 2);
+			pos += scrollVisibleHeight;
 		}
 
 		float width = WIDTH_MAX;
@@ -131,6 +166,16 @@ public class WndPeddlerShop extends Window {
 		if (width < WIDTH_MIN) width = WIDTH_MIN;
 
 		resize( (int) width, (int) pos );
+	}
+
+	@Override
+	public void update() {
+		super.update();
+		// 窗口挂进场景后才给 ScrollPane 排版（它的 layout 需要 camera()，照 WndBag 的做法）
+		if (!scrollSized && scroll != null && camera() != null) {
+			scroll.setRect( 0, scrollTop, WIDTH_MAX, scrollVisibleHeight );
+			scrollSized = true;
+		}
 	}
 
 	/**
