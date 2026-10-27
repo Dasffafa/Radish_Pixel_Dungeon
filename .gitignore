@@ -73,3 +73,8 @@ _upstream/
 _tdr_backup/
 fix-tdr-delay.ps1
 
+
+# 会话产物 / 表格工具的临时图
+.dsh-vision-router/
+docs/萝卜地牢开发文档/_npc_pics/
+~$*.xlsx
