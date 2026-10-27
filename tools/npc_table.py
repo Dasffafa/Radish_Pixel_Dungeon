@@ -46,6 +46,49 @@ HEADERS = [
 STATUS_DONE = "已实现"
 STATUS_TODO = "未实现"
 
+SRC = os.path.join(ROOT, "core", "src", "main", "java", "com", "shatteredpixel", "shatteredpixeldungeon")
+LEVELS_DIR = os.path.join(SRC, "levels")
+
+# new_npc.png 每行 -> 该行角色的类名（没有类就是未实现）
+ROW_CLASSES = {
+    2: "Owo", 3: "ThunderStorm", 4: "Boat", 5: "SeaShore", 6: "PW", 7: "MoonLight",
+}
+
+
+def npc_class_exists(name):
+    return os.path.exists(os.path.join(SRC, "actors", "mobs", "npcs", name + ".java"))
+
+
+def sprite_class_exists(name):
+    return os.path.exists(os.path.join(SRC, "sprites", name + "Sprite.java"))
+
+
+def scan_spawns(class_name):
+    """在 levels/*.java 里找 `new <Class>()`，把所在文件、层条件、站位写法一起带出来。"""
+    hits = []
+    for fn in sorted(os.listdir(LEVELS_DIR)):
+        if not fn.endswith(".java"):
+            continue
+        lines = open(os.path.join(LEVELS_DIR, fn), encoding="utf-8").read().splitlines()
+        for i, line in enumerate(lines):
+            if not re.search(r"new\s+%s\s*\(" % class_name, line):
+                continue
+            cond = ""
+            for j in range(i, max(-1, i - 14), -1):
+                m = re.search(r"Dungeon\.depth\s*==\s*(\d+)", lines[j])
+                if m:
+                    cond = "%d 层" % int(m.group(1))
+                    break
+            where = ""
+            m = re.search(r"pos\s*=\s*([^;]+);", line)
+            if m:
+                expr = m.group(1).strip()
+                where = "入口前一格" if "entrance()" in expr else expr
+            text = "%s.createMobs()" % fn[:-5]
+            detail = "，".join(x for x in [cond, where] if x)
+            hits.append(text + ("（%s）" % detail if detail else ""))
+    return hits
+
 
 def read_props(path):
     data = {}
@@ -117,7 +160,7 @@ SHEET_ROWS = [
      "文本未写，需要补"),
     (7, "月华", "MoonLight", STATUS_DONE, "sprites/MoonLightSprite.java",
      "武器交换：给他任意近战武器 → 回一把二阶无诅咒近战武器",
-     "另有 the_catist 变体文本，另有 0 层/1 层两处生成"),
+     "另有 the_catist 变体文本；1 层入口前一格生成（原 0 层那份随 ZeroLevel 一起删了）"),
     (8, "橙色路障火苗", "", STATUS_TODO, "", "", "11 帧，形似火焰路障"),
     (9, "蓝发戴冠少女", "", STATUS_TODO, "", "", "本行 11 帧 + 第 10 行 5 帧，像是同一角色两段动画"),
     (10, "（第 9 行续帧？）", "", STATUS_TODO, "", "", "仅第 1-5 列有内容，需确认是续帧还是独立角色"),
@@ -168,44 +211,50 @@ def build_rows():
     for row, cn, en_name, status, code, func, note in SHEET_ROWS:
         n += 1
         if row == 2:
-            cn, en_name = g("actors.mobs.npcs.owo.name"), "Owo"
+            cn, en_name = (g("actors.mobs.npcs.owo.name") or cn), "Owo"
             desc = g("actors.mobs.npcs.owo.desc")
             talk = talk_of("actors.mobs.npcs.owo")
         elif row == 3:
-            cn, en_name = g("actors.mobs.npcs.thunderstorm.name"), "ThunderStorm"
+            cn, en_name = (g("actors.mobs.npcs.thunderstorm.name") or cn), "ThunderStorm"
             desc = g("actors.mobs.npcs.thunderstorm.desc")
             talk = talk_of("actors.mobs.npcs.thunderstorm")
         elif row == 4:
-            cn, en_name = g("actors.mobs.npcs.boat.name"), "Boat"
+            cn, en_name = (g("actors.mobs.npcs.boat.name") or cn), "Boat"
             desc = g("actors.mobs.npcs.boat.desc")
             talk = talk_of("actors.mobs.npcs.boat")
         elif row == 5:
-            cn, en_name = g("actors.mobs.npcs.seashore.name"), "SeaShore"
+            cn, en_name = (g("actors.mobs.npcs.seashore.name") or cn), "SeaShore"
             desc = g("actors.mobs.npcs.seashore.desc")
             talk = talk_of("actors.mobs.npcs.seashore")
         elif row == 6:
-            cn, en_name = g("actors.mobs.npcs.pw.name"), "PW"
+            cn, en_name = (g("actors.mobs.npcs.pw.name") or cn), "PW"
             desc = g("actors.mobs.npcs.pw.desc")
             talk = talk_of("actors.mobs.npcs.pw")
         elif row == 7:
-            cn, en_name = g("actors.mobs.npcs.moonlight.name"), "MoonLight"
+            cn, en_name = (g("actors.mobs.npcs.moonlight.name") or cn), "MoonLight"
             desc = g("actors.mobs.npcs.moonlight.desc")
             talk = talk_of("actors.mobs.npcs.moonlight")
         else:
             desc, talk = "", ""
 
+        cls = ROW_CLASSES.get(row)
+        if cls:
+            status = STATUS_DONE if (npc_class_exists(cls) and sprite_class_exists(cls)) else STATUS_TODO
         if status == STATUS_DONE:
-            if row in (2, 3, 4, 5, 6, 7):
-                floor = "0 层" + ("（1 层也有）" if row == 7 else "")
-                spawn = ("0 层四角（NW/NE/SW/SE）随机 4 名之一；"
-                         "候选池 = 船/owo/雷暴/海滨/桃井/月华，互不重复")
-                if row == 7:
-                    spawn += "；另外 1 层固定在入口前一格"
-            else:
-                floor, spawn = "", ""
+            hits = scan_spawns(cls)
+            floors = []
+            for h in hits:
+                m = re.search(r"（(\d+) 层", h)
+                if m:
+                    floors.append(m.group(1) + " 层")
+            floor = "、".join(sorted(set(floors)))
+            spawn = "；".join(hits) if hits else "（代码里找不到生成点）"
+            code = code + " + actors/mobs/npcs/%s.java" % cls if code else "actors/mobs/npcs/%s.java" % cls
             idx = "%d-%d" % (row * 16, row * 16 + 15)
         else:
             floor, spawn = "", ""
+            if cls:
+                note = (note + "；" if note else "") + "原类 %s 已删除（0 层废弃）" % cls
             idx = "%d-%d（现成 16 帧，未接代码）" % (row * 16, row * 16 + 15)
 
         rows.append(dict(
@@ -323,7 +372,8 @@ def build(force_dir=None):
         ("这是什么", "本项目当前所有 NPC 的可编辑清单。每行一个 NPC，右边列都是纯文本，直接在格子里改就行。"),
         ("图画", "从 new_npc.png / npc_peddler*.png 自动截的第 1 帧，放大 4 倍。改图不用动这里，"
                  "只要告诉我换哪一行的图即可。"),
-        ("实现状态", "“已实现”= 游戏里已经能刷出来、有对应类；“未实现”= 图在素材里但没接代码。橙色底的就是未实现的。"),
+        ("实现状态", "“已实现”= 有 NPC 类 + Sprite 类，且在某个 Level 里真的会被生成；“未实现”= 图在素材里但没接代码。橙色底的就是未实现的。状态和出没层都是从代码里现扫的，删/加类之后重跑 build 会自动更新。"),
+        ("第 0 层", "已废弃并删除：ZeroLevel 不再注册进主线分支，0 层那批 NPC（船/owo/雷暴/海滨/桃井）的类、贴图类与文本一并删掉，月华保留（1 层还在用）。"),
         ("帧索引", "new_npc.png 是 16×16 一帧、每行 16 帧。第 r 行第 c 列的帧号 = r*16+c，"
                    "写 Sprite 类时 idle.frames(frames, ...) 直接用这个号。"),
         ("中文名 / 英文名 / 描述 / 对话", "对应 properties：name / desc / msg*。多个数字后缀的 msg0、msg1 就是交互时按顺序说的话。"),
@@ -365,7 +415,14 @@ def build(force_dir=None):
             ws3.cell(row=i, column=c, value=v).alignment = Alignment(
                 vertical="top", wrap_text=(c in (4, 6)))
 
-    wb.save(OUT_XLSX)
+    tmp_xlsx = OUT_XLSX + ".tmp"
+    wb.save(tmp_xlsx)
+    try:
+        os.replace(tmp_xlsx, OUT_XLSX)
+    except PermissionError:
+        alt = OUT_XLSX.replace(".xlsx", ".new.xlsx")
+        os.replace(tmp_xlsx, alt)
+        print("WARN: %s 被占用（大概在 Excel 里开着），已改写到 %s" % (OUT_XLSX, alt))
 
     # ---- 纯文本备份，方便 git diff / 直接看
     import csv
