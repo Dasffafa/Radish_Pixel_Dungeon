@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.windows.IconTitle;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.PeddlerSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.ui.Component;
@@ -45,17 +46,19 @@ import java.util.ArrayList;
  * 游商货架窗口。
  *
  * 对照上游 _upstream/darkest .../npcs/BarterMan.kt 里的 inner class WndTrade : WndShop()：
- * 顶部标题栏 → 分隔线 → 5 列商品格 → 每格下方黄色价签（钱不够时变红）。
+ * 顶部标题栏 → 分隔线 → 商品格 → 每格下方价签（钱不够时变红）。
  * 价格走标准商人价（PeddlerCatalog.price → Item.value()），不是另外编一个公式。
+ *
+ * 格子用 InventorySlot（和按 B 打开的背包同一个类），底色/描线/圆角框与背包完全一致，
+ * 不再自己画一套 ItemButton。
  */
 public class WndPeddlerShop extends Window {
 
 	private static final int WIDTH_MIN = 120;
-	private static final int WIDTH_MAX = 220;
+	private static final int WIDTH_MAX = 264;
 	private static final int GAP = 2;
-	private static final int COLS = 5;
-	private static final int BUTTON_SIZE = 24;
-	private static final int LABEL_HEIGHT = 10;
+	private static final int COLS = 6;
+	private static final int LABEL_HEIGHT = 12;
 	/** 商品区最多露出的行数，超出的部分靠滚动条看（货品多时防止窗口顶出屏幕）。 */
 	private static final int MAX_VISIBLE_ROWS = 4;
 
@@ -75,14 +78,17 @@ public class WndPeddlerShop extends Window {
 		// 直接把 hero 抓成字段，避免后续渲染线程里 Dungeon.hero 变化
 		this.hero = Dungeon.hero;
 
+		// 手机窄屏下 UI 相机比 WIDTH_MAX 还小，硬塞会被裁掉右边，所以按相机宽度封顶
+		final int winW = fitWidth( WIDTH_MAX );
+
 		Image icon = new PeddlerSprite( peddler.variant() );
 		IconTitle titlebar = new IconTitle( icon, Messages.titleCase( peddler.name() ) );
-		titlebar.setRect( 0, 0, WIDTH_MAX, 0 );
+		titlebar.setRect( 0, 0, winW, 0 );
 		add( titlebar );
 
 		RenderedTextBlock tfHint = PixelScene.renderTextBlock(
 				Messages.get( WndPeddlerShop.class, "hint", Dungeon.gold ), 6 );
-		tfHint.maxWidth( WIDTH_MAX );
+		tfHint.maxWidth( winW );
 		tfHint.setPos( titlebar.left(), titlebar.bottom() + GAP );
 		add( tfHint );
 
@@ -93,32 +99,31 @@ public class WndPeddlerShop extends Window {
 		if (goods.isEmpty()) {
 			RenderedTextBlock tfEmpty = PixelScene.renderTextBlock(
 					Messages.get( WndPeddlerShop.class, "empty" ), 6 );
-			tfEmpty.maxWidth( WIDTH_MAX );
+			tfEmpty.maxWidth( winW );
 			tfEmpty.setPos( titlebar.left(), pos );
 			add( tfEmpty );
 			pos = tfEmpty.bottom() + GAP;
 
 		} else {
-			int count = goods.size();
-			float slotW = (WIDTH_MAX - GAP * (COLS - 1)) / (float) COLS;
+			// 格子取正方形：宽高同一个 slot 尺寸，避免变成竖长条
+			float slotW = (winW - GAP * (COLS - 1)) / (float) COLS;
+			float slotH = slotW;
 
 			// 货品多了以后整窗会顶出屏幕：把商品区塞进 ScrollPane（照 WndBag 的做法），
 			// 标题栏与金币提示保持固定，只有商品格滚动。
-			int rows = (count + COLS - 1) / COLS;
-			float rowH = BUTTON_SIZE + LABEL_HEIGHT + GAP * 2;
+			int rows = (goods.size() + COLS - 1) / COLS;
+			float rowH = slotH + LABEL_HEIGHT + GAP * 2;
 
-			ScrollPane scroll;
 			Component content = new Component();
-			content.setSize( WIDTH_MAX, rows * rowH );
+			content.setSize( winW, rows * rowH );
 			scroll = new ScrollPane( content );
 			add( scroll );
 
 			// 可见区高度：在窗口真正挂进场景后才知道（camera() 为空时不能排版）
 			scrollTop = pos;
 			scrollVisibleHeight = Math.min( rows * rowH, MAX_VISIBLE_ROWS * rowH );
-			this.scroll = scroll;
 
-			for (int i = 0; i < count; i++) {
+			for (int i = 0; i < goods.size(); i++) {
 				final Item item = goods.get( i );
 				int col = i % COLS;
 				int row = i / COLS;
@@ -126,9 +131,23 @@ public class WndPeddlerShop extends Window {
 				float bx = col * (slotW + GAP);
 				float by = row * rowH;
 
-				// 格子用 InventorySlot：和按 B 打开的背包是同一个类，
-				// 底色、四边描线、圆角框全部一致，不再自己画一套 ItemButton。
 				InventorySlot btn = new InventorySlot( item ) {
+					@Override
+					protected void layout() {
+						super.layout();
+						// 背包里格子是 17x24、图标 16x16 正好塞满；商店格子是正方形的大格，
+						// 不放大图标就会缩在中间显得空。整数倍放大，保持像素清晰。
+						if (sprite != null) {
+							int times = (int)(Math.min( width, height ) - 4) / 16;
+							if (times > 1) {
+								sprite.scale.set( times );
+								sprite.x = x + (width - sprite.width()) / 2f;
+								sprite.y = y + (height - sprite.height()) / 2f;
+								PixelScene.align( sprite );
+							}
+						}
+					}
+
 					@Override
 					protected void onClick() {
 						buy( item );
@@ -143,24 +162,29 @@ public class WndPeddlerShop extends Window {
 						return true;
 					}
 				};
-				btn.setRect( bx, by, slotW, BUTTON_SIZE );
+				btn.setRect( bx, by, slotW, slotH );
 				content.add( btn );
 
 				int price = PeddlerCatalog.price( item );
 				boolean affordable = Dungeon.gold >= price;
 
-				RenderedTextBlock tfPrice = PixelScene.renderTextBlock( price + "G", 6 );
+				// 价签用游戏本体的数字字体（PixelScene.pixelFont，和背包标题栏里
+				// 金币数的写法逐字一致：WndBag.placeTitle 的 BitmapText + TITLE_COLOR），
+				// 而不是渲染文本块——这样数字的像素字形和地牢其余地方完全同款。
+				BitmapText tfPrice = new BitmapText( Integer.toString( price ), PixelScene.pixelFont );
 				// 钱不够变红：和上游 showPrice 的 red 分支一致
 				if (!affordable) tfPrice.hardlight( 0xFF4400 );
-				tfPrice.maxWidth( (int) slotW );
-				tfPrice.setPos( bx + (slotW - tfPrice.width()) / 2f, by + BUTTON_SIZE + 1 );
+				tfPrice.measure();
+				tfPrice.x = bx + (slotW - tfPrice.width()) / 2f;
+				tfPrice.y = by + slotH + (LABEL_HEIGHT - tfPrice.baseLine()) / 2f;
+				PixelScene.align( tfPrice );
 				content.add( tfPrice );
 			}
 
 			pos += scrollVisibleHeight;
 		}
 
-		float width = WIDTH_MAX;
+		float width = winW;
 		if (titlebar.width() + 2 > width) width = titlebar.width() + 2;
 		if (tfHint.width() + 2 > width) width = tfHint.width() + 2;
 		if (width < WIDTH_MIN) width = WIDTH_MIN;
@@ -168,12 +192,22 @@ public class WndPeddlerShop extends Window {
 		resize( (int) width, (int) pos );
 	}
 
+	/** 把窗口宽度封顶到当前 UI 相机宽度的 92%，防止窄屏被裁掉右边。 */
+	private static int fitWidth( int want ) {
+		int cam = PixelScene.uiCamera == null ? 0 : PixelScene.uiCamera.width;
+		if (cam > 0) {
+			int max = (int)(cam * 0.92f);
+			if (want > max) want = max;
+		}
+		return want;
+	}
+
 	@Override
 	public void update() {
 		super.update();
 		// 窗口挂进场景后才给 ScrollPane 排版（它的 layout 需要 camera()，照 WndBag 的做法）
 		if (!scrollSized && scroll != null && camera() != null) {
-			scroll.setRect( 0, scrollTop, WIDTH_MAX, scrollVisibleHeight );
+			scroll.setRect( 0, scrollTop, width, scrollVisibleHeight );
 			scrollSized = true;
 		}
 	}
