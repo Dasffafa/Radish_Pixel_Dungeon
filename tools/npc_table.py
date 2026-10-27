@@ -434,6 +434,17 @@ def build(force_dir=None):
                         r["talk"], r["func"], r["floor"], r["spawn"], r["status"],
                         r["code"], r["note"]])
 
+    # ---- 桌面留一份（用户要求：表是实时生成的，桌面上也要能直接打开）
+    desk = os.path.join(os.path.expanduser("~"), "Desktop")
+    if os.path.isdir(desk):
+        dst = os.path.join(desk, "NPC总表.xlsx")
+        try:
+            import shutil
+            shutil.copyfile(OUT_XLSX, dst)
+            print(dst)
+        except PermissionError:
+            print("WARN: 桌面 NPC总表.xlsx 正被占用，未更新桌面副本")
+
     print(OUT_XLSX)
     print(OUT_CSV)
     print("rows:", len(rows))
