@@ -49,9 +49,12 @@ import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
+import com.watabou.utils.RectF;
 import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
 
 import java.nio.Buffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ItemSprite extends MovieClip {
 
@@ -60,7 +63,19 @@ public class ItemSprite extends MovieClip {
 	private static final float DROP_INTERVAL = 0.4f;
 
 	public Heap heap;
+	private Item item;
 	private static final RuntimeAtlas ATLAS = RuntimeAtlasRegistry.get( ItemSpriteSheet.ATLAS );
+
+	// 声明式动画缓存：资产+片段名定位；图集重建（贴图身份变化）后自动失效重建
+	private static final Map<String, CachedAnim> animsCache = new HashMap<>();
+	private static class CachedAnim {
+		final MovieClip.Animation anim;
+		final SmartTexture texture;
+		CachedAnim( MovieClip.Animation anim, SmartTexture texture ){
+			this.anim = anim;
+			this.texture = texture;
+		}
+	}
 
 	private Glowing glowing;
 	private boolean invertDarkSprite;
@@ -126,6 +141,7 @@ public class ItemSprite extends MovieClip {
 		dropInterval = 0;
 
 		heap = null;
+		item = null;
 		if (emitter != null) {
 			emitter.killAndErase();
 			emitter = null;
@@ -136,12 +152,16 @@ public class ItemSprite extends MovieClip {
 	public void copy(Image other) {
 		super.copy(other);
 
-		if (other instanceof ItemSprite && ((ItemSprite) other).glowing != null){
-			glow(((ItemSprite) other).glowing);
+		ItemSprite src = other instanceof ItemSprite ? (ItemSprite) other : null;
+		if (src != null && src.glowing != null){
+			glow(src.glowing);
 		}
-		if (other instanceof ItemSprite) {
-			invertDarkSprite = ((ItemSprite) other).invertDarkSprite;
+		if (src != null) {
+			invertDarkSprite = src.invertDarkSprite;
 			applyDarkSpriteColor();
+			//目录页等copy出的图标跟随源sprite的序列帧动画
+			if (src.curAnim != null) play(src.curAnim);
+			else if (curAnim != null) curAnim = null;
 		}
 
 	}
@@ -209,6 +229,7 @@ public class ItemSprite extends MovieClip {
 	}
 
 	public ItemSprite view( Item item ){
+		this.item = item;
 		if (item.sndImageName != null) {
 			com.watabou.gltextures.SmartTexture tex = com.shatteredpixel.shatteredpixeldungeon.ui.SNDItems.texture();
 			com.watabou.utils.RectF sndFrame = com.shatteredpixel.shatteredpixeldungeon.ui.SNDItems.frame(item.sndImageName);
@@ -217,6 +238,8 @@ public class ItemSprite extends MovieClip {
 				emitter = null;
 				this.texture = tex;
 				frame(sndFrame);
+				//SND贴图不经图集，清除可能残留的序列帧动画
+				curAnim = null;
 				glow(item.glowing());
 				applyDarkSpriteColor();
 				com.watabou.noosa.particles.Emitter emitter = item.emitter();
@@ -228,7 +251,16 @@ public class ItemSprite extends MovieClip {
 				return this;
 			}
 		}
-		view(item.image(), item.glowing());
+		ItemAnimations anims = item.animations();
+		//image()被覆写时（如Snake Bite挑战换图）优先走静态贴图，避免动画泄漏真实物品
+		if (anims != null && anims.has( ItemAnimations.IDLE )
+				&& item.image().equals( item.image )){
+			glow(item.glowing());
+			playAnim( ItemAnimations.IDLE );
+		} else {
+			//静态贴图：清除遗留动画，防止旧帧覆盖
+			view(item.image(), item.glowing());
+		}
 		if (item instanceof HalfFood) {
 			AtlasFrame atlasFrame = ATLAS.trimmedFrame(item.image(), MIN_VISIBLE_ALPHA);
 			float middle = (atlasFrame.uv.top + atlasFrame.uv.bottom) / 2f;
@@ -316,6 +348,9 @@ public class ItemSprite extends MovieClip {
 	}
 
 	public void frame( String image ){
+		//静态贴图：清除遗留动画，防止旧帧覆盖
+		if (curAnim != null) curAnim = null;
+
 		AtlasFrame atlasFrame = ATLAS.trimmedFrame( image, MIN_VISIBLE_ALPHA );
 		texture = atlasFrame.texture;
 		frame( atlasFrame.uv );
@@ -325,6 +360,53 @@ public class ItemSprite extends MovieClip {
 		if (height < 8f){
 			perspectiveRaise =  (5 + 8 - height) / 16f;
 		}
+	}
+
+	/** 按名播放当前物品声明的动画；无声明/声明非法则忽略。重复触发的循环动画不会从头重播 */
+	public void playAnim( String name ){
+		ItemAnimations anims = item == null ? null : item.animations();
+		ItemAnimations.Clip clip = anims == null ? null : anims.get( name );
+		if (clip == null) return;
+
+		AtlasFrame whole = ATLAS.frame( anims.asset() );
+		MovieClip.Animation anim = buildAnim( whole, anims, clip );
+		if (anim == null){
+			//声明失效（资产缺失/帧序越界）：退回静态贴图
+			view(item.image(), glowing);
+			return;
+		}
+		if (curAnim == anim) return;
+
+		texture = whole.texture;
+		play( anim );
+	}
+
+	/** 从资产整帧内按网格坐标切出片段帧；帧序越界或网格不符返回null */
+	private MovieClip.Animation buildAnim( AtlasFrame whole, ItemAnimations anims, ItemAnimations.Clip clip ){
+		String cacheKey = anims.asset() + ":" + clip.name;
+		CachedAnim cached = animsCache.get( cacheKey );
+		if (cached != null && cached.texture == whole.texture) return cached.anim;
+
+		int cell = anims.cell();
+		if (cell <= 0 || whole.width % cell != 0 || whole.height % cell != 0) return null;
+
+		int cols = whole.width / cell;
+		RectF[] frames = new RectF[clip.count];
+		int left = Math.round( whole.uv.left * whole.texture.width );
+		int top = Math.round( whole.uv.top * whole.texture.height );
+		for (int i = 0; i < clip.count; i++){
+			int idx = clip.start + i;
+			int cy = idx / cols;
+			if (cy * cell >= whole.height) return null; //帧序号越界：声明与贴图不符
+			int cx = idx % cols;
+			frames[i] = whole.texture.uvRect(
+					left + cx * cell, top + cy * cell,
+					left + (cx + 1) * cell, top + (cy + 1) * cell );
+		}
+
+		MovieClip.Animation anim = new MovieClip.Animation( clip.fps, clip.looped ).frames( frames ).named( clip.name );
+		animsCache.put( cacheKey, new CachedAnim( anim, whole.texture ) );
+		return anim;
 	}
 
 	public synchronized void glow( Glowing glowing ){
@@ -393,6 +475,16 @@ public class ItemSprite extends MovieClip {
 	@Override
 	public synchronized void update() {
 		super.update();
+
+		//一次性动画播完自动回到 idle（若有声明）
+		if (finished && curAnim != null && !curAnim.looped && item != null){
+			ItemAnimations anims = item.animations();
+			if (anims != null
+					&& anims.has( ItemAnimations.IDLE )
+					&& !ItemAnimations.IDLE.equals( curAnim.name )){
+				playAnim( ItemAnimations.IDLE );
+			}
+		}
 
 		visible = (heap == null || heap.seen);
 

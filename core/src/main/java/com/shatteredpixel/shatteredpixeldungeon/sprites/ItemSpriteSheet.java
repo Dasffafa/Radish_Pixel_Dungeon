@@ -239,6 +239,7 @@ public class ItemSpriteSheet {
 
 	public static final String TAIKIG = "taikig";
 	public static final String CALLHAMR = "callhamr";
+	public static final String ECHOPLEX_HAMMER_ANIM = "echoplex_hammer_anim";
 	public static final String GIANTKILL = "giantkill";
 
 	public static final String CUTTERHEAD = "cutterhead";
