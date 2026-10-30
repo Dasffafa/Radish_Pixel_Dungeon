@@ -71,7 +71,7 @@ public class WndImp extends Window{
 
 
 		layoutBody(pos, Messages.get(WndImp.class, "message"),
-				heroHasSubClass() ? new String[]{ Messages.get(WndImp.class, "reward"), Messages.get(WndImp.class, "power") }
+				canGainPotential() ? new String[]{ Messages.get(WndImp.class, "reward"), Messages.get(WndImp.class, "power") }
 						: new String[]{ Messages.get(WndImp.class, "reward") });
 
 
@@ -163,13 +163,23 @@ public class WndImp extends Window{
 		switch (index) {
 			case 0: default:	return true;
 			// 只有已转职时才有“激发潜力”选项
-			case 1: return heroHasSubClass();
+			case 1: return canGainPotential();
 		}
 	}
 
 	/** 是否已选择专精（未专精时无法激活四阶天赋）。 */
 	private static boolean heroHasSubClass() {
 		return Dungeon.hero != null && Dungeon.hero.subClass != HeroSubClasses.NONE;
+	}
+
+	/** 潜力和皇冠护甲技能互斥：已有护甲技能时不能再激发潜力。 */
+	private static boolean heroHasArmorAbility() {
+		return Dungeon.hero != null && Dungeon.hero.armorAbility != null;
+	}
+
+	/** 是否还能“激发潜力”：已专精，且尚未获得护甲技能。 */
+	private static boolean canGainPotential() {
+		return heroHasSubClass() && !heroHasArmorAbility();
 	}
 
 	protected void onSelect( int index ) {
@@ -216,6 +226,12 @@ public class WndImp extends Window{
 		if (!heroHasSubClass()) {
 			// 兜底：未专精时不应走到这里
 			GLog.n( Messages.get(this, "deny"));
+			hide();
+			return;
+		}
+		if (hero.armorAbility != null) {
+			// 兜底：已通过皇冠获得护甲技能时不应走到这里（潜力与护甲技能互斥）
+			GLog.n( Messages.get(this, "deny_armor"));
 			hide();
 			return;
 		}
