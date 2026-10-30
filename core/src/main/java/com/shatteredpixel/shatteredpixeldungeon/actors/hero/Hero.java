@@ -1278,6 +1278,17 @@ public class Hero extends Char {
 				}
 				if(w.cooldown <= 0){
 					w.detach(hero.belongings.backpack);
+					// 粘液干涸脱落：连带着把身上的护盾清空，并留下 1 点伤害。
+					// 只清数值、不强制 detach，护盾类 buff 各自的生命周期保持原样。
+					int shieldLost = 0;
+					for (ShieldBuff s : new ArrayList<>(hero.buffs(ShieldBuff.class))) {
+						shieldLost += s.shielding();
+						s.decShield(s.shielding());
+					}
+					if (shieldLost > 0) {
+						GLog.w(Messages.get(w, "fade"));
+					}
+					hero.damage(DamageInfo.physicalNoArmor(1, w));
 				}
 			}
 		}
