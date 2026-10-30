@@ -73,6 +73,11 @@ public class WndBag extends WndTabbed {
 	protected static final int SLOT_MARGIN	= 1;
 
 	protected static final int TITLE_HEIGHT	= 14;
+
+	/** 可见区最多显示的行数：手机竖屏 5 列 × 5 行＝原版破碎地牢的背包观感，
+	 *  超出的行靠上下拖动查看。以前把窗口高度按全部行数撑开，手机上会变成一个
+	 *  几乎铺满屏幕的大面板。 */
+	protected static final int MAX_VISIBLE_ROWS = 5;
 	
 	private ItemSelector selector;
 
@@ -143,7 +148,9 @@ public class WndBag extends WndTabbed {
 		nRows = Math.max(minRows, (int)Math.ceil(neededSlots/(float)nCols));
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
-		int windowHeight = TITLE_HEIGHT + slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+		//窗口高度只按「可见行数」算，不再按全部行数撑开（多出来的行用 ScrollPane 拖动查看）
+		int windowRows = Math.min(nRows, MAX_VISIBLE_ROWS);
+		int windowHeight = TITLE_HEIGHT + slotHeight * windowRows + SLOT_MARGIN * (windowRows - 1);
 
 		if (PixelScene.landscape()){
 			while (slotHeight >= 24 && (windowHeight + 20 + chrome.marginTop()) > PixelScene.uiCamera.height){
@@ -166,13 +173,16 @@ public class WndBag extends WndTabbed {
 		// 表现就是窗口右边/下面缺出一块。placeItem() 结束时 row 已经多加过一次，
 		// 实际占用行数 = row（不是 row+1），这里两者取大值兜底。
 		int actualRows = Math.max(nRows, row);
-		int visibleHeight = slotHeight * actualRows + SLOT_MARGIN * (actualRows - 1);
+		//可见高度 = min(实际行数, MAX_VISIBLE_ROWS)，剩余行靠拖动查看；
+		//内容高度仍按全部行数给足，否则 ScrollPane 会裁掉最后一行
+		int visibleRows = Math.min(actualRows, MAX_VISIBLE_ROWS);
+		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
 		content.setSize(windowWidth, actualRows * (slotHeight + SLOT_MARGIN));
 		scroll = new ScrollPane(content);
 		scrollHeight = visibleHeight;
 		add(scroll);
 
-		// 窗口高度也要按实际行数算，不能只按预先估的 nRows
+		// 窗口高度也要按实际可见行数算
 		resize( windowWidth, TITLE_HEIGHT + visibleHeight );
 
 		int i = 1;
