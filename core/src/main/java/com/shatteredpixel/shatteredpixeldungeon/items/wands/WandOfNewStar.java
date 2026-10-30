@@ -36,7 +36,7 @@ public class WandOfNewStar extends DamageWand {
     }
 
     private void executeStarEffect(Char centerChar) {
-        int radius = 1 + (buffedLvl() / 4);
+        int radius = 2 + (buffedLvl() / 3);
 
         int x = centerChar.pos % Dungeon.level.width();
         int y = centerChar.pos / Dungeon.level.width();
@@ -156,16 +156,16 @@ public class WandOfNewStar extends DamageWand {
 
     @Override
     public String statsDesc() {
-        int radius = 3 + (buffedLvl() / 4) * 2;
+        int radius = 5 + (buffedLvl() / 3) * 2;
         if (levelKnown)
             return Messages.get(this, "stats_desc", radius, radius, min(), max(), buffedLvl() + 2);
         else
-            return Messages.get(this, "stats_desc", 3, 3, min(0), max(0), 2);
+            return Messages.get(this, "stats_desc", 5, 5, min(0), max(0), 2);
     }
 
     @Override
     public String upgradeStat1(int level) {
-        int radius = 3 + (level / 4) * 2;
+        int radius = 5 + (level / 3) * 2;
         return Integer.toString(radius);
     }
 
