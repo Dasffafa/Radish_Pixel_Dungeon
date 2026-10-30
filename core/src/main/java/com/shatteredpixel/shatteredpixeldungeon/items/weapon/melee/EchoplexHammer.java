@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemAnimations;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.ChordHelper;
 import com.watabou.noosa.audio.Sample;
@@ -29,6 +30,14 @@ public class EchoplexHammer extends MeleeWeapon {
         hitSound = Assets.Sounds.HIT_CRUSH;
         hitSoundPitch = 0.8f;
         tier = 5;
+    }
+
+    @Override
+    public ItemAnimations animations() {
+        //回音锤脉动：声明式动画集，其余动画可声明后经 ItemSprite.playAnim 在恰当时机触发
+        return new ItemAnimations()
+                .of( ItemSpriteSheet.ECHOPLEX_HAMMER_ANIM, 16 )
+                .add( ItemAnimations.IDLE, 0, 13, 10, true );
     }
 
     @Override
