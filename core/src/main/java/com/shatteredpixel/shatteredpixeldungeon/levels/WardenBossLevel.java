@@ -42,10 +42,11 @@ public class WardenBossLevel extends Level {
 		color2 = 0x6a6a75;
 	}
 
-	private static final int WIDTH  = 40;
-	private static final int HEIGHT = 16;
+	//参照天狗二阶段的战斗区（约 15x15），取一个略扁的长方形
+	private static final int WIDTH  = 24;
+	private static final int HEIGHT = 12;
 
-	private static final Rect arena = new Rect( 1, 1, 38, 14 );
+	private static final Rect arena = new Rect( 1, 1, 22, 10 );
 
 	private static final String BOSS_DEAD = "boss_dead";
 
@@ -81,7 +82,7 @@ public class WardenBossLevel extends Level {
 		Painter.fill( this, arena, 1, Terrain.EMPTY );
 
 		//点亮一些装饰，让长条牢房不那么空
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 6; i++) {
 			int x = Random.IntRange( 3, WIDTH - 4 );
 			int y = Random.IntRange( 2, HEIGHT - 3 );
 			int cell = pointToCell( new Point( x, y ) );
