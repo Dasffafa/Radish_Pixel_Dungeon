@@ -46,7 +46,8 @@ public class Cripple extends FlavourBuff {
 				Hero hero = (Hero) target;
 				if (hero.pointsInTalent(Talent.CATAPULT_START) >= 1
 						&& hero.buff(CatapultStartCooldown.class) == null) {
-					Buff.affect(hero, CatapultStartBuff.class, 1f);
+					// 用 prolong：若已有该 buff（例如刚吃过冻伤）则把窗口重新顶到满
+					Buff.prolong(hero, CatapultStartBuff.class, CatapultStartBuff.DURATION);
 					Buff.affect(hero, CatapultStartCooldown.class, CatapultStartCooldown.DURATION);
 					GLog.p(Messages.get(Wheelchair.class, "catapult_triggered"));
 				}

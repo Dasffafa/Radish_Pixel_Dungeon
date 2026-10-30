@@ -94,7 +94,8 @@ public class Frost extends FlavourBuff {
 				// 弹射起步天赋触发：受到冻伤时获得免费轮椅使用机会
 				if (hero.pointsInTalent(Talent.CATAPULT_START) >= 1
 						&& hero.buff(CatapultStartCooldown.class) == null) {
-					Buff.affect(hero, CatapultStartBuff.class, 1f);
+					// 用 prolong：冻伤会 paralysed 数回合，窗口必须足够长才用得上
+					Buff.prolong(hero, CatapultStartBuff.class, CatapultStartBuff.DURATION);
 					Buff.affect(hero, CatapultStartCooldown.class, CatapultStartCooldown.DURATION);
 					GLog.p(Messages.get(Wheelchair.class, "catapult_triggered"));
 				}

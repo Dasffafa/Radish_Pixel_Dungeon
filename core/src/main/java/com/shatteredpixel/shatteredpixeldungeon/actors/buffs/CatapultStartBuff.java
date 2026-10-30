@@ -30,6 +30,11 @@ import com.watabou.noosa.Image;
  */
 public class CatapultStartBuff extends FlavourBuff {
 
+	/* 弹射起步给的是"一段时间内的免费轮椅机会"，不是只给一个回合。
+	 * 旧值是 1f：冻伤触发时玩家正 paralysed 数回合，等能动时 buff 早到期，
+	 * 于是表现成"看起来没发动"（再点轮椅正常扣充能）。 */
+	public static final float DURATION = 10f;
+
 	{
 		type = buffType.POSITIVE;
 	}
@@ -46,7 +51,7 @@ public class CatapultStartBuff extends FlavourBuff {
 
 	@Override
 	public float iconFadePercent() {
-		return 0; // 极短持续时间，不显示淡出
+		return Math.max(0, (DURATION - visualcooldown()) / DURATION);
 	}
 
 }
