@@ -472,6 +472,7 @@ public class ItemSpriteSheet {
 	public static final String STONE_FLOCK = "stone_flock";
 	public static final String STONE_INTUITION = "stone_intuition";
 	public static final String STONE_SHOCK = "stone_shock";
+	public static final String CONTROLLER = "controller";
 
 	public static final String POTION_CRIMSON = "potion_crimson";
 	public static final String POTION_AMBER = "potion_amber";

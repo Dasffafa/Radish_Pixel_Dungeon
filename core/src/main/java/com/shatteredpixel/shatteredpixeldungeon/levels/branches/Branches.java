@@ -114,7 +114,7 @@ public class Branches {
         levels[7] = PrisonLevel.class;
         levels[8] = PrisonLevel.class;
         levels[9] = PrisonLevel.class;
-        levels[10] = PrisonBossLevel.class;
+        levels[10] = PrisonBossLevel.class;  // 或 WardenBossLevel（典狱长），由 Dungeon 动态决定
         levels[11] = CavesLevel.class;
         levels[12] = CavesLevel.class;
         levels[13] = CavesLevel.class;

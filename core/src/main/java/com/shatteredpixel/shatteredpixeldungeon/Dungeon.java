@@ -375,6 +375,16 @@ public class Dungeon {
 				throw new IllegalStateException("Invalid floor: " + branchId + ":" + depth);
 		}
 		
+		// 第10层的 Boss 选择：典狱长与天狗随机替换出现
+		if (branchId.equals(Branches.MAIN) && depth == 10 && level instanceof PrisonBossLevel) {
+			Random.pushGenerator( Dungeon.seedCurDepth()+2 );
+			boolean warden = Random.Float() < 0.5f;
+			Random.popGenerator();
+			if (warden) {
+				level = new WardenBossLevel();
+			}
+		}
+
 		// 第15层的 Boss 选择
 		if (branchId.equals(Branches.MAIN) && depth == 15) {
 			// deterministic per (branch, depth), independent of prior branch exploration
