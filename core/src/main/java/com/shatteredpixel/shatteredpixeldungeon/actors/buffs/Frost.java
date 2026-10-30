@@ -24,7 +24,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Thief;
@@ -91,14 +90,8 @@ public class Frost extends FlavourBuff {
 
 				Hero hero = (Hero)target;
 
-				// 弹射起步天赋触发：受到冻伤时获得免费轮椅使用机会
-				if (hero.pointsInTalent(Talent.CATAPULT_START) >= 1
-						&& hero.buff(CatapultStartCooldown.class) == null) {
-					// 用 prolong：冻伤会 paralysed 数回合，窗口必须足够长才用得上
-					Buff.prolong(hero, CatapultStartBuff.class, CatapultStartBuff.DURATION);
-					Buff.affect(hero, CatapultStartCooldown.class, CatapultStartCooldown.DURATION);
-					GLog.p(Messages.get(Wheelchair.class, "catapult_triggered"));
-				}
+				// 弹射起步天赋触发：受到冻伤时获得免费轮椅使用机会（条件判断统一在 Wheelchair 里）
+				Wheelchair.tryTriggerCatapultStart(hero);
 
 				ArrayList<Item> freezable = new ArrayList<>();
 				//does not reach inside of containers

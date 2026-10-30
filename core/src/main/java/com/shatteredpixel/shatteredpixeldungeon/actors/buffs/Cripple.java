@@ -23,11 +23,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class Cripple extends FlavourBuff {
 
@@ -41,16 +38,9 @@ public class Cripple extends FlavourBuff {
 	@Override
 	public boolean attachTo(Char target) {
 		if (super.attachTo(target)) {
-			// 弹射起步天赋触发：受到残废时获得免费轮椅使用机会
+			// 弹射起步天赋触发：受到残废时获得免费轮椅使用机会（条件判断统一在 Wheelchair 里）
 			if (target instanceof Hero) {
-				Hero hero = (Hero) target;
-				if (hero.pointsInTalent(Talent.CATAPULT_START) >= 1
-						&& hero.buff(CatapultStartCooldown.class) == null) {
-					// 用 prolong：若已有该 buff（例如刚吃过冻伤）则把窗口重新顶到满
-					Buff.prolong(hero, CatapultStartBuff.class, CatapultStartBuff.DURATION);
-					Buff.affect(hero, CatapultStartCooldown.class, CatapultStartCooldown.DURATION);
-					GLog.p(Messages.get(Wheelchair.class, "catapult_triggered"));
-				}
+				Wheelchair.tryTriggerCatapultStart((Hero) target);
 			}
 			return true;
 		}

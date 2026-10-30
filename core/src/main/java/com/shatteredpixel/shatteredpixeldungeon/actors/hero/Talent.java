@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
@@ -996,6 +997,12 @@ public class Talent {
 	}
 
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
+
+		// 天赋：弹射起步 —— 残废/冻伤可能在这之前就已经挂在身上了，
+		// 那种情况下不会重新 attach，所以点出天赋的当口补判一次
+		if (talent == CATAPULT_START) {
+			Wheelchair.tryTriggerCatapultStart(hero);
+		}
 
 		// Superstition by DoggingDog on 20250817
 		// 天赋：星界沟通
