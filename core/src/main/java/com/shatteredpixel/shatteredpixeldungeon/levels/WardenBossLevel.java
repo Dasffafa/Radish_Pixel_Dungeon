@@ -87,18 +87,20 @@ public class WardenBossLevel extends Level {
 			int y = Random.IntRange( 2, HEIGHT - 3 );
 			int cell = pointToCell( new Point( x, y ) );
 			if (map[cell] == Terrain.EMPTY) {
-				set( cell, Terrain.EMPTY_DECO );
+				//注意：build() 期间 Dungeon.level 还没指向本关，2 参 set() 会拿到 null 抛 NPE，
+				//一律显式传 this 走 3 参版本
+				Level.set( cell, Terrain.EMPTY_DECO, this );
 			}
 		}
 
 		//入口在左端
 		int entrance = pointToCell( new Point( 3, HEIGHT / 2 ) );
-		set( entrance, Terrain.ENTRANCE );
+		Level.set( entrance, Terrain.ENTRANCE, this );
 		transitions.add( new LevelTransition( this, entrance, LevelTransition.Type.REGULAR_ENTRANCE ) );
 
 		//出口在右端，击败典狱长前锁住
 		exitCell = pointToCell( new Point( WIDTH - 3, HEIGHT / 2 ) );
-		set( exitCell, Terrain.LOCKED_EXIT );
+		Level.set( exitCell, Terrain.LOCKED_EXIT, this );
 		transitions.add( new LevelTransition( this, exitCell, LevelTransition.Type.REGULAR_EXIT ) );
 
 		return true;
@@ -171,7 +173,7 @@ public class WardenBossLevel extends Level {
 		bossDead = true;
 		unseal();
 		if (exitCell != -1) {
-			set( exitCell, Terrain.EXIT );
+			Level.set( exitCell, Terrain.EXIT, this );
 			GameScene.updateMap( exitCell );
 		}
 		GLog.w( Messages.get( this, "boss_dead" ) );
