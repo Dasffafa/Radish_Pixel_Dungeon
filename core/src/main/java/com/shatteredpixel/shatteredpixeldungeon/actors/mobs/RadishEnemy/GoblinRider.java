@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
@@ -116,7 +117,7 @@ public class GoblinRider extends Goblin {
             sprite.zap(enemy.pos);
             return false;
         } else {
-            throwSpear(enemy);
+            resolveSpear(new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos);
             Invisibility.dispel(this);
             spend(attackDelay());
             rangedAttack = false;
@@ -145,21 +146,22 @@ public class GoblinRider extends Goblin {
         }
     }
 
-    /** 投出飞行中的捕鱼矛，命中后结算伤害。 */
+    /**
+     * 投出捕鱼矛。投掷物只作视觉飞行，命中与否都不会生成可拾取的实体。
+     */
     private void launchSpear() {
-        final Char target = enemy;
-        if (target == null || !target.isAlive() || sprite == null || sprite.parent == null) {
+        if (sprite == null || sprite.parent == null || enemy == null) {
             next();
             return;
         }
 
-        int cell = new Ballistica(pos, target.pos, Ballistica.PROJECTILE).collisionPos;
+        int cell = new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos;
 
         ((MissileSprite) sprite.parent.recycle(MissileSprite.class)).reset(
                 sprite, cell, new FishingSpear(), new Callback() {
                     @Override
                     public void call() {
-                        throwSpear(target);
+                        resolveSpear(cell);
                         Invisibility.dispel(GoblinRider.this);
                         spend(attackDelay());
                         next();
@@ -167,9 +169,17 @@ public class GoblinRider extends Goblin {
                 });
     }
 
-    /** 投矛命中结算：伤害 3~6（石子为 2~4）。 */
-    private void throwSpear(Char target) {
-        if (target == null || !target.isAlive()) return;
+    /**
+     * 投矛结算：只对落点上的敌对单位判定命中/闪避，矛本身不落地。
+     * 与 Headcrab 的远程箭矢同一套虚拟投掷物写法。
+     */
+    private void resolveSpear(int cell) {
+        if (!isAlive()) return;
+
+        Char target = Actor.findChar(cell);
+        if (target == null || target == this || target.alignment == alignment) {
+            return;
+        }
 
         if (hit(this, target, true)) {
             int dmg = Random.NormalIntRange(3, 6);
@@ -184,8 +194,6 @@ public class GoblinRider extends Goblin {
             }
         } else {
             target.sprite.showStatus(CharSprite.NEUTRAL, target.defenseVerb());
-            // 未命中，矛掉落在目标脚下
-            Dungeon.level.drop(new FishingSpear(), target.pos).sprite.drop();
         }
     }
 
