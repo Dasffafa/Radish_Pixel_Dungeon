@@ -29,13 +29,15 @@ import com.watabou.utils.Random;
 /**
  * 传奇重犯：囚犯的强化版（副本 Boss）。
  *
- * 属性与 {@link Prisoner} 相同，仅生命上限提升为 120。
+ * 属性与 {@link Prisoner} 相同，仅生命上限提升为 140。
  *
  * 技能（冷却 10 回合）：
  *  1. 指定玩家当前位置，蓄力 1 回合（地面出现预警）；
  *  2. 下回合坠落到该格，对格上目标造成 200% 攻击力伤害；
  *  3. 随后每回合向周围扩散一圈地裂波，共 3 圈；
  *     每圈对范围内目标造成 100% 攻击力伤害并施加 2 回合残废。
+ *
+ * 半血以下：镣铐被打烂了，蓄力那一回合还能朝目标挪动一步（不再只能原地挨打）。
  */
 public class LegendaryFelon extends Prisoner {
 
@@ -51,7 +53,7 @@ public class LegendaryFelon extends Prisoner {
 	{
 		spriteClass = FelonSprite.class;
 
-		HP = HT = 120;
+		HP = HT = 140;
 
 		// 小 boss：拥有独立血条（同天狗）
 		properties.add( Property.BOSS );
@@ -126,11 +128,39 @@ public class LegendaryFelon extends Prisoner {
 		public static final String TAG = "CHARGING";
 		@Override
 		public boolean act( boolean enemyInFOV, boolean justAlerted ) {
+			// 半血以下镣铐已经碎了：蓄力的这一回合还可以朝目标挪一步。
+			// 这一回合的计时已由蓄力动作 spend(TICK) 占用，所以移动不再额外花时间；
+			// 挪动后把预警重新锁到目标脚下，免得加强变成砸空。
+			if (HP * 2 <= HT) {
+				Char tgt = chargeTarget( enemyInFOV );
+				if (tgt != null && !canAttack( tgt )) {
+					int oldPos = pos;
+					if (getCloser( tgt.pos )) {
+						moveSprite( oldPos, pos );
+						if (tgt.isAlive() && fieldOfView[tgt.pos]) {
+							markedCell = tgt.pos;
+						}
+					}
+				}
+			}
+
 			warn( markedCell );
 			state = SLAMMING;
 			spend( TICK );
 			return true;
 		}
+	}
+
+	// 蓄力/坠落始终优先盯着英雄，避免被召唤物带偏
+	private Char chargeTarget( boolean enemyInFOV ) {
+		if (Dungeon.hero != null && Dungeon.hero.isAlive()
+				&& fieldOfView[Dungeon.hero.pos]) {
+			return Dungeon.hero;
+		}
+		if (enemyInFOV && enemy != null && enemy.isAlive()) {
+			return enemy;
+		}
+		return null;
 	}
 
 	// 坠落冲击

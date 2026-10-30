@@ -113,6 +113,10 @@ public class RA_v0_8_X_Changes {
                 ("_-_ 初始范围扩大一圈，从 3x3 变为 5x5。\n\n" +
                         "_-_ 范围扩大的等级要求由每提升四级改为每提升三级。\n")));
 
+        changes.addButton(new ChangeButton(Icons.get(Icons.ABILITY_HP), "传奇重犯加强",
+                ("_-_ 生命上限 120 → 140。\n\n" +
+                        "_-_ 半血以下时，镣铐已被打烂，蓄力的那一回合还能朝目标挪动一步（原来只能原地蓄力挨打）。\n")));
+
         changes.addButton(new ChangeButton(new TalentIcon(Talent.SCHOOL_BLADES), "骰子法师法术调整",
                 ("_-_ 刃雨：获得力量加成，投射物改为纯视觉表现，伤害改为同步结算，飞刀会穿过倒下的尸体，以避免实际投射物导致的卡顿bug。在大部分情况下，这不会对这个法术的结算造成严重区别。\n\n" +
                         "_-_ 收集：效果改为将7格内的物品全部拉到自己脚下。这也会回收范围内怪物身上的投掷物。\n\n" +
