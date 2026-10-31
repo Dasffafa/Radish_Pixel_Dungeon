@@ -153,6 +153,10 @@ public class WardenBossLevel extends Level {
 		drop( new StoneOfShock(), shock );
 	}
 
+	//本轮生成里已经占掉的格子：createMobs 阶段怪物还没进 Actor，Actor.findChar 查不到，
+	//不自己记一份的话 11 台原型机会互相重叠在同一格上
+	private final ArrayList<Integer> spawnTaken = new ArrayList<>();
+
 	/** 生成一台原型机（100 或 175），只落在战斗区里 */
 	public WardenPrototype spawnPrototype( int model ) {
 		WardenPrototype p = new WardenPrototype( model );
@@ -162,6 +166,7 @@ public class WardenBossLevel extends Level {
 			cell = pointToCell( new Point( WIDTH / 2, arena.top + (arena.height() / 2) ) );
 		}
 		p.pos = cell;
+		spawnTaken.add( cell );
 		if (Dungeon.level == this) {
 			//Boss 战中途补生成：场景已就绪，直接挂上去
 			GameScene.add( p );
@@ -181,6 +186,7 @@ public class WardenBossLevel extends Level {
 				int i = y * WIDTH + x;
 				if (passable[i] && map[i] != Terrain.ENTRANCE && map[i] != Terrain.EXIT && map[i] != Terrain.LOCKED_EXIT
 						&& Actor.findChar( i ) == null
+						&& !spawnTaken.contains( i )
 						&& (!Char.hasProp( ch, Char.Property.LARGE ) || openSpace[i])) {
 					candidates.add( i );
 				}
