@@ -79,8 +79,9 @@ public class WndBag extends WndTabbed {
 	 *  几乎铺满屏幕的大面板。 */
 	protected static final int MAX_VISIBLE_ROWS = 5;
 
-	/** 窗口右侧留给滚动条的宽度：不加这段，滚动条会直接压在最后一列格子上 */
-	protected static final int SCROLLBAR_WIDTH = 5;
+	/** 滚动条是覆盖式绘制（ScrollPane.layout() 里 thumb.x = right() - 2），
+	 *  所以窗口宽度只算格子，不再额外加宽——加宽会让背包比原版宽一截。 */
+	protected static final int SCROLLBAR_WIDTH = 0;
 	
 	private ItemSelector selector;
 
@@ -128,11 +129,11 @@ public class WndBag extends WndTabbed {
 		nCols = COLS_P;
 
 		// 屏幕实在放不下 5×5 就整体缩小格子，而不是少显示一列/一行
-		while (slotWidth > 18 && slotWidth * nCols + SLOT_MARGIN * (nCols - 1) + SCROLLBAR_WIDTH + 2
+		while (slotWidth > 14 && slotWidth * nCols + SLOT_MARGIN * (nCols - 1) + 2
 				+ chrome.marginHor() > PixelScene.uiCamera.width) {
 			slotWidth--;
 		}
-		while (slotHeight > 18 && TITLE_HEIGHT + slotHeight * MAX_VISIBLE_ROWS + SLOT_MARGIN * (MAX_VISIBLE_ROWS - 1) + 6
+		while (slotHeight > 14 && TITLE_HEIGHT + slotHeight * MAX_VISIBLE_ROWS + SLOT_MARGIN * (MAX_VISIBLE_ROWS - 1) + 6
 				+ chrome.marginTop() > PixelScene.uiCamera.height) {
 			slotHeight--;
 		}
@@ -146,10 +147,11 @@ public class WndBag extends WndTabbed {
 		int neededSlots = equippedMin + capacity + (isBackpack ? 0 : 1);
 		nRows = Math.max(1, (int)Math.ceil(neededSlots/(float)nCols));
 
-		// 网格宽度只算格子本身，窗口额外留一条滚动条的位置，避免滚动条压在最后一列上
+		// 网格宽度只算格子本身；滚动条覆盖在最右格边缘，窗口不再额外留一条
 		int gridWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
 		int windowWidth = gridWidth + SCROLLBAR_WIDTH;
-		int visibleRows = Math.min(nRows, MAX_VISIBLE_ROWS);
+		// 可见区固定 5 行（5×5），不足的部分由 placeItems() 补空格撑满
+		int visibleRows = MAX_VISIBLE_ROWS;
 		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
 		int windowHeight = TITLE_HEIGHT + visibleHeight;
 
@@ -160,7 +162,7 @@ public class WndBag extends WndTabbed {
 
 		// placeItem() 结束时 col/row 已经越过最后一格，实际行数 = row，两者取大值兜底；
 		// 最后一行下面不留 SLOT_MARGIN，否则滚动到底会多出一条空白
-		int actualRows = Math.max(nRows, row);
+		int actualRows = Math.max(Math.max(nRows, row), MAX_VISIBLE_ROWS);
 		int contentHeight = actualRows * (slotHeight + SLOT_MARGIN) - SLOT_MARGIN;
 		content.setSize(gridWidth, contentHeight);
 		scroll = new ScrollPane(content);
@@ -318,8 +320,10 @@ public class WndBag extends WndTabbed {
 			}
 		}
 		
-		// Free Space
-		while ((count - equipped) < container.capacity()) {
+		// 空格补到「至少有 5×5 那么多格」，容器容量更小时也照样是完整的 5 行，
+		// 否则面板会缩成 4 行、下面空一块
+		int minSlots = Math.max(container.capacity(), COLS_P * MAX_VISIBLE_ROWS - equipped);
+		while ((count - equipped) < minSlots) {
 			placeItem( null );
 		}
 	}
