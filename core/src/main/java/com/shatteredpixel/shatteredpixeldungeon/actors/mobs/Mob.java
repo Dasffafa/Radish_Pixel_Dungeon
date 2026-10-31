@@ -1011,6 +1011,20 @@ public abstract class Mob extends Char {
 			}
 		}
 
+		// 灌能臂缠：英雄用法杖造成伤害后，10 回合内增伤并获得护盾
+		if (Dungeon.hero != null && info.getAttacker() == Dungeon.hero) {
+			com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor infArmor =
+					Dungeon.hero.belongings.secondaryArmor();
+			if (infArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.InfusedArmband
+					&& Dungeon.hero.STR() >= infArmor.STRReq()
+					&& info.getType() == DamageType.MAGICAL) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.apply(
+						Dungeon.hero, 1 + infArmor.level() / 2, 10f);
+				Buff.affect(Dungeon.hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class)
+						.setShield(2 + infArmor.level());
+			}
+		}
+
 		if(buff(HolyLowBurinng.class) !=null || buff(HalomethaneBurning.class)!=null){
 			info.addFinalMultModifier(1.3f, "holy burn");
 		}

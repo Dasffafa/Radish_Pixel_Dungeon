@@ -1063,6 +1063,13 @@ public class Hero extends Char {
 			dmg = Math.round(dmg * 0.7f);
 		}
 
+		// 灌能臂缠：法杖命中后的临时增伤
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff infBuff =
+				buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.class);
+		if (infBuff != null) {
+			dmg += infBuff.bonus();
+		}
+
 		// 闪亮手套：满血时造成的所有伤害 +（25+5*等级）%
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
 		if (sa instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves
