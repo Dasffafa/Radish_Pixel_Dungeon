@@ -83,7 +83,9 @@ public abstract class SecondaryArmor extends EquipableItem {
 		if (hero.belongings.secondaryArmor == null
 				|| hero.belongings.secondaryArmor.doUnequip(hero, true, false)) {
 			hero.belongings.secondaryArmor = this;
-			GLog.i(Messages.get(this, "equipped"));
+			// 装到次要护甲栏之后必须从背包里摘掉，否则背包里会同时留着一份（还带着“已装备”的高亮框）
+			detach( hero.belongings.backpack );
+			GLog.i(Messages.get(this, "equipped", name()));
 			return true;
 		}
 		return false;
