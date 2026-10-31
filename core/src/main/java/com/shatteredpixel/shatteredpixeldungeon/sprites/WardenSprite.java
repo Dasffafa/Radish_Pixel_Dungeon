@@ -31,7 +31,7 @@ public class WardenSprite extends MobSprite {
 
 		texture( Assets.Sprites.WARDEN );
 
-		TextureFilm frames = new TextureFilm( texture, 12, 16 );
+		TextureFilm frames = new TextureFilm( texture, 12, 15 );
 
 		//行 2（32..41）= 常态
 		normalIdle   = new Animation( 2, true );
