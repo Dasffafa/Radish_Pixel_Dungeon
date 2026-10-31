@@ -23,6 +23,11 @@ import com.watabou.utils.Random;
 public class SecondaryArmorSpawner extends TestGenerator {
 
 	@Override
+	public String trueName() {
+		return name();
+	}
+
+	@Override
 	public String name() {
 		return "次要护甲生成器";
 	}

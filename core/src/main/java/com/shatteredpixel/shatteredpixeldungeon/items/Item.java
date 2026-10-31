@@ -585,7 +585,7 @@ public class Item implements Bundlable {
 		return trueName();
 	}
 	
-	public final String trueName() {
+	public String trueName() {
 		return Messages.get(this, "name");
 	}
 	
