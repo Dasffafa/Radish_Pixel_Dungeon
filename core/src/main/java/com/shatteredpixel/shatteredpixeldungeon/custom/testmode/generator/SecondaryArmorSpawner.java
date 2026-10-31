@@ -1,6 +1,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.BlackBelt;
@@ -34,17 +36,19 @@ public class SecondaryArmorSpawner extends TestGenerator {
 	public void execute( Hero hero, String action ) {
 		super.execute( hero, action );
 		if (action.equals( AC_GIVE )) {
-			SecondaryArmor item = randomArmor();
-			if (item.collect()) {
-				GLog.i( "生成次要护甲：" + item.name() );
-			} else {
-				GLog.w( "背包已满，无法放入。" );
-			}
+			final String[] names = { "冠军腰带", "黑带", "仙女座", "灌能臂缠", "催化手环", "庇护",
+					"格里芬之眼", "蛛网腰带", "纯洁者", "三叉护手", "闪亮手套", "护胫甲" };
+			GameScene.show( new WndOptions( "次要护甲生成器", "选择要生成的一件：", names ) {
+				@Override
+				protected void onSelect( int index ) {
+					armorAt( index ).collect();
+				}
+			} );
 		}
 	}
 
-	private SecondaryArmor randomArmor() {
-		switch (Random.Int( 12 )) {
+	private SecondaryArmor armorAt( int index ) {
+		switch (index) {
 			case 0:  return new ChampionBelt();
 			case 1:  return new BlackBelt();
 			case 2:  return new Andromeda();
