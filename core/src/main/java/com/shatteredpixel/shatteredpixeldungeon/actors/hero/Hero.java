@@ -2106,6 +2106,15 @@ public class Hero extends Char {
 	}
 
  	public void rest( boolean fullRest ) {
+
+		// 庇护：原地等待时获得（3+等级）点护盾（覆盖式，不叠加）
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor shelterArmor = belongings.secondaryArmor();
+		if (shelterArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Shelter
+				&& STR() >= shelterArmor.STRReq()) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(
+					this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class)
+					.setShield(3 + shelterArmor.level());
+		}
 		// 圆球皮肤：等待时若角度不正确，用至多 1 回合的等待时间旋转回正确方向
 		if (isSphereSkin()){
 			sphereRotateWhileWaiting( Math.min( sphereRotationTime( 0f ), TIME_TO_REST ) );
