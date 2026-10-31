@@ -117,6 +117,16 @@ public abstract class SecondaryArmor extends EquipableItem {
 	}
 
 	@Override
+	public int visiblyUpgraded() {
+		return level;
+	}
+
+	@Override
+	public int buffedVisiblyUpgraded() {
+		return level;
+	}
+
+	@Override
 	public String desc() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(Messages.get(this, "base_desc", tier, (int)DRMin(), (int)DRMax(), STRReq()));
