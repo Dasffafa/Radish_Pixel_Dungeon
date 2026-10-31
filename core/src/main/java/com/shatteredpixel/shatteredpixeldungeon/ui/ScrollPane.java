@@ -254,6 +254,9 @@ public class ScrollPane extends Component {
 			Camera c = content.camera;
 			
 			c.shift( PointF.diff( lastPos, current ).invScale( c.zoom ) );
+			//拖动过程中必须每帧更新参照点，否则每次都拿"按下那一瞬间"的位置去算位移，
+			//手指一动位移就成倍累积，内容会直接闪到另一头
+			lastPos.set( current );
 			if (c.scroll.x + width > content.width()) {
 				c.scroll.x = content.width() - width;
 			}
