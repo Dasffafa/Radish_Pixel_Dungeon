@@ -74,9 +74,7 @@ public class WndBag extends WndTabbed {
 
 	protected static final int TITLE_HEIGHT	= 14;
 
-	/** 可见区最多显示的行数：手机竖屏 5 列 × 5 行＝原版破碎地牢的背包观感，
-	 *  超出的行靠上下拖动查看。以前把窗口高度按全部行数撑开，手机上会变成一个
-	 *  几乎铺满屏幕的大面板。 */
+	/** 屏幕放不下时最多允许滚动的下限行数参考（实际可见行数由构造里按屏幕高度算） */
 	protected static final int MAX_VISIBLE_ROWS = 5;
 
 	/** 滚动条是覆盖式绘制（ScrollPane.layout() 里 thumb.x = right() - 2），
@@ -128,16 +126,6 @@ public class WndBag extends WndTabbed {
 		slotHeight = SLOT_HEIGHT_P;
 		nCols = COLS_P;
 
-		// 屏幕实在放不下 5×5 就整体缩小格子，而不是少显示一列/一行
-		while (slotWidth > 14 && slotWidth * nCols + SLOT_MARGIN * (nCols - 1) + 2
-				+ chrome.marginHor() > PixelScene.uiCamera.width) {
-			slotWidth--;
-		}
-		while (slotHeight > 14 && TITLE_HEIGHT + slotHeight * MAX_VISIBLE_ROWS + SLOT_MARGIN * (MAX_VISIBLE_ROWS - 1) + 6
-				+ chrome.marginTop() > PixelScene.uiCamera.height) {
-			slotHeight--;
-		}
-
 		// 行数必须按「实际要塞的格子数」算：placeItems() 先放 5 格装备栏（有副手再多 1 格），
 		// 非根容器还会把自己也算进去，最后补空位到 bag.capacity()。
 		int capacity = (bag != null) ? bag.capacity() : 25;
@@ -147,11 +135,24 @@ public class WndBag extends WndTabbed {
 		int neededSlots = equippedMin + capacity + (isBackpack ? 0 : 1);
 		nRows = Math.max(1, (int)Math.ceil(neededSlots/(float)nCols));
 
+		// 屏幕实在放不下就整体缩小格子，而不是少显示一列/一行
+		while (slotWidth > 14 && slotWidth * nCols + SLOT_MARGIN * (nCols - 1) + 2
+				+ chrome.marginHor() > PixelScene.uiCamera.width) {
+			slotWidth--;
+		}
+		while (slotHeight > 14 && TITLE_HEIGHT + slotHeight * nRows + SLOT_MARGIN * (nRows - 1) + 6
+				+ chrome.marginTop() > PixelScene.uiCamera.height) {
+			slotHeight--;
+		}
+
 		// 网格宽度只算格子本身；滚动条覆盖在最右格边缘，窗口不再额外留一条
 		int gridWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
 		int windowWidth = gridWidth + SCROLLBAR_WIDTH;
-		// 可见区固定 5 行（5×5），不足的部分由 placeItems() 补空格撑满
-		int visibleRows = MAX_VISIBLE_ROWS;
+		// 默认把所有格子都摊开（原版背包的观感：整包一眼看完，不留大片空白）；
+		// 只有格子缩到最小仍然放不下时，才限制可见行数并允许上下拖动。
+		int maxRows = Math.max(1, (PixelScene.uiCamera.height - chrome.marginTop() - TITLE_HEIGHT - 6)
+				/ (slotHeight + SLOT_MARGIN));
+		int visibleRows = Math.min(nRows, maxRows);
 		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
 		int windowHeight = TITLE_HEIGHT + visibleHeight;
 
@@ -162,7 +163,7 @@ public class WndBag extends WndTabbed {
 
 		// placeItem() 结束时 col/row 已经越过最后一格，实际行数 = row，两者取大值兜底；
 		// 最后一行下面不留 SLOT_MARGIN，否则滚动到底会多出一条空白
-		int actualRows = Math.max(Math.max(nRows, row), MAX_VISIBLE_ROWS);
+		int actualRows = Math.max(nRows, row);
 		int contentHeight = actualRows * (slotHeight + SLOT_MARGIN) - SLOT_MARGIN;
 		content.setSize(gridWidth, contentHeight);
 		scroll = new ScrollPane(content);
@@ -320,9 +321,9 @@ public class WndBag extends WndTabbed {
 			}
 		}
 		
-		// 空格补到「至少有 5×5 那么多格」，容器容量更小时也照样是完整的 5 行，
-		// 否则面板会缩成 4 行、下面空一块
-		int minSlots = Math.max(container.capacity(), COLS_P * MAX_VISIBLE_ROWS - equipped);
+		// 空位补到容器容量：窗口行数就是按这个容量算的，两边必须一致，
+		// 否则会出现「窗口比格子大」或「格子比窗口多」的空白/滚动条
+		int minSlots = container.capacity();
 		while ((count - equipped) < minSlots) {
 			placeItem( null );
 		}
