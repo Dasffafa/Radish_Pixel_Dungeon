@@ -1,4 +1,4 @@
-package com.shatteredpixel.shatteredpixeldungeon.custom.testmode;
+package com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
@@ -14,29 +14,22 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGlo
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /** 测试模式用：使用一次随机生成一件次要护甲放进背包。 */
-public class SecondaryArmorSpawner extends TestItem {
-
-	{
-		image = ItemSpriteSheet.SOMETHING;
-		stackable = true;
-	}
+public class SecondaryArmorSpawner extends TestGenerator {
 
 	@Override
 	public void execute( Hero hero, String action ) {
-		if (!action.equals( AC_DROP ) && !action.equals( AC_THROW )) {
+		super.execute( hero, action );
+		if (action.equals( AC_GIVE )) {
 			SecondaryArmor item = randomArmor();
 			if (item.collect()) {
 				GLog.i( "生成次要护甲：" + item.name() );
 			} else {
 				GLog.w( "背包已满，无法放入。" );
 			}
-		} else {
-			super.execute( hero, action );
 		}
 	}
 

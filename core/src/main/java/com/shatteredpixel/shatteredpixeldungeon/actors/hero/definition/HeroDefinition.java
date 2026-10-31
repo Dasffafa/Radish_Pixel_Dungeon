@@ -1,6 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition;
 
-import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SecondaryArmorSpawner;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator.SecondaryArmorSpawner;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
