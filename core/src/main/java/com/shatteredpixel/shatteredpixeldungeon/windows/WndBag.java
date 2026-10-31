@@ -62,7 +62,7 @@ public class WndBag extends WndTabbed {
 	//only one bag window can appear at a time
 	public static Window INSTANCE;
 
-	protected static final int COLS_P   = 5;
+	protected static final int COLS_P   = 6;
 	protected static final int COLS_L   = 5;
 
 	protected static int SLOT_WIDTH_P   = 28;

@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition;
 
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SecondaryArmorSpawner;
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.QuickSlot;
@@ -284,6 +285,7 @@ public abstract class HeroDefinition {
 
 		new TestArmor().collect( testBag );
 		new TestArtifact().collect( testBag );
+		new SecondaryArmorSpawner().collect( testBag );
 		new SpawnWeapon().collect( testBag );
 		new TestMissile().collect( testBag );
 		new TestRing().collect( testBag );
