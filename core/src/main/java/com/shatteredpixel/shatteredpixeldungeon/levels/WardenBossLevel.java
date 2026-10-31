@@ -46,15 +46,18 @@ public class WardenBossLevel extends Level {
 	private static final int WIDTH  = 12;
 	private static final int HEIGHT = 26;
 
-	//入口初始房间（最下方），Rect 的 right/bottom 是开区间
-	private static final Rect entranceRoom = new Rect( 3, 21, 9, 25 );
-	//连接初始房间与战斗区的走廊（1 格宽：唯一的通道就是顶端那扇门，
-	//以前做成 2 格宽时，旁边那一列能绕过门直接走进战斗区）
-	private static final Rect corridor = new Rect( 6, 18, 7, 21 );
+	//入口初始房间（最下方），照抄天狗（PrisonBossLevel）第一个房间的样子：
+	//一个小房间，外圈墙、内圈空，向上接一条 1 格宽的走廊，走廊顶端一扇门。
+	//Rect 的 right/bottom 是开区间。
+	private static final Rect entranceRoom = new Rect( 3, 19, 9, 25 );
+	//连接初始房间与战斗区的走廊（1 格宽，竖着向上）。
+	//注意它的顶端必须探进战斗区里一格：否则走廊和战斗区之间还隔着一层墙，
+	//玩家开门后根本走不上去（之前就是这样，房间是死的）。
+	private static final Rect corridor = new Rect( 6, 14, 7, 20 );
 	//走廊顶端通往战斗区的门（向上开）
-	private static final Point doorCell = new Point( 6, 18 );
+	private static final Point doorCell = new Point( 6, 14 );
 	//战斗区（上方大长方形）
-	private static final Rect arena = new Rect( 1, 1, 11, 18 );
+	private static final Rect arena = new Rect( 1, 1, 11, 16 );
 
 	private static final String BOSS_DEAD = "boss_dead";
 
@@ -90,8 +93,11 @@ public class WardenBossLevel extends Level {
 
 		//下方初始房间：玩家从上一层下来先落在这里，看不到也打不到 Boss
 		Painter.fill( this, entranceRoom, 1, Terrain.EMPTY );
-		//走廊：从初始房间向上通到战斗区
-		Painter.fill( this, corridor, 1, Terrain.EMPTY );
+		//走廊：从初始房间向上通到战斗区。
+		//注意：走廊只有 1 格宽，不能像房间那样用 m=1 内缩填充
+		//（Painter.fill(rect, 1, …) 会把宽高各减 2，宽度变成 -1，
+		//Arrays.fill 直接抛 fromIndex > toIndex，整个关卡 build 崩掉）
+		Painter.fill( this, corridor, 0, Terrain.EMPTY );
 		//战斗区
 		Painter.fill( this, arena, 1, Terrain.EMPTY );
 
@@ -110,8 +116,9 @@ public class WardenBossLevel extends Level {
 			}
 		}
 
-		//入口在上方初始房间里
-		int entrance = pointToCell( new Point( WIDTH / 2, entranceRoom.top + 1 ) );
+		//入口放在初始房间的左下角（不要放在房间正中的通道口）：玩家从上一层下来就站在这里，
+		//放在正中时只要往回走一步就会又踩到入口、被送回上一层
+		int entrance = pointToCell( new Point( entranceRoom.left + 1, entranceRoom.bottom - 2 ) );
 		Level.set( entrance, Terrain.ENTRANCE, this );
 		transitions.add( new LevelTransition( this, entrance, LevelTransition.Type.REGULAR_ENTRANCE ) );
 
@@ -128,7 +135,8 @@ public class WardenBossLevel extends Level {
 
 		Warden warden = new Warden();
 		//Boss 待在战斗区靠中间的位置，不会一进关就贴脸
-		warden.pos = pointToCell( new Point( WIDTH / 2, arena.top + (arena.height() / 2) ) );
+		//站在门内侧不远处：玩家一开门就能看见 Boss（放在房间正中会被 8 格视野挡住）
+		warden.pos = pointToCell( new Point( WIDTH / 2, arena.bottom - 2 ) );
 		mobs.add( warden );
 
 		for (int i = 0; i < 8; i++) {
@@ -149,7 +157,8 @@ public class WardenBossLevel extends Level {
 		int healing = pointToCell( new Point( entranceRoom.right - 2, entranceRoom.top + 1 ) );
 		drop( new PotionOfHealing(), healing );
 
-		int shock = pointToCell( new Point( WIDTH / 2, entranceRoom.bottom - 1 ) );
+		//bottom 是开区间，-1 会落在房间外圈的墙上，这里退到内圈
+		int shock = pointToCell( new Point( WIDTH / 2, entranceRoom.bottom - 2 ) );
 		drop( new StoneOfShock(), shock );
 	}
 

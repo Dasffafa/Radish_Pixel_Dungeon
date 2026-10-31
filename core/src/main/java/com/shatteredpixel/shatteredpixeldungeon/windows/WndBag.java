@@ -74,14 +74,6 @@ public class WndBag extends WndTabbed {
 	protected static final int SLOT_MARGIN	= 1;
 
 	protected static final int TITLE_HEIGHT	= 14;
-
-	/** 可见行数固定 6 行（5 列 × 6 行）：第 1 行是装备栏，后面 5 行是背包的 25 格。
-	 *  用户口径：「不算装备 5×5，算上装备应该是 6×5」。超出 6 行的格子用 ScrollPane 上下拖动。 */
-	protected static final int MAX_VISIBLE_ROWS = 6;
-
-	/** 滚动条是覆盖式绘制（ScrollPane.layout() 里 thumb.x = right() - 2），
-	 *  所以窗口宽度只算格子，不再额外加宽——加宽会让背包比原版宽一截。 */
-	protected static final int SCROLLBAR_WIDTH = 0;
 	
 	private ItemSelector selector;
 
@@ -90,8 +82,6 @@ public class WndBag extends WndTabbed {
 
 	private int slotWidth;
 	private int slotHeight;
-
-	private int scrollWidth;
 
 	protected int count;
 	protected int col;
@@ -122,52 +112,49 @@ public class WndBag extends WndTabbed {
 		
 		lastBag = bag;
 
-		// 列数固定 5、可见行数固定 5（原版破碎地牢的背包观感），
-		// 多出来的格子在网格里上下拖动查看，不再随屏幕宽度加减列。
-		slotWidth = SLOT_WIDTH_P;
-		slotHeight = SLOT_HEIGHT_P;
-		nCols = COLS_P;
+		slotWidth = PixelScene.landscape() ? SLOT_WIDTH_L : SLOT_WIDTH_P;
+		slotHeight = PixelScene.landscape() ? SLOT_HEIGHT_L : SLOT_HEIGHT_P;
 
-		// 行数必须按「实际要塞的格子数」算：placeItems() 先放 5 格装备栏（有副手再多 1 格），
-		// 非根容器还会把自己也算进去，最后补空位到 bag.capacity()。
-		int capacity = (bag != null) ? bag.capacity() : 25;
-		int equippedMin = 5;
-		if (Dungeon.hero != null && Dungeon.hero.belongings.secondWep != null) equippedMin = 6;
-		boolean isBackpack = (bag == null) || (Dungeon.hero != null && bag == Dungeon.hero.belongings.backpack);
-		int neededSlots = equippedMin + capacity + (isBackpack ? 0 : 1);
-		nRows = Math.max(1, (int)Math.ceil(neededSlots/(float)nCols));
+		nCols = PixelScene.landscape() ? COLS_L : COLS_P;
 
-		// 屏幕实在放不下就整体缩小格子，而不是少显示一列/一行
-		while (slotWidth > 14 && slotWidth * nCols + SLOT_MARGIN * (nCols - 1) + 2
-				+ chrome.marginHor() > PixelScene.uiCamera.width) {
-			slotWidth--;
-		}
-		while (slotHeight > 14 && TITLE_HEIGHT + slotHeight * MAX_VISIBLE_ROWS + SLOT_MARGIN * (MAX_VISIBLE_ROWS - 1) + 6
-				+ chrome.marginTop() > PixelScene.uiCamera.height) {
-			slotHeight--;
+		// 电脑大屏时按可用宽度加列，避免背包窗口窄窄一条。
+		// 注意：不要用 interfaceSize() 做开关——桌面端该值可能为 0，会导致永远不加列。
+		{
+			int availCols = (int)((PixelScene.uiCamera.width - chrome.marginHor())
+					/ (float)(slotWidth + SLOT_MARGIN));
+			if (availCols > nCols) {
+				//留一列余量，避免贴边
+				nCols = Math.min(availCols - 1, 10);
+			}
 		}
 
-		// 网格宽度只算格子本身；滚动条覆盖在最右格边缘，窗口不再额外留一条
-		int gridWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
-		int windowWidth = gridWidth + SCROLLBAR_WIDTH;
-		// 可见区固定 5 行（5×5）：这是用户认可的观感——不再按屏幕高度把窗口撑开。
-		// 超出 5 行的格子在网格里上下拖动（ScrollPane）查看。
-		int visibleRows = MAX_VISIBLE_ROWS;
-		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
-		int windowHeight = TITLE_HEIGHT + visibleHeight;
+		nRows = (int)Math.ceil(30/(float)nCols); //we expect to lay out 25 slots in all cases
+
+		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
+		int windowHeight = TITLE_HEIGHT + slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+
+		if (PixelScene.landscape()){
+			while (slotHeight >= 24 && (windowHeight + 20 + chrome.marginTop()) > PixelScene.uiCamera.height){
+				slotHeight--;
+				windowHeight -= nRows;
+			}
+		} else {
+			while (slotWidth >= 26 && (windowWidth + chrome.marginHor()) > PixelScene.uiCamera.width){
+				slotWidth--;
+				windowWidth -= nCols;
+			}
+		}
 
 		placeTitle( bag, windowWidth );
 
 		content = new Component();
 		placeItems( bag );
 
-		// placeItem() 结束时 col/row 已经越过最后一格，实际行数 = row，两者取大值兜底；
-		// 最后一行下面不留 SLOT_MARGIN，否则滚动到底会多出一条空白
-		int actualRows = Math.max(Math.max(nRows, row), MAX_VISIBLE_ROWS);
-		int contentHeight = actualRows * (slotHeight + SLOT_MARGIN) - SLOT_MARGIN;
-		content.setSize(gridWidth, contentHeight);
+		// 可见区域保持 6 行左右，内容按容量增长，超出部分用滚动条查看
+		int visibleHeight = slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+		int contentRows = Math.max(nRows, row);
+		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN));
 		scroll = new ScrollPane(content);
-		scrollWidth = windowWidth - SCROLLBAR_WIDTH;
 		scrollHeight = visibleHeight;
 		add(scroll);
 
@@ -285,7 +272,7 @@ public class WndBag extends WndTabbed {
 		super.update();
 		// 窗口挂进场景后才设置 ScrollPane（它的 layout 需要 camera()）
 		if (!scrollSized && scroll != null && camera() != null) {
-			scroll.setRect(0, TITLE_HEIGHT, scrollWidth, scrollHeight);
+			scroll.setRect(0, TITLE_HEIGHT, width, scrollHeight);
 			scrollSized = true;
 		}
 	}
@@ -321,12 +308,8 @@ public class WndBag extends WndTabbed {
 			}
 		}
 		
-		// 补满整张网格：判据必须是「实际画出来的格子位置」（col/row），不能用 count。
-		// count 在统计时把「包中包」各算了一格（它们只显示成底部标签、不占网格），
-		// 又把「容器自身」减了一次（它其实占了第一格），两边一混就和真实格子数对不上，
-		// 于是最后一行只画一半、滚动条也停不到底。
-		int slots = nCols * nRows;
-		while (row * nCols + col < slots) {
+		// Free Space
+		while ((count - equipped) < container.capacity()) {
 			placeItem( null );
 		}
 	}
@@ -339,11 +322,10 @@ public class WndBag extends WndTabbed {
 		int y = row * (slotHeight + SLOT_MARGIN);
 
 		InventorySlot slot = new InventorySlot( item ){
-
 			{
-				// 格子自己会吃掉 DOWN 事件（Button 默认 BLOCK_WHEN_ACTIVE），
-				// 那样 ScrollPane 的拖动控制器就永远收不到手指，滚动也就失效了。
-				// 设成 NEVER_BLOCK：点击照旧由 hotArea 处理，拖动则继续传给 ScrollPane。
+				// InventorySlot 的 PointerArea 默认 BLOCK_WHEN_ACTIVE，会吞掉 DOWN 事件，
+				// 手指按在格子上时 ScrollPane 收不到按下，整个列表就拖不动。
+				// 这里只解开“阻断”，点击/长按/右键都照旧。
 				hotArea.blockLevel = PointerArea.NEVER_BLOCK;
 			}
 
