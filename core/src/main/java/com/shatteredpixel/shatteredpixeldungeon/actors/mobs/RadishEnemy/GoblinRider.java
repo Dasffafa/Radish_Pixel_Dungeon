@@ -142,6 +142,7 @@ public class GoblinRider extends Goblin {
             launchSpear();
             rangedAttack = false;
         } else {
+            spend(attackDelay());
             next();
         }
     }
@@ -151,6 +152,8 @@ public class GoblinRider extends Goblin {
      */
     private void launchSpear() {
         if (sprite == null || sprite.parent == null || enemy == null) {
+            // 必须先 spend 再 next：只 next 不 spend 会让时间停在同一刻，actor 被无限重排
+            spend(attackDelay());
             next();
             return;
         }
