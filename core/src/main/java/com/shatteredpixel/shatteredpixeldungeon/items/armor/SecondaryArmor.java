@@ -114,6 +114,10 @@ public abstract class SecondaryArmor extends EquipableItem {
 	public String desc() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(Messages.get(this, "base_desc", tier, (int)DRMin(), (int)DRMax(), STRReq()));
+		// 力量不足那段只在真的不满足力量需求时显示
+		if (Dungeon.hero != null && Dungeon.hero.STR() < STRReq()) {
+			sb.append("\n\n").append(Messages.get(this, "strength_penalty"));
+		}
 		sb.append("\n\n");
 		sb.append(Messages.get(this, "effect_desc", effectArgs()));
 		if (level > 0) {
