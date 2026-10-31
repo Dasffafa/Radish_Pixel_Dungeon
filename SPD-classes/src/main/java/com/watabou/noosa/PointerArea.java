@@ -32,6 +32,9 @@ public class PointerArea extends Visual implements Signal.Listener<PointerEvent>
 	protected PointerEvent curEvent = null;
 	protected boolean hovered = false;
 
+	//按下点（屏幕坐标），用于区分「点击」和「拖动」
+	private float downX = 0, downY = 0;
+
 	public int blockLevel = BLOCK_WHEN_ACTIVE;
 	public static final int ALWAYS_BLOCK = 0;       //Always block input to overlapping elements
 	public static final int BLOCK_WHEN_ACTIVE = 1;  //Only block when active (default)
@@ -70,6 +73,10 @@ public class PointerArea extends Visual implements Signal.Listener<PointerEvent>
 				
 				if (curEvent == null) {
 					curEvent = event;
+					//记下按下点：抬起时如果已经移动了一段距离，说明是在拖动（滚动列表/背包），
+					//不当成点击，否则滑动物品格会误触发长按/打开/关闭等操作
+					downX = event.current.x;
+					downY = event.current.y;
 				}
 				onPointerDown( event );
 				
@@ -79,7 +86,12 @@ public class PointerArea extends Visual implements Signal.Listener<PointerEvent>
 				
 				if (curEvent == event) {
 					curEvent = null;
-					onClick( event );
+					//屏幕像素阈値：手指滑动通常远超 16px，正常点击的抖动远小于它
+					boolean dragged = Math.abs( event.current.x - downX ) > 16
+							|| Math.abs( event.current.y - downY ) > 16;
+					if (!dragged) {
+						onClick( event );
+					}
 				}
 				
 			} else if (event.type == PointerEvent.Type.HOVER) {

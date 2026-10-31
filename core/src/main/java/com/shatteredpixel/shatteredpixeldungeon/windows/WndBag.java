@@ -78,6 +78,9 @@ public class WndBag extends WndTabbed {
 	 *  超出的行靠上下拖动查看。以前把窗口高度按全部行数撑开，手机上会变成一个
 	 *  几乎铺满屏幕的大面板。 */
 	protected static final int MAX_VISIBLE_ROWS = 5;
+
+	/** 窗口右侧留给滚动条的宽度：不加这段，滚动条会直接压在最后一列格子上 */
+	protected static final int SCROLLBAR_WIDTH = 5;
 	
 	private ItemSelector selector;
 
@@ -86,6 +89,8 @@ public class WndBag extends WndTabbed {
 
 	private int slotWidth;
 	private int slotHeight;
+
+	private int scrollWidth;
 
 	protected int count;
 	protected int col;
@@ -116,74 +121,54 @@ public class WndBag extends WndTabbed {
 		
 		lastBag = bag;
 
-		slotWidth = PixelScene.landscape() ? SLOT_WIDTH_L : SLOT_WIDTH_P;
-		slotHeight = PixelScene.landscape() ? SLOT_HEIGHT_L : SLOT_HEIGHT_P;
+		// 列数固定 5、可见行数固定 5（原版破碎地牢的背包观感），
+		// 多出来的格子在网格里上下拖动查看，不再随屏幕宽度加减列。
+		slotWidth = SLOT_WIDTH_P;
+		slotHeight = SLOT_HEIGHT_P;
+		nCols = COLS_P;
 
-		nCols = PixelScene.landscape() ? COLS_L : COLS_P;
-
-		// 电脑大屏时按可用宽度加列，避免背包窗口窄窄一条。
-		// 注意：不要用 interfaceSize() 做开关——桌面端该值可能为 0，会导致永远不加列。
-		{
-			int availCols = (int)((PixelScene.uiCamera.width - chrome.marginHor())
-					/ (float)(slotWidth + SLOT_MARGIN));
-			if (availCols > nCols) {
-				//留一列余量，避免贴边；手机上宽度小，自然还是 5 列
-				nCols = Math.min(availCols - 1, 10);
-			}
+		// 屏幕实在放不下 5×5 就整体缩小格子，而不是少显示一列/一行
+		while (slotWidth > 18 && slotWidth * nCols + SLOT_MARGIN * (nCols - 1) + SCROLLBAR_WIDTH + 2
+				+ chrome.marginHor() > PixelScene.uiCamera.width) {
+			slotWidth--;
+		}
+		while (slotHeight > 18 && TITLE_HEIGHT + slotHeight * MAX_VISIBLE_ROWS + SLOT_MARGIN * (MAX_VISIBLE_ROWS - 1) + 6
+				+ chrome.marginTop() > PixelScene.uiCamera.height) {
+			slotHeight--;
 		}
 
-		// 行数必须按「实际要塞的格子数」算，不能用写死的常量：
-		// placeItems() 先放 5 格装备栏（可能再多 1 格副手），再补到 bag.capacity() 个空格。
-		// 原先写 ceil(30/nCols)，而 Bag.capacity() 是 35 ⇒ 实际要 40+ 格，
-		// 5 列时算出 6 行却要放 8 行 ⇒ 大屏上一眼少一行；加宽列数时更明显。
+		// 行数必须按「实际要塞的格子数」算：placeItems() 先放 5 格装备栏（有副手再多 1 格），
+		// 非根容器还会把自己也算进去，最后补空位到 bag.capacity()。
 		int capacity = (bag != null) ? bag.capacity() : 25;
-		// 装备栏固定 5 格，装备了副手武器时再多 1 格（写清括号，别靠 && 优先级）
 		int equippedMin = 5;
 		if (Dungeon.hero != null && Dungeon.hero.belongings.secondWep != null) equippedMin = 6;
-		int neededSlots = equippedMin + capacity;
-		// 非根容器会把自己也占一格，再留 1 格余量
 		boolean isBackpack = (bag == null) || (Dungeon.hero != null && bag == Dungeon.hero.belongings.backpack);
-		if (!isBackpack) neededSlots++;
-		int minRows = (int)Math.ceil(25/(float)nCols);	//保底：原版 25 格布局的行数
-		nRows = Math.max(minRows, (int)Math.ceil(neededSlots/(float)nCols));
+		int neededSlots = equippedMin + capacity + (isBackpack ? 0 : 1);
+		nRows = Math.max(1, (int)Math.ceil(neededSlots/(float)nCols));
 
-		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
-		//窗口高度只按「可见行数」算，不再按全部行数撑开（多出来的行用 ScrollPane 拖动查看）
-		int windowRows = Math.min(nRows, MAX_VISIBLE_ROWS);
-		int windowHeight = TITLE_HEIGHT + slotHeight * windowRows + SLOT_MARGIN * (windowRows - 1);
-
-		if (PixelScene.landscape()){
-			while (slotHeight >= 24 && (windowHeight + 20 + chrome.marginTop()) > PixelScene.uiCamera.height){
-				slotHeight--;
-				windowHeight -= nRows;
-			}
-		} else {
-			while (slotWidth >= 26 && (windowWidth + chrome.marginHor()) > PixelScene.uiCamera.width){
-				slotWidth--;
-				windowWidth -= nCols;
-			}
-		}
+		// 网格宽度只算格子本身，窗口额外留一条滚动条的位置，避免滚动条压在最后一列上
+		int gridWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
+		int windowWidth = gridWidth + SCROLLBAR_WIDTH;
+		int visibleRows = Math.min(nRows, MAX_VISIBLE_ROWS);
+		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
+		int windowHeight = TITLE_HEIGHT + visibleHeight;
 
 		placeTitle( bag, windowWidth );
 
 		content = new Component();
 		placeItems( bag );
 
-		// 可见高度必须覆盖「真正会画出来的行数」，否则 ScrollPane 会把最后一行裁掉，
-		// 表现就是窗口右边/下面缺出一块。placeItem() 结束时 row 已经多加过一次，
-		// 实际占用行数 = row（不是 row+1），这里两者取大值兜底。
+		// placeItem() 结束时 col/row 已经越过最后一格，实际行数 = row，两者取大值兜底；
+		// 最后一行下面不留 SLOT_MARGIN，否则滚动到底会多出一条空白
 		int actualRows = Math.max(nRows, row);
-		//可见高度 = min(实际行数, MAX_VISIBLE_ROWS)，剩余行靠拖动查看；
-		//内容高度仍按全部行数给足，否则 ScrollPane 会裁掉最后一行
-		int visibleRows = Math.min(actualRows, MAX_VISIBLE_ROWS);
-		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
-		content.setSize(windowWidth, actualRows * (slotHeight + SLOT_MARGIN));
+		int contentHeight = actualRows * (slotHeight + SLOT_MARGIN) - SLOT_MARGIN;
+		content.setSize(gridWidth, contentHeight);
 		scroll = new ScrollPane(content);
+		scrollWidth = windowWidth - SCROLLBAR_WIDTH;
 		scrollHeight = visibleHeight;
 		add(scroll);
 
-		// 窗口高度也要按实际可见行数算
-		resize( windowWidth, TITLE_HEIGHT + visibleHeight );
+		resize( windowWidth, windowHeight );
 
 		int i = 1;
 		for (Bag b : Dungeon.hero.belongings.getBags()) {
@@ -297,7 +282,7 @@ public class WndBag extends WndTabbed {
 		super.update();
 		// 窗口挂进场景后才设置 ScrollPane（它的 layout 需要 camera()）
 		if (!scrollSized && scroll != null && camera() != null) {
-			scroll.setRect(0, TITLE_HEIGHT, width, scrollHeight);
+			scroll.setRect(0, TITLE_HEIGHT, scrollWidth, scrollHeight);
 			scrollSized = true;
 		}
 	}
