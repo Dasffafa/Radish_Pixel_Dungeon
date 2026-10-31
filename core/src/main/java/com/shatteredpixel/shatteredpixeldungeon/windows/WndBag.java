@@ -128,7 +128,9 @@ public class WndBag extends WndTabbed {
 			}
 		}
 
-		nRows = (int)Math.ceil(30/(float)nCols); //we expect to lay out 25 slots in all cases
+		// 行数按「装备 6 格 + 背包 30 格」算：6 列时正好 6 行铺满，
+		// 内容与视口等高，右侧那根滚动条就不会一直挂着
+		nRows = (int)Math.ceil((6 + 30)/(float)nCols);
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
 		int windowHeight = TITLE_HEIGHT + slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
