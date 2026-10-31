@@ -125,11 +125,6 @@ public abstract class SecondaryArmor extends EquipableItem {
 		if (level > 0) {
 			sb.append("\n\n").append(Messages.get(this, "level_desc", level));
 		}
-		if (level <= 0) {
-			sb.append("
-
-").append(Messages.get(this, "level_desc_zero"));
-		}
 		return sb.toString();
 	}
 
