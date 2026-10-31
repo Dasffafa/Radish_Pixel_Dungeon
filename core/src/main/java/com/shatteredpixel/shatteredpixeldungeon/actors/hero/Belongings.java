@@ -84,6 +84,8 @@ public class Belongings implements Iterable<Item> {
 
 	public KindOfWeapon weapon = null;
 	public Armor armor = null;
+	/** 次要护甲：与主要护甲并列的附加装备槽 */
+	public com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor secondaryArmor = null;
 	public Artifact artifact = null;
 	public KindofMisc misc = null;
 	public Ring ring = null;
@@ -138,6 +140,14 @@ public class Belongings implements Iterable<Item> {
 		}
 	}
 
+	public com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor secondaryArmor(){
+		if (!lostInventory() || (secondaryArmor != null && secondaryArmor.keptThroughLostInventory())){
+			return secondaryArmor;
+		} else {
+			return null;
+		}
+	}
+
 	public Artifact artifact(){
 		if (!lostInventory() || (artifact != null && artifact.keptThroughLostInventory())){
 			return artifact;
@@ -179,6 +189,7 @@ public class Belongings implements Iterable<Item> {
 	private static final String RING       = "ring";
 
 	private static final String SECOND_WEP = "second_wep";
+	private static final String SECONDARY_ARMOR = "secondary_armor";
 
 	public void storeInBundle( Bundle bundle ) {
 		
@@ -190,6 +201,7 @@ public class Belongings implements Iterable<Item> {
 		bundle.put( MISC, misc );
 		bundle.put( RING, ring );
 		bundle.put( SECOND_WEP, secondWep );
+		bundle.put( SECONDARY_ARMOR, secondaryArmor );
 	}
 	
 	public void restoreFromBundle( Bundle bundle ) {
@@ -213,6 +225,10 @@ public class Belongings implements Iterable<Item> {
 		if (ring() != null)         ring().activate( owner );
 
 		secondWep = (KindOfWeapon) bundle.get(SECOND_WEP);
+
+		if (bundle.contains(SECONDARY_ARMOR)) {
+			secondaryArmor = (com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor) bundle.get(SECONDARY_ARMOR);
+		}
 		if (secondWep() != null)    secondWep().activate(owner);
 	}
 

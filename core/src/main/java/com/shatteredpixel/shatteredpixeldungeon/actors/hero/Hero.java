@@ -948,6 +948,16 @@ public class Hero extends Char {
             }
             if (armDr > 0) dr += armDr;
 
+            // 次要护甲：力量够就按它的格挡值减伤；力量不够则效果失效并承受相当于主要护甲一半的超力惩罚
+            com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
+            if (sa != null) {
+                if (STR() >= sa.STRReq()) {
+                    dr += Char.combatRoll(sa.DRMin(), sa.DRMax());
+                } else {
+                    dr -= Math.max(1, (sa.STRReq() - STR()) / 2);
+                }
+            }
+
             // 共鸣刻印：同时装备共鸣附魔武器与共鸣刻印护甲时，护甲格挡提升50%
             if (com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Resonance.isResonanceActive(this)) {
                 dr += Math.round(armDr * 0.5f);
