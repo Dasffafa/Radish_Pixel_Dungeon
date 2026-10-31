@@ -321,11 +321,12 @@ public class WndBag extends WndTabbed {
 			}
 		}
 		
-		// 空格补满整行：容器容量小的时候也照样是完整 6 行；
-		// 容量不是 5 的整数倍时（比如 36 格的丝绒袋），最后一行右侧也要补齐，
-		// 否则滚到最末会露出一块没有格子的空白区。
-		int minSlots = Math.max(container.capacity(), nCols * nRows - equipped);
-		while ((count - equipped) < minSlots) {
+		// 补满整张网格：判据必须是「实际画出来的格子位置」（col/row），不能用 count。
+		// count 在统计时把「包中包」各算了一格（它们只显示成底部标签、不占网格），
+		// 又把「容器自身」减了一次（它其实占了第一格），两边一混就和真实格子数对不上，
+		// 于是最后一行只画一半、滚动条也停不到底。
+		int slots = nCols * nRows;
+		while (row * nCols + col < slots) {
 			placeItem( null );
 		}
 	}

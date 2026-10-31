@@ -114,7 +114,9 @@ public class ScrollPane extends Component {
 		if (c.scroll.y < 0) {
 			c.scroll.y = 0;
 		}
-		thumb.y = this.y + height * c.scroll.y / content.height();
+		// thumb 是 ScrollPane 的子节点，坐标相对自身 —— 这里若再加 this.y，
+		// 滚动条整体会往下偏一段，滚到底也贴不到底边。
+		thumb.y = height * c.scroll.y / content.height();
 	}
 
 	@Override
@@ -179,8 +181,8 @@ public class ScrollPane extends Component {
 		thumb.visible = height < content.height();
 		if (thumb.visible) {
 			thumb.scale.set( 2, height * height / content.height() );
-			thumb.x = right() - thumb.width();
-			thumb.y = y + height * content.camera.scroll.y / content.height();
+			thumb.x = width - thumb.width();
+			thumb.y = height * content.camera.scroll.y / content.height();
 			if (thumbTimer <= 0) thumb.am = 0;
 		}
 	}
@@ -265,7 +267,7 @@ public class ScrollPane extends Component {
 				c.scroll.y = 0;
 			}
 			
-			thumb.y = y + height * c.scroll.y / content.height();
+			thumb.y = height * c.scroll.y / content.height();
 			
 			lastPos.set( current );
 			
