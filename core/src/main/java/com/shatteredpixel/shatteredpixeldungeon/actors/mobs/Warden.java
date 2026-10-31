@@ -49,10 +49,14 @@ public class Warden extends Mob {
 	private static final String SPEED_BONUS  = "speed_bonus";
 	private static final String ACTIVATING   = "activating_cell";
 	private static final String ACTIVATING_TURNS = "activating_turns";
+	private static final String AWAKE        = "awake";
 
 	private boolean enraged      = false;
 	private int     nextSpawnHp  = 30;   // 下一次补生成原型机的生命阈值
 	private int     speedBonus   = 0;    // 失去 60 生命后 +1
+
+	//玩家进入视野前，典狱长保持静止（不激活原型机、不移动）
+	private boolean awake = false;
 
 	//当前正在激活的原型机
 	private WardenPrototype activating = null;
@@ -107,6 +111,17 @@ public class Warden extends Mob {
 
 		if (!BossHealthBar.isAssigned( this ) && Dungeon.level.heroFOV[pos]) {
 			notice();
+		}
+
+		// 玩家还没进门看到它：保持静止，既不移动也不激活原型机
+		if (!awake) {
+			if (Dungeon.level.heroFOV[pos]) {
+				awake = true;
+				notice();
+			} else {
+				spend( TICK );
+				return true;
+			}
 		}
 
 		//正在激活某台原型机：每回合推进一次，期间不动
@@ -252,6 +267,7 @@ public class Warden extends Mob {
 		bundle.put( ENRAGED, enraged );
 		bundle.put( NEXT_SPAWN, nextSpawnHp );
 		bundle.put( SPEED_BONUS, speedBonus );
+		bundle.put( AWAKE, awake );
 		if (activating != null && activating.isAlive()) {
 			bundle.put( ACTIVATING, activating.pos );
 			bundle.put( ACTIVATING_TURNS, activatingTurnsLeft );
@@ -265,6 +281,7 @@ public class Warden extends Mob {
 		//老档没有这个键时不能读成 0，否则下一次受伤会把历史阈值一次性全部补生成
 		nextSpawnHp = bundle.contains( NEXT_SPAWN ) ? bundle.getInt( NEXT_SPAWN ) : 30;
 		speedBonus = bundle.getInt( SPEED_BONUS );
+		awake = bundle.getBoolean( AWAKE );
 		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.link()
 		activating = null;
 		activatingTurnsLeft = 0;

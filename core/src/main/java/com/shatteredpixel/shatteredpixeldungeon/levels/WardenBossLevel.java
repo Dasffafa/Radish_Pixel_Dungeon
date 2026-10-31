@@ -42,16 +42,18 @@ public class WardenBossLevel extends Level {
 		color2 = 0x6a6a75;
 	}
 
-	//竖放的长条牢房：入口小房间在最上端，走一段走廊才进入中下方的战斗区
+	//竖放的长条牢房：入口小房间在最下端，推开门向上进入上方的战斗区
 	private static final int WIDTH  = 12;
 	private static final int HEIGHT = 26;
 
-	//入口初始房间（上方），Rect 的 right/bottom 是开区间
-	private static final Rect entranceRoom = new Rect( 3, 1, 9, 4 );
-	//连接初始房间与战斗区的走廊（2 格宽）
-	private static final Rect corridor = new Rect( 5, 4, 7, 6 );
-	//战斗区（中下方大长方形）
-	private static final Rect arena = new Rect( 1, 6, 11, 25 );
+	//入口初始房间（最下方），Rect 的 right/bottom 是开区间
+	private static final Rect entranceRoom = new Rect( 3, 21, 9, 25 );
+	//连接初始房间与战斗区的走廊（2 格宽，向上）
+	private static final Rect corridor = new Rect( 5, 18, 7, 21 );
+	//走廊顶端通往战斗区的门（向上开）
+	private static final Point doorCell = new Point( 6, 18 );
+	//战斗区（上方大长方形）
+	private static final Rect arena = new Rect( 1, 1, 11, 18 );
 
 	private static final String BOSS_DEAD = "boss_dead";
 
@@ -85,12 +87,15 @@ public class WardenBossLevel extends Level {
 
 		Painter.fill( this, 0, 0, WIDTH, HEIGHT, Terrain.WALL );
 
-		//上方初始房间：玩家从上一层下来先落在这里，看不到也打不到 Boss
+		//下方初始房间：玩家从上一层下来先落在这里，看不到也打不到 Boss
 		Painter.fill( this, entranceRoom, 1, Terrain.EMPTY );
-		//走廊：从初始房间往下通到战斗区
+		//走廊：从初始房间向上通到战斗区
 		Painter.fill( this, corridor, 1, Terrain.EMPTY );
 		//战斗区
 		Painter.fill( this, arena, 1, Terrain.EMPTY );
+
+		//走廊顶端通往战斗区的门（玩家开门向上进入 Boss 战）
+		Level.set( pointToCell( doorCell ), Terrain.DOOR, this );
 
 		//点亮一些装饰，让长条牢房不那么空
 		for (int i = 0; i < 6; i++) {
@@ -109,8 +114,8 @@ public class WardenBossLevel extends Level {
 		Level.set( entrance, Terrain.ENTRANCE, this );
 		transitions.add( new LevelTransition( this, entrance, LevelTransition.Type.REGULAR_ENTRANCE ) );
 
-		//出口在战斗区最下端，击败典狱长前锁住
-		exitCell = pointToCell( new Point( WIDTH / 2, arena.bottom - 2 ) );
+		//出口在战斗区最上端（打完典狱长后从这里下去），击败典狱长前锁住
+		exitCell = pointToCell( new Point( WIDTH / 2, arena.top + 1 ) );
 		Level.set( exitCell, Terrain.LOCKED_EXIT, this );
 		transitions.add( new LevelTransition( this, exitCell, LevelTransition.Type.REGULAR_EXIT ) );
 

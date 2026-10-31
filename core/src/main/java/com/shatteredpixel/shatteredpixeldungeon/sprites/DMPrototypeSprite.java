@@ -61,20 +61,20 @@ public class DMPrototypeSprite extends MobSprite {
 	public void activate() {
 
 		if (model == 175) {
-			texture( Assets.Sprites.DM200 );
-			TextureFilm frames = new TextureFilm( texture, 21, 18 );
+			texture( Assets.Sprites.DM175 );
+			TextureFilm frames = new TextureFilm( texture, 18, 15 );
 
-			idle = new Animation( 10, true );
-			idle.frames( frames, 0, 1 );
+			idle = new Animation( 7, true );
+			idle.frames( frames, 0, 1, 2, 3 );
 
-			run = new Animation( 10, true );
-			run.frames( frames, 2, 3 );
+			run = new Animation( 9, true );
+			run.frames( frames, 4, 5, 6, 7 );
 
-			attack = new Animation( 15, false );
-			attack.frames( frames, 4, 5, 6 );
+			attack = new Animation( 11, false );
+			attack.frames( frames, 8, 9, 10, 11 );
 
-			die = new Animation( 8, false );
-			die.frames( frames, 9, 10, 11 );
+			die = new Animation( 9, false );
+			die.frames( frames, 12, 13, 14, 15, 16, 17, 18, 19 );
 
 		} else {
 			texture( Assets.Sprites.DM100 );
