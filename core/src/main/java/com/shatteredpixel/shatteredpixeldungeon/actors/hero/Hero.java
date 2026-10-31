@@ -381,6 +381,10 @@ public class Hero extends Char {
 
 	// 催化手环积累的炼金能量（暂时只做累积与提示）
 	public float alchemyEnergy = 0f;
+
+	// 仙女座：上一次视野内的敌人数与预警冷却
+	private int andromedaSeenFoes = 0;
+	private int andromedaCd = 0;
 	private int resistHealth = 0;
 	private int originalHT = 20;
 
@@ -1338,6 +1342,21 @@ public class Hero extends Char {
 				GLog.p(Messages.get(smallWoodenCross, "bless"));
 			}
 		}
+
+		// 仙女座：视野内敌人从少于 3 个变成 3 个或以上时，预警一次
+		if (belongings.secondaryArmor() instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda
+				&& STR() >= belongings.secondaryArmor().STRReq()) {
+			int androFoes = 0;
+			for (Mob am : Dungeon.level.mobs.toArray(new Mob[0])) {
+				if (am.alignment == Alignment.ENEMY && Dungeon.level.heroFOV[am.pos]) androFoes++;
+			}
+			if (androFoes >= 3 && andromedaSeenFoes < 3 && andromedaCd <= 0) {
+				GLog.w( Messages.get( com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda.class, "warning" ) );
+				andromedaCd = 30;
+			}
+			andromedaSeenFoes = androFoes;
+		}
+		if (andromedaCd > 0) andromedaCd--;
 
 		int mobcount = 0;
 		if (hero.hasTalent(Talent.HIDE_IN_CROWD)){
