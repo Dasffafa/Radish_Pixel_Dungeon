@@ -24,6 +24,14 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.WardenBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CavesBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.HallsBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
@@ -39,6 +47,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.StyledButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndTextNumberInput;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.noosa.tweeners.AlphaTweener;
@@ -76,6 +85,8 @@ public class LevelTeleporter extends TestItem {
 
     private static final String AC_RESET = "reset";
 
+    private static final String AC_LEVEL_TP = "level_teleport";
+
     @Override
     public ArrayList<String> actions(Hero hero ) {
         ArrayList<String> actions = super.actions( hero );
@@ -84,6 +95,7 @@ public class LevelTeleporter extends TestItem {
 
         actions.add(AC_VIEW);
         actions.add(AC_TP);
+        actions.add(AC_LEVEL_TP);
         actions.add(AC_RESET );
 
         actions.add(AC_BRANCH_ASCEND);
@@ -202,6 +214,9 @@ public class LevelTeleporter extends TestItem {
             som.doRead();
         } else if(action.equals(AC_TP)){
             empoweredRead();
+        } else if (action.equals(AC_LEVEL_TP)) {
+            // 打开「楼层传送」面板：网格选层 / 手动输入层数 / Boss 直达
+            Game.runOnRenderThread(() -> GameScene.show(new WndSelectLevel()));
         }else if (action.equals(AC_RESET)) {
             switch (depth){
                 case 2:
@@ -252,15 +267,61 @@ public class LevelTeleporter extends TestItem {
         }
     }
 
+    /** 「跳层」的公共逻辑：网格选层 / 手动输入层数 / Boss 直达共用 */
+    private static void jumpTo(int targetDepth, String branch, Class<? extends Level> forcedLevel) {
+        TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
+        if (timeFreeze != null) timeFreeze.disarmPresses();
+        Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
+        if (timeBubble != null) timeBubble.disarmPresses();
+
+        if (forcedLevel != null) {
+            // 同一层可能有多个 Boss 变体（第10层：天狗 / 典狱长）。
+            // 先让这一层变成「未生成」，再由 Dungeon.newLevel() 按指定关卡类重建。
+            Dungeon.generatedLevels.remove(Dungeon.levelKey(branch, targetDepth));
+            Dungeon.forcedLevelClass = forcedLevel;
+        }
+
+        InterlevelScene.mode = InterlevelScene.Mode.RETURN;
+        InterlevelScene.returnDepth = targetDepth;
+        InterlevelScene.returnPos = -1;
+        InterlevelScene.returnBranchId = branch;
+        Game.switchScene(InterlevelScene.class);
+    }
+
+    /** 「Boss 直达」的一个条目：目标层数 + 关卡类 + 名字文本键 */
+    private static class BossEntry {
+        final int depth;
+        final Class<? extends Level> levelClass;
+        final String nameKey;
+
+        BossEntry(int depth, Class<? extends Level> levelClass, String nameKey) {
+            this.depth = depth;
+            this.levelClass = levelClass;
+            this.nameKey = nameKey;
+        }
+    }
+
+    private static final BossEntry[] BOSSES = {
+            new BossEntry(5,  SewerBossLevel.class,     "boss_sewer"),
+            new BossEntry(10, PrisonBossLevel.class,    "boss_tengu"),
+            new BossEntry(10, WardenBossLevel.class,    "boss_warden"),
+            new BossEntry(15, CavesBossLevel.class,     "boss_dm300"),
+            new BossEntry(15, GnollKingBossLevel.class, "boss_gnollking"),
+            new BossEntry(20, CityBossLevel.class,      "boss_dwarfking"),
+            new BossEntry(25, HallsBossLevel.class,     "boss_yog"),
+    };
+
     public static class WndSelectLevel extends Window{
-        private static final int WIDTH = 120;
+        private static final int WIDTH = 140;
         private static final int GAP = 2;
         private static final int BTN_SIZE = 16;
         private static final int PANE_MAX_HEIGHT = 96;
 
-        private int selectedLevel = 0;
+        private int selectedLevel = 1;
         private ArrayList<DepthButton> btns = new ArrayList<>();
         private StyledButton icb;
+        private StyledButton inputBtn;
+        private StyledButton bossBtn;
 
         public WndSelectLevel(){
             super();
@@ -270,6 +331,19 @@ public class LevelTeleporter extends TestItem {
             add(ttl);
             ttl.setPos(WIDTH/2f-ttl.width()/2f, GAP);
             PixelScene.align(ttl);
+
+            // 手动输入层数
+            inputBtn = new StyledButton(Chrome.Type.RED_BUTTON, M.L(LevelTeleporter.class, "interlevel_teleport_input")){
+                @Override
+                protected void onClick() {
+                    super.onClick();
+                    showNumberInput();
+                }
+            };
+            inputBtn.icon(Icons.get(Icons.DEPTH));
+            add(inputBtn);
+            inputBtn.setRect(0, ttl.bottom() + GAP * 2, WIDTH, BTN_SIZE);
+
             ScrollPane sp = new ScrollPane(new Component()){
                 @Override
                 public void onClick(float x, float y) {
@@ -289,7 +363,7 @@ public class LevelTeleporter extends TestItem {
             for(int i=0; i< Constants.MAX_DEPTH; ++i){
                 int column = i % 5;
                 int row = i / 5;
-                final int j = i;
+                final int j = i + 1; // 楼层从1开始，不再出现「0层」
                 DepthButton db = new DepthButton(j){
                     @Override
                     protected void onClick() {
@@ -305,40 +379,118 @@ public class LevelTeleporter extends TestItem {
             }
 
             content.setSize(WIDTH, btns.get(btns.size() - 1).bottom());
-            sp.setRect(0, ttl.bottom() + GAP * 2, WIDTH, Math.min(btns.get(btns.size()-1).bottom(), PANE_MAX_HEIGHT));
+            sp.setRect(0, inputBtn.bottom() + GAP * 2, WIDTH, Math.min(btns.get(btns.size()-1).bottom(), PANE_MAX_HEIGHT));
 
             icb = new StyledButton(Chrome.Type.RED_BUTTON, M.L(LevelTeleporter.class, "interlevel_teleport_go", selectedLevel)){
                 @Override
                 protected void onClick() {
                     super.onClick();
-                    TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
-                    if (timeFreeze != null) timeFreeze.disarmPresses();
-                    Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
-                    if (timeBubble != null) timeBubble.disarmPresses();
-                    InterlevelScene.curTransition = Dungeon.level.getTransition(Dungeon.hero.pos);
-                    InterlevelScene.mode = InterlevelScene.Mode.RETURN;
-                    InterlevelScene.returnDepth = selectedLevel;
-                    InterlevelScene.returnPos = -1;
-                    InterlevelScene.returnBranchId = Dungeon.branchId;
-                    Game.switchScene( InterlevelScene.class );
+                    jumpTo(selectedLevel, Dungeon.branchId, null);
                 }
             };
             add(icb);
             icb.icon(Icons.get(Icons.DEPTH));
             icb.setRect(0, sp.bottom() + GAP * 2, WIDTH, BTN_SIZE);
-            setSelectedLevel(0);
+
+            // Boss 直达
+            bossBtn = new StyledButton(Chrome.Type.GEM, M.L(LevelTeleporter.class, "interlevel_teleport_boss")){
+                @Override
+                protected void onClick() {
+                    super.onClick();
+                    GameScene.show(new WndSelectBoss());
+                }
+            };
+            add(bossBtn);
+            bossBtn.setRect(0, icb.bottom() + GAP * 2, WIDTH, BTN_SIZE);
+
+            setSelectedLevel(Math.max(1, Math.min(Constants.MAX_DEPTH, depth)));
 
             sp.scrollTo(0, 0);
 
-            resize(WIDTH, (int) (icb.bottom()));
+            resize(WIDTH, (int) (bossBtn.bottom()));
 
-            sp.setPos(0, ttl.bottom() + GAP * 2);
+            sp.setPos(0, inputBtn.bottom() + GAP * 2);
+        }
+
+        /** 手动输入层数：确认后直接跳到该层（当前分支） */
+        private void showNumberInput() {
+            GameScene.show(new WndTextNumberInput(
+                    M.L(LevelTeleporter.class, "interlevel_teleport_input_title"),
+                    M.L(LevelTeleporter.class, "interlevel_teleport_input_body", 1, Constants.MAX_DEPTH),
+                    String.valueOf(selectedLevel),
+                    2,
+                    false,
+                    M.L(LevelTeleporter.class, "interlevel_teleport_confirm"),
+                    M.L(LevelTeleporter.class, "interlevel_teleport_cancel"),
+                    false){
+                @Override
+                public void onSelect(boolean positive, String text) {
+                    if (!positive || text == null) return;
+                    int target;
+                    try {
+                        target = Integer.parseInt(text.trim());
+                    } catch (NumberFormatException e) {
+                        GLog.w(M.L(LevelTeleporter.class, "interlevel_teleport_invalid", Constants.MAX_DEPTH));
+                        return;
+                    }
+                    if (target < 1 || target > Constants.MAX_DEPTH) {
+                        GLog.w(M.L(LevelTeleporter.class, "interlevel_teleport_invalid", Constants.MAX_DEPTH));
+                        return;
+                    }
+                    jumpTo(target, Dungeon.branchId, null);
+                }
+            });
         }
 
         private void setSelectedLevel(int lvl){
             this.selectedLevel = lvl;
             icb.text(M.L(LevelTeleporter.class, "interlevel_teleport_go", selectedLevel));
             icb.enable(selectedLevel <= Constants.MAX_DEPTH);
+        }
+    }
+
+    /** Boss 直达：每个 Boss 一个按钮，点击后按「对应层 + 指定关卡类」重新生成该层 */
+    public static class WndSelectBoss extends Window {
+        private static final int WIDTH = 140;
+        private static final int GAP = 2;
+        private static final int BTN_HEIGHT = 16;
+        private static final int PANE_MAX_HEIGHT = 160;
+
+        public WndSelectBoss() {
+            super();
+            resize(WIDTH, 0);
+
+            RenderedTextBlock ttl = PixelScene.renderTextBlock(8);
+            ttl.text(M.L(LevelTeleporter.class, "interlevel_teleport_boss_title"));
+            add(ttl);
+            ttl.setPos(WIDTH/2f-ttl.width()/2f, GAP);
+            PixelScene.align(ttl);
+
+            ScrollPane sp = new ScrollPane(new Component());
+            add(sp);
+            Component content = sp.content();
+
+            float ypos = 0;
+            for (final BossEntry be : BOSSES) {
+                StyledButton btn = new StyledButton(Chrome.Type.RED_BUTTON,
+                        M.L(LevelTeleporter.class, "interlevel_teleport_boss_entry",
+                                be.depth, M.L(LevelTeleporter.class, be.nameKey))) {
+                    @Override
+                    protected void onClick() {
+                        super.onClick();
+                        jumpTo(be.depth, Branches.MAIN, be.levelClass);
+                    }
+                };
+                btn.setRect(0, ypos, WIDTH, BTN_HEIGHT);
+                PixelScene.align(btn);
+                content.add(btn);
+                ypos += BTN_HEIGHT + GAP * 2;
+            }
+
+            content.setSize(WIDTH, ypos);
+            sp.setRect(0, ttl.bottom() + GAP * 2, WIDTH, Math.min(ypos, PANE_MAX_HEIGHT));
+            sp.scrollTo(0, 0);
+            resize(WIDTH, (int) (sp.bottom()));
         }
     }
 

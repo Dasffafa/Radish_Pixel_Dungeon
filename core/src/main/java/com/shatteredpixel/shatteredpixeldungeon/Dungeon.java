@@ -81,6 +81,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.FileUtils;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 import com.watabou.utils.SparseArray;
 
 import java.io.IOException;
@@ -222,6 +223,10 @@ public class Dungeon {
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static HashSet<String> generatedLevels = new HashSet<>();
 	public static boolean levelJustGenerated;
+
+	// 测试工具（升降器）用：让下一次 newLevel() 直接使用指定的关卡类，
+	// 用于在同一层里指定要打哪个 Boss 变体（如第10层的典狱长 / 天狗）。用后自动清空。
+	public static Class<? extends Level> forcedLevelClass = null;
 
 	public static int gold;
 	public static int energy;
@@ -391,6 +396,13 @@ public class Dungeon {
 			Random.pushGenerator( Dungeon.seedCurDepth()+1 );
 			level = GenerateCaveBossLevel();
 			Random.popGenerator();
+		}
+
+		// 测试工具（升降器）可强制指定本层的关卡类，用于在同一层里选择要打哪个 Boss 变体。
+		// 只影响「这一次生成」，用完立刻清空，不影响正常流程。
+		if (forcedLevelClass != null) {
+			level = Reflection.newInstance(forcedLevelClass);
+			forcedLevelClass = null;
 		}
 
 		//dead end levels get cleared, don't count as generated
