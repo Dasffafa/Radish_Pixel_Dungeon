@@ -378,6 +378,9 @@ public class Hero extends Char {
 
 	public int lvl = 1;
 	public int exp = 0;
+
+	// 催化手环积累的炼金能量（暂时只做累积与提示）
+	public float alchemyEnergy = 0f;
 	private int resistHealth = 0;
 	private int originalHT = 20;
 
@@ -587,6 +590,7 @@ public class Hero extends Char {
 
 			bundle.put( LEVEL, lvl );
 			bundle.put( EXPERIENCE, exp );
+			bundle.put( "alchemy_energy", alchemyEnergy );
 
 			bundle.put( HTBOOST, HTBoost );
 
@@ -602,6 +606,7 @@ public class Hero extends Char {
 
 		lvl = bundle.getInt( LEVEL );
 		exp = bundle.getInt( EXPERIENCE );
+		alchemyEnergy = bundle.getFloat( "alchemy_energy" );
 
 		HTBoost = bundle.getInt(HTBOOST);
 

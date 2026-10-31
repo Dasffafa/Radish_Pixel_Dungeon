@@ -248,6 +248,7 @@ public abstract class Scroll extends Item {
 				curUser = hero;
 				ShadowBooks(hero);
 				doRead();
+				com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( hero );
 			}
 
 		}
