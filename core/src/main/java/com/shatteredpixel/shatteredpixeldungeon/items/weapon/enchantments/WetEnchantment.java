@@ -28,8 +28,8 @@ public class WetEnchantment extends Enchantment {
             int magicDmg = Random.IntRange(0, lvl);
             defender.damage(new DamageInfo(magicDmg, DamageType.MAGICAL, attacker, weapon, new WetMagicDamage()));
 
-            // 25%概率虚弱
-            if (Random.Float() < 0.25f) {
+            // 25%概率虚弱（受奥术加成）
+            if (Random.Float() < Math.min(1f, 0.25f * procChanceMultiplier(attacker))) {
                 Buff.prolong(defender, Weakness.class, Weakness.DURATION);
             }
         }

@@ -8,6 +8,13 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.utils.Random;
 
 public class Combos extends Weapon.Enchantment {
+
+    //连击是近身连打，灵能弓/投掷武器刷不到它
+    @Override
+    public boolean canEnchant( Weapon weapon ){
+        return !isRangedWeapon( weapon );
+    }
+
     private static ItemSprite.Glowing COMBOS = new ItemSprite.Glowing( 0xD8BFD8 );
     @Override
     public int proc(Weapon weapon, Char attacker, Char defender, int damage) {

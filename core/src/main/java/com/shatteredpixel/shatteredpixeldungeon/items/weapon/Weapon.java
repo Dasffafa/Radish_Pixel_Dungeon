@@ -517,6 +517,13 @@ abstract public class Weapon extends KindOfWeapon {
 	}
 	
 	public Weapon enchant( Enchantment ench ) {
+		//兜底：不合该武器的附魔（比如灵能弓上的近战专属附魔）在这里换掉
+		if (ench != null && !ench.canEnchant(this)){
+			Enchantment alt = Enchantment.random( this, ench.getClass() );
+			if (alt != null){
+				ench = alt;
+			}
+		}
 		if (ench == null || !ench.curse()) curseInfusionBonus = false;
 		enchantment = ench;
 		updateQuickslot();
@@ -530,7 +537,7 @@ abstract public class Weapon extends KindOfWeapon {
 	public Weapon enchant() {
 
 		Class<? extends Enchantment> oldEnchantment = enchantment != null ? enchantment.getClass() : null;
-		Enchantment ench = Enchantment.random( oldEnchantment );
+		Enchantment ench = Enchantment.random( this, oldEnchantment );
 		return enchant( ench );
 	}
 
@@ -597,17 +604,21 @@ abstract public class Weapon extends KindOfWeapon {
 		public static final Class<?>[] common = new Class<?>[]{
 				Blazing.class, Chilling.class, Shocking.class, Lamprey.class,
 				FlowingLight.class, Midas.class, BlazingFury.class, Crystal.class,
-				Pulse.class, Seeking.class, Sweeping.class, Projecting.class};
+				Pulse.class, Seeking.class, Sweeping.class, Projecting.class,
+				//以下附魔原来只被天赋/自定义武器引用，不在任何池子里，永远刷不出来
+				Blocking.class, Blooming.class, Elastic.class, Lucky.class, WetEnchantment.class};
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
 				Combos.class, Insight.class, Clash.class, Distortion.class, Propulsion.class,
 				Lamp.class, Rainstorm.class, Flawless.class, Overwrite.class,
-				Fluctuation.class, Reaping.class, Eclipse.class};
+				Fluctuation.class, Reaping.class, Eclipse.class,
+				Kinetic.class, Unstable.class};
 
 		public static final Class<?>[] rare = new Class<?>[]{
 				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class,
 				Survival.class, Jealousy.class, Refined.class, Reversal.class,
-				Saturation.class, Harmony.class, Meteor.class, SoulRend.class};
+				Saturation.class, Harmony.class, Meteor.class, SoulRend.class,
+				Resonance.class};
 
 		public static final float[] typeChances = new float[]{
 				50, //12.5% each
@@ -623,6 +634,21 @@ abstract public class Weapon extends KindOfWeapon {
 		
 			
 		public abstract int proc( Weapon weapon, Char attacker, Char defender, int damage );
+
+		/**
+		 * 这个附魔能不能附着在指定武器上。
+		 * 近战专属附魔（横扫、招架之类）要覆盖成 {@code return !isRangedWeapon(weapon);}，
+		 * 这样灵能弓、投掷武器就不会刷到它们。
+		 */
+		public boolean canEnchant( Weapon weapon ){
+			return true;
+		}
+
+		/** 远距离武器：灵能弓与所有投掷/远程武器。 */
+		protected static boolean isRangedWeapon( Weapon weapon ){
+			return weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon
+					|| weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
+		}
 
 		/** 在伤害构建完成后修改最终伤害（精制、波动、协调等数值类附魔）。 */
 		public void modifyDamageInfo( Weapon weapon, Char attacker, Char defender, DamageInfo info ) { }
@@ -704,47 +730,78 @@ abstract public class Weapon extends KindOfWeapon {
 		
 		@SuppressWarnings("unchecked")
 		public static Enchantment random( Class<? extends Enchantment> ... toIgnore ) {
+			return random( null, toIgnore );
+		}
+
+		/** 按武器挑选附魔：会跳过 {@link #canEnchant(Weapon)} 返回 false 的项。 */
+		@SuppressWarnings("unchecked")
+		public static Enchantment random( Weapon weapon, Class<? extends Enchantment> ... toIgnore ) {
 			switch(Random.chances(typeChances)){
 				case 0: default:
-					return randomCommon( toIgnore );
+					return pick( common, weapon, toIgnore );
 				case 1:
-					return randomUncommon( toIgnore );
+					return pick( uncommon, weapon, toIgnore );
 				case 2:
-					return randomRare( toIgnore );
+					return pick( rare, weapon, toIgnore );
 			}
 		}
-		
+
+		/**
+		 * 从池子里抽一个附魔。weapon 不为 null 时过滤掉不适用的附魔；
+		 * 过滤后为空则退回不过滤的池子，避免返回 null。
+		 */
+		@SuppressWarnings("unchecked")
+		private static Enchantment pick( Class<?>[] pool, Weapon weapon, Class<? extends Enchantment> ... toIgnore ) {
+			ArrayList<Class<?>> enchants = new ArrayList<>(Arrays.asList(pool));
+			enchants.removeAll(Arrays.asList(toIgnore));
+
+			if (weapon != null && !enchants.isEmpty()){
+				for (int i = enchants.size() - 1; i >= 0; i--){
+					Enchantment e = (Enchantment) Reflection.newInstance(enchants.get(i));
+					if (e == null || !e.canEnchant(weapon)){
+						enchants.remove(i);
+					}
+				}
+			}
+
+			if (enchants.isEmpty()){
+				enchants = new ArrayList<>(Arrays.asList(pool));
+				enchants.removeAll(Arrays.asList(toIgnore));
+			}
+			if (enchants.isEmpty()){
+				return null;
+			}
+			return (Enchantment) Reflection.newInstance(Random.element(enchants));
+		}
+
 		@SuppressWarnings("unchecked")
 		public static Enchantment randomCommon( Class<? extends Enchantment> ... toIgnore ) {
-			ArrayList<Class<?>> enchants = new ArrayList<>(Arrays.asList(common));
-			enchants.removeAll(Arrays.asList(toIgnore));
-			if (enchants.isEmpty()) {
-				return random();
-			} else {
-				return (Enchantment) Reflection.newInstance(Random.element(enchants));
-			}
+			return pick( common, null, toIgnore );
 		}
-		
+
+		@SuppressWarnings("unchecked")
+		public static Enchantment randomCommon( Weapon weapon, Class<? extends Enchantment> ... toIgnore ) {
+			return pick( common, weapon, toIgnore );
+		}
+
 		@SuppressWarnings("unchecked")
 		public static Enchantment randomUncommon( Class<? extends Enchantment> ... toIgnore ) {
-			ArrayList<Class<?>> enchants = new ArrayList<>(Arrays.asList(uncommon));
-			enchants.removeAll(Arrays.asList(toIgnore));
-			if (enchants.isEmpty()) {
-				return random();
-			} else {
-				return (Enchantment) Reflection.newInstance(Random.element(enchants));
-			}
+			return pick( uncommon, null, toIgnore );
 		}
-		
+
+		@SuppressWarnings("unchecked")
+		public static Enchantment randomUncommon( Weapon weapon, Class<? extends Enchantment> ... toIgnore ) {
+			return pick( uncommon, weapon, toIgnore );
+		}
+
 		@SuppressWarnings("unchecked")
 		public static Enchantment randomRare( Class<? extends Enchantment> ... toIgnore ) {
-			ArrayList<Class<?>> enchants = new ArrayList<>(Arrays.asList(rare));
-			enchants.removeAll(Arrays.asList(toIgnore));
-			if (enchants.isEmpty()) {
-				return random();
-			} else {
-				return (Enchantment) Reflection.newInstance(Random.element(enchants));
-			}
+			return pick( rare, null, toIgnore );
+		}
+
+		@SuppressWarnings("unchecked")
+		public static Enchantment randomRare( Weapon weapon, Class<? extends Enchantment> ... toIgnore ) {
+			return pick( rare, weapon, toIgnore );
 		}
 
 		@SuppressWarnings("unchecked")

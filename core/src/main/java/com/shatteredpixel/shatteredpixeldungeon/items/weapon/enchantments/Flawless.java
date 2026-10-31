@@ -25,7 +25,8 @@ public class Flawless extends Weapon.Enchantment {
         Hero hero = (Hero) attacker;
 
         float hpPercent = hero.HP / (float) hero.HT;
-        float chance = 0.25f + 0.50f * hpPercent;
+        //奥术之戒等附魔倍率也要作用于触发概率
+        float chance = Math.min(1f, (0.25f + 0.50f * hpPercent) * procChanceMultiplier(attacker));
         if (Random.Float() >= chance) {
             return damage;
         }

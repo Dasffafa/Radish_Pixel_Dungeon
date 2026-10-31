@@ -11,6 +11,12 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
  */
 public class Clash extends Weapon.Enchantment {
 
+    //交锋要靠贴身对拼，灵能弓/投掷武器刷不到它
+    @Override
+    public boolean canEnchant( Weapon weapon ){
+        return !isRangedWeapon( weapon );
+    }
+
     private static final ItemSprite.Glowing RED = new ItemSprite.Glowing( 0xCC3333 );
 
     private static final float BONUS_DAMAGE = 0.40f;

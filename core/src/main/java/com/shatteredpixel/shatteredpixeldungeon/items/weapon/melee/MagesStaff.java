@@ -252,9 +252,9 @@ public class MagesStaff extends MeleeWeapon {
 					Weapon item2 = this;
 					final Weapon.Enchantment[] enchants = new Weapon.Enchantment[3];
 					Class<? extends Weapon.Enchantment> existing = item2.enchantment != null ? item2.enchantment.getClass() : null;
-					enchants[0] = Weapon.Enchantment.randomCommon( existing );
-					enchants[1] = Weapon.Enchantment.randomUncommon( existing );
-					enchants[2] = Weapon.Enchantment.random( existing, enchants[0].getClass(), enchants[1].getClass());
+					enchants[0] = Weapon.Enchantment.randomCommon( item2, existing );
+					enchants[1] = Weapon.Enchantment.randomUncommon( item2, existing );
+					enchants[2] = Weapon.Enchantment.random( item2, existing, enchants[0].getClass(), enchants[1].getClass());
 					GameScene.show(new WndEnchantSelect(item2, enchants[0], enchants[1], enchants[2]));
 					break;
 			}

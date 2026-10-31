@@ -36,6 +36,12 @@ import com.watabou.utils.Random;
 import java.util.ArrayList;
 
 public class Blooming extends Weapon.Enchantment {
+
+	//繁茂要在目标脚下催生植物，属于贴身打击，灵能弓/投掷武器刷不到它
+	@Override
+	public boolean canEnchant( Weapon weapon ){
+		return !isRangedWeapon( weapon );
+	}
 	
 	private static ItemSprite.Glowing DARK_GREEN = new ItemSprite.Glowing( 0x008800 );
 	
