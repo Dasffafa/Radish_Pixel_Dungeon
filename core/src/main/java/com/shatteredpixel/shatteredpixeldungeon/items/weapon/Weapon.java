@@ -604,21 +604,17 @@ abstract public class Weapon extends KindOfWeapon {
 		public static final Class<?>[] common = new Class<?>[]{
 				Blazing.class, Chilling.class, Shocking.class, Lamprey.class,
 				FlowingLight.class, Midas.class, BlazingFury.class, Crystal.class,
-				Pulse.class, Seeking.class, Sweeping.class, Projecting.class,
-				//以下附魔原来只被天赋/自定义武器引用，不在任何池子里，永远刷不出来
-				Blocking.class, Blooming.class, Elastic.class, Lucky.class, WetEnchantment.class};
+				Pulse.class, Seeking.class, Sweeping.class, Projecting.class};
 
 		public static final Class<?>[] uncommon = new Class<?>[]{
 				Combos.class, Insight.class, Clash.class, Distortion.class, Propulsion.class,
 				Lamp.class, Rainstorm.class, Flawless.class, Overwrite.class,
-				Fluctuation.class, Reaping.class, Eclipse.class,
-				Kinetic.class, Unstable.class};
+				Fluctuation.class, Reaping.class, Eclipse.class};
 
 		public static final Class<?>[] rare = new Class<?>[]{
 				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class,
 				Survival.class, Jealousy.class, Refined.class, Reversal.class,
-				Saturation.class, Harmony.class, Meteor.class, SoulRend.class,
-				Resonance.class};
+				Saturation.class, Harmony.class, Meteor.class, SoulRend.class};
 
 		public static final float[] typeChances = new float[]{
 				50, //12.5% each

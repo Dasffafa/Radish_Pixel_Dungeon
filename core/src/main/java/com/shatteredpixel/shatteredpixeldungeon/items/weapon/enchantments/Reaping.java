@@ -13,12 +13,6 @@ import com.watabou.utils.Bundle;
  */
 public class Reaping extends Weapon.Enchantment {
 
-    //收割靠贴身补刀，灵能弓/投掷武器刷不到它
-    @Override
-    public boolean canEnchant( Weapon weapon ){
-        return !isRangedWeapon( weapon );
-    }
-
     private static final ItemSprite.Glowing DARK_RED = new ItemSprite.Glowing( 0x8B0000 );
 
     @Override

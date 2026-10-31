@@ -22,6 +22,12 @@ import com.watabou.utils.PathFinder;
  */
 public class Propulsion extends Weapon.Enchantment {
 
+    //推进会把远程角色拽到敌人面前，对灵能弓是负收益，所以不给远程
+    @Override
+    public boolean canEnchant( Weapon weapon ){
+        return !isRangedWeapon( weapon );
+    }
+
     private static final ItemSprite.Glowing AZURE = new ItemSprite.Glowing( 0x1E90FF );
 
     private static Char pendingTarget = null;

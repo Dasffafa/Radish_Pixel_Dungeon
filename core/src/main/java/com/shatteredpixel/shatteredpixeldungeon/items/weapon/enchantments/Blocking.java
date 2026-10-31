@@ -36,12 +36,6 @@ import com.watabou.noosa.Image;
 import com.watabou.utils.Random;
 
 public class Blocking extends Weapon.Enchantment {
-
-	//招架需要在近身战斗里格挡，灵能弓/投掷武器刷不到它
-	@Override
-	public boolean canEnchant( Weapon weapon ){
-		return !isRangedWeapon( weapon );
-	}
 	
 	private static ItemSprite.Glowing BLUE = new ItemSprite.Glowing( 0x0000FF );
 	
