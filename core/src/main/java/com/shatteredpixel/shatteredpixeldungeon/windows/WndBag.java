@@ -130,10 +130,24 @@ public class WndBag extends WndTabbed {
 
 		// 行数按「装备 6 格 + 背包 30 格」算：6 列时正好 6 行铺满，
 		// 内容与视口等高，右侧那根滚动条就不会一直挂着
-		nRows = (int)Math.ceil((6 + 30)/(float)nCols);
+		int capacityTotal = (bag != null ? bag.capacity() : 30) + 6;
+		nRows = (int)Math.ceil(capacityTotal/(float)nCols);
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
-		int windowHeight = TITLE_HEIGHT + slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+		// 可见行数受屏幕高度限制：多出来的格子靠右侧滚动条看
+		int chromeH = chrome.marginTop() + chrome.marginBottom();
+		// 只占用屏幕高度的 78%，剩下留给底部标签、快捷栏和边距，横屏/高缩放下也不会顶出屏幕
+		int maxH = (int)(PixelScene.uiCamera.height * 0.78f);
+		int maxVisibleRows = (int)Math.floor((maxH - TITLE_HEIGHT)
+				/ (float)(slotHeight + SLOT_MARGIN));
+		maxVisibleRows = Math.max(3, Math.min(nRows, maxVisibleRows));
+		int visibleRows = maxVisibleRows;
+		int windowHeight = TITLE_HEIGHT + slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
+		// 横屏时再兜一次底：窗口不能超出可用高度
+		while (visibleRows > 3 && windowHeight > maxH){
+			visibleRows--;
+			windowHeight -= slotHeight + SLOT_MARGIN;
+		}
 
 		if (PixelScene.landscape()){
 			while (slotHeight >= 24 && (windowHeight + 20 + chrome.marginTop()) > PixelScene.uiCamera.height){
@@ -152,8 +166,8 @@ public class WndBag extends WndTabbed {
 		content = new Component();
 		placeItems( bag );
 
-		// 可见区域保持 6 行左右，内容按容量增长，超出部分用滚动条查看
-		int visibleHeight = slotHeight * nRows + SLOT_MARGIN * (nRows - 1);
+		// 可见区域只放得下 visibleRows 行，内容按容量铺满，超出部分靠右侧滚动条
+		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
 		int contentRows = Math.max(nRows, row);
 		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN));
 		scroll = new ScrollPane(content);

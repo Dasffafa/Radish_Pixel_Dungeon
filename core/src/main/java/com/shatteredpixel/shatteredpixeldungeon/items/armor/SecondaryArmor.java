@@ -59,11 +59,6 @@ public abstract class SecondaryArmor extends EquipableItem {
 		return false;
 	}
 
-	@Override
-	public boolean isIdentified() {
-		return true;
-	}
-
 	public boolean isEquipped(Hero hero) {
 		return hero.belongings.secondaryArmor() == this;
 	}

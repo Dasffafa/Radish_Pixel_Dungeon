@@ -180,8 +180,9 @@ public class ScrollPane extends Component {
 
 		thumb.visible = height < content.height();
 		if (thumb.visible) {
-			thumb.scale.set( 2, height * height / content.height() );
-			thumb.x = width - thumb.width();
+			//滚动条加粗到 3px 并往内缩 1px，不然在背包这类带边框的窗口里几乎看不见
+			thumb.scale.set( 3, Math.max(12, height * height / content.height()) );
+			thumb.x = width - thumb.width() - 1;
 			thumb.y = y + Math.min( height - thumb.height(), height * content.camera.scroll.y / content.height() );
 			if (thumbTimer <= 0) thumb.am = 0;
 		}

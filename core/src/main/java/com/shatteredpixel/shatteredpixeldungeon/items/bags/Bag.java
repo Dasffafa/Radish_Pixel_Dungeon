@@ -54,7 +54,7 @@ public class Bag extends Item implements Iterable<Item> {
 	public ArrayList<Item> items = new ArrayList<>();
 
 	public int capacity(){
-		return 35;
+		return 53;
 	}
 	
 	@Override
