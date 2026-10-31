@@ -17,6 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
 import com.watabou.noosa.TextureFilm;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class DMPrototypeSprite extends MobSprite {
 
@@ -60,6 +61,8 @@ public class DMPrototypeSprite extends MobSprite {
 	/** 激活后换成对应型号怪物的原始贴图与动画 */
 	public void activate() {
 
+		GLog.i( "WPROTO", "activate model=" + model + " tex=" + (texture == null ? "null" : "ok") );
+
 		if (model == 175) {
 			texture( Assets.Sprites.DM175 );
 			TextureFilm frames = new TextureFilm( texture, 18, 15 );
@@ -92,6 +95,8 @@ public class DMPrototypeSprite extends MobSprite {
 			die = new Animation( 12, false );
 			die.frames( frames, 10, 11, 12, 13, 14, 15 );
 		}
+
+		GLog.i( "WPROTO", "activate done, idle frames=" + (idle == null ? "null" : "ok") );
 
 		play( idle );
 	}
