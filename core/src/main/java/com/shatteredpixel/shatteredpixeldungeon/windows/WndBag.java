@@ -120,11 +120,16 @@ public class WndBag extends WndTabbed {
 		// 电脑大屏时按可用宽度加列，避免背包窗口窄窄一条。
 		// 注意：不要用 interfaceSize() 做开关——桌面端该值可能为 0，会导致永远不加列。
 		{
+			int baseCols = PixelScene.landscape() ? COLS_L : COLS_P;
+			//窗口两侧各留出边距后，一行最多能放几列（超过就会像 6X 缩放那样被屏幕两边切掉）
+			int hardMax = (int)((PixelScene.uiCamera.width * 0.92f - chrome.marginHor())
+					/ (float)(slotWidth + SLOT_MARGIN));
 			int availCols = (int)((PixelScene.uiCamera.width - chrome.marginHor())
 					/ (float)(slotWidth + SLOT_MARGIN));
 			if (availCols > nCols) {
-				//留一列余量，避免贴边
-				nCols = Math.min(availCols - 1, 10);
+				//留一列余量，避免贴边；上限 9 列，保证窄屏也不会被两边挡住
+				nCols = Math.min(Math.min(availCols - 1, hardMax), 9);
+				nCols = Math.max(nCols, baseCols);
 			}
 		}
 

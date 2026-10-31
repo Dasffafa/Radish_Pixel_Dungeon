@@ -180,16 +180,36 @@ public class WardenBossLevel extends Level {
 	@Override
 	public int randomRespawnCell( Char ch ) {
 		ArrayList<Integer> candidates = new ArrayList<>();
-		//只在战斗区里随机：不能刷到上方初始房间，否则玩家一落地就撞上一排原型机
-		for (int y = arena.top; y < arena.bottom; y++) {
+		//只在战斗区里随机：不能刷到下方初始房间，否则玩家一落地就撞上一排原型机
+		//结束行是 arena.bottom-2：最下面那一行是隔开初始房间的墙+门，机体站上去会和门重叠
+		for (int y = arena.top; y < arena.bottom - 1; y++) {
 			for (int x = arena.left; x < arena.right; x++) {
 				int i = y * WIDTH + x;
-				if (passable[i] && map[i] != Terrain.ENTRANCE && map[i] != Terrain.EXIT && map[i] != Terrain.LOCKED_EXIT
-						&& Actor.findChar( i ) == null
-						&& !spawnTaken.contains( i )
-						&& (!Char.hasProp( ch, Char.Property.LARGE ) || openSpace[i])) {
-					candidates.add( i );
+				if (!passable[i] || map[i] == Terrain.ENTRANCE || map[i] == Terrain.EXIT || map[i] == Terrain.LOCKED_EXIT){
+					continue;
 				}
+				//门口一格内不生成：否则一开门就有一堆机体挤在门后，精灵互相压住
+				if (Math.abs(x - doorCell.x) <= 1 && Math.abs(y - doorCell.y) <= 1){
+					continue;
+				}
+				if (Actor.findChar( i ) != null || spawnTaken.contains( i )){
+					continue;
+				}
+				//已生成的机体周围一格也不再生成，避免两台机体的精灵叠在一起
+				boolean crowded = false;
+				for (int t : spawnTaken){
+					if (Math.abs(t % WIDTH - x) <= 1 && Math.abs(t / WIDTH - y) <= 1){
+						crowded = true;
+						break;
+					}
+				}
+				if (crowded){
+					continue;
+				}
+				if (Char.hasProp( ch, Char.Property.LARGE ) && !openSpace[i]){
+					continue;
+				}
+				candidates.add( i );
 			}
 		}
 		if (candidates.isEmpty()) {

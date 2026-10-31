@@ -17,7 +17,6 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
 import com.watabou.noosa.TextureFilm;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class DMPrototypeSprite extends MobSprite {
 
@@ -29,7 +28,6 @@ public class DMPrototypeSprite extends MobSprite {
 		super();
 
 		texture( Assets.Sprites.DM_PROTO );
-
 		TextureFilm frames = new TextureFilm( texture, 16, 16 );
 
 		// 停机：单帧、极慢，视觉上完全静止
@@ -61,8 +59,6 @@ public class DMPrototypeSprite extends MobSprite {
 	/** 激活后换成对应型号怪物的原始贴图与动画 */
 	public void activate() {
 
-		GLog.i( "WPROTO", "activate model=" + model + " tex=" + (texture == null ? "null" : "ok") );
-
 		if (model == 175) {
 			texture( Assets.Sprites.DM175 );
 			TextureFilm frames = new TextureFilm( texture, 18, 15 );
@@ -81,7 +77,7 @@ public class DMPrototypeSprite extends MobSprite {
 
 		} else {
 			texture( Assets.Sprites.DM100 );
-			TextureFilm frames = new TextureFilm( texture, 16, 14 );
+			TextureFilm frames = new TextureFilm( texture, 16, 16 );
 
 			idle = new Animation( 1, true );
 			idle.frames( frames, 0, 1 );
@@ -96,7 +92,6 @@ public class DMPrototypeSprite extends MobSprite {
 			die.frames( frames, 10, 11, 12, 13, 14, 15 );
 		}
 
-		GLog.i( "WPROTO", "activate done, idle frames=" + (idle == null ? "null" : "ok") );
 
 		play( idle );
 	}
