@@ -48,8 +48,9 @@ public class WardenBossLevel extends Level {
 
 	//入口初始房间（最下方），Rect 的 right/bottom 是开区间
 	private static final Rect entranceRoom = new Rect( 3, 21, 9, 25 );
-	//连接初始房间与战斗区的走廊（2 格宽，向上）
-	private static final Rect corridor = new Rect( 5, 18, 7, 21 );
+	//连接初始房间与战斗区的走廊（1 格宽：唯一的通道就是顶端那扇门，
+	//以前做成 2 格宽时，旁边那一列能绕过门直接走进战斗区）
+	private static final Rect corridor = new Rect( 6, 18, 7, 21 );
 	//走廊顶端通往战斗区的门（向上开）
 	private static final Point doorCell = new Point( 6, 18 );
 	//战斗区（上方大长方形）
