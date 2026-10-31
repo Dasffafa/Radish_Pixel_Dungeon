@@ -111,6 +111,12 @@ public abstract class SecondaryArmor extends EquipableItem {
 	}
 
 	@Override
+	public String trueName() {
+		String base = Messages.get(this, "name");
+		return level > 0 ? base + " +" + level : base;
+	}
+
+	@Override
 	public String desc() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(Messages.get(this, "base_desc", tier, (int)DRMin(), (int)DRMax(), STRReq()));
