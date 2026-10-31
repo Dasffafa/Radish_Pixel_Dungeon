@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Message = "feat(armor): secondary armor effects"
 )
 
