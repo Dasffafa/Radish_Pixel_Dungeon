@@ -42,22 +42,18 @@ public class WardenBossLevel extends Level {
 		color2 = 0x6a6a75;
 	}
 
-	//竖放的长条牢房：入口小房间在最下端，推开门向上进入上方的战斗区
+	//竖放的长条牢房：入口小房间在最下端，开门直接进入上方的战斗区
 	private static final int WIDTH  = 12;
-	private static final int HEIGHT = 26;
+	private static final int HEIGHT = 22;
 
 	//入口初始房间（最下方），照抄天狗（PrisonBossLevel）第一个房间的样子：
-	//一个小房间，外圈墙、内圈空，向上接一条 1 格宽的走廊，走廊顶端一扇门。
+	//一个小房间，外圈墙、内圈空，顶墙上开一扇门，直接通进战斗区（没有单独的长走廊）。
 	//Rect 的 right/bottom 是开区间。
-	private static final Rect entranceRoom = new Rect( 3, 19, 9, 25 );
-	//连接初始房间与战斗区的走廊（1 格宽，竖着向上）。
-	//注意它的顶端必须探进战斗区里一格：否则走廊和战斗区之间还隔着一层墙，
-	//玩家开门后根本走不上去（之前就是这样，房间是死的）。
-	private static final Rect corridor = new Rect( 6, 14, 7, 20 );
-	//走廊顶端通往战斗区的门（向上开）
-	private static final Point doorCell = new Point( 6, 14 );
-	//战斗区（上方大长方形）
-	private static final Rect arena = new Rect( 1, 1, 11, 16 );
+	private static final Rect entranceRoom = new Rect( 3, 13, 9, 19 );
+	//房间顶墙那格：这里放门，普通门（不用钥匙），开门就进战斗区
+	private static final Point doorCell = new Point( 6, 13 );
+	//战斗区（上方大长方形），底墙与初始房间顶墙隔一格，门正好开在这层墙上
+	private static final Rect arena = new Rect( 1, 1, 11, 14 );
 
 	private static final String BOSS_DEAD = "boss_dead";
 
@@ -93,15 +89,10 @@ public class WardenBossLevel extends Level {
 
 		//下方初始房间：玩家从上一层下来先落在这里，看不到也打不到 Boss
 		Painter.fill( this, entranceRoom, 1, Terrain.EMPTY );
-		//走廊：从初始房间向上通到战斗区。
-		//注意：走廊只有 1 格宽，不能像房间那样用 m=1 内缩填充
-		//（Painter.fill(rect, 1, …) 会把宽高各减 2，宽度变成 -1，
-		//Arrays.fill 直接抛 fromIndex > toIndex，整个关卡 build 崩掉）
-		Painter.fill( this, corridor, 0, Terrain.EMPTY );
 		//战斗区
 		Painter.fill( this, arena, 1, Terrain.EMPTY );
 
-		//走廊顶端通往战斗区的门（玩家开门向上进入 Boss 战）
+		//房间顶墙上的门：普通门，不用钥匙，开门直接进战斗区
 		Level.set( pointToCell( doorCell ), Terrain.DOOR, this );
 
 		//点亮一些装饰，让长条牢房不那么空
@@ -152,9 +143,9 @@ public class WardenBossLevel extends Level {
 
 		//控制器与补给都放在上方初始房间里，玩家进战斗区之前就能拿到
 		SimpleController controller = new SimpleController();
-		drop( controller, pointToCell( new Point( entranceRoom.left + 1, entranceRoom.top + 1 ) ) );
+		drop( controller, pointToCell( new Point( entranceRoom.left + 1, entranceRoom.top + 2 ) ) );
 
-		int healing = pointToCell( new Point( entranceRoom.right - 2, entranceRoom.top + 1 ) );
+		int healing = pointToCell( new Point( entranceRoom.right - 2, entranceRoom.top + 2 ) );
 		drop( new PotionOfHealing(), healing );
 
 		//bottom 是开区间，-1 会落在房间外圈的墙上，这里退到内圈

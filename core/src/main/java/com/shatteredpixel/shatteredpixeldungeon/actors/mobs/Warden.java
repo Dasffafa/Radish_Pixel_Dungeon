@@ -19,7 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.items.LickDogMask;
+import com.shatteredpixel.shatteredpixeldungeon.items.TengusMask;
 import com.shatteredpixel.shatteredpixeldungeon.levels.WardenBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -253,8 +253,8 @@ public class Warden extends Mob {
 		GameScene.bossSlain();
 		super.die( cause );
 
-		// 掉落：舔狗面具（目前是纪念品，无使用效果）
-		Dungeon.level.drop( new LickDogMask(), pos ).sprite.drop();
+		// 掉落：天狗的面具（与天狗一致的战利品）
+		Dungeon.level.drop( new TengusMask(), pos ).sprite.drop();
 
 		if (Dungeon.level instanceof WardenBossLevel) {
 			((WardenBossLevel) Dungeon.level).onBossDeath();
