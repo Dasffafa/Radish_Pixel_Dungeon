@@ -1056,6 +1056,13 @@ public class Hero extends Char {
 
 		if (dmg < 0) dmg = 0;
 
+		// 闪亮手套：满血时造成的所有伤害 +（25+5*等级）%
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
+		if (sa instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves
+				&& STR() >= sa.STRReq() && HP >= HT) {
+			dmg = Math.round(dmg * (1f + (25 + 5 * sa.level) / 100f));
+		}
+
 		return dmg;
 	}
 
