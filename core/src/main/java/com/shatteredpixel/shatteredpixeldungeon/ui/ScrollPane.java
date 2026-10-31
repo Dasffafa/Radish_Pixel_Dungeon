@@ -162,8 +162,11 @@ public class ScrollPane extends Component {
 		}
 
 		content.setPos( 0, 0 );
-		controller.x = x;
-		controller.y = y;
+		// 控制器是 ScrollPane 自己的子节点，坐标相对 ScrollPane 自身（0,0）。
+		// 原先写的 x/y 是“相对父窗口”的坐标，ScrollPane 一旦不放在 (0,0)（比如背包的 y=TITLE_HEIGHT），
+		// 控制器就会整体偏移到内容区之外，手指在格子上拖动永远收不到事件、滚动失效。
+		controller.x = 0;
+		controller.y = 0;
 		controller.width = width;
 		controller.height = height;
 

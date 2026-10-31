@@ -50,6 +50,7 @@ import com.watabou.input.GameAction;
 import com.watabou.input.KeyBindings;
 import com.watabou.input.KeyEvent;
 import com.watabou.input.PointerEvent;
+import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
@@ -74,8 +75,9 @@ public class WndBag extends WndTabbed {
 
 	protected static final int TITLE_HEIGHT	= 14;
 
-	/** 屏幕放不下时最多允许滚动的下限行数参考（实际可见行数由构造里按屏幕高度算） */
-	protected static final int MAX_VISIBLE_ROWS = 5;
+	/** 可见行数固定 6 行（5 列 × 6 行）：第 1 行是装备栏，后面 5 行是背包的 25 格。
+	 *  用户口径：「不算装备 5×5，算上装备应该是 6×5」。超出 6 行的格子用 ScrollPane 上下拖动。 */
+	protected static final int MAX_VISIBLE_ROWS = 6;
 
 	/** 滚动条是覆盖式绘制（ScrollPane.layout() 里 thumb.x = right() - 2），
 	 *  所以窗口宽度只算格子，不再额外加宽——加宽会让背包比原版宽一截。 */
@@ -319,8 +321,10 @@ public class WndBag extends WndTabbed {
 			}
 		}
 		
-		// 空格补到「至少 5×5 那么多格」：容器容量小的时候也照样是完整 5 行
-		int minSlots = Math.max(container.capacity(), COLS_P * MAX_VISIBLE_ROWS - equipped);
+		// 空格补满整行：容器容量小的时候也照样是完整 6 行；
+		// 容量不是 5 的整数倍时（比如 36 格的丝绒袋），最后一行右侧也要补齐，
+		// 否则滚到最末会露出一块没有格子的空白区。
+		int minSlots = Math.max(container.capacity(), nCols * nRows - equipped);
 		while ((count - equipped) < minSlots) {
 			placeItem( null );
 		}
@@ -334,6 +338,14 @@ public class WndBag extends WndTabbed {
 		int y = row * (slotHeight + SLOT_MARGIN);
 
 		InventorySlot slot = new InventorySlot( item ){
+
+			{
+				// 格子自己会吃掉 DOWN 事件（Button 默认 BLOCK_WHEN_ACTIVE），
+				// 那样 ScrollPane 的拖动控制器就永远收不到手指，滚动也就失效了。
+				// 设成 NEVER_BLOCK：点击照旧由 hotArea 处理，拖动则继续传给 ScrollPane。
+				hotArea.blockLevel = PointerArea.NEVER_BLOCK;
+			}
+
 			@Override
 			protected void onClick() {
 				if (lastBag != item && !lastBag.contains(item) && !item.isEquipped(Dungeon.hero)){
