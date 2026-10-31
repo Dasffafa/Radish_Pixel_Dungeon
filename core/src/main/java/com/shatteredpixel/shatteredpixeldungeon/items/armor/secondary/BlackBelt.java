@@ -8,6 +8,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
 
 public class BlackBelt extends SecondaryArmor {
 
+	@Override
+	public Object[] effectArgs() {
+		return new Object[]{ 2 + level(), 4 + level() };
+	}
+
+
 	public BlackBelt() {
 		super(1, 0, 1, 10);
 		image = "black_belt";

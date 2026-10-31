@@ -8,6 +8,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
 
 public class TridentGauntlet extends SecondaryArmor {
 
+	@Override
+	public Object[] effectArgs() {
+		return new Object[]{ 20 + 10 * level() };
+	}
+
+
 	public TridentGauntlet() {
 		super(3, 1, 3, 14);
 		image = "trident_gauntlet";

@@ -11,6 +11,12 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public class CatalystBracer extends SecondaryArmor {
 
+	@Override
+	public Object[] effectArgs() {
+		return new Object[]{ Math.round( 1 + 0.2f * level() ) };
+	}
+
+
 	public CatalystBracer() {
 		super(1, 0, 1, 10);
 		image = "catalyst_bracer";

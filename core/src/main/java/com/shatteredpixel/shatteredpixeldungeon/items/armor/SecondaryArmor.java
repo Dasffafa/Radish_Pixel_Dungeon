@@ -100,12 +100,20 @@ public abstract class SecondaryArmor extends EquipableItem {
 		return false;
 	}
 
+	/**
+	 * 效果描述里要显示的当前等级数值，按顺序对应 effect_desc 里的 %d。
+	 * 子类覆写；没有数值的子类保持空数组。
+	 */
+	public Object[] effectArgs() {
+		return new Object[0];
+	}
+
 	@Override
 	public String desc() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(Messages.get(this, "base_desc", tier, DRMin(), DRMax(), STRReq()));
 		sb.append("\n\n");
-		sb.append(Messages.get(this, "effect_desc"));
+		sb.append(Messages.get(this, "effect_desc", effectArgs()));
 		if (level > 0) {
 			sb.append("\n\n").append(Messages.get(this, "level_desc", level));
 		}
