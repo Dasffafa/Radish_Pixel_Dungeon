@@ -119,6 +119,8 @@ public abstract class SecondaryArmor extends EquipableItem {
 			sb.append("\n\n").append(Messages.get(this, "strength_penalty"));
 		}
 		sb.append("\n\n");
+		sb.append(Messages.get(this, "flavor"));
+		sb.append("\n\n");
 		sb.append(Messages.get(this, "effect_desc", effectArgs()));
 		if (level > 0) {
 			sb.append("\n\n").append(Messages.get(this, "level_desc", level));
