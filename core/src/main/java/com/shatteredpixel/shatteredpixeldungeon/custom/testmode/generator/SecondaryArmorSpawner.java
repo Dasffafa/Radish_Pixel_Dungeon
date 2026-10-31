@@ -21,6 +21,16 @@ import com.watabou.utils.Random;
 public class SecondaryArmorSpawner extends TestGenerator {
 
 	@Override
+	public String name() {
+		return "次要护甲生成器";
+	}
+
+	@Override
+	public String desc() {
+		return "使用后随机生成一件次要护甲放进背包。";
+	}
+
+	@Override
 	public void execute( Hero hero, String action ) {
 		super.execute( hero, action );
 		if (action.equals( AC_GIVE )) {

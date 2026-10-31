@@ -93,13 +93,13 @@ public abstract class SecondaryArmor extends EquipableItem {
 
 	@Override
 	public boolean doUnequip(Hero hero, boolean collect, boolean single) {
-		if (super.doUnequip(hero, collect, single)) {
-			if (hero.belongings.secondaryArmor == this) {
-				hero.belongings.secondaryArmor = null;
-			}
-			return true;
+		if (hero.belongings.secondaryArmor == this) {
+			hero.belongings.secondaryArmor = null;
 		}
-		return false;
+		if (collect) {
+			this.collect();
+		}
+		return true;
 	}
 
 	/**
