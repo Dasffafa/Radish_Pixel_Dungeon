@@ -140,6 +140,11 @@ public class PixelScene extends Scene {
 		Camera.reset( new PixelCamera( defaultZoom ) );
 
 		float uiZoom = defaultZoom;
+		//横屏手机（屏幕高度很矮）时 defaultZoom 至少是 2，UI 按这个缩放会算出一块很扁的逻辑画布，
+		//选人界面/窗口的高度直接超出屏幕、按钮点不到。这里单独把 UI 缩放降档，直到内容放得下。
+		while (uiZoom > 1 && Game.height / uiZoom < 200) {
+			uiZoom -= 1;
+		}
 		uiCamera = Camera.createFullscreen( uiZoom );
 		Camera.add( uiCamera );
 
