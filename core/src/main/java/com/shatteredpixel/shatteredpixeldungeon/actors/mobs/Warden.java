@@ -21,6 +21,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.levels.WardenBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WardenSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -85,7 +86,9 @@ public class Warden extends Mob {
 	@Override
 	public void notice() {
 		super.notice();
-		if (!BossHealthBar.isAssigned()) {
+		//这里要用带参数的版本：无参版本只判断"场上有任意 Boss"，
+		//多 Boss 场景下会把自己漏掉
+		if (!BossHealthBar.isAssigned( this )) {
 			BossHealthBar.assignBoss( this );
 			GLog.p( Messages.get( this, "boss_appear" ) );
 		}
@@ -94,7 +97,7 @@ public class Warden extends Mob {
 	@Override
 	protected boolean act() {
 
-		if (!BossHealthBar.isAssigned() && Dungeon.hero.fieldOfView[pos]) {
+		if (!BossHealthBar.isAssigned( this ) && Dungeon.hero.fieldOfView[pos]) {
 			notice();
 		}
 
@@ -185,6 +188,9 @@ public class Warden extends Mob {
 		int lost = preHP - HP;
 		if (lost <= 0) return;
 
+		//这一击已经把自己打死了：尸体不该再补生成原型机、也不再播形态切换的台词
+		if (!isAlive()) return;
+
 		//每失去 30 生命补生成一台 DM-100 原型机
 		while ( lostTotal() >= nextSpawnHp ) {
 			nextSpawnHp += 30;
@@ -219,10 +225,17 @@ public class Warden extends Mob {
 
 	@Override
 	public void die( Object cause ) {
+		//与天狗（Tengu）保持一致：Boss 被击杀要有横幅 + 击杀音效
+		GameScene.bossSlain();
 		super.die( cause );
 		if (Dungeon.level instanceof WardenBossLevel) {
 			((WardenBossLevel) Dungeon.level).onBossDeath();
 		}
+	}
+
+	/** 半血后的红眼形态（供精灵读档时同步） */
+	public boolean isEnraged() {
+		return enraged;
 	}
 
 	@Override
@@ -241,11 +254,10 @@ public class Warden extends Mob {
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		enraged = bundle.getBoolean( ENRAGED );
-		nextSpawnHp = bundle.getInt( NEXT_SPAWN );
+		//老档没有这个键时不能读成 0，否则下一次受伤会把历史阈值一次性全部补生成
+		nextSpawnHp = bundle.contains( NEXT_SPAWN ) ? bundle.getInt( NEXT_SPAWN ) : 30;
 		speedBonus = bundle.getInt( SPEED_BONUS );
-		if (enraged && sprite instanceof WardenSprite) {
-			((WardenSprite) sprite).setEnraged( true );
-		}
+		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.link()
 		activating = null;
 		activatingTurnsLeft = 0;
 		if (bundle.contains( ACTIVATING )) {

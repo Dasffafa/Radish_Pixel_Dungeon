@@ -73,6 +73,8 @@ public class SimpleController extends Item {
 				return;
 			}
 			p.beginHeroActivation();
+			//使用控制器要占掉一回合，和同类的投掷/使用道具保持一致
+			curUser.spendAndNext( 1f );
 			detach( curUser.belongings.backpack );
 		}
 

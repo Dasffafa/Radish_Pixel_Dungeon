@@ -9,6 +9,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
 import com.watabou.noosa.TextureFilm;
 
 public class DMPrototypeSprite extends MobSprite {
@@ -37,6 +39,16 @@ public class DMPrototypeSprite extends MobSprite {
 		die = inactiveAnim;
 
 		play( idle );
+	}
+
+	@Override
+	public void link( Char ch ) {
+		super.link( ch );
+		//读档时精灵是后建的，restoreFromBundle 里拿不到 sprite，
+		//已激活的机体必须在 link 时把躺倒的帧换成站立帧
+		if (ch instanceof WardenPrototype && !((WardenPrototype) ch).isInactive()) {
+			activate();
+		}
 	}
 
 	public void activate() {
