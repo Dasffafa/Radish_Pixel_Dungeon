@@ -111,7 +111,7 @@ public abstract class SecondaryArmor extends EquipableItem {
 	@Override
 	public String desc() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.get(this, "base_desc", tier, DRMin(), DRMax(), STRReq()));
+		sb.append(Messages.get(this, "base_desc", tier, (int)DRMin(), (int)DRMax(), STRReq()));
 		sb.append("\n\n");
 		sb.append(Messages.get(this, "effect_desc", effectArgs()));
 		if (level > 0) {
