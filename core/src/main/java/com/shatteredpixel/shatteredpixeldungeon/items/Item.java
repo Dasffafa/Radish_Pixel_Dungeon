@@ -214,7 +214,10 @@ public class Item implements Bundlable {
 
 		// 薪王化身触发检测
 		AshKing.IncarnationReady incarnationReady = hero.buff(AshKing.IncarnationReady.class);
-		if (incarnationReady != null && !action.equals(AC_DROP) && !action.equals(AC_THROW)) {
+		// 投掷类武器（索命弯刀等）的正常用法就是投掷，所以 AC_THROW 对它也要放行，
+		// 否则这三个形态里只有靠神器/法杖的两个能触发。
+		if (incarnationReady != null && !action.equals(AC_DROP)
+				&& (!action.equals(AC_THROW) || this instanceof MissileWeapon)) {
 			String itemType = null;
 			if (this instanceof Artifact) itemType = "Artifact";
 			else if (this instanceof Wand) itemType = "Wand";
