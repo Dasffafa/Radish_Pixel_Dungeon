@@ -23,7 +23,7 @@ Copy-Item "android\build\outputs\apk\debug\android-debug.apk" $dest -Force
 Write-Host ("   -> " + $dest)
 
 Write-Host "[4/4] commit and push..."
-git add -A core/src/main/java core/src/main/assets core/src/main/resources
+git add -A core/src/main/java core/src/main/assets tools
 $changed = git status --porcelain
 if ($changed) {
     git commit -m $Message | Out-Null

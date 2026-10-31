@@ -2158,6 +2158,16 @@ public class Hero extends Char {
 	public int attackProc( final Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 
+		// 冠军腰带：对精英与 Boss 的伤害 +（10+5*等级）%
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor champBelt = belongings.secondaryArmor();
+		if (champBelt instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ChampionBelt
+				&& STR() >= champBelt.STRReq()
+				&& (enemy.properties.contains(Char.Property.BOSS)
+					|| enemy.properties.contains(Char.Property.MINIBOSS)
+					|| !enemy.buffs(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy.class).isEmpty())) {
+			damage = Math.round(damage * (1f + (10 + 5 * champBelt.level()) / 100f));
+		}
+
 		if (buff(Talent.SpiritBladesTracker.class) != null
 				&& Random.Int(10) < 3*pointsInTalent(Talent.SPIRIT_BLADES)){
 			SpiritBow bow = belongings.getItem(SpiritBow.class);
