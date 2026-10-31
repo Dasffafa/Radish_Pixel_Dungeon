@@ -1056,6 +1056,13 @@ public class Hero extends Char {
 
 		if (dmg < 0) dmg = 0;
 
+		// 三叉护手：造成的物理伤害下降 30%（元素增伤在法术/附魔侧另算）
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor triArmor = belongings.secondaryArmor();
+		if (triArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
+				&& STR() >= triArmor.STRReq()) {
+			dmg = Math.round(dmg * 0.7f);
+		}
+
 		// 闪亮手套：满血时造成的所有伤害 +（25+5*等级）%
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
 		if (sa instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves
