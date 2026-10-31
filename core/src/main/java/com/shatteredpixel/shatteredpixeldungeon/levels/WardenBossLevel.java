@@ -42,11 +42,16 @@ public class WardenBossLevel extends Level {
 		color2 = 0x6a6a75;
 	}
 
-	//参照天狗二阶段的战斗区（约 15x15），取一个略扁的长方形
-	private static final int WIDTH  = 24;
-	private static final int HEIGHT = 12;
+	//竖放的长条牢房：入口小房间在最上端，走一段走廊才进入中下方的战斗区
+	private static final int WIDTH  = 12;
+	private static final int HEIGHT = 26;
 
-	private static final Rect arena = new Rect( 1, 1, 22, 10 );
+	//入口初始房间（上方），Rect 的 right/bottom 是开区间
+	private static final Rect entranceRoom = new Rect( 3, 1, 9, 4 );
+	//连接初始房间与战斗区的走廊（2 格宽）
+	private static final Rect corridor = new Rect( 5, 4, 7, 6 );
+	//战斗区（中下方大长方形）
+	private static final Rect arena = new Rect( 1, 6, 11, 25 );
 
 	private static final String BOSS_DEAD = "boss_dead";
 
@@ -79,12 +84,18 @@ public class WardenBossLevel extends Level {
 		setSize( WIDTH, HEIGHT );
 
 		Painter.fill( this, 0, 0, WIDTH, HEIGHT, Terrain.WALL );
+
+		//上方初始房间：玩家从上一层下来先落在这里，看不到也打不到 Boss
+		Painter.fill( this, entranceRoom, 1, Terrain.EMPTY );
+		//走廊：从初始房间往下通到战斗区
+		Painter.fill( this, corridor, 1, Terrain.EMPTY );
+		//战斗区
 		Painter.fill( this, arena, 1, Terrain.EMPTY );
 
 		//点亮一些装饰，让长条牢房不那么空
 		for (int i = 0; i < 6; i++) {
-			int x = Random.IntRange( 3, WIDTH - 4 );
-			int y = Random.IntRange( 2, HEIGHT - 3 );
+			int x = Random.IntRange( arena.left + 1, arena.right - 2 );
+			int y = Random.IntRange( arena.top + 1, arena.bottom - 2 );
 			int cell = pointToCell( new Point( x, y ) );
 			if (map[cell] == Terrain.EMPTY) {
 				//注意：build() 期间 Dungeon.level 还没指向本关，2 参 set() 会拿到 null 抛 NPE，
@@ -93,13 +104,13 @@ public class WardenBossLevel extends Level {
 			}
 		}
 
-		//入口在左端
-		int entrance = pointToCell( new Point( 3, HEIGHT / 2 ) );
+		//入口在上方初始房间里
+		int entrance = pointToCell( new Point( WIDTH / 2, entranceRoom.top + 1 ) );
 		Level.set( entrance, Terrain.ENTRANCE, this );
 		transitions.add( new LevelTransition( this, entrance, LevelTransition.Type.REGULAR_ENTRANCE ) );
 
-		//出口在右端，击败典狱长前锁住
-		exitCell = pointToCell( new Point( WIDTH - 3, HEIGHT / 2 ) );
+		//出口在战斗区最下端，击败典狱长前锁住
+		exitCell = pointToCell( new Point( WIDTH / 2, arena.bottom - 2 ) );
 		Level.set( exitCell, Terrain.LOCKED_EXIT, this );
 		transitions.add( new LevelTransition( this, exitCell, LevelTransition.Type.REGULAR_EXIT ) );
 
@@ -110,7 +121,8 @@ public class WardenBossLevel extends Level {
 	protected void createMobs() {
 
 		Warden warden = new Warden();
-		warden.pos = pointToCell( new Point( WIDTH / 2, HEIGHT / 2 ) );
+		//Boss 待在战斗区靠中间的位置，不会一进关就贴脸
+		warden.pos = pointToCell( new Point( WIDTH / 2, arena.top + (arena.height() / 2) ) );
 		mobs.add( warden );
 
 		for (int i = 0; i < 8; i++) {
@@ -124,23 +136,24 @@ public class WardenBossLevel extends Level {
 	@Override
 	protected void createItems() {
 
+		//控制器与补给都放在上方初始房间里，玩家进战斗区之前就能拿到
 		SimpleController controller = new SimpleController();
-		drop( controller, pointToCell( new Point( 5, HEIGHT / 2 ) ) );
+		drop( controller, pointToCell( new Point( entranceRoom.left + 1, entranceRoom.top + 1 ) ) );
 
-		int healing = pointToCell( new Point( 6, HEIGHT / 2 - 1 ) );
+		int healing = pointToCell( new Point( entranceRoom.right - 2, entranceRoom.top + 1 ) );
 		drop( new PotionOfHealing(), healing );
 
-		int shock = pointToCell( new Point( 6, HEIGHT / 2 + 1 ) );
+		int shock = pointToCell( new Point( WIDTH / 2, entranceRoom.bottom - 1 ) );
 		drop( new StoneOfShock(), shock );
 	}
 
-	/** 生成一台原型机（100 或 175） */
+	/** 生成一台原型机（100 或 175），只落在战斗区里 */
 	public WardenPrototype spawnPrototype( int model ) {
 		WardenPrototype p = new WardenPrototype( model );
 		int cell = randomRespawnCell( null );
 		if (cell == -1) {
-			//极端情况：找不到空位就放到场地中心附近
-			cell = pointToCell( new Point( WIDTH / 2, HEIGHT / 2 ) );
+			//极端情况：找不到空位就放到战斗区中心
+			cell = pointToCell( new Point( WIDTH / 2, arena.top + (arena.height() / 2) ) );
 		}
 		p.pos = cell;
 		if (Dungeon.level == this) {
@@ -156,11 +169,15 @@ public class WardenBossLevel extends Level {
 	@Override
 	public int randomRespawnCell( Char ch ) {
 		ArrayList<Integer> candidates = new ArrayList<>();
-		for (int i = 0; i < length(); i++) {
-			if (passable[i] && map[i] != Terrain.ENTRANCE && map[i] != Terrain.EXIT && map[i] != Terrain.LOCKED_EXIT
-					&& Actor.findChar( i ) == null
-					&& (!Char.hasProp( ch, Char.Property.LARGE ) || openSpace[i])) {
-				candidates.add( i );
+		//只在战斗区里随机：不能刷到上方初始房间，否则玩家一落地就撞上一排原型机
+		for (int y = arena.top; y < arena.bottom; y++) {
+			for (int x = arena.left; x < arena.right; x++) {
+				int i = y * WIDTH + x;
+				if (passable[i] && map[i] != Terrain.ENTRANCE && map[i] != Terrain.EXIT && map[i] != Terrain.LOCKED_EXIT
+						&& Actor.findChar( i ) == null
+						&& (!Char.hasProp( ch, Char.Property.LARGE ) || openSpace[i])) {
+					candidates.add( i );
+				}
 			}
 		}
 		if (candidates.isEmpty()) {

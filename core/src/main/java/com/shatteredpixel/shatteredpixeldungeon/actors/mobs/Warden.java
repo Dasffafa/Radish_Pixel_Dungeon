@@ -97,7 +97,15 @@ public class Warden extends Mob {
 	@Override
 	protected boolean act() {
 
-		if (!BossHealthBar.isAssigned( this ) && Dungeon.hero.fieldOfView[pos]) {
+		//注意：本类在 super.act()（→Mob.act→Char.act）之前就会调用 getCloser()，
+		//而视野数组正是在 Char.act() 里才初始化的，所以必须先自己补一次，
+		//否则第一回合走向原型机时 Dungeon.findPassable 会拿到 null 的 vis 直接崩。
+		if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()) {
+			fieldOfView = new boolean[Dungeon.level.length()];
+		}
+		Dungeon.level.updateFieldOfView( this, fieldOfView );
+
+		if (!BossHealthBar.isAssigned( this ) && Dungeon.level.heroFOV[pos]) {
 			notice();
 		}
 
