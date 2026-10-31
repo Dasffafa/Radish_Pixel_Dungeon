@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GoblinRider;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MobSprite;
 import com.watabou.noosa.MovieClip;
 import com.watabou.noosa.TextureFilm;
@@ -43,6 +44,24 @@ public class GoblinRiderSprite extends MobSprite {
         die.frames(frames, 13, 14, 15);
 
         play(idle);
+    }
+
+    /**
+     * 引擎只在 attack / operate 两种动画结束时回调 Char，zap 动画不会自动分发
+     * （见 CharSprite.onComplete）。骑手的投矛分支以 sprite.zap() 起手并返回 false
+     * 让动画先播，若动画结束时不回调 onZapComplete，演员线程会永远等不到 next()，
+     * 表现就是「卡住不动」——与 DeminionSprite / DeviloonSprite 同一套写法。
+     */
+    @Override
+    public void onComplete(Animation anim) {
+        super.onComplete(anim);
+
+        if (anim == zap) {
+            idle();
+            if (ch instanceof GoblinRider) {
+                ((GoblinRider) ch).onZapComplete();
+            }
+        }
     }
 
     @Override
