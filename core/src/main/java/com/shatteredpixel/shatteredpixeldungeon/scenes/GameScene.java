@@ -409,7 +409,11 @@ public class GameScene extends PixelScene {
 		if (uiSize == 2) {
 			inventory = new InventoryPane();
 			inventory.camera = uiCamera;
-			inventory.setPos(uiCamera.width - inventory.width(), uiCamera.height - inventory.height());
+			// 桌面端窗口可能被拉得很小/很扁，面板必须夹在可视区内，否则会超到窗口外面（只剩半块）
+			inventory.maxWidth  = Math.max( 90, (int)uiCamera.width );
+			inventory.maxHeight = Math.max( 60, (int)(uiCamera.height * 0.72f) );
+			inventory.setPos( Math.max(0, uiCamera.width - inventory.width()),
+					Math.max(0, uiCamera.height - inventory.height()) );
 			add(inventory);
 
 			toolbar.setRect( 0, uiCamera.height - toolbar.height() - inventory.height(), uiCamera.width, toolbar.height() );

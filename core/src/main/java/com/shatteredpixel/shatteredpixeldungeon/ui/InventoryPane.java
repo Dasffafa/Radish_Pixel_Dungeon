@@ -227,10 +227,14 @@ public class InventoryPane extends Component {
 		height = HEIGHT;
 	}
 
+	/** 外部（GameScene）根据窗口大小给的可用上限，保证面板不会超出屏幕。 */
+	public int maxWidth = Integer.MAX_VALUE;
+	public int maxHeight = Integer.MAX_VALUE;
+
 	@Override
 	protected void layout() {
-		width = WIDTH;
-		height = HEIGHT;
+		width = Math.min( WIDTH, maxWidth );
+		height = Math.min( HEIGHT, maxHeight );
 
 
 		bg.x = bg2.x = x;

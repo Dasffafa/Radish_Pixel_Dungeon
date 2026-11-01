@@ -114,8 +114,9 @@ public class WndBag extends WndTabbed {
 
 		// 标准布局：7 列 × 6 行（第一行是 6 个装备位），横屏与竖屏统一，跟桌面版一个样子。
 		// 屏幕确实放不下时先缩小格子，缩到最小还不行才减列数。
-		final int TARGET_COLS = 7;
-		final int TARGET_ROWS = 6;
+		// 破碎原版观感：6 列 × 7 行；第一行 6 个装备位正好占满一行
+		final int TARGET_COLS = 6;
+		final int TARGET_ROWS = 7;
 
 		int availW = (int)(PixelScene.uiCamera.width  * 0.94f - chrome.marginHor());
 		int availH = (int)(PixelScene.uiCamera.height * 0.82f - chrome.marginTop() - chrome.marginBottom() - TITLE_HEIGHT);
@@ -159,6 +160,7 @@ public class WndBag extends WndTabbed {
 		scrollSized = true;
 
 		resize( windowWidth, windowHeight );
+		// TEMP-DEBUG
 
 		int i = 1;
 		for (Bag b : Dungeon.hero.belongings.getBags()) {
@@ -275,6 +277,7 @@ public class WndBag extends WndTabbed {
 			scroll.setRect(0, TITLE_HEIGHT, width, scrollHeight);
 			scrollSized = true;
 		}
+		// TEMP-DEBUG
 	}
 
 	protected void placeItems( Bag container ) {

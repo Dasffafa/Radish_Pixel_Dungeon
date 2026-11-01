@@ -80,7 +80,7 @@ public abstract class SecondaryArmor extends EquipableItem {
 			hero.belongings.secondaryArmor = this;
 			// 装到次要护甲栏之后必须从背包里摘掉，否则背包里会同时留着一份（还带着“已装备”的高亮框）
 			detach( hero.belongings.backpack );
-			GLog.i(Messages.get(this, "equipped", name()));
+			// 原版穿戴装备不弹提示，这里也不弹（保留键仅作兼容）
 			return true;
 		}
 		return false;

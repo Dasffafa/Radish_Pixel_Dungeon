@@ -205,11 +205,12 @@ public class ScrollPane extends Component {
 		}
 
 		content.setPos( 0, 0 );
-		// 控制器是 ScrollPane 自己的子节点，坐标相对 ScrollPane 自身（0,0）。
-		// 原先写的 x/y 是“相对父窗口”的坐标，ScrollPane 一旦不放在 (0,0)（比如背包的 y=TITLE_HEIGHT），
-		// 控制器就会整体偏移到内容区之外，手指在格子上拖动永远收不到事件、滚动失效。
-		controller.x = 0;
-		controller.y = 0;
+		// 控制器是 ScrollPane 自己的子节点，但命中判定用的是父级相机坐标
+		// （Visual.overlapsScreenPoint → screenToCamera → overlapsPoint）。
+		// 所以控制器矩形必须落在视口在父级相机里的位置上，不能用 (0,0)：
+		// 背包视口的 y=TITLE_HEIGHT，用 0 会让内容下半截收不到按下事件，表现就是“滑不动”。
+		controller.x = x;
+		controller.y = y;
 		controller.width = width;
 		controller.height = height;
 
@@ -254,7 +255,6 @@ public class ScrollPane extends Component {
 			}
 		}
 
-		@Override
 		protected void onPointerDown( PointerEvent event ) {
 			// 按住缩略条 = 直接拖滚动条（桌面端和手机都适用）
 			if (thumb != null && thumb.visible) {
