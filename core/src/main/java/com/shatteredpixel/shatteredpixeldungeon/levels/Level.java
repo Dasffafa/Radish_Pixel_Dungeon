@@ -1063,14 +1063,22 @@ public abstract class Level implements Bundlable {
 
 		for (int i : PathFinder.NEIGHBOURS9){
 			i = cell + i;
+			//上游在这里有 insideMap 保护，本项目改没了：只要有一次 set() 落在边界格上，
+			//邻居索引就会越界（曾导致第十层典狱长关卡 ArrayIndexOutOfBoundsException: index=-4）。
+			//内层 CIRCLE8 同样要判，避免贴着边界时 i+offset 越界。
+			if (!level.insideMap(i)) continue;
 			if (level.solid[i]){
 				level.openSpace[i] = false;
 			} else {
 				for (int j = 1; j < PathFinder.CIRCLE8.length; j += 2){
-					if (level.solid[i+PathFinder.CIRCLE8[j]]) {
+					int a = i + PathFinder.CIRCLE8[j];
+					if (!level.insideMap(a)) continue;
+					int b = i + PathFinder.CIRCLE8[(j+1)%8];
+					int c = i + PathFinder.CIRCLE8[(j+2)%8];
+					if (level.solid[a]) {
 						level.openSpace[i] = false;
-					} else if (!level.solid[i+PathFinder.CIRCLE8[(j+1)%8]]
-							&& !level.solid[i+PathFinder.CIRCLE8[(j+2)%8]]){
+					} else if (level.insideMap(b) && level.insideMap(c)
+							&& !level.solid[b] && !level.solid[c]){
 						level.openSpace[i] = true;
 						break;
 					}

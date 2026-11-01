@@ -42,17 +42,17 @@ public class WardenBossLevel extends Level {
 		color2 = 0x6a6a75;
 	}
 
-	//竖放的长条牢房：入口小房间在最下端，开门直接进入上方的战斗区
-	private static final int WIDTH  = 12;
-	private static final int HEIGHT = 22;
+	//严格按用户给的地形片段：整层 13 宽 × 18 高，四周留一圈墙。
+	//片段坐标（left=0, top=0）：墙 y=12 两段、竖墙 x=3/x=9（y=13..16）、入口 (6,16)、门 (6,12)
+	private static final int WIDTH  = 13;
+	private static final int HEIGHT = 18;
 
-	//入口初始房间（最下方）：按用户给的地形片段做成 5 格宽的小间
-	//（左右两堵竖墙把入口围住，顶上开一扇门直通战斗区）。Rect 的 right/bottom 是开区间。
-	private static final Rect entranceRoom = new Rect( 3, 13, 9, 18 );
-	//房间顶墙那格：这里放门，普通门（不用钥匙），开门就进战斗区
-	private static final Point doorCell = new Point( 6, 13 );
-	//战斗区（上方大长方形），底墙与初始房间顶墙隔一格，门正好开在这层墙上
-	private static final Rect arena = new Rect( 1, 1, 11, 14 );
+	//下方初始房间：x=4..8, y=13..16（外圈 x=3/x=9 与 y=12 是墙）
+	private static final Rect entranceRoom = new Rect( 3, 12, 10, 17 );
+	//房间顶墙那格：这里放门，开门直接进战斗区
+	private static final Point doorCell = new Point( 6, 12 );
+	//战斗区（上方大长方形）：x=1..11, y=1..11
+	private static final Rect arena = new Rect( 1, 1, 12, 12 );
 
 	//两种“图画”随机：A=旧石地（零散碎石），B=破损地砖（裂痕 + 墙饰）
 	private boolean variantB = false;
