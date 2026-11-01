@@ -177,6 +177,7 @@ public class WardenBossLevel extends Level {
 
 		//控制器与补给都放在上方初始房间里，玩家进战斗区之前就能拿到
 		SimpleController controller = new SimpleController();
+		controller.identify();
 		drop( controller, pointToCell( new Point( entranceRoom.left + 1, entranceRoom.top + 2 ) ) );
 
 		int healing = pointToCell( new Point( entranceRoom.right - 2, entranceRoom.top + 2 ) );

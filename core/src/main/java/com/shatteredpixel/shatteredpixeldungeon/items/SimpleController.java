@@ -11,6 +11,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -73,9 +74,12 @@ public class SimpleController extends Item {
 				return;
 			}
 			p.beginHeroActivation();
+			//操控期间英雄被定在原地，破解完成前不能行动
+			Paralysis.prolong( curUser, Paralysis.class, p.playerActivationTurns() );
+			GLog.i( Messages.get( SimpleController.class, "hacking_lock" ) );
 			//使用控制器要占掉一回合，和同类的投掷/使用道具保持一致
 			curUser.spendAndNext( 1f );
-			detach( curUser.belongings.backpack );
+			//控制器是长期道具，用过之后留在背包里
 		}
 
 		@Override
