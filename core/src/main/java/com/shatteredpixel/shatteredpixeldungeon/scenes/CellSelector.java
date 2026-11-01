@@ -191,6 +191,10 @@ public class CellSelector extends ScrollArea {
 	protected void onPointerDown( PointerEvent event ) {
 		camera.edgeScroll.set(-1);
 		if (curEvent == event) {
+			//每次按下都重置拖动状态：否则上一轮拖动结束后 dragging 仍是 true，
+			//下一次按下时第一个拖动事件会用上一轮的 lastPos 算差值，视图会整块跳走。
+			dragging = false;
+			lastPos.set(event.current);
 			longPressCandidate = !DeviceCompat.isDesktop() && event.button == PointerEvent.LEFT;
 			longPressStart = Game.timeTotal;
 		}
