@@ -37,6 +37,16 @@ public class SecondaryArmorSpawner extends TestGenerator {
 		return "使用后随机生成一件次要护甲放进背包。";
 	}
 
+	//动作按钮文字直接写死，不走 Messages 查表：
+	//这个类的键在中文/英文 properties 里各有多个大小写变体，查表经常落到“找不到文本”上
+	@Override
+	public String actionName( String action, Hero hero ) {
+		if (AC_GIVE.equals( action )) {
+			return "生成";
+		}
+		return super.actionName( action, hero );
+	}
+
 	@Override
 	public void execute( Hero hero, String action ) {
 		super.execute( hero, action );

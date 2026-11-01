@@ -1400,9 +1400,19 @@ public class GameScene extends PixelScene {
 		if (scene != null) {
 			boolean stealthyMimics = MimicTooth.stealthyMimics();
 			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+				//精灵丢了（被回收、没挂上场景、或指向已经销毁的那一个）就补挂一次，
+				//否则场上会留一个彻底看不见、但照样会打人的怪物
+				if (mob.sprite == null || mob.sprite.parent == null){
+					scene.addMobSprite( mob );
+				}
 				if (mob.sprite != null) {
 					if (stealthyMimics && mob instanceof Mimic && mob.state == mob.PASSIVE && mob.sprite.visible){
 						//mimics stay visible in fog of war after being first seen
+						mob.sprite.visible = true;
+					} else if (mob instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype
+							&& com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar.isAssigned()){
+						//典狱长战期间整个战斗区都是亮的，原型机一律常显，
+						//避免出现“机器看不见却照样攻击/被攻击”的情况
 						mob.sprite.visible = true;
 					} else {
 						mob.sprite.visible = Dungeon.level.heroFOV[mob.pos];

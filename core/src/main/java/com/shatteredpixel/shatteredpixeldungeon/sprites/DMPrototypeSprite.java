@@ -34,10 +34,18 @@ public class DMPrototypeSprite extends MobSprite {
 		inactiveAnim = new Animation( 1, true );
 		inactiveAnim.frames( frames, 0 );
 
+		//四条动画各自独立：共用同一个 Animation 实例会让受击/攻击把待机动画的
+		//播放进度一起改掉，而且 die 若是循环的，死亡动画永远不会结束、尸体不会消失
 		idle = inactiveAnim;
-		run = inactiveAnim;
-		attack = inactiveAnim;
-		die = inactiveAnim;
+
+		run = new Animation( 1, true );
+		run.frames( frames, 0 );
+
+		attack = new Animation( 1, false );
+		attack.frames( frames, 0, 1 );
+
+		die = new Animation( 1, false );
+		die.frames( frames, 0, 1 );
 
 		play( idle );
 	}
