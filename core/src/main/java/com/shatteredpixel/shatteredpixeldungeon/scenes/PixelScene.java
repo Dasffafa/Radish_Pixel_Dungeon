@@ -131,7 +131,10 @@ public class PixelScene extends Scene {
 		int minUIScale = (int)Math.ceil( Game.density * 2 );
 		int storedScale = SPDSettings.scale();
 		if (storedScale > 0) {
-			defaultZoom = (int)GameMath.gate( minUIScale, storedScale, maxDefaultZoom );
+			// 设置里的 N X 表示“屏幕按 N 等分来画”，所以 N 越大、每格越小、界面越小。
+			// 6X = 最粗（界面最大），8X = 最细（界面最小）。
+			int inverted = minUIScale + maxDefaultZoom - storedScale;
+			defaultZoom = (int)GameMath.gate( minUIScale, inverted, maxDefaultZoom );
 		} else {
 			defaultZoom = (int)GameMath.gate(2, (int)Math.ceil( Game.density * scaleFactor ), maxDefaultZoom);
 
