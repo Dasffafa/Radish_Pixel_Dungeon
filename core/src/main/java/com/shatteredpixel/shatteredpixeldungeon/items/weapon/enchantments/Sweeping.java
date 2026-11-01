@@ -14,6 +14,12 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
  */
 public class Sweeping extends Weapon.Enchantment {
 
+	//横扫是挥砍动作：判定的是「目标两侧」的贴身敌人，灵能弓是远程，不划进它的池子
+	@Override
+	public boolean canEnchant( Weapon weapon ){
+		return !isRangedWeapon( weapon );
+	}
+
     private static final ItemSprite.Glowing CRIMSON = new ItemSprite.Glowing( 0xC03030 );
 
     private static final float BASE_RATIO = 0.35f;
