@@ -167,6 +167,9 @@ public class Camera extends Gizmo {
 	//keep in mind though that this speed is constantly decreasing, so actual pan time is higher
 	float panIntensity = 0f;
 
+	//手动拖动地图期间置 true：Camera.update() 会跳过自动跟随/回正
+	public boolean manualPanning = false;
+
 	//what percentage of the screen to ignore when follow panning.
 	// 0% means always keep in the center, 50% would mean pan until target is within center 50% of screen
 	float followDeadzone = 0f;
@@ -174,6 +177,10 @@ public class Camera extends Gizmo {
 	@Override
 	public void update() {
 		super.update();
+
+		//玩家正在手动拖动地图时不跟随、不回正：只要有任何一处调用了 panFollow/panTo
+		//（角色移动、危险提示、切场景等），画面就会“以拖动起点为中心”被拉回去。
+		if (manualPanning) return;
 
 		float deadX = 0;
 		float deadY = 0;

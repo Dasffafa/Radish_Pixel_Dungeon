@@ -218,6 +218,7 @@ public class CellSelector extends ScrollArea {
 	@Override
 	protected void onPointerUp( PointerEvent event ) {
 		camera.edgeScroll.set(1);
+		camera.manualPanning = false;
 		if (pinching && (event == curEvent || event == another)) {
 			
 			pinching = false;
@@ -255,6 +256,8 @@ public class CellSelector extends ScrollArea {
 				dragging = true;
 				longPressCandidate = false;
 				lastPos.set( event.current );
+				//拖动期间彻底关掉相机自动跟随，避免任何 panFollow/panTo 把画面拉回去
+				camera.manualPanning = true;
 				
 			} else if (dragging) {
 				camera.shift( PointF.diff( lastPos, event.current ).invScale( camera.zoom ) );
