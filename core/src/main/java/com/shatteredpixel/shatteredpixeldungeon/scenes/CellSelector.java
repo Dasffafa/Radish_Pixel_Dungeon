@@ -58,7 +58,9 @@ public class CellSelector extends ScrollArea {
 		super( map );
 		camera = map.camera();
 		
-		dragThreshold = PixelScene.defaultZoom * DungeonTilemap.SIZE / 2;
+		//破碎原版是半格（defaultZoom*32/2），在手机上高达上百设备像素，划一小段仍会被判成“点击”，
+		//于是主角走到抬手处、镜头跟着追回去 = 玩家看到的“拖动被校正回起点”。这里降到 1/4 格。
+		dragThreshold = PixelScene.defaultZoom * DungeonTilemap.SIZE / 4;
 		
 		mouseZoom = camera.zoom;
 		KeyEvent.addKeyListener( keyListener );
@@ -84,7 +86,8 @@ public class CellSelector extends ScrollArea {
 		//长按判定会在拖动开始前抢先把点击当成右键，表现就是“拖一下视野就跳回/校正到起点”。
 		longPressCandidate = false;
 
-		if (dragging) {
+		//只要抬手时离按下点超过 8 像素，就绝不当成“点击”：否则会下移动指令、主角走过去、镜头再追回去
+		if (dragging || PointF.distance( event.current, event.start ) > 8) {
 			
 			dragging = false;
 			
