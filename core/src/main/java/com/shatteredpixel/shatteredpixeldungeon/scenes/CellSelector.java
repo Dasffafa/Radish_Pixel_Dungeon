@@ -80,11 +80,8 @@ public class CellSelector extends ScrollArea {
 	
 	@Override
 	protected void onClick( PointerEvent event ) {
-		if (longPressCandidate && listener != null && listener.supportsLongPressRightClick()
-				&& Game.timeTotal - longPressStart >= LONG_PRESS_TIME) {
-			event.button = PointerEvent.RIGHT;
-			PointerEvent.setHoverPos(event.current);
-		}
+		//安卓上不再把“长按”当成右键：拖动地图时手指必然先按住一会儿，
+		//长按判定会在拖动开始前抢先把点击当成右键，表现就是“拖一下视野就跳回/校正到起点”。
 		longPressCandidate = false;
 
 		if (dragging) {
@@ -191,7 +188,7 @@ public class CellSelector extends ScrollArea {
 	protected void onPointerDown( PointerEvent event ) {
 		camera.edgeScroll.set(-1);
 		if (curEvent == event) {
-			longPressCandidate = !DeviceCompat.isDesktop() && event.button == PointerEvent.LEFT;
+			longPressCandidate = false;
 			longPressStart = Game.timeTotal;
 		}
 		if (event != curEvent && another == null) {
