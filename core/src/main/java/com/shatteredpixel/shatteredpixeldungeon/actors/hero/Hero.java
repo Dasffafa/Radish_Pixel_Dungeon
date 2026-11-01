@@ -2097,6 +2097,11 @@ public class Hero extends Char {
 			GLog.w( Messages.get(Charm.class, "cant_attack"));
 			ready();
 			return false;
+		} else if (buff(Terror.class) != null){
+			// 恐惧期间双手发抖，无法使用近战攻击（远程、法杖、投掷仍可用）
+			GLog.w( Messages.get(Hero.class, "fear_no_melee"));
+			ready();
+			return false;
 		}
 
 		if (enemy.isAlive() && canAttack( enemy ) && enemy.invisible == 0) {

@@ -46,8 +46,10 @@ public class GoblinRider extends Goblin {
     private static final String SPEARREMAIN = "SpearRemain";
     private int spearRemain = 3;
 
-    // 本次攻击是否为远程投矛（由 doAttack 设置，onAttackComplete 读取）
+    // 本次攻击是否为远程投矛（由 doAttack 设置，onZapComplete 读取）
     private boolean rangedAttack = false;
+    // 本次投矛的落点（doAttack 时就算好，动画结束后直接用，避免 enemy 中途失效）
+    private int spearCell = -1;
 
     @Override
     public void storeInBundle(Bundle bundle) {
@@ -113,11 +115,13 @@ public class GoblinRider extends Goblin {
         // 远程投矛
         rangedAttack = true;
         spearRemain = Math.max(spearRemain - 1, 0);
+        spearCell = new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos;
         if (visible) {
             sprite.zap(enemy.pos);
             return false;
         } else {
-            resolveSpear(new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos);
+            resolveSpear(spearCell);
+            spearCell = -1;
             Invisibility.dispel(this);
             spend(attackDelay());
             rangedAttack = false;
@@ -128,9 +132,8 @@ public class GoblinRider extends Goblin {
     @Override
     public void onAttackComplete() {
         if (rangedAttack) {
-            launchSpear();
-            rangedAttack = false;
-            // 不调用 super，避免再次造成近战伤害
+            // 远程分支理论上不会走到这里，保底结算，避免回合不结束
+            finishRanged();
         } else {
             super.onAttackComplete();
         }
@@ -139,8 +142,7 @@ public class GoblinRider extends Goblin {
     @Override
     public void onZapComplete() {
         if (rangedAttack) {
-            launchSpear();
-            rangedAttack = false;
+            finishRanged();
         } else {
             spend(attackDelay());
             next();
@@ -148,28 +150,30 @@ public class GoblinRider extends Goblin {
     }
 
     /**
-     * 投出捕鱼矛。投掷物只作视觉飞行，命中与否都不会生成可拾取的实体。
+     * 投矛结算：算伤害 → 放一个纯视觉的飞行物 → 无条件结束本回合。
+     * 这里绝不能再把 spend()/next() 交给 MissileSprite 的回调：
+     * 回调一旦丢失（精灵被回收、中途切层、目标死亡）就会永远不结束回合，表现为骑手原地空转、玩家卡死。
      */
-    private void launchSpear() {
-        if (sprite == null || sprite.parent == null || enemy == null) {
-            // 必须先 spend 再 next：只 next 不 spend 会让时间停在同一刻，actor 被无限重排
-            spend(attackDelay());
-            next();
-            return;
+    private void finishRanged() {
+        rangedAttack = false;
+        int cell = spearCell >= 0 ? spearCell : pos;
+        spearCell = -1;
+
+        resolveSpear(cell);
+        Invisibility.dispel(this);
+
+        if (sprite != null && sprite.parent != null) {
+            ((MissileSprite) sprite.parent.recycle(MissileSprite.class)).reset(
+                    sprite, cell, new FishingSpear(), new Callback() {
+                        @Override
+                        public void call() {
+                            // 仅视觉，不承担任何结算
+                        }
+                    });
         }
 
-        int cell = new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos;
-
-        ((MissileSprite) sprite.parent.recycle(MissileSprite.class)).reset(
-                sprite, cell, new FishingSpear(), new Callback() {
-                    @Override
-                    public void call() {
-                        resolveSpear(cell);
-                        Invisibility.dispel(GoblinRider.this);
-                        spend(attackDelay());
-                        next();
-                    }
-                });
+        spend(attackDelay());
+        next();
     }
 
     /**

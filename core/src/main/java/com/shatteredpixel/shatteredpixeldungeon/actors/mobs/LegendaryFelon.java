@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Prisoner;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
@@ -17,10 +18,14 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.EarthParticle;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.FelonSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.DaughterWine;
+import com.watabou.noosa.Camera;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
@@ -42,6 +47,7 @@ import com.watabou.utils.Random;
 public class LegendaryFelon extends Prisoner {
 
 	private int skillCd = 0;
+	private int roarCd = 0;
 	private int markedCell = -1;
 	private int quakeRing = 0;
 	private boolean leaping = false;
@@ -76,6 +82,9 @@ public class LegendaryFelon extends Prisoner {
 		if (skillCd > 0) {
 			skillCd--;
 		}
+		if (roarCd > 0) {
+			roarCd--;
+		}
 		// 独立血条
 		if (!BossHealthBar.isAssigned()) {
 			BossHealthBar.assignBoss( this );
@@ -83,7 +92,25 @@ public class LegendaryFelon extends Prisoner {
 		if (HP * 2 <= HT) {
 			BossHealthBar.bleed( true );
 		}
+		// 作为 Boss：一旦进入战斗状态就封锁本层，打完才能离开（同史莱姆王）
+		if (state != SLEEPING && Dungeon.level != null && !Dungeon.level.locked) {
+			Dungeon.level.seal();
+			GLog.n( Messages.get( this, "seal" ) );
+		}
 		return super.act();
+	}
+
+	/**
+	 * 战吼：对视野内的英雄施加恐惧，恐惧期间英雄无法使用近战攻击。
+	 */
+	private void roar( Char target ) {
+		roarCd = 22;
+		if (target != null && target.isAlive()) {
+			Buff.prolong( target, Terror.class, 8f ).object = id();
+			target.sprite.showStatus( CharSprite.NEGATIVE, Messages.get( this, "roar_status" ) );
+		}
+		GLog.w( Messages.get( this, "roar" ) );
+		Camera.main.shake( 4, 0.4f );
 	}
 
 	@Override
@@ -93,6 +120,9 @@ public class LegendaryFelon extends Prisoner {
 		int wine = Random.NormalIntRange( 1, 2 );
 		if (wine > 0) {
 			Dungeon.level.drop( new DaughterWine().quantity( wine ), pos ).sprite.drop();
+		}
+		if (Dungeon.level != null) {
+			Dungeon.level.unseal();
 		}
 		super.die( cause );
 	}
@@ -108,6 +138,14 @@ public class LegendaryFelon extends Prisoner {
 				target = Dungeon.hero;
 			} else if (enemyInFOV && enemy != null && enemy.isAlive()) {
 				target = enemy;
+			}
+
+			if (roarCd <= 0 && target != null
+					&& Dungeon.level.distance( pos, target.pos ) <= 7
+					&& target.buff( Terror.class ) == null) {
+				roar( target );
+				spend( TICK );
+				return true;
 			}
 
 			if (skillCd <= 0 && target != null

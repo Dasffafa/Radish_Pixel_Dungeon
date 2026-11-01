@@ -46,14 +46,16 @@ public class WardenBossLevel extends Level {
 	private static final int WIDTH  = 12;
 	private static final int HEIGHT = 22;
 
-	//入口初始房间（最下方），照抄天狗（PrisonBossLevel）第一个房间的样子：
-	//一个小房间，外圈墙、内圈空，顶墙上开一扇门，直接通进战斗区（没有单独的长走廊）。
-	//Rect 的 right/bottom 是开区间。
-	private static final Rect entranceRoom = new Rect( 3, 13, 9, 19 );
+	//入口初始房间（最下方）：按用户给的地形片段做成 5 格宽的小间
+	//（左右两堵竖墙把入口围住，顶上开一扇门直通战斗区）。Rect 的 right/bottom 是开区间。
+	private static final Rect entranceRoom = new Rect( 3, 13, 9, 18 );
 	//房间顶墙那格：这里放门，普通门（不用钥匙），开门就进战斗区
 	private static final Point doorCell = new Point( 6, 13 );
 	//战斗区（上方大长方形），底墙与初始房间顶墙隔一格，门正好开在这层墙上
 	private static final Rect arena = new Rect( 1, 1, 11, 14 );
+
+	//两种“图画”随机：A=旧石地（零散碎石），B=破损地砖（裂痕 + 墙饰）
+	private boolean variantB = false;
 
 	private static final String BOSS_DEAD = "boss_dead";
 
@@ -95,21 +97,42 @@ public class WardenBossLevel extends Level {
 		//房间顶墙上的门：普通门，不用钥匙，开门直接进战斗区
 		Level.set( pointToCell( doorCell ), Terrain.DOOR, this );
 
-		//点亮一些装饰，让长条牢房不那么空
-		for (int i = 0; i < 6; i++) {
-			int x = Random.IntRange( arena.left + 1, arena.right - 2 );
-			int y = Random.IntRange( arena.top + 1, arena.bottom - 2 );
-			int cell = pointToCell( new Point( x, y ) );
-			if (map[cell] == Terrain.EMPTY) {
-				//注意：build() 期间 Dungeon.level 还没指向本关，2 参 set() 会拿到 null 抛 NPE，
-				//一律显式传 this 走 3 参版本
-				Level.set( cell, Terrain.EMPTY_DECO, this );
+		//点亮一些装饰，让长条牢房不那么空（两种图画二选一）
+		variantB = Random.Int(2) == 1;
+		if (variantB) {
+			//B：破损地砖 —— 战斗区里散布裂痕地面，墙脚加墙饰
+			for (int y = arena.top + 1; y < arena.bottom - 1; y++) {
+				for (int x = arena.left + 1; x < arena.right - 1; x++) {
+					int cell = pointToCell( new Point( x, y ) );
+					if (map[cell] == Terrain.EMPTY && Random.Int(5) == 0) {
+						Level.set( cell, Terrain.EMPTY_SP, this );
+					}
+				}
+			}
+			for (int i = 0; i < 4; i++) {
+				int x = Random.IntRange( arena.left + 1, arena.right - 2 );
+				int y = arena.top + 1;
+				int cell = pointToCell( new Point( x, y ) );
+				if (map[cell] == Terrain.WALL) {
+					Level.set( cell, Terrain.WALL_DECO, this );
+				}
+			}
+		} else {
+			//A：旧石地 —— 零散碎石装饰
+			for (int i = 0; i < 6; i++) {
+				int x = Random.IntRange( arena.left + 1, arena.right - 2 );
+				int y = Random.IntRange( arena.top + 1, arena.bottom - 2 );
+				int cell = pointToCell( new Point( x, y ) );
+				if (map[cell] == Terrain.EMPTY) {
+					//注意：build() 期间 Dungeon.level 还没指向本关，2 参 set() 会拿到 null 抛 NPE，
+					//一律显式传 this 走 3 参版本
+					Level.set( cell, Terrain.EMPTY_DECO, this );
+				}
 			}
 		}
 
-		//入口放在初始房间的左下角（不要放在房间正中的通道口）：玩家从上一层下来就站在这里，
-		//放在正中时只要往回走一步就会又踩到入口、被送回上一层
-		int entrance = pointToCell( new Point( entranceRoom.left + 1, entranceRoom.bottom - 2 ) );
+		//入口放在初始房间底部正中（与用户给的地形片段一致）
+		int entrance = pointToCell( new Point( doorCell.x, entranceRoom.bottom - 1 ) );
 		Level.set( entrance, Terrain.ENTRANCE, this );
 		transitions.add( new LevelTransition( this, entrance, LevelTransition.Type.REGULAR_ENTRANCE ) );
 
