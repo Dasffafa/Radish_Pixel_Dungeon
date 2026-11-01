@@ -215,6 +215,18 @@ public class SewerLevel extends RegularLevel {
 			if (room(cell) == null) {
 				continue;
 			}
+			// 还要求上下左右四格都能走：避免站在一格宽的窄道/门口，被玩家堵住过不去。
+			boolean open = true;
+			for (int dir : com.watabou.utils.PathFinder.NEIGHBOURS4) {
+				int n = cell + dir;
+				if (n < 0 || n >= total || !passable[n] || pit[n]) {
+					open = false;
+					break;
+				}
+			}
+			if (!open) {
+				continue;
+			}
 			candidates.add(cell);
 		}
 		if (candidates.isEmpty()) {

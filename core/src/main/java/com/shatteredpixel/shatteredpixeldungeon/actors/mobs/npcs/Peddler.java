@@ -136,30 +136,26 @@ public class Peddler extends NPC {
 
 	@Override
 	public void damage( DamageInfo info ) {
-		// 挨打就跑：对照上游 takeDamage → flee()
-		flee();
+		// 测试用 NPC：不会死，挨打也只是站着不动（不再挨打就跑/消失）
 	}
 
-	@Override
-	public boolean add( Buff buff ) {
-		if (buff.type == Buff.buffType.NEGATIVE) {
-			flee();
-			return true;
-		}
-		return super.add( buff );
-	}
+	/** 与英雄换位（对话选项「换位」） */
+	public void swapWithHero() {
+		Hero hero = Dungeon.hero;
+		if (hero == null) return;
 
-	/** 消失并冒烟，上游 flee() 的同款效果。 */
-	private void flee() {
+		int myPos = pos;
+		pos = hero.pos;
+		hero.pos = myPos;
+
 		if (sprite != null) {
-			sprite.parent.remove( sprite );
+			sprite.place( pos );
 		}
-		die( null );
-
-		if (Dungeon.level != null) {
-			Dungeon.level.mobs.remove( this );
+		if (hero.sprite != null) {
+			hero.sprite.place( hero.pos );
 		}
-		GLog.i( Messages.get( Peddler.class, "flee" ) );
+		Dungeon.observe();
+		GLog.i( Messages.get( Peddler.class, "swap_done" ) );
 	}
 
 	@Override
@@ -249,6 +245,15 @@ public class Peddler extends NPC {
 				}
 				break;
 		}
+
+		// 换位：测试时常用，把玩家和游商的位置对调，方便让开通道或凑近货架
+		labels.add( Messages.get( Peddler.class, "opt_swap" ) );
+		cbs.add( new Callback() {
+			@Override
+			public void call() {
+				self.swapWithHero();
+			}
+		} );
 
 		labels.add( Messages.get( Peddler.class, "opt_leave" ) );
 		cbs.add( null );

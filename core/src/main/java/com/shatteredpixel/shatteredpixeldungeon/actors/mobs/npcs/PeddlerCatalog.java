@@ -203,7 +203,8 @@ public final class PeddlerCatalog {
 	 */
 	public static int price( Item item ) {
 		if (item == null) return 0;
-		int p = item.value();
+		// 标准商人价：与普通商店（Shopkeeper.sellPrice）同一口径，不再用偏低的 Item.value()
+		int p = Shopkeeper.sellPrice( item );
 		if (p < 1) p = 1;
 		return p;
 	}
