@@ -58,9 +58,7 @@ public class CellSelector extends ScrollArea {
 		super( map );
 		camera = map.camera();
 		
-		//破碎原版是半格（defaultZoom*32/2），在手机上高达上百设备像素，划一小段仍会被判成“点击”，
-		//于是主角走到抬手处、镜头跟着追回去 = 玩家看到的“拖动被校正回起点”。这里降到 1/4 格。
-		dragThreshold = PixelScene.defaultZoom * DungeonTilemap.SIZE / 4;
+		dragThreshold = PixelScene.defaultZoom * DungeonTilemap.SIZE / 2;
 		
 		mouseZoom = camera.zoom;
 		KeyEvent.addKeyListener( keyListener );
@@ -82,12 +80,14 @@ public class CellSelector extends ScrollArea {
 	
 	@Override
 	protected void onClick( PointerEvent event ) {
-		//安卓上不再把“长按”当成右键：拖动地图时手指必然先按住一会儿，
-		//长按判定会在拖动开始前抢先把点击当成右键，表现就是“拖一下视野就跳回/校正到起点”。
+		if (longPressCandidate && listener != null && listener.supportsLongPressRightClick()
+				&& Game.timeTotal - longPressStart >= LONG_PRESS_TIME) {
+			event.button = PointerEvent.RIGHT;
+			PointerEvent.setHoverPos(event.current);
+		}
 		longPressCandidate = false;
 
-		//只要抬手时离按下点超过 8 像素，就绝不当成“点击”：否则会下移动指令、主角走过去、镜头再追回去
-		if (dragging || PointF.distance( event.current, event.start ) > 8) {
+		if (dragging) {
 			
 			dragging = false;
 			
@@ -191,7 +191,7 @@ public class CellSelector extends ScrollArea {
 	protected void onPointerDown( PointerEvent event ) {
 		camera.edgeScroll.set(-1);
 		if (curEvent == event) {
-			longPressCandidate = false;
+			longPressCandidate = !DeviceCompat.isDesktop() && event.button == PointerEvent.LEFT;
 			longPressStart = Game.timeTotal;
 		}
 		if (event != curEvent && another == null) {
@@ -218,7 +218,6 @@ public class CellSelector extends ScrollArea {
 	@Override
 	protected void onPointerUp( PointerEvent event ) {
 		camera.edgeScroll.set(1);
-		camera.manualPanning = false;
 		if (pinching && (event == curEvent || event == another)) {
 			
 			pinching = false;
@@ -256,8 +255,6 @@ public class CellSelector extends ScrollArea {
 				dragging = true;
 				longPressCandidate = false;
 				lastPos.set( event.current );
-				//拖动期间彻底关掉相机自动跟随，避免任何 panFollow/panTo 把画面拉回去
-				camera.manualPanning = true;
 				
 			} else if (dragging) {
 				camera.shift( PointF.diff( lastPos, event.current ).invScale( camera.zoom ) );

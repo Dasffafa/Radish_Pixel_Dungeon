@@ -47,9 +47,9 @@ public class WardenBossLevel extends Level {
 	private static final int WIDTH  = 13;
 	private static final int HEIGHT = 18;
 
-	//下方初始房间：x=4..8, y=13..16（外圈 x=3/x=9 与 y=12 是墙）
-	//注意 top 必须是 13：写 12 会把隔墙那一行也挖空，门两边就漏了
-	private static final Rect entranceRoom = new Rect( 3, 13, 10, 17 );
+	//下方初始房间：只挖 x=4..8, y=13..16（left/top 是闭区间、right/bottom 是开区间），
+	//外圈 x=3、x=9、y=12、y=17 保留为墙，门只开在 (6,12) 这一格
+	private static final Rect entranceRoom = new Rect( 4, 13, 9, 17 );
 	//房间顶墙那格：这里放门，开门直接进战斗区
 	private static final Point doorCell = new Point( 6, 12 );
 	//战斗区（上方大长方形）：x=1..11, y=1..11
