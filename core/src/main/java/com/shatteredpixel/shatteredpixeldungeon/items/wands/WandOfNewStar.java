@@ -80,7 +80,9 @@ public class WandOfNewStar extends DamageWand {
                                     && target.alignment == Char.Alignment.NEUTRAL;
                             if (isHiddenMimic || target.alignment == Char.Alignment.ENEMY) {
                                 target.damage(DamageInfo.of(damageRoll() == 0 ? 1 : damageRoll(), DamageType.HOLY, curUser, this));
-                                target.sprite.burst(0xFFFFFFFF, buffedLvl() / 2 + 2);
+                                if (target.sprite != null) {
+                                    target.sprite.burst(0xFFFFFFFF, buffedLvl() / 2 + 2);
+                                }
                             } else if (target.alignment == Char.Alignment.ALLY || target instanceof Hero) {
                                 Buff.affect(target, Barrier.class).setShield(shield);
                             }
@@ -110,13 +112,8 @@ public class WandOfNewStar extends DamageWand {
         executeStarEffect(centerChar);
         Sample.INSTANCE.play(Assets.Sounds.ZAP);
 
-        // WondrousResin 额外效果
-        if (Random.Float() < WondrousResin.extraCurseEffectChance()) {
-            WondrousResin.forcePositive = true;
-            CursedWand.cursedZap(this, curUser, bolt, () -> {
-                WondrousResin.forcePositive = false;
-            });
-        }
+        // WondrousResin 的额外效果由 Wand.zap() 统一处理（那里会在回调里调 wandUsed()）。
+        // 这里再调一次 cursedZap 会重复施法，并且它的回调不释放 busy，导致施法后卡住。
     }
 
     @Override

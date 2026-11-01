@@ -1400,11 +1400,6 @@ public class GameScene extends PixelScene {
 		if (scene != null) {
 			boolean stealthyMimics = MimicTooth.stealthyMimics();
 			for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-				//精灵丢了（被回收、没挂上场景、或指向已经销毁的那一个）就补挂一次，
-				//否则场上会留一个彻底看不见、但照样会打人的怪物
-				if (mob.sprite == null || mob.sprite.parent == null){
-					scene.addMobSprite( mob );
-				}
 				if (mob.sprite != null) {
 					if (stealthyMimics && mob instanceof Mimic && mob.state == mob.PASSIVE && mob.sprite.visible){
 						//mimics stay visible in fog of war after being first seen
