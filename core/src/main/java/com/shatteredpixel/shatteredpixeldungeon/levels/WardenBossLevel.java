@@ -91,9 +91,11 @@ public class WardenBossLevel extends Level {
 		Painter.fill( this, 0, 0, WIDTH, HEIGHT, Terrain.WALL );
 
 		//下方初始房间：玩家从上一层下来先落在这里，看不到也打不到 Boss
-		Painter.fill( this, entranceRoom, 1, Terrain.EMPTY );
-		//战斗区
-		Painter.fill( this, arena, 1, Terrain.EMPTY );
+		//注意：Painter.fill(level, rect, m, value) 的 m 是“四边内缩”，不是地形值！
+		//之前写成 fill(arena, 1, EMPTY) 实际只挖了内缩一圈的 9x9，导致门(6,12)正上方(6,11)还是墙，
+		//门后面是实心的，玩家怎么都进不去战斗区。这里改用显式 xywh 版本。
+		Painter.fill( this, 1, 1, WIDTH - 2, doorCell.y - 1, Terrain.EMPTY );        //战斗区 x1..11, y1..11
+		Painter.fill( this, 4, doorCell.y + 1, 5, 4, Terrain.EMPTY );                //入口房 x4..8, y13..16
 
 		//房间顶墙上的门：普通门，不用钥匙，开门直接进战斗区
 		Level.set( pointToCell( doorCell ), Terrain.DOOR, this );
@@ -112,8 +114,8 @@ public class WardenBossLevel extends Level {
 			}
 			for (int i = 0; i < 4; i++) {
 				int x = Random.IntRange( arena.left + 1, arena.right - 2 );
-				//arena.top 才是战斗区上方那排墙，+1 已经是地板了，之前写 +1 永远不会生效
-				int y = arena.top;
+				//战斗区内部从 arena.top 就开始了，墙在更上面一行（y=0）
+				int y = Math.max( 0, arena.top - 1 );
 				int cell = pointToCell( new Point( x, y ) );
 				if (map[cell] == Terrain.WALL) {
 					Level.set( cell, Terrain.WALL_DECO, this );
