@@ -538,6 +538,10 @@ abstract public class Weapon extends KindOfWeapon {
 
 		Class<? extends Enchantment> oldEnchantment = enchantment != null ? enchantment.getClass() : null;
 		Enchantment ench = Enchantment.random( this, oldEnchantment );
+		//池子被过滤空时 pick() 会返回 null，此时保持原附魔，不要把附魔洗干净
+		if (ench == null){
+			return this;
+		}
 		return enchant( ench );
 	}
 

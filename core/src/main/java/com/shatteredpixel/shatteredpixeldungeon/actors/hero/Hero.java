@@ -2097,7 +2097,7 @@ public class Hero extends Char {
 			GLog.w( Messages.get(Charm.class, "cant_attack"));
 			ready();
 			return false;
-		} else if (buff(Terror.class) != null){
+		} else if (fearBlocksMelee()){
 			// 恐惧期间双手发抖，无法使用近战攻击（远程、法杖、投掷仍可用）
 			GLog.w( Messages.get(Hero.class, "fear_no_melee"));
 			ready();
@@ -2139,6 +2139,16 @@ public class Hero extends Char {
 
 	public Char enemy(){
 		return enemy;
+	}
+
+	//恐惧（Terror）期间只能远程/投掷/施法，贴身近战会被打断
+	private boolean fearBlocksMelee(){
+		if (buff(Terror.class) == null) return false;
+		if (enemy == null) return false;
+		if (!Dungeon.level.adjacent(pos, enemy.pos)) return false;
+		KindOfWeapon w = belongings.attackingWeapon();
+		//空手也算近战；法杖、锁链之外的近战武器一律禁
+		return w == null || w instanceof MeleeWeapon;
 	}
 
  	public void rest( boolean fullRest ) {

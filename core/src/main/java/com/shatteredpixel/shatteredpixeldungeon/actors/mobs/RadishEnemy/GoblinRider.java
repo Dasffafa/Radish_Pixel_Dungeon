@@ -191,7 +191,7 @@ public class GoblinRider extends Goblin {
         if (hit(this, target, true)) {
             int dmg = Random.NormalIntRange(3, 6);
             dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
-            dmg = defenseProc(target, dmg);
+            dmg = target.defenseProc(this, dmg);
             dmg -= target.drRoll();
             target.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, this, new ThrowingStone()));
 

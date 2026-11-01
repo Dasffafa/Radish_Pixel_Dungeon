@@ -112,59 +112,34 @@ public class WndBag extends WndTabbed {
 		
 		lastBag = bag;
 
-		slotWidth = PixelScene.landscape() ? SLOT_WIDTH_L : SLOT_WIDTH_P;
-		slotHeight = PixelScene.landscape() ? SLOT_HEIGHT_L : SLOT_HEIGHT_P;
+		// 标准布局：7 列 × 6 行（第一行是 6 个装备位），横屏与竖屏统一，跟桌面版一个样子。
+		// 屏幕确实放不下时先缩小格子，缩到最小还不行才减列数。
+		final int TARGET_COLS = 7;
+		final int TARGET_ROWS = 6;
 
-		nCols = PixelScene.landscape() ? COLS_L : COLS_P;
+		int availW = (int)(PixelScene.uiCamera.width  * 0.94f - chrome.marginHor());
+		int availH = (int)(PixelScene.uiCamera.height * 0.82f - chrome.marginTop() - chrome.marginBottom() - TITLE_HEIGHT);
 
-		// 电脑大屏时按可用宽度加列，避免背包窗口窄窄一条。
-		// 注意：不要用 interfaceSize() 做开关——桌面端该值可能为 0，会导致永远不加列。
-		{
-			int baseCols = PixelScene.landscape() ? COLS_L : COLS_P;
-			//窗口两侧各留出边距后，一行最多能放几列（超过就会像 6X 缩放那样被屏幕两边切掉）
-			int hardMax = (int)((PixelScene.uiCamera.width * 0.92f - chrome.marginHor())
-					/ (float)(slotWidth + SLOT_MARGIN));
-			int availCols = (int)((PixelScene.uiCamera.width - chrome.marginHor())
-					/ (float)(slotWidth + SLOT_MARGIN));
-			if (availCols > nCols) {
-				//留一列余量，避免贴边；上限 9 列，保证窄屏也不会被两边挡住
-				nCols = Math.min(Math.min(availCols - 1, hardMax), 9);
-				nCols = Math.max(nCols, baseCols);
-			}
-		}
+		int slotByW = (availW - (TARGET_COLS - 1) * SLOT_MARGIN) / TARGET_COLS;
+		int slotByH = (availH - (TARGET_ROWS - 1) * SLOT_MARGIN) / TARGET_ROWS;
+		int slot = Math.min( Math.min( slotByW, slotByH ), 28 );
+		slot = Math.max( slot, 16 );
 
-		// 行数按「装备 6 格 + 背包 30 格」算：6 列时正好 6 行铺满，
-		// 内容与视口等高，右侧那根滚动条就不会一直挂着
+		slotWidth = slotHeight = slot;
+
+		nCols = Math.min( TARGET_COLS,
+				Math.max( 4, (availW + SLOT_MARGIN) / (slot + SLOT_MARGIN) ) );
+
+		// 行数按「装备 6 格 + 背包 30 格」算：7 列时正好 6 行铺满
 		int capacityTotal = (bag != null ? bag.capacity() : 30) + 6;
 		nRows = (int)Math.ceil(capacityTotal/(float)nCols);
 
 		int windowWidth = slotWidth * nCols + SLOT_MARGIN * (nCols - 1);
-		// 可见行数受屏幕高度限制：多出来的格子靠右侧滚动条看
-		int chromeH = chrome.marginTop() + chrome.marginBottom();
-		// 只占用屏幕高度的 78%，剩下留给底部标签、快捷栏和边距，横屏/高缩放下也不会顶出屏幕
-		int maxH = (int)(PixelScene.uiCamera.height * 0.78f);
-		int maxVisibleRows = (int)Math.floor((maxH - TITLE_HEIGHT)
-				/ (float)(slotHeight + SLOT_MARGIN));
-		maxVisibleRows = Math.max(3, Math.min(nRows, maxVisibleRows));
-		int visibleRows = maxVisibleRows;
+		// 可见行数就是 6 行（放不下时按可用高度往下减），多出来的格子靠右侧滚动条看
+		int maxVisibleRows = Math.max(3,
+				Math.min(TARGET_ROWS, (availH + SLOT_MARGIN) / (slot + SLOT_MARGIN)));
+		int visibleRows = Math.min(nRows, maxVisibleRows);
 		int windowHeight = TITLE_HEIGHT + slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
-		// 横屏时再兜一次底：窗口不能超出可用高度
-		while (visibleRows > 3 && windowHeight > maxH){
-			visibleRows--;
-			windowHeight -= slotHeight + SLOT_MARGIN;
-		}
-
-		if (PixelScene.landscape()){
-			while (slotHeight >= 24 && (windowHeight + 20 + chrome.marginTop()) > PixelScene.uiCamera.height){
-				slotHeight--;
-				windowHeight -= nRows;
-			}
-		} else {
-			while (slotWidth >= 26 && (windowWidth + chrome.marginHor()) > PixelScene.uiCamera.width){
-				slotWidth--;
-				windowWidth -= nCols;
-			}
-		}
 
 		placeTitle( bag, windowWidth );
 
@@ -174,10 +149,14 @@ public class WndBag extends WndTabbed {
 		// 可见区域只放得下 visibleRows 行，内容按容量铺满，超出部分靠右侧滚动条
 		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
 		int contentRows = Math.max(nRows, row);
-		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN));
+		// 最后一行后面没有间隔，否则内容会比视口高 1px，滚动条就会一直挂着
+		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN) - SLOT_MARGIN);
 		scroll = new ScrollPane(content);
 		scrollHeight = visibleHeight;
 		add(scroll);
+		// 立刻给视口设定尺寸，不等 update()（那时窗口可能还没挂到场景，camera() 为 null）
+		scroll.setRect(0, TITLE_HEIGHT, windowWidth, visibleHeight);
+		scrollSized = true;
 
 		resize( windowWidth, windowHeight );
 
@@ -291,8 +270,8 @@ public class WndBag extends WndTabbed {
 	@Override
 	public void update() {
 		super.update();
-		// 窗口挂进场景后才设置 ScrollPane（它的 layout 需要 camera()）
-		if (!scrollSized && scroll != null && camera() != null) {
+		// 兜底：万一还没设过尺寸（例如构造时被跳过），这里补一次
+		if (!scrollSized && scroll != null) {
 			scroll.setRect(0, TITLE_HEIGHT, width, scrollHeight);
 			scrollSized = true;
 		}

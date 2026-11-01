@@ -102,26 +102,67 @@ public class ScrollPane extends Component {
 	public void scrollTo( float x, float y ) {
 		Camera c = content.camera;
 		c.scroll.set( x, y );
-		if (c.scroll.x + width > content.width()) {
-			c.scroll.x = content.width() - width;
-		}
-		if (c.scroll.x < 0) {
-			c.scroll.x = 0;
-		}
-		if (c.scroll.y + height > content.height()) {
-			c.scroll.y = content.height() - height;
-		}
-		if (c.scroll.y < 0) {
-			c.scroll.y = 0;
-		}
-		// thumb 是 ScrollPane 的子节点，坐标相对自身 —— 这里若再加 this.y，
-		// 滚动条整体会往下偏一段，滚到底也贴不到底边。
-		thumb.y = y + Math.min( height - thumb.height(), height * c.scroll.y / content.height() );
+		clampScroll();
+	}
+
+	/** 相对滚动：滚轮、拖动、缩略条都用这一条路径，保证边界与缩略条位置永远一致。 */
+	public void scrollBy( float dx, float dy ) {
+		Camera c = content.camera;
+		c.scroll.x += dx;
+		c.scroll.y += dy;
+		clampScroll();
+	}
+
+	public void setScrollY( float y ) {
+		content.camera.scroll.y = y;
+		clampScroll();
+	}
+
+	private void clampScroll() {
+		Camera c = content.camera;
+		float maxX = Math.max( 0, content.width()  - width );
+		float maxY = Math.max( 0, content.height() - height );
+		c.scroll.x = GameMath.gate( 0, c.scroll.x, maxX );
+		c.scroll.y = GameMath.gate( 0, c.scroll.y, maxY );
+		updateThumb();
+	}
+
+	/**
+	 * 缩略条是 ScrollPane 的子节点，坐标相对 ScrollPane 自身（从 0 到 height），
+	 * 所以这里不能再叠加 this.y —— 之前叠了一次，滚到底时缩略条正好被推出窗口下沿。
+	 */
+	protected void updateThumb() {
+		if (thumb == null || content == null) return;
+
+		boolean show = height < content.height();
+		thumb.visible = show;
+		if (!show) return;
+
+		float track = Math.max( 1, height );
+		float thumbH = Math.min( track, Math.max( 12, track * track / content.height() ) );
+		thumb.scale.set( 3, thumbH );
+		thumb.x = width - thumb.width() - 1;
+
+		float maxScroll = Math.max( 1, content.height() - height );
+		float maxThumbY = Math.max( 0, track - thumbH );
+		thumb.y = maxThumbY * ( content.camera.scroll.y / maxScroll );
 	}
 
 	@Override
 	public synchronized void update() {
 		super.update();
+
+		// 窗口刚创建时 camera() 还是 null，layout() 会直接返回，导致视口尺寸/相机没被摆好，
+		// 之后又没人再排一次 —— 表现就是“没有滚动条、也滑不动”。
+		// 这里每帧核对一次：视口尺寸或内容相机位置跟窗口对不上就重排。
+		if (content != null && content.camera != null && camera() != null) {
+			Point p = camera().cameraToScreen( x, y );
+			if (content.camera.width != (int)width || content.camera.height != (int)height
+					|| content.camera.x != p.x || content.camera.y != p.y) {
+				layout();
+			}
+		}
+
 		if (keyScroll != 0){
 			scrollTo(content.camera.scroll.x, content.camera.scroll.y + (keyScroll * 150 * Game.elapsed));
 		}
@@ -180,10 +221,7 @@ public class ScrollPane extends Component {
 
 		thumb.visible = height < content.height();
 		if (thumb.visible) {
-			//滚动条加粗到 3px 并往内缩 1px，不然在背包这类带边框的窗口里几乎看不见
-			thumb.scale.set( 3, Math.max(12, height * height / content.height()) );
-			thumb.x = width - thumb.width() - 1;
-			thumb.y = y + Math.min( height - thumb.height(), height * content.camera.scroll.y / content.height() );
+			updateThumb();
 			if (thumbTimer <= 0) thumb.am = 0;
 		}
 	}
@@ -205,18 +243,42 @@ public class ScrollPane extends Component {
 			// 不阻挡点击：内容里的按钮/物品格必须能收到 DOWN/UP
 			blockLevel = NEVER_BLOCK;
 		}
-		
+
 		@Override
 		protected void onScroll(ScrollEvent event) {
-			PointF newPt = new PointF(lastPos);
-			newPt.y -= event.amount * content.camera.zoom * 10;
-			scroll(newPt);
-			dragging = false;
-			showThumb();
+			// 滚轮直接按当前滚动量相对移动。之前是拿 lastPos（只有拖动时才更新）当参照，
+			// 桌面端纯滚轮时 lastPos 还是 (0,0)，一滚就整页跳走。
+			if (event.amount != 0) {
+				scrollBy( 0, -event.amount * Math.max( 1, height ) * 0.5f );
+				showThumb();
+			}
+		}
+
+		@Override
+		protected void onPointerDown( PointerEvent event ) {
+			// 按住缩略条 = 直接拖滚动条（桌面端和手机都适用）
+			if (thumb != null && thumb.visible) {
+				PointF p = localPoint( event.current );
+				if (p.x >= thumb.x - 2 && p.x <= thumb.x + thumb.width() + 2
+						&& p.y >= thumb.y - 2 && p.y <= thumb.y + thumb.height() + 2) {
+					thumbDragging = true;
+					thumbStartY = p.y;
+					thumbScrollStart = content.camera.scroll.y;
+					showThumb();
+					return;
+				}
+			}
+			lastPos.set( event.current );
 		}
 
 		@Override
 		protected void onPointerUp( PointerEvent event ) {
+			if (thumbDragging) {
+				thumbDragging = false;
+				showThumb();
+				return;
+			}
+
 			if (dragging) {
 
 				dragging = false;
@@ -231,10 +293,30 @@ public class ScrollPane extends Component {
 		}
 
 		private boolean dragging = false;
+		private boolean thumbDragging = false;
+		private float thumbStartY = 0;
+		private float thumbScrollStart = 0;
 		private PointF lastPos = new PointF();
+
+		private PointF localPoint( PointF screen ){
+			PointF p = camera().screenToCamera( (int)screen.x, (int)screen.y );
+			return new PointF( p.x - x, p.y - y );
+		}
 
 		@Override
 		protected void onDrag( PointerEvent event ) {
+
+			if (thumbDragging) {
+				float track = Math.max( 1, height );
+				float thumbH = thumb.height();
+				float maxScroll = Math.max( 1, content.height() - height );
+				float maxThumbY = Math.max( 1, track - thumbH );
+				float dy = localPoint( event.current ).y - thumbStartY;
+				setScrollY( thumbScrollStart + dy * maxScroll / maxThumbY );
+				showThumb();
+				return;
+			}
+
 			if (dragging) {
 
 				scroll(event.current);
@@ -249,32 +331,14 @@ public class ScrollPane extends Component {
 
 			}
 		}
-		
+
 		private void scroll( PointF current ){
-			
-			Camera c = content.camera;
-			
-			c.shift( PointF.diff( lastPos, current ).invScale( c.zoom ) );
+
+			PointF diff = PointF.diff( lastPos, current ).invScale( content.camera.zoom );
 			//拖动过程中必须每帧更新参照点，否则每次都拿"按下那一瞬间"的位置去算位移，
 			//手指一动位移就成倍累积，内容会直接闪到另一头
 			lastPos.set( current );
-			if (c.scroll.x + width > content.width()) {
-				c.scroll.x = content.width() - width;
-			}
-			if (c.scroll.x < 0) {
-				c.scroll.x = 0;
-			}
-			if (c.scroll.y + height > content.height()) {
-				c.scroll.y = content.height() - height;
-			}
-			if (c.scroll.y < 0) {
-				c.scroll.y = 0;
-			}
-			
-			thumb.y = y + Math.min( height - thumb.height(), height * c.scroll.y / content.height() );
-			
-			lastPos.set( current );
-			
+			scrollBy( diff.x, diff.y );
 		}
 		
 	}

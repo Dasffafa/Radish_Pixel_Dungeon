@@ -254,7 +254,11 @@ public class MagesStaff extends MeleeWeapon {
 					Class<? extends Weapon.Enchantment> existing = item2.enchantment != null ? item2.enchantment.getClass() : null;
 					enchants[0] = Weapon.Enchantment.randomCommon( item2, existing );
 					enchants[1] = Weapon.Enchantment.randomUncommon( item2, existing );
+					//池子被过滤空时 pick() 会返回 null，这里兜底成不带武器过滤的抽取
+					if (enchants[0] == null) enchants[0] = Weapon.Enchantment.randomCommon( existing );
+					if (enchants[1] == null) enchants[1] = Weapon.Enchantment.randomUncommon( existing );
 					enchants[2] = Weapon.Enchantment.random( item2, existing, enchants[0].getClass(), enchants[1].getClass());
+					if (enchants[2] == null) enchants[2] = enchants[0];
 					GameScene.show(new WndEnchantSelect(item2, enchants[0], enchants[1], enchants[2]));
 					break;
 			}

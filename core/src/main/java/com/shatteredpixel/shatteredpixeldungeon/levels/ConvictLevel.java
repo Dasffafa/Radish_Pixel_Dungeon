@@ -6,6 +6,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.LegendaryFelon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -94,9 +95,15 @@ public class ConvictLevel extends Level {
 
 	/** Boss 发现玩家后把门锁上（玩家进来后被困住，直到击败他） */
 	public void sealBossDoor() {
+		//玩家还在门下方的走廊里时不能锁，否则会被关在竞技场外、又没有钥匙，直接卡死
+		if (Dungeon.hero != null && Dungeon.hero.pos / width() > DOOR_Y) {
+			return;
+		}
 		int door = pointToCell( DOOR_X, DOOR_Y );
 		if (map[door] == Terrain.DOOR) {
 			Level.set( door, Terrain.LOCKED_DOOR, this );
+			//Level.set 只改数据不改贴图，必须通知场景重画这一格，否则看着还是普通门
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
 		}
 	}
 
@@ -105,6 +112,7 @@ public class ConvictLevel extends Level {
 		int door = pointToCell( DOOR_X, DOOR_Y );
 		if (map[door] == Terrain.LOCKED_DOOR) {
 			Level.set( door, Terrain.DOOR, this );
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
 		}
 	}
 

@@ -111,7 +111,8 @@ public class WardenBossLevel extends Level {
 			}
 			for (int i = 0; i < 4; i++) {
 				int x = Random.IntRange( arena.left + 1, arena.right - 2 );
-				int y = arena.top + 1;
+				//arena.top 才是战斗区上方那排墙，+1 已经是地板了，之前写 +1 永远不会生效
+				int y = arena.top;
 				int cell = pointToCell( new Point( x, y ) );
 				if (map[cell] == Terrain.WALL) {
 					Level.set( cell, Terrain.WALL_DECO, this );
@@ -152,6 +153,8 @@ public class WardenBossLevel extends Level {
 		//站在门内侧不远处：玩家一开门就能看见 Boss（放在房间正中会被 8 格视野挡住）
 		warden.pos = pointToCell( new Point( WIDTH / 2, arena.bottom - 2 ) );
 		mobs.add( warden );
+		//成阶段 Boss 也还没进 Actor，这里占位，避免原型机刷到 Boss 身上
+		spawnTaken.add( warden.pos );
 
 		for (int i = 0; i < 8; i++) {
 			spawnPrototype( 100 );

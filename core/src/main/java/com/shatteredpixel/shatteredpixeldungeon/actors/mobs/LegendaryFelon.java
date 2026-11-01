@@ -85,20 +85,23 @@ public class LegendaryFelon extends Prisoner {
 		if (roarCd > 0) {
 			roarCd--;
 		}
-		// 独立血条
-		if (!BossHealthBar.isAssigned()) {
+		// 独立血条（进入视野才显示，同原版 Boss）
+		if (!BossHealthBar.isAssigned() && Dungeon.level != null && Dungeon.level.heroFOV[pos]) {
 			BossHealthBar.assignBoss( this );
 		}
 		if (HP * 2 <= HT) {
 			BossHealthBar.bleed( true );
 		}
 		// 作为 Boss：一旦进入战斗状态就封锁本层，打完才能离开（同史莱姆王）
-		if (state != SLEEPING && Dungeon.level != null && !Dungeon.level.locked) {
-			Dungeon.level.seal();
+		if (state != SLEEPING && Dungeon.level != null) {
+			if (!Dungeon.level.locked) {
+				Dungeon.level.seal();
+				GLog.n( Messages.get( this, "seal" ) );
+			}
 			if (Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ConvictLevel) {
+				// 玩家还没走进竞技场时不锁门（否则会被关在外面卡死），进门那一刻才锁
 				((com.shatteredpixel.shatteredpixeldungeon.levels.ConvictLevel) Dungeon.level).sealBossDoor();
 			}
-			GLog.n( Messages.get( this, "seal" ) );
 		}
 		return super.act();
 	}
