@@ -762,7 +762,9 @@ public class Item implements Bundlable {
 		
 		final float delay = castDelay(user, dst);
 
-		if (enemy != null) {
+		//目标必须是“看得见的敌人”才让飞弹追着它的精灵走；
+		//否则（没有精灵 / 精灵不可见）走按格子落点的分支，避免飞弹与卡回合
+		if (enemy != null && enemy.sprite != null && enemy.sprite.visible) {
 			((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
 					reset(user.sprite,
 							enemy.sprite,

@@ -148,9 +148,13 @@ public class WardenBossLevel extends Level {
 		return true;
 	}
 
+	//关卡构建中：此时只能登记到 mobs，精灵与 Actor 都交给 GameScene.create() 统一挂，
+	//否则会和 GameScene.create() 的遍历重复挂精灵（旧精灵滞留在已清空的层里，表现为怪物整个消失）
+	private boolean building = false;
+
 	@Override
 	protected void createMobs() {
-
+		building = true;
 		Warden warden = new Warden();
 		//Boss 待在战斗区靠中间的位置，不会一进关就贴脸
 		//站在门内侧不远处：玩家一开门就能看见 Boss（放在房间正中会被 8 格视野挡住）
@@ -165,6 +169,7 @@ public class WardenBossLevel extends Level {
 		for (int i = 0; i < 3; i++) {
 			spawnPrototype( 175 );
 		}
+		building = false;
 	}
 
 	@Override
@@ -196,11 +201,13 @@ public class WardenBossLevel extends Level {
 		}
 		p.pos = cell;
 		spawnTaken.add( cell );
-		if (Dungeon.level == this) {
+		if (building) {
+			//关卡构建阶段：只登记，精灵由 GameScene.create() 统一挂
+			mobs.add( p );
+		} else if (Dungeon.level == this) {
 			//Boss 战中途补生成：场景已就绪，直接挂上去
 			GameScene.add( p );
 		} else {
-			//关卡刚创建：由 GameScene 初始化时统一挂精灵，这里只登记
 			mobs.add( p );
 		}
 		return p;
