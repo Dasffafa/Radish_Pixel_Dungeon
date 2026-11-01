@@ -122,11 +122,17 @@ public class PixelScene extends Scene {
 			scaleFactor = 2.5f;
 		}
 
-		maxDefaultZoom = (int)Math.min(Game.width/minWidth, Game.height/minHeight);
+		maxDefaultZoom = Math.max( 2, (int)Math.min(Game.width/minWidth, Game.height/minHeight) );
 		maxScreenZoom = (int)Math.min(Game.dispWidth/minWidth, Game.dispHeight/minHeight);
-		defaultZoom = SPDSettings.scale();
 
-		if (defaultZoom < Math.ceil( Game.density * 2 ) || defaultZoom > maxDefaultZoom){
+		// 设置里的 N X 就是渲染倍率（破碎原版语义）：数字越大，界面越大。
+		// 这里用“夹取”而不是“不合法就退回自动值”——之前选了 8X 但设备上限只有 7，
+		// 会静默退回自动档（常比用户选的档小很多），看上去就成了“8X 比 6X 还小”。
+		int minUIScale = (int)Math.ceil( Game.density * 2 );
+		int storedScale = SPDSettings.scale();
+		if (storedScale > 0) {
+			defaultZoom = (int)GameMath.gate( minUIScale, storedScale, maxDefaultZoom );
+		} else {
 			defaultZoom = (int)GameMath.gate(2, (int)Math.ceil( Game.density * scaleFactor ), maxDefaultZoom);
 
 			if (SPDSettings.interfaceSize() > 0 && defaultZoom < (maxDefaultZoom+1)/2){
