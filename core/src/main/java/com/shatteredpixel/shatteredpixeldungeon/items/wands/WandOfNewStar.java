@@ -58,37 +58,52 @@ public class WandOfNewStar extends DamageWand {
 
         ConeAOE aoe = new ConeAOE(bolt, radius, 360, Ballistica.STOP_TARGET);
 
-        for (Ballistica ray : aoe.outerRays) {
-            ((MagicMissile) centerChar.sprite.parent.recycle(MagicMissile.class)).reset(
-                    MagicMissile.STAR,
-                    centerChar.sprite,
-                    ray.path.get(Math.min(radius / 2, ray.path.size() - 1)),
-                    null
-            );
+        //施法中心的精灵可能不在场景里（例如刚生成/刚死亡的盟友），这种情况下只结算效果、不放特效
+        com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite origin =
+                (centerChar != null && centerChar.sprite != null && centerChar.sprite.parent != null)
+                        ? centerChar.sprite : null;
+
+        if (origin != null) {
+            for (Ballistica ray : aoe.outerRays) {
+                if (ray.path.isEmpty()) continue;
+                ((MagicMissile) origin.parent.recycle(MagicMissile.class)).reset(
+                        MagicMissile.STAR,
+                        origin,
+                        ray.path.get(Math.min(radius / 2, ray.path.size() - 1)),
+                        null
+                );
+            }
         }
 
-        ((MagicMissile) centerChar.sprite.parent.recycle(MagicMissile.class)).reset(
-                MagicMissile.STAR,
-                centerChar.sprite,
-                bolt.path.get(Math.min(radius / 2, bolt.path.size() - 1)),
-                () -> {
-                    for (int pos : aoe.cells) {
-                        Char target = Actor.findChar(pos);
-                        if (target != null) {
-                            int shield = buffedLvl() + 2;
-                            boolean isHiddenMimic = target instanceof Mimic
-                                    && target.alignment == Char.Alignment.NEUTRAL;
-                            if (isHiddenMimic || target.alignment == Char.Alignment.ENEMY) {
-                                target.damage(DamageInfo.of(damageRoll() == 0 ? 1 : damageRoll(), DamageType.HOLY, curUser, this));
-                                if (target.sprite != null) {
-                                    target.sprite.burst(0xFFFFFFFF, buffedLvl() / 2 + 2);
-                                }
-                            } else if (target.alignment == Char.Alignment.ALLY || target instanceof Hero) {
-                                Buff.affect(target, Barrier.class).setShield(shield);
-                            }
+        Callback onHit = () -> {
+            for (int pos : aoe.cells) {
+                Char target = Actor.findChar(pos);
+                if (target != null) {
+                    int shield = buffedLvl() + 2;
+                    boolean isHiddenMimic = target instanceof Mimic
+                            && target.alignment == Char.Alignment.NEUTRAL;
+                    if (isHiddenMimic || target.alignment == Char.Alignment.ENEMY) {
+                        target.damage(DamageInfo.of(damageRoll() == 0 ? 1 : damageRoll(), DamageType.HOLY, curUser, this));
+                        if (target.sprite != null) {
+                            target.sprite.burst(0xFFFFFFFF, buffedLvl() / 2 + 2);
                         }
+                    } else if (target.alignment == Char.Alignment.ALLY || target instanceof Hero) {
+                        Buff.affect(target, Barrier.class).setShield(shield);
                     }
-                });
+                }
+            }
+        };
+
+        if (origin != null && !bolt.path.isEmpty()) {
+            ((MagicMissile) origin.parent.recycle(MagicMissile.class)).reset(
+                    MagicMissile.STAR,
+                    origin,
+                    bolt.path.get(Math.min(radius / 2, bolt.path.size() - 1)),
+                    onHit
+            );
+        } else {
+            onHit.call();
+        }
     }
 
     @Override
@@ -109,7 +124,12 @@ public class WandOfNewStar extends DamageWand {
             centerChar = curUser;
         }
 
-        executeStarEffect(centerChar);
+        try {
+            executeStarEffect(centerChar);
+        } catch (Exception e) {
+            //特效里任何一步抛异常都不能把回合卡住：Wand.zap() 里 onZap 抛异常就不会再调 wandUsed()
+            com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("新星法杖特效异常: " + e);
+        }
         Sample.INSTANCE.play(Assets.Sounds.ZAP);
 
         // WondrousResin 的额外效果由 Wand.zap() 统一处理（那里会在回调里调 wandUsed()）。
