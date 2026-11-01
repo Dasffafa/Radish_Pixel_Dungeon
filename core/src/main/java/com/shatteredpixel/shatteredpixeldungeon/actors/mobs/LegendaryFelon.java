@@ -95,6 +95,9 @@ public class LegendaryFelon extends Prisoner {
 		// 作为 Boss：一旦进入战斗状态就封锁本层，打完才能离开（同史莱姆王）
 		if (state != SLEEPING && Dungeon.level != null && !Dungeon.level.locked) {
 			Dungeon.level.seal();
+			if (Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ConvictLevel) {
+				((com.shatteredpixel.shatteredpixeldungeon.levels.ConvictLevel) Dungeon.level).sealBossDoor();
+			}
 			GLog.n( Messages.get( this, "seal" ) );
 		}
 		return super.act();
@@ -123,6 +126,10 @@ public class LegendaryFelon extends Prisoner {
 		}
 		if (Dungeon.level != null) {
 			Dungeon.level.unseal();
+			// 传奇重犯副本：击败后打开那扇上锁的门
+			if (Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ConvictLevel) {
+				((com.shatteredpixel.shatteredpixeldungeon.levels.ConvictLevel) Dungeon.level).openBossDoor();
+			}
 		}
 		super.die( cause );
 	}
