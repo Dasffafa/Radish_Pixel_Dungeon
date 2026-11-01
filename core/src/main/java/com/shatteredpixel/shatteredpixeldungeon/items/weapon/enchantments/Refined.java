@@ -10,6 +10,12 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
  */
 public class Refined extends Weapon.Enchantment {
 
+    //暂不进灵能弓的附魔池
+    @Override
+    public boolean canEnchant( Weapon weapon ){
+        return !isRangedWeapon( weapon );
+    }
+
     private static final ItemSprite.Glowing PLATINUM = new ItemSprite.Glowing( 0xE5E4E2 );
 
     private static final float PERFORMANCE_BONUS = 0.50f;

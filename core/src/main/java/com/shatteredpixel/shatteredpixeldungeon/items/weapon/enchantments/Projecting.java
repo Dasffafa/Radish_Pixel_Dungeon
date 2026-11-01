@@ -27,12 +27,6 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 public class Projecting extends Weapon.Enchantment {
 
-	//索敌对灵能弓只是让箭能穿过贴身的薄墙，几乎无用
-	@Override
-	public boolean canEnchant( Weapon weapon ){
-		return !isRangedWeapon( weapon );
-	}
-
 	private static ItemSprite.Glowing PURPLE = new ItemSprite.Glowing( 0x8844CC );
 
 	@Override

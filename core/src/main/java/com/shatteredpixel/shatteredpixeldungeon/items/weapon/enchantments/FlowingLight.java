@@ -13,6 +13,12 @@ import com.watabou.utils.Random;
  */
 public class FlowingLight extends Weapon.Enchantment {
 
+    //暂不进灵能弓的附魔池
+    @Override
+    public boolean canEnchant( Weapon weapon ){
+        return !isRangedWeapon( weapon );
+    }
+
     private static final ItemSprite.Glowing CYAN = new ItemSprite.Glowing( 0x66FFFF );
 
     @Override

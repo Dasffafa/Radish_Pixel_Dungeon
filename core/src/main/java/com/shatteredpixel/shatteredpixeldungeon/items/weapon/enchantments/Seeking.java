@@ -17,12 +17,6 @@ import com.watabou.utils.Bundle;
  */
 public class Seeking extends Weapon.Enchantment {
 
-    //追寻是给近战武器补射程用的，灵能弓本来就远程，等于没效果
-    @Override
-    public boolean canEnchant( Weapon weapon ){
-        return !isRangedWeapon( weapon );
-    }
-
     private static final ItemSprite.Glowing SEEKING = new ItemSprite.Glowing( 0xF0FFF0 );
 
     /** 标记的绝对上限，不随附魔倍率延长。 */

@@ -10,6 +10,12 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
  */
 public class Lamp extends Weapon.Enchantment {
 
+    //暂不进灵能弓的附魔池
+    @Override
+    public boolean canEnchant( Weapon weapon ){
+        return !isRangedWeapon( weapon );
+    }
+
     private static final ItemSprite.Glowing WARM = new ItemSprite.Glowing( 0xFFD27F );
 
     @Override
