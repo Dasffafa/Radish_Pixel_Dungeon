@@ -134,18 +134,24 @@ public class ScrollPane extends Component {
 	protected void updateThumb() {
 		if (thumb == null || content == null) return;
 
-		boolean show = height < content.height();
+		// 内容放得下时缩略条就占满整条轨道（看上去是“填满”的），超出时按比例缩短
+		boolean show = content.height() > 1;
 		thumb.visible = show;
 		if (!show) return;
 
 		float track = Math.max( 1, height );
-		float thumbH = Math.min( track, Math.max( 12, track * track / content.height() ) );
+		float contentH = Math.max( 1, content.height() );
+
+		// 缩略条长度 = 视口 / 内容：内容刚好放得下时就是整条（等于填满），超出时才按比例变短。
+		float thumbH = Math.min( track, track * track / contentH );
+		// 太小就看不见了，给个下限，但永远不超过整条轨道
+		thumbH = Math.max( Math.min( 10, track ), Math.min( track, thumbH ) );
 		thumb.scale.set( 3, thumbH );
 		thumb.x = width - thumb.width() - 1;
 
-		float maxScroll = Math.max( 1, content.height() - height );
+		float maxScroll = Math.max( 1, contentH - height );
 		float maxThumbY = Math.max( 0, track - thumbH );
-		thumb.y = maxThumbY * ( content.camera.scroll.y / maxScroll );
+		thumb.y = maxThumbY * Math.max( 0, Math.min( 1, content.camera.scroll.y / maxScroll ) );
 	}
 
 	@Override

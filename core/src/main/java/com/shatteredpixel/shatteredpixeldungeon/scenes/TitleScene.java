@@ -220,12 +220,14 @@ public class TitleScene extends PixelScene {
 		float halfW = (contentWidth - 2) / 2f;
 		float quarterW = (contentWidth - 6) / 4f;
 
-		// 行数固定：横屏 3 行、竖屏 6 行；空间不够时整体上移，保证最下面一行不被屏幕截掉
+		// 行数固定：横屏 3 行、竖屏 6 行；空间不够时整体上移，保证最下面一行不会被屏幕截掉，
+		// 并且要给右下角的版本号留出高度，否则最后一行按钮会压住它
 		int rows = landscape() ? 3 : 6;
 		int need = rows * BTN_HEIGHT + (rows - 1) * GAP;
+		float bottomLimit = h - 4 - version.height() - 2;
 		float btnTop = topRegion + GAP;
-		if (btnTop + need > h - 4) {
-			btnTop = Math.max(2, h - 4 - need);
+		if (btnTop + need > bottomLimit) {
+			btnTop = Math.max(2, bottomLimit - need);
 		}
 
 		if (landscape()) {

@@ -149,8 +149,9 @@ public class WndBag extends WndTabbed {
 
 		// 可见区域只放得下 visibleRows 行，内容按容量铺满，超出部分靠右侧滚动条
 		int visibleHeight = slotHeight * visibleRows + SLOT_MARGIN * (visibleRows - 1);
-		int contentRows = Math.max(nRows, row);
-		// 最后一行后面没有间隔，否则内容会比视口高 1px，滚动条就会一直挂着
+		// 内容高度按“真正铺了几行”算，而不是按背包容量算：
+		// 容量固定会让内容永远比视口高，缩略条就永远只有一小截、填不满。
+		int contentRows = Math.max(visibleRows, row + 1);
 		content.setSize(windowWidth, contentRows * (slotHeight + SLOT_MARGIN) - SLOT_MARGIN);
 		scroll = new ScrollPane(content);
 		scrollHeight = visibleHeight;

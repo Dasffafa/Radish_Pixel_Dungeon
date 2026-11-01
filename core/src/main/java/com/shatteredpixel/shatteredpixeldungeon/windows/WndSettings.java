@@ -467,7 +467,7 @@ public class WndSettings extends WndTabbed {
 						}
 					}
 				};
-				optUIScale.setSelectedValue(SPDSettings.scale() > 0 ? SPDSettings.scale() : PixelScene.defaultZoom);
+				optUIScale.setSelectedValue(PixelScene.defaultZoom);
 				add(optUIScale);
 			}
 
