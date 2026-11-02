@@ -219,10 +219,14 @@ public class Warden extends Mob {
 	@Override
 	public void damage( DamageInfo info ) {
 
-		if (!BossHealthBar.isAssigned()
+		if (info != null && info.getDamage() > 0 && isAlive()
 				&& Dungeon.level instanceof WardenBossLevel
-				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos )) {
+				&& !((WardenBossLevel) Dungeon.level).bossDead()) {
+			awake = true;
 			notice();
+			if (!Dungeon.level.locked) {
+				Dungeon.level.seal();
+			}
 		}
 
 		int preHP = HP;
