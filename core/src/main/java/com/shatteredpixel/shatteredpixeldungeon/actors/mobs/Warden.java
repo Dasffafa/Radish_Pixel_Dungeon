@@ -17,7 +17,10 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.items.TengusMask;
 import com.shatteredpixel.shatteredpixeldungeon.levels.WardenBossLevel;
@@ -111,18 +114,19 @@ public class Warden extends Mob {
 		Dungeon.level.updateFieldOfView( this, fieldOfView );
 
 		if (!BossHealthBar.isAssigned( this ) && Dungeon.level.heroFOV[pos]) {
+			awake = true;
 			notice();
 		}
 
 		// 玩家还没进门看到它：保持静止，既不移动也不激活原型机
 		if (!awake) {
-			if (Dungeon.level.heroFOV[pos]) {
-				awake = true;
-				notice();
-			} else {
-				spend( TICK );
-				return true;
-			}
+			spend( TICK );
+			return true;
+		}
+
+		//通用AI处理麻痹、恐惧及Amok目标切换，不能让开机策略抢占这些状态。
+		if (paralysed > 0 || buff( Amok.class ) != null || buff( Terror.class ) != null || buff( Dread.class ) != null) {
+			return super.act();
 		}
 
 		//正在激活某台原型机：每回合推进一次，期间不动

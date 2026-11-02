@@ -1404,11 +1404,6 @@ public class GameScene extends PixelScene {
 					if (stealthyMimics && mob instanceof Mimic && mob.state == mob.PASSIVE && mob.sprite.visible){
 						//mimics stay visible in fog of war after being first seen
 						mob.sprite.visible = true;
-					} else if (mob instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype
-							&& com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar.isAssigned()){
-						//典狱长战期间整个战斗区都是亮的，原型机一律常显，
-						//避免出现“机器看不见却照样攻击/被攻击”的情况
-						mob.sprite.visible = true;
 					} else {
 						mob.sprite.visible = Dungeon.level.heroFOV[mob.pos];
 					}

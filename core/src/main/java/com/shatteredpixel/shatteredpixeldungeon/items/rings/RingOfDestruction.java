@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -106,6 +107,7 @@ public class RingOfDestruction extends Ring {
 				return true;
 			}
 			for (Mob mob : Dungeon.level.mobs) {
+				if (mob instanceof WardenPrototype && ((WardenPrototype) mob).isInactive()) continue;
 				if (mob != target && mob.alignment != target.alignment
 						&& target.fieldOfView != null && mob.pos >= 0 && mob.pos < target.fieldOfView.length
 						&& target.fieldOfView[mob.pos]
