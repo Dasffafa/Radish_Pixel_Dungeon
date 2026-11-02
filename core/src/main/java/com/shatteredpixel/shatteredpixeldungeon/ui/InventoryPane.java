@@ -512,8 +512,8 @@ public class InventoryPane extends Component {
 	}
 
 	public static void cancelTargeting(){
-		crossB.visible = false;
-		crossM.remove();
+		if (crossB != null) crossB.visible = false;
+		if (crossM != null) crossM.remove();
 		targeting = false;
 	}
 

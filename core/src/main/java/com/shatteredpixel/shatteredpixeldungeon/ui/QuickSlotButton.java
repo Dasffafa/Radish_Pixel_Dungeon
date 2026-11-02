@@ -416,8 +416,8 @@ public class QuickSlotButton extends Button {
 	public static void cancel() {
 		for (QuickSlotButton btn : instance) {
 			if (btn != null) {
-				btn.crossB.visible = false;
-				btn.crossM.remove();
+				if (btn.crossB != null) btn.crossB.visible = false;
+				if (btn.crossM != null) btn.crossM.remove();
 			}
 		}
 		targetingSlot = -1;
