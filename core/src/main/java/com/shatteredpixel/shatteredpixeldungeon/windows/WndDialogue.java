@@ -39,8 +39,9 @@ import com.watabou.utils.Callback;
  */
 public class WndDialogue extends Window {
 
-	private static final int WIDTH_MIN = 120;
 	private static final int WIDTH_MAX = 220;
+	private static final float WIDTH_SCALE = 0.92f;
+	private static final int WINDOW_MARGIN = 8;
 	private static final int GAP = 2;
 
 	private static final int BTN_HEIGHT = 18;
@@ -49,12 +50,18 @@ public class WndDialogue extends Window {
 
 		super();
 
+		int width = WIDTH_MAX;
+		if (PixelScene.uiCamera != null && PixelScene.uiCamera.width > 0) {
+			width = Math.max( 1, Math.min( WIDTH_MAX,
+					(int)(PixelScene.uiCamera.width * WIDTH_SCALE) - WINDOW_MARGIN ) );
+		}
+
 		IconTitle titlebar = new IconTitle( icon, title );
-		titlebar.setRect( 0, 0, WIDTH_MAX, 0 );
+		titlebar.setRect( 0, 0, width, 0 );
 		add( titlebar );
 
 		RenderedTextBlock tfmessage = PixelScene.renderTextBlock( message, 6 );
-		tfmessage.maxWidth( WIDTH_MAX );
+		tfmessage.maxWidth( width );
 		tfmessage.setPos( titlebar.left(), titlebar.bottom() + GAP );
 		add( tfmessage );
 
@@ -73,7 +80,8 @@ public class WndDialogue extends Window {
 					if (hasCb) cb.call();
 				}
 			};
-			btn.setRect( 0, pos, WIDTH_MAX, BTN_HEIGHT );
+			btn.multiline = true;
+			btn.setRect( 0, pos, width, BTN_HEIGHT );
 			add( btn );
 			pos += btn.height() + GAP;
 		}
@@ -86,16 +94,12 @@ public class WndDialogue extends Window {
 					hide();
 				}
 			};
-			btn.setRect( 0, pos, WIDTH_MAX, BTN_HEIGHT );
+			btn.multiline = true;
+			btn.setRect( 0, pos, width, BTN_HEIGHT );
 			add( btn );
 			pos += btn.height() + GAP;
 		}
 
-		float width = WIDTH_MAX;
-		if (titlebar.width() + 2 > width) width = titlebar.width() + 2;
-		if (tfmessage.width() + 2 > width) width = tfmessage.width() + 2;
-		if (width < WIDTH_MIN) width = WIDTH_MIN;
-
-		resize( (int) width, (int) (pos - GAP) );
+		resize( width, (int) (pos - GAP) );
 	}
 }
