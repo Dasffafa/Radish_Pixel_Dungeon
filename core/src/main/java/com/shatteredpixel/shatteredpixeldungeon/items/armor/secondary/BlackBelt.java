@@ -10,7 +10,7 @@ public class BlackBelt extends SecondaryArmor {
 
 	@Override
 	public Object[] effectArgs() {
-		return new Object[]{ 2 + level(), 4 + level() };
+		return new Object[]{ 2 + level(), 2 + level() };
 	}
 
 

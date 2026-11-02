@@ -10,7 +10,7 @@ public class InfusedArmband extends SecondaryArmor {
 
 	@Override
 	public Object[] effectArgs() {
-		return new Object[]{ 2 + level() };
+		return new Object[]{ 1 + level() / 2, 2 + level() };
 	}
 
 
