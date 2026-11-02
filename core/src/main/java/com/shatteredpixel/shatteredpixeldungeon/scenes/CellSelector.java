@@ -160,7 +160,9 @@ public class CellSelector extends ScrollArea {
 	}
 	
 	public void select( int cell, int button ) {
-		if (enabled && Dungeon.hero.ready && !GameScene.interfaceBlockingHero()
+		// PointerArea 的事件传播已经由 UI 控件的 blockLevel 和窗口 blocker 负责；
+		// 这里不要再次扫描窗口状态，否则同一个触碰事件会被两套路由规则重复裁决。
+		if (enabled && Dungeon.hero.ready
 				&& listener != null && cell != -1) {
 
 			switch (button){
