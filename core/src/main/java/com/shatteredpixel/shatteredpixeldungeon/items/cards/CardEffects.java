@@ -133,7 +133,7 @@ public final class CardEffects {
 				finish(hero, card, false, card.type.time);
 				break;
 			case IDENTIFY: {
-				identifyRandom(hero, 1);
+				identifyRandom(hero, 1, false);
 				if (card.power >= 2) {
 					GameScene.show(new WndOptions(
 							Messages.get(CardEffects.class, "destroy_title"),
@@ -700,9 +700,17 @@ public final class CardEffects {
 	}
 
 	public static void identifyRandom(Hero hero, int count) {
+		identifyRandom(hero, count, true);
+	}
+
+	private static void identifyRandom(Hero hero, int count, boolean createWhenEmpty) {
 		for (int i = 0; i < count; i++) {
 			Item item = findUnidentified(hero);
 			if (item == null) {
+				if (!createWhenEmpty) {
+					GLog.i(Messages.get(CardEffects.class, "identified"));
+					continue;
+				}
 				int roll = Random.Int(3);
 				Generator.Category cat = roll == 0 ? Generator.Category.SCROLL
 						: roll == 1 ? Generator.Category.POTION : Generator.Category.RING;
