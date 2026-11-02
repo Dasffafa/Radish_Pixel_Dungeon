@@ -17,7 +17,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
+import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.DMPrototypeSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
@@ -55,11 +61,11 @@ public class WardenPrototype extends Mob {
 		this.model = model;
 		if (model == 175) {
 			HP = HT = 34;
-			EXP = 8;
+			EXP = 0;
 			maxLvl = 18;
 		} else {
 			HP = HT = 22;
-			EXP = 5;
+			EXP = 0;
 			maxLvl = 15;
 		}
 	}
@@ -144,7 +150,42 @@ public class WardenPrototype extends Mob {
 	}
 
 	@Override
+	protected boolean canAttack( Char enemy ) {
+		return model == 100 && (super.canAttack(enemy)
+				|| new Ballistica(pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos);
+	}
+
+	@Override
+	protected boolean doAttack( Char enemy ) {
+		if (model != 100 || Dungeon.level.adjacent(pos, enemy.pos)
+				|| new Ballistica(pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos != enemy.pos) {
+			return super.doAttack(enemy);
+		}
+		spend(1f);
+		Invisibility.dispel(this);
+		if (hit(this, enemy, true)) {
+			int dmg = Char.combatRoll(3, 10);
+			enemy.damage(DamageInfo.of(dmg, DamageType.LIGHTNING, this, new DM100.LightningBolt()));
+			if (enemy.sprite.visible) {
+				enemy.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
+				enemy.sprite.flash();
+			}
+		} else {
+			enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
+		}
+		if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
+			sprite.zap(enemy.pos);
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	protected boolean act() {
+		if (model == 175 && protoState != INACTIVE && !buffs().contains(Barrier.class)
+				&& Dungeon.level.heroFOV[pos]) {
+			Buff.affect(this, Barrier.class).setShield(60);
+		}
 
 		if (protoState == INACTIVE) {
 			if (progress > 0) {
@@ -163,9 +204,7 @@ public class WardenPrototype extends Mob {
 
 	@Override
 	public void damage( DamageInfo info ) {
-		if (protoState == INACTIVE && isAlive() && info != null && info.getDamage() > 0) {
-			activateByWarden();
-		}
+		// 受伤不会擅自决定阵营；阵营只由典狱长、控制器或电击符石改变。
 		super.damage( info );
 	}
 
