@@ -137,6 +137,7 @@ public class PrisonBossLevel extends Level {
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle(bundle);
 		state = bundle.getEnum( STATE, State.class );
+		if (state == State.START) ensureStartExitTransition();
 		
 		//in some states tengu won't be in the world, in others he will be.
 		if (state == State.START || state == State.FIGHT_PAUSE) {
@@ -215,6 +216,21 @@ public class PrisonBossLevel extends Level {
 		for (Point p : startTorches){
 			Painter.set(this, p, Terrain.WALL_DECO);
 		}
+
+		if (state == State.START) {
+			ensureStartExitTransition();
+		}
+	}
+
+	private void ensureStartExitTransition() {
+		String linkId = LevelTransition.regularLinkId(Dungeon.branchId, Dungeon.depth);
+		for (LevelTransition transition : transitions) {
+			if (transition.type == LevelTransition.Type.REGULAR_EXIT && linkId.equals(transition.linkId)) return;
+		}
+		LevelTransition exit = new LevelTransition(this, pointToCell(levelExit), LevelTransition.Type.REGULAR_EXIT);
+		exit.right += 2;
+		exit.bottom += 3;
+		transitions.add(exit);
 	}
 
 	//area where items/chars are preserved when moving to the arena
@@ -314,8 +330,8 @@ public class PrisonBossLevel extends Level {
 		}
 
 		LevelTransition exit = new LevelTransition(this, pointToCell(levelExit), LevelTransition.Type.REGULAR_EXIT);
-		exit.right+=2;
-		exit.bottom+=3;
+		exit.right += 2;
+		exit.bottom += 3;
 		transitions.add(exit);
 	}
 	
