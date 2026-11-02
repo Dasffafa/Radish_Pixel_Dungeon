@@ -119,9 +119,15 @@ public class WndPeddlerShop extends Window {
 			scroll = new ScrollPane( content );
 			add( scroll );
 
-			// 可见区高度：在窗口真正挂进场景后才知道（camera() 为空时不能排版）
+			// 竖屏短屏幕下按相机高度压缩可见行数，剩余货品交给 ScrollPane 滚动。
+			// 预留上下边距，避免窗口居中后顶部或底部被屏幕裁掉。
 			scrollTop = pos;
-			scrollVisibleHeight = Math.min( rows * rowH, MAX_VISIBLE_ROWS * rowH );
+			int visibleRows = MAX_VISIBLE_ROWS;
+			if (PixelScene.uiCamera != null && PixelScene.uiCamera.height > 0) {
+				float availableHeight = PixelScene.uiCamera.height * 0.88f - pos;
+				visibleRows = Math.max( 1, Math.min( visibleRows, (int)(availableHeight / rowH) ) );
+			}
+			scrollVisibleHeight = Math.min( rows * rowH, visibleRows * rowH );
 
 			for (int i = 0; i < goods.size(); i++) {
 				final Item item = goods.get( i );
