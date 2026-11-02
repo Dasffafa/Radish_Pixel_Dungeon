@@ -1003,14 +1003,12 @@ public abstract class Mob extends Char {
 					Dungeon.hero.belongings.secondaryArmor();
 			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.GriffinEye
 					&& Dungeon.hero.STR() >= sbArmor.STRReq()
-					&& info.getType() == DamageType.LIGHTNING
-					&& info.getAttacker() == Dungeon.hero) {
+					&& info.getType() == DamageType.LIGHTNING) {
 				info.addFinalMultModifier(1f + (25 + 15 * sbArmor.level()) / 100f, "griffin eye");
 			}
 			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt
 					&& Dungeon.hero.STR() >= sbArmor.STRReq()
-					&& info.getType() == DamageType.POISON
-					&& info.getAttacker() == Dungeon.hero) {
+					&& info.getType() == DamageType.POISON) {
 				info.addFinalMultModifier(1f + (15 + 10 * sbArmor.level()) / 100f, "web belt");
 			}
 			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
