@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 
 public final class CardTargeter {
@@ -22,6 +23,18 @@ public final class CardTargeter {
 			return;
 		}
 		if (!hero.isAlive() || !hero.ready) return;
+
+		if (card.type.target == CardType.Target.ENEMY) {
+			Char target = QuickSlotButton.lastTarget;
+			if (target != null && Actor.chars().contains(target) && target.isAlive()
+					&& target.alignment != Char.Alignment.ALLY
+					&& target.pos >= 0 && target.pos < Dungeon.level.length()
+					&& Dungeon.level.heroFOV[target.pos]
+					&& isValidTarget(hero, card, target.pos)) {
+				CardEffects.play(hero, card, target.pos);
+				return;
+			}
+		}
 
 		// 陷阱师：空白卡可以对陷阱使用，因此改用格子选择
 		if (card.type == CardType.BLANK && hero.subClass == HeroSubClasses.JOKER) {
