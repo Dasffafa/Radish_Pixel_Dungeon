@@ -79,6 +79,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PrismaticImage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollShamanKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.GnollKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.ai.AIModifier;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.SentryRoom;
 import com.shatteredpixel.shatteredpixeldungeon.effects.*;
@@ -995,7 +996,8 @@ public abstract class Mob extends Char {
 			}
 		}
 
-		// 次要护甲：格里芬之眼（受闪电伤害增加）与蛛网腰带（受毒素伤害增加）
+		// 次要护甲：格里芬之眼（受闪电伤害增加）、蛛网腰带（受毒素伤害增加）
+		// 与三叉护手（火焰/冰霜/闪电伤害增加）
 		if (Dungeon.hero != null) {
 			com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sbArmor =
 					Dungeon.hero.belongings.secondaryArmor();
@@ -1009,6 +1011,13 @@ public abstract class Mob extends Char {
 					&& info.getType() == DamageType.POISON) {
 				info.addFinalMultModifier(1f + (15 + 10 * sbArmor.level()) / 100f, "web belt");
 			}
+			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
+					&& Dungeon.hero.STR() >= sbArmor.STRReq()
+					&& (info.getType() == DamageType.FIRE || info.getType() == DamageType.FROST
+							|| info.getType() == DamageType.LIGHTNING)
+					&& info.getAttacker() == Dungeon.hero) {
+				info.addFinalMultModifier(1f + (20 + 10 * sbArmor.level()) / 100f, "trident gauntlet");
+			}
 		}
 
 		// 灌能臂缠：英雄用法杖造成伤害后，10 回合内增伤并获得护盾
@@ -1017,7 +1026,8 @@ public abstract class Mob extends Char {
 					Dungeon.hero.belongings.secondaryArmor();
 			if (infArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.InfusedArmband
 					&& Dungeon.hero.STR() >= infArmor.STRReq()
-					&& info.getType() == DamageType.MAGICAL) {
+					&& info.getType() == DamageType.MAGICAL
+					&& info.getSourceItem() instanceof Wand) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.apply(
 						Dungeon.hero, 1 + infArmor.level() / 2, 10f);
 				Buff.affect(Dungeon.hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class)

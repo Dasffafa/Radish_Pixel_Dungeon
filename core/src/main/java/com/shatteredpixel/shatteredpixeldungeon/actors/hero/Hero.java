@@ -2233,6 +2233,14 @@ public class Hero extends Char {
 			damage = Math.round(damage * (1f + (10 + 5 * champBelt.level()) / 100f));
 		}
 
+		// 闪亮手套：敌人满血时造成的伤害同样提高
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor shiningArmor = belongings.secondaryArmor();
+		if (shiningArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves
+				&& STR() >= shiningArmor.STRReq() && enemy != null
+				&& enemy.alignment == Char.Alignment.ENEMY && enemy.HP >= enemy.HT) {
+			damage = Math.round(damage * (1f + (25 + 5 * shiningArmor.level) / 100f));
+		}
+
 		if (buff(Talent.SpiritBladesTracker.class) != null
 				&& Random.Int(10) < 3*pointsInTalent(Talent.SPIRIT_BLADES)){
 			SpiritBow bow = belongings.getItem(SpiritBow.class);
@@ -2493,9 +2501,15 @@ public class Hero extends Char {
 					&& info.getType() == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL) {
 				dmg = Math.max(1, Math.round(dmg * (1f - (10 + 2 * secArmor.level) / 100f)));
 			}
-			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
+				if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
 					&& buffs().stream().noneMatch(buff -> buff.type != com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.buffType.NEUTRAL)) {
 				dmg = Math.max(1, dmg - Math.round(2 + 0.2f * secArmor.level));
+			}
+			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt
+					&& info.getType() == DamageType.PHYSICAL && dmg > 0
+					&& com.watabou.utils.Random.Int(5) == 0) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(pos, 20,
+						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Web.class);
 			}
 		}
 
