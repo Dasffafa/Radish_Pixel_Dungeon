@@ -144,6 +144,12 @@ public final class CardEffects {
 						protected void onSelect(int index) {
 							finish(hero, card, index == 0, card.type.time);
 						}
+
+						@Override
+						public void onBackPressed() {
+							hide();
+							finish(hero, card, false, card.type.time);
+						}
 					});
 				} else {
 					finish(hero, card, false, card.type.time);
