@@ -2508,8 +2508,8 @@ public class Hero extends Char {
 			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt
 					&& info.getType() == DamageType.PHYSICAL && dmg > 0
 					&& com.watabou.utils.Random.Int(5) == 0) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(pos, 20,
-						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Web.class);
+				GameScene.add(com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(pos, 20,
+						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Web.class));
 			}
 		}
 

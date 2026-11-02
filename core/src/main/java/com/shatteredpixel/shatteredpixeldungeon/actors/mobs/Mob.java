@@ -1003,12 +1003,14 @@ public abstract class Mob extends Char {
 					Dungeon.hero.belongings.secondaryArmor();
 			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.GriffinEye
 					&& Dungeon.hero.STR() >= sbArmor.STRReq()
-					&& info.getType() == DamageType.LIGHTNING) {
+					&& info.getType() == DamageType.LIGHTNING
+					&& info.getAttacker() == Dungeon.hero) {
 				info.addFinalMultModifier(1f + (25 + 15 * sbArmor.level()) / 100f, "griffin eye");
 			}
 			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt
 					&& Dungeon.hero.STR() >= sbArmor.STRReq()
-					&& info.getType() == DamageType.POISON) {
+					&& info.getType() == DamageType.POISON
+					&& info.getAttacker() == Dungeon.hero) {
 				info.addFinalMultModifier(1f + (15 + 10 * sbArmor.level()) / 100f, "web belt");
 			}
 			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
@@ -1026,7 +1028,6 @@ public abstract class Mob extends Char {
 					Dungeon.hero.belongings.secondaryArmor();
 			if (infArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.InfusedArmband
 					&& Dungeon.hero.STR() >= infArmor.STRReq()
-					&& info.getType() == DamageType.MAGICAL
 					&& info.getSourceItem() instanceof Wand) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.apply(
 						Dungeon.hero, 1 + infArmor.level() / 2, 10f);
