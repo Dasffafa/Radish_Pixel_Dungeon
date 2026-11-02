@@ -308,6 +308,7 @@ public class Assets {
 		public static final String RECTOR  = "splashes/rector.jpg";
 		public static final String MOONLIGHT = "splashes/moonlight.jpg";
 		public static final String CARDTRICKSTER = "splashes/cardtrickster.jpg";
+		public static final String NEW_HERO = "splashes/newhero.jpg";
 
 		public static final String SEWERS   = "splashes/sewers.jpg";
 		public static final String PRISON   = "splashes/prison.jpg";
@@ -324,6 +325,7 @@ public class Assets {
 		public static final String AVATARS_RECTOR	= "sprites/avatars_rector.png";
 		public static final String AVATARS_MOONLIGHT	= "sprites/avatars_moonlight.png";
 		public static final String AVATARS_CARDTRICKSTER	= "sprites/avatars_cardtrickster.png";
+		public static final String AVATARS_ENGINEER = "sprites/avatars_engineer.png";
 
 		public static final String WARRIOR  = "sprites/warrior.png";
 		public static final String MAGE     = "sprites/mage.png";
@@ -332,6 +334,9 @@ public class Assets {
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String MOONLIGHT = "sprites/moonlight.png";
 		public static final String CARDTRICKSTER = "sprites/cardtrickster.png";
+		public static final String H_ENGINEER = "sprites/heroengineer.png";
+		public static final String ENGINEER = "sprites/engineer.png";
+		public static final String DETONATOR = "sprites/detonator.png";
 		public static final String THE_CATIST = "sprites/the_catist.png";
 		public static final String AVATARS  = "sprites/avatars.png";
 		public static final String FROG      = "sprites/frog.png";
