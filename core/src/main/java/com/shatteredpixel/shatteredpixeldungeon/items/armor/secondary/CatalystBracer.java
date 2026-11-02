@@ -13,7 +13,7 @@ public class CatalystBracer extends SecondaryArmor {
 
 	@Override
 	public Object[] effectArgs() {
-		return new Object[]{ Math.round( 1 + 0.2f * level() ) };
+		return new Object[]{ 1 + 0.2f * level() };
 	}
 
 

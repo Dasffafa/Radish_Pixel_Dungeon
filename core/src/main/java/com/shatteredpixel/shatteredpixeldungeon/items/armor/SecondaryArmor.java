@@ -107,8 +107,8 @@ public abstract class SecondaryArmor extends EquipableItem {
 
 	@Override
 	public String trueName() {
-		String base = Messages.get(this, "name");
-		return level > 0 ? base + " +" + level : base;
+		// Item.title() 统一追加可见等级；这里仅返回基名，避免标题出现两次 +N。
+		return Messages.get(this, "name");
 	}
 
 	@Override
