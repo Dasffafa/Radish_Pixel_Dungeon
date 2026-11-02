@@ -14,6 +14,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Corruption;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.DMPrototypeSprite;
@@ -112,6 +114,7 @@ public class WardenPrototype extends Mob {
 	/** 典狱长把原型机激活成自己的友军 */
 	public void activateByWarden() {
 		if (protoState != INACTIVE) return;
+		Buff.detach( this, Corruption.class );
 		protoState = W_ALLY;
 		alignment = Alignment.ENEMY;
 		if (sprite != null) {
@@ -123,6 +126,7 @@ public class WardenPrototype extends Mob {
 	/** 电击符石：立刻归玩家 */
 	public void activateByHero() {
 		if (protoState != INACTIVE) return;
+		Buff.detach( this, Corruption.class );
 		protoState = H_ALLY;
 		progress = 0;
 		alignment = Alignment.ALLY;
@@ -159,19 +163,8 @@ public class WardenPrototype extends Mob {
 
 	@Override
 	public void damage( DamageInfo info ) {
-		//未激活的机体被打一下就会醒过来并归到玩家对面（避免玩家白嫖）
-		//判据用阵营而不是"攻击者是不是英雄本人"，否则宠物/召唤物打它仍然能白嫖
-		Char attacker = info.getAttacker();
-		if (protoState == INACTIVE && isAlive() && attacker != null && attacker.alignment == Alignment.ALLY) {
-			protoState = W_ALLY;
-			alignment = Alignment.ENEMY;
-			//视觉上要立刻站起来并给个提示，否则玩家只看到一台躺着的机器突然开始打人
-			if (sprite != null) {
-				sprite.showStatus( 0xFFCC22, Messages.get( this, "activated_warden" ) );
-				if (sprite instanceof DMPrototypeSprite) {
-					((DMPrototypeSprite) sprite).activate();
-				}
-			}
+		if (protoState == INACTIVE && isAlive() && info != null && info.getDamage() > 0) {
+			activateByWarden();
 		}
 		super.damage( info );
 	}

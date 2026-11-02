@@ -20,6 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Dread;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Sleep;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Terror;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.items.TengusMask;
@@ -46,6 +47,7 @@ public class Warden extends Mob {
 
 		properties.add(Property.BOSS);
 		properties.add(Property.INORGANIC);
+		immunities.add(Sleep.class);
 	}
 
 	private static final String ENRAGED      = "enraged";
@@ -113,9 +115,15 @@ public class Warden extends Mob {
 		}
 		Dungeon.level.updateFieldOfView( this, fieldOfView );
 
-		if (!BossHealthBar.isAssigned( this ) && Dungeon.level.heroFOV[pos]) {
+		boolean heroEnteredArena = Dungeon.level instanceof WardenBossLevel
+				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos );
+		if (!awake && heroEnteredArena) {
 			awake = true;
 			notice();
+		}
+		if (awake && Dungeon.level instanceof WardenBossLevel
+				&& !((WardenBossLevel) Dungeon.level).bossDead() && !Dungeon.level.locked) {
+			Dungeon.level.seal();
 		}
 
 		// 玩家还没进门看到它：保持静止，既不移动也不激活原型机
@@ -125,15 +133,17 @@ public class Warden extends Mob {
 		}
 
 		//通用AI处理麻痹、恐惧及Amok目标切换，不能让开机策略抢占这些状态。
-		if (paralysed > 0 || buff( Amok.class ) != null || buff( Terror.class ) != null || buff( Dread.class ) != null) {
+		if (paralysed > 0 || buff( Amok.class ) != null || buff( Terror.class ) != null || buff( Dread.class ) != null || buff( Sleep.class ) != null) {
 			return super.act();
 		}
 
 		//正在激活某台原型机：每回合推进一次，期间不动
 		if (activating != null) {
 			WardenPrototype p = activating;
-			if (p.isAlive() && p.isInactive() && Dungeon.level.adjacent( p.pos, pos ) && activatingTurnsLeft > 0) {
-				activatingTurnsLeft--;
+			if (p.isAlive() && p.isInactive() && Dungeon.level.adjacent( p.pos, pos )) {
+				if (activatingTurnsLeft > 0) {
+					activatingTurnsLeft--;
+				}
 				if (activatingTurnsLeft <= 0) {
 					p.activateByWarden();
 					GLog.w( Messages.get( this, "activated" ) );
@@ -167,6 +177,8 @@ public class Warden extends Mob {
 					spend( 1 / speed() );
 					return moveSprite( oldPos, pos );
 				}
+				spend( TICK );
+				return true;
 			}
 		}
 
@@ -175,7 +187,7 @@ public class Warden extends Mob {
 
 	private void startActivating( WardenPrototype p ) {
 		activating = p;
-		activatingTurnsLeft = Math.max( 1, p.activationTurns() - speedBonus );
+		activatingTurnsLeft = Math.max( 1, p.activationTurns() - speedBonus ) - 1;
 		GLog.i( Messages.get( this, "activating" ) );
 	}
 
@@ -207,7 +219,9 @@ public class Warden extends Mob {
 	@Override
 	public void damage( DamageInfo info ) {
 
-		if (!BossHealthBar.isAssigned()) {
+		if (!BossHealthBar.isAssigned()
+				&& Dungeon.level instanceof WardenBossLevel
+				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos )) {
 			notice();
 		}
 

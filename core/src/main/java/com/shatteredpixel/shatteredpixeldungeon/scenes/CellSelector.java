@@ -93,6 +93,15 @@ public class CellSelector extends ScrollArea {
 			
 		} else {
 			
+			int cell = ((DungeonTilemap)target).screenToTile(
+				(int) event.current.x,
+				(int) event.current.y,
+				false );
+			if (cell == -1) {
+				select( -1, event.button );
+				return;
+			}
+
 			PointF p = Camera.main.screenToCamera( (int) event.current.x, (int) event.current.y );
 
 			//Prioritizes a sprite if it and a tile overlap, so long as that sprite isn't more than 4 pixels into another tile.

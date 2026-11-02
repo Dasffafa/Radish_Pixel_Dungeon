@@ -199,6 +199,7 @@ public class Item implements Bundlable {
 	}
 
 	public void doThrow( Hero hero ) {
+		QuickSlotButton.cancel();
 		GameScene.selectCell(thrower);
 	}
 	

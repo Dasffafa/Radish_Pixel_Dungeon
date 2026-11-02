@@ -14,6 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warden;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
@@ -257,12 +258,25 @@ public class WardenBossLevel extends Level {
 
 	public void onBossDeath() {
 		bossDead = true;
+		for (Mob mob : new ArrayList<>(mobs)) {
+			if (mob instanceof WardenPrototype) {
+				mob.alignment = Char.Alignment.NEUTRAL;
+				mob.destroy();
+				if (mob.sprite != null) {
+					mob.sprite.killAndErase();
+				}
+			}
+		}
 		unseal();
 		if (exitCell != -1) {
 			Level.set( exitCell, Terrain.EXIT, this );
 			GameScene.updateMap( exitCell );
 		}
 		GLog.w( Messages.get( this, "boss_dead" ) );
+	}
+
+	public boolean heroInBossArena(int cell) {
+		return cell >= 0 && cell < length() && cell / width() < doorCell.y;
 	}
 
 	public boolean bossDead() {
