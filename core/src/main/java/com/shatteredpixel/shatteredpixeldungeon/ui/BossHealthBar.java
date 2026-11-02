@@ -161,6 +161,8 @@ public class BossHealthBar extends Component {
 			bloods[i].autoKill = false;
 			bloods[i].on = false;
 			add(bloods[i]);
+
+			setComponentVisible(i, bosses[i] != null);
 		}
 
 		// 设置组件总尺寸
@@ -338,6 +340,7 @@ public class BossHealthBar extends Component {
 				instance.buffs[emptyIndex].needsRefresh = true;
 				instance.buffs[emptyIndex].layout();  // 强制布局
 				instance.buffs[emptyIndex].update();  // 强制更新
+				instance.setComponentVisible(emptyIndex, true);
 
 				instance.layout();
 
