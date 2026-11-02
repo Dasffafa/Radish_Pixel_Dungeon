@@ -3001,6 +3001,34 @@ public class Hero extends Char {
 
 			curAction = new HeroAction.Unlock( cell );
 
+		} else if (Dungeon.level.map[cell] == Terrain.DOOR && andromedaSeenFoes >= 3
+				&& belongings.secondaryArmor() instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda
+				&& STR() >= belongings.secondaryArmor().STRReq()) {
+
+			final int doorCell = cell;
+			Game.runOnRenderThread(new Callback() {
+				@Override
+				public void call() {
+					GameScene.show(new WndOptions(
+							Messages.get(com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda.class, "name"),
+							Messages.get(com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda.class, "warning"),
+							Messages.get(Hero.class, "detour_yes"),
+							Messages.get(Hero.class, "detour_no")) {
+						@Override
+						protected void onSelect(int index) {
+							if (index == 0) {
+								curAction = new HeroAction.Move(doorCell);
+								lastAction = null;
+								ready = false;
+								next();
+							} else {
+								interrupt();
+							}
+						}
+					});
+				}
+			});
+
 		} else if (Dungeon.level.getTransition(cell) != null
 				//moving to a transition doesn't automatically trigger it when enemies are near
 				&& (visibleEnemies.size() == 0 || cell == pos)
