@@ -2494,7 +2494,7 @@ public class Hero extends Char {
 				dmg = Math.max(1, Math.round(dmg * (1f - (10 + 2 * secArmor.level) / 100f)));
 			}
 			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
-					&& buffs().isEmpty()) {
+					&& buffs().stream().noneMatch(buff -> buff.type != com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.buffType.NEUTRAL)) {
 				dmg = Math.max(1, dmg - Math.round(2 + 0.2f * secArmor.level));
 			}
 		}
