@@ -671,7 +671,7 @@ public class Armor extends EquipableItem {
 
 	@Override
 	protected float time2equip( Hero hero ) {
-		return 2 / hero.speed();
+		return 1 / hero.speed();
 	}
 
 	@Override

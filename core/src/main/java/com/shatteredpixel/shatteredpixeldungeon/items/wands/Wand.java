@@ -53,6 +53,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WildM
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.GriffinEye;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
@@ -506,6 +507,15 @@ public abstract class Wand extends Item {
 	}
 	public void wandUsed() {
 		TieredToyEffects.onAbilityUsed(hero);
+
+		if (this instanceof WandOfLightning
+				&& hero.belongings.secondaryArmor() instanceof GriffinEye) {
+			for (WandOfLightning wand : hero.belongings.getAllItems(WandOfLightning.class)) {
+				if (wand != this) {
+					wand.curCharges = Math.min(wand.maxCharges, wand.curCharges + 1);
+				}
+			}
+		}
 
 		if (hero.subClass == HeroSubClasses.JOKER) {
 			com.shatteredpixel.shatteredpixeldungeon.items.cards.CardEffects.onWandUsed(hero);
