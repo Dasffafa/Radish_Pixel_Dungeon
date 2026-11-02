@@ -161,7 +161,6 @@ public class WndBag extends WndTabbed {
 		scrollSized = true;
 
 		resize( windowWidth, windowHeight );
-		// TEMP-DEBUG
 
 		int i = 1;
 		for (Bag b : Dungeon.hero.belongings.getBags()) {
@@ -278,7 +277,6 @@ public class WndBag extends WndTabbed {
 			scroll.setRect(0, TITLE_HEIGHT, width, scrollHeight);
 			scrollSized = true;
 		}
-		// TEMP-DEBUG
 	}
 
 	protected void placeItems( Bag container ) {
