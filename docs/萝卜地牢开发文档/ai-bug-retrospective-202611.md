@@ -123,3 +123,69 @@
 2. 写代码时：所有异步钩子写出「谁收尾」；所有窗口写「如何夹取」；所有新字段写「旧档怎么读」。
 3. 自检：`git diff --numstat`（行尾/整文件重写）、`grep TEMP-DEBUG`、zh/en 双侧键名、构建产物不提交。
 4. 提交：一功能一提交，提交信息写清「为什么」，让后来的人（和人工修复者）能快速定位。
+
+## 九、外部协力修复对照（2026-11-03，作者 JDSA Ling）
+
+> 同一批缺陷被外部协力再修一遍，等于**独立复核**：两个人各犯一次、各修一次，说明它不是偶发笔误，而是**默认写法本身有坑**。
+> 下列每条都给「症状 → 真因 → 硬规则」，提交号可直接 `git show`。
+
+**21. 单帧动画按两帧索引 ⇒ 帧越界** —— `feb2fc517 外部协力：修复冰晶合剂时间结束后动画越界异常`
+- 真因：`sprites/IceBlockSprite.java:55` 的 `die.frames(frames, 0, 1)` 取第 0、1 帧，而冰晶合剂贴图那一侧只有 1 帧。
+- 修法：`frames(frames, 0)`。
+- 硬规则：`frames(...)` 的每个下标都必须真实存在；写帧索引前先数 PNG 的实际帧数（§六「美术与帧网格」）。**单帧动画永远只写一个下标。**
+
+**22. 「这回合什么都不做」不能只 `spend`** —— `db5fe18bf 外部协力：修复典狱长的一些问题`
+- 真因：`actors/mobs/Warden.java:124` 在找不到可激活机体时只 `spend(TICK)`，状态仍是敌对 ⇒ 它会一直贴着英雄空转、每回合耗 TICK。
+- 修法：`state = PASSIVE; spend(Actor.TICK);`。
+- 硬规则：自定义 AI 的 `act()` 里凡是「这个回合无事可做」的分支，**必须同时决定状态**（PASSIVE / WANDERING / HUNTING）。只 `spend` 不改状态 = 原地无限敌对待机。
+
+**23. 判 buff 不要用 `buffs().contains(Class)`** —— `cebbfe3db 外部协力：修复buff检查错误的格式`
+- 真因：`actors/mobs/WardenPrototype.java:203` 写 `!buffs().contains(Barrier.class)`。
+- 修法：`buff(Barrier.class) == null`。
+- 硬规则：判「身上有没有某个 buff」一律用 `Char.buff(Class)`（它处理子类与共享机制）；`buffs()` 集合只用来**遍历**，不要拿它做类型包含判断。
+
+**24. 「免疫位移」必须收集全部入口，并按来源区分** —— `401fb1d3a 外部协力：修复空间碎片不免疫魔像的传送，扭曲陷阱的传送，传送陷阱的传送，虫洞陷阱的传送`
+- 真因：`items/weapon/melee/SpaceFragment` 的「免疫被动位移」只挂在个别路径上；魔像（`actors/mobs/Golem.java:170`）直接调 `ScrollOfTeleportation.appear(...)`，把这类检查整个绕过。
+- 修法：`ScrollOfTeleportation` 新增 `teleportToLocation(Char ch, int target, boolean isExternalSource)`，**只有外部来源**（怪物/陷阱）才查 `SpaceFragment.blocksPassiveDisplacement(ch)`；玩家主动用的传送卷轴不受限。
+- 硬规则：做「免疫 X」类效果时，先 `grep` 出**所有**施加 X 的入口（`appear` / `teleportChar` / `randomDestination` / 各陷阱类），统一收口到一个带「来源」参数的方法。逐个入口补检查 = 必漏。
+- 附注：`Golem.java:170` 那处写成 `if (!teleportToLocation(...)) { }`（空 if 体），能跑但可读性差，后续动这文件时可顺手整理。
+
+**25. 关卡两参 `set()` 只能在运行期用** —— `d2b161976 外部协力：典狱长新增锁门机制`
+- 现状/风险：`levels/WardenBossLevel.java` 的 `seal()/unseal()` 用 `set(162, LOCKED_DOOR)` / `set(162, DOOR)`（两参形式内部走 `Dungeon.level`）。`seal()` 只在战斗触发时调用，那一刻 `Dungeon.level` 已指向本关，故当前可用。
+- 硬规则：关卡类里写地形默认一律三参 `Level.set(cell, terrain, this)`（见第 3 条）；只有「确定在运行期、且 `Dungeon.level` 必然是本关」才允许两参，并**在注释里写明理由**。把两参 `set` 挪进 `build()` 会立刻 NPE。
+
+**26. 带参 `desc` 里的裸 `%` 必崩** —— `07b8357e2 外部协力：修复法术易伤文本异常`
+- 真因：`custom_zh.properties` 的 `custom.buffs.spellvulnerable.desc` 写 `提高33%`，而该 desc 带 `%s`（剩余回合）⇒ `Messages.get(this,"desc",args)` 走 `String.format`，`%。`被当成格式说明符 ⇒ 打开说明即崩。
+- 修法：`33%%`。
+- 硬规则：AGENTS.md §6「带参 `desc` 里的裸 `%`」；**desc 只要带 `%s`/`%d`，字面百分号一律 `%%`**；无参 desc 不过 format、不必转义。
+- 顺带教训：这次提交为修上面那条，把升降器 desc **重新拆成了两行**（真实换行），后续又得修一次。**改 properties 要换行就写字面量 `\n`，绝不写真实换行。**
+
+**27. 别为一句文案覆写父类入口** —— `e96568c42 外部协力：修复DM175原型机不能普攻的异常` + `f7a7bfd47 外部协力：修复DROP和THROW的文本覆盖异常`
+- 真因 A：`WardenPrototype` 覆写 `description()` 只为返回 `desc`，把父类按状态给出的说明整段顶掉 ⇒ 删掉覆写即恢复。
+- 真因 B：`items.simplecontroller.ac_drop/ac_throw` 覆盖了通用「丢弃/投掷」文案，而该物品根本没有这两个动作 ⇒ 删掉即恢复。
+- 硬规则：不要为了一句话去覆写父类的说明/文案入口；`ac_*` 文本键必须与 `actions()` 一一对应。另外 `canAttack()` 里的型号分支要写成 `if (model == 100) { ... } else { ... }`，别用 `&&` 把「型号判断」和「能否攻击」揉进一行。
+
+**28. 同类 buff 有两个类时，挂载点要选实际会中的那个** —— `e10c90893 外部协力：修复弹射起步天赋冻伤异常`
+- 真因：弹射起步（`items/artifacts/Wheelchair.tryTriggerCatapultStart`）只挂在 `Frost`（寒冷）上，而「冻伤」实际是 `Chill` ⇒ 永不触发。
+- 修法：触发移到 `actors/buffs/Chill.java`，条件判断仍收在 `Wheelchair` 里（单一入口）。
+- 硬规则：效果挂哪个 buff，取决于**玩家实际会中的是哪个类** —— 先 `grep` 谁在 `add(new XxxBuff())`，别按名字猜（`Frost` vs `Chill` 是典型陷阱）。
+
+**29. Debug 入口要判「英雄是否还活着」** —— `0e392557f 外部协力：线程追查现在在英雄死亡时不再显示`
+- 真因：`windows/WndGame.java:79` 只判 `!Dungeon.hero.ready`，而英雄死亡后 `ready` 同样为 false ⇒ 暂停菜单里仍出现「线程追查」按钮。
+- 修法：`if (!Dungeon.hero.ready && Dungeon.hero.isAlive())`。
+- 硬规则：任何「因为状态 X 才出现」的入口，都要反问**这个状态在「不该出现」的场景里是否也为真**（`ready=false` 同时表示「正在演算」和「已死亡」）。
+
+**30. 远程怪物：`implements Callback` + `call(){ next(); }` 是标准收尾** —— `69a836e74 外部协力：DM175原型动画卡死修复`
+- 真因：`WardenPrototype`（DM-175）远程攻击只 `zap()` 不回调 ⇒ `Actor.process` 永停 `wait()`（与第 1 条、AGENTS.md §15.3 完全同型）。
+- 修法：`class WardenPrototype extends Mob implements Callback`，`sprite.zap(pos)` 传 `this`，补 `public void call(){ next(); }` 与 `public void onZapComplete(){ next(); }`；配合 `sprites/DMPrototypeSprite.java` 的 `zap = attack.clone()` + `zap(int pos)`。
+- 硬规则：见 AGENTS.md §15.3 —— **任何 `zap()` 都必须先回答「谁来 `next()`」**。
+
+**31. 自制滚轮/拖动组件，符号必须实机验** —— `eec9d9a27 外部协力：修复滑动相反的问题`
+- 真因：`ui/ScrollPane.java:251` 的 `scrollBy(0, -event.amount * ...)` 符号取反 ⇒ 滚轮方向与内容方向相反。
+- 硬规则：自制输入组件（`ScrollPane` / `CellSelector` / `PointerArea`）提交前必须真机或模拟器实际滚一次。符号、阈值、缩放系数这三类，**读代码看不出来**。
+
+**32. 复核结论：我的「默认写法」清单再加四条**
+1. 自定义 AI 的空转分支必须同时定状态（第 22 条）。
+2. 判 buff 用 `buff(Class)`，不用 `buffs().contains`（第 23 条）。
+3. 「免疫 X」先收集全部入口再收口（第 24 条）。
+4. 效果挂载点先 `grep` 实际会中的 buff 类（第 28 条）。
