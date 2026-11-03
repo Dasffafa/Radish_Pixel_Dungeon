@@ -90,9 +90,6 @@ public class Frost extends FlavourBuff {
 
 				Hero hero = (Hero)target;
 
-				// 弹射起步天赋触发：受到冻伤时获得免费轮椅使用机会（条件判断统一在 Wheelchair 里）
-				Wheelchair.tryTriggerCatapultStart(hero);
-
 				ArrayList<Item> freezable = new ArrayList<>();
 				//does not reach inside of containers
 				if (!hero.belongings.lostInventory()) {
