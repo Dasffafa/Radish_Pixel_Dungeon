@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment;
 import com.shatteredpixel.shatteredpixeldungeon.levels.RegularLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
@@ -89,8 +90,53 @@ public class ScrollOfTeleportation extends Scroll {
 		
 	}
 
+	/**
+	 * 传送角色，默认【外部来源】（怪物、陷阱等被动位移）
+	 */
 	public static boolean teleportChar( Char ch ) {
-		return teleportChar( ch, ScrollOfTeleportation.class );
+		return teleportChar(ch, Dungeon.level.randomDestination(ch), true);
+	}
+
+	/**
+	 * @param isExternalSource true = 外部被动传送（魔像、陷阱）；false = 玩家主动（传送卷轴）
+	 */
+	public static boolean teleportChar( Char ch, int target, boolean isExternalSource ) {
+		return teleportToLocation(ch, target, isExternalSource);
+	}
+
+	public static boolean teleportToLocation(Char ch, int target, boolean isExternalSource){
+
+		// ✅ 只有外部传送才检查空间碎片免疫
+		if (isExternalSource && SpaceFragment.blocksPassiveDisplacement(ch)){
+			if (ch instanceof Hero) {
+				GLog.w(Messages.get(SpaceFragment.class, "blocked_teleport"));
+			}
+			return false;
+		}
+
+		// ========== 下面原版 teleportToLocation 代码原封不动保留 ==========
+		if (Dungeon.level == null || !Dungeon.level.passable[target]){
+			return false;
+		}
+		if (Actor.findChar(target) != null){
+			return false;
+		}
+		if (Char.hasProp(ch, Char.Property.LARGE) && !Dungeon.level.openSpace[target]){
+			return false;
+		}
+
+		ch.pos = target;
+		ch.sprite.place(target);
+		ch.sprite.visible = Dungeon.level.heroFOV[ch.pos];
+
+		if (ch instanceof Hero) {
+			Dungeon.observe();
+			GameScene.updateFog();
+		}
+		Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
+		CellEmitter.get(ch.pos).burst( Speck.factory(Speck.LIGHT), 4 );
+
+		return true;
 	}
 
 	public static boolean teleportChar( Char ch, Class source ) {
@@ -103,7 +149,7 @@ public class ScrollOfTeleportation extends Scroll {
 			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 			return false;
 		}
-		
+
 		int count = 20;
 		int pos;
 		do {
@@ -112,30 +158,30 @@ public class ScrollOfTeleportation extends Scroll {
 				break;
 			}
 		} while (pos == -1 || Dungeon.level.secret[pos]);
-		
+
 		if (pos == -1) {
-			
+
 			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 			return false;
-			
+
 		} else {
-			
+
 			appear( ch, pos );
 			Dungeon.level.occupyCell( ch );
 			Buff.detach(ch, Roots.class);
-			
+
 			if (ch == Dungeon.hero) {
 				GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
-				
+
 				Dungeon.observe();
 				GameScene.updateFog();
 				Dungeon.hero.interrupt();
 			}
 			return true;
-			
+
 		}
 	}
-	
+
 	public static boolean teleportPreferringUnseen( Hero hero ){
 		
 		if (!(Dungeon.level instanceof RegularLevel)){
