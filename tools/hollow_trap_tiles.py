@@ -6,7 +6,7 @@ terrain_features.png 是 256x128、每格 16x16；左边 9 列 x 7 行是陷阱�
 做法：取行 0~2 每格，只保留外轮廓、中间挖空，写回行 3~5 对应格。
 """
 from PIL import Image, ImageFilter
-import shutil, os
+import shutil, os, tempfile
 
 SRC = r'core/src/main/assets/environment/terrain_features.png'
 BAK = SRC + '.bak'
@@ -64,5 +64,5 @@ for i, rows in enumerate(([0, 1, 2], [3, 4, 5])):
         prev.alpha_composite(im.crop((0, r * TILE, COLS * TILE, (r + 1) * TILE)),
                              (COLS * TILE + 8, (ri + 3 * i) * TILE))
 prev.convert('RGB').resize((prev.width * 4, prev.height * 4), Image.NEAREST).save(
-    r'C:\Users\1372722790\AppData\Local\Temp\trap_compare.png')
+    os.path.join(tempfile.gettempdir(), 'trap_compare.png'))
 print('compare written')

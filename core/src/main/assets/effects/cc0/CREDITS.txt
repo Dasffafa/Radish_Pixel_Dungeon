@@ -25,4 +25,6 @@ simplefx.png
 cyclone.png
   3-frame 16x16 cyclone used by the Potion of Tornadoes blob.
   48x16 horizontal strip.
+  Source: drawn for this project (no third-party asset).
+  License: CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
 

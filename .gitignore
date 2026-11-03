@@ -78,3 +78,8 @@ fix-tdr-delay.ps1
 .dsh-vision-router/
 docs/萝卜地牢开发文档/_npc_pics/
 ~$*.xlsx
+
+# 本机打包/清理脚本产物（2026-11-03 清理后加）
+*.bak
+*.new.*
+/启动游戏.bat

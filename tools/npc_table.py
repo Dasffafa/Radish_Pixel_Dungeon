@@ -435,7 +435,8 @@ def build(force_dir=None):
                         r["code"], r["note"]])
 
     # ---- 桌面留一份（用户要求：表是实时生成的，桌面上也要能直接打开）
-    desk = os.path.join(os.path.expanduser("~"), "Desktop")
+    desk = os.environ.get("RPD_DESKTOP_DIR",
+                            os.path.join(os.path.expanduser("~"), "Desktop"))
     if os.path.isdir(desk):
         dst = os.path.join(desk, "NPC总表.xlsx")
         try:
