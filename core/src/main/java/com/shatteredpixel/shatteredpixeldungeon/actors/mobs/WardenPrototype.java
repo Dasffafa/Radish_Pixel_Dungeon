@@ -200,7 +200,7 @@ public class WardenPrototype extends Mob implements Callback {
 
 	@Override
 	protected boolean act() {
-		if (model == 175 && protoState != INACTIVE && !buffs().contains(Barrier.class)
+		if (model == 175 && protoState != INACTIVE && buff(Barrier.class) == null
 				&& Dungeon.level.heroFOV[pos]) {
 			Buff.affect(this, Barrier.class).setShield(60);
 		}
