@@ -14,9 +14,17 @@
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
+import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.watabou.noosa.TextureFilm;
+import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Callback;
+import com.watabou.utils.PointF;
 
 public class DMPrototypeSprite extends MobSprite {
 
@@ -46,6 +54,8 @@ public class DMPrototypeSprite extends MobSprite {
 
 		die = new Animation( 1, false );
 		die.frames( frames, 0, 1 );
+
+		zap = attack.clone();
 
 		play( idle );
 	}
@@ -83,6 +93,8 @@ public class DMPrototypeSprite extends MobSprite {
 			die = new Animation( 9, false );
 			die.frames( frames, 12, 13, 14, 15, 16, 17, 18, 19 );
 
+			zap = attack.clone();
+
 		} else {
 			texture( Assets.Sprites.DM100 );
 			TextureFilm frames = new TextureFilm( texture, 16, 16 );
@@ -98,10 +110,44 @@ public class DMPrototypeSprite extends MobSprite {
 
 			die = new Animation( 12, false );
 			die.frames( frames, 10, 11, 12, 13, 14, 15 );
+
+			zap = attack.clone();
 		}
 
 
 		play( idle );
+	}
+
+	public void zap( int pos ) {
+
+		Char enemy = Actor.findChar(pos);
+
+		//shoot lightning from eye, not sprite center.
+		PointF origin = center();
+		if (flipHorizontal){
+			origin.y -= 6*scale.y;
+			origin.x -= 1*scale.x;
+		} else {
+			origin.y -= 8*scale.y;
+			origin.x += 1*scale.x;
+		}
+		if (enemy != null) {
+			parent.add(new Lightning(origin, enemy.sprite.destinationCenter(), (WardenPrototype) ch));
+		} else {
+			parent.add(new Lightning(origin, pos, (WardenPrototype) ch));
+		}
+		Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
+
+		super.zap( ch.pos );
+		flash();
+	}
+
+	@Override
+	public void onComplete( Animation anim ) {
+		if (anim == zap) {
+			idle();
+		}
+		super.onComplete( anim );
 	}
 
 	@Override

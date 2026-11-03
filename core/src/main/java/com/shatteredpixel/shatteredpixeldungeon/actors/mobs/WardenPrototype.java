@@ -27,8 +27,9 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.DMPrototypeSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
 
-public class WardenPrototype extends Mob {
+public class WardenPrototype extends Mob implements Callback {
 
 	//100 = DM-100 原型机（弱），175 = DM-175 原型机（强）
 	public int model = 100;
@@ -190,6 +191,10 @@ public class WardenPrototype extends Mob {
 		return true;
 	}
 
+	public void onZapComplete() {
+		next();
+	}
+
 	@Override
 	protected boolean act() {
 		if (model == 175 && protoState != INACTIVE && !buffs().contains(Barrier.class)
@@ -235,5 +240,10 @@ public class WardenPrototype extends Mob {
 		if (protoState == W_ALLY) alignment = Alignment.ENEMY;
 		else if (protoState == H_ALLY) alignment = Alignment.ALLY;
 		else alignment = Alignment.NEUTRAL;
+	}
+
+	@Override
+	public void call() {
+		next();
 	}
 }
