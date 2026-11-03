@@ -83,3 +83,10 @@ docs/萝卜地牢开发文档/_npc_pics/
 *.bak
 *.new.*
 /启动游戏.bat
+
+# 可由 tools/npc_table.py 重新生成的表格与构建残留（2026-11-03 清理）
+/docs/萝卜地牢开发文档/NPC总表.xlsx
+replay_pid*.log
+/desktop/replay_pid*.log
+/core/bin/*.txt
+/core/bin/**/*.txt
