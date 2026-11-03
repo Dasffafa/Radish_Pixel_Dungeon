@@ -39,6 +39,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
+import com.shatteredpixel.shatteredpixeldungeon.ui.InventoryPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.InventorySlot;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
@@ -119,7 +120,9 @@ public class WndBag extends WndTabbed {
 		final int TARGET_ROWS = 7;
 
 		int availW = (int)(PixelScene.uiCamera.width  * 0.94f - chrome.marginHor());
-		int availH = (int)(PixelScene.uiCamera.height * 0.82f - chrome.marginTop() - chrome.marginBottom() - TITLE_HEIGHT);
+		// Keep the bottom inventory pane visible while this window is open.
+		int availH = (int)(PixelScene.uiCamera.height * 0.82f - chrome.marginTop() - chrome.marginBottom()
+				- TITLE_HEIGHT - InventoryPane.HEIGHT);
 
 		int slotByW = (availW - (TARGET_COLS - 1) * SLOT_MARGIN) / TARGET_COLS;
 		int slotByH = (availH - (TARGET_ROWS - 1) * SLOT_MARGIN) / TARGET_ROWS;
