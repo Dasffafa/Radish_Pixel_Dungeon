@@ -31,27 +31,28 @@ public class WardenSprite extends MobSprite {
 
 		texture( Assets.Sprites.WARDEN );
 
+		//warden.png 是 120x45：10 列 x 3 行，每帧 12x15，正好整除
 		TextureFilm frames = new TextureFilm( texture, 12, 15 );
 
-		//行 2（32..41）= 常态
+		//行 2（20..29）= 常态
 		normalIdle   = new Animation( 2, true );
-		normalIdle.frames( frames, 32, 33 );
+		normalIdle.frames( frames, 20, 21 );
 
 		normalRun    = new Animation( 10, true );
-		normalRun.frames( frames, 32, 33, 34, 35, 36 );
+		normalRun.frames( frames, 20, 21, 22, 23, 24 );
 
 		normalAttack = new Animation( 12, false );
-		normalAttack.frames( frames, 36, 37, 38, 39, 40, 41, 32 );
+		normalAttack.frames( frames, 24, 25, 26, 27, 28, 29, 20 );
 
-		//行 1（16..25）= 红眼形态
+		//行 1（10..19）= 红眼形态
 		rageIdle   = new Animation( 2, true );
-		rageIdle.frames( frames, 16, 17 );
+		rageIdle.frames( frames, 10, 11 );
 
 		rageRun    = new Animation( 10, true );
-		rageRun.frames( frames, 16, 17, 18, 19, 20 );
+		rageRun.frames( frames, 10, 11, 12, 13, 14 );
 
 		rageAttack = new Animation( 12, false );
-		rageAttack.frames( frames, 20, 21, 22, 23, 24, 25, 16 );
+		rageAttack.frames( frames, 14, 15, 16, 17, 18, 19, 10 );
 
 		//行 0（0..9）= 红眼解体帧，用作死亡动画
 		rageDie    = new Animation( 12, false );
