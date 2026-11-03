@@ -1,8 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.testmode.generator;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.BlackBelt;
@@ -16,66 +14,54 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGlo
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.utils.Random;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 
-/** 测试模式用：使用一次随机生成一件次要护甲放进背包。 */
+/**
+ * 测试模式用：弹窗选一件次要护甲，直接放进背包。
+ *
+ * 名字全部取自各护甲自己的 {@link SecondaryArmor#name()}，不在代码里写死中文；
+ * 动作按钮文字走父类的 {@code ac_<action>} 查表。
+ */
 public class SecondaryArmorSpawner extends TestGenerator {
 
-	@Override
-	public String trueName() {
-		return name();
-	}
-
-	@Override
-	public String name() {
-		return "次要护甲生成器";
-	}
-
-	@Override
-	public String desc() {
-		return "使用后随机生成一件次要护甲放进背包。";
-	}
-
-	//动作按钮文字直接写死，不走 Messages 查表：
-	//这个类的键在中文/英文 properties 里各有多个大小写变体，查表经常落到“找不到文本”上
-	@Override
-	public String actionName( String action, Hero hero ) {
-		if (AC_GIVE.equals( action )) {
-			return "生成";
-		}
-		return super.actionName( action, hero );
+	/** 12 件次要护甲，数组顺序就是弹窗里的排列顺序。 */
+	private static SecondaryArmor[] allArmors() {
+		return new SecondaryArmor[]{
+				new ChampionBelt(),
+				new BlackBelt(),
+				new Andromeda(),
+				new InfusedArmband(),
+				new CatalystBracer(),
+				new Shelter(),
+				new GriffinEye(),
+				new WebBelt(),
+				new ThePure(),
+				new TridentGauntlet(),
+				new ShiningGloves(),
+				new Greaves()
+		};
 	}
 
 	@Override
 	public void execute( Hero hero, String action ) {
 		super.execute( hero, action );
-		if (action.equals( AC_GIVE )) {
-			final String[] names = { "冠军腰带", "黑带", "仙女座", "灌能臂缠", "催化手环", "庇护",
-					"格里芬之眼", "蛛网腰带", "纯洁者", "三叉护手", "闪亮手套", "护胫甲" };
-			GameScene.show( new WndOptions( "次要护甲生成器", "选择要生成的一件：", names ) {
-				@Override
-				protected void onSelect( int index ) {
-					armorAt( index ).collect();
-				}
-			} );
+		if (!AC_GIVE.equals( action )) {
+			return;
 		}
-	}
 
-	private SecondaryArmor armorAt( int index ) {
-		switch (index) {
-			case 0:  return new ChampionBelt();
-			case 1:  return new BlackBelt();
-			case 2:  return new Andromeda();
-			case 3:  return new InfusedArmband();
-			case 4:  return new CatalystBracer();
-			case 5:  return new Shelter();
-			case 6:  return new GriffinEye();
-			case 7:  return new WebBelt();
-			case 8:  return new ThePure();
-			case 9:  return new TridentGauntlet();
-			case 10: return new ShiningGloves();
-			default: return new Greaves();
+		final SecondaryArmor[] armors = allArmors();
+		String[] names = new String[armors.length];
+		for (int i = 0; i < armors.length; i++) {
+			names[i] = armors[i].name();
 		}
+
+		GameScene.show( new WndOptions( name(), Messages.get( this, "choose" ), names ) {
+			@Override
+			protected void onSelect( int index ) {
+				armors[index].collect();
+			}
+		} );
 	}
 }

@@ -70,24 +70,34 @@ public class WardenPrototype extends Mob {
 		}
 	}
 
+	/** 175 型是重型机：更硬、打得更疼，但数量少。 */
+	private boolean heavy() {
+		return model == 175;
+	}
+
+	/** 按机型二选一，避免到处写 `model == 175 ? a : b`。 */
+	private int pick( int heavyValue, int lightValue ) {
+		return heavy() ? heavyValue : lightValue;
+	}
+
 	@Override
 	public int damageRoll() {
-		return Char.combatRoll( model == 175 ? 4 : 2, model == 175 ? 10 : 7 );
+		return Char.combatRoll( pick( 4, 2 ), pick( 10, 7 ) );
 	}
 
 	@Override
 	public int attackSkill( Char target ) {
-		return model == 175 ? 16 : 12;
+		return pick( 16, 12 );
 	}
 
 	@Override
 	public int drRoll() {
-		return super.drRoll() + Char.combatRoll( model == 175 ? 2 : 1, model == 175 ? 6 : 4 );
+		return super.drRoll() + Char.combatRoll( pick( 2, 1 ), pick( 6, 4 ) );
 	}
 
 	@Override
 	public String name() {
-		return Messages.get( this, model == 175 ? "name_175" : "name_100" );
+		return Messages.get( this, heavy() ? "name_175" : "name_100" );
 	}
 
 	@Override
