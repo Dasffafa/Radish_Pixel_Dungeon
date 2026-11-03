@@ -39,7 +39,7 @@ public class Unstable extends Weapon.Enchantment {
 			Kinetic.class,
 			Corrupting.class,
 			Elastic.class,
-			Grim.class,
+			Void.class,
 			Lucky.class,
 			//projecting not included, no on-hit effect
 			Shocking.class,

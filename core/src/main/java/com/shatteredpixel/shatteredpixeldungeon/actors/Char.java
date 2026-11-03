@@ -64,6 +64,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Blazing;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Void;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.*;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
@@ -1042,18 +1043,28 @@ public abstract class Char extends Actor {
         }
 
         if (HP > 0 && buff(Grim.GrimTracker.class) != null) {
-
-            float finalChance = buff(Grim.GrimTracker.class).maxChance;
-            finalChance *= (float) Math.pow(((HT - HP) / (float) HT), 2);
-
+            Grim.GrimTracker tracker = buff(Grim.GrimTracker.class);
+            float finalChance = tracker.maxChance * (float) Math.pow(((HT - HP) / (float) HT), 2);
             if (Random.Float() < finalChance) {
                 int extraDmg = Math.round(HP * resist(Grim.class));
                 dmg += extraDmg;
                 HP -= extraDmg;
-
                 sprite.emitter().burst(ShadowParticle.UP, 5);
-                if (!isAlive() && buff(Grim.GrimTracker.class).qualifiesForBadge) {
-                    Badges.validateGrimWeapon();
+                if (!isAlive() && tracker.qualifiesForBadge) Badges.validateGrimWeapon();
+            }
+        }
+
+        if (HP > 0 && buff(Void.VoidTracker.class) != null) {
+            Void.VoidTracker tracker = buff(Void.VoidTracker.class);
+            float finalChance = tracker.maxChance * (float) Math.pow(((HT - HP) / (float) HT), 2);
+            if (Random.Float() < finalChance) {
+                if (properties.contains(Property.BOSS) || properties.contains(Property.MINIBOSS)) {
+                    int extraDmg = Math.round(HP * resist(Void.class));
+                    dmg += extraDmg;
+                    HP -= extraDmg;
+                    sprite.emitter().burst(ShadowParticle.UP, 5);
+                } else {
+                    Void.tearTile(this);
                 }
             }
         }
