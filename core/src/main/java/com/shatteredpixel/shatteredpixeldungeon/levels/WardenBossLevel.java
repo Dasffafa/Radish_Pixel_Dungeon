@@ -7,6 +7,10 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
+import static com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.DOOR;
+import static com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.LOCKED_DOOR;
+import static com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.WALL;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
@@ -213,8 +217,23 @@ public class WardenBossLevel extends Level {
 	}
 
 	@Override
+	public void seal() {
+		super.seal();
+        set( 162, LOCKED_DOOR );
+        GameScene.updateMap( 162 );
+	}
+
+	@Override
+	public void unseal() {
+		super.unseal();
+		set( 162, DOOR );
+		GameScene.updateMap( 162 );
+	}
+
+	@Override
 	public int randomRespawnCell( Char ch ) {
 		ArrayList<Integer> candidates = new ArrayList<>();
+
 		//只在战斗区里随机：不能刷到下方初始房间，否则玩家一落地就撞上一排原型机
 		//结束行是 arena.bottom-2：最下面那一行是隔开初始房间的墙+门，机体站上去会和门重叠
 		for (int y = arena.top; y < arena.bottom - 1; y++) {
