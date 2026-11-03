@@ -1,35 +1,17 @@
-/*
- * Radish Pixel Dungeon
- *
- * 原型机精灵：
- *   未激活 = dm_proto.png 的帧 0（停机躺倒，只有 1 帧，看起来完全不动）
- *   激活   = 换成对应型号怪物的原始贴图与动画
- *            model 100 → dm100.png（DM-100 的贴图）
- *            model 175 → dm200.png（DM-175 用 DM-200 的机甲外观）
- *
- * 注意：精灵类由 Char.sprite 懒建且常驻，中途改 spriteClass 是无效的，
- * 所以两种形态都在这一个精灵类里重建四条 Animation（见 AGENTS.md §6）。
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
-import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.watabou.noosa.TextureFilm;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 
 public class DMPrototypeSprite extends MobSprite {
 
 	private Animation inactiveAnim;
-
 	private int model = 100;
 
 	public DMPrototypeSprite() {
@@ -38,37 +20,31 @@ public class DMPrototypeSprite extends MobSprite {
 		texture( Assets.Sprites.DM_PROTO );
 		TextureFilm frames = new TextureFilm( texture, 16, 16 );
 
-		// 停机：单帧、极慢，视觉上完全静止
+		// 先只初始化空动画占位，不填帧！
 		inactiveAnim = new Animation( 1, true );
-		inactiveAnim.frames( frames, 0 );
-
-		//四条动画各自独立：共用同一个 Animation 实例会让受击/攻击把待机动画的
-		//播放进度一起改掉，而且 die 若是循环的，死亡动画永远不会结束、尸体不会消失
-		idle = inactiveAnim;
-
+		idle = new Animation( 1, true );
 		run = new Animation( 1, true );
-		run.frames( frames, 0 );
-
 		attack = new Animation( 1, false );
-		attack.frames( frames, 0, 1 );
-
 		die = new Animation( 1, false );
-		die.frames( frames, 0, 1 );
-
 		zap = attack.clone();
-
+		idle.frames( frames, 0 );
 		play( idle );
 	}
 
 	@Override
 	public void link( Char ch ) {
 		super.link( ch );
-		//读档时精灵是后建的，restoreFromBundle 里拿不到 sprite，
-		//已激活的机体必须在 link 时换成对应型号的原始贴图
 		if (ch instanceof WardenPrototype) {
-			WardenPrototype p = (WardenPrototype) ch;
-			model = p.model;
-			if (!p.isInactive()) {
+			model = ((WardenPrototype) ch).model;
+
+			// ✅ 拿到真实model之后，再构建【停机动画】！
+			TextureFilm frames = new TextureFilm( texture, 16, 16 );
+			inactiveAnim.frames( frames, model == 175 ? 0 : 1 );
+			idle = inactiveAnim;
+
+			if (((WardenPrototype) ch).isInactive()) {
+				play( idle );
+			} else {
 				activate();
 			}
 		}
@@ -76,7 +52,6 @@ public class DMPrototypeSprite extends MobSprite {
 
 	/** 激活后换成对应型号怪物的原始贴图与动画 */
 	public void activate() {
-
 		if (model == 175) {
 			texture( Assets.Sprites.DM175 );
 			TextureFilm frames = new TextureFilm( texture, 18, 15 );
@@ -92,9 +67,6 @@ public class DMPrototypeSprite extends MobSprite {
 
 			die = new Animation( 9, false );
 			die.frames( frames, 12, 13, 14, 15, 16, 17, 18, 19 );
-
-			zap = attack.clone();
-
 		} else {
 			texture( Assets.Sprites.DM100 );
 			TextureFilm frames = new TextureFilm( texture, 16, 16 );
@@ -110,18 +82,13 @@ public class DMPrototypeSprite extends MobSprite {
 
 			die = new Animation( 12, false );
 			die.frames( frames, 10, 11, 12, 13, 14, 15 );
-
-			zap = attack.clone();
 		}
-
-
+		zap = attack.clone();
 		play( idle );
 	}
 
 	public void zap( int pos ) {
-
 		Char enemy = Actor.findChar(pos);
-
 		//shoot lightning from eye, not sprite center.
 		PointF origin = center();
 		if (flipHorizontal){

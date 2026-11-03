@@ -8,6 +8,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -121,7 +122,8 @@ public class Warden extends Mob {
 
 		// 玩家还没进门看到它：保持静止，既不移动也不激活原型机
 		if (!awake) {
-			spend( TICK );
+			state = PASSIVE;
+			spend(Actor.TICK);
 			return true;
 		}
 
