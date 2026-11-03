@@ -52,7 +52,7 @@ public class IceBlockSprite extends MobSprite {
 		zap = idle.clone();
 
 		die = new Animation( 12, false );
-		die.frames( frames, 0, 1 );
+		die.frames( frames, 0);
 
 		play( idle );
 	}
