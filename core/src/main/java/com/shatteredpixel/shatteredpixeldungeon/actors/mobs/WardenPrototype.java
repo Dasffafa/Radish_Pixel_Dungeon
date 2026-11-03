@@ -101,11 +101,6 @@ public class WardenPrototype extends Mob implements Callback {
 		return Messages.get( this, heavy() ? "name_175" : "name_100" );
 	}
 
-	@Override
-	public String description() {
-		return Messages.get( this, "desc" );
-	}
-
 	public boolean isInactive() {
 		return protoState == INACTIVE && isAlive();
 	}
@@ -162,9 +157,17 @@ public class WardenPrototype extends Mob implements Callback {
 
 	@Override
 	protected boolean canAttack( Char enemy ) {
-		return model == 100 && (super.canAttack(enemy)
-				|| new Ballistica(pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos);
+		if (model == 100) {
+			// DM100：可以近战，或者弹道能打到就可以远程闪电
+			return super.canAttack(enemy)
+					|| new Ballistica(pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
+		} else {
+			// DM175：只能普通近战，复用父类判定（相邻才能攻击）
+			return super.canAttack(enemy);
+		}
 	}
+
+
 
 	@Override
 	protected boolean doAttack( Char enemy ) {
