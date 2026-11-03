@@ -22,6 +22,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 /**
  * 投掷药水包：奇械师炼金配方的产物。
  *
- * <p>把至多 3 瓶药剂打包成一个物品，投掷时一次性砸碎并释放全部药剂效果。</p>
+ * 把至多 3 瓶药剂打包成一个物品，投掷时一次性砸碎并释放全部药剂效果。
  */
 public class PotionPack extends Item {
 
@@ -94,32 +95,38 @@ public class PotionPack extends Item {
 	}
 
 	private static final String CONTENTS = "contents";
+	// 新格式：直接存 Item 列表，等级/鉴定/附魔都随 Bundle 一起存取；
+	// 旧档里的 "类名|类名" 字符串仍然可读（只读不写）。
+	private static final String CONTENTS_V2 = "contents_v2";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
-		StringBuilder sb = new StringBuilder();
+		ArrayList<Bundlable> list = new ArrayList<>();
 		for (Potion p : potions) {
-			if (p == null) continue;
-			if (sb.length() > 0) sb.append( '|' );
-			sb.append( p.getClass().getName() );
+			if (p != null) list.add( p );
 		}
-		bundle.put( CONTENTS, sb.toString() );
+		bundle.put( CONTENTS_V2, list );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		potions.clear();
-		String raw = bundle.getString( CONTENTS );
-		if (raw == null || raw.isEmpty()) return;
-		for (String cn : raw.split( "\\|" )) {
-			try {
-				Potion p = (Potion) Class.forName( cn ).newInstance();
-				p.identify();
-				potions.add( p );
-			} catch (Exception e) {
-				// 旧存档里可能出现已删除的药剂类型，直接忽略
+		for (Bundlable b : bundle.getCollection( CONTENTS_V2 )) {
+			if (b instanceof Potion) potions.add( (Potion)b );
+		}
+		if (potions.isEmpty() && bundle.contains( CONTENTS )) {
+			String raw = bundle.getString( CONTENTS );
+			if (raw == null || raw.isEmpty()) return;
+			for (String cn : raw.split( "\\|" )) {
+				try {
+					Potion p = (Potion) Class.forName( cn ).newInstance();
+					p.identify();
+					potions.add( p );
+				} catch (Exception e) {
+					// 旧存档里可能出现已删除的药剂类型，直接忽略
+				}
 			}
 		}
 	}

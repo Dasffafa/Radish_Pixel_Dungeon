@@ -21,6 +21,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 
 import java.util.ArrayList;
@@ -28,8 +29,8 @@ import java.util.ArrayList;
 /**
  * 投掷武器链：奇械师炼金配方的产物。
  *
- * <p>把至多 3 件投掷武器串成一条链，投掷时全部砸向目标；
- * 命中后链子散开，每件投掷武器各消耗 1 点耐久。</p>
+ * 把至多 3 件投掷武器串成一条链，投掷时全部砸向目标；
+ * 命中后链子散开，每件投掷武器各消耗 1 点耐久。
  */
 public class ThrowingChain extends Item {
 
@@ -92,36 +93,41 @@ public class ThrowingChain extends Item {
 	}
 
 	private static final String CONTENTS = "contents";
+	// 新格式：直接存 Item 列表（等级也会跟随 Bundle）；旧档的 "类名:等级" 字符串仍可读。
+	private static final String CONTENTS_V2 = "contents_v2";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
-		StringBuilder sb = new StringBuilder();
+		ArrayList<Bundlable> list = new ArrayList<>();
 		for (MissileWeapon m : missiles) {
-			if (m == null) continue;
-			if (sb.length() > 0) sb.append( '|' );
-			sb.append( m.getClass().getName() ).append( ':' ).append( m.buffedLvl() );
+			if (m != null) list.add( m );
 		}
-		bundle.put( CONTENTS, sb.toString() );
+		bundle.put( CONTENTS_V2, list );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		missiles.clear();
-		String raw = bundle.getString( CONTENTS );
-		if (raw == null || raw.isEmpty()) return;
-		for (String entry : raw.split( "\\|" )) {
-			try {
-				String[] parts = entry.split( ":" );
-				MissileWeapon m = (MissileWeapon) Class.forName( parts[0] ).newInstance();
-				if (parts.length > 1) {
-					m.level( Integer.parseInt( parts[1] ) );
+		for (Bundlable b : bundle.getCollection( CONTENTS_V2 )) {
+			if (b instanceof MissileWeapon) missiles.add( (MissileWeapon)b );
+		}
+		if (missiles.isEmpty() && bundle.contains( CONTENTS )) {
+			String raw = bundle.getString( CONTENTS );
+			if (raw == null || raw.isEmpty()) return;
+			for (String entry : raw.split( "\\|" )) {
+				try {
+					String[] parts = entry.split( ":" );
+					MissileWeapon m = (MissileWeapon) Class.forName( parts[0] ).newInstance();
+					if (parts.length > 1) {
+						m.level( Integer.parseInt( parts[1] ) );
+					}
+					m.identify();
+					missiles.add( m );
+				} catch (Exception e) {
+					// 旧存档里可能出现已删除的武器类型，直接忽略
 				}
-				m.identify();
-				missiles.add( m );
-			} catch (Exception e) {
-				// 旧存档里可能出现已删除的武器类型，直接忽略
 			}
 		}
 	}
