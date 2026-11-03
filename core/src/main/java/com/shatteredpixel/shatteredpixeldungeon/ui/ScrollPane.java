@@ -248,7 +248,7 @@ public class ScrollPane extends Component {
 			// 滚轮直接按当前滚动量相对移动。之前是拿 lastPos（只有拖动时才更新）当参照，
 			// 桌面端纯滚轮时 lastPos 还是 (0,0)，一滚就整页跳走。
 			if (event.amount != 0) {
-				scrollBy( 0, -event.amount * Math.max( 1, height ) * 0.5f );
+				scrollBy( 0, event.amount * Math.max( 1, height ) * 0.5f );
 				showThumb();
 			}
 		}
