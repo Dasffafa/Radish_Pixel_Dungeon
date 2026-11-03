@@ -76,7 +76,7 @@ public class WndGame extends Window {
 			curBtn.icon(Icons.get(Icons.CHALLENGE_ON));
 		}
 
-		if(!Dungeon.hero.ready) {
+		if(!Dungeon.hero.ready && Dungeon.hero.isAlive()) {
 			// Debug
 			addButton(curBtn = new RedButton(Messages.get(this, "debug")) {
 				@Override
