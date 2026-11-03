@@ -132,10 +132,18 @@ public class ScrollPane extends Component {
 	 * 所以这里不能再叠加 this.y —— 之前叠了一次，滚到底时缩略条正好被推出窗口下沿。
 	 */
 	protected void updateThumb() {
-		// 右侧竖条直接去掉：它挡点击、长度也不好做准，用户要求“弄没”。
-		// 滚动仍然可以用拖动内容/滚轮/拖动缩略区域以外的方式。
-		if (thumb != null) thumb.visible = false;
-		return;
+		if (thumb == null) return;
+		// 只有内容比视口高、且刚刚滚动过（thumbTimer 还在）时才露出来；
+		// 位置要夹在视口内，否则滚到底时缩略条会被推出窗口下沿。
+		if (thumbTimer > 0 && height < content.height()) {
+			thumb.visible = true;
+			thumb.scale.set( 3, Math.max( 12, height * height / content.height() ) );
+			thumb.x = width - thumb.width() - 1;
+			thumb.y = Math.min( height - thumb.height(),
+					height * content.camera.scroll.y / content.height() );
+		} else {
+			thumb.visible = false;
+		}
 	}
 
 	@Override

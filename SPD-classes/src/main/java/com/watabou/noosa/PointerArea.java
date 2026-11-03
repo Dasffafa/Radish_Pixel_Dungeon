@@ -86,9 +86,11 @@ public class PointerArea extends Visual implements Signal.Listener<PointerEvent>
 				
 				if (curEvent == event) {
 					curEvent = null;
-					//屏幕像素阈値：手指滑动通常远超 16px，正常点击的抖动远小于它
-					boolean dragged = Math.abs( event.current.x - downX ) > 16
-							|| Math.abs( event.current.y - downY ) > 16;
+					//拖动阈值按相机缩放换算：16 个逻辑像素，缩放越大对应的屏幕像素越多，
+					//这样高 DPI / 放大状态下“手抖”也不会被误判成点击。
+					float dragLimit = 16f * (Camera.main != null ? Math.max( 1f, Camera.main.zoom ) : 1f);
+					boolean dragged = Math.abs( event.current.x - downX ) > dragLimit
+							|| Math.abs( event.current.y - downY ) > dragLimit;
 					if (!dragged) {
 						onClick( event );
 					}
