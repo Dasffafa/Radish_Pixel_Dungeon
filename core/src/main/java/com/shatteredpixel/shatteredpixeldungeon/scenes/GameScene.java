@@ -1329,6 +1329,16 @@ public class GameScene extends PixelScene {
 				}
 			}
 
+			// WndBag uses an independent camera; keep its bottom above the inventory pane.
+			if (wnd instanceof WndBag && scene.inventory != null && scene.inventory.visible) {
+				float zoom = wnd.camera().zoom;
+				float windowBottom = wnd.camera().y / zoom + wnd.camera().screenHeight() / zoom;
+				float paneTop = scene.inventory.top();
+				if (windowBottom > paneTop) {
+					wnd.offset(wnd.getOffset().x, wnd.getOffset().y - (int)Math.ceil(windowBottom - paneTop));
+				}
+			}
+
 			scene.addToFront(wnd);
 		}
 	}
