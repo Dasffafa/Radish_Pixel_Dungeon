@@ -2,15 +2,7 @@
  * Radish Pixel Dungeon
  *
  * 典狱长（Warden）—— 地牢第 10 层 Boss，与天狗（Tengu）替换出现。
- *
- * 设计要点（来自需求）：
- *   - 120 生命、攻击 4~12、防御 2~5、命中 15、闪避 12、经验 20、可获经验上限 20 级
- *   - 半血后切换红眼形态（仅视觉）
- *   - 场上固定存在未激活的 DM-100 / DM-175 原型机，典狱长靠近后花 2/4 回合把它们
- *     激活成自己的友军；玩家也能用简易控制器或电击符石反过来拉拢
- *   - 自己拥有的友军 >= 3 个之前，不去主动追击玩家，优先激活原型机
- *   - 每失去 30 生命，场上随机补 1 台 DM-100 原型机
- *   - 失去 60 生命后，激活速度加快 1 回合
+ * 数值与机制细节见类内常量与注释，不再在这里复述需求清单。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
@@ -39,7 +31,7 @@ public class Warden extends Mob {
 	{
 		spriteClass = WardenSprite.class;
 
-		HP = HT = 120;
+		HP = HT = 200;
 		EXP = 20;
 		maxLvl = 20;
 
@@ -116,6 +108,7 @@ public class Warden extends Mob {
 		Dungeon.level.updateFieldOfView( this, fieldOfView );
 
 		boolean heroEnteredArena = Dungeon.level instanceof WardenBossLevel
+				&& Dungeon.hero != null
 				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos );
 		if (!awake && heroEnteredArena) {
 			awake = true;

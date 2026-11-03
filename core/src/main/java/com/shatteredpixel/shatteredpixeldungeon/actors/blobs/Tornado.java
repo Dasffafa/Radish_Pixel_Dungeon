@@ -30,11 +30,10 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.noosa.particles.Emitter;
 
-//The eye of a tornado created by the Potion of Tornadoes. Every turn it drags
-//all enemies within a 9x9 area one tile closer to its center.
+//龙卷风药剂生成的风眼：每回合把 9x9 范围内的敌人往中心拖一格。
 public class Tornado extends Blob {
 
-	//the cell where the potion landed; only this cell draws a cyclone
+	//药剂落点所在的格子；只有这一格会画出旋风
 	private int centerCell = -1;
 
 	@Override
@@ -113,7 +112,7 @@ public class Tornado extends Blob {
 		emitter.start(CYCLONE, 0, 1);
 	}
 
-	//only the eye of the storm draws a cyclone
+	//只有风眼那一格绘制旋风
 	private final Emitter.Factory CYCLONE = new Emitter.Factory() {
 		@Override
 		public void emit( Emitter emitter, int index, float x, float y ) {

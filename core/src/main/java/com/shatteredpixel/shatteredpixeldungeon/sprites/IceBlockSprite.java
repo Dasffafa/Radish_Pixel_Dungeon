@@ -24,8 +24,8 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.TextureFilm;
 
-//Sprite for the ice blocks created by the Potion of Crystal Ice.
-//Uses a dedicated 16x16 ice tile instead of the crystal spire art.
+//水晶冰药剂生成的冰块贴图。
+//用独立的 16x16 冰块，而不是水晶尖塔那套图。
 public class IceBlockSprite extends MobSprite {
 
 	{

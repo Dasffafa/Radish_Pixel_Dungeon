@@ -25,7 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.watabou.noosa.MovieClip;
 import com.watabou.noosa.TextureFilm;
 
-//A looping 3-frame cyclone drawn over a tornado blob cell.
+//循环播放的 3 帧旋风，画在龙卷风所在的格子上。
 public class CycloneParticle extends MovieClip {
 
 	private static TextureFilm film;

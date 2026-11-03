@@ -621,9 +621,9 @@ abstract public class Weapon extends KindOfWeapon {
 				Saturation.class, Harmony.class, Meteor.class, SoulRend.class};
 
 		public static final float[] typeChances = new float[]{
-				50, //12.5% each
-				40, //6.67% each
-				10  //3.33% each
+				50, //权重 50
+				40, //权重 40
+				10  //权重 10
 		};
 		
 		public static final Class<?>[] curses = new Class<?>[]{

@@ -1,11 +1,8 @@
 /*
  * Radish Pixel Dungeon
  *
- * 典狱长 Boss 层：一个较长的长方形牢房。
- * 与天狗（PrisonBossLevel）在第 10 层随机二选一出现。
- *
- * 场上固定 8 台 DM-100 原型机 + 3 台 DM-175 原型机（全部未激活），
- * 玩家在房间入口附近能捡到一个小型控制器；典狱长每失去 30 生命会再补 1 台 DM-100。
+ * 典狱长 Boss 层：一个较长的长方形牢房，与天狗（PrisonBossLevel）在第 10 层随机二选一。
+ * 原型机数量、控制器位置等见类内常量。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.levels;

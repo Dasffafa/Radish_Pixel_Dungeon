@@ -11,8 +11,8 @@ import java.util.ArrayList;
 /**
  * 单一牌堆模型：牌堆顶 = drawPile 末尾，牌堆底 = drawPile 开头。
  *
- * <p>打出的卡置于牌堆底；通过天赋/变换获得的卡置于牌堆顶。
- * 不再使用弃牌堆（discardPile 仅保留用于兼容旧存档，读入后并入牌堆）。</p>
+ * 打出的卡置于牌堆底；通过天赋/变换获得的卡置于牌堆顶。
+ * 不再使用弃牌堆（discardPile 仅保留用于兼容旧存档，读入后并入牌堆）。
  */
 public class CardDeck implements Bundlable {
 

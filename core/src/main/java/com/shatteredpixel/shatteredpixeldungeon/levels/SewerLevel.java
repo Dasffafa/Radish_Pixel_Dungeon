@@ -206,6 +206,10 @@ public class SewerLevel extends RegularLevel {
 			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(cell) != null) {
 				continue;
 			}
+			// 别刷在陷阱或植物上：游商是常驻 NPC，压住陷阱格会让人看不清那里有东西
+			if (traps.get(cell) != null || plants.get(cell) != null) {
+				continue;
+			}
 			// 别堵在入口格上
 			if (cell == start) {
 				continue;

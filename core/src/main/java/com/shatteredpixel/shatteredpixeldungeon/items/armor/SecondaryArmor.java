@@ -55,7 +55,6 @@ public abstract class SecondaryArmor extends EquipableItem {
 
 	@Override
 	public boolean isUpgradable() {
-		// 次要护甲无法打磨
 		return false;
 	}
 
