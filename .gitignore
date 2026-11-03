@@ -90,3 +90,6 @@ replay_pid*.log
 /desktop/replay_pid*.log
 /core/bin/*.txt
 /core/bin/**/*.txt
+
+# 构建产物
+/event-processor/bin/
