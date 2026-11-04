@@ -185,7 +185,14 @@ public class HeroSelectScene extends PixelScene {
 
 		float vx = align((w - SKY_WIDTH) / 2f);
 		float belowFrame = ROW_GAP + BUTTON_HEIGHT;
-		float contentHeight = TITLE_HEIGHT + TITLE_BOTTOM_GAP + FRAME_HEIGHT + belowFrame;
+		// 横屏手机可用高度可能只有 ~180，而「标题 + 立绘 + 按钮」整套需要 197 ⇒ 底部按钮会被排到屏外点不到。
+		// 这里按可用高度等比压缩立绘区，保证标题、立绘、按钮三行始终都能落在屏幕内（最低压到一半）。
+		float frameHeight = FRAME_HEIGHT;
+		float fixedHeight = TITLE_HEIGHT + TITLE_BOTTOM_GAP + belowFrame;
+		if (h - 4f < fixedHeight + FRAME_HEIGHT) {
+			frameHeight = Math.max(FRAME_HEIGHT * 0.5f, h - 4f - fixedHeight);
+		}
+		float contentHeight = fixedHeight + frameHeight;
 		float titleY = align(Math.max(2, (h - contentHeight) / 2f));
 		float vy = titleY + TITLE_HEIGHT + TITLE_BOTTOM_GAP + FRAME_MARGIN_TOP;
 
@@ -254,7 +261,7 @@ public class HeroSelectScene extends PixelScene {
 		frame.setCenterVisible( false );
 		frame.x = vx - FRAME_MARGIN_X;
 		frame.y = vy - FRAME_BORDER;
-		frame.size( FRAME_WIDTH, FRAME_HEIGHT );
+		frame.size( FRAME_WIDTH, frameHeight );
 		add( frame );
 
 		if (dayTime) {
@@ -525,7 +532,8 @@ public class HeroSelectScene extends PixelScene {
 
 		float totalWidth = Math.max(startBtn.reqWidth() + 8 + seedButton.width(), SKY_WIDTH - FRAME_MARGIN_X * 2);
 		float startWidth = totalWidth - seedButton.width();
-		float rowY = frame.y + frame.height + ROW_GAP;
+		// 兜底：即使立绘被压到下限，按钮行也必须留在可视区内（否则横屏时开始按钮点不到）
+		float rowY = Math.min(frame.y + frame.height + ROW_GAP, Camera.main.height - BUTTON_HEIGHT - 2);
 
 		startBtn.setSize(startWidth, BUTTON_HEIGHT);
 
