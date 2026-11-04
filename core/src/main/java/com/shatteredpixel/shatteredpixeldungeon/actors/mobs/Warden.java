@@ -216,6 +216,9 @@ public class Warden extends Mob {
 
 		if (info != null && info.getDamage() > 0 && isAlive()
 				&& Dungeon.level instanceof WardenBossLevel
+				&& Dungeon.hero != null
+				//只有英雄真的踏进战斗区才算开战：远程从门外/门外通道偷袭不该封锁整层
+				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos )
 				&& !((WardenBossLevel) Dungeon.level).bossDead()) {
 			awake = true;
 			notice();

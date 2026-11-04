@@ -219,15 +219,29 @@ public class WardenBossLevel extends Level {
 	@Override
 	public void seal() {
 		super.seal();
-        set( 162, LOCKED_DOOR );
-        GameScene.updateMap( 162 );
+		int door = sealDoorCell();
+		//英雄可能正站在门格上追击：此时把脚下改成实心格会让人嵌在墙里，
+		//而整层已 locked（LockedFloor）又封掉了所有 transition，等于永久卡关。
+		//封锁本身由 Level.seal() 的 locked + LockedFloor 负责，门格只是视觉/寻路补充，可跳过。
+		if ( Actor.findChar( door ) == null ) {
+			Level.set( door, Terrain.LOCKED_DOOR, this );
+			GameScene.updateMap( door );
+		}
 	}
 
 	@Override
 	public void unseal() {
 		super.unseal();
-		set( 162, DOOR );
-		GameScene.updateMap( 162 );
+		int door = sealDoorCell();
+		if ( map[door] == Terrain.LOCKED_DOOR ) {
+			Level.set( door, Terrain.DOOR, this );
+			GameScene.updateMap( door );
+		}
+	}
+
+	/** 战斗区与初始房间之间的那扇门（构建期与运行期都用它，避免魔法数 162 漂移）。 */
+	private int sealDoorCell() {
+		return doorCell.x + doorCell.y * width();
 	}
 
 	@Override
@@ -310,6 +324,17 @@ public class WardenBossLevel extends Level {
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		bossDead = bundle.getBoolean( BOSS_DEAD );
-		exitCell = bundle.getInt( "exit_cell" );
+		//旧档/异常档里可能没有 exit_cell：Bundle.getInt 缺键会返回 0，直接用会把地图左上角挖成 EXIT。
+		//只在键存在且落在合法范围时才采用，否则标记为 -1（onBossDeath 里有 -1 守卫）。
+		if ( bundle.contains( "exit_cell" ) ) {
+			int cell = bundle.getInt( "exit_cell" );
+			exitCell = ( cell >= 0 && cell < length() ) ? cell : -1;
+		} else {
+			exitCell = -1;
+		}
+		//Boss 已死却没有出口记录（异常档）：按 build() 的规则补算，避免打完却无路可走
+		if ( bossDead && exitCell == -1 ) {
+			exitCell = pointToCell( new Point( WIDTH / 2, arena.top + 1 ) );
+		}
 	}
 }
