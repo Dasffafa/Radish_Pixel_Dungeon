@@ -304,6 +304,7 @@ public class ItemSpriteSheet {
 	public static final String MULTITOOL = "multitool";
 	public static final String BLUEPRINT = "blueprint";
 	public static final String PULSE = "adrenaline_dart";
+	public static final String WRECKING_BALL = "wrecking_ball";
 
 	public static final String PAPER_CUTTER = "paper_cutter";
 	public static final String CARD_DRAWER = "card_drawer";
