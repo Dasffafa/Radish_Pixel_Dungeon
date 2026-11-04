@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
@@ -155,6 +156,15 @@ public class ForceField extends ArmorAbility {
 				}
 				WandOfBlastWave.BlastWave.blast(target.pos, 2);
 				Sample.INSTANCE.play(Assets.Sounds.MISS);
+
+				// 修复能力：力场消散时修复英雄自身
+				if (Dungeon.hero.hasTalent(Talent.REPAIR_ABILITY)) {
+					int heal = 3 * Dungeon.hero.pointsInTalent(Talent.REPAIR_ABILITY);
+					Dungeon.hero.HP = Math.min(Dungeon.hero.HT, Dungeon.hero.HP + heal);
+					Bleeding bleeding = Dungeon.hero.buff(Bleeding.class);
+					if (bleeding != null) bleeding.detach();
+				}
+
 				super.detach();
 			}
 			else canDetach = true;
