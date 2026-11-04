@@ -23,11 +23,19 @@ public class DMPrototypeSprite extends MobSprite {
 		// 先只初始化空动画占位，不填帧！
 		inactiveAnim = new Animation( 1, true );
 		idle = new Animation( 1, true );
-		run = new Animation( 1, true );
-		attack = new Animation( 1, false );
-		die = new Animation( 1, false );
+		run = new Animation( 9, true );
+		run.frames( frames, 4, 5, 6, 7 );
+
+		attack = new Animation( 11, false );
+		attack.frames( frames, 8, 9, 10, 11 );
+
+		die = new Animation( 9, false );
+		die.frames( frames, 12, 13, 14, 15, 16, 17, 18, 19 );
 		zap = attack.clone();
 		idle.frames( frames, 0 );
+
+
+
 		play( idle );
 	}
 
