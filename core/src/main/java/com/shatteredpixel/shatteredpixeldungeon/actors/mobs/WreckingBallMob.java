@@ -73,9 +73,7 @@ public class WreckingBallMob extends Mob {
 		}
 
 		if (!launched) {
-			if (charge < MAX_CHARGE) {
-				charge++;
-			}
+			//静置待命，蓄力由玩家按住动作按钮提供
 			spend(TICK);
 			return true;
 		}
@@ -85,11 +83,13 @@ public class WreckingBallMob extends Mob {
 		return true;
 	}
 
-	/** 由英雄触发，朝远离英雄的方向击飞 */
-	public void launch(Hero hero) {
+	/** 由英雄触发，朝远离英雄的方向击飞，charges 为按住蓄力得到的层数 */
+	public void launch(Hero hero, int charges) {
 		if (launched || !isAlive()) {
 			return;
 		}
+
+		charge = Math.max(0, Math.min(MAX_CHARGE, charges));
 
 		int w = Dungeon.level.width();
 		int hx = hero.pos % w;
