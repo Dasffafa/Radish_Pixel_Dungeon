@@ -25,12 +25,16 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WreckingBallControl;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
+import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -78,6 +82,51 @@ public class WreckingBall extends MissileWeapon {
 			return bolt.path.get(MAX_THROW_DISTANCE);
 		}
 		return super.throwPos(user, dst);
+	}
+
+	@Override
+	public void execute(Hero hero, String action) {
+		if (AC_DROP.equals(action)) {
+			place(hero);
+			return;
+		}
+		super.execute(hero, action);
+	}
+
+	/** 放下：像普通物品一样落在脚下，之后可以站到旁边蓄力 */
+	private void place(Hero hero) {
+		GameScene.cancel();
+		curUser = hero;
+		curItem = this;
+
+		Item item = detach(hero.belongings.backpack);
+		if (item == null) {
+			return;
+		}
+
+		Heap heap = Dungeon.level.drop(item, hero.pos);
+		heap.sprite.drop();
+
+		Buff.affect(hero, WreckingBallControl.class).setBall((WreckingBall) item, hero.pos);
+
+		hero.spendAndNext(1f);
+		Item.updateQuickslot();
+	}
+
+	/** 蓄力后从地面起飞 */
+	public static void launchFromGround(Hero user, WreckingBall ball, int cell, int charges) {
+		if (user == null || ball == null || cell < 0) {
+			return;
+		}
+		int w = Dungeon.level.width();
+		int dx = Integer.signum((cell % w) - (user.pos % w));
+		int dy = Integer.signum((cell / w) - (user.pos / w));
+		if (dx == 0 && dy == 0) {
+			dx = 1;
+		}
+		float delay = 0.5f + 0.1f * charges;
+		user.busy();
+		fly(user, ball, cell, dx, dy, 1 + charges / 2, delay);
 	}
 
 	@Override
