@@ -185,6 +185,8 @@ public class WreckingBallMob extends Mob {
 			return;
 		}
 
+		//先让精灵播放位移动画，再更新坐标，否则球看起来只会原地转圈
+		moveSprite(pos, next);
 		move(next);
 		energy--;
 
