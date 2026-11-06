@@ -35,9 +35,6 @@ public class Senbon extends MissileWeapon {
 	/** 针贴图缩放，看起来更小 */
 	private static final float VISUAL_SCALE = 0.6f;
 
-	/** 总可用次数（耐久） */
-	public static final float USES = 30f;
-
 	{
 		image = ItemSpriteSheet.SENBON;
 
@@ -48,17 +45,12 @@ public class Senbon extends MissileWeapon {
 		sticky = false;
 		stackable = false;
 
-		durability = USES;
+		baseUses = 10;
 	}
 
 	@Override
 	public int max(int lvl) {
 		return 3 + lvl;
-	}
-
-	@Override
-	public float durabilityPerUse() {
-		return 1f;
 	}
 
 	@Override
@@ -134,33 +126,25 @@ public class Senbon extends MissileWeapon {
 			}
 		}
 
-		//各自结算伤害（同步结算，避免飞行回调时目标已移动/死亡导致漏伤害）
-		if (target != null && target.isAlive()) {
-			int dmg = Math.max(1, Math.round(user.damageRoll() * DAMAGE_FACTOR));
-			target.damage(DamageInfo.physicalNoArmor(dmg, this));
-		}
-
 		final int impactCell = impact;
-		final boolean hitChar = target != null;
+		final Char hitTarget = target;
+		final Hero hero = user;
 
 		MissileSprite ms = (MissileSprite) user.sprite.parent.recycle(MissileSprite.class);
 		ms.reset(user.sprite, impactCell, this, new Callback() {
 			@Override
 			public void call() {
-				//纯视觉：撞上东西时的火花
+				//针真正扎到身上时才结算伤害
+				if (hitTarget != null && hitTarget.isAlive()) {
+					int dmg = Math.max(1, Math.round(hero.damageRoll() * DAMAGE_FACTOR));
+					hitTarget.damage(DamageInfo.physical(dmg, hero, Senbon.this));
+				}
 				CellEmitter.center(impactCell).burst(
-						Speck.factory(hitChar ? Speck.RED_LIGHT : Speck.WOOL),
-						hitChar ? 4 : 2);
+						Speck.factory(hitTarget != null ? Speck.RED_LIGHT : Speck.WOOL),
+						hitTarget != null ? 4 : 2);
 			}
 		});
 		ms.scale.set(VISUAL_SCALE, VISUAL_SCALE);
 	}
 
-	@Override
-	public String info() {
-		if (durabilityLeft() > 0) {
-			return super.info() + "\n\n" + Messages.get(this, "uses_left", (int) durabilityLeft());
-		}
-		return super.info();
-	}
 }
