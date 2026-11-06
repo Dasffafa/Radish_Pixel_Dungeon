@@ -34,6 +34,7 @@ public class ItemSpriteSheet {
 	// TheCatist 2026/7/25 通过自动检测每个物品贴图的外接矩形的办法 移除了所有对assignItemRect的调用
 	//SOMETHING is the default item sprite at position 0. May show up ingame if there are bugs.
 	public static final String SOMETHING = "something";
+	public static final String NAIDAN = "naidan";
 	public static final String WEAPON_HOLDER = "weapon_holder";
 	public static final String ARMOR_HOLDER = "armor_holder";
 	public static final String MISSILE_HOLDER = "missile_holder";
