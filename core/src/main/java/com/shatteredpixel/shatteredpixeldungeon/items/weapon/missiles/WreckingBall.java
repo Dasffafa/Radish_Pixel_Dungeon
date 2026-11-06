@@ -1,24 +1,3 @@
-/*
- * Pixel Dungeon
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * Shattered Pixel Dungeon
- * Copyright (C) 2014-2026 Evan Debenham
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
@@ -39,24 +18,18 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Callback;
-import com.watabou.utils.Random;
 
 /**
  * 破坏球。
  *
- * 投掷出去后像普通投掷物一样飞行；撞到墙壁或敌人就随机换个方向再"投"一次，
- * 每次飞行距离递减，直到停下为止。整段飞行结束后英雄的回合才结束。
+ * 投掷：飞出去后撞到墙或敌人就按反射角弹开，每弹一次距离缩短，停稳后结束回合。
+ * 放下：普通物品落地，站旁边按住动作按钮蓄力，箭头方向即发射方向。
  */
 public class WreckingBall extends MissileWeapon {
 
-	/** 投掷时能瞄准的最大格数 */
 	public static final int MAX_THROW_DISTANCE = 2;
 
-	/** 第一段弹射的飞行距离 */
 	private static final int THROWN_RANGE = 4;
-
-	private static final int[] DX = {1, -1, 0, 0, 1, 1, -1, -1};
-	private static final int[] DY = {0, 0, 1, -1, 1, -1, 1, -1};
 
 	{
 		image = ItemSpriteSheet.WRECKING_BALL;
@@ -76,7 +49,6 @@ public class WreckingBall extends MissileWeapon {
 
 	@Override
 	public int throwPos(Hero user, int dst) {
-		//只能瞄准很短的距离
 		Ballistica bolt = new Ballistica(user.pos, dst, Ballistica.PROJECTILE);
 		if (bolt.dist > MAX_THROW_DISTANCE) {
 			return bolt.path.get(MAX_THROW_DISTANCE);
@@ -113,22 +85,6 @@ public class WreckingBall extends MissileWeapon {
 		Item.updateQuickslot();
 	}
 
-	/** 蓄力后从地面起飞 */
-	public static void launchFromGround(Hero user, WreckingBall ball, int cell, int charges) {
-		if (user == null || ball == null || cell < 0) {
-			return;
-		}
-		int w = Dungeon.level.width();
-		int dx = Integer.signum((cell % w) - (user.pos % w));
-		int dy = Integer.signum((cell / w) - (user.pos / w));
-		if (dx == 0 && dy == 0) {
-			dx = 1;
-		}
-		float delay = 0.5f + 0.1f * charges;
-		user.busy();
-		fly(user, ball, cell, dx, dy, 1 + charges / 2, delay);
-	}
-
 	@Override
 	public void cast(final Hero user, final int dst) {
 		final int cell = throwPos(user, dst);
@@ -158,15 +114,30 @@ public class WreckingBall extends MissileWeapon {
 							dx = 1;
 						}
 
-						fly(user, ball, cell, dx, dy, THROWN_RANGE, delay);
+						fly(user, ball, cell, dx, dy, THROWN_RANGE, 1.2f, delay);
 					}
 				});
 	}
 
-	/** 一段飞行：从 from 沿方向飞最多 range 格，撞到东西就随机换向并把距离减一 */
+	/** 蓄力后从地面起飞：方向由箭头决定，蓄力值决定初速/伤害/距离 */
+	public static void launchFromGround(Hero user, WreckingBall ball, int cell, int charges, int dirX, int dirY) {
+		if (user == null || ball == null || cell < 0) {
+			return;
+		}
+		if (dirX == 0 && dirY == 0) {
+			dirX = 1;
+		}
+		int range = 2 + Math.max(0, Math.min(10, charges));
+		float power = 0.6f + 0.12f * Math.max(0, Math.min(10, charges));
+		float delay = 0.5f + 0.1f * Math.max(0, Math.min(10, charges));
+
+		user.busy();
+		fly(user, ball, cell, dirX, dirY, range, power, delay);
+	}
+
 	private static void fly(final Hero user, final WreckingBall ball,
 	                        final int from, final int dirX, final int dirY,
-	                        final int range, final float delay) {
+	                        final int range, final float power, final float delay) {
 		if (range <= 0 || user == null || !user.isAlive()) {
 			finish(user, ball, from, delay);
 			return;
@@ -193,13 +164,9 @@ public class WreckingBall extends MissileWeapon {
 		}
 
 		if (cur == from) {
-			//起点就被挡住，直接换个方向（距离必须递减，避免死循环）
-			int[] dir = randomDir(from, dirX, dirY);
-			if (dir == null) {
-				finish(user, ball, from, delay);
-			} else {
-				fly(user, ball, from, dir[0], dir[1], range - 1, delay);
-			}
+			//起点就被挡住：按反射角换向，距离递减
+			int[] dir = reflect(from, dirX, dirY);
+			fly(user, ball, from, dir[0], dir[1], range - 1, power, delay);
 			return;
 		}
 
@@ -211,63 +178,39 @@ public class WreckingBall extends MissileWeapon {
 					@Override
 					public void call() {
 						if (hit != null && hit.isAlive() && hit != user) {
-							int dmg = Math.max(1, Math.round(ball.rollDamage(user) * 1.2f));
+							int dmg = Math.max(1, Math.round(ball.damageRoll(user) * power));
 							hit.damage(new DamageInfo(dmg, DamageType.PHYSICAL, user));
 						}
 
-						int[] dir;
-						if (hit != null) {
-							//撞到东西：随机换方向
-							dir = randomDir(landing, dirX, dirY);
-						} else {
-							//没撞到就继续沿原方向，只是距离变短
-							dir = new int[]{dirX, dirY};
-						}
-
-						if (dir == null) {
-							finish(user, ball, landing, delay);
-						} else {
-							fly(user, ball, landing, dir[0], dir[1], range - 1, delay);
-						}
+						int[] dir = reflect(landing, dirX, dirY);
+						fly(user, ball, landing, dir[0], dir[1], range - 1, power, delay);
 					}
 				});
 	}
 
-	private int rollDamage(Hero user) {
-		int base = damageRoll(user);
-		return Math.max(1, base);
+	/** 镜面反射：按被挡住的轴翻转方向分量 */
+	private static int[] reflect(int from, int dirX, int dirY) {
+		int w = Dungeon.level.width();
+		boolean xFree = isFree(from + dirX);
+		boolean yFree = isFree(from + dirY * w);
+
+		if (!xFree && !yFree) {
+			return new int[]{-dirX, -dirY};
+		}
+		if (!xFree) {
+			return new int[]{-dirX, dirY};
+		}
+		if (!yFree) {
+			return new int[]{dirX, -dirY};
+		}
+		//对角被角色挡住等情况，直接原路弹回
+		return new int[]{-dirX, -dirY};
 	}
 
-	/** 随机挑一个能走的方向，优先不原路返回 */
-	private static int[] randomDir(int cell, int fromDx, int fromDy) {
-		java.util.ArrayList<int[]> options = new java.util.ArrayList<>();
-		for (int i = 0; i < 8; i++) {
-			if (DX[i] == -fromDx && DY[i] == -fromDy) {
-				continue;
-			}
-			if (stepFree(cell, DX[i], DY[i])) {
-				options.add(new int[]{DX[i], DY[i]});
-			}
-		}
-		if (options.isEmpty()) {
-			for (int i = 0; i < 8; i++) {
-				if (stepFree(cell, DX[i], DY[i])) {
-					options.add(new int[]{DX[i], DY[i]});
-				}
-			}
-		}
-		if (options.isEmpty()) {
-			return null;
-		}
-		return options.get(Random.Int(options.size()));
-	}
-
-	private static boolean stepFree(int cell, int dx, int dy) {
-		int next = cell + dy * Dungeon.level.width() + dx;
-		return Dungeon.level.insideMap(next)
-				&& !Dungeon.level.solid[next]
-				&& Dungeon.level.passable[next]
-				&& Actor.findChar(next) == null;
+	private static boolean isFree(int cell) {
+		return Dungeon.level.insideMap(cell)
+				&& !Dungeon.level.solid[cell]
+				&& Dungeon.level.passable[cell];
 	}
 
 	private static void finish(Hero user, WreckingBall ball, int cell, float delay) {
