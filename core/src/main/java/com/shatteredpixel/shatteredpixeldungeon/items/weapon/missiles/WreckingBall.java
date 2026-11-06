@@ -31,6 +31,12 @@ public class WreckingBall extends MissileWeapon {
 
 	private static final int THROWN_RANGE = 4;
 
+	/** 最多反射次数 */
+	public static final int MAX_BOUNCES = 3;
+
+	/** 普通投掷时的反射次数 */
+	private static final int THROWN_BOUNCES = 3;
+
 	{
 		image = ItemSpriteSheet.WRECKING_BALL;
 
@@ -114,12 +120,12 @@ public class WreckingBall extends MissileWeapon {
 							dx = 1;
 						}
 
-						fly(user, ball, cell, dx, dy, THROWN_RANGE, 1.2f, delay);
+						fly(user, ball, cell, dx, dy, THROWN_RANGE, 1.2f, delay, THROWN_BOUNCES);
 					}
 				});
 	}
 
-	/** 蓄力后从地面起飞：方向由箭头决定，蓄力值决定初速/伤害/距离 */
+	/** 蓄力后从地面起飞：方向由箭头决定，蓄力决定距离/伤害/反射次数 */
 	public static void launchFromGround(Hero user, WreckingBall ball, int cell, int charges, int dirX, int dirY) {
 		if (user == null || ball == null || cell < 0) {
 			return;
@@ -127,18 +133,31 @@ public class WreckingBall extends MissileWeapon {
 		if (dirX == 0 && dirY == 0) {
 			dirX = 1;
 		}
-		int range = 2 + Math.max(0, Math.min(10, charges));
-		float power = 0.6f + 0.12f * Math.max(0, Math.min(10, charges));
-		float delay = 0.5f + 0.1f * Math.max(0, Math.min(10, charges));
+
+		int c = Math.max(0, Math.min(WreckingBallControl.MAX_CHARGE, charges));
+		int range = 2 + c / 2;
+		float power = 0.6f + 0.12f * c;
+		float delay = 0.5f + 0.1f * c;
+		int bounces = bouncesForCharge(c);
 
 		user.busy();
-		fly(user, ball, cell, dirX, dirY, range, power, delay);
+		fly(user, ball, cell, dirX, dirY, range, power, delay, bounces);
+	}
+
+	/** 蓄力分三段，每段 +1 次反射，最多 3 次 */
+	public static int bouncesForCharge(int charges) {
+		if (charges <= 0) {
+			return 0;
+		}
+		int perSegment = Math.max(1, WreckingBallControl.MAX_CHARGE / 3);
+		return Math.min(MAX_BOUNCES, (charges + perSegment - 1) / perSegment);
 	}
 
 	private static void fly(final Hero user, final WreckingBall ball,
 	                        final int from, final int dirX, final int dirY,
-	                        final int range, final float power, final float delay) {
-		if (range <= 0 || user == null || !user.isAlive()) {
+	                        final int range, final float power, final float delay,
+	                        final int bouncesLeft) {
+		if (user == null || !user.isAlive() || range <= 0) {
 			finish(user, ball, from, delay);
 			return;
 		}
@@ -164,9 +183,13 @@ public class WreckingBall extends MissileWeapon {
 		}
 
 		if (cur == from) {
-			//起点就被挡住：按反射角换向，距离递减
-			int[] dir = reflect(from, dirX, dirY);
-			fly(user, ball, from, dir[0], dir[1], range - 1, power, delay);
+			//起点就被挡住：还有反射次数就换向，否则就地停下
+			if (bouncesLeft > 0) {
+				int[] dir = reflect(from, dirX, dirY);
+				fly(user, ball, from, dir[0], dir[1], range, power, delay, bouncesLeft - 1);
+			} else {
+				finish(user, ball, from, delay);
+			}
 			return;
 		}
 
@@ -182,8 +205,14 @@ public class WreckingBall extends MissileWeapon {
 							hit.damage(new DamageInfo(dmg, DamageType.PHYSICAL, user));
 						}
 
-						int[] dir = reflect(landing, dirX, dirY);
-						fly(user, ball, landing, dir[0], dir[1], range - 1, power, delay);
+						if (hit != null && bouncesLeft > 0) {
+							//撞到东西才反射，次数用完就停
+							int[] dir = reflect(landing, dirX, dirY);
+							fly(user, ball, landing, dir[0], dir[1], range, power, delay, bouncesLeft - 1);
+						} else {
+							//没撞到东西（飞满距离）或者反射次数用完，落地
+							finish(user, ball, landing, delay);
+						}
 					}
 				});
 	}
