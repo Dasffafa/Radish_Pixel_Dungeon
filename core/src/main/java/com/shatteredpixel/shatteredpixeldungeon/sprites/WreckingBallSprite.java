@@ -36,8 +36,9 @@ public class WreckingBallSprite extends MobSprite {
 		idle = new Animation(1, true);
 		idle.frames(film, 0);
 
-		run = new Animation(1, true);
-		run.frames(film, 0);
+		//飞行时 4 帧滚动
+		run = new Animation(6, true);
+		run.frames(film, 0, 1, 2, 3);
 
 		attack = idle.clone();
 
@@ -49,6 +50,10 @@ public class WreckingBallSprite extends MobSprite {
 
 	public void spin() {
 		play(run);
+	}
+
+	public void rest() {
+		play(idle);
 	}
 
 	//球没有情绪表现

@@ -28,9 +28,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WreckingBallControl;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WreckingBallMob;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -39,13 +43,15 @@ import java.util.ArrayList;
 /**
  * 破坏球。
  *
- * 只能投出很短的距离，落地后停在原地蓄力；蓄力完成后可以用动作按钮把它击飞出去，
- * 球会在墙壁与敌人之间反复弹射，撞击敌人造成基于当前武器伤害与蓄力系数的伤害，
- * 弹回英雄身上则会伤到英雄自己。
+ * 两种用法：
+ * - 投掷：直接飞出去，落地后立刻在墙壁和怪物之间随机弹射
+ * - 放下：停在脚边，需要靠近后按住动作按钮蓄力，再击飞
  */
 public class WreckingBall extends MissileWeapon {
 
-	/** 破坏球能飞出的最大格数 */
+	public static final String AC_PLACE = "PLACE";
+
+	/** 破坏球能投出的最大格数 */
 	public static final int MAX_THROW_DISTANCE = 2;
 
 	{
@@ -65,6 +71,22 @@ public class WreckingBall extends MissileWeapon {
 	}
 
 	@Override
+	public ArrayList<String> actions(Hero hero) {
+		ArrayList<String> actions = super.actions(hero);
+		actions.add(AC_PLACE);
+		return actions;
+	}
+
+	@Override
+	public void execute(Hero hero, String action) {
+		if (AC_PLACE.equals(action)) {
+			place(hero);
+			return;
+		}
+		super.execute(hero, action);
+	}
+
+	@Override
 	public int throwPos(Hero user, int dst) {
 		//只能飞很短的距离
 		Ballistica bolt = new Ballistica(user.pos, dst, Ballistica.PROJECTILE);
@@ -74,8 +96,54 @@ public class WreckingBall extends MissileWeapon {
 		return super.throwPos(user, dst);
 	}
 
+	/** 投掷：落地即开始弹射 */
 	@Override
 	protected void onThrow(int cell) {
+		Hero hero = Dungeon.hero;
+		int dirX = 1;
+		int dirY = 0;
+		if (hero != null) {
+			int w = Dungeon.level.width();
+			dirX = Integer.signum((cell % w) - (hero.pos % w));
+			dirY = Integer.signum((cell / w) - (hero.pos / w));
+			if (dirX == 0 && dirY == 0) {
+				dirX = 1;
+			}
+		}
+
+		WreckingBallMob ball = spawnBall(cell);
+		if (ball != null) {
+			ball.launchThrown(hero, dirX, dirY);
+		}
+	}
+
+	/** 放下：停在脚边，等待蓄力 */
+	private void place(Hero hero) {
+		int cell = -1;
+		for (int i : PathFinder.NEIGHBOURS8) {
+			int c = hero.pos + i;
+			if (Dungeon.level.insideMap(c) && Dungeon.level.passable[c] && Actor.findChar(c) == null) {
+				cell = c;
+				break;
+			}
+		}
+		if (cell == -1) {
+			GLog.w(Messages.get(this, "no_space"));
+			return;
+		}
+
+		if (spawnBall(cell) == null) {
+			return;
+		}
+
+		Sample.INSTANCE.play(Assets.Sounds.MISS);
+		hero.sprite.operate(hero.pos);
+		detachAll(hero.belongings.backpack);
+		hero.spendAndNext(1f);
+		Item.updateQuickslot();
+	}
+
+	private WreckingBallMob spawnBall(int cell) {
 		if (Actor.findChar(cell) != null) {
 			ArrayList<Integer> candidates = new ArrayList<>();
 			for (int i : PathFinder.NEIGHBOURS8) {
@@ -86,6 +154,8 @@ public class WreckingBall extends MissileWeapon {
 			}
 			if (!candidates.isEmpty()) {
 				cell = Random.element(candidates);
+			} else {
+				return null;
 			}
 		}
 
@@ -96,8 +166,7 @@ public class WreckingBall extends MissileWeapon {
 		if (Dungeon.hero != null) {
 			Buff.affect(Dungeon.hero, WreckingBallControl.class).setBall(ball);
 		}
-
-		//物品本身不落地：落地的是球，物品已经化作球
+		return ball;
 	}
 
 	@Override

@@ -33,14 +33,23 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WreckingBallSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Random;
 
 /**
- * 落地后的破坏球。停驻时每回合积攒 1 点蓄力（上限 {@link #MAX_CHARGE}），
- * 被击飞后沿当前方向移动，遇到墙壁或角色则反弹，并把当前武器伤害乘以蓄力系数施加给目标。
+ * 落地后的破坏球。
+ *
+ * 放下时静置待命，靠近后可按住蓄力再击飞；
+ * 投掷时直接飞出，之后每次碰撞都随机改变方向继续弹射。
  */
 public class WreckingBallMob extends Mob {
 
 	public static final int MAX_CHARGE = 10;
+
+	/** 投掷后的初始飞行步数 */
+	private static final int THROWN_ENERGY = 8;
+
+	private static final int[] DX = {1, -1, 0, 0, 1, 1, -1, -1};
+	private static final int[] DY = {0, 0, 1, -1, 1, -1, 1, -1};
 
 	{
 		spriteClass = WreckingBallSprite.class;
@@ -53,7 +62,7 @@ public class WreckingBallMob extends Mob {
 		actPriority = MOB_PRIO + 1;
 	}
 
-	/** 当前蓄力点数 */
+	/** 最近一次蓄力层数（仅用于展示） */
 	public int charge = 0;
 
 	private boolean launched = false;
@@ -69,6 +78,9 @@ public class WreckingBallMob extends Mob {
 	@Override
 	protected boolean act() {
 		if (!isAlive()) {
+			//已死亡但仍在调度表里时必须移除并消耗时间，否则回合循环会空转
+			Actor.remove(this);
+			spend(TICK);
 			return true;
 		}
 
@@ -79,11 +91,37 @@ public class WreckingBallMob extends Mob {
 		}
 
 		step();
-		spend(TICK);
+		//step() 里可能已经落地死亡并移出调度表，此时不能再对已移除的 actor 计时
+		if (isAlive()) {
+			spend(TICK);
+		}
 		return true;
 	}
 
-	/** 由英雄触发，朝远离英雄的方向击飞，charges 为按住蓄力得到的层数 */
+	/** 投掷落地：直接沿投掷方向开始弹射 */
+	public void launchThrown(Hero hero, int dirX, int dirY) {
+		if (launched || !isAlive()) {
+			return;
+		}
+
+		charge = 0;
+		dx = dirX;
+		dy = dirY;
+		if (dx == 0 && dy == 0) {
+			dx = 1;
+		}
+
+		energy = THROWN_ENERGY;
+		power = 1.2f;
+		launched = true;
+
+		if (sprite != null) {
+			((WreckingBallSprite) sprite).spin();
+		}
+		GLog.i(Messages.get(this, "thrown"));
+	}
+
+	/** 蓄力后由英雄击飞，朝远离英雄的方向 */
 	public void launch(Hero hero, int charges) {
 		if (launched || !isAlive()) {
 			return;
@@ -134,7 +172,7 @@ public class WreckingBallMob extends Mob {
 		int next = pos + dy * w + dx;
 
 		if (!Dungeon.level.insideMap(next) || Dungeon.level.solid[next] || !Dungeon.level.passable[next]) {
-			reflect();
+			bounce();
 			energy--;
 			return;
 		}
@@ -142,7 +180,7 @@ public class WreckingBallMob extends Mob {
 		Char ch = Actor.findChar(next);
 		if (ch != null) {
 			hit(ch);
-			reflect();
+			bounce();
 			energy--;
 			return;
 		}
@@ -153,6 +191,45 @@ public class WreckingBallMob extends Mob {
 		if (energy <= 0) {
 			land();
 		}
+	}
+
+	/** 撞击后随机换一个方向继续弹射，优先不原路返回 */
+	private void bounce() {
+		java.util.ArrayList<Integer> candidates = new java.util.ArrayList<>();
+		for (int i = 0; i < 8; i++) {
+			if (DX[i] == -dx && DY[i] == -dy) {
+				continue;
+			}
+			if (canStep(DX[i], DY[i])) {
+				candidates.add(i);
+			}
+		}
+
+		if (candidates.isEmpty()) {
+			//四周只有来时的方向可走，就原路弹回
+			for (int i = 0; i < 8; i++) {
+				if (canStep(DX[i], DY[i])) {
+					candidates.add(i);
+				}
+			}
+		}
+
+		if (candidates.isEmpty()) {
+			dx = -dx;
+			dy = -dy;
+			return;
+		}
+
+		int pick = candidates.get(Random.Int(candidates.size()));
+		dx = DX[pick];
+		dy = DY[pick];
+	}
+
+	private boolean canStep(int stepX, int stepY) {
+		int cell = pos + stepY * Dungeon.level.width() + stepX;
+		return Dungeon.level.insideMap(cell)
+				&& !Dungeon.level.solid[cell]
+				&& Dungeon.level.passable[cell];
 	}
 
 	private void hit(Char ch) {
@@ -178,29 +255,6 @@ public class WreckingBallMob extends Mob {
 		return Dungeon.hero.damageRoll();
 	}
 
-	/** 撞墙或撞人后的反弹：优先水平翻转，其次垂直翻转，都不可行则原路返回 */
-	private void reflect() {
-		int w = Dungeon.level.width();
-		int flipX = pos + dy * w - dx;
-		int flipY = pos - dy * w + dx;
-
-		if (canEnter(flipX)) {
-			dx = -dx;
-		} else if (canEnter(flipY)) {
-			dy = -dy;
-		} else {
-			dx = -dx;
-			dy = -dy;
-		}
-	}
-
-	private boolean canEnter(int cell) {
-		if (!Dungeon.level.insideMap(cell)) {
-			return false;
-		}
-		return !Dungeon.level.solid[cell] && Dungeon.level.passable[cell] && Actor.findChar(cell) == null;
-	}
-
 	private void land() {
 		if (!isAlive()) {
 			return;
@@ -220,32 +274,32 @@ public class WreckingBallMob extends Mob {
 		return false;
 	}
 
-	private static final String CHARGE = "charge";
-	private static final String LAUNCHED = "launched";
-	private static final String DX = "dx";
-	private static final String DY = "dy";
-	private static final String ENERGY = "energy";
-	private static final String POWER = "power";
+	private static final String B_CHARGE = "charge";
+	private static final String B_LAUNCHED = "launched";
+	private static final String B_DX = "dx";
+	private static final String B_DY = "dy";
+	private static final String B_ENERGY = "energy";
+	private static final String B_POWER = "power";
 
 	@Override
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
-		bundle.put(CHARGE, charge);
-		bundle.put(LAUNCHED, launched);
-		bundle.put(DX, dx);
-		bundle.put(DY, dy);
-		bundle.put(ENERGY, energy);
-		bundle.put(POWER, power);
+		bundle.put(B_CHARGE, charge);
+		bundle.put(B_LAUNCHED, launched);
+		bundle.put(B_DX, dx);
+		bundle.put(B_DY, dy);
+		bundle.put(B_ENERGY, energy);
+		bundle.put(B_POWER, power);
 	}
 
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
-		charge = bundle.getInt(CHARGE);
-		launched = bundle.getBoolean(LAUNCHED);
-		dx = bundle.getInt(DX);
-		dy = bundle.getInt(DY);
-		energy = bundle.getInt(ENERGY);
-		power = bundle.getFloat(POWER);
+		charge = bundle.getInt(B_CHARGE);
+		launched = bundle.getBoolean(B_LAUNCHED);
+		dx = bundle.getInt(B_DX);
+		dy = bundle.getInt(B_DY);
+		energy = bundle.getInt(B_ENERGY);
+		power = bundle.getFloat(B_POWER);
 	}
 }

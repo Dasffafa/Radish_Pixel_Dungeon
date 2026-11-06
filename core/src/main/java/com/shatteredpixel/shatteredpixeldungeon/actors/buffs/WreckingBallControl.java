@@ -31,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
@@ -91,7 +92,10 @@ public class WreckingBallControl extends Buff implements ActionIndicator.Action 
 		if (ball == null || !ball.isAlive()) {
 			cleanupVisuals();
 			detach();
-			return false;
+			//注意：这里必须照常消耗时间并返回 true。
+			//返回 false 会让 Actor 的回合循环直接停下，表现为"卡死回合"。
+			spend(TICK);
+			return true;
 		}
 		spend(TICK);
 		return true;
@@ -142,7 +146,11 @@ public class WreckingBallControl extends Buff implements ActionIndicator.Action 
 
 	@Override
 	public boolean holdToCharge() {
-		return ball != null && ball.isAlive() && !ball.isLaunched();
+		return ball != null && ball.isAlive() && !ball.isLaunched() && adjacentToBall();
+	}
+
+	private boolean adjacentToBall() {
+		return target != null && ball != null && Dungeon.level.adjacent(target.pos, ball.pos);
 	}
 
 	@Override
@@ -211,15 +219,24 @@ public class WreckingBallControl extends Buff implements ActionIndicator.Action 
 			detach();
 			return;
 		}
-		if (target instanceof Hero) {
-			if (ball.isLaunched()) {
-				ball.recall((Hero) target);
-			} else {
-				//轻点视为零蓄力击飞
-				progress = 0f;
-				fire();
-			}
+		if (!(target instanceof Hero)) {
+			return;
 		}
+		Hero hero = (Hero) target;
+
+		if (ball.isLaunched()) {
+			ball.recall(hero);
+			return;
+		}
+
+		if (!adjacentToBall()) {
+			GLog.w(Messages.get(this, "too_far"));
+			return;
+		}
+
+		//轻点视为零蓄力击飞
+		progress = 0f;
+		fire();
 	}
 
 	private void fire() {
