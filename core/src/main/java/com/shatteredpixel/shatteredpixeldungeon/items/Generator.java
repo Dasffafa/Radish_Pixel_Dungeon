@@ -191,6 +191,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.LongStick;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Morello;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Naidan;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PneumFistGloves;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ReplacePoint;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Rlyeh;
@@ -466,9 +467,11 @@ public class Generator {
 					WornShortsword.class,
 					MagesStaff.class,
 					Dagger.class,
-					Gloves.class
+					Gloves.class,
+					Naidan.class
 			};
-			WEP_T1.probs = new float[]{ 1, 0, 1, 1 };
+			// Naidan 权重为 0：默认不参与随机掉落，想让它自然生成就把最后的 0 改成 1
+			WEP_T1.probs = new float[]{ 1, 0, 1, 1, 0 };
 
 			WEP_T1_NEW.classes = new Class<?>[]{
 					WornShortsword.class,

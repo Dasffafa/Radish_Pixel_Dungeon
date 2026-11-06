@@ -157,6 +157,12 @@ public class GameScene extends PixelScene {
 
 	private SkinnedBlock water;
 	private DungeonTerrainTilemap tiles;
+
+	/** 供自定义技能 UI 做屏幕命中测试用（当前场景的地图层）。 */
+	public static DungeonTilemap tilemap() {
+		return scene != null ? scene.tiles : null;
+	}
+
 	private GridTileMap visualGrid;
 	private TerrainFeaturesTilemap terrainFeatures;
 	private RaisedTerrainTilemap raisedTerrain;
