@@ -337,8 +337,6 @@ public class Assets {
 		public static final String H_ENGINEER = "sprites/heroengineer.png";
 		public static final String ENGINEER = "sprites/engineer.png";
 		public static final String DETONATOR = "sprites/detonator.png";
-		public static final String WRECKING_BALL_MOB = "sprites/wrecking_ball_mob.png";
-		public static final String CHARGE_ARC = "sprites/charge_arc.png";
 		public static final String THE_CATIST = "sprites/the_catist.png";
 		public static final String AVATARS  = "sprites/avatars.png";
 		public static final String FROG      = "sprites/frog.png";

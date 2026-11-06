@@ -27,7 +27,6 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.input.GameAction;
 import com.watabou.noosa.BitmapText;
-import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
 
@@ -91,15 +90,6 @@ public class ActionIndicator extends Tag {
 	public void update() {
 		super.update();
 
-		if (charging) {
-			if (action == null || !action.holdToCharge()) {
-				charging = false;
-				chargeTime = 0;
-			} else {
-				chargeTime += Game.elapsed;
-				action.onHoldTick(chargeTime);
-			}
-		}
 
 		synchronized (ActionIndicator.class) {
 			if (!visible && action != null) {
@@ -158,32 +148,6 @@ public class ActionIndicator extends Tag {
 		super.onClick();
 		if (action != null && Dungeon.hero.ready) {
 			action.doAction();
-		}
-	}
-
-	private boolean charging = false;
-	private float chargeTime = 0;
-
-	@Override
-	protected void onPointerDown() {
-		if (action != null && action.holdToCharge() && Dungeon.hero.ready) {
-			charging = true;
-			chargeTime = 0;
-			//按住蓄力时松开不应再触发一次普通点击
-			clickReady = false;
-			action.onHoldStart();
-		}
-	}
-
-	@Override
-	protected void onPointerUp() {
-		if (charging) {
-			charging = false;
-			clickReady = false;
-			if (action != null) {
-				action.onHoldRelease(chargeTime);
-			}
-			chargeTime = 0;
 		}
 	}
 
@@ -261,16 +225,6 @@ public class ActionIndicator extends Tag {
 
 		void doAction();
 
-		//按住蓄力：默认不支持。按住按钮期间每帧回调 onHoldTick，松开时回调 onHoldRelease
-		default boolean holdToCharge(){
-			return false;
-		}
-
-		default void onHoldStart(){}
-
-		default void onHoldTick(float heldTime){}
-
-		default void onHoldRelease(float heldTime){}
 
 	}
 

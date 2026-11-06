@@ -24,35 +24,35 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WreckingBallControl;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WreckingBallMob;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.PathFinder;
+import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
-
-import java.util.ArrayList;
 
 /**
  * 破坏球。
  *
- * 两种用法：
- * - 投掷：直接飞出去，落地后立刻在墙壁和怪物之间随机弹射
- * - 放下：停在脚边，需要靠近后按住动作按钮蓄力，再击飞
+ * 投掷出去后像普通投掷物一样飞行；撞到墙壁或敌人就随机换个方向再"投"一次，
+ * 每次飞行距离递减，直到停下为止。整段飞行结束后英雄的回合才结束。
  */
 public class WreckingBall extends MissileWeapon {
 
-	public static final String AC_PLACE = "PLACE";
-
-	/** 破坏球能投出的最大格数 */
+	/** 投掷时能瞄准的最大格数 */
 	public static final int MAX_THROW_DISTANCE = 2;
+
+	/** 第一段弹射的飞行距离 */
+	private static final int THROWN_RANGE = 4;
+
+	private static final int[] DX = {1, -1, 0, 0, 1, 1, -1, -1};
+	private static final int[] DY = {0, 0, 1, -1, 1, -1, 1, -1};
 
 	{
 		image = ItemSpriteSheet.WRECKING_BALL;
@@ -71,24 +71,8 @@ public class WreckingBall extends MissileWeapon {
 	}
 
 	@Override
-	public ArrayList<String> actions(Hero hero) {
-		ArrayList<String> actions = super.actions(hero);
-		actions.add(AC_PLACE);
-		return actions;
-	}
-
-	@Override
-	public void execute(Hero hero, String action) {
-		if (AC_PLACE.equals(action)) {
-			place(hero);
-			return;
-		}
-		super.execute(hero, action);
-	}
-
-	@Override
 	public int throwPos(Hero user, int dst) {
-		//只能飞很短的距离
+		//只能瞄准很短的距离
 		Ballistica bolt = new Ballistica(user.pos, dst, Ballistica.PROJECTILE);
 		if (bolt.dist > MAX_THROW_DISTANCE) {
 			return bolt.path.get(MAX_THROW_DISTANCE);
@@ -96,81 +80,157 @@ public class WreckingBall extends MissileWeapon {
 		return super.throwPos(user, dst);
 	}
 
-	/** 投掷：落地即开始弹射 */
 	@Override
-	protected void onThrow(int cell) {
-		Hero hero = Dungeon.hero;
-		int dirX = 1;
-		int dirY = 0;
-		if (hero != null) {
-			int w = Dungeon.level.width();
-			dirX = Integer.signum((cell % w) - (hero.pos % w));
-			dirY = Integer.signum((cell / w) - (hero.pos / w));
-			if (dirX == 0 && dirY == 0) {
-				dirX = 1;
-			}
-		}
+	public void cast(final Hero user, final int dst) {
+		final int cell = throwPos(user, dst);
 
-		WreckingBallMob ball = spawnBall(cell);
-		if (ball != null) {
-			ball.launchThrown(hero, dirX, dirY);
-		}
+		user.sprite.zap(cell);
+		user.busy();
+		throwSound();
+
+		final float delay = castDelay(user, dst);
+
+		((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).reset(
+				user.sprite, cell, this, new Callback() {
+					@Override
+					public void call() {
+						curUser = user;
+						Item i = WreckingBall.this.detach(user.belongings.backpack);
+						if (i == null) {
+							user.spendAndNext(delay);
+							return;
+						}
+						WreckingBall ball = (WreckingBall) i;
+
+						int w = Dungeon.level.width();
+						int dx = Integer.signum((cell % w) - (user.pos % w));
+						int dy = Integer.signum((cell / w) - (user.pos / w));
+						if (dx == 0 && dy == 0) {
+							dx = 1;
+						}
+
+						fly(user, ball, cell, dx, dy, THROWN_RANGE, delay);
+					}
+				});
 	}
 
-	/** 放下：停在脚边，等待蓄力 */
-	private void place(Hero hero) {
-		int cell = -1;
-		for (int i : PathFinder.NEIGHBOURS8) {
-			int c = hero.pos + i;
-			if (Dungeon.level.insideMap(c) && Dungeon.level.passable[c] && Actor.findChar(c) == null) {
-				cell = c;
+	/** 一段飞行：从 from 沿方向飞最多 range 格，撞到东西就随机换向并把距离减一 */
+	private static void fly(final Hero user, final WreckingBall ball,
+	                        final int from, final int dirX, final int dirY,
+	                        final int range, final float delay) {
+		if (range <= 0 || user == null || !user.isAlive()) {
+			finish(user, ball, from, delay);
+			return;
+		}
+
+		int w = Dungeon.level.width();
+		int cur = from;
+		Char target = null;
+
+		for (int step = 1; step <= range; step++) {
+			int next = cur + dirY * w + dirX;
+			if (!Dungeon.level.insideMap(next)
+					|| Dungeon.level.solid[next]
+					|| !Dungeon.level.passable[next]) {
 				break;
 			}
+			Char ch = Actor.findChar(next);
+			if (ch != null) {
+				target = ch;
+				cur = next;
+				break;
+			}
+			cur = next;
 		}
-		if (cell == -1) {
-			GLog.w(Messages.get(this, "no_space"));
+
+		if (cur == from) {
+			//起点就被挡住，直接换个方向（距离必须递减，避免死循环）
+			int[] dir = randomDir(from, dirX, dirY);
+			if (dir == null) {
+				finish(user, ball, from, delay);
+			} else {
+				fly(user, ball, from, dir[0], dir[1], range - 1, delay);
+			}
 			return;
 		}
 
-		if (spawnBall(cell) == null) {
-			return;
-		}
+		final int landing = cur;
+		final Char hit = target;
 
-		Sample.INSTANCE.play(Assets.Sounds.MISS);
-		hero.sprite.operate(hero.pos);
-		detachAll(hero.belongings.backpack);
-		hero.spendAndNext(1f);
-		Item.updateQuickslot();
+		((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).reset(
+				from, landing, ball, new Callback() {
+					@Override
+					public void call() {
+						if (hit != null && hit.isAlive() && hit != user) {
+							int dmg = Math.max(1, Math.round(ball.rollDamage(user) * 1.2f));
+							hit.damage(new DamageInfo(dmg, DamageType.PHYSICAL, user));
+						}
+
+						int[] dir;
+						if (hit != null) {
+							//撞到东西：随机换方向
+							dir = randomDir(landing, dirX, dirY);
+						} else {
+							//没撞到就继续沿原方向，只是距离变短
+							dir = new int[]{dirX, dirY};
+						}
+
+						if (dir == null) {
+							finish(user, ball, landing, delay);
+						} else {
+							fly(user, ball, landing, dir[0], dir[1], range - 1, delay);
+						}
+					}
+				});
 	}
 
-	private WreckingBallMob spawnBall(int cell) {
-		if (Actor.findChar(cell) != null) {
-			ArrayList<Integer> candidates = new ArrayList<>();
-			for (int i : PathFinder.NEIGHBOURS8) {
-				int c = cell + i;
-				if (Dungeon.level.insideMap(c) && Dungeon.level.passable[c] && Actor.findChar(c) == null) {
-					candidates.add(c);
+	private int rollDamage(Hero user) {
+		int base = damageRoll(user);
+		return Math.max(1, base);
+	}
+
+	/** 随机挑一个能走的方向，优先不原路返回 */
+	private static int[] randomDir(int cell, int fromDx, int fromDy) {
+		java.util.ArrayList<int[]> options = new java.util.ArrayList<>();
+		for (int i = 0; i < 8; i++) {
+			if (DX[i] == -fromDx && DY[i] == -fromDy) {
+				continue;
+			}
+			if (stepFree(cell, DX[i], DY[i])) {
+				options.add(new int[]{DX[i], DY[i]});
+			}
+		}
+		if (options.isEmpty()) {
+			for (int i = 0; i < 8; i++) {
+				if (stepFree(cell, DX[i], DY[i])) {
+					options.add(new int[]{DX[i], DY[i]});
 				}
 			}
-			if (!candidates.isEmpty()) {
-				cell = Random.element(candidates);
-			} else {
-				return null;
-			}
 		}
-
-		WreckingBallMob ball = new WreckingBallMob();
-		ball.pos = cell;
-		GameScene.add(ball);
-
-		if (Dungeon.hero != null) {
-			Buff.affect(Dungeon.hero, WreckingBallControl.class).setBall(ball);
+		if (options.isEmpty()) {
+			return null;
 		}
-		return ball;
+		return options.get(Random.Int(options.size()));
 	}
 
-	@Override
-	public int value() {
-		return 120 * quantity;
+	private static boolean stepFree(int cell, int dx, int dy) {
+		int next = cell + dy * Dungeon.level.width() + dx;
+		return Dungeon.level.insideMap(next)
+				&& !Dungeon.level.solid[next]
+				&& Dungeon.level.passable[next]
+				&& Actor.findChar(next) == null;
+	}
+
+	private static void finish(Hero user, WreckingBall ball, int cell, float delay) {
+		if (ball != null && cell >= 0 && Dungeon.level.insideMap(cell)) {
+			Dungeon.level.drop(ball, cell).sprite.drop();
+			if (user != null && user.isAlive() && Dungeon.level.heroFOV[cell]) {
+				GLog.i(Messages.get(WreckingBall.class, "landed"));
+			}
+		}
+		if (user != null) {
+			user.spendAndNext(delay);
+			Item.updateQuickslot();
+		}
 	}
 }
