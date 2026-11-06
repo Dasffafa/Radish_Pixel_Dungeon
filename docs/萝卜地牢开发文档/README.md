@@ -10,11 +10,12 @@ AI Agent 首次介入时应通读本文件夹内文档，并将关键约定提�
 
 | 文档 | 系统 | 状态 |
 |------|------|------|
+| `core-systems-conventions.md` | **核心系统约定摘要（先读这个）** | ✅ 已核对源码 |
 | `damage-type-system-design.md` | 伤害类型系统 | ✅ 已实现（迁移进行中） |
 | `damage-system-refactor-test-log.md` | 伤害系统重构日志/测试清单 | 📋 记录 |
 | `event-system-usage.md` | 事件系统（设计+操作） | ✅ 已实现 |
 | `branch_system.md` | 分支楼层系统 | ✅ 已实现 |
-| `stair_pair_id_system.md` | 楼梯配对 ID 系统 | ✅ 已实现 |
+| `stair_pair_id_system.md` | 楼梯配对 ID 系统 | ⚠️ 历史文档：`pairId`/`StairRegistry` 已废弃，现行为 `linkId`（见 `branch_system.md`） |
 | `runtime-atlas-resource-guide.md` | Runtime Atlas 图标资源 | ✅ 已实现 |
 | `snd_items.md` | Slice&Dice 图标加载 | ✅ 已实现 |
 | `DiceMageUIDesign.md` | UI 设计与布局 | ✅ 已实现 |
