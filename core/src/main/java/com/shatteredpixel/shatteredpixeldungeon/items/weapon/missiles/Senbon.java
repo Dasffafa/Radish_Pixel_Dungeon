@@ -20,7 +20,7 @@ import com.watabou.utils.Callback;
 public class Senbon extends MissileWeapon {
 
 	/** 每次发射的针数 */
-	private static final int SHOTS = 5;
+	private static final int SHOTS = 10;
 
 	/** 扇形总夹角（弧度） */
 	private static final double SPREAD = Math.toRadians(24);
@@ -125,6 +125,8 @@ public class Senbon extends MissileWeapon {
 
 		final int impact = hitCell;
 		final Hero hero = user;
+		//每一枚针在射出时各自结算一次伤害
+		final int dmg = Math.max(1, Math.round(user.damageRoll() * 0.2f));
 
 		MissileSprite ms = (MissileSprite) user.sprite.parent.recycle(MissileSprite.class);
 		ms.reset(user.sprite, impact, this, new Callback() {
@@ -133,7 +135,6 @@ public class Senbon extends MissileWeapon {
 				Char target = Actor.findChar(impact);
 				if (target != null && target != hero
 						&& target.alignment != hero.alignment && target.isAlive()) {
-					int dmg = Math.max(1, Math.round(hero.damageRoll() * 0.3f));
 					target.damage(DamageInfo.physicalNoArmor(dmg, Senbon.this));
 				}
 			}
