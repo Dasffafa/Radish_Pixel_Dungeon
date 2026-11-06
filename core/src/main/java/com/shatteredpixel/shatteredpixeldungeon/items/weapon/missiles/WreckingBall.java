@@ -165,18 +165,21 @@ public class WreckingBall extends MissileWeapon {
 		int w = Dungeon.level.width();
 		int cur = from;
 		Char target = null;
+		boolean blocked = false;
 
 		for (int step = 1; step <= range; step++) {
 			int next = cur + dirY * w + dirX;
 			if (!Dungeon.level.insideMap(next)
 					|| Dungeon.level.solid[next]
 					|| !Dungeon.level.passable[next]) {
+				blocked = true;
 				break;
 			}
 			Char ch = Actor.findChar(next);
 			if (ch != null) {
 				target = ch;
 				cur = next;
+				blocked = true;
 				break;
 			}
 			cur = next;
@@ -195,6 +198,7 @@ public class WreckingBall extends MissileWeapon {
 
 		final int landing = cur;
 		final Char hit = target;
+		final boolean collided = blocked;
 
 		((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).reset(
 				from, landing, ball, new Callback() {
@@ -205,8 +209,8 @@ public class WreckingBall extends MissileWeapon {
 							hit.damage(new DamageInfo(dmg, DamageType.PHYSICAL, user));
 						}
 
-						if (hit != null && bouncesLeft > 0) {
-							//撞到东西才反射，次数用完就停
+						if (collided && bouncesLeft > 0) {
+							//撞到墙壁或敌人才反射
 							int[] dir = reflect(landing, dirX, dirY);
 							fly(user, ball, landing, dir[0], dir[1], range, power, delay, bouncesLeft - 1);
 						} else {
