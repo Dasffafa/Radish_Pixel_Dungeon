@@ -29,7 +29,7 @@ public class WreckingBall extends MissileWeapon {
 
 	public static final int MAX_THROW_DISTANCE = 2;
 
-	private static final int THROWN_RANGE = 4;
+	private static final int THROWN_RANGE = 6;
 
 	/** 最多反射次数 */
 	public static final int MAX_BOUNCES = 3;
@@ -113,6 +113,9 @@ public class WreckingBall extends MissileWeapon {
 						}
 						WreckingBall ball = (WreckingBall) i;
 
+						//每次投出消耗一次耐久
+						ball.decrementDurability();
+
 						int w = Dungeon.level.width();
 						int dx = Integer.signum((cell % w) - (user.pos % w));
 						int dy = Integer.signum((cell / w) - (user.pos / w));
@@ -135,10 +138,13 @@ public class WreckingBall extends MissileWeapon {
 		}
 
 		int c = Math.max(0, Math.min(WreckingBallControl.MAX_CHARGE, charges));
-		int range = 2 + c / 2;
+		int range = 4 + c;
 		float power = 0.6f + 0.12f * c;
 		float delay = 0.5f + 0.1f * c;
 		int bounces = bouncesForCharge(c);
+
+		//每次击飞也消耗一次耐久
+		ball.decrementDurability();
 
 		user.busy();
 		fly(user, ball, cell, dirX, dirY, range, power, delay, bounces);
@@ -247,7 +253,8 @@ public class WreckingBall extends MissileWeapon {
 	}
 
 	private static void finish(Hero user, WreckingBall ball, int cell, float delay) {
-		if (ball != null && cell >= 0 && Dungeon.level.insideMap(cell)) {
+		//耐久耗尽时物品已损毁，不再落地
+		if (ball != null && ball.durabilityLeft() > 0 && cell >= 0 && Dungeon.level.insideMap(cell)) {
 			Dungeon.level.drop(ball, cell).sprite.drop();
 			if (user != null && user.isAlive() && Dungeon.level.heroFOV[cell]) {
 				GLog.i(Messages.get(WreckingBall.class, "landed"));
