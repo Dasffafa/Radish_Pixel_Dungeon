@@ -45,15 +45,20 @@ public class DoorGates {
 				can = true;
 		}
 
-		if (!can && ch instanceof Hero) {
-			//节流：同一时间只提示一次，避免沿路反复尝试时刷屏
-			float now = com.watabou.noosa.Game.timeTotal;
-			if (now - lastMessageAt > 2f) {
-				lastMessageAt = now;
-				GLog.w(blockedMessage(g));
-			}
-		}
 		return can;
+	}
+
+	/** 玩家主动点击被挡住的门口时提示一次；返回 true 表示被挡住 */
+	public static boolean messageIfBlocked(int cell, Char ch) {
+		DoorGate g = Dungeon.level.doorGates.get(cell);
+		if (g == null) {
+			return false;
+		}
+		if (canPass(cell, ch)) {
+			return false;
+		}
+		GLog.w(blockedMessage(g));
+		return true;
 	}
 
 	public static String blockedMessage(DoorGate g) {
