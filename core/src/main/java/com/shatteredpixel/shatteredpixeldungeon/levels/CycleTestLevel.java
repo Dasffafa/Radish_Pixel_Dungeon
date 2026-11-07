@@ -33,6 +33,9 @@ public class CycleTestLevel extends Level {
 	/** 返回主线时的层数，在进入时记录 */
 	public int returnDepth = 1;
 
+	/** 本次进入支线的主线层数（静态，供回程使用） */
+	public static int pendingReturnDepth = 1;
+
 	@Override
 	public String tilesTex() {
 		return Assets.Environment.TILES_CAVES;

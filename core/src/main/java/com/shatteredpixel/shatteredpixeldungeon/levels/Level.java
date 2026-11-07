@@ -1344,20 +1344,15 @@ public abstract class Level implements Bundlable {
 
 		//测试支线入口：踩上去进入支线
 		if (testPortalCell >= 0 && cell == testPortalCell && Dungeon.hero != null && cell == Dungeon.hero.pos) {
-			try {
-				com.shatteredpixel.shatteredpixeldungeon.levels.Level test =
-						Dungeon.loadOrCreateLevel(com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.curSlot,
-								com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.TEST, 1);
-				if (test instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) {
-					((com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) test).returnDepth = Dungeon.depth;
-				}
-				Dungeon.switchLevel(test, com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL);
-				com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.class);
-			} catch (java.io.IOException e) {
-				//忽略
-			} catch (RuntimeException e) {
-				GLog.w("进入测试支线失败: " + e);
-			}
+			com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.pendingReturnDepth = Dungeon.depth;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.mode =
+					com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.Mode.RETURN;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnBranchId =
+					com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.TEST;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnDepth = 1;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnPos =
+					com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL;
+			com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.class);
 			return;
 		}
 
@@ -1365,16 +1360,14 @@ public abstract class Level implements Bundlable {
 		if (this instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel
 				&& cell == com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.RETURN_CELL
 				&& Dungeon.hero != null && cell == Dungeon.hero.pos) {
-			try {
-				com.shatteredpixel.shatteredpixeldungeon.levels.Level main =
-						Dungeon.loadOrCreateLevel(com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.curSlot,
-								com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.MAIN,
-								((com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) this).returnDepth);
-				Dungeon.switchLevel(main, -1);
-				com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.class);
-			} catch (java.io.IOException e) {
-				//忽略
-			}
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.mode =
+					com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.Mode.RETURN;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnBranchId =
+					com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.MAIN;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnDepth =
+					com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.pendingReturnDepth;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnPos = -1;
+			com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.class);
 			return;
 		}
 
