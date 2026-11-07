@@ -2854,6 +2854,7 @@ public class Hero extends Char {
 			curAction = new HeroAction.Unlock( cell );
 
 		} else if (Dungeon.level.getTransition(cell) != null
+				&& !Dungeon.level.getTransition(cell).sealed
 				//moving to a transition doesn't automatically trigger it when enemies are near
 				&& (visibleEnemies.size() == 0 || cell == pos)
 				&& !Dungeon.level.locked

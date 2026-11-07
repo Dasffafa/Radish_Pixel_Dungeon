@@ -59,9 +59,11 @@ public class MossExitRoomInMain extends SpecialRoom {
         Point center = center();
         int entranceCell = level.pointToCell(center);
 
-        //保留 transition 用于落点定位，但地形不给 ENTRANCE，踩上去不会触发传送
-        level.transitions.add(LevelTransition.branchUp(level, entranceCell,
-                "moss:main-3", Branches.MOSS, 2));
+        //保留 transition 用于落点定位，但标记为 sealed：踩上去不会触发传送
+        LevelTransition gate = LevelTransition.branchUp(level, entranceCell,
+                "moss:main-3", Branches.MOSS, 2);
+        gate.sealed = true;
+        level.transitions.add(gate);
         Painter.set(level, entranceCell, Terrain.EMPTY);
 
         //封闭的传送门外观，提示这里曾经是一扇门
@@ -82,6 +84,7 @@ public class MossExitRoomInMain extends SpecialRoom {
                 transition.destBranch = Branches.MOSS;
                 transition.destDepth = 2;
                 transition.type = LevelTransition.Type.BRANCH_ENTRANCE;
+                transition.sealed = true;
                 Painter.set(level, transition.cell(), Terrain.EMPTY);
                 return;
             }

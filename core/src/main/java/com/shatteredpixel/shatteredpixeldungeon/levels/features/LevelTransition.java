@@ -38,6 +38,9 @@ public class LevelTransition extends Rect implements Bundlable {
 	public int centerCell;
 	public Type type;
 
+	/** 单向门：保留 transition 用于落点定位，但玩家不能从这里激活 */
+	public boolean sealed = false;
+
 	// for bundling
 	public LevelTransition() {
 		super();
@@ -156,6 +159,7 @@ public class LevelTransition extends Rect implements Bundlable {
 	private static final String LINK_ID = "link_id";
 	private static final String DIRECTION = "direction";
 	private static final String DEST_BRANCH = "dest_branch";
+	private static final String SEALED	= "sealed";
 	private static final String DEST_DEPTH = "dest_depth";
 
 	@Override
@@ -170,6 +174,7 @@ public class LevelTransition extends Rect implements Bundlable {
 		bundle.put(DIRECTION, direction);
 		bundle.put(DEST_BRANCH, destBranch);
 		bundle.put(DEST_DEPTH, destDepth);
+		bundle.put(SEALED, sealed);
 	}
 
 	@Override
@@ -184,6 +189,7 @@ public class LevelTransition extends Rect implements Bundlable {
 		direction = bundle.getEnum(DIRECTION, Direction.class);
 		destBranch = bundle.getString(DEST_BRANCH);
 		destDepth = bundle.getInt(DEST_DEPTH);
+		sealed = bundle.getBoolean(SEALED);
 		if (linkId == null || linkId.isEmpty() || type == null || direction == null || !Branches.exists(destBranch)) {
 			throw new IllegalStateException("Invalid level transition in save data");
 		}
