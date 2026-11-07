@@ -559,6 +559,13 @@ public class Dungeon {
 					t.sealed = true;
 				}
 			}
+		} else {
+			//修复旧存档：苔藓的单向曾被错误地写到主线关卡上，这里清掉
+			for (LevelTransition t : level.transitions) {
+				if (!"moss:main-3".equals(t.linkId)) {
+					t.sealed = false;
+				}
+			}
 		}
 
 		//循环门：给这些楼梯加上光圈外观

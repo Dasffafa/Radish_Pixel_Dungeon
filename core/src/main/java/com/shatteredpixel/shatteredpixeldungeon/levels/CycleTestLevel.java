@@ -25,7 +25,10 @@ public class CycleTestLevel extends Level {
 	private static final int CELL_A = 2 * 15 + 3;
 	private static final int CELL_B = 2 * 15 + 9;
 	private static final int CELL_C = 6 * 15 + 6;
-	private static final int ENTRANCE_CELL = 8 * 15 + 6;
+	public static final int ENTRANCE_CELL = 8 * 15 + 6;
+
+	/** 返回主线时的层数，在进入时记录 */
+	public int returnDepth = 1;
 
 	@Override
 	public String tilesTex() {
@@ -53,11 +56,6 @@ public class CycleTestLevel extends Level {
 
 		map[ENTRANCE_CELL] = Terrain.ENTRANCE;
 
-		//返回主线的入口（从测试关往回走的出口）
-		LevelTransition back = LevelTransition.branchUp(this, ENTRANCE_CELL,
-				"cycletest:main", Branches.MAIN, 1);
-		transitions.add(back);
-
 		//三扇循环楼梯
 		addCycle(CELL_A, "cycletest", 0, CELL_B);
 		addCycle(CELL_B, "cycletest", 1, CELL_C);
@@ -81,6 +79,18 @@ public class CycleTestLevel extends Level {
 		CycleStairVisual vis = new CycleStairVisual();
 		vis.pos(cell, this);
 		customTiles.add(vis);
+	}
+
+	@Override
+	public void storeInBundle(com.watabou.utils.Bundle bundle) {
+		super.storeInBundle(bundle);
+		bundle.put("return_depth", returnDepth);
+	}
+
+	@Override
+	public void restoreFromBundle(com.watabou.utils.Bundle bundle) {
+		super.restoreFromBundle(bundle);
+		returnDepth = bundle.getInt("return_depth");
 	}
 
 	@Override

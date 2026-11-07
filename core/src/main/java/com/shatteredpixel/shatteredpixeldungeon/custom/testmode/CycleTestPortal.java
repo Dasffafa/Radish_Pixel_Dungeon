@@ -1,16 +1,16 @@
 package com.shatteredpixel.shatteredpixeldungeon.custom.testmode;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.noosa.Game;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -42,15 +42,15 @@ public class CycleTestPortal extends TestItem {
 			GLog.w(Messages.get(this, "already"));
 			return;
 		}
-		if (!Branches.MAIN.equals(Dungeon.branchId) || Dungeon.depth != 1) {
-			GLog.w(Messages.get(this, "wrong_depth"));
-			return;
-		}
 
-		LevelTransition source = LevelTransition.branchDown(Dungeon.level, hero.pos,
-				"cycletest:main", Branches.TEST, 1);
-		InterlevelScene.curTransition = source;
-		InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
-		Game.switchScene(InterlevelScene.class);
+		try {
+			Level level = Dungeon.loadOrCreateLevel(GamesInProgress.curSlot, Branches.TEST, 1);
+			if (level instanceof CycleTestLevel) {
+				((CycleTestLevel) level).returnDepth = Dungeon.depth;
+			}
+			Dungeon.switchLevel(level, CycleTestLevel.ENTRANCE_CELL);
+		} catch (IOException e) {
+			GLog.w(Messages.get(this, "failed"));
+		}
 	}
 }

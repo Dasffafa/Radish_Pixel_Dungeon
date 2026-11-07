@@ -1336,6 +1336,22 @@ public abstract class Level implements Bundlable {
 			com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairs.onStep(Dungeon.hero, cell);
 		}
 
+		//测试支线：踩入口格直接回主线
+		if (this instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel
+				&& cell == com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL
+				&& Dungeon.hero != null && cell == Dungeon.hero.pos) {
+			try {
+				com.shatteredpixel.shatteredpixeldungeon.levels.Level main =
+						Dungeon.loadOrCreateLevel(com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.curSlot,
+								com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.MAIN,
+								((com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) this).returnDepth);
+				Dungeon.switchLevel(main, -1);
+			} catch (java.io.IOException e) {
+				//忽略
+			}
+			return;
+		}
+
 		Trap trap = null;
 
 		switch (map[cell]) {
