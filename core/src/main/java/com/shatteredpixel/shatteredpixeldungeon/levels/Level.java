@@ -1352,8 +1352,11 @@ public abstract class Level implements Bundlable {
 					((com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) test).returnDepth = Dungeon.depth;
 				}
 				Dungeon.switchLevel(test, com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL);
+				com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.class);
 			} catch (java.io.IOException e) {
 				//忽略
+			} catch (RuntimeException e) {
+				GLog.w("进入测试支线失败: " + e);
 			}
 			return;
 		}
@@ -1368,6 +1371,7 @@ public abstract class Level implements Bundlable {
 								com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.MAIN,
 								((com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) this).returnDepth);
 				Dungeon.switchLevel(main, -1);
+				com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.class);
 			} catch (java.io.IOException e) {
 				//忽略
 			}

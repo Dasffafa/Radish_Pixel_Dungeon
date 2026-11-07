@@ -63,6 +63,9 @@ public class CycleTestLevel extends Level {
 		map[ENTRANCE_CELL] = Terrain.EMPTY;
 		map[RETURN_CELL] = Terrain.ENTRANCE;
 
+		//占位 transition：位于角落墙里，永远不会被踩到，只为避免空 transitions 引发空指针
+		transitions.add(LevelTransition.branchUp(this, 0, "cycletest:dummy", Branches.MAIN, 1));
+
 		//三扇循环楼梯
 		addCycle(CELL_A, "cycletest", 0, CELL_B);
 		addCycle(CELL_B, "cycletest", 1, CELL_C);
