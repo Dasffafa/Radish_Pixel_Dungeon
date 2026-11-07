@@ -70,6 +70,8 @@ public class LevelTransition extends Rect implements Bundlable {
 			case CONDITIONAL:
 				return gateOpened;
 			case ONE_WAY:
+				//单向门：可以正常抵达，但不能从这里反向激活
+				return false;
 			case TWO_WAY:
 			case CYCLE_ABC:
 			default:
