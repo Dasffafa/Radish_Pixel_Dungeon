@@ -1,3 +1,15 @@
+/*
+ * Radish Pixel Dungeon
+ * 苔藓分支在主线第 3 层的出口房间（单向门）。
+ *
+ * 玩家从苔藓第 2 层通过传送门抵达这里，但无法从这里原路返回苔藓分支——
+ * 这一侧只有落地点和一个封闭的传送门外观，踩上去不会触发任何传送。
+ *
+ * 注意：LevelTransition 仍然必须存在，因为 InterlevelScene 会用它来定位落点
+ * （requireTransition 缺少对应 linkId 会直接抛异常），所以这里保留 transition，
+ * 只把地形从 ENTRANCE 改成普通地面，使其不再可激活。
+ */
+
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
@@ -46,19 +58,31 @@ public class MossExitRoomInMain extends SpecialRoom {
 
         Point center = center();
         int entranceCell = level.pointToCell(center);
+
+        //保留 transition 用于落点定位，但地形不给 ENTRANCE，踩上去不会触发传送
         level.transitions.add(LevelTransition.branchUp(level, entranceCell,
                 "moss:main-3", Branches.MOSS, 2));
-        Painter.set(level, entranceCell, Terrain.ENTRANCE);
+        Painter.set(level, entranceCell, Terrain.EMPTY);
+
+        //封闭的传送门外观，提示这里曾经是一扇门
+        MossExitRoom.MossPortalVisual vis = new MossExitRoom.MossPortalVisual();
+        vis.pos(center.x, center.y);
+        level.customTiles.add(vis);
     }
 
     @Override
     public void onLevelLoad(Level level) {
         super.onLevelLoad(level);
-        level.customTiles.removeIf(tile -> tile instanceof MossExitRoom.MossPortalVisual
-                && inside(new Point(tile.tileX, tile.tileY)));
+
         for (LevelTransition transition : level.transitions) {
             if (inside(transition.center())) {
-                Level.set(transition.cell(), Terrain.ENTRANCE, level);
+                //单向门：只保留落点功能，不再提供从主线返回苔藓的入口
+                transition.linkId = "moss:main-3";
+                transition.direction = LevelTransition.Direction.UP;
+                transition.destBranch = Branches.MOSS;
+                transition.destDepth = 2;
+                transition.type = LevelTransition.Type.BRANCH_ENTRANCE;
+                Painter.set(level, transition.cell(), Terrain.EMPTY);
                 return;
             }
         }
