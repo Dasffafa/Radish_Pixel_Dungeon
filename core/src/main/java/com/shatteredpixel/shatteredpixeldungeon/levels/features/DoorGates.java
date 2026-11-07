@@ -102,6 +102,7 @@ public class DoorGates {
 
 	/** 事件触发开门 */
 	public static void onEvent(com.shatteredpixel.shatteredpixeldungeon.events.GameEvent event) {
+		try {
 		if (event == null || Dungeon.level == null || Dungeon.level.doorGates == null) {
 			return;
 		}
@@ -113,6 +114,9 @@ public class DoorGates {
 				g.opened = true;
 				GLog.p(Messages.get(DoorGates.class, "opened"));
 			}
+		}
+		} catch (Exception e) {
+			com.watabou.utils.DeviceCompat.log("DoorGates", "event handling failed: " + e);
 		}
 	}
 

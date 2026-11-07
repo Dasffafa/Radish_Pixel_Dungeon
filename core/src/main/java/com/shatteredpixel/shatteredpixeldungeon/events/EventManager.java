@@ -103,8 +103,12 @@ public class EventManager {
      * @param event Event to emit
      */
     public static void emit(GameEvent event) {
-        //条件门：先检查是否有门在等待这个事件
-        GateEvents.onEvent(event);
+        //条件门：先检查是否有门在等待这个事件（出错不能影响正常事件分发）
+        try {
+            GateEvents.onEvent(event);
+        } catch (Exception e) {
+            DeviceCompat.log("EventManager", "gate event hook failed: " + e);
+        }
 
         Class<? extends GameEvent> eventType = event.getClass();
         List<Subscriber> subscriberList = subscribers.get(eventType);

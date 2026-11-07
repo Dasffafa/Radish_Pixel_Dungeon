@@ -265,7 +265,16 @@ public class LevelTransition extends Rect implements Bundlable {
 		destBranch = bundle.getString(DEST_BRANCH);
 		destDepth = bundle.getInt(DEST_DEPTH);
 		sealed = bundle.getBoolean(SEALED);
-		gate = GateType.valueOf(bundle.getString(GATE));
+		String gateName = bundle.getString(GATE);
+		//旧存档没有这个字段，不能直接 valueOf(null)
+		gate = GateType.TWO_WAY;
+		if (gateName != null) {
+			try {
+				gate = GateType.valueOf(gateName);
+			} catch (IllegalArgumentException ignored) {
+				gate = GateType.TWO_WAY;
+			}
+		}
 		gateOpened = bundle.getBoolean(GATE_OPENED);
 		gateDepth = bundle.getInt(GATE_DEPTH);
 		gateIndex = bundle.getInt(GATE_INDEX);

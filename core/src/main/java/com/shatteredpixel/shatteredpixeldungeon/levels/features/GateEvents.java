@@ -12,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class GateEvents {
 
 	public static void onEvent(GameEvent event) {
+		try {
 		if (event == null || Dungeon.level == null || Dungeon.level.transitions == null) {
 			return;
 		}
@@ -32,6 +33,10 @@ public class GateEvents {
 				t.gateOpened = true;
 				GLog.p(Messages.get(GateEvents.class, "opened"));
 			}
+		}
+		} catch (Exception e) {
+			//事件回调里出问题不能把游戏带崩
+			com.watabou.utils.DeviceCompat.log("GateEvents", "event handling failed: " + e);
 		}
 	}
 }

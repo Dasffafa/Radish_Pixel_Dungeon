@@ -41,7 +41,15 @@ public class DoorGate implements Bundlable {
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		cell = bundle.getInt("cell");
-		gate = GateType.valueOf(bundle.getString("gate"));
+		String gateName = bundle.getString("gate");
+		gate = GateType.TWO_WAY;
+		if (gateName != null) {
+			try {
+				gate = GateType.valueOf(gateName);
+			} catch (IllegalArgumentException ignored) {
+				gate = GateType.TWO_WAY;
+			}
+		}
 		opened = bundle.getBoolean("opened");
 		event = bundle.getString("event");
 		if (event == null) event = "";
