@@ -113,7 +113,12 @@ public class GateTester extends TestItem {
 				g = new DoorGate(cell);
 				Dungeon.level.doorGates.put(cell, g);
 			}
-			g.gate = values[(g.gate.ordinal() + 1) % values.length];
+			GateType next = values[(g.gate.ordinal() + 1) % values.length];
+			//循环门是独立生成的楼梯，不能加在普通门上
+			if (next == GateType.CYCLE_ABC) {
+				next = values[(next.ordinal() + 1) % values.length];
+			}
+			g.gate = next;
 			g.opened = false;
 			if (g.gate == GateType.CONDITIONAL) {
 				g.event = "HeroMoveEvent";
