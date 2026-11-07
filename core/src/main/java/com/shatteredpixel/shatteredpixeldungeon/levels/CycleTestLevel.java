@@ -56,6 +56,9 @@ public class CycleTestLevel extends Level {
 		carve(8, 1, 13, 4);
 		carve(4, 6, 10, 9);
 		carve(6, 8, 8, 8);
+		//连接上下房间的走廊
+		carve(5, 4, 5, 6);
+		carve(9, 4, 9, 6);
 
 		map[ENTRANCE_CELL] = Terrain.EMPTY;
 		map[RETURN_CELL] = Terrain.ENTRANCE;
@@ -80,7 +83,7 @@ public class CycleTestLevel extends Level {
 		map[cell] = Terrain.EXIT;
 		cycleStairs.put(cell, new CycleStairData(cell, chain, slot, destCell));
 
-		CycleStairVisual vis = new CycleStairVisual();
+		CycleStairVisual vis = new CycleStairVisual(slot);
 		vis.pos(cell, this);
 		customTiles.add(vis);
 	}

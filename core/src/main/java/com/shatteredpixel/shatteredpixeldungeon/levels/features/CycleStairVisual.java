@@ -17,6 +17,27 @@ public class CycleStairVisual extends CustomTilemap {
 
 	final int TEX_WIDTH = 16;
 
+	public int slot = 0;
+
+	public CycleStairVisual() {
+	}
+
+	public CycleStairVisual(int slot) {
+		this.slot = slot;
+	}
+
+	@Override
+	public void storeInBundle(com.watabou.utils.Bundle bundle) {
+		super.storeInBundle(bundle);
+		bundle.put("slot", slot);
+	}
+
+	@Override
+	public void restoreFromBundle(com.watabou.utils.Bundle bundle) {
+		super.restoreFromBundle(bundle);
+		slot = bundle.getInt("slot");
+	}
+
 	@Override
 	public Tilemap create() {
 		Tilemap v = super.create();
@@ -26,7 +47,7 @@ public class CycleStairVisual extends CustomTilemap {
 
 	@Override
 	public String name(int tileX, int tileY) {
-		return Messages.get(this, "name");
+		return Messages.get(this, "name") + " " + (slot == 1 ? "B" : slot == 2 ? "C" : "A");
 	}
 
 	@Override
