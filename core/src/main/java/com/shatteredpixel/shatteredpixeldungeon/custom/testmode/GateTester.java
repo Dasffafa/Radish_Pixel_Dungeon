@@ -23,6 +23,15 @@ public class GateTester extends TestItem {
 	}
 
 	@Override
+	public String desc() {
+		LevelTransition t = Dungeon.level != null ? Dungeon.level.getTransition(Dungeon.hero.pos) : null;
+		String current = t != null
+				? Messages.get(GateType.class, t.gate.name().toLowerCase() + "_short")
+				: Messages.get(this, "none");
+		return Messages.get(this, "desc", current);
+	}
+
+	@Override
 	public ArrayList<String> actions(Hero hero) {
 		ArrayList<String> actions = super.actions(hero);
 		actions.add(AC_CYCLE);
