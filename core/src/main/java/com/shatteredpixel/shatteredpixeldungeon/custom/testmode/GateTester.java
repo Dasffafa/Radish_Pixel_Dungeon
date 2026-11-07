@@ -82,6 +82,24 @@ public class GateTester extends TestItem {
 				}
 				t.cycleChain = "test";
 				t.cycleSlot = slot;
+
+				//立刻补上光圈外观，不用重新进出关卡
+				boolean hasRing = false;
+				for (com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap ct : Dungeon.level.customTiles) {
+					if (ct instanceof com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual
+							&& ct.tileX == t.cell() % Dungeon.level.width()
+							&& ct.tileY == t.cell() / Dungeon.level.width()) {
+						hasRing = true;
+						break;
+					}
+				}
+				if (!hasRing) {
+					com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual ring =
+							new com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual();
+					ring.pos(t.cell(), Dungeon.level);
+					Dungeon.level.customTiles.add(ring);
+					GameScene.updateMap(t.cell());
+				}
 			}
 			GLog.i(Messages.get(this, "switched",
 					Messages.get(GateType.class, t.gate.name().toLowerCase() + "_short")));

@@ -140,14 +140,13 @@ public class WndInfoCell extends Window {
 			cellLabel += Messages.get(GateType.class, doorGate.gate.name().toLowerCase() + "_short");
 		}
 
-		String cellLabel0 = cellLabel;
 		LevelTransition trans = Dungeon.level.getTransition(cell);
 		if (trans != null && trans.sealed) {
 			cellLabel += Messages.get(WndInfoCell.class, "one_way_name");
 		} else if (trans != null && trans.gate != GateType.TWO_WAY) {
 			cellLabel += Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_short");
 		}
-		titlebar.label(cellLabel0);
+		titlebar.label(cellLabel);
 
 		if (customTile != null){
 			String customDesc = customTile.desc(x, y);
