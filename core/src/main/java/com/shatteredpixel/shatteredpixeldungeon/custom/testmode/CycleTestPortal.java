@@ -21,7 +21,7 @@ public class CycleTestPortal extends TestItem {
 	private static final String AC_ENTER = "ENTER";
 
 	{
-		image = ItemSpriteSheet.SOMETHING;
+		image = ItemSpriteSheet.AMULET;
 		defaultAction = AC_ENTER;
 	}
 
