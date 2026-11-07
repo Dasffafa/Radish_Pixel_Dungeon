@@ -219,6 +219,9 @@ public class Dungeon {
 	// 当前分支的字符串标识（如 "main", "moss", "mining"）
 	public static String branchId = Branches.MAIN;
 
+	/** 已经用掉的一次性门（按 linkId 记录，跨层持久化） */
+	public static final java.util.HashSet<String> usedGates = new java.util.HashSet<>();
+
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static HashSet<String> generatedLevels = new HashSet<>();
 	public static boolean levelJustGenerated;
@@ -702,6 +705,7 @@ public class Dungeon {
 	private static final String MOBS_TO_CHAMPION	= "mobs_to_champion";
 	private static final String HERO		= "hero";
 	private static final String DEPTH		= "depth";
+	private static final String USED_GATES	= "used_gates";
 		private static final String BRANCH_ID		= "branch_id";
 		private static final String GENERATED_LEVELS    = "generated_levels";
 		private static final String GOLD		= "gold";
@@ -735,6 +739,7 @@ public class Dungeon {
 				bundle.put( HERO, hero );
 				bundle.put( DEPTH, depth );
 				bundle.put( BRANCH_ID, branchId );
+				bundle.put( USED_GATES, usedGates.toArray(new String[0]) );
 
 				bundle.put( GOLD, gold );
 				bundle.put( ENERGY, energy );
@@ -912,6 +917,10 @@ public class Dungeon {
 		
 		depth = bundle.getInt( DEPTH );
 		branchId = bundle.getString(BRANCH_ID);
+
+		usedGates.clear();
+		String[] usedGateIds = bundle.getStringArray(USED_GATES);
+		if (usedGateIds != null) java.util.Collections.addAll(usedGates, usedGateIds);
 		if (!bundle.contains(BRANCH_ID) || !Branches.exists(branchId)) {
 			throw new IncompatibleSaveException("Invalid saved branch: " + branchId);
 		}

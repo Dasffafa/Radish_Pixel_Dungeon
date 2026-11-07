@@ -37,6 +37,8 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.RainbowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfFrost;
@@ -213,6 +215,17 @@ public class Bomb extends Item {
 				}
 			}
 			
+			//炸药门：爆炸范围内的门会被炸开
+			for (int n : PathFinder.NEIGHBOURS9) {
+				int c = cell + n;
+				if (c < 0 || c >= Dungeon.level.length()) continue;
+				LevelTransition gate = Dungeon.level.getTransition(c);
+				if (gate != null && gate.gate == GateType.BOMB_ONLY && !gate.gateOpened) {
+					gate.gateOpened = true;
+					GLog.w(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(GateType.class, "bomb_opened"));
+				}
+			}
+
 			if (terrainAffected) {
 				Dungeon.observe();
 			}
@@ -270,6 +283,17 @@ public class Bomb extends Item {
 				}
 
 
+			}
+
+			//炸药门：爆炸范围内的门会被炸开
+			for (int n : PathFinder.NEIGHBOURS9) {
+				int c = cell + n;
+				if (c < 0 || c >= Dungeon.level.length()) continue;
+				LevelTransition gate = Dungeon.level.getTransition(c);
+				if (gate != null && gate.gate == GateType.BOMB_ONLY && !gate.gateOpened) {
+					gate.gateOpened = true;
+					GLog.w(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(GateType.class, "bomb_opened"));
+				}
 			}
 
 			if (terrainAffected) {

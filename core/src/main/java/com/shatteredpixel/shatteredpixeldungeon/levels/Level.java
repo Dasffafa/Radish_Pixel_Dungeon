@@ -687,6 +687,9 @@ public abstract class Level implements Bundlable {
 //			return false;
 //		}
 
+		//门规则：记录一次性门/推进循环门的状态
+		transition.onUse();
+
 		beforeTransition();
 		InterlevelScene.curTransition = transition;
 		if (transition.direction == LevelTransition.Direction.DOWN) {

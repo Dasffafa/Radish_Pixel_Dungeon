@@ -2854,7 +2854,7 @@ public class Hero extends Char {
 			curAction = new HeroAction.Unlock( cell );
 
 		} else if (Dungeon.level.getTransition(cell) != null
-				&& !Dungeon.level.getTransition(cell).sealed
+				&& Dungeon.level.getTransition(cell).canUse(this)
 				//moving to a transition doesn't automatically trigger it when enemies are near
 				&& (visibleEnemies.size() == 0 || cell == pos)
 				&& !Dungeon.level.locked
@@ -2863,11 +2863,10 @@ public class Hero extends Char {
 
 			curAction = new HeroAction.LvlTransition( cell );
 
-		} else if (Dungeon.level.getTransition(cell) != null
-				&& Dungeon.level.getTransition(cell).sealed) {
+		} else if (Dungeon.level.getTransition(cell) != null) {
 
-			//单向门/楼梯：特意提示，避免玩家以为是 bug
-			GLog.w(Messages.get(Hero.class, "one_way_gate"));
+			//门被规则挡住：给出对应提示，避免玩家以为是 bug
+			GLog.w(Dungeon.level.getTransition(cell).blockedMessage());
 			curAction = new HeroAction.Move( cell );
 
 		}  else {

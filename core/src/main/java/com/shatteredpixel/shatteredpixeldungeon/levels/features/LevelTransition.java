@@ -9,7 +9,9 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Point;
@@ -40,6 +42,64 @@ public class LevelTransition extends Rect implements Bundlable {
 
 	/** 单向门：保留 transition 用于落点定位，但玩家不能从这里激活 */
 	public boolean sealed = false;
+
+	/** 逻辑门类型 */
+	public GateType gate = GateType.TWO_WAY;
+	/** 炸药门是否已被炸开 */
+	public boolean gateOpened = false;
+	/** 条件门要求的层数 */
+	public int gateDepth = 1;
+	/** 循环门当前序号 */
+	public int gateIndex = 0;
+	/** 循环门的三段目的地 linkId */
+	public String[] gateLinks = new String[0];
+
+	/** 这扇门当前能否被英雄激活 */
+	public boolean canUse(Hero hero) {
+		if (sealed) {
+			return false;
+		}
+		switch (gate) {
+			case SINGLE_USE:
+				return !Dungeon.usedGates.contains(linkId);
+			case BOMB_ONLY:
+				return gateOpened;
+			case CONDITIONAL:
+				return Dungeon.depth >= gateDepth;
+			case ONE_WAY:
+			case TWO_WAY:
+			case CYCLE_ABC:
+			default:
+				return true;
+		}
+	}
+
+	/** 成功通行后的状态变更 */
+	public void onUse() {
+		if (gate == GateType.SINGLE_USE) {
+			Dungeon.usedGates.add(linkId);
+		} else if (gate == GateType.CYCLE_ABC && gateLinks != null && gateLinks.length > 0) {
+			gateIndex = (gateIndex + 1) % gateLinks.length;
+			linkId = gateLinks[gateIndex];
+		}
+	}
+
+	/** 不能通行时给玩家的提示 */
+	public String blockedMessage() {
+		if (sealed) {
+			return Messages.get(LevelTransition.class, "blocked_one_way");
+		}
+		switch (gate) {
+			case SINGLE_USE:
+				return Messages.get(LevelTransition.class, "blocked_single_use");
+			case BOMB_ONLY:
+				return Messages.get(LevelTransition.class, "blocked_bomb");
+			case CONDITIONAL:
+				return Messages.get(LevelTransition.class, "blocked_condition", gateDepth);
+			default:
+				return Messages.get(LevelTransition.class, "blocked_one_way");
+		}
+	}
 
 	// for bundling
 	public LevelTransition() {
@@ -160,6 +220,11 @@ public class LevelTransition extends Rect implements Bundlable {
 	private static final String DIRECTION = "direction";
 	private static final String DEST_BRANCH = "dest_branch";
 	private static final String SEALED	= "sealed";
+	private static final String GATE	= "gate";
+	private static final String GATE_OPENED	= "gate_opened";
+	private static final String GATE_DEPTH	= "gate_depth";
+	private static final String GATE_INDEX	= "gate_index";
+	private static final String GATE_LINKS	= "gate_links";
 	private static final String DEST_DEPTH = "dest_depth";
 
 	@Override
@@ -175,6 +240,11 @@ public class LevelTransition extends Rect implements Bundlable {
 		bundle.put(DEST_BRANCH, destBranch);
 		bundle.put(DEST_DEPTH, destDepth);
 		bundle.put(SEALED, sealed);
+		bundle.put(GATE, gate.name());
+		bundle.put(GATE_OPENED, gateOpened);
+		bundle.put(GATE_DEPTH, gateDepth);
+		bundle.put(GATE_INDEX, gateIndex);
+		bundle.put(GATE_LINKS, gateLinks);
 	}
 
 	@Override
@@ -190,6 +260,12 @@ public class LevelTransition extends Rect implements Bundlable {
 		destBranch = bundle.getString(DEST_BRANCH);
 		destDepth = bundle.getInt(DEST_DEPTH);
 		sealed = bundle.getBoolean(SEALED);
+		gate = GateType.valueOf(bundle.getString(GATE));
+		gateOpened = bundle.getBoolean(GATE_OPENED);
+		gateDepth = bundle.getInt(GATE_DEPTH);
+		gateIndex = bundle.getInt(GATE_INDEX);
+		gateLinks = bundle.getStringArray(GATE_LINKS);
+		if (gateLinks == null) gateLinks = new String[0];
 		if (linkId == null || linkId.isEmpty() || type == null || direction == null || !Branches.exists(destBranch)) {
 			throw new IllegalStateException("Invalid level transition in save data");
 		}

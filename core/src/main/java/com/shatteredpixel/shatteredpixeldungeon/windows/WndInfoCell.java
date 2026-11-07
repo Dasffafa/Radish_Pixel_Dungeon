@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -126,6 +127,8 @@ public class WndInfoCell extends Window {
 		LevelTransition trans = Dungeon.level.getTransition(cell);
 		if (trans != null && trans.sealed) {
 			cellLabel += Messages.get(WndInfoCell.class, "one_way_name");
+		} else if (trans != null && trans.gate != GateType.TWO_WAY) {
+			cellLabel += Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_short");
 		}
 		titlebar.label(cellLabel);
 
@@ -143,6 +146,9 @@ public class WndInfoCell extends Window {
 		}
 		if (trans != null && trans.sealed) {
 			desc += "\n\n" + Messages.get(WndInfoCell.class, "one_way_desc");
+		}
+		if (trans != null && trans.gate != GateType.TWO_WAY) {
+			desc += "\n\n" + Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_desc", trans.gateDepth);
 		}
 
 		titlebar.setRect(0, 0, WIDTH, 0);
