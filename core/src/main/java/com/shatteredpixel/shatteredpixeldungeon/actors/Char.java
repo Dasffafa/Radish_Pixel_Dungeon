@@ -1411,6 +1411,12 @@ public abstract class Char extends Actor {
     //travelling may be false when a character is moving instantaneously, such as via teleportation
     public void move(int step, boolean travelling) {
 
+        //逻辑门：普通门被规则挡住时不允许通过
+        if (travelling && Dungeon.level.map[step] == Terrain.DOOR
+                && !com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.canPass(step, this)) {
+            return;
+        }
+
         if (travelling && Dungeon.level.adjacent(step, pos) && buff(Vertigo.class) != null) {
             sprite.interruptMotion();
             int newPos = pos + PathFinder.NEIGHBOURS8[Random.Int(8)];

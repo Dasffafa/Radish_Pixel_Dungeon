@@ -219,6 +219,7 @@ public class Bomb extends Item {
 			for (int n : PathFinder.NEIGHBOURS9) {
 				int c = cell + n;
 				if (c < 0 || c >= Dungeon.level.length()) continue;
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.onExplosion(c);
 				LevelTransition gate = Dungeon.level.getTransition(c);
 				if (gate != null && gate.gate == GateType.BOMB_ONLY && !gate.gateOpened) {
 					gate.gateOpened = true;
@@ -289,6 +290,7 @@ public class Bomb extends Item {
 			for (int n : PathFinder.NEIGHBOURS9) {
 				int c = cell + n;
 				if (c < 0 || c >= Dungeon.level.length()) continue;
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.onExplosion(c);
 				LevelTransition gate = Dungeon.level.getTransition(c);
 				if (gate != null && gate.gate == GateType.BOMB_ONLY && !gate.gateOpened) {
 					gate.gateOpened = true;

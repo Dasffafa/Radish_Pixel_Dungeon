@@ -16,6 +16,8 @@ public class GateEvents {
 			return;
 		}
 
+		DoorGates.onEvent(event);
+
 		String fullName = event.getClass().getName();
 		String simpleName = event.getClass().getSimpleName();
 

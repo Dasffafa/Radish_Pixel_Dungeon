@@ -176,6 +176,9 @@ public abstract class Level implements Bundlable {
 
 	public ArrayList<LevelTransition> transitions;
 
+	/** 普通门上的逻辑门规则，key 为格子 */
+	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate> doorGates = new java.util.HashMap<>();
+
 	//when a boss level has become locked.
 	public boolean locked = false;
 
@@ -314,6 +317,7 @@ public abstract class Level implements Bundlable {
 			width = height = length = 0;
 
 			transitions = new ArrayList<>();
+			doorGates = new java.util.HashMap<>();
 
 			mobs = new HashSet<>();
 			heaps = new SparseArray<>();
@@ -400,6 +404,15 @@ public abstract class Level implements Bundlable {
 		customTiles = new HashSet<>();
 		customWalls = new HashSet<>();
 
+		doorGates = new java.util.HashMap<>();
+		if (bundle.contains("door_gates")) {
+			for (com.watabou.utils.Bundlable b : bundle.getCollection("door_gates")) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate g =
+						(com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate) b;
+				doorGates.put(g.cell, g);
+			}
+		}
+
 		map		= bundle.getIntArray( MAP );
 
 		visited	= bundle.getBooleanArray( VISITED );
@@ -485,6 +498,7 @@ public abstract class Level implements Bundlable {
 		bundle.put( VISITED, visited );
 		bundle.put( MAPPED, mapped );
 		bundle.put( TRANSITIONS, transitions );
+		bundle.put( "door_gates", doorGates.values() );
 		bundle.put( LOCKED, locked );
 		bundle.put( HEAPS, heaps.valueList() );
 		bundle.put( PLANTS, plants.valueList() );
@@ -1285,6 +1299,7 @@ public abstract class Level implements Bundlable {
 		} else {
 			if (map[ch.pos] == Terrain.DOOR){
 				Door.enter( ch.pos );
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.onPass( ch.pos, ch );
 			}
 		}
 

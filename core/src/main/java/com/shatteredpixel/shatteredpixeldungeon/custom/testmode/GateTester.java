@@ -2,16 +2,21 @@ package com.shatteredpixel.shatteredpixeldungeon.custom.testmode;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 import java.util.ArrayList;
 
 /**
- * 测试工具：站在有门的格子上使用，循环切换这扇门的逻辑类型。
+ * 测试工具：选择地图上的一扇门，循环切换它的逻辑类型。
+ * 楼梯/传送门改的是 LevelTransition，普通门改的是 Level.doorGates。
  */
 public class GateTester extends TestItem {
 
@@ -24,11 +29,7 @@ public class GateTester extends TestItem {
 
 	@Override
 	public String desc() {
-		LevelTransition t = Dungeon.level != null ? Dungeon.level.getTransition(Dungeon.hero.pos) : null;
-		String current = t != null
-				? Messages.get(GateType.class, t.gate.name().toLowerCase() + "_short")
-				: Messages.get(this, "none");
-		return Messages.get(this, "desc", current);
+		return Messages.get(this, "desc");
 	}
 
 	@Override
@@ -45,19 +46,60 @@ public class GateTester extends TestItem {
 			return;
 		}
 
-		LevelTransition t = Dungeon.level.getTransition(hero.pos);
-		if (t == null) {
-			GLog.w(Messages.get(this, "no_gate"));
+		GameScene.selectCell(new CellSelector.Listener() {
+			@Override
+			public void onSelect(Integer cell) {
+				if (cell == null) {
+					return;
+				}
+				apply(cell);
+			}
+
+			@Override
+			public String prompt() {
+				return Messages.get(GateTester.class, "prompt");
+			}
+		});
+	}
+
+	private void apply(int cell) {
+		GateType[] values = GateType.values();
+
+		LevelTransition t = Dungeon.level.getTransition(cell);
+		if (t != null) {
+			t.gate = values[(t.gate.ordinal() + 1) % values.length];
+			t.gateOpened = false;
+			if (t.gate == GateType.CONDITIONAL) {
+				t.gateEvent = "HeroMoveEvent";
+			}
+			GLog.i(Messages.get(this, "switched",
+					Messages.get(GateType.class, t.gate.name().toLowerCase() + "_short")));
 			return;
 		}
 
-		GateType[] values = GateType.values();
-		t.gate = values[(t.gate.ordinal() + 1) % values.length];
-		t.gateOpened = false;
-		if (t.gate == GateType.CONDITIONAL) {
-			//默认挂一个会真实触发的事件，方便测试
-			t.gateEvent = "HeroMoveEvent";
+		int terrain = Dungeon.level.map[cell];
+		if (terrain == Terrain.DOOR || terrain == Terrain.OPEN_DOOR) {
+			DoorGate g = Dungeon.level.doorGates.get(cell);
+			if (g == null) {
+				g = new DoorGate(cell);
+				Dungeon.level.doorGates.put(cell, g);
+			}
+			g.gate = values[(g.gate.ordinal() + 1) % values.length];
+			g.opened = false;
+			if (g.gate == GateType.CONDITIONAL) {
+				g.event = "HeroMoveEvent";
+			}
+			if (g.gate == GateType.ONE_WAY) {
+				//默认允许从英雄当前所在的一侧进入
+				int w = Dungeon.level.width();
+				g.fromDx = (Dungeon.hero.pos % w) - (cell % w);
+				g.fromDy = (Dungeon.hero.pos / w) - (cell / w);
+			}
+			GLog.i(Messages.get(this, "switched",
+					Messages.get(GateType.class, g.gate.name().toLowerCase() + "_short")));
+			return;
 		}
-		GLog.i(Messages.get(this, "switched", Messages.get(GateType.class, t.gate.name().toLowerCase() + "_short")));
+
+		GLog.w(Messages.get(this, "no_gate"));
 	}
 }
