@@ -1,0 +1,107 @@
+package com.shatteredpixel.shatteredpixeldungeon.levels;
+
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairData;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+
+/**
+ * 测试支线的唯一关卡：三个小房间，各放一扇循环楼梯 A/B/C，踩上去在三个房间之间轮转。
+ * 没有任何实际内容，只用来验证循环门。
+ */
+public class CycleTestLevel extends Level {
+
+	{
+		color1 = 0x534f3e;
+		color2 = 0xb9d661;
+	}
+
+	//三个楼梯格与各自的目的地（就是下一扇楼梯所在的房间）
+	private static final int CELL_A = 2 * 15 + 3;
+	private static final int CELL_B = 2 * 15 + 9;
+	private static final int CELL_C = 6 * 15 + 6;
+	private static final int ENTRANCE_CELL = 8 * 15 + 6;
+
+	@Override
+	public String tilesTex() {
+		return Assets.Environment.TILES_CAVES;
+	}
+
+	@Override
+	public String waterTex() {
+		return Assets.Environment.WATER_HALLS;
+	}
+
+	@Override
+	protected boolean build() {
+		setSize(15, 11);
+
+		for (int i = 0; i < length(); i++) {
+			map[i] = Terrain.WALL;
+		}
+
+		//三个房间 + 中间走廊
+		carve(1, 1, 6, 4);
+		carve(8, 1, 13, 4);
+		carve(4, 6, 10, 9);
+		carve(6, 8, 8, 8);
+
+		map[ENTRANCE_CELL] = Terrain.ENTRANCE;
+
+		//返回主线的入口（从测试关往回走的出口）
+		LevelTransition back = LevelTransition.branchUp(this, ENTRANCE_CELL,
+				"cycletest:main", Branches.MAIN, 1);
+		transitions.add(back);
+
+		//三扇循环楼梯
+		addCycle(CELL_A, "cycletest", 0, CELL_B);
+		addCycle(CELL_B, "cycletest", 1, CELL_C);
+		addCycle(CELL_C, "cycletest", 2, CELL_A);
+
+		return true;
+	}
+
+	private void carve(int left, int top, int right, int bottom) {
+		for (int y = top; y <= bottom; y++) {
+			for (int x = left; x <= right; x++) {
+				map[y * width() + x] = Terrain.EMPTY;
+			}
+		}
+	}
+
+	private void addCycle(int cell, String chain, int slot, int destCell) {
+		map[cell] = Terrain.EXIT;
+		cycleStairs.put(cell, new CycleStairData(cell, chain, slot, destCell));
+
+		CycleStairVisual vis = new CycleStairVisual();
+		vis.pos(cell, this);
+		customTiles.add(vis);
+	}
+
+	@Override
+	public Mob createMob() {
+		return null;
+	}
+
+	@Override
+	protected void createMobs() {
+	}
+
+	public Actor addRespawner() {
+		return null;
+	}
+
+	@Override
+	protected void createItems() {
+	}
+
+	@Override
+	public int randomRespawnCell(Char ch) {
+		return ENTRANCE_CELL;
+	}
+}

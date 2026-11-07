@@ -179,6 +179,9 @@ public abstract class Level implements Bundlable {
 	/** 普通门上的逻辑门规则，key 为格子 */
 	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate> doorGates = new java.util.HashMap<>();
 
+	/** 循环楼梯，key 为格子 */
+	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairData> cycleStairs = new java.util.HashMap<>();
+
 	//when a boss level has become locked.
 	public boolean locked = false;
 
@@ -318,6 +321,7 @@ public abstract class Level implements Bundlable {
 
 			transitions = new ArrayList<>();
 			doorGates = new java.util.HashMap<>();
+			cycleStairs = new java.util.HashMap<>();
 
 			mobs = new HashSet<>();
 			heaps = new SparseArray<>();
@@ -413,6 +417,15 @@ public abstract class Level implements Bundlable {
 			}
 		}
 
+		cycleStairs = new java.util.HashMap<>();
+		if (bundle.contains("cycle_stairs")) {
+			for (com.watabou.utils.Bundlable b : bundle.getCollection("cycle_stairs")) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairData s =
+						(com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairData) b;
+				cycleStairs.put(s.cell, s);
+			}
+		}
+
 		map		= bundle.getIntArray( MAP );
 
 		visited	= bundle.getBooleanArray( VISITED );
@@ -499,6 +512,7 @@ public abstract class Level implements Bundlable {
 		bundle.put( MAPPED, mapped );
 		bundle.put( TRANSITIONS, transitions );
 		bundle.put( "door_gates", doorGates.values() );
+		bundle.put( "cycle_stairs", cycleStairs.values() );
 		bundle.put( LOCKED, locked );
 		bundle.put( HEAPS, heaps.valueList() );
 		bundle.put( PLANTS, plants.valueList() );
@@ -1316,6 +1330,11 @@ public abstract class Level implements Bundlable {
 	//a 'soft' press ignores hidden traps
 	//a 'hard' press triggers all things
 	private void pressCell( int cell, boolean hard ) {
+
+		//循环楼梯：踩上去直接传送
+		if (Dungeon.hero != null && cell == Dungeon.hero.pos) {
+			com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairs.onStep(Dungeon.hero, cell);
+		}
 
 		Trap trap = null;
 
