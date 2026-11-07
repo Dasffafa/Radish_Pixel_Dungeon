@@ -47,6 +47,9 @@ public class CycleStairVisual extends CustomTilemap {
 
 	@Override
 	public String name(int tileX, int tileY) {
+		if (slot < 0) {
+			return Messages.get(this, "name");
+		}
 		return Messages.get(this, "name") + " " + (slot == 1 ? "B" : slot == 2 ? "C" : "A");
 	}
 

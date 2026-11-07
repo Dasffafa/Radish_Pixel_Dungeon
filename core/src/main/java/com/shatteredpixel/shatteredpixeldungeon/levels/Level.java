@@ -179,6 +179,9 @@ public abstract class Level implements Bundlable {
 	/** 普通门上的逻辑门规则，key 为格子 */
 	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate> doorGates = new java.util.HashMap<>();
 
+	/** 测试支线入口楼梯所在格（-1 表示没有） */
+	public int testPortalCell = -1;
+
 	/** 循环楼梯，key 为格子 */
 	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairData> cycleStairs = new java.util.HashMap<>();
 
@@ -417,6 +420,8 @@ public abstract class Level implements Bundlable {
 			}
 		}
 
+		testPortalCell = bundle.getInt("test_portal_cell");
+
 		cycleStairs = new java.util.HashMap<>();
 		if (bundle.contains("cycle_stairs")) {
 			for (com.watabou.utils.Bundlable b : bundle.getCollection("cycle_stairs")) {
@@ -513,6 +518,7 @@ public abstract class Level implements Bundlable {
 		bundle.put( TRANSITIONS, transitions );
 		bundle.put( "door_gates", doorGates.values() );
 		bundle.put( "cycle_stairs", cycleStairs.values() );
+		bundle.put( "test_portal_cell", testPortalCell );
 		bundle.put( LOCKED, locked );
 		bundle.put( HEAPS, heaps.valueList() );
 		bundle.put( PLANTS, plants.valueList() );
@@ -1334,6 +1340,22 @@ public abstract class Level implements Bundlable {
 		//循环楼梯：踩上去直接传送
 		if (Dungeon.hero != null && cell == Dungeon.hero.pos) {
 			com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairs.onStep(Dungeon.hero, cell);
+		}
+
+		//测试支线入口：踩上去进入支线
+		if (testPortalCell >= 0 && cell == testPortalCell && Dungeon.hero != null && cell == Dungeon.hero.pos) {
+			try {
+				com.shatteredpixel.shatteredpixeldungeon.levels.Level test =
+						Dungeon.loadOrCreateLevel(com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.curSlot,
+								com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.TEST, 1);
+				if (test instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) {
+					((com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel) test).returnDepth = Dungeon.depth;
+				}
+				Dungeon.switchLevel(test, com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL);
+			} catch (java.io.IOException e) {
+				//忽略
+			}
+			return;
 		}
 
 		//测试支线：踩入口格直接回主线
