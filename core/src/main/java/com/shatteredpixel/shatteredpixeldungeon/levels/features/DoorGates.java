@@ -12,6 +12,8 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
  */
 public class DoorGates {
 
+	private static float lastMessageAt = -100f;
+
 	/** 这扇门当前能否被该角色通过 */
 	public static boolean canPass(int cell, Char ch) {
 		DoorGate g = Dungeon.level.doorGates.get(cell);
@@ -44,7 +46,12 @@ public class DoorGates {
 		}
 
 		if (!can && ch instanceof Hero) {
-			GLog.w(blockedMessage(g));
+			//节流：同一时间只提示一次，避免沿路反复尝试时刷屏
+			float now = com.watabou.noosa.Game.timeTotal;
+			if (now - lastMessageAt > 2f) {
+				lastMessageAt = now;
+				GLog.w(blockedMessage(g));
+			}
 		}
 		return can;
 	}
