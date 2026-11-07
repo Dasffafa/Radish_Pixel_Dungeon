@@ -98,7 +98,7 @@ public class GateTester extends TestItem {
 							new com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual();
 					ring.pos(t.cell(), Dungeon.level);
 					Dungeon.level.customTiles.add(ring);
-					GameScene.updateMap(t.cell());
+					GameScene.updateMap();
 				}
 			}
 			GLog.i(Messages.get(this, "switched",

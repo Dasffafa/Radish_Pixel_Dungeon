@@ -95,7 +95,7 @@ public class DoorGates {
 						new SealedDoorVisual();
 				vis.pos(cell, Dungeon.level);
 				Dungeon.level.customTiles.add(vis);
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap(cell);
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap();
 				break;
 			case CYCLE_ABC:
 				g.index = (g.index + 1) % 3;

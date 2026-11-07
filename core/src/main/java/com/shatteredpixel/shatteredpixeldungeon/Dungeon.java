@@ -552,7 +552,8 @@ public class Dungeon {
 		Dungeon.level = level;
 
 		//苔藓洞窟：所有向上的楼梯/传送门一律改为单向，只能向下推进
-		if (Branches.MOSS.equals(branchId)) {
+		if (Branches.MOSS.equals(branchId)
+				&& level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SmallGrassMiniLevel) {
 			for (LevelTransition t : level.transitions) {
 				if (t.direction == LevelTransition.Direction.UP) {
 					t.sealed = true;

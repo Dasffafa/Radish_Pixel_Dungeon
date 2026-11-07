@@ -54,7 +54,7 @@ public class CycleStair {
 		vis.pos(cell, level);
 		level.customTiles.add(vis);
 		if (Dungeon.level == level) {
-			GameScene.updateMap(cell);
+			GameScene.updateMap();
 		}
 	}
 }
