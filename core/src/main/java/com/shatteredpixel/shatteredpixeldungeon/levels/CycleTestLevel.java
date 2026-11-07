@@ -25,7 +25,10 @@ public class CycleTestLevel extends Level {
 	private static final int CELL_A = 2 * 15 + 3;
 	private static final int CELL_B = 2 * 15 + 9;
 	private static final int CELL_C = 6 * 15 + 6;
+	/** 出生格（和回程楼梯分开，避免一进来就被弹回去） */
 	public static final int ENTRANCE_CELL = 8 * 15 + 6;
+	/** 回主线的楼梯格 */
+	public static final int RETURN_CELL = 9 * 15 + 9;
 
 	/** 返回主线时的层数，在进入时记录 */
 	public int returnDepth = 1;
@@ -54,7 +57,8 @@ public class CycleTestLevel extends Level {
 		carve(4, 6, 10, 9);
 		carve(6, 8, 8, 8);
 
-		map[ENTRANCE_CELL] = Terrain.ENTRANCE;
+		map[ENTRANCE_CELL] = Terrain.EMPTY;
+		map[RETURN_CELL] = Terrain.ENTRANCE;
 
 		//三扇循环楼梯
 		addCycle(CELL_A, "cycletest", 0, CELL_B);

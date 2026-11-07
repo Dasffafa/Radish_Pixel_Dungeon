@@ -1338,7 +1338,7 @@ public abstract class Level implements Bundlable {
 
 		//测试支线：踩入口格直接回主线
 		if (this instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel
-				&& cell == com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL
+				&& cell == com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.RETURN_CELL
 				&& Dungeon.hero != null && cell == Dungeon.hero.pos) {
 			try {
 				com.shatteredpixel.shatteredpixeldungeon.levels.Level main =
