@@ -46,6 +46,23 @@ public class CycleStairs {
 			return;
 		}
 
+		//跨层：切到目标分支/层数
+		if (!s.destBranch.isEmpty() && s.destDepth > 0) {
+			Dungeon.cycleChains.put(s.chain, (s.slot + 1) % 3);
+			hero.curAction = null;
+			hero.sprite.interruptMotion();
+			GLog.i(Messages.get(CycleStairs.class, "used", slotName(s.slot), slotName(s.slot + 1)));
+
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.mode =
+					com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.Mode.RETURN;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnBranchId = s.destBranch;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnDepth = s.destDepth;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnPos =
+					com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL;
+			com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.class);
+			return;
+		}
+
 		if (s.destCell >= 0 && s.destCell < Dungeon.level.length()) {
 			//先推进链条，再传送
 			Dungeon.cycleChains.put(s.chain, (s.slot + 1) % 3);

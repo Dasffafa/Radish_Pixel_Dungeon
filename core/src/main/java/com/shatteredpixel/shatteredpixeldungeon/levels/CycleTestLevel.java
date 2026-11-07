@@ -25,6 +25,7 @@ public class CycleTestLevel extends Level {
 	private static final int CELL_A = 2 * 15 + 3;
 	private static final int CELL_B = 2 * 15 + 9;
 	private static final int CELL_C = 6 * 15 + 6;
+	private static final int BACK_CELL = 4 * 15 + 6;
 	/** 出生格（和回程楼梯分开，避免一进来就被弹回去） */
 	public static final int ENTRANCE_CELL = 8 * 15 + 6;
 	/** 回主线的楼梯格 */
@@ -48,6 +49,10 @@ public class CycleTestLevel extends Level {
 
 	@Override
 	protected boolean build() {
+		if (Dungeon.depth == 2) {
+			return buildSecondFloor();
+		}
+
 		setSize(15, 11);
 
 		for (int i = 0; i < length(); i++) {
@@ -69,10 +74,10 @@ public class CycleTestLevel extends Level {
 		//占位 transition：位于角落墙里，永远不会被踩到，只为避免空 transitions 引发空指针
 		transitions.add(LevelTransition.branchUp(this, 0, "cycletest:dummy", Branches.MAIN, 1));
 
-		//三扇循环楼梯
+		//三扇循环楼梯：A→B 同层，B→C 同层，C→第 2 层（跨层）
 		addCycle(CELL_A, "cycletest", 0, CELL_B);
 		addCycle(CELL_B, "cycletest", 1, CELL_C);
-		addCycle(CELL_C, "cycletest", 2, CELL_A);
+		addCross(CELL_C, "cycletest", 2, "test", 2);
 
 		return true;
 	}
@@ -83,6 +88,36 @@ public class CycleTestLevel extends Level {
 				map[y * width() + x] = Terrain.EMPTY;
 			}
 		}
+	}
+
+	private boolean buildSecondFloor() {
+		setSize(15, 11);
+
+		for (int i = 0; i < length(); i++) {
+			map[i] = Terrain.WALL;
+		}
+		carve(1, 1, 13, 9);
+
+		map[ENTRANCE_CELL] = Terrain.EMPTY;
+		map[RETURN_CELL] = Terrain.ENTRANCE;
+
+		//回到第 1 层的跨层楼梯
+		map[BACK_CELL] = Terrain.EXIT;
+		cycleStairs.put(BACK_CELL, new CycleStairData(BACK_CELL, "cycletest", 0, "test", 1));
+		CycleStairVisual back = new CycleStairVisual(-1);
+		back.pos(BACK_CELL, this);
+		customTiles.add(back);
+
+		transitions.add(LevelTransition.branchUp(this, 0, "cycletest:dummy", Branches.MAIN, 1));
+		return true;
+	}
+
+	private void addCross(int cell, String chain, int slot, String branch, int depth) {
+		map[cell] = Terrain.EXIT;
+		cycleStairs.put(cell, new CycleStairData(cell, chain, slot, branch, depth));
+		CycleStairVisual vis = new CycleStairVisual(slot);
+		vis.pos(cell, this);
+		customTiles.add(vis);
 	}
 
 	private void addCycle(int cell, String chain, int slot, int destCell) {

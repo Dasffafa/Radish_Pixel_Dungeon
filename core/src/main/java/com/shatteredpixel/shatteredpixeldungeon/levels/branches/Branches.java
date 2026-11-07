@@ -165,10 +165,11 @@ public class Branches {
 
     private static Branch createTestBranch() {
         @SuppressWarnings("unchecked")
-        Class<? extends Level>[] levels = new Class[2];
+        Class<? extends Level>[] levels = new Class[3];
         levels[0] = DeadEndLevel.class;
         levels[1] = com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.class;
-        return new Branch(TEST, 1, "branch_test", levels);
+        levels[2] = com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.class;
+        return new Branch(TEST, 2, "branch_test", levels);
     }
 
     private static Branch createConvictBranch() {
