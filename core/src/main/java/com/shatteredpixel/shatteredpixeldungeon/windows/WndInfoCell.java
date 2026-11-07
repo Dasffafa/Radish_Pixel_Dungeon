@@ -171,9 +171,15 @@ public class WndInfoCell extends Window {
 			desc += "\n\n" + Messages.get(GateType.class, doorGate.gate.name().toLowerCase() + "_desc", darg);
 		}
 		if (trans != null && trans.gate != GateType.TWO_WAY) {
-			Object arg = trans.gate == GateType.CONDITIONAL
-					? eventLabel(trans.gateEvent)
-					: (Object) trans.gateDepth;
+			Object arg;
+			if (trans.gate == GateType.CONDITIONAL) {
+				arg = eventLabel(trans.gateEvent);
+			} else if (trans.gate == GateType.CYCLE_ABC) {
+				arg = LevelTransition.slotName(trans.cycleSlot) + " → "
+						+ LevelTransition.slotName(trans.cycleSlot + 1);
+			} else {
+				arg = trans.gateDepth;
+			}
 			desc += "\n\n" + Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_desc", arg);
 		}
 

@@ -72,6 +72,17 @@ public class GateTester extends TestItem {
 			if (t.gate == GateType.CONDITIONAL) {
 				t.gateEvent = "HeroMoveEvent";
 			}
+			if (t.gate == GateType.CYCLE_ABC) {
+				//同一条链上的循环门依次排 A/B/C
+				int slot = 0;
+				for (LevelTransition other : Dungeon.level.transitions) {
+					if (other != t && other.gate == GateType.CYCLE_ABC && "test".equals(other.cycleChain)) {
+						slot = (other.cycleSlot + 1) % 3;
+					}
+				}
+				t.cycleChain = "test";
+				t.cycleSlot = slot;
+			}
 			GLog.i(Messages.get(this, "switched",
 					Messages.get(GateType.class, t.gate.name().toLowerCase() + "_short")));
 			return;

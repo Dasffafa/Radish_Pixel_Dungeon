@@ -57,6 +57,21 @@ public class LevelTransition extends Rect implements Bundlable {
 	/** 循环门的三段目的地 linkId */
 	public String[] gateLinks = new String[0];
 
+	/** 循环门所属的链条 id，同一条链的三扇门共享 */
+	public String cycleChain = "";
+
+	/** 循环门在链条中的位置：0=A 1=B 2=C */
+	public int cycleSlot = 0;
+
+	/** 循环门的 A/B/C 名称 */
+	public static String slotName(int slot) {
+		switch (slot % 3) {
+			case 0: return "A";
+			case 1: return "B";
+			default: return "C";
+		}
+	}
+
 	/** 这扇门当前能否被英雄激活 */
 	public boolean canUse(Hero hero) {
 		if (sealed) {
@@ -74,6 +89,11 @@ public class LevelTransition extends Rect implements Bundlable {
 				return false;
 			case TWO_WAY:
 			case CYCLE_ABC:
+				//只有链条当前轮到的那一扇能用
+				if (cycleChain.isEmpty()) {
+					return true;
+				}
+				return Dungeon.cycleChains.getOrDefault(cycleChain, 0) == cycleSlot;
 			default:
 				return true;
 		}
@@ -83,9 +103,9 @@ public class LevelTransition extends Rect implements Bundlable {
 	public void onUse() {
 		if (gate == GateType.SINGLE_USE) {
 			Dungeon.usedGates.add(linkId);
-		} else if (gate == GateType.CYCLE_ABC && gateLinks != null && gateLinks.length > 0) {
-			gateIndex = (gateIndex + 1) % gateLinks.length;
-			linkId = gateLinks[gateIndex];
+		} else if (gate == GateType.CYCLE_ABC && !cycleChain.isEmpty()) {
+			//用掉之后轮到链上的下一扇
+			Dungeon.cycleChains.put(cycleChain, (cycleSlot + 1) % 3);
 		}
 	}
 
@@ -101,6 +121,8 @@ public class LevelTransition extends Rect implements Bundlable {
 				return Messages.get(LevelTransition.class, "blocked_bomb");
 			case CONDITIONAL:
 				return Messages.get(LevelTransition.class, "blocked_condition");
+			case CYCLE_ABC:
+				return Messages.get(LevelTransition.class, "blocked_cycle", slotName(Dungeon.cycleChains.getOrDefault(cycleChain, 0)));
 			default:
 				return Messages.get(LevelTransition.class, "blocked_one_way");
 		}
@@ -252,6 +274,8 @@ public class LevelTransition extends Rect implements Bundlable {
 		bundle.put(GATE_INDEX, gateIndex);
 		bundle.put(GATE_LINKS, gateLinks);
 		bundle.put(GATE_EVENT, gateEvent);
+		bundle.put("cycle_chain", cycleChain);
+		bundle.put("cycle_slot", cycleSlot);
 	}
 
 	@Override
@@ -283,6 +307,9 @@ public class LevelTransition extends Rect implements Bundlable {
 		gateLinks = bundle.getStringArray(GATE_LINKS);
 		gateEvent = bundle.getString(GATE_EVENT);
 		if (gateEvent == null) gateEvent = "";
+		cycleChain = bundle.getString("cycle_chain");
+		if (cycleChain == null) cycleChain = "";
+		cycleSlot = bundle.getInt("cycle_slot");
 		if (gateLinks == null) gateLinks = new String[0];
 		if (linkId == null || linkId.isEmpty() || type == null || direction == null || !Branches.exists(destBranch)) {
 			throw new IllegalStateException("Invalid level transition in save data");

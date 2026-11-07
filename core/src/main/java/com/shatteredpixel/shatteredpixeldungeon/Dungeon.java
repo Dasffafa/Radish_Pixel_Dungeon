@@ -222,6 +222,9 @@ public class Dungeon {
 	/** 已经用掉的一次性门（按 linkId 记录，跨层持久化） */
 	public static final java.util.HashSet<String> usedGates = new java.util.HashSet<>();
 
+	/** 循环门每一条链当前轮到第几个（0=A,1=B,2=C） */
+	public static final java.util.HashMap<String, Integer> cycleChains = new java.util.HashMap<>();
+
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static HashSet<String> generatedLevels = new HashSet<>();
 	public static boolean levelJustGenerated;
@@ -557,6 +560,28 @@ public class Dungeon {
 			}
 		}
 
+		//循环门：给这些楼梯加上光圈外观
+		for (LevelTransition t : level.transitions) {
+			if (t.gate != com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType.CYCLE_ABC) {
+				continue;
+			}
+			boolean exists = false;
+			for (com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap ct : level.customTiles) {
+				if (ct instanceof com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual
+						&& ct.tileX == t.cell() % level.width()
+						&& ct.tileY == t.cell() / level.width()) {
+					exists = true;
+					break;
+				}
+			}
+			if (!exists) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual vis =
+						new com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual();
+				vis.pos(t.cell(), level);
+				level.customTiles.add(vis);
+			}
+		}
+
 		hero.pos = pos;
 
 		if (hero.buff(AscensionChallenge.class) != null){
@@ -706,6 +731,7 @@ public class Dungeon {
 	private static final String HERO		= "hero";
 	private static final String DEPTH		= "depth";
 	private static final String USED_GATES	= "used_gates";
+	private static final String CYCLE_CHAINS	= "cycle_chains";
 		private static final String BRANCH_ID		= "branch_id";
 		private static final String GENERATED_LEVELS    = "generated_levels";
 		private static final String GOLD		= "gold";
@@ -740,6 +766,12 @@ public class Dungeon {
 				bundle.put( DEPTH, depth );
 				bundle.put( BRANCH_ID, branchId );
 				bundle.put( USED_GATES, usedGates.toArray(new String[0]) );
+				String[] chains = new String[cycleChains.size()];
+				int ci = 0;
+				for (java.util.Map.Entry<String,Integer> e : cycleChains.entrySet()) {
+					chains[ci++] = e.getKey() + "|" + e.getValue();
+				}
+				bundle.put( CYCLE_CHAINS, chains );
 
 				bundle.put( GOLD, gold );
 				bundle.put( ENERGY, energy );
@@ -921,6 +953,15 @@ public class Dungeon {
 		usedGates.clear();
 		String[] usedGateIds = bundle.getStringArray(USED_GATES);
 		if (usedGateIds != null) java.util.Collections.addAll(usedGates, usedGateIds);
+
+		cycleChains.clear();
+		String[] chains = bundle.getStringArray(CYCLE_CHAINS);
+		if (chains != null) {
+			for (String s : chains) {
+				String[] parts = s.split("\\|");
+				if (parts.length == 2) cycleChains.put(parts[0], Integer.parseInt(parts[1]));
+			}
+		}
 		if (!bundle.contains(BRANCH_ID) || !Branches.exists(branchId)) {
 			throw new IncompatibleSaveException("Invalid saved branch: " + branchId);
 		}
