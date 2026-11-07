@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.events;
 
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.GateEvents;
 import com.watabou.utils.DeviceCompat;
 
 import java.lang.reflect.Method;
@@ -102,6 +103,9 @@ public class EventManager {
      * @param event Event to emit
      */
     public static void emit(GameEvent event) {
+        //条件门：先检查是否有门在等待这个事件
+        GateEvents.onEvent(event);
+
         Class<? extends GameEvent> eventType = event.getClass();
         List<Subscriber> subscriberList = subscribers.get(eventType);
 

@@ -99,6 +99,14 @@ public class WndInfoCell extends Window {
 		}
 	}
 	
+	private static String eventLabel(String gateEvent) {
+		if (gateEvent == null || gateEvent.isEmpty()) {
+			return Messages.get(GateType.class, "no_event");
+		}
+		int dot = gateEvent.lastIndexOf('.');
+		return dot >= 0 ? gateEvent.substring(dot + 1) : gateEvent;
+	}
+
 	public WndInfoCell( int cell ) {
 		
 		super();
@@ -148,7 +156,10 @@ public class WndInfoCell extends Window {
 			desc += "\n\n" + Messages.get(WndInfoCell.class, "one_way_desc");
 		}
 		if (trans != null && trans.gate != GateType.TWO_WAY) {
-			desc += "\n\n" + Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_desc", trans.gateDepth);
+			Object arg = trans.gate == GateType.CONDITIONAL
+					? eventLabel(trans.gateEvent)
+					: (Object) trans.gateDepth;
+			desc += "\n\n" + Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_desc", arg);
 		}
 
 		titlebar.setRect(0, 0, WIDTH, 0);

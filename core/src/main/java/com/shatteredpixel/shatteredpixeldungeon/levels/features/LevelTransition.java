@@ -51,6 +51,9 @@ public class LevelTransition extends Rect implements Bundlable {
 	public int gateDepth = 1;
 	/** 循环门当前序号 */
 	public int gateIndex = 0;
+	/** 条件门需要等待的事件类名 */
+	public String gateEvent = "";
+
 	/** 循环门的三段目的地 linkId */
 	public String[] gateLinks = new String[0];
 
@@ -65,7 +68,7 @@ public class LevelTransition extends Rect implements Bundlable {
 			case BOMB_ONLY:
 				return gateOpened;
 			case CONDITIONAL:
-				return Dungeon.depth >= gateDepth;
+				return gateOpened;
 			case ONE_WAY:
 			case TWO_WAY:
 			case CYCLE_ABC:
@@ -95,7 +98,7 @@ public class LevelTransition extends Rect implements Bundlable {
 			case BOMB_ONLY:
 				return Messages.get(LevelTransition.class, "blocked_bomb");
 			case CONDITIONAL:
-				return Messages.get(LevelTransition.class, "blocked_condition", gateDepth);
+				return Messages.get(LevelTransition.class, "blocked_condition");
 			default:
 				return Messages.get(LevelTransition.class, "blocked_one_way");
 		}
@@ -225,6 +228,7 @@ public class LevelTransition extends Rect implements Bundlable {
 	private static final String GATE_DEPTH	= "gate_depth";
 	private static final String GATE_INDEX	= "gate_index";
 	private static final String GATE_LINKS	= "gate_links";
+	private static final String GATE_EVENT	= "gate_event";
 	private static final String DEST_DEPTH = "dest_depth";
 
 	@Override
@@ -245,6 +249,7 @@ public class LevelTransition extends Rect implements Bundlable {
 		bundle.put(GATE_DEPTH, gateDepth);
 		bundle.put(GATE_INDEX, gateIndex);
 		bundle.put(GATE_LINKS, gateLinks);
+		bundle.put(GATE_EVENT, gateEvent);
 	}
 
 	@Override
@@ -265,6 +270,8 @@ public class LevelTransition extends Rect implements Bundlable {
 		gateDepth = bundle.getInt(GATE_DEPTH);
 		gateIndex = bundle.getInt(GATE_INDEX);
 		gateLinks = bundle.getStringArray(GATE_LINKS);
+		gateEvent = bundle.getString(GATE_EVENT);
+		if (gateEvent == null) gateEvent = "";
 		if (gateLinks == null) gateLinks = new String[0];
 		if (linkId == null || linkId.isEmpty() || type == null || direction == null || !Branches.exists(destBranch)) {
 			throw new IllegalStateException("Invalid level transition in save data");

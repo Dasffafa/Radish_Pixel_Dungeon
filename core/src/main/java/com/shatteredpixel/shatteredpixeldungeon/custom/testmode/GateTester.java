@@ -45,6 +45,10 @@ public class GateTester extends TestItem {
 		GateType[] values = GateType.values();
 		t.gate = values[(t.gate.ordinal() + 1) % values.length];
 		t.gateOpened = false;
+		if (t.gate == GateType.CONDITIONAL) {
+			//默认挂一个会真实触发的事件，方便测试
+			t.gateEvent = "HeroMoveEvent";
+		}
 		GLog.i(Messages.get(this, "switched", Messages.get(GateType.class, t.gate.name().toLowerCase() + "_short")));
 	}
 }
