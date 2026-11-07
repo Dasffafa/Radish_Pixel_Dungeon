@@ -43,6 +43,12 @@ public class Door {
 	}
 
 	public static void leave( int pos ) {
+
+		//被炸开的炸药门保持永久打开
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate dg = Dungeon.level.doorGates.get(pos);
+		if (dg != null && dg.gate == com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType.BOMB_ONLY && dg.opened) {
+			return;
+		}
 		int chars = 0;
 		
 		for (Char ch : Actor.chars()){

@@ -166,9 +166,14 @@ public class Bomb extends Item {
 					}
 					
 					if (Dungeon.level.flamable[c]) {
-						Dungeon.level.destroy(c);
-						GameScene.updateMap(c);
-						terrainAffected = true;
+						//炸药门不会被爆炸摧毁，只会在 onExplosion 里变成永久打开
+						com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate dg =
+								Dungeon.level.doorGates.get(c);
+						if (dg == null || dg.gate != com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType.BOMB_ONLY) {
+							Dungeon.level.destroy(c);
+							GameScene.updateMap(c);
+							terrainAffected = true;
+						}
 					}
 					
 					//destroys items / triggers bombs caught in the blast.

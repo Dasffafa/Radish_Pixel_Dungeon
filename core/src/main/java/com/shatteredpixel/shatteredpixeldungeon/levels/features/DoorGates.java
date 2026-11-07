@@ -124,6 +124,9 @@ public class DoorGates {
 		DoorGate g = Dungeon.level.doorGates.get(cell);
 		if (g != null && g.gate == GateType.BOMB_ONLY && !g.opened) {
 			g.opened = true;
+			//炸药门不会被炸毁，只是永久保持打开
+			com.shatteredpixel.shatteredpixeldungeon.levels.Level.set(cell, Terrain.OPEN_DOOR, Dungeon.level);
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap(cell);
 			GLog.w(Messages.get(DoorGates.class, "bomb_opened"));
 		}
 	}

@@ -133,7 +133,9 @@ public class WndInfoCell extends Window {
 		IconTitle titlebar = new IconTitle();
 		titlebar.icon(cellImage(cell));
 		String cellLabel = cellName(cell);
-		DoorGate doorGate = Dungeon.level.doorGates.get(cell);
+		int cellTerrain = Dungeon.level.map[cell];
+		DoorGate doorGate = (cellTerrain == Terrain.DOOR || cellTerrain == Terrain.OPEN_DOOR)
+				? Dungeon.level.doorGates.get(cell) : null;
 		if (doorGate != null && doorGate.gate != GateType.TWO_WAY) {
 			cellLabel += Messages.get(GateType.class, doorGate.gate.name().toLowerCase() + "_short");
 		}
