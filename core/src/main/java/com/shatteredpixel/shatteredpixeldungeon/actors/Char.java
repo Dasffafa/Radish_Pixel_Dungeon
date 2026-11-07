@@ -1412,8 +1412,16 @@ public abstract class Char extends Actor {
     public void move(int step, boolean travelling) {
 
         //逻辑门：普通门被规则挡住时不允许通过，并把精灵拉回原格
-        if (travelling && Dungeon.level.map[step] == Terrain.DOOR
-                && !com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.canPass(step, this)) {
+        boolean gateBlocks = false;
+        if (travelling && Dungeon.level.map[step] == Terrain.DOOR) {
+            try {
+                gateBlocks = !com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.canPass(step, this);
+            } catch (Exception e) {
+                gateBlocks = true;
+                com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("gate error: " + e);
+            }
+        }
+        if (gateBlocks) {
             if (sprite != null) {
                 sprite.interruptMotion();
                 sprite.place(pos);

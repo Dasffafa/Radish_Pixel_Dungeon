@@ -2795,9 +2795,14 @@ public class Hero extends Char {
 		}
 
 		//逻辑门：点击被规则挡住的普通门时只提示一次，不移动也不耗时
-		if (Dungeon.level.map[cell] == Terrain.DOOR
-				&& com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.messageIfBlocked(cell, this)) {
-			return false;
+		if (Dungeon.level.map[cell] == Terrain.DOOR) {
+			try {
+				if (com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.messageIfBlocked(cell, this)) {
+					return false;
+				}
+			} catch (Exception e) {
+				GLog.w("gate error: " + e);
+			}
 		}
 
 		if (fieldOfView == null || fieldOfView.length != Dungeon.level.length()){

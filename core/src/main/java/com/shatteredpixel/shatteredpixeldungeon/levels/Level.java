@@ -1343,7 +1343,11 @@ public abstract class Level implements Bundlable {
 
 		case Terrain.DOOR:
 			Door.enter( cell );
-			com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.onPass( cell, Dungeon.hero );
+			try {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.onPass( cell, Dungeon.hero );
+			} catch (Exception e) {
+				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("gate error: " + e);
+			}
 			break;
 		}
 
