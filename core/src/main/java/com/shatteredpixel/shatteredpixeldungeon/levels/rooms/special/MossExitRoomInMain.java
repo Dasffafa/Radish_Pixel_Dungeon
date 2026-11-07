@@ -12,12 +12,16 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
+import com.watabou.noosa.Tilemap;
 import com.watabou.utils.Point;
 
 public class MossExitRoomInMain extends SpecialRoom {
@@ -66,10 +70,38 @@ public class MossExitRoomInMain extends SpecialRoom {
         level.transitions.add(gate);
         Painter.set(level, entranceCell, Terrain.EMPTY);
 
-        //封闭的传送门外观，提示这里曾经是一扇门
-        MossExitRoom.MossPortalVisual vis = new MossExitRoom.MossPortalVisual();
+        //单向门的外观：文本明确标注只能从另一侧通过
+        OneWayPortalVisual vis = new OneWayPortalVisual();
         vis.pos(center.x, center.y);
         level.customTiles.add(vis);
+    }
+
+    /** 单向门的视觉与文字说明 */
+    public static class OneWayPortalVisual extends CustomTilemap {
+
+        {
+            texture = Assets.Environment.MOSS_ENTER;
+            tileW = tileH = 1;
+        }
+
+        final int TEX_WIDTH = 16;
+
+        @Override
+        public Tilemap create() {
+            Tilemap v = super.create();
+            v.map(mapSimpleImage(0, 0, TEX_WIDTH), 1);
+            return v;
+        }
+
+        @Override
+        public String name(int tileX, int tileY) {
+            return Messages.get(this, "name");
+        }
+
+        @Override
+        public String desc(int tileX, int tileY) {
+            return Messages.get(this, "desc");
+        }
     }
 
     @Override

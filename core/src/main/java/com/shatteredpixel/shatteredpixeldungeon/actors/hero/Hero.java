@@ -2863,6 +2863,13 @@ public class Hero extends Char {
 
 			curAction = new HeroAction.LvlTransition( cell );
 
+		} else if (Dungeon.level.getTransition(cell) != null
+				&& Dungeon.level.getTransition(cell).sealed) {
+
+			//单向门/楼梯：特意提示，避免玩家以为是 bug
+			GLog.w(Messages.get(Hero.class, "one_way_gate"));
+			curAction = new HeroAction.Move( cell );
+
 		}  else {
 
 			if (!Dungeon.level.visited[cell] && !Dungeon.level.mapped[cell]

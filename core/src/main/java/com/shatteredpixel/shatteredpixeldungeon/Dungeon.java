@@ -544,6 +544,16 @@ public class Dungeon {
 		PathFinder.setMapSize(level.width(), level.height());
 		
 		Dungeon.level = level;
+
+		//苔藓洞窟：所有向上的楼梯/传送门一律改为单向，只能向下推进
+		if (Branches.MOSS.equals(branchId)) {
+			for (LevelTransition t : level.transitions) {
+				if (t.direction == LevelTransition.Direction.UP) {
+					t.sealed = true;
+				}
+			}
+		}
+
 		hero.pos = pos;
 
 		if (hero.buff(AscensionChallenge.class) != null){
