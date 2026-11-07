@@ -50,6 +50,10 @@ public class CycleStairs {
 			//先推进链条，再传送
 			Dungeon.cycleChains.put(s.chain, (s.slot + 1) % 3);
 
+			//打断当前寻路/动作，避免传送后继续沿原路线走
+			hero.curAction = null;
+			hero.sprite.interruptMotion();
+
 			teleporting = true;
 			try {
 				hero.pos = s.destCell;
