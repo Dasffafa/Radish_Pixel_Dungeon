@@ -89,7 +89,12 @@ public class DoorGates {
 				g.opened = true;
 				//一次性门用掉后直接封死成墙
 				Dungeon.level.doorGates.remove(cell);
+				//按墙处理（不可通行），再叠一张红叉门的贴图
 				com.shatteredpixel.shatteredpixeldungeon.levels.Level.set(cell, Terrain.WALL, Dungeon.level);
+				SealedDoorVisual vis =
+						new SealedDoorVisual();
+				vis.pos(cell, Dungeon.level);
+				Dungeon.level.customTiles.add(vis);
 				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap(cell);
 				break;
 			case CYCLE_ABC:
