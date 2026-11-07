@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
@@ -121,7 +122,12 @@ public class WndInfoCell extends Window {
 
 		IconTitle titlebar = new IconTitle();
 		titlebar.icon(cellImage(cell));
-		titlebar.label(cellName(cell));
+		String cellLabel = cellName(cell);
+		LevelTransition trans = Dungeon.level.getTransition(cell);
+		if (trans != null && trans.sealed) {
+			cellLabel += Messages.get(WndInfoCell.class, "one_way_name");
+		}
+		titlebar.label(cellLabel);
 
 		if (customTile != null){
 			String customDesc = customTile.desc(x, y);
@@ -135,6 +141,10 @@ public class WndInfoCell extends Window {
 
 			desc += Dungeon.level.tileDesc(Dungeon.level.map[cell]);
 		}
+		if (trans != null && trans.sealed) {
+			desc += "\n\n" + Messages.get(WndInfoCell.class, "one_way_desc");
+		}
+
 		titlebar.setRect(0, 0, WIDTH, 0);
 		add(titlebar);
 
