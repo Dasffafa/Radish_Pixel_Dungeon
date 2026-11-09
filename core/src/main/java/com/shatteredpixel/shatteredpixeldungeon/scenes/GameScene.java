@@ -385,6 +385,7 @@ public class GameScene extends PixelScene {
 
 		sukunaSkill = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaSlashButton();
 		sukunaSkill.camera = uiCamera;
+		sukunaSkill.setRect(uiCamera.width - 56, uiCamera.height - 96, 40, 40);
 		add( sukunaSkill );
 
 		action = new ActionIndicator();
@@ -848,17 +849,17 @@ public class GameScene extends PixelScene {
 			log.newLine();
 		}
 
-		if (updateTags){
-			tagAttack = attack.active;
-			tagLoot = loot.visible;
-			if (sukunaSkill != null) {
+		if (sukunaSkill != null) {
 			sukunaSkill.visible = Dungeon.hero != null
 					&& Dungeon.hero.heroClass == HeroClasses.SUKUNA
 					&& Dungeon.hero.isAlive();
-			sukunaSkill.setRect(uiCamera.width - 52, status.top() - 56, 40, 40);
+			sukunaSkill.setRect(uiCamera.width - 56, uiCamera.height - 96, 40, 40);
 		}
 
-		tagAction = action.visible;
+		if (updateTags){
+			tagAttack = attack.active;
+			tagLoot = loot.visible;
+			tagAction = action.visible;
 			tagResume = resume.visible;
 
 			layoutTags();
