@@ -1284,6 +1284,12 @@ public class GameScene extends PixelScene {
 	}
 
 	//updates the whole map
+	public static void tintTiles(float r, float g, float b, float strength) {
+		if (scene != null && scene.tiles != null) {
+			scene.tiles.tint(r, g, b, strength);
+		}
+	}
+
 	public static void updateMap() {
 		if (scene != null) {
 			scene.tiles.updateMap();

@@ -17,6 +17,15 @@ public class ShrineDomain extends Buff {
 	}
 
 	@Override
+	public void fx(boolean on) {
+		if (on) {
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.tintTiles(2.2f, 0.35f, 0.35f, 0.55f);
+		} else {
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.tintTiles(1f, 1f, 1f, 0f);
+		}
+	}
+
+	@Override
 	public boolean act() {
 		if (!(target instanceof Hero)) {
 			detach();
@@ -29,7 +38,7 @@ public class ShrineDomain extends Buff {
 			if (ch == hero || !ch.isAlive()) {
 				continue;
 			}
-			if (Dungeon.level.distance(hero.pos, ch.pos) <= 4) {
+			if (Dungeon.level.distance(hero.pos, ch.pos) <= 20) {
 				SukunaSlashEffect.show(hero, ch);
 				ch.damage(DamageInfo.physical(dmg, hero));
 			}
