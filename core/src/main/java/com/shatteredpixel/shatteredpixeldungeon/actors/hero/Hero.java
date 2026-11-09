@@ -3330,6 +3330,22 @@ public class Hero extends Char {
 		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){
 			Buff.affect(hero, Adrenaline.class,2f+hero.pointsInTalent(Talent.ADRENAL_COMBAT));
 		}
+		if (!enemy.isAlive() && belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
+			int heal = 1 + pointsInTalent(Talent.SUKUNA_FEAST)
+					+ pointsInTalent(Talent.HUISHENG_HEAL);
+			if (subClass == HeroSubClasses.HUISHENG) {
+				heal *= 2;
+			}
+			HP = Math.min(HT, HP + heal);
+
+			int surge = pointsInTalent(Talent.CURSED_SURGE);
+			if (surge > 0) {
+				Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste.class, surge);
+			}
+			if (pointsInTalent(Talent.BLOODLUST) > 0) {
+				Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class).addStack();
+			}
+		}
 		if (!enemy.isAlive() && wasEnemy) {
 			TieredToyEffects.onKill(this);
 		}

@@ -153,27 +153,6 @@ public class SukunaClaws extends MeleeWeapon {
 			}
 		}
 
-		if (hero != null && !defender.isAlive()) {
-			int hastePoints = hero.pointsInTalent(
-					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSED_SURGE);
-			if (hastePoints > 0) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
-						com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste.class, 1f * hastePoints);
-			}
-			if (hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODLUST) > 0) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
-						com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class).addStack();
-			}
-			int heal = 1 + hero.pointsInTalent(
-					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_FEAST);
-			if (hero.subClass == HeroSubClasses.HUISHENG) {
-				heal *= 2;
-			}
-			heal += hero.pointsInTalent(
-					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HUISHENG_HEAL);
-			hero.HP = Math.min(hero.HT, hero.HP + heal);
-		}
-
 		return result;
 	}
 }
