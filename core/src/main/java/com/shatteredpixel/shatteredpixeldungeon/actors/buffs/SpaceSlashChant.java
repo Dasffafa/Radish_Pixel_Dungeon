@@ -70,6 +70,8 @@ public class SpaceSlashChant extends Buff {
 		int w = Dungeon.level.width();
 		int range = Math.max(Dungeon.level.width(), Dungeon.level.height());
 		int dmg = 40 + hero.lvl * 3;
+		dmg = Math.round(dmg * (1f + 0.10f * hero.pointsInTalent(
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SPACE_SLASH_POWER)));
 
 		for (Char ch : Actor.chars()) {
 			if (ch == hero || !ch.isAlive()) {

@@ -28,7 +28,7 @@ public class SpaceSlash extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[0];
+		return new Talent[]{ Talent.SPACE_SLASH_POWER };
 	}
 
 	@Override

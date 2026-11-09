@@ -105,10 +105,14 @@ public class Talent {
 	public String name(){ return name; }
 	public int maxPoints(){ return maxPoints; }
 
-	public static final Talent SUKUNA_CLEAVE = new Talent("SUKUNA_CLEAVE");
-	public static final Talent SUKUNA_DISMANTLE = new Talent("SUKUNA_DISMANTLE");
-	public static final Talent SHRINE_MASTERY = new Talent("SHRINE_MASTERY");
-	public static final Talent ECHO_STRIKE = new Talent("ECHO_STRIKE");
+	public static final Talent SPACE_SLASH_POWER = new Talent("SPACE_SLASH_POWER", 4);
+	public static final Talent SHRINE_POWER = new Talent("SHRINE_POWER", 4);
+	public static final Talent FUGA_POWER = new Talent("FUGA_POWER", 4);
+
+	public static final Talent SUKUNA_CLEAVE = new Talent("SUKUNA_CLEAVE", 3);
+	public static final Talent SUKUNA_DISMANTLE = new Talent("SUKUNA_DISMANTLE", 3);
+	public static final Talent SHRINE_MASTERY = new Talent("SHRINE_MASTERY", 4);
+	public static final Talent ECHO_STRIKE = new Talent("ECHO_STRIKE", 4);
 
 	public static final Talent CURSED_SURGE = new Talent("CURSED_SURGE");
 	public static final Talent BLOODTHIRST = new Talent("BLOODTHIRST");
@@ -116,19 +120,19 @@ public class Talent {
 	public static final Talent BLOODLUST = new Talent("BLOODLUST");
 	public static final Talent IRON_BODY = new Talent("IRON_BODY");
 
-	public static final Talent QIANREN_STORM = new Talent("QIANREN_STORM");
-	public static final Talent QIANREN_MASTER = new Talent("QIANREN_MASTER");
-	public static final Talent DUANZUI_JUDGE = new Talent("DUANZUI_JUDGE");
-	public static final Talent DUANZUI_FINAL = new Talent("DUANZUI_FINAL");
-	public static final Talent HUISHENG_VITALITY = new Talent("HUISHENG_VITALITY");
-	public static final Talent HUISHENG_REBIRTH = new Talent("HUISHENG_REBIRTH");
+	public static final Talent QIANREN_STORM = new Talent("QIANREN_STORM", 3);
+	public static final Talent QIANREN_MASTER = new Talent("QIANREN_MASTER", 4);
+	public static final Talent DUANZUI_JUDGE = new Talent("DUANZUI_JUDGE", 3);
+	public static final Talent DUANZUI_FINAL = new Talent("DUANZUI_FINAL", 4);
+	public static final Talent HUISHENG_VITALITY = new Talent("HUISHENG_VITALITY", 3);
+	public static final Talent HUISHENG_REBIRTH = new Talent("HUISHENG_REBIRTH", 4);
 
-	public static final Talent QIANREN_ECHO = new Talent("QIANREN_ECHO");
-	public static final Talent QIANREN_REACH = new Talent("QIANREN_REACH");
-	public static final Talent DUANZUI_EXECUTE = new Talent("DUANZUI_EXECUTE");
-	public static final Talent DUANZUI_LINE = new Talent("DUANZUI_LINE");
-	public static final Talent HUISHENG_HEAL = new Talent("HUISHENG_HEAL");
-	public static final Talent HUISHENG_REGEN = new Talent("HUISHENG_REGEN");
+	public static final Talent QIANREN_ECHO = new Talent("QIANREN_ECHO", 3);
+	public static final Talent QIANREN_REACH = new Talent("QIANREN_REACH", 4);
+	public static final Talent DUANZUI_EXECUTE = new Talent("DUANZUI_EXECUTE", 3);
+	public static final Talent DUANZUI_LINE = new Talent("DUANZUI_LINE", 4);
+	public static final Talent HUISHENG_HEAL = new Talent("HUISHENG_HEAL", 3);
+	public static final Talent HUISHENG_REGEN = new Talent("HUISHENG_REGEN", 4);
 
 	public static final Talent SUKUNA_FEAST = new Talent("SUKUNA_FEAST");
 	public static final Talent SUKUNA_CLAW_MASTERY = new Talent("SUKUNA_CLAW_MASTERY");

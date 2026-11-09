@@ -23,7 +23,7 @@ public class MalevolentShrine extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[0];
+		return new Talent[]{ Talent.SHRINE_POWER };
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public class Fuga extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[0];
+		return new Talent[]{ Talent.FUGA_POWER };
 	}
 
 	@Override
@@ -90,6 +90,8 @@ public class Fuga extends ArmorAbility {
 				}
 
 				int dmg = 20 + hero.lvl * 2;
+				dmg = Math.round(dmg * (1f + 0.10f * hero.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.FUGA_POWER)));
 				int radius = 4;
 				for (Char ch : Actor.chars()) {
 					if (ch == hero || !ch.isAlive()) {
