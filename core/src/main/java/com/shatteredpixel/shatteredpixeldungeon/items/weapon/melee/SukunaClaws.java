@@ -158,7 +158,7 @@ public class SukunaClaws extends MeleeWeapon {
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSED_SURGE);
 			if (hastePoints > 0) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
-						com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste.class, 2f * hastePoints);
+						com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste.class, 1f * hastePoints);
 			}
 			if (hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODLUST) > 0) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
