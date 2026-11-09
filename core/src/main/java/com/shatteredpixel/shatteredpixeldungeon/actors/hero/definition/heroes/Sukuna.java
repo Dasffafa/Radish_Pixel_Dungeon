@@ -34,7 +34,7 @@ public class Sukuna extends HeroDefinition {
 	}
 
 	@Override public ArmorAbility[] armorAbilities() {
-		return new ArmorAbility[]{ new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.SpaceSlash(), new HeroicLeap(), new Shockwave() };
+		return new ArmorAbility[]{ new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.SpaceSlash(), new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.MalevolentShrine(), new Shockwave() };
 	}
 
 	@Override public TalentSet talents() {
@@ -48,6 +48,7 @@ public class Sukuna extends HeroDefinition {
 
 	@Override protected void initClassLoadout(Hero hero) {
 		(hero.belongings.weapon = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws()).identify();
+		hero.belongings.armor = new com.shatteredpixel.shatteredpixeldungeon.items.armor.CurseKimono();
 		ThrowingStone stones = new ThrowingStone();
 		stones.quantity(3).collect();
 		Dungeon.quickslot.setSlot(0, stones);

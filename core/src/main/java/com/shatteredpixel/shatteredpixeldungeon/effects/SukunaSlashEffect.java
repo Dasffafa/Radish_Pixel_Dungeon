@@ -81,8 +81,17 @@ public class SukunaSlashEffect extends MovieClip {
 		PointF from = ((CharSprite) attacker.sprite).destinationCenter();
 		PointF to = new PointF(from.x + dx * cells * 16f, from.y + dy * cells * 16f);
 		float angle = (float) Math.toDegrees(Math.atan2(to.y - from.y, to.x - from.x));
-		SukunaSlashEffect e = new SukunaSlashEffect(from, to, angle, 6.0f, 2.0f, 2.0f, 0.25f, 0.3f);
-		attacker.sprite.parent.add(e);
+		float px = -dy * 26f;
+		float py = dx * 26f;
+		for (int i = -1; i <= 1; i++) {
+			PointF f2 = new PointF(from.x + px * i, from.y + py * i);
+			PointF t2 = new PointF(to.x + px * i, to.y + py * i);
+			float sc = i == 0 ? 8.5f : 7.0f;
+			float dur = i == 0 ? 5.0f : 4.6f;
+			SukunaSlashEffect e = new SukunaSlashEffect(f2, t2, angle, sc, dur, 2.0f, 0.25f, 0.3f);
+			e.useLoopAnim();
+			attacker.sprite.parent.add(e);
+		}
 	}
 
 	public static void show(Char attacker, Char defender) {
