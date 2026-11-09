@@ -17,7 +17,7 @@ public class SukunaClaws extends MeleeWeapon {
 
 	{
 		image = ItemSpriteSheet.SUKUNA_CLAWS;
-		tier = 0;
+		tier = 5;
 	}
 
 	public int clawLevel() {
