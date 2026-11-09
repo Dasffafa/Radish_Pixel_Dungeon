@@ -51,7 +51,7 @@ public class Sukuna extends HeroDefinition {
 	}
 
 	@Override protected void initClassLoadout(Hero hero) {
-		(hero.belongings.weapon = new WornShortsword()).identify();
+		(hero.belongings.weapon = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws()).identify();
 		ThrowingStone stones = new ThrowingStone();
 		stones.quantity(3).collect();
 		Dungeon.quickslot.setSlot(0, stones);

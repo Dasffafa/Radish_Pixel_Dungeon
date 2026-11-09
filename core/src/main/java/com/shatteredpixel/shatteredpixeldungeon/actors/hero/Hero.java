@@ -1154,6 +1154,14 @@ public class Hero extends Char {
 			return true;
 		}
 
+		//宿傩的利爪：允许超出相邻距离的攻击
+		if (belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
+			int clawReach = ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) belongings.weapon()).reach();
+			if (Dungeon.level.distance(pos, enemy.pos) <= clawReach) {
+				return true;
+			}
+		}
+
 		int polearmReach = PolearmBuff.getReachBonus();
 		if (polearmReach > 0 && Dungeon.level.distance(pos, enemy.pos) <= 1 + polearmReach) {
 			return true;
