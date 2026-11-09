@@ -225,7 +225,7 @@ public class TestMissile extends TestGenerator {
                 IconButton btn = new IconButton() {
                     @Override
                     protected void onClick() {
-                        selected = Math.min(j, 15);
+                        selected = j;
                         super.onClick();
                         updateText();
                     }
