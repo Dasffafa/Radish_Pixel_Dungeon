@@ -65,3 +65,8 @@ request.txt
 /core/src/main/assets/interfaces/talents/manifest.txt
 /core/src/main/assets/interfaces/buffs/small/manifest.txt
 /core/src/main/assets/interfaces/buffs/large/manifest.txt
+
+SPD-*.jar
+RadishPixelDungeon-*.apk
+local.properties
+android/google-services.json
