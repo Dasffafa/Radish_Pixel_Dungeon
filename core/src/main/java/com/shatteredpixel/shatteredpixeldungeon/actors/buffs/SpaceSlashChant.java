@@ -13,6 +13,8 @@ public class SpaceSlashChant extends Buff {
 
 	private int stage = 0;
 
+	public float startedAt = 0f;
+
 	{
 		actPriority = 1;
 	}

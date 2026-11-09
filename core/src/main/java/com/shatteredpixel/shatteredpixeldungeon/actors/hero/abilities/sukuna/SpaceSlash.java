@@ -22,7 +22,7 @@ public class SpaceSlash extends ArmorAbility {
 
 	@Override
 	public String icon() {
-		return HeroIcon.NONE;
+		return HeroIcon.SHOCKWAVE;
 	}
 
 	@Override
@@ -37,6 +37,7 @@ public class SpaceSlash extends ArmorAbility {
 		}
 		armor.charge -= chargeUse(hero);
 		Item.updateQuickslot();
-		Buff.affect(hero, SpaceSlashChant.class);
+		SpaceSlashChant chant = Buff.affect(hero, SpaceSlashChant.class);
+		chant.startedAt = com.watabou.noosa.Game.timeTotal;
 	}
 }
