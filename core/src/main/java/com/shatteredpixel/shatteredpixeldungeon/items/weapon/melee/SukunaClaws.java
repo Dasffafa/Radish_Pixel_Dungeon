@@ -44,12 +44,12 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int min(int lvl) {
-		return 1 + 2 * clawLevel();
+		return 2 + 2 * clawLevel();
 	}
 
 	@Override
 	public int max(int lvl) {
-		return 3 + 2 * clawLevel();
+		return 4 + 2 * clawLevel();
 	}
 
 	@Override
