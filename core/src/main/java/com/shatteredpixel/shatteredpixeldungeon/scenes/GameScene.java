@@ -205,6 +205,7 @@ public class GameScene extends PixelScene {
 	private LootIndicator loot;
 	private ActionIndicator action;
 	private com.shatteredpixel.shatteredpixeldungeon.ui.SukunaSlashButton sukunaSkill;
+	private com.watabou.noosa.Image domainOverlay;
 	private ResumeIndicator resume;
 
 	{
@@ -1284,6 +1285,28 @@ public class GameScene extends PixelScene {
 	}
 
 	//updates the whole map
+	public static void setDomainOverlay(boolean on) {
+		if (scene == null) {
+			return;
+		}
+		if (on) {
+			if (scene.domainOverlay == null) {
+				com.watabou.noosa.Image img = new com.watabou.noosa.Image(
+						com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.DOMAIN_RED);
+				img.scale.set(Dungeon.level.width() * 16f / img.width,
+						Dungeon.level.height() * 16f / img.height);
+				img.alpha(0.28f);
+				img.x = 0;
+				img.y = 0;
+				scene.domainOverlay = img;
+				scene.add(img);
+			}
+		} else if (scene.domainOverlay != null) {
+			scene.domainOverlay.killAndErase();
+			scene.domainOverlay = null;
+		}
+	}
+
 	public static void tintTiles(float r, float g, float b, float strength) {
 		if (scene != null && scene.tiles != null) {
 			scene.tiles.tint(r, g, b, strength);
