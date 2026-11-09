@@ -15,6 +15,13 @@ public class ReverseCursedTechnique extends Buff {
 		}
 		Hero hero = (Hero) target;
 
+		//极度饥饿时只维持生命，不恢复生命
+		Hunger hunger = hero.buff(Hunger.class);
+		if (hunger != null && hunger.isStarving()) {
+			spend(TICK);
+			return true;
+		}
+
 		counter++;
 		int threshold = 10 - 5 * hero.pointsInTalent(
 				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HUISHENG_REGEN);
