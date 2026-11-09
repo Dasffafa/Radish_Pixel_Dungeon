@@ -119,6 +119,8 @@ abstract public class ClassArmor extends Armor {
 			classArmor = new CardTricksterArmor();
 		} else if (owner.heroClass == HeroClasses.SUKUNA) {
 			classArmor = new SukunaArmor();
+		} else if (owner.heroClass == HeroClasses.ENGINEER) {
+			classArmor = new EngineerArmor();
 		}
 
 		classArmor.level(armor.trueLevel());

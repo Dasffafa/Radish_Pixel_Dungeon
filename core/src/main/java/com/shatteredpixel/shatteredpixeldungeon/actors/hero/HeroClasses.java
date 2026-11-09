@@ -24,9 +24,11 @@ public final class HeroClasses {
 	public static final HeroClass CARDTRICKSTER = new HeroClass("CARDTRICKSTER");
 	public static final HeroClass SUKUNA    = new HeroClass("SUKUNA");
 
+	public static final HeroClass ENGINEER = new HeroClass("ENGINEER");
+
 	//所有职业集合
 	public static final Collection<HeroClass> ALL = Arrays.asList(
-			WARRIOR, MAGE, ROGUE, HUNTRESS, RECTOR, MOONLIGHT, CARDTRICKSTER, SUKUNA
+			WARRIOR, MAGE, ROGUE, HUNTRESS, RECTOR, MOONLIGHT, CARDTRICKSTER, SUKUNA, ENGINEER
 	);
 
 	/** 盗贼的可选皮肤：赌徒。数值需大于普通头像皮肤索引。 */

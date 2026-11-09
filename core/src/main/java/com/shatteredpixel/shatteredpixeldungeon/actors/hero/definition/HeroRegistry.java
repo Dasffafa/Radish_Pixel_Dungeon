@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * 职业注册中心 - 游戏启动时调用 {@link #initAll()}。
  */
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Engineer;
 public class HeroRegistry {
 
 	private static final Map<HeroClass, HeroDefinition> heroes = new HashMap<>();
@@ -47,5 +48,6 @@ public class HeroRegistry {
 		register(new Moonlight());
 		register(new CardTrickster());
 		register(new Sukuna());
+		register(new Engineer());
 	}
 }
