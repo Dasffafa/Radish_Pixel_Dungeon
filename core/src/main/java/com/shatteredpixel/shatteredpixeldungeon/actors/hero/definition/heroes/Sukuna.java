@@ -34,7 +34,7 @@ public class Sukuna extends HeroDefinition {
 	}
 
 	@Override public ArmorAbility[] armorAbilities() {
-		return new ArmorAbility[]{ new HeroicLeap(), new Shockwave(), new Endure() };
+		return new ArmorAbility[]{ new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.SpaceSlash(), new HeroicLeap(), new Shockwave() };
 	}
 
 	@Override public TalentSet talents() {

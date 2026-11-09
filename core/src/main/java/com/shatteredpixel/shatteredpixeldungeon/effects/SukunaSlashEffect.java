@@ -64,6 +64,18 @@ public class SukunaSlashEffect extends MovieClip {
 	}
 
 	/** 命中时随机播放一种飞行斩击 */
+	//空间斩：横穿整张地图的巨型斩击，可穿墙
+	public static void showGiant(Char attacker, float dx, float dy, int cells) {
+		if (!(attacker.sprite instanceof CharSprite) || attacker.sprite.parent == null) {
+			return;
+		}
+		PointF from = ((CharSprite) attacker.sprite).destinationCenter();
+		PointF to = new PointF(from.x + dx * cells * 16f, from.y + dy * cells * 16f);
+		float angle = (float) Math.toDegrees(Math.atan2(to.y - from.y, to.x - from.x));
+		SukunaSlashEffect e = new SukunaSlashEffect(from, to, angle, 4.0f, 0.32f, 2.0f, 0.25f, 0.3f);
+		attacker.sprite.parent.add(e);
+	}
+
 	public static void show(Char attacker, Char defender) {
 		if (attacker == null || defender == null
 				|| !(attacker.sprite instanceof CharSprite)

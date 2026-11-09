@@ -1266,6 +1266,12 @@ public class Hero extends Char {
 	@Override
 	public boolean act() {
 
+		//吟唱期间只要做出任何动作就会中断
+		if (curAction != null && buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpaceSlashChant.class) != null) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.detach(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpaceSlashChant.class);
+			GLog.w(Messages.get(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpaceSlashChant.class, "interrupted"));
+		}
+
 		// 发布英雄回合事件
 		EventManager.emit(new HeroActEvent(this));
 
