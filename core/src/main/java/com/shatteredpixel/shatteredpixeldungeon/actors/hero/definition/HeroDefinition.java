@@ -66,7 +66,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SpaceFragment
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.CelestialSphere;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EchoplexHammer;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.EnemyFlag;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Naidan;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PneumFistGloves;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.ShadowBooks;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
@@ -188,9 +187,6 @@ public abstract class HeroDefinition {
 
 		//各职业专属初始装备/物品
 		initClassLoadout( hero );
-
-		// 奶蛋：放进背包（装备后在身旁孵出奶蛋生物，武技「打飞」可把它打出去）
-		new Naidan().identify().collect();
 
 		if (SPDSettings.quickslotWaterskin()) {
 			for (int s = 0; s < QuickSlot.SIZE; s++) {
