@@ -34,6 +34,10 @@ public class Assets {
 		public static final String SWORD_SLASH    = "effects/cc0/sword_slash.png";
 		public static final String PIXEL_EXPLOSION= "effects/cc0/pixel_explosion.png";
 		public static final String SIMPLE_FX      = "effects/cc0/simplefx.png";
+
+		// 斩舰刀：从 GIF 抠出的白色刀光 / 空间撕裂（32x32 帧条，青底已抠成透明）
+		public static final String KILL_BOAT_SLASH = "effects/killboat/slash.png";
+		public static final String KILL_BOAT_TEAR  = "effects/killboat/tear.png";
 	}
 
 	public static class Environment {
@@ -282,6 +286,9 @@ public class Assets {
 
 		public static final String JUTTE_BREAK = "sounds/weapon_break.ogg";
 
+		/** 奶蛋撞墙的「安迪～」喊声（来源：bilibili av116492381258301「安迪～」5.4s 处切片） */
+		public static final String NAIDAN_ANDY   = "sounds/andy.mp3";
+
 		public static final String[] all = new String[]{
 				CLICK, BADGE, GOLD,
 
@@ -297,6 +304,9 @@ public class Assets {
 
 				//Added by TheCatist
 				LARGE_BELL,KILL_BOAT_SWORD_SLASH, KILL_BOAT_SWORD_SWING, MAN, JUTTE_BREAK,
+
+				//Added for 奶蛋
+				NAIDAN_ANDY,
 		};
 	}
 
@@ -338,6 +348,7 @@ public class Assets {
 		public static final String AMULET   = "sprites/amulet.png";
 
 		public static final String RAT      = "sprites/rat.png";
+		public static final String NAIDAN   = "sprites/naidan.png";
 		public static final String BRUTE    = "sprites/brute.png";
 		public static final String SPINNER  = "sprites/spinner.png";
 		public static final String DM300    = "sprites/dm300.png";
