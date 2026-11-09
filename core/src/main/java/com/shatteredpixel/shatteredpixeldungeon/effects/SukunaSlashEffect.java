@@ -77,22 +77,29 @@ public class SukunaSlashEffect extends MovieClip {
 		com.watabou.noosa.Group parent = defender.sprite.parent;
 		float angle = (float) Math.toDegrees(Math.atan2(to.y - from.y, to.x - from.x));
 
+		//攻击距离越远，斩击越大
+		int dist = com.shatteredpixel.shatteredpixeldungeon.Dungeon.level != null
+				? com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.distance(attacker.pos, defender.pos) : 1;
+		float mul = Math.min(2.4f, 1f + 0.07f * Math.max(0, dist - 1));
+		//距离越远，飞行时间略长，避免瞬移感
+		float durMul = Math.min(1.8f, 0.75f + 0.25f * mul);
+
 		switch (Random.Int(4)) {
 			case 0:
 				//一道细长血红斩击，方向随机偏转
 				place(parent, from, to, angle + Random.Float(-20f, 20f),
-						0.55f + Random.Float(-0.08f, 0.12f), 0.14f, 2.0f, 0.35f, 0.35f);
+						(0.55f + Random.Float(-0.08f, 0.12f)) * mul, 0.14f * durMul, 2.0f, 0.35f, 0.35f);
 				break;
 			case 1:
 				//缓慢的暗红重斩，角度更开放
 				place(parent, from, to, angle + Random.Float(-35f, 35f),
-						0.8f + Random.Float(-0.1f, 0.15f), 0.22f, 1.6f, 0.12f, 0.16f);
+						(0.8f + Random.Float(-0.1f, 0.15f)) * mul, 0.22f * durMul, 1.6f, 0.12f, 0.16f);
 				break;
 			case 2:
 				//交叉双斩，方向随机交叉
 				float crossAngle = Random.Float(30f, 50f);
-				place(parent, from, to, angle + crossAngle, 0.5f, 0.13f, 2.1f, 0.4f, 0.36f);
-				place(parent, from, to, angle - crossAngle, 0.5f, 0.16f, 1.7f, 0.2f, 0.24f);
+				place(parent, from, to, angle + crossAngle, 0.5f * mul, 0.13f * durMul, 2.1f, 0.4f, 0.36f);
+				place(parent, from, to, angle - crossAngle, 0.5f * mul, 0.16f * durMul, 1.7f, 0.2f, 0.24f);
 				break;
 			default:
 				//三道爪痕，间距与角度随机
@@ -101,7 +108,7 @@ public class SukunaSlashEffect extends MovieClip {
 					float off = i * Random.Float(4f, 7f);
 					place(parent, offset(from, angle, off), offset(to, angle, off),
 							angle + i * spread + Random.Float(-6f, 6f),
-							0.45f + Random.Float(-0.05f, 0.08f), 0.14f + Math.abs(i) * 0.03f,
+							(0.45f + Random.Float(-0.05f, 0.08f)) * mul, (0.14f + Math.abs(i) * 0.03f) * durMul,
 							2.2f, 0.45f - Math.abs(i) * 0.1f, 0.4f - Math.abs(i) * 0.08f);
 				}
 				break;

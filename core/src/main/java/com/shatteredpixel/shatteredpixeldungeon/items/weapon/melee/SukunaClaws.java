@@ -96,6 +96,9 @@ public class SukunaClaws extends MeleeWeapon {
 					continue;
 				}
 				if (Dungeon.level.distance(attacker.pos, ch.pos) <= reach()) {
+					//范围内每个目标都播放斩击特效
+					com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, ch);
+
 					int dmg = Random.NormalIntRange(min(0), max(0));
 					ch.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(dmg, attacker));
 				}
