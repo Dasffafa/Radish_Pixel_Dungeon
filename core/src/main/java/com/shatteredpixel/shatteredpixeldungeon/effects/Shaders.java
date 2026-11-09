@@ -36,6 +36,10 @@ public class Shaders {
     public static final LightDissolveShader lightDissolve = load(LightDissolveShader.class);
     public static final LightEvaporateShader lightEvaporate = load(LightEvaporateShader.class);
     public static final ProfessionWaveShader professionWave = load(ProfessionWaveShader.class);
+
+    // ============== 整屏劈裂（斩舰刀击杀） ==============
+
+    public static final SceneCutShader sceneCut = load(SceneCutShader.class);
     
     // ============== 加载方法 ==============
     
@@ -58,6 +62,7 @@ public class Shaders {
         noise.getClass();
         lightDissolve.getClass();
         lightEvaporate.getClass();
+        sceneCut.getClass();
     }
     
     /**

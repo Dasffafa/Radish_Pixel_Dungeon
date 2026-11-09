@@ -35,6 +35,10 @@ public class Assets {
 		public static final String PIXEL_EXPLOSION= "effects/cc0/pixel_explosion.png";
 		public static final String SIMPLE_FX      = "effects/cc0/simplefx.png";
 		public static final String CYCLONE        = "effects/cc0/cyclone.png";
+
+		// 斩舰刀：从 GIF 抠出的白色刀光 / 空间撕裂（32x32 帧条，青底已抠成透明）
+		public static final String KILL_BOAT_SLASH = "effects/killboat/slash.png";
+		public static final String KILL_BOAT_TEAR  = "effects/killboat/tear.png";
 	}
 
 	public static class Environment {
@@ -289,6 +293,9 @@ public class Assets {
 		//圣宣的命中音效
 		public static final String HOLY_DECREE_HIT = "sounds/holy_decree_hit.mp3";
 
+		/** 奶蛋撞墙的「安迪～」喊声（来源：bilibili av116492381258301「安迪～」5.4s 处切片） */
+		public static final String NAIDAN_ANDY   = "sounds/andy.mp3";
+
 		public static final String[] all = new String[]{
 				CLICK, BADGE, GOLD,
 
@@ -307,6 +314,8 @@ public class Assets {
 
 				//不在这个列表里的音效启动时不会加载，播放时没有任何声音
 				HOLY_DECREE_HIT, CRITICAL,
+				//Added for 奶蛋
+				NAIDAN_ANDY,
 		};
 	}
 

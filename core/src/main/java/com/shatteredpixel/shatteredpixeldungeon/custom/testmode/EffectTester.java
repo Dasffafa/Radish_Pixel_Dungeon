@@ -4,6 +4,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.PixelExplosionEffect;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SceneCutEffect;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SwordSlashEffect;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -81,6 +82,16 @@ public class EffectTester extends TestItem {
 			b = new RedButton( "预览：爆炸（脚下）" ) {
 				@Override protected void onClick() {
 					if (Dungeon.hero != null) PixelExplosionEffect.previewAtCell( Dungeon.hero.pos );
+				}
+			};
+			b.setRect( m, y, W - 2 * m, 16 );
+			add( b );
+			y = b.bottom() + m;
+
+			b = new RedButton( "预览：整屏劈裂（斩舰刀击杀）" ) {
+				@Override protected void onClick() {
+					Mob target = nearestVisibleMob();
+					SceneCutEffect.trigger( target != null ? target : Dungeon.hero );
 				}
 			};
 			b.setRect( m, y, W - 2 * m, 16 );
