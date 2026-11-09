@@ -122,7 +122,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		revive();
 
 		if (item == null)   view(ItemSpriteSheet.SOMETHING, null);
-		else                view( item );
+		else {
+			view( item );
+			if (item instanceof Senbon) frame( ItemSpriteSheet.SENBON_PROJECTILE );
+		}
 
 		setup( from,
 				to,
@@ -207,6 +210,12 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (item instanceof GnollGeomancer.Boulder){
 			angle = 0;
 			flipHorizontal = false;
+			updateFrame();
+		}
+
+		//千本贴图朝上，其他投掷物朝右上，差值 45 度；镜像贴图时方向相反
+		if (item instanceof Senbon){
+			angle += flipHorizontal ? -45 : 45;
 			updateFrame();
 		}
 		
