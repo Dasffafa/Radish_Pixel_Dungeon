@@ -12,7 +12,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasse
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Gladiator;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.JutteChampion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Illusionist;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.DuanZui;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.HuiSheng;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Joker;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.QianRen;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.SpinMaster;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior;
@@ -62,6 +65,9 @@ public final class HeroSubClasses {
 	public static final HeroSubClass ILLUSIONIST    = new Illusionist();
 	public static final HeroSubClass SPIN_MASTER   = new SpinMaster();
 	public static final HeroSubClass JOKER         = new Joker();
+	public static final HeroSubClass QIANREN       = new QianRen();
+	public static final HeroSubClass DUANZUI       = new DuanZui();
+	public static final HeroSubClass HUISHENG      = new HuiSheng();
 	public static final HeroSubClass CHAMPION      = new HeroSubClass("CHAMPION", HeroIcon.CHAMPION){
 		@Override public Talent[] subclassT3() { return new Talent[0]; }
 		@Override public Talent[] subclassT4() { return new Talent[0]; }
@@ -80,7 +86,8 @@ public final class HeroSubClasses {
 			SNIPER, WARDEN, DRUID,
 			BATTLEPREIST, REDCARDINAL, DEAD_KNIGHT,
 			LITTLE_KNIGHT, DICE_MAGE, JUTTE_CHAMPION,
-			CHAMPION, MONK, ILLUSIONIST, SPIN_MASTER, JOKER
+			CHAMPION, MONK, ILLUSIONIST, SPIN_MASTER, JOKER,
+			QIANREN, DUANZUI, HUISHENG
 	);
 
 	//存档反序列化

@@ -30,7 +30,7 @@ public class Sukuna extends HeroDefinition {
 	@Override public String avatarSkin() { return Assets.Sprites.AVATARS_SUKUNA; }
 
 	@Override public HeroSubClass[] subClasses() {
-		return new HeroSubClass[]{ HeroSubClasses.BERSERKER, HeroSubClasses.GLADIATOR, HeroSubClasses.MAGIC_WARRIOR };
+		return new HeroSubClass[]{ HeroSubClasses.QIANREN, HeroSubClasses.DUANZUI, HeroSubClasses.HUISHENG };
 	}
 
 	@Override public ArmorAbility[] armorAbilities() {
