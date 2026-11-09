@@ -58,6 +58,7 @@ core/src/main/assets/shaders/
 ├── wipe.vert / wipe.frag        # 方向擦除着色器
 ├── alpha.vert / alpha.frag      # 透明淡出着色器
 ├── noise.vert / noise.frag      # 噪声溶解着色器
+├── scenecut.vert / scenecut.frag # 整屏劈裂着色器（斩舰刀击杀）
 └── noise_texture.png            # Slice&Dice 噪声纹理
 
 SPD-classes/src/main/java/com/watabou/glwrap/
@@ -66,7 +67,8 @@ SPD-classes/src/main/java/com/watabou/glwrap/
 core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/
 ├── effects/
 │   ├── Shaders.java             # 着色器注册表
-│   └── ShaderEffect.java        # 着色器效果控制器（待实现）
+│   ├── ShaderEffect.java        # 逐精灵着色器效果控制器（已实现）
+│   └── SceneCutEffect.java      # 整屏劈裂（全屏抓帧 + 自绘 quad，见 §六点五）
 │
 └── effects/shaders/
     ├── CutShader.java
@@ -726,6 +728,71 @@ public static void kill(Char target, Type type) {
 3. 处理噪声纹理（如需要）
 4. 测试效果
 
+## 六点五、怪物图层劈裂（scenecut，斩舰刀击杀）
+
+只动怪物这一层：击杀瞬间把怪物精灵隐藏，用它的贴图 / 图集帧 / 世界矩形自绘一个 quad，
+由 `SceneCutShader` 在**精灵局部像素空间**过一刀，上半片沿刀口滑走。
+
+- 触发：`SceneCutEffect` 用 `@SubscribeEvent` 订阅 `AttackHitEvent`（priority 100）。该事件在伤害
+  已生效、血花之前发布，因此 `defender.isAlive()` 已经能反映「这一下打死了」。判定条件为
+  英雄持 `KillBoatSword` 且目标已死、在视野内、非友方。
+- 取外观：下一帧末尾（`GameScene.draw()` 尾部调 `SceneCutEffect.postDraw()`）把怪物精灵的
+  `texture` / `frame()` / 世界矩形抓下来，然后 `sprite.visible = false`。
+  不挂在精灵自己身上是因为：怪物死后精灵会播死亡动画再自毁，撑不到演出结束。
+- 绘制：自绘一个只覆盖**这一格怪物**的 quad（顶点是世界坐标，由 `uCamera` 变换）。着色器把
+  上侧半片按刚体平移沿刀口滑出去（视觉方向 −dir），下半片原地不动；滑走处透明，露出后面的地板。
+  **地图、HUD、掉落物一概不动，不变暗、不挖空。**
+- 刀向：**固定左上 → 右下**（`CUT_ANGLE_DEG = +30`，屏幕 y 向下），<b>不做</b>任何按英雄/怪物
+  站位的镜像 —— 同一把刀永远同一个方向。
+- 位移：上半片沿刀口只滑 **0.5 格**，随后按 t² 自由落体半个身高"落地"，落地后 `uFade` 淡出。
+  怪物整体画成**纯黑剪影**（`uSilhouette=1`，rgb 归零、alpha 保留），画面里只剩橙色刀光有颜色。
+- 次元斩刀光：**单独一层**（`uGlowOnly=1`，沿刀口方向 48×16 世界像素的细长条），画在怪物之上。
+  ⚠ 不能把刀光混在怪物贴图那一遍里：贴图透明处 `alpha=0` 会把辉光一起 discard 掉，刀光就看不到了。
+- 尸体：精灵一直被藏着，死亡动画不可见，也就不会有尸体残留；掉落物照常。
+
+关键 uniform：
+
+| uniform | 含义 |
+|---|---|
+| `uTex` | 怪物精灵所在的图集贴图 |
+| `uFrame` | 该精灵当前帧在图集里的 uv 范围（基类提供，`setFrame`） |
+| `uSize` | 精灵像素尺寸，把局部 uv 换算成像素空间 |
+| `uPad` | quad 相对精灵四边外扩的像素；外扩后半片滑出去才不被 quad 边界裁掉 |
+| `uGlowOnly` | 1 = 只画刀光（第二遍绘制用的刀光层，不采样贴图） |
+| `uLine` | xy = 刀口上一点（精灵局部像素），zw = 方向（左上→右下） |
+| `uSlide` | 上半片滑出距离（像素，视觉方向 −dir） |
+| `uFade` / `uCrack` / `uGlow` / `uSeed` | 淡出 / 刀光显现 / 强度 / 锯齿种子 |
+
+时间轴与尺寸都在 `SceneCutEffect` 顶部常量（`CRACK_TIME` `SLIDE_DELAY` `SLIDE_TIME`
+`SLIDE_TILES`（格）`FALL_FRAC`（身高比例）`FALL_TIME``FADE_DELAY` `FADE_TIME` `CUT_ANGLE_DEG`），调手感只改这些。
+测试模式 `EffectTester` 里有「预览：整屏劈裂（斩舰刀击杀）」按钮。
+
+### 备查：整屏版（试过，暂时不用）
+
+做法：击杀那一帧把整个后缓冲用 `glCopyTexImage2D` 拷成纹理，全屏 quad 自绘，在受击者附近
+切一条短刀口（3×2 格），把上侧小块**复制一份**叠在表层沿刀口滑走（底图不挖空、不变暗）。
+关键点：抓帧纹理必须**上下翻转采样**（`texture2D(uTex, vec2(uv.x, 1.0 - uv.y))`）；
+全屏 quad 顶点直接写 NDC 时不要乘 `uCamera`。它比现在这版重，且会冻住整屏。
+
+### 坑（都踩过）
+
+1. **画完绝对不要 `Quad.releaseIndices()`。** `NoosaScript.drawQuad()` 只在构造函数里
+   `Quad.setupIndices(); Quad.bindIndices();` 一次，之后再不重绑；它假设索引缓冲一直绑着。
+   一旦自绘代码把它解绑，后续所有普通精灵绘制都是「没有 ELEMENT_ARRAY_BUFFER + offset 0」的
+   `glDrawElements`，AMD 驱动直接解引用 0 → `EXCEPTION_ACCESS_VIOLATION`，崩在下一次 `Image.draw()`，
+   栈里根本看不到自己的代码，极易误判成驱动 bug。离线探针也测不出来（探针画完就退出，没有下一帧）。
+2. **预乘 alpha**：输出是预乘的（`rgb = col.rgb * col.a * uFade + glow`），绘制时必须
+   `glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)`，画完立刻 `Blending.setNormalMode()` 复原，
+   否则后续所有精灵的混合都会错。
+3. **`Script.compile` 用 `src.split("//\n")` 切顶点/片元** —— 着色器文件里**不能有整行只有 `//` 的
+   空注释**，否则片元源码会被截断，报一堆莫名其妙的编译错误。
+4. 换场景时 `Game.switchScene()` 会 `Vertexbuffer.clear()` 删掉所有 VBO，所以 `SceneCutEffect.reset()`
+   在 `GameScene.create()` 里把 quad 引用置空（不要重复 delete）。
+5. **`glGetIntegerv` 要传 direct buffer**（`BufferUtils.newIntBuffer`）；堆上的 `IntBuffer` 地址是 0，
+   驱动会往 0x10 写，直接把进程打死。
+6. 采样偏移与视觉位移**方向相反**：想让内容朝 +D 走，采样要取 `p - D`。踩过一次反，
+   表现是「两半往裂缝里挤」而不是分开。
+
 ## 七、注意事项
 
 ### 7.1 性能考虑
@@ -752,6 +819,7 @@ public static void kill(Char target, Type type) {
 |------|------|------|
 | v1.0 | 2026-01-21 | 初始设计文档 |
 | v2.0 | 2026-07-21 | 重构为外部文件加载 + Shaders 注册表 |
+| v2.1 | 2026-11-09 | 新增 scenecut 整屏劈裂着色器与 SceneCutEffect（全屏抓帧 + 自绘 quad 管线） |
 
 ---
 

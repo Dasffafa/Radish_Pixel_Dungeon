@@ -56,6 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.EmoIcon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SceneCutEffect;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -216,6 +217,13 @@ public class GameScene extends PixelScene {
 	}
 	
 	@Override
+	public synchronized void draw() {
+		super.draw();
+		// 斩舰刀击杀的整屏劈裂必须画在所有场景元素之上，所以挂在整帧绘制的末尾
+		SceneCutEffect.postDraw();
+	}
+
+	@Override
 	public void create() {
 		
 		if (Dungeon.hero == null || Dungeon.level == null){
@@ -228,6 +236,8 @@ public class GameScene extends PixelScene {
 		SPDSettings.lastClass(Dungeon.hero.heroClass.ordinal());
 		
 		super.create();
+		// 换场景/重开时丢弃上一局残留的演出与截图纹理
+		SceneCutEffect.reset();
 		Camera.main.zoom( GameMath.gate(minZoom, defaultZoom + SPDSettings.zoom(), maxZoom));
 		Camera.main.edgeScroll.set(1);
 
@@ -411,6 +421,9 @@ public class GameScene extends PixelScene {
 		toolbar = new Toolbar();
 		toolbar.camera = uiCamera;
 		add( toolbar );
+
+		// 奶蛋快捷键（C 收回 / V 快速发射），仅地牢场景内生效
+		add( new com.shatteredpixel.shatteredpixeldungeon.custom.naidan.NaidanHotkeys() );
 
 		if (uiSize == 2) {
 			inventory = new InventoryPane();
