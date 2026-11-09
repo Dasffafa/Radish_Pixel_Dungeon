@@ -49,6 +49,12 @@ public class SukunaClaws extends MeleeWeapon {
 		return 4 + 2 * clawLevel();
 	}
 
+	/** 固定基础伤害，不受力量加成影响 */
+	@Override
+	public int damageRoll(Char owner) {
+		return augment.damageFactor(Random.NormalIntRange(min(0), max(0)));
+	}
+
 	/** 不需要任何力量即可使用 */
 	@Override
 	public int STRReq(int lvl) {
@@ -78,8 +84,8 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		//红色斩击特效飞向目标
-		SwordSlashEffect.showOn(attacker, defender);
+		//随机红色斩击特效
+		com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, defender);
 
 		int result = super.proc(attacker, defender, damage);
 
