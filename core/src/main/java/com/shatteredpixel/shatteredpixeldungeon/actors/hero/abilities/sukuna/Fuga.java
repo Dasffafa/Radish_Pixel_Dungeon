@@ -78,8 +78,11 @@ public class Fuga extends ArmorAbility {
 							com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap(c);
 							terrainAffected = true;
 						}
-						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(c, 6,
-								com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class);
+						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add(
+								com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(c, 6,
+										com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class));
+						com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(c).burst(
+								com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle.FACTORY, 3);
 					}
 				}
 				if (terrainAffected) {
