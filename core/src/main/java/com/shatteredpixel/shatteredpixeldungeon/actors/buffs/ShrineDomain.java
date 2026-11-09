@@ -10,7 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect;
 /** 伏魔御厨子：领域展开期间每回合斩击范围内所有敌人。 */
 public class ShrineDomain extends Buff {
 
-	private int turns = 5;
+	private int turns = 10;
 	private int center = -1;
 
 	public void setCenter(int cell) {
@@ -37,7 +37,7 @@ public class ShrineDomain extends Buff {
 
 		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.setDomainOverlay(true, center < 0 ? hero.pos : center);
 
-		int dmg = 10 + hero.lvl;
+		int dmg = 5 + hero.lvl / 2;
 		for (Char ch : Actor.chars()) {
 			if (ch == hero || !ch.isAlive()) {
 				continue;
