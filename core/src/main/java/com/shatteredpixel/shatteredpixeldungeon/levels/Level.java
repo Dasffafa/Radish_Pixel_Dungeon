@@ -1342,19 +1342,6 @@ public abstract class Level implements Bundlable {
 			com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairs.onStep(Dungeon.hero, cell);
 		}
 
-		//测试支线入口：踩上去进入支线
-		if (testPortalCell >= 0 && cell == testPortalCell && Dungeon.hero != null && cell == Dungeon.hero.pos) {
-			com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.pendingReturnDepth = Dungeon.depth;
-			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.mode =
-					com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.Mode.RETURN;
-			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnBranchId =
-					com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.TEST;
-			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnDepth = 1;
-			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnPos =
-					com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL;
-			com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.class);
-			return;
-		}
 
 		//测试支线：踩入口格直接回主线
 		if (this instanceof com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel

@@ -68,32 +68,6 @@ import java.util.ArrayList;
 
 public class SewerLevel extends RegularLevel {
 
-	@Override
-	public void create() {
-		super.create();
-
-		//主线第 1 层：放一扇通往测试支线的楼梯
-		if (Dungeon.depth == 1 && Branches.MAIN.equals(Dungeon.branchId)
-				&& testPortalCell < 0) {
-			int chosen = -1;
-			for (int tries = 0; tries < 200; tries++) {
-				int c = com.watabou.utils.Random.Int(length());
-				if (map[c] == Terrain.EMPTY && c != entrance() && c != exit()
-						&& heaps.get(c) == null && traps.get(c) == null) {
-					chosen = c;
-					break;
-				}
-			}
-			if (chosen >= 0) {
-				map[chosen] = Terrain.EXIT;
-				testPortalCell = chosen;
-				com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual vis =
-						new com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual(-1);
-				vis.pos(chosen, this);
-				customTiles.add(vis);
-			}
-		}
-	}
 
 	{
 		color1 = 0x48763c;
