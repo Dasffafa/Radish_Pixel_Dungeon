@@ -217,6 +217,7 @@ public class ItemSpriteSheet {
 	public static final String THROWING_SPIKE = "throwing_spike";
 	public static final String THROWING_KNIFE = "throwing_knife";
 	public static final String THROWING_STONE = "throwing_stone";
+	public static final String SENBON = "senbon";
 	
 	public static final String FISHING_SPEAR = "fishing_spear";
 	public static final String SHURIKEN = "shuriken";
