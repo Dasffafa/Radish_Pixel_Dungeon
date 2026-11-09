@@ -67,6 +67,12 @@ public class Food extends Item {
 		actions.add( AC_EAT );
 		return actions;
 	}
+
+	/** 是否为肉类食物，宿傩只吃这些 */
+	public boolean isMeat() {
+		String n = getClass().getSimpleName().toLowerCase();
+		return n.contains("meat") || this instanceof FrozenCarpaccio;
+	}
 	
 	@Override
 	public void execute( Hero hero, String action ) {
@@ -74,6 +80,12 @@ public class Food extends Item {
 		super.execute( hero, action );
 
 		if (action.equals( AC_EAT )) {
+
+			if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA
+					&& !isMeat()) {
+				GLog.w(Messages.get(Food.class, "sukuna_refuse"));
+				return;
+			}
 			// Advanced Food conversion takes priority over meal talents and diet challenges.
 			CardConversionBuff conversion = hero.buff(CardConversionBuff.class);
 			if (this.getClass() == Food.class && conversion != null && conversion.charges > 0
