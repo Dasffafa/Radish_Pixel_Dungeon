@@ -26,7 +26,7 @@ public class SukunaSlashEffect extends MovieClip {
 	public SukunaSlashEffect(PointF from, PointF to, float angleDeg,
 							 float scaleFactor, float duration,
 							 float r, float g, float b) {
-		super(Assets.Effects.SWORD_SLASH);
+		super(Assets.Effects.SUKUNA_SLASH);
 
 		if (film == null) {
 			film = new TextureFilm(texture, 64, 47);
