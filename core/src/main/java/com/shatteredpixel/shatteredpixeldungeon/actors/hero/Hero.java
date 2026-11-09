@@ -3346,6 +3346,21 @@ public class Hero extends Char {
 				Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class).addStack();
 			}
 		}
+
+		//捌：概率追加一次无视护甲的斩击
+		if (enemy.isAlive() && belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
+			int dismantle = pointsInTalent(Talent.SUKUNA_DISMANTLE);
+			if (dismantle > 0 && Random.Float() < 0.12f * dismantle) {
+				int dmg = Math.round(damageRoll() * 0.6f);
+				enemy.damage(new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
+						dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL_NO_ARMOR, this));
+			}
+
+			int echo = pointsInTalent(Talent.ECHO_STRIKE);
+			if (echo > 0 && enemy.isAlive() && Random.Float() < 0.15f * echo) {
+				enemy.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(damageRoll(), this));
+			}
+		}
 		if (!enemy.isAlive() && wasEnemy) {
 			TieredToyEffects.onKill(this);
 		}

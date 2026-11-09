@@ -40,8 +40,8 @@ public class Sukuna extends HeroDefinition {
 		TalentSet set = new TalentSet();
 		set.setTier1(new Talent[]{ Talent.SUKUNA_FEAST, Talent.CURSED_SURGE, Talent.BLOODTHIRST, Talent.COMBAT_INSTINCT });
 		set.setTier2(new Talent[]{ Talent.SUKUNA_CLAW_MASTERY, Talent.SUKUNA_REACH, Talent.SUKUNA_LOW_HP, Talent.BLOODLUST, Talent.IRON_BODY });
-		set.setTier3(new Talent[]{ Talent.HOLD_FAST, Talent.STRONGMAN });
-		set.setTier4(new Talent[]{ Talent.IRON_MUSCLE, Talent.HIGH_DIET });
+		set.setTier3(new Talent[]{ Talent.SUKUNA_CLEAVE, Talent.SUKUNA_DISMANTLE });
+		set.setTier4(new Talent[]{ Talent.SHRINE_MASTERY, Talent.ECHO_STRIKE });
 		return set;
 	}
 

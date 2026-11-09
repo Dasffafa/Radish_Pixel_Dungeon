@@ -38,6 +38,8 @@ public class SukunaClaws extends MeleeWeapon {
 			base += hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_REACH);
 			base += 2 * hero.pointsInTalent(
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_REACH);
+			base += hero.pointsInTalent(
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLEAVE);
 		}
 		return base;
 	}
@@ -146,7 +148,9 @@ public class SukunaClaws extends MeleeWeapon {
 						dmg = Math.round(dmg * 0.5f);
 					} else if (hero != null) {
 						dmg = Math.round(dmg * (1f + 0.15f * hero.pointsInTalent(
-								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_ECHO)));
+								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_ECHO)
+								+ 0.10f * hero.pointsInTalent(
+								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLEAVE)));
 					}
 					ch.damage(DamageInfo.physical(dmg, attacker));
 				}
