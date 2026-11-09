@@ -23,7 +23,7 @@ public class SpaceSlash extends ArmorAbility {
 
 	@Override
 	public String icon() {
-		return HeroIcon.SHOCKWAVE;
+		return HeroIcon.SPACE_SLASH;
 	}
 
 	@Override

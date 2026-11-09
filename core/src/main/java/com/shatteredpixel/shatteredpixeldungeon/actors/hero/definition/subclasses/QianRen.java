@@ -7,7 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 public class QianRen extends HeroSubClass {
 
 	public QianRen() {
-		super("QIANREN", HeroIcon.NONE);
+		super("QIANREN", HeroIcon.QIANREN);
 	}
 
 	@Override public Talent[] subclassT3() {

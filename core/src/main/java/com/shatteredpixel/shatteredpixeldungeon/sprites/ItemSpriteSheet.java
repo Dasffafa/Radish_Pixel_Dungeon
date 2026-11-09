@@ -142,6 +142,8 @@ public class ItemSpriteSheet {
 	public static final String REPAIRV2 = "repairv2";
 	public static final String BONE_CLAW = "bone_claw";
 	public static final String SUKUNA_CLAWS = "sukuna_claws";
+	public static final String ARMOR_CURSE_KIMONO = "armor_curse_kimono";
+	public static final String ARMOR_SUKUNA_ROBE = "armor_sukuna_robe";
 
 
 	public static final String RLYEH_BOOK = "rlyeh_book";

@@ -31,7 +31,7 @@ public class Fuga extends ArmorAbility {
 
 	@Override
 	public String icon() {
-		return HeroIcon.SHOCKWAVE;
+		return HeroIcon.FUGA;
 	}
 
 	@Override

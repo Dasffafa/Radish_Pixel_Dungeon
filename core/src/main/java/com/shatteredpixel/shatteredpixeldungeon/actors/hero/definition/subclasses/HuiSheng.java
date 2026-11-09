@@ -7,7 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 public class HuiSheng extends HeroSubClass {
 
 	public HuiSheng() {
-		super("HUISHENG", HeroIcon.NONE);
+		super("HUISHENG", HeroIcon.HUISHENG);
 	}
 
 	@Override public Talent[] subclassT3() {

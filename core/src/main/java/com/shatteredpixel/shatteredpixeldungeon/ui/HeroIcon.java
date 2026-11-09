@@ -101,6 +101,12 @@ public class HeroIcon extends Image {
 	public static final String ILLUSIONIST = "illusionist";
 	public static final String SPINMASTER = "spinmaster";
 	public static final String JOKER = "joker";
+	public static final String QIANREN = "qianren";
+	public static final String DUANZUI = "duanzui";
+	public static final String HUISHENG = "huisheng";
+	public static final String SPACE_SLASH = "space_slash";
+	public static final String MALEVOLENT_SHRINE = "malevolent_shrine";
+	public static final String FUGA = "fuga";
 	public static final String CARD_BARRAGE = "card_barrage";
 	public static final String DECK_RESTORE = "deck_restore";
 	public static final String WILD_CARD = "wild_card";

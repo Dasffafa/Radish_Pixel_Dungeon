@@ -7,7 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 public class DuanZui extends HeroSubClass {
 
 	public DuanZui() {
-		super("DUANZUI", HeroIcon.NONE);
+		super("DUANZUI", HeroIcon.DUANZUI);
 	}
 
 	@Override public Talent[] subclassT3() {

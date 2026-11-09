@@ -6,20 +6,11 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class CurseKimono extends ClothArmor {
 
 	{
-		image = ItemSpriteSheet.ARMOR_CLOTH;
+		image = ItemSpriteSheet.ARMOR_CURSE_KIMONO;
 	}
 
 	public CurseKimono() {
 		super();
 	}
 
-	@Override
-	public int DRMax(int lvl) {
-		return 1 + lvl;
-	}
-
-	@Override
-	public int DRMin(int lvl) {
-		return 1;
-	}
 }

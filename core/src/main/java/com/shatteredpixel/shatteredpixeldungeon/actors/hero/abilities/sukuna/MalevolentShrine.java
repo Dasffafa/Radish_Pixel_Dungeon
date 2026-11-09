@@ -18,7 +18,7 @@ public class MalevolentShrine extends ArmorAbility {
 
 	@Override
 	public String icon() {
-		return HeroIcon.SHOCKWAVE;
+		return HeroIcon.MALEVOLENT_SHRINE;
 	}
 
 	@Override
