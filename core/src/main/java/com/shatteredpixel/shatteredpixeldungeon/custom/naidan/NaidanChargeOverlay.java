@@ -252,12 +252,7 @@ public class NaidanChargeOverlay extends ScrollArea {
 	}
 
 	private static NaidanBallistics.SolidTest solidTest() {
-		return ( cx, cy ) -> {
-			int w = Dungeon.level.width();
-			int h = Dungeon.level.height();
-			if ( cx < 0 || cy < 0 || cx >= w || cy >= h ) return true;
-			return Dungeon.level.solid[cy * w + cx];
-		};
+		return NaidanFlight.solidTest();
 	}
 
 	private void cancel() {

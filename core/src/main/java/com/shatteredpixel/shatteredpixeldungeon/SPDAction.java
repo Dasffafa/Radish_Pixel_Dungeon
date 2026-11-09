@@ -197,6 +197,10 @@ public class SPDAction extends GameAction {
 		//Note that user-entered bindings can override these individually, and that's fine.
 		KeyBindings.addHardBinding( Input.Keys.ALT_RIGHT, SPDAction.NONE );
 		KeyBindings.addHardBinding( Input.Keys.ENTER, SPDAction.NONE );
+
+		//萝卜地牢自定义：V 键进入按键管线供 NaidanHotkeys 使用（NONE = 不对应任何 GameAction，
+		//界面按钮不会抢走它）。V 不在默认键位表里，没有这条硬绑定 InputHandler 会直接丢弃 V。
+		KeyBindings.addHardBinding( Input.Keys.V, SPDAction.NONE );
 	}
 
 	//we only save/loads keys which differ from the default configuration.

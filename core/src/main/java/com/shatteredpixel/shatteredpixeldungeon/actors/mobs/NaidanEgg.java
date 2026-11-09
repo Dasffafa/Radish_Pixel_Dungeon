@@ -3,6 +3,7 @@
  *
  * 奶蛋生物：装备「奶蛋」时生成在地面上。
  * 纯装饰：不移动、不攻击、无经验、不参与随机生成。
+ * 不可交互：不能与英雄交换位置，英雄也不能从它所在格子穿过。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
@@ -30,6 +31,12 @@ public class NaidanEgg extends Mob {
 	@Override
 	protected boolean act() {
 		spend( TICK );
+		return true;
+	}
+
+	/** 拒绝一切交换位置（英雄点击/撞上时默认会互换站位），也就挡住了穿越。 */
+	@Override
+	public boolean interact( Char c ) {
 		return true;
 	}
 
