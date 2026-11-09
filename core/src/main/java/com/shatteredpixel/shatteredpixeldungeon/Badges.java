@@ -925,6 +925,11 @@ public class Badges {
 			badge = Badge.MASTERY_CARDTRICKSTER;
 		}
 
+		//未定义专精徽章的职业直接跳过，避免空指针
+		if (badge == null) {
+			return;
+		}
+
 		unlock(badge);
 	}
 
