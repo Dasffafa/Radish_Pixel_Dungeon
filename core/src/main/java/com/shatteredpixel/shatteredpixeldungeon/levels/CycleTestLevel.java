@@ -26,15 +26,13 @@ public class CycleTestLevel extends Level {
 	private static final int CELL_B = 2 * 15 + 9;
 	private static final int CELL_C = 6 * 15 + 6;
 	private static final int BACK_CELL = 4 * 15 + 6;
-	/** 出生格（和回程楼梯分开，避免一进来就被弹回去） */
+	//出生格与回程楼梯必须分开，否则进入支线会立刻被弹回
 	public static final int ENTRANCE_CELL = 8 * 15 + 6;
-	/** 回主线的楼梯格 */
 	public static final int RETURN_CELL = 9 * 15 + 9;
 
-	/** 返回主线时的层数，在进入时记录 */
 	public int returnDepth = 1;
 
-	/** 本次进入支线的主线层数（静态，供回程使用） */
+	//静态记录，供回程时读取
 	public static int pendingReturnDepth = 1;
 
 	@Override
@@ -59,7 +57,6 @@ public class CycleTestLevel extends Level {
 			map[i] = Terrain.WALL;
 		}
 
-		//三个房间 + 中间走廊
 		carve(1, 1, 6, 4);
 		carve(8, 1, 13, 4);
 		carve(4, 6, 10, 9);

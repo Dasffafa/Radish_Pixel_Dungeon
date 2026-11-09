@@ -6,12 +6,10 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
-/**
- * 循环楼梯的逻辑：只有链条当前轮到的 A/B/C 能用，踩上去直接传送到目的格。
- */
+/** 循环楼梯的判定与传送。 */
 public class CycleStairs {
 
-	/** 传送过程中不重复触发，避免 A→B→C→A 连环跳 */
+	//传送中不重复触发，否则会 A→B→C→A 连环跳
 	private static boolean teleporting = false;
 
 	public static boolean isActive(CycleStairData s) {
@@ -30,7 +28,6 @@ public class CycleStairs {
 		}
 	}
 
-	/** 英雄踩到循环楼梯格子上时调用 */
 	public static void onStep(Hero hero, int cell) {
 		if (teleporting) {
 			return;
@@ -46,7 +43,6 @@ public class CycleStairs {
 			return;
 		}
 
-		//跨层：切到目标分支/层数
 		if (!s.destBranch.isEmpty() && s.destDepth > 0) {
 			Dungeon.cycleChains.put(s.chain, (s.slot + 1) % 3);
 			hero.curAction = null;

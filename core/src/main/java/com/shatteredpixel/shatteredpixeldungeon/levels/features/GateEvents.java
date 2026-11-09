@@ -5,10 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.GameEvent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
-/**
- * 条件门的开关逻辑：门在创建时记录一个事件类名，
- * 当该事件被 EventManager 派发时，对应的条件门就会打开。
- */
+/** 条件门：记录事件类名，事件派发时自动开门。 */
 public class GateEvents {
 
 	public static void onEvent(GameEvent event) {

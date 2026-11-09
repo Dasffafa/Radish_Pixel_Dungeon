@@ -3,9 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Bundlable;
 
-/**
- * 挂在普通门（Terrain.DOOR）上的逻辑门规则。
- */
+/** 普通门上的规则数据。 */
 public class DoorGate implements Bundlable {
 
 	public int cell = -1;
@@ -13,10 +11,10 @@ public class DoorGate implements Bundlable {
 	public boolean opened = false;
 	public String event = "";
 
-	/** 循环门当前状态：0=A(开) 1=B(关) 2=C(开) */
+	//0=A(开) 1=B(关) 2=C(开)
 	public int index = 0;
 
-	/** 单向门允许进入的一侧（相对门格的偏移） */
+	//单向门允许进入的一侧，相对门格的偏移
 	public int fromDx = 0;
 	public int fromDy = 0;
 

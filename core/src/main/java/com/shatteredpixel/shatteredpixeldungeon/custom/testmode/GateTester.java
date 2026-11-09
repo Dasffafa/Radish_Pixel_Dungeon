@@ -14,10 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 import java.util.ArrayList;
 
-/**
- * 测试工具：选择地图上的一扇门，循环切换它的逻辑类型。
- * 楼梯/传送门改的是 LevelTransition，普通门改的是 Level.doorGates。
- */
+/** 测试工具：选中一扇门并循环切换其逻辑类型。 */
 public class GateTester extends TestItem {
 
 	private static final String AC_CYCLE = "CYCLE";
@@ -73,7 +70,6 @@ public class GateTester extends TestItem {
 				t.gateEvent = "HeroMoveEvent";
 			}
 			if (t.gate == GateType.CYCLE_ABC) {
-				//同一条链上的循环门依次排 A/B/C
 				int slot = 0;
 				for (LevelTransition other : Dungeon.level.transitions) {
 					if (other != t && other.gate == GateType.CYCLE_ABC && "test".equals(other.cycleChain)) {

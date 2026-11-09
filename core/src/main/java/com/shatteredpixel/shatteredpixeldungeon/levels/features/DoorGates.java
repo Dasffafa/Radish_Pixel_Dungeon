@@ -7,14 +7,11 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
-/**
- * 普通门的规则判定：能否通过、通过后的状态变更、事件与爆炸触发的开门。
- */
+/** 普通门（Terrain.DOOR）上的规则判定与状态变更。 */
 public class DoorGates {
 
 	private static float lastMessageAt = -100f;
 
-	/** 这扇门当前能否被该角色通过 */
 	public static boolean canPass(int cell, Char ch) {
 		DoorGate g = Dungeon.level.doorGates.get(cell);
 		if (g == null) {
@@ -48,7 +45,6 @@ public class DoorGates {
 		return can;
 	}
 
-	/** 玩家主动点击被挡住的门口时提示一次；返回 true 表示被挡住 */
 	public static boolean messageIfBlocked(int cell, Char ch) {
 		DoorGate g = Dungeon.level.doorGates.get(cell);
 		if (g == null) {
@@ -78,7 +74,6 @@ public class DoorGates {
 		}
 	}
 
-	/** 通过之后的状态变更 */
 	public static void onPass(int cell, Char ch) {
 		DoorGate g = Dungeon.level.doorGates.get(cell);
 		if (g == null) {
@@ -105,7 +100,6 @@ public class DoorGates {
 		}
 	}
 
-	/** 事件触发开门 */
 	public static void onEvent(com.shatteredpixel.shatteredpixeldungeon.events.GameEvent event) {
 		try {
 		if (event == null || Dungeon.level == null || Dungeon.level.doorGates == null) {
@@ -125,7 +119,6 @@ public class DoorGates {
 		}
 	}
 
-	/** 爆炸炸开炸药门 */
 	public static void onExplosion(int cell) {
 		if (Dungeon.level == null || Dungeon.level.doorGates == null) {
 			return;

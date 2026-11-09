@@ -20,15 +20,11 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRage;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 
-/**
- * 宿傩（Ryomen Sukuna）。
- * 目前复用战士的精灵与天赋，只替换职业名称与描述，后续再逐步做专属能力。
- */
+/** 宿傩，暂复用战士的精灵与天赋。 */
 public class Sukuna extends HeroDefinition {
 
 	@Override public HeroClass heroClass() { return HeroClasses.SUKUNA; }
 
-	//复用战士的美术资源
 	@Override public String spritesheet() { return Assets.Sprites.SUKUNA; }
 	@Override public String splashArt() { return Assets.Splashes.SUKUNA; }
 	@Override public String avatarSkin() { return Assets.Sprites.AVATARS_SUKUNA; }

@@ -3,9 +3,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Bundlable;
 
-/**
- * 循环楼梯的数据：同一条链上的三扇楼梯 A/B/C，各自记录目的格。
- */
+/** 单扇循环楼梯的数据。 */
 public class CycleStairData implements Bundlable {
 
 	public int cell = -1;
