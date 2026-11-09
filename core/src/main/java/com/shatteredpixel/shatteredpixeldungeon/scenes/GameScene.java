@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlessAWP;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.ToyBackpack;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DemonSpawner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ghoul;
@@ -203,6 +204,7 @@ public class GameScene extends PixelScene {
 	private AttackIndicator attack;
 	private LootIndicator loot;
 	private ActionIndicator action;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.SukunaSlashButton sukunaSkill;
 	private ResumeIndicator resume;
 
 	{
@@ -380,6 +382,10 @@ public class GameScene extends PixelScene {
 		resume = new ResumeIndicator();
 		resume.camera = uiCamera;
 		add( resume );
+
+		sukunaSkill = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaSlashButton();
+		sukunaSkill.camera = uiCamera;
+		add( sukunaSkill );
 
 		action = new ActionIndicator();
 		action.camera = uiCamera;
@@ -845,7 +851,14 @@ public class GameScene extends PixelScene {
 		if (updateTags){
 			tagAttack = attack.active;
 			tagLoot = loot.visible;
-			tagAction = action.visible;
+			if (sukunaSkill != null) {
+			sukunaSkill.visible = Dungeon.hero != null
+					&& Dungeon.hero.heroClass == HeroClasses.SUKUNA
+					&& Dungeon.hero.isAlive();
+			sukunaSkill.setRect(uiCamera.width - 52, status.top() - 56, 40, 40);
+		}
+
+		tagAction = action.visible;
 			tagResume = resume.visible;
 
 			layoutTags();
