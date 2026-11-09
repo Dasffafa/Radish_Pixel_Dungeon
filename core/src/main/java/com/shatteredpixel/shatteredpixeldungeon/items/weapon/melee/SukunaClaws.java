@@ -36,6 +36,8 @@ public class SukunaClaws extends MeleeWeapon {
 		}
 		if (hero != null) {
 			base += hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_REACH);
+			base += 2 * hero.pointsInTalent(
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_REACH);
 		}
 		return base;
 	}
@@ -102,7 +104,16 @@ public class SukunaClaws extends MeleeWeapon {
 		boolean condemn = hero != null && hero.subClass == HeroSubClasses.DUANZUI;
 
 		if (condemn && defender.isAlive()) {
-			defender.damage(DamageInfo.physical(Math.round(damage * 0.5f), attacker));
+			float bonus = 0.5f;
+			if (hero != null) {
+				bonus += 0.25f * hero.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_EXECUTE);
+				if (defender.HP < defender.HT * 0.3f) {
+					bonus += 0.5f * hero.pointsInTalent(
+							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_LINE);
+				}
+			}
+			defender.damage(DamageInfo.physical(Math.round(damage * bonus), attacker));
 		}
 
 		//8 级起横扫范围内所有目标
@@ -116,6 +127,9 @@ public class SukunaClaws extends MeleeWeapon {
 					int dmg = Random.NormalIntRange(min(0), max(0));
 					if (condemn) {
 						dmg = Math.round(dmg * 0.5f);
+					} else if (hero != null) {
+						dmg = Math.round(dmg * (1f + 0.15f * hero.pointsInTalent(
+								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_ECHO)));
 					}
 					ch.damage(DamageInfo.physical(dmg, attacker));
 				}
@@ -128,6 +142,8 @@ public class SukunaClaws extends MeleeWeapon {
 			if (hero.subClass == HeroSubClasses.HUISHENG) {
 				heal *= 2;
 			}
+			heal += hero.pointsInTalent(
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HUISHENG_HEAL);
 			hero.HP = Math.min(hero.HT, hero.HP + heal);
 		}
 

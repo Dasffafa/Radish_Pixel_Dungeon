@@ -11,10 +11,10 @@ public class DuanZui extends HeroSubClass {
 	}
 
 	@Override public Talent[] subclassT3() {
-		return new Talent[]{ Talent.LETHAL_MOMENTUM, Talent.STRONGMAN };
+		return new Talent[]{ Talent.DUANZUI_EXECUTE };
 	}
 
 	@Override public Talent[] subclassT4() {
-		return new Talent[]{ Talent.IRON_MUSCLE, Talent.HIGH_DIET };
+		return new Talent[]{ Talent.DUANZUI_LINE };
 	}
 }

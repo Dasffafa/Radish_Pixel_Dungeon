@@ -105,6 +105,13 @@ public class Talent {
 	public String name(){ return name; }
 	public int maxPoints(){ return maxPoints; }
 
+	public static final Talent QIANREN_ECHO = new Talent("QIANREN_ECHO");
+	public static final Talent QIANREN_REACH = new Talent("QIANREN_REACH");
+	public static final Talent DUANZUI_EXECUTE = new Talent("DUANZUI_EXECUTE");
+	public static final Talent DUANZUI_LINE = new Talent("DUANZUI_LINE");
+	public static final Talent HUISHENG_HEAL = new Talent("HUISHENG_HEAL");
+	public static final Talent HUISHENG_REGEN = new Talent("HUISHENG_REGEN");
+
 	public static final Talent SUKUNA_FEAST = new Talent("SUKUNA_FEAST");
 	public static final Talent SUKUNA_CLAW_MASTERY = new Talent("SUKUNA_CLAW_MASTERY");
 	public static final Talent SUKUNA_REACH = new Talent("SUKUNA_REACH");

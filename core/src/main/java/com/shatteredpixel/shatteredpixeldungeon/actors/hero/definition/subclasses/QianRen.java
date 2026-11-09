@@ -11,10 +11,10 @@ public class QianRen extends HeroSubClass {
 	}
 
 	@Override public Talent[] subclassT3() {
-		return new Talent[]{ Talent.HOLD_FAST, Talent.LETHAL_MOMENTUM };
+		return new Talent[]{ Talent.QIANREN_ECHO };
 	}
 
 	@Override public Talent[] subclassT4() {
-		return new Talent[]{ Talent.STRONGMAN, Talent.IRON_MUSCLE };
+		return new Talent[]{ Talent.QIANREN_REACH };
 	}
 }

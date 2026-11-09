@@ -11,10 +11,10 @@ public class HuiSheng extends HeroSubClass {
 	}
 
 	@Override public Talent[] subclassT3() {
-		return new Talent[]{ Talent.HEARTY_MEAL, Talent.IRON_STOMACH };
+		return new Talent[]{ Talent.HUISHENG_HEAL };
 	}
 
 	@Override public Talent[] subclassT4() {
-		return new Talent[]{ Talent.IRON_WILL, Talent.HIGH_DIET };
+		return new Talent[]{ Talent.HUISHENG_REGEN };
 	}
 }

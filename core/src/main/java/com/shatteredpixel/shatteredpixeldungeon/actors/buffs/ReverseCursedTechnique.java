@@ -16,7 +16,9 @@ public class ReverseCursedTechnique extends Buff {
 		Hero hero = (Hero) target;
 
 		counter++;
-		if (counter >= 10) {
+		int threshold = 10 - 5 * hero.pointsInTalent(
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.HUISHENG_REGEN);
+		if (counter >= Math.max(3, threshold)) {
 			counter = 0;
 			if (hero.HP < hero.HT) {
 				hero.HP = Math.min(hero.HT, hero.HP + 1);
