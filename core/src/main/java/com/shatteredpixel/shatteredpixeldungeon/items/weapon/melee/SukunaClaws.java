@@ -25,11 +25,11 @@ public class SukunaClaws extends MeleeWeapon {
 		if (hero == null) {
 			return 0;
 		}
-		return Math.min(15, hero.lvl / 2);
+		return Math.min(10, hero.lvl / 3);
 	}
 
 	public int reach() {
-		int base = 2 + clawLevel();
+		int base = 2 + clawLevel() / 2;
 		Hero hero = Dungeon.hero;
 		if (hero != null && hero.subClass == HeroSubClasses.QIANREN) {
 			base += 2;
@@ -46,12 +46,12 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int min(int lvl) {
-		return 2 + 2 * clawLevel();
+		return 2 + clawLevel();
 	}
 
 	@Override
 	public int max(int lvl) {
-		return 4 + 2 * clawLevel();
+		return 4 + clawLevel();
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class SukunaClaws extends MeleeWeapon {
 		}
 
 		//8 级起横扫范围内所有目标
-		if (clawLevel() >= 8 && attacker.isAlive()) {
+		if (clawLevel() >= 5 && attacker.isAlive()) {
 			for (Char ch : Actor.chars()) {
 				if (ch == attacker || ch == defender || !ch.isAlive()) {
 					continue;

@@ -81,8 +81,7 @@ public class Food extends Item {
 
 		if (action.equals( AC_EAT )) {
 
-			if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA
-					&& !isMeat()) {
+			if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA) {
 				GLog.w(Messages.get(Food.class, "sukuna_refuse"));
 				return;
 			}

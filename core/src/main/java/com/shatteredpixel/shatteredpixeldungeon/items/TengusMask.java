@@ -102,6 +102,17 @@ public class TengusMask extends Item {
 		curUser.subClass = way;
 		Talent.initSubclassTalents(curUser);
 
+		//宿傩专精徽章
+		if (curUser.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA) {
+			if (way == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.QIANREN) {
+				Badges.unlock(Badges.Badge.MASTERY_SUKUNA_QIANREN);
+			} else if (way == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DUANZUI) {
+				Badges.unlock(Badges.Badge.MASTERY_SUKUNA_DUANZUI);
+			} else if (way == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.HUISHENG) {
+				Badges.unlock(Badges.Badge.MASTERY_SUKUNA_HUISHENG);
+			}
+		}
+
 		if (way == HeroSubClasses.ASSASSIN && curUser.invisible > 0){
 			Buff.affect(curUser, Preparation.class);
 		}

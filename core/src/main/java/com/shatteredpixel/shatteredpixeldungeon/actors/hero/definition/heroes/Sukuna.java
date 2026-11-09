@@ -50,9 +50,10 @@ public class Sukuna extends HeroDefinition {
 		hero.belongings.armor = new com.shatteredpixel.shatteredpixeldungeon.items.armor.CurseKimono();
 		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ReverseCursedTechnique.class);
-		ThrowingStone stones = new ThrowingStone();
-		stones.quantity(3).collect();
-		Dungeon.quickslot.setSlot(0, stones);
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon senbon =
+				new com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon();
+		senbon.quantity(2).collect();
+		Dungeon.quickslot.setSlot(0, senbon);
 
 		new PotionOfHealing().identify();
 		new ScrollOfRage().identify();

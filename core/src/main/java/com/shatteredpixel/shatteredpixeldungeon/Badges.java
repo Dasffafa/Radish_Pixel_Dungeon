@@ -205,7 +205,10 @@ public class Badges {
 		HIGH_SCORE_5                ( 123 ),
 		CHAMPION_2                  ( 124 ),
 		CHAMPION_3                  ( 125 ),
-		MASTERY_CARDTRICKSTER;
+		MASTERY_CARDTRICKSTER,
+		MASTERY_SUKUNA_QIANREN      ( 126 ),
+		MASTERY_SUKUNA_DUANZUI      ( 127 ),
+		MASTERY_SUKUNA_HUISHENG     ( 128 );
 
 		public boolean meta;
 
