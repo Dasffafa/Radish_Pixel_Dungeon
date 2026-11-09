@@ -7,7 +7,7 @@ import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
 /**
- * 凝血刃的斩击特效：在目标身上直接绽放的血色斩痕，随机挑一种样式。
+ * 凝血刃命中时在目标身上绽放的血色斩痕。
  */
 public class BloodSlashEffect extends SwordSlashEffect {
 

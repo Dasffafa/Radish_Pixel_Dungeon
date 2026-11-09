@@ -11,12 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 /**
- * 宿傩的专属武器：利爪。
- *
- * 无法用升级卷轴升级，而是随宿傩的等级成长（每 2 级 +1 武器等级，上限 15）。
- * 基础伤害 2-4，每级 +2 伤害与 +1 攻击距离。
- * 8 级之后可以攻击范围内所有目标。
- * 无法卸下，且只有宿傩开局携带。
+ * 宿傩专属武器，随角色等级成长而非卷轴强化，无法卸下。
  */
 public class SukunaClaws extends MeleeWeapon {
 
@@ -25,7 +20,6 @@ public class SukunaClaws extends MeleeWeapon {
 		tier = 0;
 	}
 
-	/** 当前武器等级：随角色等级成长，每 2 级 +1，上限 15 */
 	public int clawLevel() {
 		Hero hero = Dungeon.hero;
 		if (hero == null) {
@@ -34,7 +28,6 @@ public class SukunaClaws extends MeleeWeapon {
 		return Math.min(15, hero.lvl / 2);
 	}
 
-	/** 攻击距离（格） */
 	public int reach() {
 		return 2 + clawLevel();
 	}
@@ -49,13 +42,12 @@ public class SukunaClaws extends MeleeWeapon {
 		return 4 + 2 * clawLevel();
 	}
 
-	/** 固定基础伤害，不受力量加成影响 */
+	//不吃力量溢出加成，保持固定成长曲线
 	@Override
 	public int damageRoll(Char owner) {
 		return augment.damageFactor(Random.NormalIntRange(min(0), max(0)));
 	}
 
-	/** 不需要任何力量即可使用 */
 	@Override
 	public int STRReq(int lvl) {
 		return 0;
@@ -84,19 +76,17 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		//随机红色斩击特效
 		com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, defender);
 
 		int result = super.proc(attacker, defender, damage);
 
-		//8 级之后：横扫范围内所有敌人
+		//8 级起横扫范围内所有目标
 		if (clawLevel() >= 8 && attacker != null && attacker.isAlive()) {
 			for (Char ch : Actor.chars()) {
 				if (ch == attacker || ch == defender || !ch.isAlive()) {
 					continue;
 				}
 				if (Dungeon.level.distance(attacker.pos, ch.pos) <= reach()) {
-					//范围内每个目标都播放斩击特效
 					com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, ch);
 
 					int dmg = Random.NormalIntRange(min(0), max(0));

@@ -86,23 +86,23 @@ public class SukunaSlashEffect extends MovieClip {
 
 		switch (Random.Int(4)) {
 			case 0:
-				//一道细长血红斩击，方向随机偏转
+				//细长斩，方向微偏
 				place(parent, from, to, angle + Random.Float(-20f, 20f),
 						(0.55f + Random.Float(-0.08f, 0.12f)) * mul, 0.14f * durMul, 2.0f, 0.35f, 0.35f);
 				break;
 			case 1:
-				//缓慢的暗红重斩，角度更开放
+				//重斩，角度更开
 				place(parent, from, to, angle + Random.Float(-35f, 35f),
 						(0.8f + Random.Float(-0.1f, 0.15f)) * mul, 0.22f * durMul, 1.6f, 0.12f, 0.16f);
 				break;
 			case 2:
-				//交叉双斩，方向随机交叉
+				//交叉双斩
 				float crossAngle = Random.Float(30f, 50f);
 				place(parent, from, to, angle + crossAngle, 0.5f * mul, 0.13f * durMul, 2.1f, 0.4f, 0.36f);
 				place(parent, from, to, angle - crossAngle, 0.5f * mul, 0.16f * durMul, 1.7f, 0.2f, 0.24f);
 				break;
 			default:
-				//三道爪痕，间距与角度随机
+				//三道爪痕
 				float spread = Random.Float(10f, 18f);
 				for (int i = -1; i <= 1; i++) {
 					float off = i * Random.Float(4f, 7f);
@@ -114,7 +114,6 @@ public class SukunaSlashEffect extends MovieClip {
 				break;
 		}
 
-		//命中火花
 		CellEmitter.get(defender.pos).burst(Speck.factory(Speck.STAR), 4);
 	}
 
