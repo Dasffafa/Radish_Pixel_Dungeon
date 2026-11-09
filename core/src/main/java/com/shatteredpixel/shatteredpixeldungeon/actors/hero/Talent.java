@@ -116,6 +116,13 @@ public class Talent {
 	public static final Talent BLOODLUST = new Talent("BLOODLUST");
 	public static final Talent IRON_BODY = new Talent("IRON_BODY");
 
+	public static final Talent QIANREN_STORM = new Talent("QIANREN_STORM");
+	public static final Talent QIANREN_MASTER = new Talent("QIANREN_MASTER");
+	public static final Talent DUANZUI_JUDGE = new Talent("DUANZUI_JUDGE");
+	public static final Talent DUANZUI_FINAL = new Talent("DUANZUI_FINAL");
+	public static final Talent HUISHENG_VITALITY = new Talent("HUISHENG_VITALITY");
+	public static final Talent HUISHENG_REBIRTH = new Talent("HUISHENG_REBIRTH");
+
 	public static final Talent QIANREN_ECHO = new Talent("QIANREN_ECHO");
 	public static final Talent QIANREN_REACH = new Talent("QIANREN_REACH");
 	public static final Talent DUANZUI_EXECUTE = new Talent("DUANZUI_EXECUTE");

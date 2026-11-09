@@ -455,6 +455,7 @@ public class Hero extends Char {
 		HT = initialHP + growthFactor*(lvl-1) + HTBoost;
 		if (heroClass == HeroClasses.SUKUNA) {
 			HT += 5 * pointsInTalent(Talent.IRON_BODY);
+			HT += 8 * pointsInTalent(Talent.HUISHENG_VITALITY);
 		}
 		if (buff(ScarBuff.class) != null) {
 			HT += ScarBuff.MAX_HP_BONUS;
@@ -3344,6 +3345,39 @@ public class Hero extends Char {
 			}
 			if (pointsInTalent(Talent.BLOODLUST) > 0) {
 				Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class).addStack();
+			}
+		}
+
+			//千刃之主：击杀后向周围扩散斩击
+			int master = pointsInTalent(Talent.QIANREN_MASTER);
+			if (master > 0) {
+				for (Char c : Actor.chars()) {
+					if (c == this || c == enemy || !c.isAlive()) {
+						continue;
+					}
+					if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.distance(pos, c.pos) <= 3) {
+						c.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(
+								Math.round(damageRoll() * 0.5f), this));
+					}
+				}
+			}
+
+			//苏生：击杀后获得护盾
+			int rebirth = pointsInTalent(Talent.HUISHENG_REBIRTH);
+			if (rebirth > 0) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier barrier =
+						Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class);
+				barrier.setShield(barrier.shielding() + 2 * rebirth);
+			}
+
+		//终审：断罪对存活的主目标追加伤害
+		if (enemy.isAlive()
+				&& subClass == HeroSubClasses.DUANZUI
+				&& belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
+			int finalInquiry = pointsInTalent(Talent.DUANZUI_FINAL);
+			if (finalInquiry > 0) {
+				enemy.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(
+						Math.round(damageRoll() * 0.3f * finalInquiry), this));
 			}
 		}
 

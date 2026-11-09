@@ -127,6 +127,10 @@ public class SukunaClaws extends MeleeWeapon {
 			if (hero != null) {
 				bonus += 0.25f * hero.pointsInTalent(
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_EXECUTE);
+				if (defender.HP >= defender.HT) {
+					bonus += 0.20f * hero.pointsInTalent(
+							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_JUDGE);
+				}
 				if (defender.HP < defender.HT * 0.3f) {
 					bonus += 0.5f * hero.pointsInTalent(
 							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_LINE);
@@ -144,6 +148,10 @@ public class SukunaClaws extends MeleeWeapon {
 				if (Dungeon.level.distance(attacker.pos, ch.pos) <= reach()) {
 					com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, ch);
 					int dmg = Random.NormalIntRange(min(0), max(0));
+					if (hero != null) {
+						dmg += 3 * hero.pointsInTalent(
+								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_STORM);
+					}
 					if (condemn) {
 						dmg = Math.round(dmg * 0.5f);
 					} else if (hero != null) {
