@@ -53,12 +53,18 @@ public class Fuga extends ArmorAbility {
 		MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.FIRE, hero.sprite, cell, new Callback() {
 			@Override
 			public void call() {
-				int dmg = 10 + hero.lvl;
+				com.shatteredpixel.shatteredpixeldungeon.effects.PixelExplosionEffect.showAtCell(cell);
+				com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(cell).burst(
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 14);
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap();
+
+				int dmg = 20 + hero.lvl * 2;
+				int radius = 4;
 				for (Char ch : Actor.chars()) {
 					if (ch == hero || !ch.isAlive()) {
 						continue;
 					}
-					if (Dungeon.level.distance(cell, ch.pos) <= 1) {
+					if (Dungeon.level.distance(cell, ch.pos) <= radius) {
 						ch.damage(DamageInfo.fire(dmg, hero));
 						Buff.affect(ch, Burning.class);
 					}
