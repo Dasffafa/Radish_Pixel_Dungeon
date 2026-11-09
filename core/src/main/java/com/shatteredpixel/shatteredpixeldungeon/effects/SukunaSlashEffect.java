@@ -55,8 +55,8 @@ public class SukunaSlashEffect extends MovieClip {
 		super.update();
 		life += Game.elapsed;
 		float t = Math.min(1f, life / duration);
-		//缓出，越接近目标越快
-		float ease = 1f - (1f - t) * (1f - t);
+		//匀速推进，近处也能看到斩击飞出
+		float ease = t;
 		x = (start.x + (end.x - start.x) * ease) - width / 2f;
 		y = (start.y + (end.y - start.y) * ease) - height / 2f;
 		if (t >= 1f) {
