@@ -41,6 +41,16 @@ public class SpaceSlashChant extends Buff {
 			detach();
 			return true;
 		}
+		spend(TICK);
+		return true;
+	}
+
+	/** 玩家点一次按钮蓄力一次，第三段之后斩出 */
+	public void charge() {
+		if (!(target instanceof Hero)) {
+			detach();
+			return;
+		}
 		Hero hero = (Hero) target;
 
 		stage++;
@@ -53,11 +63,7 @@ public class SpaceSlashChant extends Buff {
 		} else {
 			fire(hero);
 			detach();
-			return true;
 		}
-
-		spend(TICK);
-		return true;
 	}
 
 	private void fire(Hero hero) {

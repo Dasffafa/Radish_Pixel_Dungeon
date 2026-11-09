@@ -852,7 +852,8 @@ public class GameScene extends PixelScene {
 		if (sukunaSkill != null) {
 			sukunaSkill.visible = Dungeon.hero != null
 					&& Dungeon.hero.heroClass == HeroClasses.SUKUNA
-					&& Dungeon.hero.isAlive();
+					&& Dungeon.hero.isAlive()
+					&& Dungeon.hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpaceSlashChant.class) != null;
 			sukunaSkill.setRect(uiCamera.width - 56, uiCamera.height - 96, 40, 40);
 		}
 
