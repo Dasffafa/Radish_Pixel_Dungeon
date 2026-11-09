@@ -34,13 +34,13 @@ public class Sukuna extends HeroDefinition {
 	}
 
 	@Override public ArmorAbility[] armorAbilities() {
-		return new ArmorAbility[]{ new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.SpaceSlash(), new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.MalevolentShrine(), new Shockwave() };
+		return new ArmorAbility[]{ new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.SpaceSlash(), new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.MalevolentShrine(), new com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.Fuga() };
 	}
 
 	@Override public TalentSet talents() {
 		TalentSet set = new TalentSet();
-		set.setTier1(new Talent[]{ Talent.HEARTY_MEAL, Talent.ARMSMASTERS_INTUITION, Talent.PROVOKED_ANGER, Talent.IRON_WILL });
-		set.setTier2(new Talent[]{ Talent.IRON_STOMACH, Talent.EMERGENCY_PROTECTION, Talent.RUNIC_TRANSFERENCE, Talent.LETHAL_MOMENTUM, Talent.IMPROVISED_PROJECTILES });
+		set.setTier1(new Talent[]{ Talent.SUKUNA_FEAST, Talent.HEARTY_MEAL, Talent.PROVOKED_ANGER, Talent.IRON_WILL });
+		set.setTier2(new Talent[]{ Talent.SUKUNA_CLAW_MASTERY, Talent.SUKUNA_REACH, Talent.SUKUNA_LOW_HP, Talent.IRON_STOMACH, Talent.LETHAL_MOMENTUM });
 		set.setTier3(new Talent[]{ Talent.HOLD_FAST, Talent.STRONGMAN });
 		set.setTier4(new Talent[]{ Talent.IRON_MUSCLE, Talent.HIGH_DIET });
 		return set;
@@ -49,6 +49,8 @@ public class Sukuna extends HeroDefinition {
 	@Override protected void initClassLoadout(Hero hero) {
 		(hero.belongings.weapon = new com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws()).identify();
 		hero.belongings.armor = new com.shatteredpixel.shatteredpixeldungeon.items.armor.CurseKimono();
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ReverseCursedTechnique.class);
 		ThrowingStone stones = new ThrowingStone();
 		stones.quantity(3).collect();
 		Dungeon.quickslot.setSlot(0, stones);

@@ -34,6 +34,9 @@ public class SukunaClaws extends MeleeWeapon {
 		if (hero != null && hero.subClass == HeroSubClasses.QIANREN) {
 			base += 2;
 		}
+		if (hero != null) {
+			base += hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_REACH);
+		}
 		return base;
 	}
 
@@ -71,8 +74,14 @@ public class SukunaClaws extends MeleeWeapon {
 	@Override
 	public int damageRoll(Char owner) {
 		int dmg = augment.damageFactor(Random.NormalIntRange(min(0), max(0)));
-		if (owner.HP < owner.HT * 0.3f) {
-			dmg = Math.round(dmg * 1.15f);
+		if (owner instanceof Hero) {
+			Hero h = (Hero) owner;
+			dmg = Math.round(dmg * (1f + 0.10f * h.pointsInTalent(
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLAW_MASTERY)));
+			if (owner.HP < owner.HT * 0.3f) {
+				dmg = Math.round(dmg * (1.15f + 0.10f * h.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_LOW_HP)));
+			}
 		}
 		return dmg;
 	}
@@ -114,7 +123,11 @@ public class SukunaClaws extends MeleeWeapon {
 		}
 
 		if (hero != null && !defender.isAlive()) {
-			int heal = hero.subClass == HeroSubClasses.HUISHENG ? 2 : 1;
+			int heal = 1 + hero.pointsInTalent(
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_FEAST);
+			if (hero.subClass == HeroSubClasses.HUISHENG) {
+				heal *= 2;
+			}
 			hero.HP = Math.min(hero.HT, hero.HP + heal);
 		}
 
