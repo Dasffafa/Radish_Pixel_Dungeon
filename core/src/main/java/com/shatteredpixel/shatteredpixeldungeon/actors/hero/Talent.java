@@ -113,6 +113,49 @@ public class Talent {
 
 	public static final Talent HEARTY_MEAL = new Talent("HEARTY_MEAL");
 
+	//工程师天赋（自reXuns xun分支移植）
+	public static final Talent KEEN_MEAL = new Talent("KEEN_MEAL");
+	public static final Talent FINE_INTUITION = new Talent("FINE_INTUITION");
+	public static final Talent TESTED_MAINTENANCE = new Talent("TESTED_MAINTENANCE");
+	public static final Talent GENERAL_DISARM = new Talent("GENERAL_DISARM");
+	public static final Talent PULSE_ENERGY = new Talent("PULSE_ENERGY");
+	public static final Talent TOILSOME_MEAL = new Talent("TOILSOME_MEAL");
+	public static final Talent IONIC_LIQUID = new Talent("IONIC_LIQUID");
+	public static final Talent STRONG_PULSE = new Talent("STRONG_PULSE");
+	public static final Talent RESONANT_SENSING = new Talent("RESONANT_SENSING");
+	public static final Talent APART_ANYTHING = new Talent("APART_ANYTHING");
+	public static final Talent REMOTE_DESTRUCTION = new Talent("REMOTE_DESTRUCTION");
+	public static final Talent DURABLE_MODIFIES = new Talent("DURABLE_MODIFIES");
+	public static final Talent ELECTRONIC_REPAIR = new Talent("ELECTRONIC_REPAIR");
+	public static final Talent IONIZING_RADIATION = new Talent("IONIZING_RADIATION");
+	public static final Talent ACTIVE_REPAIR = new Talent("ACTIVE_REPAIR");
+	public static final Talent MULTI_MODIFY = new Talent("MULTI_MODIFY");
+	public static final Talent PART_RECYCLING = new Talent("PART_RECYCLING");
+	public static final Talent FAVORITE_WORK = new Talent("FAVORITE_WORK");
+	public static final Talent KINETIC_FRAGMENT = new Talent("KINETIC_FRAGMENT");
+	public static final Talent BACKFIRE = new Talent("BACKFIRE");
+	public static final Talent DIFFRACTION = new Talent("DIFFRACTION");
+	public static final Talent ELECTRIC_CHARGE = new Talent("ELECTRIC_CHARGE");
+	public static final Talent DARK_MAGIC = new Talent("DARK_MAGIC");
+	public static final Talent CHARISMA = new Talent("CHARISMA");
+	public static final Talent EXPLOSION_PROOF = new Talent("EXPLOSION_PROOF");
+	public static final Talent SHOCKWAVE = new Talent("SHOCKWAVE");
+	public static final Talent ADDED_POWDER = new Talent("ADDED_POWDER");
+	public static final Talent MAGICAL_EXPLOSION = new Talent("MAGICAL_EXPLOSION");
+	public static final Talent BALLISTICA_CALC = new Talent("BALLISTICA_CALC");
+	public static final Talent MECHANICAL_REFINEMENT = new Talent("MECHANICAL_REFINEMENT");
+	public static final Talent MOMENTUM_TRANSFORM = new Talent("MOMENTUM_TRANSFORM");
+	public static final Talent ACTIVE_DEFENSE = new Talent("ACTIVE_DEFENSE");
+	public static final Talent REPAIR_ABILITY = new Talent("REPAIR_ABILITY");
+	public static final Talent POWERED_DEVICE = new Talent("POWERED_DEVICE");
+	public static final Talent SKYNET = new Talent("SKYNET");
+	public static final Talent VIOLENT_LEAP = new Talent("VIOLENT_LEAP");
+	public static final Talent ASSAULT = new Talent("ASSAULT");
+	public static final Talent STACKED_CHARGE = new Talent("STACKED_CHARGE");
+	public static final Talent ALCHEMY_CRAFT = new Talent("ALCHEMY_CRAFT");
+	public static final Talent DECOY = new Talent("DECOY");
+	public static final Talent PORTABLE_DETONATOR = new Talent("PORTABLE_DETONATOR");
+
 	public static final Talent ARMSMASTERS_INTUITION = new Talent("ARMSMASTERS_INTUITION");
 
 	public static final Talent PROVOKED_ANGER = new Talent("PROVOKED_ANGER");

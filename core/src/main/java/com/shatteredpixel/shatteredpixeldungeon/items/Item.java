@@ -56,6 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemAnimations;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
@@ -595,6 +596,11 @@ public class Item implements Bundlable {
 			return com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.SNAKE_BITE;
 		}
 		return image;
+	}
+
+	/** 物品的动画集声明；返回null表示无动画，展示时走静态贴图 */
+	public ItemAnimations animations() {
+		return null;
 	}
 
 	public ItemSprite.Glowing glowing() {
