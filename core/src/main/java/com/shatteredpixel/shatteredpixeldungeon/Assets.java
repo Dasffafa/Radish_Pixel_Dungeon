@@ -304,6 +304,7 @@ public class Assets {
 
 	public static class Splashes {
 		public static final String WARRIOR  = "splashes/warrior.jpg";
+	public static final String SUKUNA   = "splashes/sukuna.jpg";
 		public static final String MAGE     = "splashes/mage.jpg";
 		public static final String ROGUE    = "splashes/rogue.jpg";
 		public static final String HUNTRESS = "splashes/huntress.jpg";
@@ -320,6 +321,7 @@ public class Assets {
 
 	public static class Sprites {
 		public static final String AVATARS_WARRIOR	= "sprites/avatars_warrior.png";
+	public static final String AVATARS_SUKUNA = "sprites/avatars_sukuna.png";
 		public static final String AVATARS_MAGE	= "sprites/avatars_mage.png";
 		public static final String AVATARS_ROGUE	= "sprites/avatars_rogue.png";
 		public static final String AVATARS_HUNTRESS	= "sprites/avatars_huntress.png";
@@ -328,6 +330,7 @@ public class Assets {
 		public static final String AVATARS_CARDTRICKSTER	= "sprites/avatars_cardtrickster.png";
 
 		public static final String WARRIOR  = "sprites/warrior.png";
+		public static final String SUKUNA   = "sprites/sukuna.png";
 		public static final String MAGE     = "sprites/mage.png";
 		public static final String ROGUE    = "sprites/rogue.png";
 		public static final String HUNTRESS = "sprites/huntress.png";

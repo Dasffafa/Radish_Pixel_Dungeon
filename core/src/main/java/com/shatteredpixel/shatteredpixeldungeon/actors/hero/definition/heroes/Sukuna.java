@@ -29,9 +29,9 @@ public class Sukuna extends HeroDefinition {
 	@Override public HeroClass heroClass() { return HeroClasses.SUKUNA; }
 
 	//复用战士的美术资源
-	@Override public String spritesheet() { return Assets.Sprites.WARRIOR; }
-	@Override public String splashArt() { return Assets.Splashes.WARRIOR; }
-	@Override public String avatarSkin() { return Assets.Sprites.AVATARS_WARRIOR; }
+	@Override public String spritesheet() { return Assets.Sprites.SUKUNA; }
+	@Override public String splashArt() { return Assets.Splashes.SUKUNA; }
+	@Override public String avatarSkin() { return Assets.Sprites.AVATARS_SUKUNA; }
 
 	@Override public HeroSubClass[] subClasses() {
 		return new HeroSubClass[]{ HeroSubClasses.BERSERKER, HeroSubClasses.GLADIATOR, HeroSubClasses.MAGIC_WARRIOR };
