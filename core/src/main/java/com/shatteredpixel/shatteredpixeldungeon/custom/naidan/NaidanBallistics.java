@@ -5,7 +5,14 @@
  *  · 起始速度由「满蓄力 30 格」反推：v0 = sqrt(2·a·D)，因此无反弹时恰好滚 30 格；
  *  · 全程受恒定摩擦减速，速度线性衰减到 0 —— 起步快、末尾慢；
  *  · 撞墙为非弹性碰撞：法向/切向速度等比乘以 BOUNCE_KEEP（吸收 30%）；
- *  · 撞墙判定点比球体小（WALL_PROBE），让球在 2.5D 视角下先贴到墙根再弹。
+ *  · 撞墙判定点比球体小（WALL_PROBE），让球在 2.5D 视角下先贴到墙根再弹；
+ *    向上（北墙）单独用更小的 WALL_PROBE_NORTH：墙画成有高度的立面，
+ *    更小的判定点让球滚到墙根更近处才反弹。
+ *
+ * 三种发射方式共用同一套滚动模拟 simulate()：
+ *  · compute          —— 台球模型：瞄准方向与蛋的接触点决定出射角（武技「打飞」）；
+ *  · computeStraight  —— 不做接触判定，蛋沿瞄准方向直接滚出（V 键快速发射）；
+ *  · computeRecall    —— 预算 = 到英雄的距离，匀减速恰好停在英雄位置（C 键滚动回收）。
  *
  * 纯函数，不依赖游戏状态，便于离线数值验证。
  */
@@ -26,6 +33,8 @@ public final class NaidanBallistics {
 	public static final float BOUNCE_KEEP = 0.7f;
 	/** 撞墙判定点半径（格）：小于球体半径，避免「还没碰到墙就弹回来」 */
 	public static final float WALL_PROBE = 0.12f;
+	/** 向上（北墙）撞墙判定点半径（格）：更小 = 更晚触发 = 球能再往上贴一点才弹 */
+	public static final float WALL_PROBE_NORTH = 0.04f;
 	/** 撞墙时低于这个速度就直接停住，不再反弹（格/秒） */
 	public static final float MIN_BOUNCE_SPEED = 5f;
 
@@ -44,6 +53,8 @@ public final class NaidanBallistics {
 		public final ArrayList<PointF> path;
 		/** 每个顶点的时间戳（秒），与 path 等长 */
 		public final ArrayList<Float> times;
+		/** 每段起始速度（格/秒），speeds[i] = 线段 i 起点的速度；段内 t 时刻速度 = speeds[i] − FRICTION×(t−times[i]) */
+		public final ArrayList<Float> speeds;
 		/** 总时长（秒） */
 		public final float duration;
 		/** 总行程（格） */
@@ -55,10 +66,11 @@ public final class NaidanBallistics {
 		/** 反弹次数 */
 		public final int bounces;
 
-		Result( ArrayList<PointF> path, ArrayList<Float> times, float duration,
-				float distance, float speedFactor, float initialSpeed, int bounces ) {
+		Result( ArrayList<PointF> path, ArrayList<Float> times, ArrayList<Float> speeds,
+				float duration, float distance, float speedFactor, float initialSpeed, int bounces ) {
 			this.path = path;
 			this.times = times;
+			this.speeds = speeds;
 			this.duration = duration;
 			this.distance = distance;
 			this.speedFactor = speedFactor;
@@ -67,6 +79,7 @@ public final class NaidanBallistics {
 		}
 	}
 
+	/** 台球模型：从英雄位置瞄准，按接触点几何决定蛋的出射方向（武技「打飞」） */
 	public static Result compute( float heroX, float heroY, float eggX, float eggY,
 			float aimX, float aimY, float charge, float ballRadius, SolidTest solid ) {
 
@@ -98,25 +111,66 @@ public final class NaidanBallistics {
 		float speedFactor = (float) Math.sqrt( Math.max( 0f, 1f - (offset / ballRadius) * (offset / ballRadius) ) );
 		float budget = MAX_CELLS * clamp01( charge ) * speedFactor;
 
+		return simulate( eggX, eggY, velX, velY, budget, speedFactor, solid );
+	}
+
+	/** 从蛋的位置沿瞄准方向直接滚出（不做击球点接触判定）：V 键快速发射用 */
+	public static Result computeStraight( float eggX, float eggY,
+			float aimX, float aimY, float charge, SolidTest solid ) {
+
+		float aimLen = (float) Math.hypot( aimX, aimY );
+		if ( aimLen < 1e-4f ) return null;
+
+		float budget = MAX_CELLS * clamp01( charge );
+		return simulate( eggX, eggY, aimX / aimLen, aimY / aimLen, budget, 1f, solid );
+	}
+
+	/** 回收滚动：预算 = 到英雄的距离，匀减速恰好停在英雄位置：C 键滚动回收用 */
+	public static Result computeRecall( float eggX, float eggY, float heroX, float heroY, SolidTest solid ) {
+		return computeRecall( eggX, eggY, heroX, heroY, 0f, solid );
+	}
+
+	/**
+	 * 回收滚动（带终点裕量）：预算 = 距离 + extraBudget，让蛋滚「过」英雄而不是恰好停在格心，
+	 * 保证 NaidanFlight 的扫格判定能命中英雄所在格（格边界取整会吃掉贴脸的 0.0x 格）。
+	 */
+	public static Result computeRecall( float eggX, float eggY, float heroX, float heroY,
+			float extraBudget, SolidTest solid ) {
+
+		float dx = heroX - eggX;
+		float dy = heroY - eggY;
+		float len = (float) Math.hypot( dx, dy );
+		if ( len < 1e-4f ) return null;
+
+		return simulate( eggX, eggY, dx / len, dy / len, len + extraBudget, 1f, solid );
+	}
+
+	/** 共享滚动模拟：从 (eggX, eggY) 沿 (dirX, dirY) 滚 budget 格（匀减速 + 撞墙反弹） */
+	private static Result simulate( float eggX, float eggY, float dirX, float dirY,
+			float budget, float speedFactor, SolidTest solid ) {
+
 		ArrayList<PointF> path = new ArrayList<>();
 		ArrayList<Float> times = new ArrayList<>();
+		ArrayList<Float> speeds = new ArrayList<>();
 		path.add( new PointF( eggX, eggY ) );
 		times.add( 0f );
 
 		if ( budget < 0.05f ) {
-			return new Result( path, times, 0f, 0f, speedFactor, 0f, 0 );
+			return new Result( path, times, speeds, 0f, 0f, speedFactor, 0f, 0 );
 		}
 
 		// 由「匀减速滑行 D 格停下」反推初速：v0 = sqrt(2·a·D)
 		float speed = (float) Math.sqrt( 2f * FRICTION * budget );
-		float vx = velX * speed;
-		float vy = velY * speed;
+		float vx = dirX * speed;
+		float vy = dirY * speed;
 
 		float x = eggX;
 		float y = eggY;
 		float t = 0f;
 		float travelled = 0f;
 		int bounces = 0;
+		// 当前线段的起始速度（线段在下一个顶点加入时完成）
+		float segStartSpeed = speed;
 
 		while ( t < MAX_TIME && bounces < MAX_BOUNCES ) {
 
@@ -126,8 +180,10 @@ public final class NaidanBallistics {
 			float nx = x + vx * DT;
 			float ny = y + vy * DT;
 
+			// 向上撞北墙用更小的判定点：贴墙更近才反弹（2.5D 视角补偿）
 			boolean hitX = solid.solid( cellOf( nx + Math.signum( vx ) * WALL_PROBE ), cellOf( y ) );
-			boolean hitY = solid.solid( cellOf( x ), cellOf( ny + Math.signum( vy ) * WALL_PROBE ) );
+			float probeY = vy < 0f ? WALL_PROBE_NORTH : WALL_PROBE;
+			boolean hitY = solid.solid( cellOf( x ), cellOf( ny + Math.signum( vy ) * probeY ) );
 
 			if ( hitX || hitY ) {
 				// 速度太低：撞墙直接停住（不反弹、不加反弹顶点）
@@ -139,6 +195,9 @@ public final class NaidanBallistics {
 				if ( hitY ) vy = -vy * BOUNCE_KEEP;
 				path.add( new PointF( x, y ) );
 				times.add( t );
+				// 完成的线段记录其起始速度，新段起始 = 反弹后速度
+				speeds.add( segStartSpeed );
+				segStartSpeed = (float) Math.hypot( vx, vy );
 				bounces++;
 				continue;
 			}
@@ -159,9 +218,10 @@ public final class NaidanBallistics {
 		if ( PointF.distance( last, new PointF( x, y ) ) > 1e-4f ) {
 			path.add( new PointF( x, y ) );
 			times.add( t );
+			speeds.add( segStartSpeed );
 		}
 
-		return new Result( path, times, t, travelled, speedFactor,
+		return new Result( path, times, speeds, t, travelled, speedFactor,
 				(float) Math.sqrt( 2f * FRICTION * budget ), bounces );
 	}
 
