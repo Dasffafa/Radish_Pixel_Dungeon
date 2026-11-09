@@ -22,8 +22,8 @@ public class ShrineDomain extends Buff {
 	public void applyMastery(Hero hero) {
 		int points = hero.pointsInTalent(
 				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SHRINE_MASTERY);
-		turns += 5 * points;
-		radius = 20 + 5 * points;
+		turns += 2 * points;
+		radius = 20 + 3 * points;
 	}
 
 	{
@@ -47,7 +47,7 @@ public class ShrineDomain extends Buff {
 		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.setDomainOverlay(true, center < 0 ? hero.pos : center);
 
 		int dmg = 5 + hero.lvl / 2;
-		dmg = Math.round(dmg * (1f + 0.15f * hero.pointsInTalent(
+		dmg = Math.round(dmg * (1f + 0.08f * hero.pointsInTalent(
 				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SHRINE_POWER)));
 		for (Char ch : Actor.chars()) {
 			if (ch == hero || !ch.isAlive()) {

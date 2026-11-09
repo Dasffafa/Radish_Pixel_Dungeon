@@ -90,7 +90,7 @@ public class Fuga extends ArmorAbility {
 				}
 
 				int dmg = 20 + hero.lvl * 2;
-				dmg = Math.round(dmg * (1f + 0.10f * hero.pointsInTalent(
+				dmg = Math.round(dmg * (1f + 0.06f * hero.pointsInTalent(
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.FUGA_POWER)));
 				int radius = 4;
 				for (Char ch : Actor.chars()) {

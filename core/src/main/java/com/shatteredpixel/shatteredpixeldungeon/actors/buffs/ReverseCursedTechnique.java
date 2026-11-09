@@ -18,7 +18,7 @@ public class ReverseCursedTechnique extends Buff {
 
 		if (hero.HP < hero.HT) {
 			float rate = hero.HT / 1000f;
-			rate *= 1f + 0.5f * hero.pointsInTalent(Talent.HUISHENG_REGEN);
+			rate *= 1f + 0.25f * hero.pointsInTalent(Talent.HUISHENG_REGEN);
 			partialHeal += rate;
 
 			if (partialHeal > 1f) {

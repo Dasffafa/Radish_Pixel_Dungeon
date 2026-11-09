@@ -36,7 +36,7 @@ public class SukunaClaws extends MeleeWeapon {
 		}
 		if (hero != null) {
 			base += hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_REACH);
-			base += 2 * hero.pointsInTalent(
+			base += hero.pointsInTalent(
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_REACH);
 			base += hero.pointsInTalent(
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLEAVE);
@@ -81,19 +81,19 @@ public class SukunaClaws extends MeleeWeapon {
 		if (owner instanceof Hero) {
 			Hero h = (Hero) owner;
 			if (owner.HP >= owner.HT) {
-				dmg = Math.round(dmg * (1f + 0.08f * h.pointsInTalent(
+				dmg = Math.round(dmg * (1f + 0.05f * h.pointsInTalent(
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODTHIRST)));
 			}
 			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust lust =
 					h.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class);
 			if (lust != null) {
-				dmg = Math.round(dmg * (1f + 0.05f * lust.stacks()
+				dmg = Math.round(dmg * (1f + 0.03f * lust.stacks()
 						* h.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODLUST)));
 			}
-			dmg = Math.round(dmg * (1f + 0.10f * h.pointsInTalent(
+			dmg = Math.round(dmg * (1f + 0.06f * h.pointsInTalent(
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLAW_MASTERY)));
 			if (owner.HP < owner.HT * 0.3f) {
-				dmg = Math.round(dmg * (1.15f + 0.10f * h.pointsInTalent(
+				dmg = Math.round(dmg * (1.15f + 0.08f * h.pointsInTalent(
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_LOW_HP)));
 			}
 		}
@@ -117,7 +117,7 @@ public class SukunaClaws extends MeleeWeapon {
 
 		if (hero != null && defender.isAlive() && hero.pointsInTalent(
 				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.COMBAT_INSTINCT) > 0
-				&& Random.Float() < 0.10f * hero.pointsInTalent(
+				&& Random.Float() < 0.08f * hero.pointsInTalent(
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.COMBAT_INSTINCT)) {
 			defender.damage(DamageInfo.physical(Math.round(damage * 0.5f), attacker));
 		}
@@ -125,14 +125,14 @@ public class SukunaClaws extends MeleeWeapon {
 		if (condemn && defender.isAlive()) {
 			float bonus = 0.5f;
 			if (hero != null) {
-				bonus += 0.25f * hero.pointsInTalent(
+				bonus += 0.15f * hero.pointsInTalent(
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_EXECUTE);
 				if (defender.HP >= defender.HT) {
-					bonus += 0.20f * hero.pointsInTalent(
+					bonus += 0.12f * hero.pointsInTalent(
 							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_JUDGE);
 				}
 				if (defender.HP < defender.HT * 0.3f) {
-					bonus += 0.5f * hero.pointsInTalent(
+					bonus += 0.25f * hero.pointsInTalent(
 							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.DUANZUI_LINE);
 				}
 			}
@@ -149,15 +149,15 @@ public class SukunaClaws extends MeleeWeapon {
 					com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, ch);
 					int dmg = Random.NormalIntRange(min(0), max(0));
 					if (hero != null) {
-						dmg += 3 * hero.pointsInTalent(
+						dmg += 2 * hero.pointsInTalent(
 								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_STORM);
 					}
 					if (condemn) {
 						dmg = Math.round(dmg * 0.5f);
 					} else if (hero != null) {
-						dmg = Math.round(dmg * (1f + 0.15f * hero.pointsInTalent(
+						dmg = Math.round(dmg * (1f + 0.05f * hero.pointsInTalent(
 								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_ECHO)
-								+ 0.10f * hero.pointsInTalent(
+								+ 0.05f * hero.pointsInTalent(
 								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLEAVE)));
 					}
 					ch.damage(DamageInfo.physical(dmg, attacker));

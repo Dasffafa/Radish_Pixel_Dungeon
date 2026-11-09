@@ -454,8 +454,8 @@ public class Hero extends Char {
 
 		HT = initialHP + growthFactor*(lvl-1) + HTBoost;
 		if (heroClass == HeroClasses.SUKUNA) {
-			HT += 5 * pointsInTalent(Talent.IRON_BODY);
-			HT += 8 * pointsInTalent(Talent.HUISHENG_VITALITY);
+			HT += 4 * pointsInTalent(Talent.IRON_BODY);
+			HT += 5 * pointsInTalent(Talent.HUISHENG_VITALITY);
 		}
 		if (buff(ScarBuff.class) != null) {
 			HT += ScarBuff.MAX_HP_BONUS;
@@ -3357,7 +3357,7 @@ public class Hero extends Char {
 					}
 					if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.distance(pos, c.pos) <= 3) {
 						c.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(
-								Math.round(damageRoll() * 0.25f * master), this));
+								Math.round(damageRoll() * 0.15f * master), this));
 					}
 				}
 			}
@@ -3367,7 +3367,7 @@ public class Hero extends Char {
 			if (rebirth > 0) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier barrier =
 						Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class);
-				barrier.setShield(barrier.shielding() + 2 * rebirth);
+				barrier.setShield(barrier.shielding() + 1 * rebirth);
 			}
 
 		//终审：断罪对存活的主目标追加伤害
@@ -3377,21 +3377,21 @@ public class Hero extends Char {
 			int finalInquiry = pointsInTalent(Talent.DUANZUI_FINAL);
 			if (finalInquiry > 0) {
 				enemy.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(
-						Math.round(damageRoll() * 0.3f * finalInquiry), this));
+						Math.round(damageRoll() * 0.2f * finalInquiry), this));
 			}
 		}
 
 		//捌：概率追加一次无视护甲的斩击
 		if (enemy.isAlive() && belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
 			int dismantle = pointsInTalent(Talent.SUKUNA_DISMANTLE);
-			if (dismantle > 0 && Random.Float() < 0.12f * dismantle) {
-				int dmg = Math.round(damageRoll() * 0.6f);
+			if (dismantle > 0 && Random.Float() < 0.08f * dismantle) {
+				int dmg = Math.round(damageRoll() * 0.5f);
 				enemy.damage(new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
 						dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL_NO_ARMOR, this));
 			}
 
 			int echo = pointsInTalent(Talent.ECHO_STRIKE);
-			if (echo > 0 && enemy.isAlive() && Random.Float() < 0.15f * echo) {
+			if (echo > 0 && enemy.isAlive() && Random.Float() < 0.08f * echo) {
 				enemy.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(damageRoll(), this));
 			}
 		}
