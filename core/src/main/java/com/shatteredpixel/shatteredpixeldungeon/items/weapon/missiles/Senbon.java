@@ -74,23 +74,54 @@ public class Senbon extends MissileWeapon {
 		int w = Dungeon.level.width();
 		int fx = user.pos % w;
 		int fy = user.pos / w;
-		int tx = cell % w;
-		int ty = cell / w;
-		double baseAngle = Math.atan2(ty - fy, tx - fx);
+		double baseAngle = Math.atan2((cell / w) - fy, (cell % w) - fx);
 
-		for (int i = 0; i < SHOTS; i++) {
-			double offset = SHOTS == 1 ? 0 : -SPREAD / 2 + SPREAD * i / (SHOTS - 1d);
-			offset += (Random.Float() - 0.5f) * (SPREAD / SHOTS) * 0.6;
-			fireOne(user, baseAngle + offset);
-		}
+		ShotScheduler scheduler = new ShotScheduler(this, user, baseAngle, delay);
+		user.sprite.parent.add(scheduler);
 
 		decrementDurability();
 		if (durabilityLeft() <= 0) {
 			detach(user.belongings.backpack);
 		}
-
-		user.spendAndNext(delay);
 		Item.updateQuickslot();
+	}
+
+	//逐帧推进的发射调度器，不依赖 Actor 队列，避免英雄动画阻塞时回合卡死
+	private static class ShotScheduler extends com.watabou.noosa.Group {
+		private final Senbon weapon;
+		private final Hero hero;
+		private final double baseAngle;
+		private final float delay;
+		private int index = 0;
+		private float acc = 0f;
+
+		ShotScheduler(Senbon weapon, Hero hero, double baseAngle, float delay) {
+			this.weapon = weapon;
+			this.hero = hero;
+			this.baseAngle = baseAngle;
+			this.delay = delay;
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			if (hero == null || !hero.isAlive()) {
+				killAndErase();
+				return;
+			}
+			acc += com.watabou.noosa.Game.elapsed;
+			while (acc >= SHOT_INTERVAL && index < SHOTS) {
+				acc -= SHOT_INTERVAL;
+				double offset = SHOTS == 1 ? 0 : -SPREAD / 2 + SPREAD * index / (SHOTS - 1d);
+				offset += (Random.Float() - 0.5f) * (SPREAD / SHOTS) * 0.6;
+				weapon.fireOne(hero, baseAngle + offset);
+				index++;
+			}
+			if (index >= SHOTS) {
+				hero.spendAndNext(delay);
+				killAndErase();
+			}
+		}
 	}
 
 	private void fireOne(Hero user, double angle) {
