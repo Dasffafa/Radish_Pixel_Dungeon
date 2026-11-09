@@ -67,20 +67,21 @@ public class Senbon extends MissileWeapon {
 		final int cell = throwPos(user, dst);
 
 		user.sprite.zap(cell);
-		//整轮扇形打完前阻塞英雄，避免后半程针还在出手时玩家已经行动
-		user.playAnimationNoTime(null);
 		throwSound();
 
 		final float delay = castDelay(user, dst);
 
+		int w = Dungeon.level.width();
+		int fx = user.pos % w;
+		int fy = user.pos / w;
+		int tx = cell % w;
+		int ty = cell / w;
+		double baseAngle = Math.atan2(ty - fy, tx - fx);
+
 		for (int i = 0; i < SHOTS; i++) {
-			//第一枚立即出手，其余按固定间隔依次发射
-			if (i == 0) {
-				fireShot(user, cell, i, delay);
-			} else {
-				final int index = i;
-				VirtualActor.delay(SHOT_INTERVAL * i, () -> fireShot(user, cell, index, delay));
-			}
+			double offset = SHOTS == 1 ? 0 : -SPREAD / 2 + SPREAD * i / (SHOTS - 1d);
+			offset += (Random.Float() - 0.5f) * (SPREAD / SHOTS) * 0.6;
+			fireOne(user, baseAngle + offset);
 		}
 
 		decrementDurability();
@@ -88,28 +89,8 @@ public class Senbon extends MissileWeapon {
 			detach(user.belongings.backpack);
 		}
 
+		user.spendAndNext(delay);
 		Item.updateQuickslot();
-	}
-
-	private void fireShot(Hero user, int targetCell, int index, float delay) {
-		if (user.sprite != null && user.sprite.parent != null) {
-			int w = Dungeon.level.width();
-			int fx = user.pos % w;
-			int fy = user.pos / w;
-			double baseAngle = Math.atan2((targetCell / w) - fy, (targetCell % w) - fx);
-
-			//在扇形范围内均匀分布，再加一点点随机抖动，避免完全对称
-			double offset = SHOTS == 1 ? 0 : -SPREAD / 2 + SPREAD * index / (SHOTS - 1d);
-			offset += (Random.Float() - 0.5f) * (SPREAD / SHOTS) * 0.6;
-			fireOne(user, baseAngle + offset);
-		}
-
-		//最后一针出手后才结算回合并解除行动阻塞
-		if (index == SHOTS - 1) {
-			user.spendAndNext(delay);
-			//这里只清标记，不用 finishAnimationNoTime：它会立刻 ready()，让玩家在敌人行动前就能操作
-			user.animationBusy = false;
-		}
 	}
 
 	private void fireOne(Hero user, double angle) {
