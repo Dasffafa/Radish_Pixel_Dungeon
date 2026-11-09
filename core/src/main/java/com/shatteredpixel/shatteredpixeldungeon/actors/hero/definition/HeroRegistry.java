@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Ma
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Moonlight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Rector;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Rogue;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Sukuna;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Warrior;
 
 import java.util.HashMap;
@@ -45,5 +46,6 @@ public class HeroRegistry {
 		register(new Rector());
 		register(new Moonlight());
 		register(new CardTrickster());
+		register(new Sukuna());
 	}
 }
