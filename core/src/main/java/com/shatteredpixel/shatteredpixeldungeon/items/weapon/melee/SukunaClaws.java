@@ -21,8 +21,8 @@ import com.watabou.utils.Random;
 public class SukunaClaws extends MeleeWeapon {
 
 	{
-		image = ItemSpriteSheet.BONE_CLAW;
-		tier = 5;
+		image = ItemSpriteSheet.SUKUNA_CLAWS;
+		tier = 0;
 	}
 
 	/** 当前武器等级：随角色等级成长，每 2 级 +1，上限 15 */
@@ -47,6 +47,12 @@ public class SukunaClaws extends MeleeWeapon {
 	@Override
 	public int max(int lvl) {
 		return 4 + 2 * clawLevel();
+	}
+
+	/** 不需要任何力量即可使用 */
+	@Override
+	public int STRReq(int lvl) {
+		return 0;
 	}
 
 	@Override
