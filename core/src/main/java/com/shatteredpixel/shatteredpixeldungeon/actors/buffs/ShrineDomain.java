@@ -11,6 +11,11 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect;
 public class ShrineDomain extends Buff {
 
 	private int turns = 5;
+	private int center = -1;
+
+	public void setCenter(int cell) {
+		center = cell;
+	}
 
 	{
 		actPriority = 1;
@@ -37,7 +42,7 @@ public class ShrineDomain extends Buff {
 			if (ch == hero || !ch.isAlive()) {
 				continue;
 			}
-			if (Dungeon.level.distance(hero.pos, ch.pos) <= 20) {
+			if (Dungeon.level.distance(center < 0 ? hero.pos : center, ch.pos) <= 20) {
 				com.shatteredpixel.shatteredpixeldungeon.effects.BloodSlashEffect.show(hero, ch);
 				ch.damage(DamageInfo.physical(dmg, hero));
 			}

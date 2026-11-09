@@ -33,6 +33,7 @@ public class MalevolentShrine extends ArmorAbility {
 		}
 		armor.charge -= chargeUse(hero);
 		Item.updateQuickslot();
-		Buff.affect(hero, ShrineDomain.class);
+		ShrineDomain domain = Buff.affect(hero, ShrineDomain.class);
+		domain.setCenter(hero.pos);
 	}
 }
