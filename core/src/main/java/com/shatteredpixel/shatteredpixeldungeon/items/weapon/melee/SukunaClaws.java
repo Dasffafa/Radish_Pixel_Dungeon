@@ -17,7 +17,7 @@ public class SukunaClaws extends MeleeWeapon {
 
 	{
 		image = ItemSpriteSheet.SUKUNA_CLAWS;
-		tier = 5;
+		tier = 1;
 	}
 
 	public int clawLevel() {
@@ -71,7 +71,7 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int STRReq(int lvl) {
-		return 0;
+		return 10;
 	}
 
 	//不吃力量溢出加成，保持固定成长曲线
