@@ -3357,7 +3357,7 @@ public class Hero extends Char {
 					}
 					if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.distance(pos, c.pos) <= 3) {
 						c.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(
-								Math.round(damageRoll() * 0.5f), this));
+								Math.round(damageRoll() * 0.25f * master), this));
 					}
 				}
 			}
