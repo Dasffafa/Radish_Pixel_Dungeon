@@ -56,7 +56,35 @@ public class Fuga extends ArmorAbility {
 				com.shatteredpixel.shatteredpixeldungeon.effects.PixelExplosionEffect.showAtCell(cell);
 				com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(cell).burst(
 						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 14);
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap();
+
+				int w = Dungeon.level.width();
+				int cx = cell % w;
+				int cy = cell / w;
+				int blastRadius = 4;
+				boolean terrainAffected = false;
+				for (int dy = -blastRadius; dy <= blastRadius; dy++) {
+					for (int dx = -blastRadius; dx <= blastRadius; dx++) {
+						if (dx * dx + dy * dy > blastRadius * blastRadius) {
+							continue;
+						}
+						int x = cx + dx;
+						int y = cy + dy;
+						if (x < 0 || y < 0 || x >= w || y >= Dungeon.level.height()) {
+							continue;
+						}
+						int c = y * w + x;
+						if (Dungeon.level.flamable[c]) {
+							Dungeon.level.destroy(c);
+							com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap(c);
+							terrainAffected = true;
+						}
+						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(c, 6,
+								com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class);
+					}
+				}
+				if (terrainAffected) {
+					Dungeon.observe();
+				}
 
 				int dmg = 20 + hero.lvl * 2;
 				int radius = 4;
