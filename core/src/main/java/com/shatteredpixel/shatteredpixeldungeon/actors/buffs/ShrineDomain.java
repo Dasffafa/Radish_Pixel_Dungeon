@@ -23,7 +23,7 @@ public class ShrineDomain extends Buff {
 
 	@Override
 	public void detach() {
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.setDomainOverlay(false);
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.setDomainOverlay(false, center);
 		super.detach();
 	}
 
@@ -35,7 +35,7 @@ public class ShrineDomain extends Buff {
 		}
 		Hero hero = (Hero) target;
 
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.setDomainOverlay(true);
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.setDomainOverlay(true, center < 0 ? hero.pos : center);
 
 		int dmg = 10 + hero.lvl;
 		for (Char ch : Actor.chars()) {

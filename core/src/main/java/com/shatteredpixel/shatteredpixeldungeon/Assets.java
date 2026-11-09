@@ -34,6 +34,7 @@ public class Assets {
 		public static final String SWORD_SLASH    = "effects/cc0/sword_slash.png";
 	public static final String SUKUNA_SLASH  = "effects/sukuna_slash.png";
 	public static final String DOMAIN_RED    = "effects/domain_red.png";
+	public static final String DOMAIN_CIRCLE = "effects/domain_circle.png";
 		public static final String PIXEL_EXPLOSION= "effects/cc0/pixel_explosion.png";
 		public static final String SIMPLE_FX      = "effects/cc0/simplefx.png";
 	}

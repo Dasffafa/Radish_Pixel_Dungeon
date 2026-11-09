@@ -1285,19 +1285,22 @@ public class GameScene extends PixelScene {
 	}
 
 	//updates the whole map
-	public static void setDomainOverlay(boolean on) {
+	public static void setDomainOverlay(boolean on, int center) {
 		if (scene == null) {
 			return;
 		}
 		if (on) {
 			if (scene.domainOverlay == null) {
 				com.watabou.noosa.Image img = new com.watabou.noosa.Image(
-						com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.DOMAIN_RED);
-				img.scale.set(Dungeon.level.width() * 16f / img.width,
-						Dungeon.level.height() * 16f / img.height);
-				img.alpha(0.28f);
-				img.x = 0;
-				img.y = 0;
+						com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.DOMAIN_CIRCLE);
+				float radiusTiles = 20f;
+				float diameter = radiusTiles * 2 * 16f;
+				img.scale.set(diameter / img.width, diameter / img.height);
+				int w = Dungeon.level.width();
+				float cx = (center % w) * 16f + 8f;
+				float cy = (center / w) * 16f + 8f;
+				img.x = cx - diameter / 2f;
+				img.y = cy - diameter / 2f;
 				scene.domainOverlay = img;
 				scene.add(img);
 			}
