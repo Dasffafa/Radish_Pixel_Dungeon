@@ -105,6 +105,12 @@ public class Talent {
 	public String name(){ return name; }
 	public int maxPoints(){ return maxPoints; }
 
+	public static final Talent CURSED_SURGE = new Talent("CURSED_SURGE");
+	public static final Talent BLOODTHIRST = new Talent("BLOODTHIRST");
+	public static final Talent COMBAT_INSTINCT = new Talent("COMBAT_INSTINCT");
+	public static final Talent BLOODLUST = new Talent("BLOODLUST");
+	public static final Talent IRON_BODY = new Talent("IRON_BODY");
+
 	public static final Talent QIANREN_ECHO = new Talent("QIANREN_ECHO");
 	public static final Talent QIANREN_REACH = new Talent("QIANREN_REACH");
 	public static final Talent DUANZUI_EXECUTE = new Talent("DUANZUI_EXECUTE");

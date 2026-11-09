@@ -78,6 +78,16 @@ public class SukunaClaws extends MeleeWeapon {
 		int dmg = augment.damageFactor(Random.NormalIntRange(min(0), max(0)));
 		if (owner instanceof Hero) {
 			Hero h = (Hero) owner;
+			if (owner.HP >= owner.HT) {
+				dmg = Math.round(dmg * (1f + 0.08f * h.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODTHIRST)));
+			}
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust lust =
+					h.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class);
+			if (lust != null) {
+				dmg = Math.round(dmg * (1f + 0.05f * lust.stacks()
+						* h.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODLUST)));
+			}
 			dmg = Math.round(dmg * (1f + 0.10f * h.pointsInTalent(
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLAW_MASTERY)));
 			if (owner.HP < owner.HT * 0.3f) {
@@ -102,6 +112,13 @@ public class SukunaClaws extends MeleeWeapon {
 
 		Hero hero = attacker instanceof Hero ? (Hero) attacker : null;
 		boolean condemn = hero != null && hero.subClass == HeroSubClasses.DUANZUI;
+
+		if (hero != null && defender.isAlive() && hero.pointsInTalent(
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.COMBAT_INSTINCT) > 0
+				&& Random.Float() < 0.10f * hero.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.COMBAT_INSTINCT)) {
+			defender.damage(DamageInfo.physical(Math.round(damage * 0.5f), attacker));
+		}
 
 		if (condemn && defender.isAlive()) {
 			float bonus = 0.5f;
@@ -137,6 +154,16 @@ public class SukunaClaws extends MeleeWeapon {
 		}
 
 		if (hero != null && !defender.isAlive()) {
+			int hastePoints = hero.pointsInTalent(
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSED_SURGE);
+			if (hastePoints > 0) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
+						com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste.class, 2f * hastePoints);
+			}
+			if (hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODLUST) > 0) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
+						com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class).addStack();
+			}
 			int heal = 1 + hero.pointsInTalent(
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_FEAST);
 			if (hero.subClass == HeroSubClasses.HUISHENG) {
