@@ -76,6 +76,8 @@ public class WndHeroInfo extends WndTabbed {
 			tabIcon = new ItemSprite(ItemSpriteSheet.SNAKE_BITED_YENDOR, null);
 		} else if (cl == HeroClasses.CARDTRICKSTER) {
 			tabIcon = new ItemSprite(ItemSpriteSheet.CARD_DRAWER, null);
+		} else if (cl == HeroClasses.SUKUNA) {
+			tabIcon = new ItemSprite(ItemSpriteSheet.SUKUNA_CLAWS, null);
 		} else {
 			tabIcon = new ItemSprite(ItemSpriteSheet.SEAL, null);
 		}
