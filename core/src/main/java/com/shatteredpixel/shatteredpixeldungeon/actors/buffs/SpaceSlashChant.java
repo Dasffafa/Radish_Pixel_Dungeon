@@ -12,11 +12,27 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 public class SpaceSlashChant extends Buff {
 
 	private int stage = 0;
+	private float dirX = 1f;
+	private float dirY = 0f;
 
 	public float startedAt = 0f;
 
 	{
 		actPriority = 1;
+	}
+
+	public void setDirection(Hero hero, int target) {
+		int w = Dungeon.level.width();
+		float dx = (target % w) - (hero.pos % w);
+		float dy = (target / w) - (hero.pos / w);
+		float len = (float) Math.sqrt(dx * dx + dy * dy);
+		if (len == 0) {
+			dirX = 1f;
+			dirY = 0f;
+		} else {
+			dirX = dx / len;
+			dirY = dy / len;
+		}
 	}
 
 	@Override
@@ -32,8 +48,9 @@ public class SpaceSlashChant extends Buff {
 			GLog.p(Messages.get(this, "dragon_scale"));
 		} else if (stage == 2) {
 			GLog.p(Messages.get(this, "repulsion"));
-		} else {
+		} else if (stage == 3) {
 			GLog.p(Messages.get(this, "meteor"));
+		} else {
 			fire(hero);
 			detach();
 			return true;
@@ -45,34 +62,6 @@ public class SpaceSlashChant extends Buff {
 
 	private void fire(Hero hero) {
 		int w = Dungeon.level.width();
-		float dx, dy;
-
-		Char nearest = null;
-		float best = Float.MAX_VALUE;
-		for (Char ch : Actor.chars()) {
-			if (ch == hero || !ch.isAlive()) {
-				continue;
-			}
-			float d = Dungeon.level.distance(hero.pos, ch.pos);
-			if (d < best) {
-				best = d;
-				nearest = ch;
-			}
-		}
-		if (nearest != null) {
-			dx = (nearest.pos % w) - (hero.pos % w);
-			dy = (nearest.pos / w) - (hero.pos / w);
-		} else {
-			dx = hero.sprite.flipHorizontal ? -1 : 1;
-			dy = 0;
-		}
-		float len = (float) Math.sqrt(dx * dx + dy * dy);
-		if (len == 0) {
-			dx = 1; dy = 0; len = 1;
-		}
-		dx /= len;
-		dy /= len;
-
 		int range = Math.max(Dungeon.level.width(), Dungeon.level.height());
 		int dmg = 40 + hero.lvl * 3;
 
@@ -82,13 +71,13 @@ public class SpaceSlashChant extends Buff {
 			}
 			float vx = (ch.pos % w) - (hero.pos % w);
 			float vy = (ch.pos / w) - (hero.pos / w);
-			float proj = vx * dx + vy * dy;
-			float perp = Math.abs(vx * dy - vy * dx);
+			float proj = vx * dirX + vy * dirY;
+			float perp = Math.abs(vx * dirY - vy * dirX);
 			if (proj > 0 && proj <= range && perp <= 1.2f) {
 				ch.damage(DamageInfo.physical(dmg, hero));
 			}
 		}
 
-		SukunaSlashEffect.showGiant(hero, dx, dy, range);
+		SukunaSlashEffect.showGiant(hero, dirX, dirY, range);
 	}
 }

@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 
 public class SpaceSlash extends ArmorAbility {
@@ -35,9 +36,14 @@ public class SpaceSlash extends ArmorAbility {
 		if (hero.buff(SpaceSlashChant.class) != null) {
 			return;
 		}
+		if (target == null || target == hero.pos) {
+			return;
+		}
+
 		armor.charge -= chargeUse(hero);
 		Item.updateQuickslot();
 		SpaceSlashChant chant = Buff.affect(hero, SpaceSlashChant.class);
 		chant.startedAt = com.watabou.noosa.Game.timeTotal;
+		chant.setDirection(hero, target);
 	}
 }
