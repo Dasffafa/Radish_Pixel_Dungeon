@@ -73,7 +73,7 @@ public class SpaceSlashChant extends Buff {
 			float vy = (ch.pos / w) - (hero.pos / w);
 			float proj = vx * dirX + vy * dirY;
 			float perp = Math.abs(vx * dirY - vy * dirX);
-			if (proj > 0 && proj <= range && perp <= 1.2f) {
+			if (proj > 0 && proj <= range && perp <= 2.2f) {
 				ch.damage(DamageInfo.physical(dmg, hero));
 			}
 		}
