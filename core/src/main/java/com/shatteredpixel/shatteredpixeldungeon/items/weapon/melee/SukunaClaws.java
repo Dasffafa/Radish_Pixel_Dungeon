@@ -235,14 +235,7 @@ public class SukunaClaws extends MeleeWeapon {
 	}
 
 	private void showBlackFlash(Char attacker, Char defender) {
-		com.shatteredpixel.shatteredpixeldungeon.effects.Lightning bolt =
-				new com.shatteredpixel.shatteredpixeldungeon.effects.Lightning(
-						attacker.sprite.center(), defender.sprite.center(), null);
-		attacker.sprite.parent.add(bolt);
-		defender.sprite.flash();
-		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.center(defender.pos).burst(
-				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.SMOKE), 12);
+		com.shatteredpixel.shatteredpixeldungeon.effects.BlackFlashEffect.show(defender);
 	}
 
 	private static final String RANGED = "ranged";
