@@ -160,7 +160,13 @@ public class SukunaClaws extends MeleeWeapon {
 				slashing = false;
 				GLog.w(Messages.get(this, "no_energy"));
 			} else {
-				energy.spend(10);
+				int freeChance = hero.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.COMBAT_INSTINCT);
+				boolean free = freeChance > 0
+						&& Random.Float() < (freeChance >= 2 ? 0.20f : 0.10f);
+				if (!free) {
+					energy.spend(10);
+				}
 				com.shatteredpixel.shatteredpixeldungeon.effects.SlashLinesEffect.show(defender, 4);
 				if (energy.energy() <= 0) {
 					ranged = false;
@@ -172,13 +178,6 @@ public class SukunaClaws extends MeleeWeapon {
 
 		int result = super.proc(attacker, defender, damage);
 		boolean condemn = hero != null && hero.subClass == HeroSubClasses.DUANZUI;
-
-		if (hero != null && defender.isAlive() && hero.pointsInTalent(
-				com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.COMBAT_INSTINCT) > 0
-				&& Random.Float() < 0.08f * hero.pointsInTalent(
-						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.COMBAT_INSTINCT)) {
-			defender.damage(DamageInfo.physical(Math.round(damage * 0.5f), attacker));
-		}
 
 		if (condemn && defender.isAlive()) {
 			float bonus = 0.5f;
