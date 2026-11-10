@@ -54,7 +54,7 @@ public class ShrineDomain extends Buff {
 				continue;
 			}
 			if (Dungeon.level.distance(center < 0 ? hero.pos : center, ch.pos) <= radius) {
-				com.shatteredpixel.shatteredpixeldungeon.effects.BloodSlashEffect.show(hero, ch);
+				com.shatteredpixel.shatteredpixeldungeon.effects.SlashLinesEffect.show(ch);
 				ch.damage(DamageInfo.physical(dmg, hero));
 			}
 		}

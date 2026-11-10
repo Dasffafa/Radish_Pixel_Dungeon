@@ -6,7 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect;
+import com.shatteredpixel.shatteredpixeldungeon.effects.SlashLinesEffect;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -108,7 +108,7 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		SukunaSlashEffect.show(attacker, defender);
+		SlashLinesEffect.show(defender);
 
 		int result = super.proc(attacker, defender, damage);
 
@@ -146,7 +146,7 @@ public class SukunaClaws extends MeleeWeapon {
 					continue;
 				}
 				if (Dungeon.level.distance(attacker.pos, ch.pos) <= reach()) {
-					com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, ch);
+					SlashLinesEffect.show(ch);
 					int dmg = Random.NormalIntRange(min(0), max(0));
 					if (hero != null) {
 						dmg += 2 * hero.pointsInTalent(
