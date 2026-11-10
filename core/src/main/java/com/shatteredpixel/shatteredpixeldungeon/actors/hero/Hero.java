@@ -3339,6 +3339,16 @@ public class Hero extends Char {
 			}
 			HP = Math.min(HT, HP + heal);
 
+			//近战击杀回复咒力
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy ce =
+					buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
+			if (ce != null
+					&& belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws
+					&& !((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws)
+							belongings.weapon()).isRanged()) {
+				ce.add(5);
+			}
+
 			//血肉盛宴：击杀非机械类敌人有几率掉落神秘肉
 			int feast = pointsInTalent(Talent.SUKUNA_FEAST);
 			if (feast > 0 && !enemy.properties().contains(Char.Property.INORGANIC)

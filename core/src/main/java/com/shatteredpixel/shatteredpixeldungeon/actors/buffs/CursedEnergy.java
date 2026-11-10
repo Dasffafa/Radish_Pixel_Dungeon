@@ -37,6 +37,10 @@ public class CursedEnergy extends Buff {
 		energy = Math.max(0, energy - amount);
 	}
 
+	public void add(int amount) {
+		energy = Math.min(max(), energy + amount);
+	}
+
 	public void restoreAll() {
 		energy = max();
 	}
