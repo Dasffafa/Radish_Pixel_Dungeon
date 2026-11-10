@@ -3332,12 +3332,23 @@ public class Hero extends Char {
 			Buff.affect(hero, Adrenaline.class,2f+hero.pointsInTalent(Talent.ADRENAL_COMBAT));
 		}
 		if (!enemy.isAlive() && belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
-			int heal = 1 + pointsInTalent(Talent.SUKUNA_FEAST)
-					+ pointsInTalent(Talent.HUISHENG_HEAL);
+			int heal = 1 + pointsInTalent(Talent.HUISHENG_HEAL)
+					+ pointsInTalent(Talent.HUISHENG_REGEN);
 			if (subClass == HeroSubClasses.HUISHENG) {
 				heal *= 2;
 			}
 			HP = Math.min(HT, HP + heal);
+
+			//血肉盛宴：击杀非机械类敌人有几率掉落神秘肉
+			int feast = pointsInTalent(Talent.SUKUNA_FEAST);
+			if (feast > 0 && !enemy.properties().contains(Char.Property.INORGANIC)
+					&& enemy != this) {
+				float chance = feast >= 2 ? 0.15f : 0.10f;
+				if (Random.Float() < chance) {
+					Dungeon.level.drop(new com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat(),
+							enemy.pos).sprite.drop();
+				}
+			}
 
 			int surge = pointsInTalent(Talent.CURSED_SURGE);
 			if (surge > 0) {
