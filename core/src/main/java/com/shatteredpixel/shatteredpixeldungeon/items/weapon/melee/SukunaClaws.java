@@ -6,7 +6,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.effects.SlashLinesEffect;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -30,6 +29,11 @@ public class SukunaClaws extends MeleeWeapon {
 
 	public void setRanged(boolean value) {
 		ranged = value;
+	}
+
+	public void toggleStance() {
+		ranged = !ranged;
+		GLog.i(Messages.get(this, ranged ? "to_ranged" : "to_melee"));
 	}
 
 	public int clawLevel() {
@@ -163,10 +167,6 @@ public class SukunaClaws extends MeleeWeapon {
 			}
 		}
 
-		if (!slashing) {
-			SlashLinesEffect.show(defender);
-		}
-
 		int result = super.proc(attacker, defender, damage);
 		boolean condemn = hero != null && hero.subClass == HeroSubClasses.DUANZUI;
 
@@ -201,7 +201,6 @@ public class SukunaClaws extends MeleeWeapon {
 					continue;
 				}
 				if (Dungeon.level.distance(attacker.pos, ch.pos) <= reach()) {
-					SlashLinesEffect.show(ch);
 					int dmg = Random.NormalIntRange(min(0), max(0));
 					if (hero != null) {
 						dmg += 2 * hero.pointsInTalent(

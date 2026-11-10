@@ -205,6 +205,7 @@ public class GameScene extends PixelScene {
 	private LootIndicator loot;
 	private ActionIndicator action;
 	private com.shatteredpixel.shatteredpixeldungeon.ui.SukunaSlashButton sukunaSkill;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.SukunaStanceButton sukunaStance;
 	private com.watabou.noosa.Image domainOverlay;
 	private ResumeIndicator resume;
 
@@ -383,6 +384,11 @@ public class GameScene extends PixelScene {
 		resume = new ResumeIndicator();
 		resume.camera = uiCamera;
 		add( resume );
+
+		sukunaStance = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaStanceButton();
+		sukunaStance.camera = uiCamera;
+		sukunaStance.setRect(uiCamera.width - 56, uiCamera.height - 144, 40, 40);
+		add( sukunaStance );
 
 		sukunaSkill = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaSlashButton();
 		sukunaSkill.camera = uiCamera;
@@ -856,6 +862,14 @@ public class GameScene extends PixelScene {
 					&& Dungeon.hero.isAlive()
 					&& Dungeon.hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpaceSlashChant.class) != null;
 			sukunaSkill.setRect(uiCamera.width - 56, uiCamera.height - 96, 40, 40);
+		}
+		if (sukunaStance != null) {
+			sukunaStance.visible = Dungeon.hero != null
+					&& Dungeon.hero.heroClass == HeroClasses.SUKUNA
+					&& Dungeon.hero.isAlive()
+					&& Dungeon.hero.belongings.weapon() instanceof
+							com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws;
+			sukunaStance.setRect(uiCamera.width - 56, uiCamera.height - 144, 40, 40);
 		}
 
 		if (updateTags){
