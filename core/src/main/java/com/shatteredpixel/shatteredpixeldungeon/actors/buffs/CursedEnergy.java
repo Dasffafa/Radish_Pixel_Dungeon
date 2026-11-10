@@ -27,7 +27,10 @@ public class CursedEnergy extends Buff {
 	public int max() {
 		Hero hero = target instanceof Hero ? (Hero) target : Dungeon.hero;
 		int lvl = hero == null ? 1 : Math.max(1, hero.lvl);
-		return BASE_MAX + PER_LEVEL * (lvl - 1);
+		int bonus = hero == null ? 0
+				: 10 * hero.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSED_SURGE);
+		return BASE_MAX + PER_LEVEL * (lvl - 1) + bonus;
 	}
 
 	public void spend(int amount) {

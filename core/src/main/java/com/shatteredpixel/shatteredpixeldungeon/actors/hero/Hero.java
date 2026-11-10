@@ -3350,10 +3350,6 @@ public class Hero extends Char {
 				}
 			}
 
-			int surge = pointsInTalent(Talent.CURSED_SURGE);
-			if (surge > 0) {
-				Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste.class, surge);
-			}
 			if (pointsInTalent(Talent.BLOODLUST) > 0) {
 				Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bloodlust.class).addStack();
 			}
