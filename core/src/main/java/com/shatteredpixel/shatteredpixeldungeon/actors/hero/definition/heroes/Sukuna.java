@@ -50,6 +50,8 @@ public class Sukuna extends HeroDefinition {
 		hero.belongings.armor = new com.shatteredpixel.shatteredpixeldungeon.items.armor.CurseKimono();
 		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ReverseCursedTechnique.class);
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(hero,
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
 		com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon senbon =
 				new com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon();
 		senbon.quantity(2).collect();

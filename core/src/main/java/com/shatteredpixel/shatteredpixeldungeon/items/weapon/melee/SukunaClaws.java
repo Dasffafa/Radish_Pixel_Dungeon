@@ -15,9 +15,21 @@ import com.watabou.utils.Random;
 /** 宿傩专属武器，随角色等级成长而非卷轴强化，无法卸下。 */
 public class SukunaClaws extends MeleeWeapon {
 
+	public static final String AC_SWITCH = "SWITCH";
+
+	private boolean ranged = false;
+
 	{
 		image = ItemSpriteSheet.SUKUNA_CLAWS;
 		tier = 1;
+	}
+
+	public boolean isRanged() {
+		return ranged;
+	}
+
+	public void setRanged(boolean value) {
+		ranged = value;
 	}
 
 	public int clawLevel() {
@@ -29,6 +41,9 @@ public class SukunaClaws extends MeleeWeapon {
 	}
 
 	public int reach() {
+		if (!ranged) {
+			return 1;
+		}
 		int base = 2 + clawLevel();
 		Hero hero = Dungeon.hero;
 		if (hero != null && hero.subClass == HeroSubClasses.QIANREN) {
@@ -46,12 +61,12 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int min(int lvl) {
-		return 2 + clawLevel();
+		return 3 + clawLevel();
 	}
 
 	@Override
 	public int max(int lvl) {
-		return 4 + clawLevel();
+		return 5 + clawLevel();
 	}
 
 	@Override
@@ -72,6 +87,24 @@ public class SukunaClaws extends MeleeWeapon {
 	@Override
 	public int STRReq(int lvl) {
 		return 10;
+	}
+
+	@Override
+	public java.util.ArrayList<String> actions(Hero hero) {
+		java.util.ArrayList<String> actions = super.actions(hero);
+		actions.add(AC_SWITCH);
+		return actions;
+	}
+
+	@Override
+	public void execute(Hero hero, String action) {
+		super.execute(hero, action);
+		if (AC_SWITCH.equals(action)) {
+			ranged = !ranged;
+			GLog.i(Messages.get(this, ranged ? "to_ranged" : "to_melee"));
+			com.shatteredpixel.shatteredpixeldungeon.items.Item.updateQuickslot();
+			hero.spendAndNext(1f);
+		}
 	}
 
 	@Override
@@ -108,11 +141,33 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		SlashLinesEffect.show(defender);
+		Hero hero = attacker instanceof Hero ? (Hero) attacker : null;
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy energy =
+				hero == null ? null : hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
+
+		boolean slashing = ranged;
+		if (slashing && energy != null) {
+			if (energy.energy() < 10) {
+				//咒力不足，自动切回近战
+				ranged = false;
+				slashing = false;
+				GLog.w(Messages.get(this, "no_energy"));
+			} else {
+				energy.spend(10);
+				com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, defender);
+				if (energy.energy() <= 0) {
+					ranged = false;
+					GLog.w(Messages.get(this, "no_energy"));
+				}
+				com.shatteredpixel.shatteredpixeldungeon.items.Item.updateQuickslot();
+			}
+		}
+
+		if (!slashing) {
+			SlashLinesEffect.show(defender);
+		}
 
 		int result = super.proc(attacker, defender, damage);
-
-		Hero hero = attacker instanceof Hero ? (Hero) attacker : null;
 		boolean condemn = hero != null && hero.subClass == HeroSubClasses.DUANZUI;
 
 		if (hero != null && defender.isAlive() && hero.pointsInTalent(
@@ -165,6 +220,43 @@ public class SukunaClaws extends MeleeWeapon {
 			}
 		}
 
+		//近战形态 5% 概率触发黑闪
+		if (!slashing && hero != null && defender.isAlive() && Random.Float() < 0.05f) {
+			int base = Math.max(1, result);
+			int blackFlash = (int) Math.round(Math.pow(base, 2.5));
+			showBlackFlash(attacker, defender);
+			if (energy != null) {
+				energy.restoreAll();
+			}
+			GLog.p(Messages.get(this, "black_flash"));
+			return blackFlash;
+		}
+
 		return result;
+	}
+
+	private void showBlackFlash(Char attacker, Char defender) {
+		com.shatteredpixel.shatteredpixeldungeon.effects.Lightning bolt =
+				new com.shatteredpixel.shatteredpixeldungeon.effects.Lightning(
+						attacker.sprite.center(), defender.sprite.center(), null);
+		attacker.sprite.parent.add(bolt);
+		defender.sprite.flash();
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.center(defender.pos).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.SMOKE), 12);
+	}
+
+	private static final String RANGED = "ranged";
+
+	@Override
+	public void storeInBundle(com.watabou.utils.Bundle bundle) {
+		super.storeInBundle(bundle);
+		bundle.put(RANGED, ranged);
+	}
+
+	@Override
+	public void restoreFromBundle(com.watabou.utils.Bundle bundle) {
+		super.restoreFromBundle(bundle);
+		ranged = bundle.getBoolean(RANGED);
 	}
 }
