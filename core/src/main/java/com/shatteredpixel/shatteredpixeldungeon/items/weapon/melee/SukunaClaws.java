@@ -177,6 +177,12 @@ public class SukunaClaws extends MeleeWeapon {
 		}
 
 		int result = super.proc(attacker, defender, damage);
+
+		//对满血目标额外伤害
+		if (hero != null && defender.HP >= defender.HT) {
+			result += hero.pointsInTalent(
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSED_SURGE);
+		}
 		boolean condemn = hero != null && hero.subClass == HeroSubClasses.DUANZUI;
 
 		if (condemn && defender.isAlive()) {
