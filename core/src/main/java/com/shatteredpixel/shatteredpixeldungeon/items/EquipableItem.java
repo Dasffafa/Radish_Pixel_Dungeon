@@ -206,6 +206,9 @@ public abstract class EquipableItem extends Item {
 
 
 		if (cursed
+				&& !(hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA
+						&& hero.pointsInTalent(
+								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSE_MASTER) >= 2)
 				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.canHandleCursed( hero )
 				&& hero.buff(MagicImmune.class) == null
 				&& (!hero.belongings.lostInventory() || keptThroughLostInventory())) {

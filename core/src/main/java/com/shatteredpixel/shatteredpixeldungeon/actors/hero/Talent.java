@@ -134,6 +134,8 @@ public class Talent {
 	public static final Talent HUISHENG_HEAL = new Talent("HUISHENG_HEAL", 3);
 	public static final Talent HUISHENG_REGEN = new Talent("HUISHENG_REGEN", 4);
 
+	public static final Talent CURSE_MASTER = new Talent("CURSE_MASTER");
+
 	public static final Talent SUKUNA_FEAST = new Talent("SUKUNA_FEAST");
 	public static final Talent SUKUNA_CLAW_MASTERY = new Talent("SUKUNA_CLAW_MASTERY");
 	public static final Talent SUKUNA_REACH = new Talent("SUKUNA_REACH");
