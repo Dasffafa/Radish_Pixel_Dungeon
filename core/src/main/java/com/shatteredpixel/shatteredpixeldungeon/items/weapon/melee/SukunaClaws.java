@@ -103,7 +103,7 @@ public class SukunaClaws extends MeleeWeapon {
 			ranged = !ranged;
 			GLog.i(Messages.get(this, ranged ? "to_ranged" : "to_melee"));
 			com.shatteredpixel.shatteredpixeldungeon.items.Item.updateQuickslot();
-			hero.spendAndNext(1f);
+			hero.ready();
 		}
 	}
 
