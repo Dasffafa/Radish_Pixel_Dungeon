@@ -12,7 +12,7 @@ public class CursedEnergy extends Buff {
 
 	public static final int BASE_MAX = 100;
 	public static final int PER_LEVEL = 10;
-	public static final int REGEN = 10;
+	public static final int REGEN = 1;
 
 	private int energy = BASE_MAX;
 
