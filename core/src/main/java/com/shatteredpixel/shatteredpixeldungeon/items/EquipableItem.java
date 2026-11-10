@@ -121,6 +121,17 @@ public abstract class EquipableItem extends Item {
 			doEquip(hero);
 			// 魔武士：装备被诅咒的物品时把诅咒转化为随机附魔
 			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.purgeCurseOnEquip( hero, this );
+
+			//诅咒师：宿傩穿戴诅咒装备时直接净化
+			if (cursed
+					&& hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA
+					&& hero.pointsInTalent(
+							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSE_MASTER) >= 2) {
+				cursed = false;
+				cursedKnown = true;
+				hero.sprite.emitter().burst(
+						com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle.UP, 8);
+			}
 			if (slot != -1) {
 				Dungeon.quickslot.setSlot( slot, this );
 				updateQuickslot();
@@ -206,9 +217,6 @@ public abstract class EquipableItem extends Item {
 
 
 		if (cursed
-				&& !(hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA
-						&& hero.pointsInTalent(
-								com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSE_MASTER) >= 2)
 				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.canHandleCursed( hero )
 				&& hero.buff(MagicImmune.class) == null
 				&& (!hero.belongings.lostInventory() || keptThroughLostInventory())) {
