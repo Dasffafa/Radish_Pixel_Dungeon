@@ -33,11 +33,14 @@ public class SlashLinesEffect extends Group {
 	private void build(int count, PointF center) {
 		for (int i = 0; i < count; i++) {
 			Image line = new Image(Assets.Effects.SLASH_LINE);
-			float length = Random.Float(16f, 26f);
-			line.scale.set(length / line.width, Random.Float(0.8f, 1.3f));
+			float length = Random.Float(36f, 54f);
+			float sx = length / line.width;
+			float sy = Random.Float(0.45f, 0.7f);
+			line.origin.set(line.width / 2f, line.height / 2f);
+			line.scale.set(sx, sy);
 			line.angle = Random.Float(0, 180);
-			line.x = center.x - length / 2f + Random.Float(-5f, 5f);
-			line.y = center.y - 3f + Random.Float(-8f, 8f);
+			line.x = center.x - line.width / 2f + Random.Float(-3f, 3f);
+			line.y = center.y - line.height / 2f + Random.Float(-6f, 6f);
 			add(line);
 			lines.add(line);
 		}
