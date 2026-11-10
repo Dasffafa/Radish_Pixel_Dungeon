@@ -21,6 +21,9 @@ public class SukunaClaws extends MeleeWeapon {
 	{
 		image = ItemSpriteSheet.SUKUNA_CLAWS;
 		tier = 1;
+
+		//放进快捷栏后点击即可切换形态，而不是投掷
+		defaultAction = AC_SWITCH;
 	}
 
 	public boolean isRanged() {
