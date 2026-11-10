@@ -161,7 +161,7 @@ public class SukunaClaws extends MeleeWeapon {
 				GLog.w(Messages.get(this, "no_energy"));
 			} else {
 				energy.spend(10);
-				com.shatteredpixel.shatteredpixeldungeon.effects.SukunaSlashEffect.show(attacker, defender);
+				com.shatteredpixel.shatteredpixeldungeon.effects.SlashLinesEffect.show(defender, 4);
 				if (energy.energy() <= 0) {
 					ranged = false;
 					GLog.w(Messages.get(this, "no_energy"));
