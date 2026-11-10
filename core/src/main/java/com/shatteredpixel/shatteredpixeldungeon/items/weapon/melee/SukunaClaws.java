@@ -46,12 +46,12 @@ public class SukunaClaws extends MeleeWeapon {
 
 	@Override
 	public int min(int lvl) {
-		return 2 + 2 * clawLevel();
+		return 2 + clawLevel();
 	}
 
 	@Override
 	public int max(int lvl) {
-		return 4 + 2 * clawLevel();
+		return 4 + clawLevel();
 	}
 
 	@Override
@@ -74,10 +74,10 @@ public class SukunaClaws extends MeleeWeapon {
 		return 10;
 	}
 
-	//不吃力量溢出加成，保持固定成长曲线
 	@Override
 	public int damageRoll(Char owner) {
-		int dmg = augment.damageFactor(Random.NormalIntRange(min(0), max(0)));
+		//走标准近战结算，正常获得力量溢出加成
+		int dmg = super.damageRoll(owner);
 		if (owner instanceof Hero) {
 			Hero h = (Hero) owner;
 			if (owner.HP >= owner.HT) {
