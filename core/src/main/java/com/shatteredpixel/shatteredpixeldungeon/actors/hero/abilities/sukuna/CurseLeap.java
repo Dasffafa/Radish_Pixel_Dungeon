@@ -101,28 +101,31 @@ public class CurseLeap {
 
 		final int from = hero.pos;
 		final int to = dest;
-		final Char target = enemy;
-		hero.busy();
+
+		//闪现：原地与落点各爆一圈光，瞬间位移
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(from).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.DUST), 6);
-		hero.sprite.jump(from, to, 8f, 0.5f, new Callback() {
-			@Override
-			public void call() {
-				hero.move(to);
-				Dungeon.level.occupyCell(hero);
-				Dungeon.observe();
-				GameScene.updateFog();
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 10);
 
-				if (target.isAlive()) {
-					int dmg = Math.max(1, Math.round(hero.damageRoll()));
-					SlashLinesEffect.show(target, 4);
-					target.damage(DamageInfo.physical(dmg, hero));
-				}
-				hero.spendAndNext(1f);
-				hero.ready();
-			}
-		});
+		hero.move(to);
+		Dungeon.level.occupyCell(hero);
+		Dungeon.observe();
+		GameScene.updateFog();
+
+		hero.sprite.flash();
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(to).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 10);
+
+		//伤害按一次普通攻击计算
+		if (enemy.isAlive()) {
+			int dmg = Math.max(1, hero.damageRoll());
+			SlashLinesEffect.show(enemy, 4);
+			enemy.damage(DamageInfo.physical(dmg, hero));
+		}
+
+		hero.spendAndNext(1f);
+		hero.ready();
 	}
 
 	private static int destination(Hero hero, int enemyPos) {
