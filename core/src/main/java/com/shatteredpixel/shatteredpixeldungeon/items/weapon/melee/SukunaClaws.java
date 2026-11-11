@@ -130,10 +130,6 @@ public class SukunaClaws extends MeleeWeapon {
 				dmg = Math.round(dmg * (1f + 0.03f * lust.stacks()
 						* h.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.BLOODLUST)));
 			}
-			if (owner.HP < owner.HT * 0.3f) {
-				dmg = Math.round(dmg * (1.15f + 0.08f * h.pointsInTalent(
-						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_LOW_HP)));
-			}
 		}
 		return dmg;
 	}
