@@ -58,7 +58,6 @@ public class SukunaClaws extends MeleeWeapon {
 			base += 2;
 		}
 		if (hero != null) {
-			base += hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_REACH);
 			base += hero.pointsInTalent(
 					com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.QIANREN_REACH);
 			base += hero.pointsInTalent(

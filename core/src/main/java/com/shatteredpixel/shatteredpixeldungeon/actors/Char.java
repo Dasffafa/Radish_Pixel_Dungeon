@@ -924,6 +924,23 @@ public abstract class Char extends Actor {
         }
         int dmg = info.getDamage();
 
+        // 宿傩·咒力护体：按当前咒力比例获得最多 10%/15% 伤害减免
+        if (this instanceof com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) {
+            com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero h =
+                    (com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero) this;
+            if (h.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA) {
+                int pts = h.pointsInTalent(
+                        com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_REACH);
+                com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy ce =
+                        buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
+                if (pts > 0 && ce != null && ce.max() > 0) {
+                    float ratio = Math.min(1f, ce.energy() / (float) ce.max());
+                    float maxReduction = pts >= 2 ? 0.15f : 0.10f;
+                    info.addFinalMultModifier(1f - ratio * maxReduction, "sukuna_curse_guard");
+                }
+            }
+        }
+
         // NPC overrides still receive the hit, while base NPC damage remains immune.
         if (properties.contains(Property.NPC) && !isDamageable()) {
             return new DamageResult(info.getBaseDamage(), dmg, 0, 0, 0, 0, true);
