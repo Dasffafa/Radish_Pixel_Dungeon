@@ -14,27 +14,19 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ButterflyField;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.WeaponDamageTypes;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
-import com.shatteredpixel.shatteredpixeldungeon.mechanics.ConeAOE;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.particles.Emitter;
-import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
-import java.util.ArrayList;
-
-/** 圣宣：四阶长鞭，4 倍速、射程 8，命中撒黑白蝴蝶；武技「哀悼」铺扇形蝴蝶场地。
- *  伤害类型框架已剥离，按方案 A 走普通物理口径，仅保留粒子观感。 */
+/** 圣宣：四阶长鞭，4 倍速、射程 8。命中撒黑白蝴蝶、随机造成神圣/腐蚀伤害，
+ *  并有低概率在目标脚下留下蝴蝶场地。原武技「哀悼」依赖决斗家，本项目无此角色，已改为被动。 */
 public class HolyDecree extends Whip {
 
 	{
@@ -79,87 +71,22 @@ public class HolyDecree extends Whip {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-		if (damage > 0) emitButterflies( defender );
+		if (damage > 0 && defender != null && defender.isAlive()){
+			emitButterflies( defender );
+			// 原设计「每击 50% 精神 / 50% 侵蚀」是伤害类型标签；本项目没有那套接口，
+			// 改为追加 1 点对应类型的伤害，类型统一走 WeaponDamageTypes 的映射。
+			defender.damage( new DamageInfo( 1,
+					Random.Int(2) == 0 ? WeaponDamageTypes.PSYCHIC : WeaponDamageTypes.CORROSION,
+					attacker, this, this ) );
+			// 低概率留一小片蝴蝶场地，保留「哀悼」的观感但不需要决斗家武技。
+			if (Random.Float() < 0.1f && Dungeon.level != null){
+				GameScene.add( Blob.seed( defender.pos, 4 + buffedLvl(), ButterflyField.class ) );
+			}
+		}
 		return super.proc( attacker, defender, damage );
 	}
 
-	// ====================== 武技「哀悼」 ======================
-
-	public static final float CONE_RADIUS = 8f;
-	public static final float CONE_DEGREES = 60f;
-
-	public static int mourningDuration( int lvl ){ return 8 + 2*lvl; }
-
+	/** 本项目没有决斗家，不展示任何武技说明。 */
 	@Override
-	public String targetingPrompt() { return Messages.get( this, "prompt" ); }
-
-	@Override
-	protected int baseChargeUse(Hero hero, Char target){ return 2; }
-
-	@Override
-	protected void duelistAbility(Hero hero, Integer target) {
-		if (target == null) return;
-		final int dst = target;
-		if (!Dungeon.level.heroFOV[dst]){
-			GLog.w( Messages.get( this, "ability_no_target" ) );
-			return;
-		}
-		if (Dungeon.level.trueDistance( hero.pos, dst ) > CONE_RADIUS){
-			GLog.w( Messages.get( this, "ability_target_range" ) );
-			return;
-		}
-
-		Ballistica dir = new Ballistica( hero.pos, dst, Ballistica.WONT_STOP );
-		int farCell = dir.path.get( Math.min( dir.path.size()-1, Math.round( CONE_RADIUS ) ) );
-		final Ballistica aim = new Ballistica( hero.pos, farCell, Ballistica.STOP_SOLID );
-
-		hero.sprite.attack( dst, new Callback() {
-			@Override
-			public void call() {
-				ConeAOE cone = new ConeAOE( aim, CONE_RADIUS, CONE_DEGREES, Ballistica.STOP_SOLID );
-				beforeAbilityUsed( hero, null );
-				ButterflyField.spread( hero.pos, cone.cells, mourningDuration( buffedLvl() ), hero.sprite.parent );
-				afterAbilityUsed( hero );
-				hero.spendAndNext( Actor.TICK );
-			}
-		});
-	}
-
-	@Override
-	public String abilityInfo() { return Messages.get( this, "ability_desc", mourningDuration( buffedLvl() ) ); }
-
-	public String upgradeAbilityStat(int level){ return Integer.toString( mourningDuration( level ) ); }
-
-	// 本仓库 MeleeWeapon 的武技调用被注释掉了，这里在武器自身接管动作入口，不动公共基类。
-	@Override
-	public ArrayList<String> actions( Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-		if (isEquipped( hero )) actions.add( AC_ABILITY );
-		return actions;
-	}
-
-	@Override
-	public void execute( Hero hero, String action ) {
-		if (!AC_ABILITY.equals( action ) || !isEquipped( hero )){
-			super.execute( hero, action );
-			return;
-		}
-		if (STRReq() > hero.STR()){
-			GLog.w( Messages.get( this, "ability_low_str" ) );
-			return;
-		}
-		Charger charger = Buff.affect( hero, Charger.class );
-		if (charger.charges + charger.partialCharge < abilityChargeUse( hero, null )){
-			GLog.w( Messages.get( this, "ability_no_charge" ) );
-			return;
-		}
-		GameScene.selectCell( new CellSelector.Listener() {
-			@Override
-			public void onSelect( Integer cell ) {
-				if (cell != null) duelistAbility( hero, cell );
-			}
-			@Override
-			public String prompt() { return targetingPrompt(); }
-		});
-	}
+	public String abilityInfo() { return ""; }
 }

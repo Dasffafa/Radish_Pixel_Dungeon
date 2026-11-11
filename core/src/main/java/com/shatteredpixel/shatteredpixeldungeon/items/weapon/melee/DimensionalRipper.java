@@ -16,23 +16,21 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RiftJump;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RiftWindow;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.WeaponDamageTypes;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.RiftParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.utils.Random;
 
-import java.util.ArrayList;
-
-/** 次元撕裂者：三阶弯刀，命中概率随机传送目标或英雄；武技「次元跳跃」为开关式强制传送。 */
+/** 次元撕裂者：三阶弯刀，命中概率随机传送目标或英雄，成功后可开窗追击。
+ *  原武技「次元跳跃」依赖决斗家，本项目无此角色，已整块去掉。 */
 public class DimensionalRipper extends Scimitar {
 
 	public static final float PROC_CHANCE_BASE = 1/8f;
@@ -55,7 +53,6 @@ public class DimensionalRipper extends Scimitar {
 		damage = super.proc( attacker, defender, damage );
 		if (damage > 0) hitFx( defender );
 
-		boolean teleported = false;
 		if (attacker.buff( MagicImmune.class ) == null
 				&& defender.isAlive() && damage > 0
 				&& Random.Float() < procChance( buffedLvl() ) * Weapon.Enchantment.genericProcChanceMultiplier( attacker )){
@@ -65,15 +62,13 @@ public class DimensionalRipper extends Scimitar {
 			} else {
 				warped = warp( attacker ) ? attacker : null;
 			}
-			if (warped != null && attacker == Dungeon.hero){
-				Buff.affect( Dungeon.hero, RiftWindow.class ).open( defender );
+			if (warped != null){
+				// 原说明只把本武器登记为 CORROSION 换跳字色；统一到本项目已有的腐蚀类型。
+				defender.damage( new DamageInfo( 1, WeaponDamageTypes.CORROSION, attacker, this, this ) );
+				if (attacker == Dungeon.hero){
+					Buff.affect( Dungeon.hero, RiftWindow.class ).open( defender );
+				}
 			}
-			teleported = warped != null;
-		}
-
-		if (!teleported && attacker == Dungeon.hero && defender.isAlive() && damage > 0
-				&& Dungeon.hero.buff( RiftJump.class ) != null){
-			riftJumpFallback( Dungeon.hero, defender );
 		}
 		return damage;
 	}
@@ -114,58 +109,7 @@ public class DimensionalRipper extends Scimitar {
 		return Messages.get( this, "stats_desc", Math.round( procChance( buffedLvl() ) * 100 ) );
 	}
 
-	// ====================== 武技「次元跳跃」 ======================
-
+	/** 本项目没有决斗家，不展示任何武技说明。 */
 	@Override
-	public String targetingPrompt() { return null; }
-
-	@Override
-	protected int baseChargeUse(Hero hero, Char target){ return 0; }
-
-	@Override
-	protected void duelistAbility(Hero hero, Integer target) {
-		if (hero.buff( RiftJump.class ) != null){
-			Buff.detach( hero, RiftJump.class );
-		} else {
-			Buff.affect( hero, RiftJump.class );
-		}
-		hero.sprite.operate( hero.pos );
-		hero.next();
-	}
-
-	@Override
-	public String abilityInfo() { return Messages.get( this, "ability_desc" ); }
-
-	public String upgradeAbilityStat(int level){ return null; }
-
-	private void riftJumpFallback( Hero hero, Char defender ){
-		Charger charger = hero.buff( Charger.class );
-		if (charger == null || (charger.charges < 1 && charger.partialCharge < 1f)){
-			Buff.detach( hero, RiftJump.class );
-			return;
-		}
-		Char warped = warp( defender ) ? defender : (warp( hero ) ? hero : null);
-		if (warped == null) return;
-		if (charger.charges > 0) charger.charges--;
-		else charger.partialCharge -= 1f;
-		Buff.affect( hero, RiftWindow.class ).open( defender );
-		hero.sprite.showStatus( CharSprite.POSITIVE, Messages.get( RiftJump.class, "warped" ) );
-	}
-
-	@Override
-	public ArrayList<String> actions( Hero hero ) {
-		ArrayList<String> actions = super.actions( hero );
-		if (isEquipped( hero )) actions.add( AC_ABILITY );
-		return actions;
-	}
-
-	@Override
-	public void execute( Hero hero, String action ) {
-		if (!AC_ABILITY.equals( action ) || !isEquipped( hero )){
-			super.execute( hero, action );
-			return;
-		}
-		duelistAbility( hero, hero.pos );
-		updateQuickslot();
-	}
+	public String abilityInfo() { return ""; }
 }

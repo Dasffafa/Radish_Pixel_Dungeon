@@ -18,19 +18,15 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
+import com.shatteredpixel.shatteredpixeldungeon.damage.WeaponDamageTypes;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.HolyDecree;
-import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-/** 圣宣武技「哀悼」铺下的黑白蝴蝶场地：每回合对敌人造成小额伤害并迟缓。 */
+/** 圣宣留下的黑白蝴蝶场地：每回合对敌人造成 1 点神圣 + 1 点腐蚀伤害并迟缓。
+ *  类型统一走 WeaponDamageTypes，不引入本项目没有的伤害类型。 */
 public class ButterflyField extends Blob {
 
-	/** 场地每回合造成的伤害（原设计是 1 精神 + 1 侵蚀，剥离类型后合并为 2 点物理）。 */
-	public static final int TICK_DAMAGE = 2;
 	public static final float POUR_INTERVAL = 0.12f;
 
 	@Override
@@ -54,7 +50,8 @@ public class ButterflyField extends Blob {
 	private void affect( int cell ){
 		Char ch = Actor.findChar( cell );
 		if (ch == null || ch.alignment != Char.Alignment.ENEMY || !ch.isAlive()) return;
-		ch.damage( new DamageInfo( TICK_DAMAGE, DamageType.PHYSICAL_NO_ARMOR, null, null, this ) );
+		ch.damage( new DamageInfo( 1, WeaponDamageTypes.PSYCHIC, null, null, this ) );
+		ch.damage( new DamageInfo( 1, WeaponDamageTypes.CORROSION, null, null, this ) );
 		Buff.prolong( ch, Slow.class, 8f );
 	}
 
@@ -64,20 +61,8 @@ public class ButterflyField extends Blob {
 		emitter.pour( HolyDecree.BUTTERFLIES, POUR_INTERVAL );
 	}
 
-	/** 按与施法者的真距由近及远铺开场地；逐格 seed，保证关卡序列化能重建。 */
-	public static void spread( int from, Collection<Integer> cells, int duration, com.watabou.noosa.Group layer ){
-		if (cells == null) return;
-		ArrayList<Integer> sorted = new ArrayList<>(cells);
-		sorted.sort( (a, b) -> Float.compare(
-				Dungeon.level.trueDistance( from, a ), Dungeon.level.trueDistance( from, b ) ) );
-		for (Integer cell : sorted){
-			if (cell == null) continue;
-			GameScene.add( Blob.seed( cell, duration, ButterflyField.class ) );
-		}
-	}
-
 	@Override
 	public String tileDesc() {
-		return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( this, "desc" );
+		return Messages.get( this, "desc" );
 	}
 }
