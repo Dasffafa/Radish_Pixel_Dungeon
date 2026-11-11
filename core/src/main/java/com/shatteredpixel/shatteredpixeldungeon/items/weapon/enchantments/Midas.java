@@ -33,6 +33,7 @@ public class Midas extends Weapon.Enchantment {
         }
 
         Dungeon.gold += gold;
+        com.shatteredpixel.shatteredpixeldungeon.items.armor.CountessDress.onGoldChanged();
         Statistics.goldCollected += gold;
         return damage;
     }

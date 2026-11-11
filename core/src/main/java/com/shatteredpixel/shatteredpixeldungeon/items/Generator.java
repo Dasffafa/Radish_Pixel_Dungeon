@@ -24,6 +24,10 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterGlow;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.CountessDress;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ColdIronCoat;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.PrismArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
@@ -601,23 +605,26 @@ public class Generator {
 			ARM_T2.classes = new Class<?>[]{
 					LeatherArmor.class,
 					RatArmor.class,
-					CrabArmor.class
+					CrabArmor.class,
+					CountessDress.class
 			};
-			ARM_T2.probs = new float[]{ 1, 1, 1 };
+			ARM_T2.probs = new float[]{ 1, 1, 1, 1 };
 
 			ARM_T3.classes = new Class<?>[]{
 					EnergyArmor.class,
 					SilverScaleArmor.class,
-					PrisonArmor.class
+					PrisonArmor.class,
+					ColdIronCoat.class
 			};
-			ARM_T3.probs = new float[]{ 1, 1, 1 };
+			ARM_T3.probs = new float[]{ 1, 1, 1, 1 };
 
 			ARM_T4.classes = new Class<?>[]{
 					ScaleArmor.class,
 					DarkCoat.class,
-					CloakofGreyFeather.class
+					CloakofGreyFeather.class,
+					PrismArmor.class
 			};
-			ARM_T4.probs = new float[]{ 1, 1, 1 };
+			ARM_T4.probs = new float[]{ 1, 1, 1, 1 };
 
 			ARM_T5.classes = new Class<?>[]{
 					PlateArmor.class,
@@ -626,9 +633,10 @@ public class Generator {
 					WarriorArmor.class,
 					MageArmor.class,
 					RogueArmor.class,
-					HuntressArmor.class
+					HuntressArmor.class,
+					SoulMix.class
 			};
-			ARM_T5.probs = new float[]{ 1, 1, 1, 0, 0, 0, 0 };
+			ARM_T5.probs = new float[]{ 1, 1, 1, 0, 0, 0, 0, 1 };
 			ARM_T5_NATURE.classes = new Class<?>[]{
 					PlateArmor.class,
 					AfterImage.class,

@@ -37,6 +37,12 @@ public class RA_v0_8_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
+        changes.addButton(new ChangeButton(new ItemSprite(ARMOR_COUNTESS), "四件新护甲",
+                ("_-_ 伯爵礼服：获得或花费金币后回血（赎回除外）。\\n\\n" +
+                        "_-_ 寒铁大衣：免疫冻伤与冰冻。\\n\\n" +
+                        "_-_ 棱镜护铠：远程减伤 25%，法术伤害有概率反射。\\n\\n" +
+                        "_-_ 混灵：击杀敌人叠加护甲与武器的额外等级。")));
+
         changes.addButton(new ChangeButton(new ItemSprite(DIMENSIONAL_RIPPER), "新附魔：虚空",
                 ("这个强大的附魔可以撕扯空间，若目标脚下的地块合规，则有可能在攻击后直接撕开它，使目标落入虚空。")));
 

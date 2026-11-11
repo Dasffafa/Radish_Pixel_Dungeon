@@ -309,6 +309,10 @@ public class ItemSpriteSheet {
 	public static final String ARMOR_MOONLIGHT = "armor_moonlight";
 	public static final String ARMOR_CARDTRICKSTER = "armor_cardtrickster";
 	public static final String ARMOR_ENGINEER = "engineer_armor";
+	public static final String ARMOR_COUNTESS = "armor_countess";
+	public static final String ARMOR_COLDIRON = "armor_coldiron";
+	public static final String ARMOR_PRISM = "armor_prism";
+	public static final String ARMOR_SOULMIX = "armor_soulmix";
 	public static final String MULTITOOL = "multitool";
 	public static final String BLUEPRINT = "blueprint";
 	public static final String PULSE = "adrenaline_dart";

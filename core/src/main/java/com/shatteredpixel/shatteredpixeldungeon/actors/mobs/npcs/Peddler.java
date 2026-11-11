@@ -302,6 +302,7 @@ public class Peddler extends NPC {
 		}
 
 		Dungeon.gold -= price;
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.CountessDress.onGoldChanged();
 		GLog.p( Messages.get( Peddler.class, "service_done", price ) );
 	}
 	@Override

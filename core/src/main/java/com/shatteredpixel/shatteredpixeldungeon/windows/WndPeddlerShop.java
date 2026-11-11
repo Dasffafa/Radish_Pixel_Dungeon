@@ -231,6 +231,7 @@ public class WndPeddlerShop extends Window {
 		}
 
 		Dungeon.gold -= price;
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.CountessDress.onGoldChanged();
 		GLog.i( Messages.get( WndPeddlerShop.class, "bought", item.title(), price ) );
 
 		// 从货架移除，避免重复买同一件

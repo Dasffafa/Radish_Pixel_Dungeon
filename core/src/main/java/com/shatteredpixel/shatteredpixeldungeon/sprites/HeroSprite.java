@@ -156,6 +156,15 @@ public class HeroSprite extends CharSprite {
 			}
 		}
 
+		// 四件新护甲：切到「六个角色 × 四套护甲动画」的专用贴图与对应行
+		int outfitRow = ArmorOutfit.rowFor( armor );
+		String outfitSheet = outfitRow >= 0 ? ArmorOutfit.sheetFor( hero.heroClass ) : null;
+		if (outfitSheet != null){
+			sheetAsset = outfitSheet;
+			texture( outfitSheet );
+			t = outfitRow;
+		}
+
 		TextureFilm film = new TextureFilm( tiers(sheetAsset), t, FRAME_WIDTH, FRAME_HEIGHT );
 
 		idle = new Animation( 1, true );
