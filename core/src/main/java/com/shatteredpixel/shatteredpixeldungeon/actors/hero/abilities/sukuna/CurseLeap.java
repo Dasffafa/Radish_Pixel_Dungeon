@@ -107,7 +107,12 @@ public class CurseLeap {
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
 						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 10);
 
-		hero.move(to);
+		//直接改写坐标并刷新精灵，确保是真位移而不是原地动画
+		hero.pos = to;
+		if (hero.sprite != null) {
+			hero.sprite.place(to);
+			hero.sprite.idle();
+		}
 		Dungeon.level.occupyCell(hero);
 		Dungeon.observe();
 		GameScene.updateFog();
