@@ -2280,81 +2280,6 @@ public class Hero extends Char {
 		}
 	}
 
-	private void tryCurseLeap(Char enemy) {
-		if (heroClass != HeroClasses.SUKUNA || !(enemy instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob)) {
-			return;
-		}
-		int pts = pointsInTalent(Talent.SUKUNA_LOW_HP);
-		if (pts <= 0 || Dungeon.level.distance(pos, enemy.pos) > 1) {
-			return;
-		}
-		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CurseLeapCooldown.class) != null) {
-			return;
-		}
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy ce =
-				buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
-		int cost = pts >= 2 ? 20 : 30;
-		if (ce == null || ce.energy() < cost) {
-			return;
-		}
-
-		int dest = leapDestination(enemy.pos);
-		if (dest < 0) {
-			return;
-		}
-
-		ce.spend(cost);
-		Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CurseLeapCooldown.class,
-				pts >= 2 ? 5f : 10f);
-
-		final int from = pos;
-		final int to = dest;
-		final Char target = enemy;
-		busy();
-		sprite.jump(from, to, 4f, 0.25f, new com.watabou.utils.Callback() {
-			@Override
-			public void call() {
-				move(to);
-				Dungeon.level.occupyCell(Hero.this);
-				Dungeon.observe();
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateFog();
-
-				if (target.isAlive()) {
-					int dmg = Math.max(1, Math.round(damageRoll() * 1.0f));
-					com.shatteredpixel.shatteredpixeldungeon.effects.SlashLinesEffect.show(target, 4);
-					target.damage(com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo.physical(dmg, Hero.this));
-				}
-				ready();
-			}
-		});
-	}
-
-	private int leapDestination(int enemyPos) {
-		//优先跳到敌人反方向的一格
-		int behind = pos + (pos - enemyPos);
-		if (canLeapTo(behind, enemyPos)) {
-			return behind;
-		}
-		//否则跳到周围任意安全格
-		for (int i : com.watabou.utils.PathFinder.NEIGHBOURS8) {
-			int c = pos + i;
-			if (canLeapTo(c, enemyPos)) {
-				return c;
-			}
-		}
-		return -1;
-	}
-
-	private boolean canLeapTo(int cell, int enemyPos) {
-		if (cell < 0 || cell >= Dungeon.level.length() || cell == pos || cell == enemyPos) {
-			return false;
-		}
-		if (!Dungeon.level.passable[cell] || Dungeon.level.solid[cell]) {
-			return false;
-		}
-		return Actor.findChar(cell) == null;
-	}
-
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 
@@ -2371,8 +2296,6 @@ public class Hero extends Char {
 
 		subClass.onDefenseProc(this, enemy, damage);
 
-		//后跃斩
-		tryCurseLeap(enemy);
 
 		WandOfLivingEarth.RockArmor rockArmor = buff(WandOfLivingEarth.RockArmor.class);
 		if (rockArmor != null) {
