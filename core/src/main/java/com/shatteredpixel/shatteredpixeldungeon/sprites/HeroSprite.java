@@ -286,9 +286,7 @@ public class HeroSprite extends CharSprite {
 
 	/** HUD / 信息窗口头像要与游戏内角色一致：四件新护甲在 18~21 行，其余沿用 armor.tier。 */
 	private static int avatarRow( Hero hero ){
-		if (hero == null) return 0;
-		int row = ArmorOutfit.rowFor( hero.belongings.armor() );
-		return row >= 0 && ArmorOutfit.hasOutfit( hero.heroClass ) ? row : hero.tier();
+		return hero == null ? 0 : hero.tier_for_image();
 	}
 	
 	public static Image avatar( HeroClass cl, int armorTier ) {

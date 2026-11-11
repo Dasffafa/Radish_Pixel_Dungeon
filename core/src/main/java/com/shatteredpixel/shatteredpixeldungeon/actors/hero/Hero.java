@@ -182,6 +182,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.AlchemyScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ArmorOutfit;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -3764,6 +3765,9 @@ public class Hero extends Char {
 		Armor armor = belongings.armor();
 		if (armor == null ){
 			return 0;
+		// 四件新护甲的外观在第 18~21 行：StatusPane 的左上角头像就是靠这个返回值取行的
+		} else if (ArmorOutfit.rowFor( armor ) >= 0 && ArmorOutfit.hasOutfit( heroClass )){
+			return ArmorOutfit.rowFor( armor );
 		} else if (armor instanceof ClassArmor){
 			return 6;
 		} else if (armor instanceof PrisonArmor){
