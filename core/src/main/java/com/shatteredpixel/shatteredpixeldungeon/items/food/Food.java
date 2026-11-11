@@ -149,6 +149,19 @@ public class Food extends Item {
 			hero.spend( eatingTime() );
 
 			Talent.onFoodEaten(hero, energy, this);
+
+			//大快朵颐：进食后回复咒力
+			if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA) {
+				int pts = hero.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLAW_MASTERY);
+				if (pts > 0) {
+					com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy ce =
+							hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
+					if (ce != null) {
+						ce.add(pts >= 2 ? 10 : 5);
+					}
+				}
+			}
 			
 			Statistics.foodEaten++;
 			Badges.validateFoodEaten();
@@ -166,7 +179,10 @@ public class Food extends Item {
 			|| Dungeon.hero.hasTalent(Talent.MYSTICAL_MEAL)
 			|| Dungeon.hero.hasTalent(Talent.INVIGORATING_MEAL)
 			|| Dungeon.hero.hasTalent(Talent.FOCUSED_MEAL)
-			|| Dungeon.hero.hasTalent(Talent.BLESS_FOOD)){
+			|| Dungeon.hero.hasTalent(Talent.BLESS_FOOD)
+			|| (Dungeon.hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA
+					&& Dungeon.hero.pointsInTalent(
+							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_CLAW_MASTERY) > 0)){
 			return TIME_TO_EAT - 2;
 		} else {
 			return TIME_TO_EAT;
