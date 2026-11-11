@@ -454,7 +454,6 @@ public class Hero extends Char {
 
 		HT = initialHP + growthFactor*(lvl-1) + HTBoost;
 		if (heroClass == HeroClasses.SUKUNA) {
-			HT += 4 * pointsInTalent(Talent.IRON_BODY);
 			HT += 5 * pointsInTalent(Talent.HUISHENG_VITALITY);
 		}
 		if (buff(ScarBuff.class) != null) {
