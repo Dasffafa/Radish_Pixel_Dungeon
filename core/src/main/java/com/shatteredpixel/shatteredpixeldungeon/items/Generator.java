@@ -209,6 +209,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Waterwheel;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WhiteKingGodSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WingSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.HolyDecree;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SilentPriceBlade;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.DimensionalRipper;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Bolas;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.FishingSpear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ForceCube;
@@ -514,8 +517,9 @@ public class Generator {
 					PneumFistGloves.class,
 					GrapplingHook.class,
 					Belladonna.class,
+					DimensionalRipper.class,
 			};
-			WEP_T3.probs = new float[]{ 5, 5, 5, 5,5, 5, 6, 5, 5, 5, 5, 5 };
+			WEP_T3.probs = new float[]{ 5, 5, 5, 5,5, 5, 6, 5, 5, 5, 5, 5, 5 };
 
 			WEP_T3_NEW.classes = new Class<?>[]{
 					Beecomb.class,
@@ -543,9 +547,11 @@ public class Generator {
 					Seekingspear.class,
 					Grimtooth.class,
 					ReplacePoint.class,
-					BoneSpear.class
+					BoneSpear.class,
+					HolyDecree.class,
+					SilentPriceBlade.class
 			};
-			WEP_T4.probs = new float[]{ 5, 5, 5, 5, 5, 5,5, 5, 5, 5, 5, 5,5, 1 };
+			WEP_T4.probs = new float[]{ 5, 5, 5, 5, 5, 5,5, 5, 5, 5, 5, 5,5, 1, 5, 5 };
 
 			WEP_T4_NEW.classes = new Class<?>[]{
 					Bloodblade.class,

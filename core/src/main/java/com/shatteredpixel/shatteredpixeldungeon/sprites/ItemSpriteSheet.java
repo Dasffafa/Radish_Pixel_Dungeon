@@ -154,6 +154,12 @@ public class ItemSpriteSheet {
 	public static final String SAI = "sai";
 	public static final String WHIP = "whip";
 
+	// 圣宣 / 沉默的代价 / 次元撕裂者（2026-11-11 移植，图标为独立 PNG）
+	public static final String HOLY_DECREE = "holy_decree";
+	public static final String SILENT_PRICE_BLADE = "silent_price_blade";
+	public static final String SILENT_PRICE_BLADE_CHARGED = "silent_price_blade_charged";
+	public static final String DIMENSIONAL_RIPPER = "dimensional_ripper";
+
 	public static final String LONGSWORD = "longsword";
 	public static final String BATTLE_AXE = "battle_axe";
 	public static final String FLAIL = "flail";

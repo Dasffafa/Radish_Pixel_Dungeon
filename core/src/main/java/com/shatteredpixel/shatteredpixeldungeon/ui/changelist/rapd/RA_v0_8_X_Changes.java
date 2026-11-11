@@ -37,6 +37,11 @@ public class RA_v0_8_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
+        changes.addButton(new ChangeButton(new ItemSprite(HOLY_DECREE), "三把新武器",
+                ("_-_ 圣宣：四阶长鞭，4 倍速、射程 8，命中撒出黑白蝴蝶；武技「哀悼」铺下持续伤害的蝴蝶场地。\\n\\n" +
+                        "_-_ 沉默的代价：四阶武器，第十二次命中蓄势，第十三次命中斩杀或追加伤害；武技「钟响」把一击全额转为延缓伤害。\\n\\n" +
+                        "_-_ 次元撕裂者：三阶弯刀，命中概率随机传送目标或自己，可开窗追击；武技「次元跳跃」为开关式强制传送。")));
+
         changes.addButton(new ChangeButton(new ItemSprite(BONE_PILE), "一些新物品",
                 ("_-_ 哥布林：简易投石索，使用投石索会消耗一颗石头投掷，将它的伤害提升4倍，此道具和石头会一并摧毁。\n\n" +
                         "_-_ 狗：狗腿，可以丢出去吸引怪物。\n\n" +
