@@ -134,17 +134,36 @@ public class CurseLeap {
 	}
 
 	private static int destination(Hero hero, int enemyPos) {
+		//优先跳到敌人正后方
 		int behind = hero.pos + (hero.pos - enemyPos);
 		if (canLeapTo(hero, behind, enemyPos)) {
 			return behind;
 		}
+
+		//否则在周围挑一个「离敌人最远、且方向背离敌人」的安全格
+		int w = Dungeon.level.width();
+		int awayX = (hero.pos % w) - (enemyPos % w);
+		int awayY = (hero.pos / w) - (enemyPos / w);
+
+		int best = -1;
+		int bestScore = Integer.MIN_VALUE;
 		for (int i : com.watabou.utils.PathFinder.NEIGHBOURS8) {
 			int c = hero.pos + i;
-			if (canLeapTo(hero, c, enemyPos)) {
-				return c;
+			if (!canLeapTo(hero, c, enemyPos)) {
+				continue;
+			}
+			int dist = Dungeon.level.distance(c, enemyPos);
+			int dx = (c % w) - (hero.pos % w);
+			int dy = (c / w) - (hero.pos / w);
+			int align = dx * awayX + dy * awayY;
+
+			int score = dist * 10 + align;
+			if (score > bestScore) {
+				bestScore = score;
+				best = c;
 			}
 		}
-		return -1;
+		return best;
 	}
 
 	private static boolean canLeapTo(Hero hero, int cell, int enemyPos) {
