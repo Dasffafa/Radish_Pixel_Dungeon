@@ -9,9 +9,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels.features;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
-import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Point;
@@ -39,94 +37,6 @@ public class LevelTransition extends Rect implements Bundlable {
 	public int destDepth;
 	public int centerCell;
 	public Type type;
-
-	/** 单向门：保留 transition 用于落点定位，但玩家不能从这里激活 */
-	public boolean sealed = false;
-
-	/** 逻辑门类型 */
-	public GateType gate = GateType.TWO_WAY;
-	/** 炸药门是否已被炸开 */
-	public boolean gateOpened = false;
-	/** 条件门要求的层数 */
-	public int gateDepth = 1;
-	/** 循环门当前序号 */
-	public int gateIndex = 0;
-	/** 条件门需要等待的事件类名 */
-	public String gateEvent = "";
-
-	/** 循环门的三段目的地 linkId */
-	public String[] gateLinks = new String[0];
-
-	/** 循环门所属的链条 id，同一条链的三扇门共享 */
-	public String cycleChain = "";
-
-	/** 循环门在链条中的位置：0=A 1=B 2=C */
-	public int cycleSlot = 0;
-
-	/** 循环门的 A/B/C 名称 */
-	public static String slotName(int slot) {
-		switch (slot % 3) {
-			case 0: return "A";
-			case 1: return "B";
-			default: return "C";
-		}
-	}
-
-	/** 这扇门当前能否被英雄激活 */
-	public boolean canUse(Hero hero) {
-		if (sealed) {
-			return false;
-		}
-		switch (gate) {
-			case SINGLE_USE:
-				return !Dungeon.usedGates.contains(linkId);
-			case BOMB_ONLY:
-				return gateOpened;
-			case CONDITIONAL:
-				return gateOpened;
-			case ONE_WAY:
-				//单向门：可以正常抵达，但不能从这里反向激活
-				return false;
-			case TWO_WAY:
-			case CYCLE_ABC:
-				//只有链条当前轮到的那一扇能用
-				if (cycleChain.isEmpty()) {
-					return true;
-				}
-				return Dungeon.cycleChains.getOrDefault(cycleChain, 0) == cycleSlot;
-			default:
-				return true;
-		}
-	}
-
-	/** 成功通行后的状态变更 */
-	public void onUse() {
-		if (gate == GateType.SINGLE_USE) {
-			Dungeon.usedGates.add(linkId);
-		} else if (gate == GateType.CYCLE_ABC && !cycleChain.isEmpty()) {
-			//用掉之后轮到链上的下一扇
-			Dungeon.cycleChains.put(cycleChain, (cycleSlot + 1) % 3);
-		}
-	}
-
-	/** 不能通行时给玩家的提示 */
-	public String blockedMessage() {
-		if (sealed) {
-			return Messages.get(LevelTransition.class, "blocked_one_way");
-		}
-		switch (gate) {
-			case SINGLE_USE:
-				return Messages.get(LevelTransition.class, "blocked_single_use");
-			case BOMB_ONLY:
-				return Messages.get(LevelTransition.class, "blocked_bomb");
-			case CONDITIONAL:
-				return Messages.get(LevelTransition.class, "blocked_condition");
-			case CYCLE_ABC:
-				return Messages.get(LevelTransition.class, "blocked_cycle", slotName(Dungeon.cycleChains.getOrDefault(cycleChain, 0)));
-			default:
-				return Messages.get(LevelTransition.class, "blocked_one_way");
-		}
-	}
 
 	// for bundling
 	public LevelTransition() {
@@ -246,13 +156,6 @@ public class LevelTransition extends Rect implements Bundlable {
 	private static final String LINK_ID = "link_id";
 	private static final String DIRECTION = "direction";
 	private static final String DEST_BRANCH = "dest_branch";
-	private static final String SEALED	= "sealed";
-	private static final String GATE	= "gate";
-	private static final String GATE_OPENED	= "gate_opened";
-	private static final String GATE_DEPTH	= "gate_depth";
-	private static final String GATE_INDEX	= "gate_index";
-	private static final String GATE_LINKS	= "gate_links";
-	private static final String GATE_EVENT	= "gate_event";
 	private static final String DEST_DEPTH = "dest_depth";
 
 	@Override
@@ -267,15 +170,6 @@ public class LevelTransition extends Rect implements Bundlable {
 		bundle.put(DIRECTION, direction);
 		bundle.put(DEST_BRANCH, destBranch);
 		bundle.put(DEST_DEPTH, destDepth);
-		bundle.put(SEALED, sealed);
-		bundle.put(GATE, gate.name());
-		bundle.put(GATE_OPENED, gateOpened);
-		bundle.put(GATE_DEPTH, gateDepth);
-		bundle.put(GATE_INDEX, gateIndex);
-		bundle.put(GATE_LINKS, gateLinks);
-		bundle.put(GATE_EVENT, gateEvent);
-		bundle.put("cycle_chain", cycleChain);
-		bundle.put("cycle_slot", cycleSlot);
 	}
 
 	@Override
@@ -290,27 +184,6 @@ public class LevelTransition extends Rect implements Bundlable {
 		direction = bundle.getEnum(DIRECTION, Direction.class);
 		destBranch = bundle.getString(DEST_BRANCH);
 		destDepth = bundle.getInt(DEST_DEPTH);
-		sealed = bundle.getBoolean(SEALED);
-		String gateName = bundle.getString(GATE);
-		//旧存档没有这个字段，不能直接 valueOf(null)
-		gate = GateType.TWO_WAY;
-		if (gateName != null) {
-			try {
-				gate = GateType.valueOf(gateName);
-			} catch (IllegalArgumentException ignored) {
-				gate = GateType.TWO_WAY;
-			}
-		}
-		gateOpened = bundle.getBoolean(GATE_OPENED);
-		gateDepth = bundle.getInt(GATE_DEPTH);
-		gateIndex = bundle.getInt(GATE_INDEX);
-		gateLinks = bundle.getStringArray(GATE_LINKS);
-		gateEvent = bundle.getString(GATE_EVENT);
-		if (gateEvent == null) gateEvent = "";
-		cycleChain = bundle.getString("cycle_chain");
-		if (cycleChain == null) cycleChain = "";
-		cycleSlot = bundle.getInt("cycle_slot");
-		if (gateLinks == null) gateLinks = new String[0];
 		if (linkId == null || linkId.isEmpty() || type == null || direction == null || !Branches.exists(destBranch)) {
 			throw new IllegalStateException("Invalid level transition in save data");
 		}

@@ -1411,14 +1411,16 @@ public abstract class Char extends Actor {
     //travelling may be false when a character is moving instantaneously, such as via teleportation
     public void move(int step, boolean travelling) {
 
-        //逻辑门：普通门被规则挡住时不允许通过，并把精灵拉回原格
+        // 特殊门在关闭时按墙处理；单向门必须由英雄手动开启
         boolean gateBlocks = false;
         if (travelling && Dungeon.level.map[step] == Terrain.DOOR) {
-            try {
-                gateBlocks = !com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.canPass(step, this);
-            } catch (Exception e) {
-                gateBlocks = true;
-                com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("gate error: " + e);
+            com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor door =
+                    com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.get(Dungeon.level, step);
+            if (door != null) {
+                com.shatteredpixel.shatteredpixeldungeon.events.DoorEnterAttemptEvent attempt =
+                        new com.shatteredpixel.shatteredpixeldungeon.events.DoorEnterAttemptEvent(this, door, pos, step);
+                com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
+                gateBlocks = attempt.isCancelled() || door.blocking();
             }
         }
         if (gateBlocks) {
@@ -1445,6 +1447,7 @@ public abstract class Char extends Actor {
 
         if (Dungeon.level.map[pos] == Terrain.OPEN_DOOR) {
             Door.leave(pos);
+            com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.onLeft(this, pos, step);
         }
 
         pos = step;

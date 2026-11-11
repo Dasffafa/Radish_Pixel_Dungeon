@@ -6,13 +6,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairData;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs;
 
 /**
  * 测试支线的唯一关卡：三个小房间，各放一扇循环楼梯 A/B/C，踩上去在三个房间之间轮转。
- * 没有任何实际内容，只用来验证循环门。
  */
 public class CycleTestLevel extends Level {
 
@@ -21,18 +19,13 @@ public class CycleTestLevel extends Level {
 		color2 = 0xb9d661;
 	}
 
-	//三个楼梯格与各自的目的地（就是下一扇楼梯所在的房间）
 	private static final int CELL_A = 2 * 15 + 3;
 	private static final int CELL_B = 2 * 15 + 9;
 	private static final int CELL_C = 6 * 15 + 6;
 	private static final int BACK_CELL = 4 * 15 + 6;
 	/** 出生格（和回程楼梯分开，避免一进来就被弹回去） */
 	public static final int ENTRANCE_CELL = 8 * 15 + 6;
-	/** 回主线的楼梯格 */
 	public static final int RETURN_CELL = 9 * 15 + 9;
-
-	/** 返回主线时的层数，在进入时记录 */
-	public int returnDepth = 1;
 
 	/** 本次进入支线的主线层数（静态，供回程使用） */
 	public static int pendingReturnDepth = 1;
@@ -59,12 +52,10 @@ public class CycleTestLevel extends Level {
 			map[i] = Terrain.WALL;
 		}
 
-		//三个房间 + 中间走廊
 		carve(1, 1, 6, 4);
 		carve(8, 1, 13, 4);
 		carve(4, 6, 10, 9);
 		carve(6, 8, 8, 8);
-		//连接上下房间的走廊
 		carve(5, 4, 5, 6);
 		carve(9, 4, 9, 6);
 
@@ -75,9 +66,10 @@ public class CycleTestLevel extends Level {
 		transitions.add(LevelTransition.branchUp(this, 0, "cycletest:dummy", Branches.MAIN, 1));
 
 		//三扇循环楼梯：A→B 同层，B→C 同层，C→第 2 层（跨层）
-		addCycle(CELL_A, "cycletest", 0, CELL_B);
-		addCycle(CELL_B, "cycletest", 1, CELL_C);
-		addCross(CELL_C, "cycletest", 2, "test", 2);
+		SpecialStairs.addCycle(this, CELL_A, "cycletest", 0).destCell(CELL_B);
+		SpecialStairs.addCycle(this, CELL_B, "cycletest", 1).destCell(CELL_C);
+		SpecialStairs.addCycle(this, CELL_C, "cycletest", 2)
+				.dest(Branches.TEST, 2, ENTRANCE_CELL);
 
 		return true;
 	}
@@ -100,45 +92,13 @@ public class CycleTestLevel extends Level {
 
 		map[ENTRANCE_CELL] = Terrain.EMPTY;
 		map[RETURN_CELL] = Terrain.ENTRANCE;
-
-		//回到第 1 层的跨层楼梯
 		map[BACK_CELL] = Terrain.EXIT;
-		cycleStairs.put(BACK_CELL, new CycleStairData(BACK_CELL, "cycletest", 0, "test", 1));
-		CycleStairVisual back = new CycleStairVisual(-1);
-		back.pos(BACK_CELL, this);
-		customTiles.add(back);
+
+		SpecialStairs.addAt(this, BACK_CELL).dest(Branches.TEST, 1, ENTRANCE_CELL);
+		SpecialStairs.addAt(this, RETURN_CELL).dest(Branches.MAIN, pendingReturnDepth, -1);
 
 		transitions.add(LevelTransition.branchUp(this, 0, "cycletest:dummy", Branches.MAIN, 1));
 		return true;
-	}
-
-	private void addCross(int cell, String chain, int slot, String branch, int depth) {
-		map[cell] = Terrain.EXIT;
-		cycleStairs.put(cell, new CycleStairData(cell, chain, slot, branch, depth));
-		CycleStairVisual vis = new CycleStairVisual(slot);
-		vis.pos(cell, this);
-		customTiles.add(vis);
-	}
-
-	private void addCycle(int cell, String chain, int slot, int destCell) {
-		map[cell] = Terrain.EXIT;
-		cycleStairs.put(cell, new CycleStairData(cell, chain, slot, destCell));
-
-		CycleStairVisual vis = new CycleStairVisual(slot);
-		vis.pos(cell, this);
-		customTiles.add(vis);
-	}
-
-	@Override
-	public void storeInBundle(com.watabou.utils.Bundle bundle) {
-		super.storeInBundle(bundle);
-		bundle.put("return_depth", returnDepth);
-	}
-
-	@Override
-	public void restoreFromBundle(com.watabou.utils.Bundle bundle) {
-		super.restoreFromBundle(bundle);
-		returnDepth = bundle.getInt("return_depth");
 	}
 
 	@Override

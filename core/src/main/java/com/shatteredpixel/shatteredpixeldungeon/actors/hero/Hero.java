@@ -1403,6 +1403,9 @@ public class Hero extends Char {
 			}else if (curAction instanceof HeroAction.LvlTransition) {
 				actResult = actTransition( (HeroAction.LvlTransition)curAction );
 
+			} else if (curAction instanceof HeroAction.EnterDoor) {
+				actResult = actEnterDoor( (HeroAction.EnterDoor)curAction );
+
 			} else if (curAction instanceof HeroAction.Attack) {
 				actResult = actAttack( (HeroAction.Attack)curAction );
 
@@ -1947,9 +1950,59 @@ public class Hero extends Char {
 		}
 	}
 
+	private boolean actEnterDoor( HeroAction.EnterDoor action ) {
+		int cell = action.dst;
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor door =
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.get(Dungeon.level, cell);
+
+		if (rooted) {
+			PixelScene.shake(1, 1f);
+			ready();
+			return false;
+		}
+
+		if (door == null || !Dungeon.level.adjacent(pos, cell) || Actor.findChar(cell) != null
+				|| !com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.allowsOpen(
+						Dungeon.level, cell, pos)) {
+			String message = com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.blockMessage(door);
+			if (message != null) {
+				GLog.w(message);
+			}
+			ready();
+			return false;
+		}
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.open(Dungeon.level, cell);
+		path = null;
+
+		float speed = speed();
+		sprite.move(pos, cell);
+		move(cell);
+		spend(1 / speed);
+		justMoved = true;
+		search(false);
+		return true;
+	}
+
 	private boolean actTransition(HeroAction.LvlTransition action ) {
 		int stairs = action.dst;
 		LevelTransition transition = Dungeon.level.getTransition(stairs);
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair stair =
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.of(Dungeon.level, transition);
+		com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent attempt =
+				new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent(this, transition, stair);
+		com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
+		if (attempt.isCancelled()) {
+			String message = stair != null
+					? com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.blockMessage(stair)
+					: null;
+			if (message != null) {
+				GLog.w(message);
+			}
+			ready();
+			return false;
+		}
 
 		if (rooted) {
 			PixelScene.shake(1, 1f);
@@ -2794,14 +2847,39 @@ public class Hero extends Char {
 			return false;
 		}
 
-		//逻辑门：点击被规则挡住的普通门时只提示一次，不移动也不耗时
-		if (Dungeon.level.map[cell] == Terrain.DOOR) {
-			try {
-				if (com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.messageIfBlocked(cell, this)) {
+		// 特殊门：单向门需要手动开启，锁定/封死的门只提示不移动
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor specialDoor =
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.get(Dungeon.level, cell);
+		if (specialDoor != null && Dungeon.level.map[cell] == Terrain.DOOR) {
+			boolean adjacent = Dungeon.level.adjacent(pos, cell);
+			if (specialDoor.oneWay) {
+				if (adjacent) {
+					if (com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors
+							.allowsOpen(Dungeon.level, cell, pos)) {
+						curAction = new HeroAction.EnterDoor(cell);
+						return true;
+					}
+					GLog.w(com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors
+							.blockMessage(specialDoor));
 					return false;
 				}
-			} catch (Exception e) {
-				GLog.w("gate error: " + e);
+				curAction = new HeroAction.Move(
+						com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors
+								.approachCell(Dungeon.level, cell));
+				return true;
+			}
+
+			com.shatteredpixel.shatteredpixeldungeon.events.DoorEnterAttemptEvent attempt =
+					new com.shatteredpixel.shatteredpixeldungeon.events.DoorEnterAttemptEvent(
+							this, specialDoor, pos, cell);
+			com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
+			String blocked = attempt.isCancelled() && !attempt.getBlockedMessage().isEmpty()
+					? attempt.getBlockedMessage()
+					: com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors
+							.blockMessage(specialDoor);
+			if (blocked != null) {
+				GLog.w(blocked);
+				return false;
 			}
 		}
 
@@ -2864,21 +2942,30 @@ public class Hero extends Char {
 
 			curAction = new HeroAction.Unlock( cell );
 
-		} else if (Dungeon.level.getTransition(cell) != null
-				&& Dungeon.level.getTransition(cell).canUse(this)
-				//moving to a transition doesn't automatically trigger it when enemies are near
-				&& (visibleEnemies.size() == 0 || cell == pos)
-				&& !Dungeon.level.locked
-				&& !Dungeon.level.plants.containsKey(cell)
-				&& (Dungeon.depth < 26 || Dungeon.level.getTransition(cell).type == LevelTransition.Type.REGULAR_ENTRANCE) ) {
-
-			curAction = new HeroAction.LvlTransition( cell );
-
 		} else if (Dungeon.level.getTransition(cell) != null) {
+			LevelTransition transition = Dungeon.level.getTransition(cell);
+			com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair stair =
+					com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.of(Dungeon.level, transition);
+			com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent attempt =
+					new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent(this, transition, stair);
+			com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
+			String blocked = attempt.isCancelled() && !attempt.getBlockedMessage().isEmpty()
+					? attempt.getBlockedMessage()
+					: com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.blockMessage(stair);
+			if (blocked != null) {
+				GLog.w(blocked);
+				return false;
+			}
 
-			//门被规则挡住：给出对应提示，避免玩家以为是 bug
-			GLog.w(Dungeon.level.getTransition(cell).blockedMessage());
-			curAction = new HeroAction.Move( cell );
+			//环境条件不满足时按普通移动处理，不再误报成门被挡
+			if ((visibleEnemies.size() == 0 || cell == pos)
+					&& !Dungeon.level.locked
+					&& !Dungeon.level.plants.containsKey(cell)
+					&& (Dungeon.depth < 26 || transition.type == LevelTransition.Type.REGULAR_ENTRANCE)) {
+				curAction = new HeroAction.LvlTransition( cell );
+			} else {
+				curAction = new HeroAction.Move( cell );
+			}
 
 		}  else {
 
@@ -3247,8 +3334,10 @@ public class Hero extends Char {
 
 		super.move( step, travelling);
 
-		// 发布移动完成事件（实际移动发生后）
-		EventManager.emit(new HeroMoveEvent(this, fromPos, pos));
+		// 被门或其它规则拦下时位置没有变化，不能算一次移动
+		if (fromPos != pos) {
+			EventManager.emit(new HeroMoveEvent(this, fromPos, pos));
+		}
 
 		if (!flying && travelling) {
 			if (Dungeon.level.water[pos]) {

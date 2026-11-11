@@ -44,10 +44,8 @@ public class CycleTestPortal extends TestItem {
 		}
 
 		try {
+			CycleTestLevel.pendingReturnDepth = Dungeon.depth;
 			Level level = Dungeon.loadOrCreateLevel(GamesInProgress.curSlot, Branches.TEST, 1);
-			if (level instanceof CycleTestLevel) {
-				((CycleTestLevel) level).returnDepth = Dungeon.depth;
-			}
 			Dungeon.switchLevel(level, CycleTestLevel.ENTRANCE_CELL);
 		} catch (IOException e) {
 			GLog.w(Messages.get(this, "failed"));

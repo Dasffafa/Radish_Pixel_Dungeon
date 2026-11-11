@@ -37,8 +37,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.RainbowParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfFrost;
@@ -150,7 +148,9 @@ public class Bomb extends Item {
 		Sample.INSTANCE.play( Assets.Sounds.BLAST );
 
 		if (explodesDestructively()) {
-			
+			com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(
+					new com.shatteredpixel.shatteredpixeldungeon.events.ExplosionEvent(cell));
+
 			ArrayList<Char> affected = new ArrayList<>();
 			
 			if (Dungeon.level.heroFOV[cell]) {
@@ -166,10 +166,8 @@ public class Bomb extends Item {
 					}
 					
 					if (Dungeon.level.flamable[c]) {
-						//炸药门不会被爆炸摧毁，只会在 onExplosion 里变成永久打开
-						com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate dg =
-								Dungeon.level.doorGates.get(c);
-						if (dg == null || dg.gate != com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType.BOMB_ONLY) {
+						//特殊门不会被爆炸摧毁，避免刚被炸开的门又被同一次爆炸烧掉
+						if (!com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.isIndestructible(c)) {
 							Dungeon.level.destroy(c);
 							GameScene.updateMap(c);
 							terrainAffected = true;
@@ -220,18 +218,6 @@ public class Bomb extends Item {
 				}
 			}
 			
-			//炸药门：爆炸范围内的门会被炸开
-			for (int n : PathFinder.NEIGHBOURS9) {
-				int c = cell + n;
-				if (c < 0 || c >= Dungeon.level.length()) continue;
-				com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.onExplosion(c);
-				LevelTransition gate = Dungeon.level.getTransition(c);
-				if (gate != null && gate.gate == GateType.BOMB_ONLY && !gate.gateOpened) {
-					gate.gateOpened = true;
-					GLog.w(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(GateType.class, "bomb_opened"));
-				}
-			}
-
 			if (terrainAffected) {
 				Dungeon.observe();
 			}
@@ -243,6 +229,8 @@ public class Bomb extends Item {
 		this.fuse = null;
 
 		if (explodesDestructively()) {
+			com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(
+					new com.shatteredpixel.shatteredpixeldungeon.events.ExplosionEvent(cell));
 
 			ArrayList<Char> affected = new ArrayList<>();
 
@@ -264,7 +252,6 @@ public class Bomb extends Item {
 					}
 				}
 			}
-
 			for (Char ch : affected) {
 
 				//if they have already been killed by another bomb
@@ -289,18 +276,6 @@ public class Bomb extends Item {
 				}
 
 
-			}
-
-			//炸药门：爆炸范围内的门会被炸开
-			for (int n : PathFinder.NEIGHBOURS9) {
-				int c = cell + n;
-				if (c < 0 || c >= Dungeon.level.length()) continue;
-				com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGates.onExplosion(c);
-				LevelTransition gate = Dungeon.level.getTransition(c);
-				if (gate != null && gate.gate == GateType.BOMB_ONLY && !gate.gateOpened) {
-					gate.gateOpened = true;
-					GLog.w(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(GateType.class, "bomb_opened"));
-				}
 			}
 
 			if (terrainAffected) {

@@ -219,11 +219,8 @@ public class Dungeon {
 	// 当前分支的字符串标识（如 "main", "moss", "mining"）
 	public static String branchId = Branches.MAIN;
 
-	/** 已经用掉的一次性门（按 linkId 记录，跨层持久化） */
-	public static final java.util.HashSet<String> usedGates = new java.util.HashSet<>();
-
-	/** 循环门每一条链当前轮到第几个（0=A,1=B,2=C） */
-	public static final java.util.HashMap<String, Integer> cycleChains = new java.util.HashMap<>();
+	/** 循环楼梯每一条链当前轮到第几个（0=A,1=B,2=C） */
+	public static final java.util.HashMap<String, Integer> gateChains = new java.util.HashMap<>();
 
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static HashSet<String> generatedLevels = new HashSet<>();
@@ -300,6 +297,7 @@ public class Dungeon {
 		
 		depth = 1;
 		branchId = Branches.MAIN;
+		gateChains.clear();
 		generatedLevels.clear();
 		levelJustGenerated = false;
 
@@ -550,45 +548,7 @@ public class Dungeon {
 		PathFinder.setMapSize(level.width(), level.height());
 		
 		Dungeon.level = level;
-
-		//苔藓洞窟：所有向上的楼梯/传送门一律改为单向，只能向下推进
-		if (Branches.MOSS.equals(branchId)
-				&& level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.SmallGrassMiniLevel) {
-			for (LevelTransition t : level.transitions) {
-				if (t.direction == LevelTransition.Direction.UP) {
-					t.sealed = true;
-				}
-			}
-		} else {
-			//修复旧存档：苔藓的单向曾被错误地写到主线关卡上，这里清掉
-			for (LevelTransition t : level.transitions) {
-				if (!"moss:main-3".equals(t.linkId)) {
-					t.sealed = false;
-				}
-			}
-		}
-
-		//循环门：给这些楼梯加上光圈外观
-		for (LevelTransition t : level.transitions) {
-			if (t.gate != com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType.CYCLE_ABC) {
-				continue;
-			}
-			boolean exists = false;
-			for (com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap ct : level.customTiles) {
-				if (ct instanceof com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual
-						&& ct.tileX == t.cell() % level.width()
-						&& ct.tileY == t.cell() / level.width()) {
-					exists = true;
-					break;
-				}
-			}
-			if (!exists) {
-				com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual vis =
-						new com.shatteredpixel.shatteredpixeldungeon.levels.features.CycleStairVisual();
-				vis.pos(t.cell(), level);
-				level.customTiles.add(vis);
-			}
-		}
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.applyLevelFlags(level);
 
 		hero.pos = pos;
 
@@ -738,8 +698,8 @@ public class Dungeon {
 	private static final String MOBS_TO_CHAMPION	= "mobs_to_champion";
 	private static final String HERO		= "hero";
 	private static final String DEPTH		= "depth";
-	private static final String USED_GATES	= "used_gates";
-	private static final String CYCLE_CHAINS	= "cycle_chains";
+	private static final String GATE_CHAINS	= "gate_chains";
+	private static final String LEGACY_CYCLE_CHAINS	= "cycle_chains";
 		private static final String BRANCH_ID		= "branch_id";
 		private static final String GENERATED_LEVELS    = "generated_levels";
 		private static final String GOLD		= "gold";
@@ -773,13 +733,12 @@ public class Dungeon {
 				bundle.put( HERO, hero );
 				bundle.put( DEPTH, depth );
 				bundle.put( BRANCH_ID, branchId );
-				bundle.put( USED_GATES, usedGates.toArray(new String[0]) );
-				String[] chains = new String[cycleChains.size()];
+				String[] chains = new String[gateChains.size()];
 				int ci = 0;
-				for (java.util.Map.Entry<String,Integer> e : cycleChains.entrySet()) {
+				for (java.util.Map.Entry<String,Integer> e : gateChains.entrySet()) {
 					chains[ci++] = e.getKey() + "|" + e.getValue();
 				}
-				bundle.put( CYCLE_CHAINS, chains );
+				bundle.put( GATE_CHAINS, chains );
 
 				bundle.put( GOLD, gold );
 				bundle.put( ENERGY, energy );
@@ -958,16 +917,15 @@ public class Dungeon {
 		depth = bundle.getInt( DEPTH );
 		branchId = bundle.getString(BRANCH_ID);
 
-		usedGates.clear();
-		String[] usedGateIds = bundle.getStringArray(USED_GATES);
-		if (usedGateIds != null) java.util.Collections.addAll(usedGates, usedGateIds);
-
-		cycleChains.clear();
-		String[] chains = bundle.getStringArray(CYCLE_CHAINS);
+		gateChains.clear();
+		String[] chains = bundle.getStringArray(GATE_CHAINS);
+		if (chains == null) {
+			chains = bundle.getStringArray(LEGACY_CYCLE_CHAINS);
+		}
 		if (chains != null) {
 			for (String s : chains) {
 				String[] parts = s.split("\\|");
-				if (parts.length == 2) cycleChains.put(parts[0], Integer.parseInt(parts[1]));
+				if (parts.length == 2) gateChains.put(parts[0], Integer.parseInt(parts[1]));
 			}
 		}
 		if (!bundle.contains(BRANCH_ID) || !Branches.exists(branchId)) {

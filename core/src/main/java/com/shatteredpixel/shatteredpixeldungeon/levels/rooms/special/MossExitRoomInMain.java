@@ -1,13 +1,8 @@
 /*
- * Radish Pixel Dungeon
- * 苔藓分支在主线第 3 层的出口房间（单向门）。
+ * 苔藓分支在主线第 3 层的出口房间：只能作为落点，不能从这里返回苔藓。
  *
- * 玩家从苔藓第 2 层通过传送门抵达这里，但无法从这里原路返回苔藓分支——
- * 这一侧只有落地点和一个封闭的传送门外观，踩上去不会触发任何传送。
- *
- * 注意：LevelTransition 仍然必须存在，因为 InterlevelScene 会用它来定位落点
- * （requireTransition 缺少对应 linkId 会直接抛异常），所以这里保留 transition，
- * 只把地形从 ENTRANCE 改成普通地面，使其不再可激活。
+ * InterlevelScene 需要靠 transition 的 linkId 定位落点，因此保留 transition，
+ * 只把地形改成普通地面并标记 sealed。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
@@ -17,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -63,20 +59,17 @@ public class MossExitRoomInMain extends SpecialRoom {
         Point center = center();
         int entranceCell = level.pointToCell(center);
 
-        //保留 transition 用于落点定位，但标记为 sealed：踩上去不会触发传送
         LevelTransition gate = LevelTransition.branchUp(level, entranceCell,
                 "moss:main-3", Branches.MOSS, 2);
-        gate.sealed = true;
         level.transitions.add(gate);
+        com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.add(level, gate).oneWay();
         Painter.set(level, entranceCell, Terrain.EMPTY);
 
-        //单向门的外观：文本明确标注只能从另一侧通过
         OneWayPortalVisual vis = new OneWayPortalVisual();
         vis.pos(center.x, center.y);
         level.customTiles.add(vis);
     }
 
-    /** 单向门的视觉与文字说明 */
     public static class OneWayPortalVisual extends CustomTilemap {
 
         {
@@ -110,13 +103,12 @@ public class MossExitRoomInMain extends SpecialRoom {
 
         for (LevelTransition transition : level.transitions) {
             if (inside(transition.center())) {
-                //单向门：只保留落点功能，不再提供从主线返回苔藓的入口
                 transition.linkId = "moss:main-3";
                 transition.direction = LevelTransition.Direction.UP;
                 transition.destBranch = Branches.MOSS;
                 transition.destDepth = 2;
                 transition.type = LevelTransition.Type.BRANCH_ENTRANCE;
-                transition.sealed = true;
+                SpecialStairs.add(level, transition).oneWay();
                 Painter.set(level, transition.cell(), Terrain.EMPTY);
                 return;
             }

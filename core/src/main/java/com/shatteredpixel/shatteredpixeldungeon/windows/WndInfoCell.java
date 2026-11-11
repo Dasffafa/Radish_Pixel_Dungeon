@@ -24,9 +24,11 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.DoorGate;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.GateType;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
@@ -100,14 +102,6 @@ public class WndInfoCell extends Window {
 		}
 	}
 	
-	private static String eventLabel(String gateEvent) {
-		if (gateEvent == null || gateEvent.isEmpty()) {
-			return Messages.get(GateType.class, "no_event");
-		}
-		int dot = gateEvent.lastIndexOf('.');
-		return dot >= 0 ? gateEvent.substring(dot + 1) : gateEvent;
-	}
-
 	public WndInfoCell( int cell ) {
 		
 		super();
@@ -134,17 +128,16 @@ public class WndInfoCell extends Window {
 		titlebar.icon(cellImage(cell));
 		String cellLabel = cellName(cell);
 		int cellTerrain = Dungeon.level.map[cell];
-		DoorGate doorGate = (cellTerrain == Terrain.DOOR || cellTerrain == Terrain.OPEN_DOOR)
-				? Dungeon.level.doorGates.get(cell) : null;
-		if (doorGate != null && doorGate.gate != GateType.TWO_WAY) {
-			cellLabel += Messages.get(GateType.class, doorGate.gate.name().toLowerCase() + "_short");
+		SpecialDoor specialDoor = (cellTerrain == Terrain.DOOR || cellTerrain == Terrain.OPEN_DOOR)
+				? SpecialDoors.get(Dungeon.level, cell) : null;
+		if (specialDoor != null) {
+			cellLabel += Messages.get(SpecialDoors.class, "short");
 		}
 
 		LevelTransition trans = Dungeon.level.getTransition(cell);
-		if (trans != null && trans.sealed) {
-			cellLabel += Messages.get(WndInfoCell.class, "one_way_name");
-		} else if (trans != null && trans.gate != GateType.TWO_WAY) {
-			cellLabel += Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_short");
+		SpecialStair stair = SpecialStairs.of(Dungeon.level, trans);
+		if (stair != null) {
+			cellLabel += Messages.get(SpecialStairs.class, "short");
 		}
 		titlebar.label(cellLabel);
 
@@ -160,26 +153,17 @@ public class WndInfoCell extends Window {
 
 			desc += Dungeon.level.tileDesc(Dungeon.level.map[cell]);
 		}
-		if (trans != null && trans.sealed) {
-			desc += "\n\n" + Messages.get(WndInfoCell.class, "one_way_desc");
-		}
-		if (doorGate != null && doorGate.gate != GateType.TWO_WAY) {
-			Object darg = doorGate.gate == GateType.CONDITIONAL
-					? eventLabel(doorGate.event)
-					: (Object) 0;
-			desc += "\n\n" + Messages.get(GateType.class, doorGate.gate.name().toLowerCase() + "_desc", darg);
-		}
-		if (trans != null && trans.gate != GateType.TWO_WAY) {
-			Object arg;
-			if (trans.gate == GateType.CONDITIONAL) {
-				arg = eventLabel(trans.gateEvent);
-			} else if (trans.gate == GateType.CYCLE_ABC) {
-				arg = LevelTransition.slotName(trans.cycleSlot) + " → "
-						+ LevelTransition.slotName(trans.cycleSlot + 1);
-			} else {
-				arg = trans.gateDepth;
+		if (specialDoor != null) {
+			String blocked = SpecialDoors.blockMessage(specialDoor);
+			if (blocked != null) {
+				desc += "\n\n" + blocked;
 			}
-			desc += "\n\n" + Messages.get(GateType.class, trans.gate.name().toLowerCase() + "_desc", arg);
+		}
+		if (stair != null) {
+			String blocked = SpecialStairs.blockMessage(stair);
+			if (blocked != null) {
+				desc += "\n\n" + blocked;
+			}
 		}
 
 		titlebar.setRect(0, 0, WIDTH, 0);
