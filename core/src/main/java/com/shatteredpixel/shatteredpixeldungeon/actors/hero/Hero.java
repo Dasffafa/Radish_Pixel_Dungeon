@@ -3332,18 +3332,12 @@ public class Hero extends Char {
 		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){
 			Buff.affect(hero, Adrenaline.class,2f+hero.pointsInTalent(Talent.ADRENAL_COMBAT));
 		}
-		if (!enemy.isAlive() && belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
-			int heal = 1 + pointsInTalent(Talent.HUISHENG_HEAL)
-					+ pointsInTalent(Talent.HUISHENG_REGEN);
-			if (subClass == HeroSubClasses.HUISHENG) {
-				heal *= 2;
-			}
-			HP = Math.min(HT, HP + heal);
-
-			//黑闪蓄势：命中未触发黑闪则叠层，未命中或打出黑闪则重置
+		//黑闪蓄势：每次近战命中都判定（不论是否击杀）
+		if (belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws
+				&& !((com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws)
+						belongings.weapon()).isRanged()) {
 			int bfTalent = pointsInTalent(Talent.BLOODLUST);
-			if (bfTalent > 0
-					&& belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
+			if (bfTalent > 0) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlackFlashCharge charge =
 						Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlackFlashCharge.class);
 				if (!hit || com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws.blackFlashThisHit) {
@@ -3353,6 +3347,15 @@ public class Hero extends Char {
 				}
 			}
 			com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws.blackFlashThisHit = false;
+		}
+
+		if (!enemy.isAlive() && belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
+			int heal = 1 + pointsInTalent(Talent.HUISHENG_HEAL)
+					+ pointsInTalent(Talent.HUISHENG_REGEN);
+			if (subClass == HeroSubClasses.HUISHENG) {
+				heal *= 2;
+			}
+			HP = Math.min(HT, HP + heal);
 
 			//近战击杀回复咒力
 			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy ce =
