@@ -55,8 +55,9 @@ public class CursedEnergy extends Buff {
 		if (energy > max) {
 			energy = max;
 		}
-		//只有近战形态可以自然回复咒力
-		if (target instanceof Hero && !isRanged()) {
+		//只有近战形态可以自然回复咒力；反转术式开启时停止回复
+		if (target instanceof Hero && !isRanged()
+				&& ((Hero) target).buff(ReverseCursedTechnique.class) == null) {
 			energy = Math.min(max, energy + REGEN);
 		}
 		spend(TICK);
