@@ -10,6 +10,7 @@ public class BlackFlashCharge extends Buff {
 	public static final int MAX_STACKS = 50;
 
 	private int stacks = 0;
+	private boolean attacked = false;
 
 	public int stacks() {
 		return stacks;
@@ -17,6 +18,7 @@ public class BlackFlashCharge extends Buff {
 
 	public void add(int amount) {
 		stacks = Math.min(MAX_STACKS, stacks + amount);
+		attacked = true;
 	}
 
 	public void reset() {
@@ -25,6 +27,16 @@ public class BlackFlashCharge extends Buff {
 
 	@Override
 	public boolean act() {
+		//上回合没有攻击就清零
+		if (!attacked) {
+			stacks = 0;
+		}
+		attacked = false;
+
+		if (stacks <= 0) {
+			detach();
+			return true;
+		}
 		spend(TICK);
 		return true;
 	}

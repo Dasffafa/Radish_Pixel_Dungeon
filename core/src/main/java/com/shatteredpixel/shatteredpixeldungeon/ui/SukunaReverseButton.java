@@ -27,8 +27,11 @@ public class SukunaReverseButton extends StyledButton {
 		if (hero.buff(ReverseCursedTechnique.class) != null) {
 			Buff.detach(hero, ReverseCursedTechnique.class);
 			on = false;
-		} else if (hero.pointsInTalent(Talent.IRON_BODY) > 0
-				&& hero.buff(CursedEnergy.class) != null) {
+		} else if (hero.pointsInTalent(Talent.IRON_BODY) <= 0) {
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("尚未学会反转术式。");
+		} else if (hero.buff(CursedEnergy.class) == null) {
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("没有咒力。");
+		} else {
 			Buff.affect(hero, ReverseCursedTechnique.class);
 			on = true;
 		}
