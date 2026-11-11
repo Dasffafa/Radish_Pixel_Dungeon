@@ -154,6 +154,13 @@ public class WardenBossLevel extends Level {
 	//否则会和 GameScene.create() 的遍历重复挂精灵（旧精灵滞留在已清空的层里，表现为怪物整个消失）
 	private boolean building = false;
 
+	/** 与其它 Boss 层一致：关闭通用周期刷怪。
+	 * 站门口等待不该刷杂兵；战斗只由玩家踏进竞技场唤醒典狱长与已放好的原型机。 */
+	@Override
+	public Actor addRespawner() {
+		return null;
+	}
+
 	@Override
 	protected void createMobs() {
 		building = true;
