@@ -1710,7 +1710,7 @@ public class GameScene extends PixelScene {
 				image = Icons.get(Icons.INFO);
 			} else if (objects.get(0) instanceof Hero) {
 				title = textLines.remove(0);
-				image = HeroSprite.avatar(((Hero) objects.get(0)).heroClass, ((Hero) objects.get(0)).tier());
+				image = HeroSprite.avatar( (Hero) objects.get(0) );
 			} else if (objects.get(0) instanceof Mob) {
 				title = textLines.remove(0);
 				image = ((Mob) objects.get(0)).sprite();
