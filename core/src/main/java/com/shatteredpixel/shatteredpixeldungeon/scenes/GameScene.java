@@ -878,7 +878,9 @@ public class GameScene extends PixelScene {
 		if (sukunaReverse != null) {
 			sukunaReverse.visible = Dungeon.hero != null
 					&& Dungeon.hero.heroClass == HeroClasses.SUKUNA
-					&& Dungeon.hero.isAlive();
+					&& Dungeon.hero.isAlive()
+					&& Dungeon.hero.pointsInTalent(
+							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.IRON_BODY) > 0;
 			sukunaReverse.setRect(uiCamera.width - 60, uiCamera.height - 194, 48, 18);
 		}
 		if (sukunaLeap != null) {
