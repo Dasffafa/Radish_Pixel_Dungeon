@@ -339,6 +339,8 @@ public class Assets {
 		public static final String ARMOR_OUTFIT_4 = "sprites/armor_outfit_4.png";
 		public static final String ARMOR_OUTFIT_5 = "sprites/armor_outfit_5.png";
 		public static final String ARMOR_OUTFIT_6 = "sprites/armor_outfit_6.png";
+		public static final String CHARGE_ARC = "sprites/charge_arc.png";
+		public static final String CHARGE_ARROW = "sprites/charge_arrow.png";
 		public static final String HUNTRESS = "sprites/huntress.png";
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String MOONLIGHT = "sprites/moonlight.png";
