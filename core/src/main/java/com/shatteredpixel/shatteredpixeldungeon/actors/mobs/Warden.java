@@ -113,6 +113,8 @@ public class Warden extends Mob {
 				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos );
 		if (!awake && heroEnteredArena) {
 			awake = true;
+			//玩家真正踏进战斗区才把 11 台原型机一次性刷出来
+			((WardenBossLevel) Dungeon.level).spawnInitialPrototypes();
 			notice();
 		}
 		if (awake && Dungeon.level instanceof WardenBossLevel
@@ -235,8 +237,8 @@ public class Warden extends Mob {
 		//这一击已经把自己打死了：尸体不该再补生成原型机、也不再播形态切换的台词
 		if (!isAlive()) return;
 
-		//每失去 30 生命补生成一台 DM-100 原型机
-		while ( lostTotal() >= nextSpawnHp ) {
+		//每失去 30 生命补生成一台 DM-100 原型机；玩家还站门口没开战时不补，避免门外凭空刷人
+		while ( awake && lostTotal() >= nextSpawnHp ) {
 			nextSpawnHp += 30;
 			if (Dungeon.level instanceof WardenBossLevel) {
 				((WardenBossLevel) Dungeon.level).spawnPrototype( 100 );

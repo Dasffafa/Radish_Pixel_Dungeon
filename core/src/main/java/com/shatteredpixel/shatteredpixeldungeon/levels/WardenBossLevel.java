@@ -61,6 +61,7 @@ public class WardenBossLevel extends Level {
 	private boolean variantB = false;
 
 	private static final String BOSS_DEAD = "boss_dead";
+	private static final String PROTOTYPES_SPAWNED = "prototypes_spawned";
 
 	private boolean bossDead = false;
 	private int exitCell = -1;
@@ -172,13 +173,17 @@ public class WardenBossLevel extends Level {
 		//成阶段 Boss 也还没进 Actor，这里占位，避免原型机刷到 Boss 身上
 		spawnTaken.add( warden.pos );
 
-		for (int i = 0; i < 8; i++) {
-			spawnPrototype( 100 );
-		}
-		for (int i = 0; i < 3; i++) {
-			spawnPrototype( 175 );
-		}
+		// 原型机不再在关卡加载时就铺满场地：站门口点/等不该看到或刷出任何人。
+		// 由 Warden.act() 在玩家真正踏进竞技场时调用 spawnInitialPrototypes() 立刻生成。
 		building = false;
+	}
+
+	/** 玩家踏进战斗区的那一刻一次性生成 11 台原型机；只执行一次。 */
+	public void spawnInitialPrototypes(){
+		if (prototypesSpawned || bossDead) return;
+		prototypesSpawned = true;
+		for (int i = 0; i < 8; i++) spawnPrototype( 100 );
+		for (int i = 0; i < 3; i++) spawnPrototype( 175 );
 	}
 
 	@Override
@@ -200,6 +205,7 @@ public class WardenBossLevel extends Level {
 	//本轮生成里已经占掉的格子：createMobs 阶段怪物还没进 Actor，Actor.findChar 查不到，
 	//不自己记一份的话 11 台原型机会互相重叠在同一格上
 	private final ArrayList<Integer> spawnTaken = new ArrayList<>();
+	private boolean prototypesSpawned = false;
 
 	/** 生成一台原型机（100 或 175），只落在战斗区里 */
 	public WardenPrototype spawnPrototype( int model ) {
@@ -263,22 +269,11 @@ public class WardenBossLevel extends Level {
 				if (!passable[i] || map[i] == Terrain.ENTRANCE || map[i] == Terrain.EXIT || map[i] == Terrain.LOCKED_EXIT){
 					continue;
 				}
-				//门口一格内不生成：否则一开门就有一堆机体挤在门后，精灵互相压住
-				if (Math.abs(x - doorCell.x) <= 1 && Math.abs(y - doorCell.y) <= 1){
+				//门前三行都不生成：玩家站在门上时视野里不该有机体贴着门出现
+				if (doorCell.y - y <= 3){
 					continue;
 				}
 				if (Actor.findChar( i ) != null || spawnTaken.contains( i )){
-					continue;
-				}
-				//已生成的机体周围一格也不再生成，避免两台机体的精灵叠在一起
-				boolean crowded = false;
-				for (int t : spawnTaken){
-					if (Math.abs(t % WIDTH - x) <= 1 && Math.abs(t / WIDTH - y) <= 1){
-						crowded = true;
-						break;
-					}
-				}
-				if (crowded){
 					continue;
 				}
 				if (Char.hasProp( ch, Char.Property.LARGE ) && !openSpace[i]){
@@ -325,12 +320,15 @@ public class WardenBossLevel extends Level {
 		super.storeInBundle( bundle );
 		bundle.put( BOSS_DEAD, bossDead );
 		bundle.put( "exit_cell", exitCell );
+		bundle.put( PROTOTYPES_SPAWNED, prototypesSpawned );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		bossDead = bundle.getBoolean( BOSS_DEAD );
+		// 老存档里原型机已在场，默认 false 也不影响：Warden.awake 已存档，不会再次触发生成
+		prototypesSpawned = bundle.getBoolean( PROTOTYPES_SPAWNED );
 		//旧档/异常档里可能没有 exit_cell：Bundle.getInt 缺键会返回 0，直接用会把地图左上角挖成 EXIT。
 		//只在键存在且落在合法范围时才采用，否则标记为 -1（onBossDeath 里有 -1 守卫）。
 		if ( bundle.contains( "exit_cell" ) ) {
