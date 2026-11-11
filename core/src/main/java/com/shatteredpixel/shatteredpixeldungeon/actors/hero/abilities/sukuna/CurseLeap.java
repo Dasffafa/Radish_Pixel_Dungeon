@@ -124,7 +124,9 @@ public class CurseLeap {
 
 		//伤害按一次普通攻击计算
 		if (enemy.isAlive()) {
+			//与普通攻击一致：武器骰 → 攻击结算（附魔/天赋）→ 命中
 			int dmg = Math.max(1, hero.damageRoll());
+			dmg = hero.attackProc(enemy, dmg);
 			SlashLinesEffect.show(enemy, 4);
 			enemy.damage(DamageInfo.physical(dmg, hero));
 		}
