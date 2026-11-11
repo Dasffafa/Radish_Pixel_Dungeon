@@ -933,10 +933,11 @@ public abstract class Char extends Actor {
                         com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_REACH);
                 com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy ce =
                         buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
-                if (pts > 0 && ce != null && ce.max() > 0) {
-                    float ratio = Math.min(1f, ce.energy() / (float) ce.max());
+                if (pts > 0 && ce != null) {
+                    // 线性：每 10 点当前咒力提供 1% 减伤，上限 10%/15%
                     float maxReduction = pts >= 2 ? 0.15f : 0.10f;
-                    info.addFinalMultModifier(1f - ratio * maxReduction, "sukuna_curse_guard");
+                    float reduction = Math.min(maxReduction, ce.energy() * 0.001f);
+                    info.addFinalMultModifier(1f - reduction, "sukuna_curse_guard");
                 }
             }
         }
