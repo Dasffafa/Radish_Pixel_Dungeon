@@ -43,7 +43,10 @@ public class CurseLeap {
 			return false;
 		}
 		CursedEnergy ce = hero.buff(CursedEnergy.class);
-		return ce != null && ce.energy() >= cost(hero)
+		if (ce == null) {
+			ce = Buff.affect(hero, CursedEnergy.class);
+		}
+		return ce.energy() >= cost(hero)
 				&& hero.buff(CurseLeapCooldown.class) == null
 				&& adjacentEnemy(hero) != null;
 	}

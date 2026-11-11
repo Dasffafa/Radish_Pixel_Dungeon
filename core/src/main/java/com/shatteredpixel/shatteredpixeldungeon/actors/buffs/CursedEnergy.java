@@ -99,6 +99,7 @@ public class CursedEnergy extends Buff {
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
-		energy = bundle.getInt(ENERGY);
+		//旧存档没有该字段时直接补满，避免咒力为 0
+		energy = bundle.contains(ENERGY) ? bundle.getInt(ENERGY) : max();
 	}
 }

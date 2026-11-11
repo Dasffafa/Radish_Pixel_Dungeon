@@ -872,7 +872,9 @@ public class GameScene extends PixelScene {
 		if (sukunaLeap != null) {
 			sukunaLeap.visible = Dungeon.hero != null
 					&& Dungeon.hero.heroClass == HeroClasses.SUKUNA
-					&& Dungeon.hero.isAlive();
+					&& Dungeon.hero.isAlive()
+					&& Dungeon.hero.pointsInTalent(
+							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_LOW_HP) > 0;
 			sukunaLeap.setRect(uiCamera.width - 60, uiCamera.height - 170, 48, 18);
 		}
 		if (sukunaStance != null) {
