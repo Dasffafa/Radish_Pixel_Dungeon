@@ -31,7 +31,7 @@ public class CurseLeap {
 				continue;
 			}
 			Char ch = Actor.findChar(c);
-			if (ch != null && ch != hero && ch.alignment == Char.Alignment.ENEMY) {
+			if (ch != null && ch != hero && ch.alignment != Char.Alignment.ALLY) {
 				return ch;
 			}
 		}
@@ -46,12 +46,41 @@ public class CurseLeap {
 		if (ce == null) {
 			ce = Buff.affect(hero, CursedEnergy.class);
 		}
+
+		CurseLeapCooldown cd = hero.buff(CurseLeapCooldown.class);
+		if (cd != null && cd.turns() <= 0) {
+			cd.detach();
+			cd = null;
+		}
+
 		return ce.energy() >= cost(hero)
-				&& hero.buff(CurseLeapCooldown.class) == null
+				&& cd == null
 				&& adjacentEnemy(hero) != null;
 	}
 
 	public static void use(Hero hero) {
+		if (hero.pointsInTalent(Talent.SUKUNA_LOW_HP) <= 0) {
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("尚未学会后跃斩。");
+			return;
+		}
+		CursedEnergy energy = hero.buff(CursedEnergy.class);
+		if (energy == null) {
+			energy = Buff.affect(hero, CursedEnergy.class);
+		}
+		if (energy.energy() < cost(hero)) {
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("咒力不足（需要 " + cost(hero) + "）。");
+			return;
+		}
+		CurseLeapCooldown cdCheck = hero.buff(CurseLeapCooldown.class);
+		if (cdCheck != null && cdCheck.turns() > 0) {
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("后跃斩冷却中，剩余 "
+					+ cdCheck.turns() + " 回合。");
+			return;
+		}
+		if (adjacentEnemy(hero) == null) {
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("周围没有敌人。");
+			return;
+		}
 		if (!canUse(hero)) {
 			return;
 		}
@@ -61,6 +90,7 @@ public class CurseLeap {
 		}
 		int dest = destination(hero, enemy.pos);
 		if (dest < 0) {
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("周围没有可以后跃的安全位置。");
 			return;
 		}
 

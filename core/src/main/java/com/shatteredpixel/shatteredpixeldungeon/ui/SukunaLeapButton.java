@@ -21,11 +21,5 @@ public class SukunaLeapButton extends StyledButton {
 		}
 	}
 
-	@Override
-	public void update() {
-		super.update();
-		Hero hero = Dungeon.hero;
-		boolean usable = hero != null && CurseLeap.canUse(hero);
-		enable(usable);
-	}
+
 }
