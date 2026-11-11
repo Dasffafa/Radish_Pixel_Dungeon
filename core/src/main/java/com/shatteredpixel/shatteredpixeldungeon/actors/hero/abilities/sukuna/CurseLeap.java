@@ -66,7 +66,8 @@ public class CurseLeap {
 
 		CursedEnergy ce = hero.buff(CursedEnergy.class);
 		ce.spend(cost(hero));
-		Buff.affect(hero, CurseLeapCooldown.class, cooldown(hero));
+		Buff.affect(hero, CurseLeapCooldown.class)
+				.set((int) cooldown(hero));
 
 		final int from = hero.pos;
 		final int to = dest;
@@ -89,6 +90,7 @@ public class CurseLeap {
 					target.damage(DamageInfo.physical(dmg, hero));
 				}
 				hero.spendAndNext(1f);
+				hero.ready();
 			}
 		});
 	}
