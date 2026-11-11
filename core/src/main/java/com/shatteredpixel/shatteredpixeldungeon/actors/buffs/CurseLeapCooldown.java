@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
 /** 后跃斩冷却。 */
@@ -12,6 +13,6 @@ public class CurseLeapCooldown extends FlavourBuff {
 
 	@Override
 	public String toString() {
-		return "leap";
+		return Messages.get(this, "name");
 	}
 }

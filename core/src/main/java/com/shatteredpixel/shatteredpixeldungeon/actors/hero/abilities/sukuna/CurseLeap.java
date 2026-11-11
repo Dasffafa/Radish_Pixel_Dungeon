@@ -72,7 +72,10 @@ public class CurseLeap {
 		final int to = dest;
 		final Char target = enemy;
 		hero.busy();
-		hero.sprite.jump(from, to, 4f, 0.25f, new Callback() {
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(from).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.DUST), 6);
+		hero.sprite.jump(from, to, 8f, 0.5f, new Callback() {
 			@Override
 			public void call() {
 				hero.move(to);
