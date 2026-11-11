@@ -69,10 +69,6 @@ public class CursedEnergy extends Buff {
 		return BuffIndicator.MONK_ENERGY;
 	}
 
-	@Override
-	public String iconTextDisplay() {
-		return Integer.toString(energy);
-	}
 
 	@Override
 	public void tintIcon(com.watabou.noosa.Image icon) {

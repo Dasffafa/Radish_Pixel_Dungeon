@@ -46,10 +46,6 @@ public class BlackFlashCharge extends Buff {
 		return BuffIndicator.MONK_ENERGY;
 	}
 
-	@Override
-	public String iconTextDisplay() {
-		return "+" + stacks + "%";
-	}
 
 	@Override
 	public void tintIcon(com.watabou.noosa.Image icon) {

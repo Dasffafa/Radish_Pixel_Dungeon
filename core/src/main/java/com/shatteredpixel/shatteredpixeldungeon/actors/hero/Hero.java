@@ -3374,6 +3374,7 @@ public class Hero extends Char {
 				if (Random.Float() < chance) {
 					Dungeon.level.drop(new com.shatteredpixel.shatteredpixeldungeon.items.food.MysteryMeat(),
 							enemy.pos).sprite.drop();
+					com.shatteredpixel.shatteredpixeldungeon.utils.GLog.i("血肉盛宴：敌人身上掉下了一块神秘的肉。");
 				}
 			}
 

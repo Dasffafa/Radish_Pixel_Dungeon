@@ -140,6 +140,13 @@ public class Item implements Bundlable {
 
 	public boolean doPickUp(Hero hero, int pos) {
 
+		// 诅咒师：拾取时立即鉴定诅咒
+		if (hero.heroClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.SUKUNA
+				&& hero.pointsInTalent(
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.CURSE_MASTER) >= 1) {
+			cursedKnown = true;
+		}
+
 		// func 4 Muramasa mania
 		// DoggingDog on 20250419
 		if(Dungeon.hero.buff(Muramasa.MuramasaMania.class)!=null && Dungeon.hero !=null){
