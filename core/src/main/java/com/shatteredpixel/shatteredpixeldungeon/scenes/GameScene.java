@@ -389,22 +389,22 @@ public class GameScene extends PixelScene {
 
 		sukunaReverse = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaReverseButton();
 		sukunaReverse.camera = uiCamera;
-		sukunaReverse.setRect(uiCamera.width - 60, uiCamera.height - 194, 48, 18);
+		sukunaReverse.setRect(uiCamera.width - 52, uiCamera.height - 190, 36, 36);
 		add( sukunaReverse );
 
 		sukunaLeap = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaLeapButton();
 		sukunaLeap.camera = uiCamera;
-		sukunaLeap.setRect(uiCamera.width - 60, uiCamera.height - 170, 48, 18);
+		sukunaLeap.setRect(uiCamera.width - 52, uiCamera.height - 150, 36, 36);
 		add( sukunaLeap );
 
 		sukunaStance = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaStanceButton();
 		sukunaStance.camera = uiCamera;
-		sukunaStance.setRect(uiCamera.width - 60, uiCamera.height - 146, 48, 18);
+		sukunaStance.setRect(uiCamera.width - 52, uiCamera.height - 110, 36, 36);
 		add( sukunaStance );
 
 		sukunaSkill = new com.shatteredpixel.shatteredpixeldungeon.ui.SukunaSlashButton();
 		sukunaSkill.camera = uiCamera;
-		sukunaSkill.setRect(uiCamera.width - 56, uiCamera.height - 96, 40, 40);
+		sukunaSkill.setRect(uiCamera.width - 52, uiCamera.height - 70, 36, 36);
 		add( sukunaSkill );
 
 		action = new ActionIndicator();
@@ -873,7 +873,7 @@ public class GameScene extends PixelScene {
 					&& Dungeon.hero.heroClass == HeroClasses.SUKUNA
 					&& Dungeon.hero.isAlive()
 					&& Dungeon.hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SpaceSlashChant.class) != null;
-			sukunaSkill.setRect(uiCamera.width - 56, uiCamera.height - 96, 40, 40);
+			sukunaSkill.setRect(uiCamera.width - 52, uiCamera.height - 70, 36, 36);
 		}
 		if (sukunaReverse != null) {
 			sukunaReverse.visible = Dungeon.hero != null
@@ -881,7 +881,7 @@ public class GameScene extends PixelScene {
 					&& Dungeon.hero.isAlive()
 					&& Dungeon.hero.pointsInTalent(
 							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.IRON_BODY) > 0;
-			sukunaReverse.setRect(uiCamera.width - 60, uiCamera.height - 194, 48, 18);
+			sukunaReverse.setRect(uiCamera.width - 52, uiCamera.height - 190, 36, 36);
 		}
 		if (sukunaLeap != null) {
 			sukunaLeap.visible = Dungeon.hero != null
@@ -889,7 +889,7 @@ public class GameScene extends PixelScene {
 					&& Dungeon.hero.isAlive()
 					&& Dungeon.hero.pointsInTalent(
 							com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SUKUNA_LOW_HP) > 0;
-			sukunaLeap.setRect(uiCamera.width - 60, uiCamera.height - 170, 48, 18);
+			sukunaLeap.setRect(uiCamera.width - 52, uiCamera.height - 150, 36, 36);
 		}
 		if (sukunaStance != null) {
 			sukunaStance.visible = Dungeon.hero != null
@@ -897,7 +897,7 @@ public class GameScene extends PixelScene {
 					&& Dungeon.hero.isAlive()
 					&& Dungeon.hero.belongings.weapon() instanceof
 							com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws;
-			sukunaStance.setRect(uiCamera.width - 60, uiCamera.height - 146, 48, 18);
+			sukunaStance.setRect(uiCamera.width - 52, uiCamera.height - 110, 36, 36);
 		}
 
 		if (updateTags){

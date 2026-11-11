@@ -1,16 +1,15 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.Chrome;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.CurseLeap;
 
 /** 后跃斩按钮。 */
-public class SukunaLeapButton extends StyledButton {
+public class SukunaLeapButton extends IconButton {
 
 	public SukunaLeapButton() {
-		super(Chrome.Type.GREY_BUTTON, "后跃", 6);
-		textColor(0xFFFFFF);
+		super(new TalentIcon(Talent.SUKUNA_LOW_HP));
 	}
 
 	@Override
@@ -21,5 +20,11 @@ public class SukunaLeapButton extends StyledButton {
 		}
 	}
 
-
+	@Override
+	public void update() {
+		super.update();
+		Hero hero = Dungeon.hero;
+		boolean usable = hero != null && CurseLeap.canUse(hero);
+		icon.alpha(usable ? 1f : 0.4f);
+	}
 }
