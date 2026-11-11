@@ -309,6 +309,8 @@ public class ItemSpriteSheet {
 	public static final String ARMOR_MOONLIGHT = "armor_moonlight";
 	public static final String ARMOR_CARDTRICKSTER = "armor_cardtrickster";
 	public static final String ARMOR_ENGINEER = "engineer_armor";
+	// 四件新护甲图标取自 48x48 素材的 2x2 格（每格 24x24）：
+	// 左上=伯爵礼服，右上=寒铁大衣，左下=棱镜护铠，右下=混灵。
 	public static final String ARMOR_COUNTESS = "armor_countess";
 	public static final String ARMOR_COLDIRON = "armor_coldiron";
 	public static final String ARMOR_PRISM = "armor_prism";

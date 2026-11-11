@@ -12,7 +12,6 @@
  */
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
 
-import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
@@ -33,28 +32,34 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix;
  */
 public final class ArmorOutfit {
 
-	private static final String[] SHEETS = {
-			Assets.Sprites.ARMOR_OUTFIT_1, Assets.Sprites.ARMOR_OUTFIT_2,
-			Assets.Sprites.ARMOR_OUTFIT_3, Assets.Sprites.ARMOR_OUTFIT_4,
-			Assets.Sprites.ARMOR_OUTFIT_5, Assets.Sprites.ARMOR_OUTFIT_6
-	};
+	/**
+	 * 与项目既有护甲（PrisonArmor=t7、DarkCoat=t9、RatArmor=t12 …）完全同一套机制：
+	 * 四套新护甲动画直接追加在角色贴图 sprites/warrior.png 等的第 18~21 行
+	 * （每行 21 帧 12x15，贴图扩到 256x512，原有 0..255 行像素保持不变），
+	 * 这里只返回行索引，绝不切换贴图。
+	 */
+	public static final int ROW_COUNTESS = 18;
+	public static final int ROW_COLDIRON = 19;
+	public static final int ROW_PRISM    = 20;
+	public static final int ROW_SOULMIX  = 21;
 
 	private ArmorOutfit() {}
 
-	public static String sheetFor( HeroClass cl ){
+	/** 只有前六个职业的贴图追加了新行；其余职业保持原有护甲行，避免取到空白帧。 */
+	public static boolean hasOutfit( HeroClass cl ){
 		int i = 0;
 		for (HeroClass h : HeroClasses.ALL){
-			if (h == cl) return i < SHEETS.length ? SHEETS[i] : null;
+			if (h == cl) return i < 6;
 			i++;
 		}
-		return null;
+		return false;
 	}
 
 	public static int rowFor( Armor armor ){
-		if (armor instanceof CountessDress) return 0;
-		if (armor instanceof ColdIronCoat) return 1;
-		if (armor instanceof PrismArmor)   return 2;
-		if (armor instanceof SoulMix)      return 3;
+		if (armor instanceof CountessDress) return ROW_COUNTESS;
+		if (armor instanceof ColdIronCoat) return ROW_COLDIRON;
+		if (armor instanceof PrismArmor)   return ROW_PRISM;
+		if (armor instanceof SoulMix)      return ROW_SOULMIX;
 		return -1;
 	}
 }
