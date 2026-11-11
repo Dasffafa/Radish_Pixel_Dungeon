@@ -156,16 +156,15 @@ public class HeroSprite extends CharSprite {
 			}
 		}
 
-		// 四件新护甲：切到「六个角色 × 四套护甲动画」的专用贴图与对应行
+		// 四件新护甲：切到「六个角色 × 四套护甲动画」的专用贴图与对应行。
+		// 用局部变量，不改动 sheetAsset 字段；每次都重设贴图，卸下护甲后能切回角色原贴图。
 		int outfitRow = ArmorOutfit.rowFor( armor );
 		String outfitSheet = outfitRow >= 0 ? ArmorOutfit.sheetFor( hero.heroClass ) : null;
-		if (outfitSheet != null){
-			sheetAsset = outfitSheet;
-			texture( outfitSheet );
-			t = outfitRow;
-		}
+		String filmAsset = outfitSheet != null ? outfitSheet : sheetAsset;
+		if (outfitSheet != null) t = outfitRow;
+		texture( filmAsset );
 
-		TextureFilm film = new TextureFilm( tiers(sheetAsset), t, FRAME_WIDTH, FRAME_HEIGHT );
+		TextureFilm film = new TextureFilm( tiers(filmAsset), t, FRAME_WIDTH, FRAME_HEIGHT );
 
 		idle = new Animation( 1, true );
 		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
