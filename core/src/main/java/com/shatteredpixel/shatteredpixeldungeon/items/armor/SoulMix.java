@@ -17,6 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
 
@@ -33,24 +34,30 @@ public class SoulMix extends Armor {
 	@Override public int DRMin(int lvl){ return 1 + lvl; }
 
 	/** 护甲自身的额外等级；武器侧在 Weapon.buffedLvl() 里加同一份。 */
-	@Override public int buffedLvl(){ return super.buffedLvl() + bonusLevel( Dungeon.hero ); }
+	@Override public int buffedLvl(){ return super.buffedLvl() + stacks( Dungeon.hero ); }
 
 	@Override protected ArmorBuff buff(){ return new SoulMixBuff(); }
 
 	public static int maxStacks( int lvl ){ return 1 + Math.round( 0.33f * lvl ); }
 
-	/** 供 Weapon.buffedLvl() 调用：英雄身上的混灵层数即额外等级。 */
-	public static int bonusLevel( Hero hero ){
+	/** 英雄身上混灵的当前层数。 */
+	public static int stacks( Hero hero ){
 		if (hero == null) return 0;
 		SoulMixBuff b = hero.buff( SoulMixBuff.class );
 		return b == null ? 0 : b.stacks;
+	}
+
+	/** 供 Weapon.buffedLvl() 调用：只对英雄当前装备的武器生效。 */
+	public static int bonusLevel( Hero hero, Weapon weapon ){
+		if (hero == null || weapon == null || !weapon.isEquipped( hero )) return 0;
+		return stacks( hero );
 	}
 
 	public class SoulMixBuff extends ArmorBuff {
 		public int stacks = 0;
 
 		public void gain(){
-			stacks = Math.min( maxStacks( SoulMix.this.buffedLvl() ), stacks + 1 );
+			stacks = Math.min( maxStacks( SoulMix.this.level() ), stacks + 1 );
 		}
 
 		@Override

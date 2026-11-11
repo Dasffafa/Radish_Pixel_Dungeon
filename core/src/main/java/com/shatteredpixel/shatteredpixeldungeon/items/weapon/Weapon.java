@@ -420,7 +420,7 @@ abstract public class Weapon extends KindOfWeapon {
 		} else {
 			lvl = level();
 		}
-		return lvl + curseTempLevel() + com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix.bonusLevel( Dungeon.hero );
+		return lvl + curseTempLevel() + com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix.bonusLevel( Dungeon.hero, this );
 	}
 
 	/** 沉重/超轻等诅咒提供的临时等级。 */
