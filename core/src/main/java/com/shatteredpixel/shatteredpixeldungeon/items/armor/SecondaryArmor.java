@@ -3,6 +3,7 @@
  *
  * 次要护甲：穿在主要护甲之外的一件附加装备，只提供少量格挡，并附带一个特殊效果。
  * 无法附魔、无法打磨；成长固定为 0/0/0/1/1/1/1/1/2（+1 到 +8 时的格挡增量）。
+ * 等级直接沿用 Item.level，由升级卷轴的 Item.upgrade() 维护。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
@@ -12,7 +13,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.watabou.utils.Bundle;
 
 public abstract class SecondaryArmor extends EquipableItem {
 
@@ -23,7 +23,6 @@ public abstract class SecondaryArmor extends EquipableItem {
 	public int blockMin;
 	public int blockMax;
 	public int strReq;
-	public int level = 0;
 
 	protected SecondaryArmor(int tier, int blockMin, int blockMax, int strReq) {
 		this.tier = tier;
@@ -49,13 +48,8 @@ public abstract class SecondaryArmor extends EquipableItem {
 	}
 
 	@Override
-	public int level() {
-		return level;
-	}
-
-	@Override
 	public boolean isUpgradable() {
-		return false;
+		return true;
 	}
 
 	public boolean isEquipped(Hero hero) {
@@ -138,17 +132,5 @@ public abstract class SecondaryArmor extends EquipableItem {
 		return sb.toString();
 	}
 
-	private static final String LEVEL = "level";
-
-	@Override
-	public void storeInBundle(Bundle bundle) {
-		super.storeInBundle(bundle);
-		bundle.put(LEVEL, level);
-	}
-
-	@Override
-	public void restoreFromBundle(Bundle bundle) {
-		super.restoreFromBundle(bundle);
-		if (bundle.contains(LEVEL)) level = bundle.getInt(LEVEL);
-	}
+	// level 的存读档由 Item.storeInBundle / restoreFromBundle 统一处理（键名同为 "level"，老存档兼容）。
 }
