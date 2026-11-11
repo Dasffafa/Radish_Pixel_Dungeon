@@ -134,8 +134,15 @@ public class CurseLeap {
 	}
 
 	private static int destination(Hero hero, int enemyPos) {
-		//优先跳到敌人正后方
-		int behind = hero.pos + (hero.pos - enemyPos);
+		//优先闪现到敌人正后方 2 格
+		int away = hero.pos - enemyPos;
+		int far = hero.pos + away * 2;
+		if (canLeapTo(hero, far, enemyPos)) {
+			return far;
+		}
+
+		//其次退一格
+		int behind = hero.pos + away;
 		if (canLeapTo(hero, behind, enemyPos)) {
 			return behind;
 		}
