@@ -19,12 +19,24 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.DimensionalRipper;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AttackIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.BitmapText;
+import com.watabou.noosa.Visual;
+import com.watabou.utils.Callback;
 
-/** 空间裂隙窗口：传送成功后 3 回合内可追击到目标身旁并攻击一次。 */
+/**
+ * 空间裂隙窗口：次元撕裂者自己造成传送后，3 回合内可瞬移到被攻击的敌人身旁并追击一次。
+ *
+ * 按文档规格：按回合记账（act 里 spend(TICK)）、按钮带剩余回合数、
+ * 落点用 appear（无视距离）、必中追击、出入场都有裂隙粒子、武器离手/换层/目标死亡即关窗。
+ * 锁定的目标是 Char 引用，刻意不实现存档，读档后首次 act 自行关闭。
+ */
 public class RiftWindow extends Buff implements ActionIndicator.Action {
 
 	{
@@ -32,18 +44,34 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		announced = false;
 	}
 
-	public static final float DURATION = 3f;
+	public static final int WINDOW_TURNS = 3;
 
 	private Char target;
-	private int targetPos = -1;
+	private int openedDepth = -1;
+	private int turnsLeft = WINDOW_TURNS;
 
-	/** 打开窗口（或刷新剩余时间），记录这次被攻击的敌人。 */
+	/** 打开（或刷新）窗口，锁定这次被攻击的敌人。 */
 	public void open( Char target ){
 		this.target = target;
-		this.targetPos = target == null ? -1 : target.pos;
-		postpone( DURATION );
+		this.openedDepth = Dungeon.depth;
+		this.turnsLeft = WINDOW_TURNS;
 		ActionIndicator.setAction( this );
+		BuffIndicator.refreshHero();
 		GLog.p( Messages.get( DimensionalRipper.class, "window_open" ) );
+	}
+
+	private boolean stillValid(){
+		Hero hero = Dungeon.hero;
+		return hero != null
+				&& target != null && target.isAlive()
+				&& Dungeon.depth == openedDepth
+				&& DimensionalRipper.equipped( hero ) != null;
+	}
+
+	@Override
+	public boolean attachTo( Char target ) {
+		// affect() 发生在 open() 之前，此刻还没锁定目标；这里只把「武器仍在手上」的关。
+		return super.attachTo( target ) && DimensionalRipper.equipped( Dungeon.hero ) != null;
 	}
 
 	@Override
@@ -56,6 +84,22 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		return Messages.get( DimensionalRipper.class, "space_tear" );
 	}
 
+	/** 借用现成的传送信标帧，不必为按钮单独画图。 */
+	@Override
+	public String actionIcon() {
+		return HeroIcon.WARP_BEACON;
+	}
+
+	/** 按钮右下角显示剩余回合数。 */
+	@Override
+	public Visual secondaryVisual() {
+		BitmapText txt = new BitmapText( PixelScene.pixelFont );
+		txt.text( Integer.toString( Math.max( 0, turnsLeft ) ) );
+		txt.hardlight( CharSprite.POSITIVE );
+		txt.measure();
+		return txt;
+	}
+
 	@Override
 	public int indicatorColor() {
 		return 0xAA55FF;
@@ -64,7 +108,7 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 	@Override
 	public void doAction() {
 		Hero hero = Dungeon.hero;
-		if (hero == null || target == null || !target.isAlive()){
+		if (!stillValid()){
 			detach();
 			return;
 		}
@@ -73,12 +117,24 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 			GLog.w( Messages.get( DimensionalRipper.class, "no_space" ) );
 			return;
 		}
+
+		hero.busy();
+		int from = hero.pos;
 		ScrollOfTeleportation.appear( hero, cell );
+		// 出入场粒子：appear 只管非英雄角色的起点光点，英雄传送两端都得自己补。
+		DimensionalRipper.teleportFx( from, hero.pos );
+		// appear 不会把 visible 设回来；若本窗口是「英雄自己被传走」开的，之前可能已是 false。
+		hero.sprite.visible = true;
+		hero.sprite.alpha( 1f );
 		AttackIndicator.target( target );
-		hero.sprite.attack( target.pos, new com.watabou.utils.Callback() {
+
+		final Char victim = target;
+		hero.sprite.attack( victim.pos, new Callback() {
 			@Override
 			public void call() {
-				hero.attack( target );
+				if (victim.isAlive()){
+					hero.attack( victim, 1f, 0f, Char.INFINITE_ACCURACY );
+				}
 				hero.spendAndNext( hero.attackDelay() );
 			}
 		});
@@ -100,7 +156,13 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 
 	@Override
 	public boolean act() {
-		detach();
+		if (!stillValid() || --turnsLeft <= 0){
+			detach();
+			return true;
+		}
+		// 每回合重占动作槽，避免被其它动作按钮顶掉后按钮消失。
+		ActionIndicator.setAction( this );
+		spend( TICK );
 		return true;
 	}
 

@@ -17,6 +17,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RiftWindow;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.WeaponDamageTypes;
@@ -81,6 +82,14 @@ public class DimensionalRipper extends Scimitar {
 		}
 		int oldPos = ch.pos;
 		if (!ScrollOfTeleportation.teleportChar( ch )) return false;
+		// 本仓库 teleportToLocation 在 Dungeon.observe() 之前用旧 FOV 设置 visible，
+		// 英雄被传走后会一直保持不可见；传送完成后按新状态纠正。
+		if (ch == Dungeon.hero){
+			ch.sprite.visible = true;
+			ch.sprite.alpha( 1f );
+		} else {
+			ch.sprite.visible = Dungeon.level.heroFOV[ch.pos];
+		}
 		teleportFx( oldPos, ch.pos );
 		if (ch instanceof Mob){
 			Mob mob = (Mob) ch;
@@ -102,6 +111,28 @@ public class DimensionalRipper extends Scimitar {
 		if (Dungeon.level == null || Dungeon.level.heroFOV == null) return;
 		if (Dungeon.level.heroFOV[fromPos]) CellEmitter.get( fromPos ).burst( RiftParticle.SCATTER, WARP_PARTICLES );
 		if (Dungeon.level.heroFOV[toPos]) CellEmitter.center( toPos ).burst( RiftParticle.IMPLODE, WARP_PARTICLES );
+	}
+
+	/** 主手 / 副手是否还握着次元撕裂者；窗口有效性判定要用。 */
+	public static DimensionalRipper equipped( Hero hero ){
+		if (hero == null || hero.belongings == null) return null;
+		if (hero.belongings.weapon() instanceof DimensionalRipper){
+			return (DimensionalRipper) hero.belongings.weapon();
+		}
+		if (hero.belongings.secondWep() instanceof DimensionalRipper){
+			return (DimensionalRipper) hero.belongings.secondWep();
+		}
+		return null;
+	}
+
+	/** 武器离手即关窗，避免留下一个用不了的按钮。 */
+	@Override
+	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
+		if (super.doUnequip( hero, collect, single )){
+			if (equipped( hero ) == null) Buff.detach( hero, RiftWindow.class );
+			return true;
+		}
+		return false;
 	}
 
 	@Override
