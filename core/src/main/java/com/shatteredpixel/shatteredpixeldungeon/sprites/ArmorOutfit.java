@@ -27,8 +27,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix;
  * 每张 armor_outfit_N.png 是 256×128 的 2 次幂贴图：前 5 行各 21 帧 12×15
  * （16×16 源帧完整重采样，不裁边），其余为透明补齐行。
  * 前四行依次对应伯爵礼服 / 寒铁大衣 / 棱镜护铠 / 混灵。
- * 六张按 HeroClasses.ALL 的前六个职业顺序对应；源素材第 6~9 帧为骷髅/剪影，
- * 属于原素材自带的死亡序列，映射关系如有调整只需改生成脚本。
+ * 六张按 HeroClasses.ALL 的前六个职业顺序对应。
+ * 源素材第 6~9 帧是骷髅/剪影，已按项目动画语义只放进 die 段（贴图帧 8~12）；
+ * idle / run / attack / operate 等段一律使用角色帧，映射表见生成脚本 FRAME_MAP。
  */
 public final class ArmorOutfit {
 
