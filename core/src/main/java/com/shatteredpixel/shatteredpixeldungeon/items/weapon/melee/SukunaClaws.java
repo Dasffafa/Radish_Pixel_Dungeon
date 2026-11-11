@@ -51,7 +51,8 @@ public class SukunaClaws extends MeleeWeapon {
 		if (!ranged) {
 			return 1;
 		}
-		int base = 2 + clawLevel();
+		//斩击形态：视野内无遮挡即可命中，射程直接铺满视野
+		int base = 30;
 		Hero hero = Dungeon.hero;
 		if (hero != null && hero.subClass == HeroSubClasses.QIANREN) {
 			base += 2;
