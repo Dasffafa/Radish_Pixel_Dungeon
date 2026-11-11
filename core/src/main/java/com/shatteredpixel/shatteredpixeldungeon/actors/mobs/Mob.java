@@ -109,7 +109,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfSir
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.StoneOfAggression;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ExoticCrystals;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
-import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.YetWand.HolyLand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -1026,7 +1025,8 @@ public abstract class Mob extends Char {
 					Dungeon.hero.belongings.secondaryArmor();
 			if (infArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.InfusedArmband
 					&& Dungeon.hero.STR() >= infArmor.STRReq()
-					&& info.getSourceItem() instanceof Wand) {
+					// 解离/新星等法杖用 DamageInfo.of(...,this) 四参重载，法杖落在 source 而非 sourceItem。
+				&& (info.getSourceItem() instanceof Wand || info.getSource() instanceof Wand)) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.apply(
 						Dungeon.hero, 1 + infArmor.level() / 2, 10f);
 				Buff.affect(Dungeon.hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class)
