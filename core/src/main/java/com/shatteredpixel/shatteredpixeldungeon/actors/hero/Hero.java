@@ -968,7 +968,8 @@ public class Hero extends Char {
 			if (STR() >= sa.STRReq()) {
 				dr += Char.combatRoll(sa.DRMin(), sa.DRMax());
 			} else {
-				dr -= Math.max(1, (sa.STRReq() - STR()) / 2);
+				// 文本承诺「相当于主要护甲 50% 的超力惩罚」：主护甲为 2*(差值)，这里取 1*(差值)。
+				dr -= Math.max(1, sa.STRReq() - STR());
 			}
 		}
 
@@ -2226,7 +2227,7 @@ public class Hero extends Char {
 		// 冠军腰带：对精英与 Boss 的伤害 +（10+5*等级）%
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor champBelt = belongings.secondaryArmor();
 		if (champBelt instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ChampionBelt
-				&& STR() >= champBelt.STRReq()
+				&& STR() >= champBelt.STRReq() && enemy != null
 				&& (enemy.properties.contains(Char.Property.BOSS)
 					|| enemy.properties.contains(Char.Property.MINIBOSS)
 					|| !enemy.buffs(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy.class).isEmpty())) {
@@ -2499,11 +2500,11 @@ public class Hero extends Char {
 		if (secArmor != null && STR() >= secArmor.STRReq()) {
 			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Greaves
 					&& info.getType() == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL) {
-				dmg = Math.max(1, Math.round(dmg * (1f - (10 + 2 * secArmor.level) / 100f)));
+				dmg = Math.max(0, Math.round(dmg * (1f - (10 + 2 * secArmor.level) / 100f)));
 			}
 				if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
 					&& buffs().stream().noneMatch(buff -> buff.type != com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.buffType.NEUTRAL)) {
-				dmg = Math.max(1, dmg - Math.round(2 + 0.2f * secArmor.level));
+				dmg = Math.max(0, dmg - Math.round(2 + 0.2f * secArmor.level));
 			}
 			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt
 					&& info.getType() == DamageType.PHYSICAL && dmg > 0
