@@ -79,6 +79,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Flawle
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.FlowingLight;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Fluctuation;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Grim;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.VoidRift;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Harmony;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Jealousy;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Kinetic;
@@ -618,7 +619,7 @@ abstract public class Weapon extends KindOfWeapon {
 		public static final Class<?>[] rare = new Class<?>[]{
 				Corrupting.class, Grim.class, Vampiric.class, Striking.class, Euphoria.class,
 				Survival.class, Jealousy.class, Refined.class, Reversal.class,
-				Saturation.class, Harmony.class, Meteor.class, SoulRend.class};
+				Saturation.class, Harmony.class, Meteor.class, SoulRend.class, VoidRift.class};
 
 		public static final float[] typeChances = new float[]{
 				50, //权重 50

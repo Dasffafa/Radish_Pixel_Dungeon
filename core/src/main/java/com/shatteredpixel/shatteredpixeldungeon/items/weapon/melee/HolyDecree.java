@@ -45,12 +45,13 @@ public class HolyDecree extends Whip {
 	@Override
 	public int max(int lvl) { return 5 + lvl; }
 
-	// 本仓库 Speck 没有蝴蝶专用帧，用白色星点与灰黑尘点近似黑白双色。
+	// 黑白蝴蝶：specks.png 帧 16 / 17（由移植包贴图提供）。
 	public static final Emitter.Factory BUTTERFLIES = new Emitter.Factory() {
 		@Override
 		public void emit( Emitter emitter, int index, float x, float y ) {
 			Speck p = (Speck) emitter.recycle( Speck.class );
-			p.reset( 0, x, y, Random.Int(2) == 0 ? Speck.DUST : Speck.STAR );
+			p.reset( 0, x, y, Random.Int(2) == 0
+					? Speck.BUTTERFLY_BLACK : Speck.BUTTERFLY_WHITE );
 		}
 	};
 

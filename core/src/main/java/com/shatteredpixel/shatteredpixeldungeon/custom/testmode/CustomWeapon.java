@@ -4,6 +4,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.VoidRift;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Annoying;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Dazzling;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Displacing;
@@ -86,6 +87,7 @@ public class CustomWeapon extends MeleeWeapon {
         enchPrio.put(Corrupting.class, 0);
         enchPrio.put(Elastic.class, 1);
         enchPrio.put(Grim.class, 0);
+        enchPrio.put(VoidRift.class, 0);
         enchPrio.put(Jealousy.class, 1);
         enchPrio.put(Kinetic.class, 0);
         enchPrio.put(Lucky.class, 0);
