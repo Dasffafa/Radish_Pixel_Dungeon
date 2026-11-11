@@ -221,20 +221,32 @@ public class SukunaClaws extends MeleeWeapon {
 			}
 		}
 
-		//近战形态 5% 概率触发黑闪
-		if (!slashing && hero != null && defender.isAlive() && Random.Float() < 0.05f) {
+		//近战形态触发黑闪：基础 5% + 黑闪蓄势叠加
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlackFlashCharge charge =
+				hero == null ? null : hero.buff(
+						com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlackFlashCharge.class);
+		float bfChance = 0.05f + (charge == null ? 0f : charge.stacks() * 0.01f);
+
+		if (!slashing && hero != null && defender.isAlive() && Random.Float() < bfChance) {
 			int base = Math.max(1, result);
 			int blackFlash = (int) Math.round(Math.pow(base, 2.5));
 			showBlackFlash(attacker, defender);
 			if (energy != null) {
 				energy.restoreAll();
 			}
+			if (charge != null) {
+				charge.reset();
+			}
+			blackFlashThisHit = true;
 			GLog.p(Messages.get(this, "black_flash"));
 			return blackFlash;
 		}
 
 		return result;
 	}
+
+	//本次攻击是否打出黑闪，供 Hero.onAttackComplete 判断是否叠层
+	public static boolean blackFlashThisHit = false;
 
 	private void showBlackFlash(Char attacker, Char defender) {
 		com.shatteredpixel.shatteredpixeldungeon.effects.BlackFlashEffect.show(defender);

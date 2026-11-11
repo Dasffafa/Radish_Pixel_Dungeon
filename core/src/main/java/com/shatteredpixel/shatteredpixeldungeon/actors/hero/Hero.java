@@ -3340,6 +3340,20 @@ public class Hero extends Char {
 			}
 			HP = Math.min(HT, HP + heal);
 
+			//黑闪蓄势：命中未触发黑闪则叠层，未命中或打出黑闪则重置
+			int bfTalent = pointsInTalent(Talent.BLOODLUST);
+			if (bfTalent > 0
+					&& belongings.weapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlackFlashCharge charge =
+						Buff.affect(this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.BlackFlashCharge.class);
+				if (!hit || com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws.blackFlashThisHit) {
+					charge.reset();
+				} else {
+					charge.add(bfTalent);
+				}
+			}
+			com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SukunaClaws.blackFlashThisHit = false;
+
 			//近战击杀回复咒力
 			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy ce =
 					buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
