@@ -146,7 +146,7 @@ public class SukunaClaws extends MeleeWeapon {
 		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy energy =
 				hero == null ? null : hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CursedEnergy.class);
 
-		boolean slashing = ranged;
+		boolean slashing = ranged && !com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.sukuna.CurseLeap.resolvingLeap;
 		if (slashing && energy != null) {
 			if (energy.energy() < 10) {
 				//咒力不足，自动切回近战

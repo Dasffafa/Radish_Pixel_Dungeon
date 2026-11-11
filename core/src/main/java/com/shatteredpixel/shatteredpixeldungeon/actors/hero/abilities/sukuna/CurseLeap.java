@@ -16,6 +16,9 @@ import com.watabou.utils.Callback;
 /** 后跃斩：主动向后退一格，并对相邻敌人斩击。 */
 public class CurseLeap {
 
+	//后跃斩结算期间，武器 proc 不再按斩击形态扣咒力
+	public static boolean resolvingLeap = false;
+
 	public static int cost(Hero hero) {
 		return hero.pointsInTalent(Talent.SUKUNA_LOW_HP) >= 2 ? 20 : 30;
 	}
@@ -134,7 +137,12 @@ public class CurseLeap {
 		if (enemy.isAlive()) {
 			//与普通攻击一致：武器骰 → 攻击结算（附魔/天赋）→ 命中
 			int dmg = Math.max(1, hero.damageRoll());
-			dmg = hero.attackProc(enemy, dmg);
+			resolvingLeap = true;
+			try {
+				dmg = hero.attackProc(enemy, dmg);
+			} finally {
+				resolvingLeap = false;
+			}
 			SlashLinesEffect.show(enemy, 4);
 			enemy.damage(DamageInfo.physical(dmg, hero));
 		}
