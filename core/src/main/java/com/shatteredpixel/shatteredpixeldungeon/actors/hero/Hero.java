@@ -1066,26 +1066,8 @@ public class Hero extends Char {
 
 		if (dmg < 0) dmg = 0;
 
-		// 三叉护手：造成的物理伤害下降 30%（元素增伤在法术/附魔侧另算）
-		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor triArmor = belongings.secondaryArmor();
-		if (triArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
-				&& STR() >= triArmor.STRReq()) {
-			dmg = Math.round(dmg * 0.7f);
-		}
-
-		// 灌能臂缠：法杖命中后的临时增伤
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff infBuff =
-				buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.class);
-		if (infBuff != null) {
-			dmg += infBuff.bonus();
-		}
-
-		// 闪亮手套：满血时造成的所有伤害 +（25+5*等级）%
-		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
-		if (sa instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves
-				&& STR() >= sa.STRReq() && HP >= HT) {
-			dmg = Math.round(dmg * (1f + (25 + 5 * sa.level) / 100f));
-		}
+		// 次要护甲「所有伤害」加成已统一移到 Mob.damage 的 DamageInfo 修改器；
+		// 这里不再重复结算（否则近战乘两次，而法杖/投掷物仍吃不到）。
 
 		return dmg;
 	}
@@ -2232,14 +2214,6 @@ public class Hero extends Char {
 					|| enemy.properties.contains(Char.Property.MINIBOSS)
 					|| !enemy.buffs(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy.class).isEmpty())) {
 			damage = Math.round(damage * (1f + (10 + 5 * champBelt.level()) / 100f));
-		}
-
-		// 闪亮手套：敌人满血时造成的伤害同样提高
-		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor shiningArmor = belongings.secondaryArmor();
-		if (shiningArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves
-				&& STR() >= shiningArmor.STRReq() && enemy != null
-				&& enemy.alignment == Char.Alignment.ENEMY && enemy.HP >= enemy.HT) {
-			damage = Math.round(damage * (1f + (25 + 5 * shiningArmor.level) / 100f));
 		}
 
 		if (buff(Talent.SpiritBladesTracker.class) != null

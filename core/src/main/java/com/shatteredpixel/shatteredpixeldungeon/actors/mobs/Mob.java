@@ -1019,6 +1019,28 @@ public abstract class Mob extends Char {
 			}
 		}
 
+		// 次要护甲「所有伤害」加成：统一在伤害管线上结算，覆盖近战、法杖与投掷物。
+		// Hero.damageRoll() / attackProc() 里不再重复计算。
+		if (Dungeon.hero != null && info.getAttacker() == Dungeon.hero) {
+			com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor allDmg = Dungeon.hero.belongings.secondaryArmor();
+			if (allDmg != null && Dungeon.hero.STR() >= allDmg.STRReq()) {
+				if (allDmg instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves) {
+					float mult = 1f + (25 + 5 * allDmg.level()) / 100f;
+					if (Dungeon.hero.HP >= Dungeon.hero.HT)
+						info.addFinalMultModifier(mult, "shining gloves full hp hero");
+					if (HP >= HT)
+						info.addFinalMultModifier(mult, "shining gloves full hp enemy");
+				}
+				if (allDmg instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
+						&& info.getType() == DamageType.PHYSICAL) {
+					info.addFinalMultModifier(0.7f, "trident gauntlet phys");
+				}
+			}
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff inf =
+					Dungeon.hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.class);
+			if (inf != null) info.addPreFinalAddModifier(inf.bonus(), "infused armband bonus");
+		}
+
 		// 灌能臂缠：英雄用法杖造成伤害后，10 回合内增伤并获得护盾
 		if (Dungeon.hero != null && info.getAttacker() == Dungeon.hero) {
 			com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor infArmor =
