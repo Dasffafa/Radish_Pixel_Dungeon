@@ -18,6 +18,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
 
@@ -25,6 +26,10 @@ import com.watabou.utils.Bundle;
 public class SoulMix extends Armor {
 
 	private static final String STACKS = "soul_stacks";
+	private static final String TURNS = "soul_turns";
+
+	/** 额外等级持续回合数：每次击杀刷新，归零后层数清空。 */
+	public static final int DURATION = 10;
 
 	{ image = ItemSpriteSheet.ARMOR_SOULMIX; }
 
@@ -40,11 +45,16 @@ public class SoulMix extends Armor {
 
 	public static int maxStacks( int lvl ){ return 1 + Math.round( 0.33f * lvl ); }
 
+	@Override
+	public String statsInfo() {
+		return Messages.get( this, "stats_desc", maxStacks( level() ), DURATION );
+	}
+
 	/** 英雄身上混灵的当前层数。 */
 	public static int stacks( Hero hero ){
 		if (hero == null) return 0;
 		SoulMixBuff b = hero.buff( SoulMixBuff.class );
-		return b == null ? 0 : b.stacks;
+		return b == null || b.turnsLeft <= 0 ? 0 : b.stacks;
 	}
 
 	/** 供 Weapon.buffedLvl() 调用：只对英雄当前装备的武器生效。 */
@@ -55,21 +65,33 @@ public class SoulMix extends Armor {
 
 	public class SoulMixBuff extends ArmorBuff {
 		public int stacks = 0;
+		public int turnsLeft = 0;
 
 		public void gain(){
 			stacks = Math.min( maxStacks( SoulMix.this.level() ), stacks + 1 );
+			turnsLeft = DURATION;
+		}
+
+		@Override
+		public boolean act(){
+			if (turnsLeft > 0 && --turnsLeft <= 0) stacks = 0;
+			spend( TICK );
+			return true;
 		}
 
 		@Override
 		public void storeInBundle( Bundle bundle ){
 			super.storeInBundle( bundle );
 			bundle.put( STACKS, stacks );
+			bundle.put( TURNS, turnsLeft );
 		}
 
 		@Override
 		public void restoreFromBundle( Bundle bundle ){
 			super.restoreFromBundle( bundle );
 			stacks = bundle.getInt( STACKS );
+			// 老存档没有回数字段：仍有层数就补一个完整持续期，避免读档后加成直接消失。
+			turnsLeft = bundle.contains( TURNS ) ? bundle.getInt( TURNS ) : (stacks > 0 ? DURATION : 0);
 		}
 	}
 

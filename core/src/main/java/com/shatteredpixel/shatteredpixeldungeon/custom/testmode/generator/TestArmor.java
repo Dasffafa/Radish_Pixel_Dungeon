@@ -123,7 +123,7 @@ public class TestArmor extends TestGenerator {
             case 4:
                 return (Class<? extends Armor>[]) Generator.Category.ARM_T4.classes.clone();
             case 5:
-                return (Class<? extends Armor>[]) Generator.Category.ARM_T5_NATURE.classes.clone();
+                return (Class<? extends Armor>[]) Generator.Category.ARM_T5.classes.clone();
         }
     }
 
@@ -139,11 +139,7 @@ public class TestArmor extends TestGenerator {
     }
 
     private int maxSlots(int t){
-        switch (t){
-            case 1:return 1;
-            case 2: case 4:
-            case 3: case 5: default:return 3;
-        }
+        return armorList(t).length;
     }
 
     private class SettingsWindow extends Window {

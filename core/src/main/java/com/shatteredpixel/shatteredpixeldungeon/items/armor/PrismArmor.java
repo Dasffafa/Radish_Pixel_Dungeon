@@ -35,6 +35,11 @@ public class PrismArmor extends Armor {
 	@Override public int DRMin(int lvl){ return 2 + lvl; }
 
 	@Override
+	public String statsInfo() {
+		return Messages.get( this, "stats_desc", 10 + 7 * buffedLvl() );
+	}
+
+	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
 		if (attacker != null && defender != null && Dungeon.level != null
 				&& !Dungeon.level.adjacent( attacker.pos, defender.pos )){
