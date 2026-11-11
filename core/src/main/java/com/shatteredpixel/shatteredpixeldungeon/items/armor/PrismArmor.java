@@ -19,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Random;
@@ -58,6 +59,6 @@ public class PrismArmor extends Armor {
 		if (Random.Float() >= chance) return;
 		int reflected = Math.max( 1, event.getEffectiveDamage() );
 		attacker.damage( new DamageInfo( reflected, DamageType.MAGICAL, hero, armor, armor ) );
-		attacker.sprite.showStatus( CharSprite.NEGATIVE, "反射" );
+		attacker.sprite.showStatus( CharSprite.NEGATIVE, Messages.get( PrismArmor.class, "reflect" ) );
 	}
 }

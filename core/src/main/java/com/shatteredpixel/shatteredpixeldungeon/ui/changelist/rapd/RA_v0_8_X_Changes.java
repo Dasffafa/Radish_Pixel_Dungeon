@@ -38,17 +38,17 @@ public class RA_v0_8_X_Changes {
         changeInfos.add(changes);
 
         changes.addButton(new ChangeButton(new ItemSprite(ARMOR_COUNTESS), "四件新护甲",
-                ("_-_ 伯爵礼服：获得或花费金币后回血（赎回除外）。\\n\\n" +
-                        "_-_ 寒铁大衣：免疫冻伤与冰冻。\\n\\n" +
-                        "_-_ 棱镜护铠：远程减伤 25%，法术伤害有概率反射。\\n\\n" +
+                ("_-_ 伯爵礼服：获得或花费金币后回血（赎回除外）。\n\n" +
+                        "_-_ 寒铁大衣：免疫冻伤与冰冻。\n\n" +
+                        "_-_ 棱镜护铠：远程减伤 25%，法术伤害有概率反射。\n\n" +
                         "_-_ 混灵：击杀敌人叠加护甲与武器的额外等级。")));
 
         changes.addButton(new ChangeButton(new ItemSprite(DIMENSIONAL_RIPPER), "新附魔：虚空",
                 ("这个强大的附魔可以撕扯空间，若目标脚下的地块合规，则有可能在攻击后直接撕开它，使目标落入虚空。")));
 
         changes.addButton(new ChangeButton(new ItemSprite(HOLY_DECREE), "三把新武器",
-                ("_-_ 圣宣：四阶长鞭，4 倍速、射程 8；命中撒黑白蝴蝶并随机造成神圣/腐蚀伤害，偶尔留下蝴蝶场地。\\n\\n" +
-                        "_-_ 沉默的代价：四阶武器，第十二次命中蓄势，第十三次命中斩杀或追加魔法伤害。\\n\\n" +
+                ("_-_ 圣宣：四阶长鞭，4 倍速、射程 8；命中撒黑白蝴蝶并随机造成神圣/腐蚀伤害，偶尔留下蝴蝶场地。\n\n" +
+                        "_-_ 沉默的代价：四阶武器，第十二次命中蓄势，第十三次命中斩杀或追加魔法伤害。\n\n" +
                         "_-_ 次元撕裂者：三阶弯刀，命中概率随机传送目标或自己，附带腐蚀伤害并可开窗追击。")));
 
         changes.addButton(new ChangeButton(new ItemSprite(BONE_PILE), "一些新物品",
