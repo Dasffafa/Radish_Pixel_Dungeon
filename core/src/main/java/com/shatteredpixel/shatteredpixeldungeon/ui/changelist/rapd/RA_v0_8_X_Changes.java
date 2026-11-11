@@ -37,6 +37,10 @@ public class RA_v0_8_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
+        changes.addButton(new ChangeButton(new ItemSprite(WRECKING_BALL), "新投掷物：破坏球与千本",
+                ("_-_ 破坏球：投出后撞墙按入射角弹开，最多反射 3 次；也能放在脚下，站到旁边按住动作按钮蓄力击飞。\n\n" +
+                        "_-_ 千本：一次扇形甩出 12 枚钢针，各自飞行，真正扎中目标才结算一次普通物理伤害。")));
+
         changes.addButton(new ChangeButton(new ItemSprite(ARMOR_COUNTESS), "四件新护甲",
                 ("_-_ 伯爵礼服：获得或花费金币后回血（赎回除外）。\n\n" +
                         "_-_ 寒铁大衣：免疫冻伤与冰冻。\n\n" +
@@ -200,7 +204,8 @@ public class RA_v0_8_X_Changes {
                         "_-_ 修复 次要护甲的元素增伤、满血增伤、受击撒网与法杖触发条件未生效的问题\n\n" +
                         "_-_ 修复 次要护甲无法用升级卷轴强化、强化后效果数值不增长的问题\n\n" +
                         "_-_ 修复 灌能臂缠对解离、新星等法杖不触发；校正次要护甲超力惩罚与减伤保底数值\n\n" +
-                        "_-_ 修复 闪亮手套、灌能臂缠、三叉护手的伤害加成对法杖与投掷物不生效的问题")));
+                        "_-_ 修复 闪亮手套、灌能臂缠、三叉护手的伤害加成对法杖与投掷物不生效的问题\n\n" +
+                        "_-_ 补齐工程师天赋图标与中英文文本，修复天赋图标缺失导致的资源校验失败")));
     }
 
     public static void add_v08_3_Changes(ArrayList<ChangeInfo> changeInfos) {
