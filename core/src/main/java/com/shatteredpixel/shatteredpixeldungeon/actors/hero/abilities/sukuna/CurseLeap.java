@@ -103,9 +103,15 @@ public class CurseLeap {
 		final int to = dest;
 
 		//闪现：原地与落点各爆一圈光，瞬间位移
+		//残影 + 暗影粒子
+		if (hero.sprite != null && hero.sprite.parent != null) {
+			hero.sprite.parent.add(new com.shatteredpixel.shatteredpixeldungeon.effects.Afterimage(hero.sprite));
+		}
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(from).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle.UP, 10);
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(from).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 10);
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 8);
 
 		//直接改写坐标并刷新精灵，确保是真位移而不是原地动画
 		hero.pos = to;
@@ -119,8 +125,10 @@ public class CurseLeap {
 
 		hero.sprite.flash();
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(to).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.particles.ShadowParticle.UP, 10);
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get(to).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 10);
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 8);
 
 		//伤害按一次普通攻击计算
 		if (enemy.isAlive()) {
