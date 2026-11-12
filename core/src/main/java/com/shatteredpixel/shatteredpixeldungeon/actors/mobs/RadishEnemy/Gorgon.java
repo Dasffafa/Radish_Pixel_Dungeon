@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FrostImbue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
@@ -87,7 +88,7 @@ public class Gorgon extends Mob {
     }
 
 
-    public static class Petrification extends Buff{
+    public static class Petrification extends Buff implements Hero.Doom {
         {
             type = buffType.NEGATIVE;
             announced = true;
@@ -141,14 +142,20 @@ public class Gorgon extends Mob {
         public boolean act() {
 
             if (Lv >= 100){
-                target.die(null);
-                Dungeon.fail( getClass() );
-                GLog.n( Messages.capitalize(Messages.get(Gorgon.Petrification.class, "ondeath")) );
+                //石化也会叠在友方和其他怪物身上，英雄还可能被祝福十字架救回：
+                //失败记录和死亡提示不能在这里无条件结算，交给 Hero.die 在英雄真的死亡时回调 onDeath
+                target.die(this);
             }
 
             spend( TICK );
 
             return true;
+        }
+
+        @Override
+        public void onDeath() {
+            Dungeon.fail( getClass() );
+            GLog.n( Messages.capitalize(Messages.get(Gorgon.Petrification.class, "ondeath")) );
         }
     }
 }
