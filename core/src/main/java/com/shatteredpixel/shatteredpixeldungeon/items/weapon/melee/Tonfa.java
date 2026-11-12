@@ -97,9 +97,10 @@ public class Tonfa extends MeleeWeapon{
 
     @Override
     public String statsInfo() {
+        // 上限写实际能掷到的最大值：onZap 里用的是 Random.Int(下限, 上限)，取不到上限本身
         if (!isIdentified())
-            return Messages.get(this, "stats_desc",2, 8);
-        return Messages.get(this, "stats_desc",2+buffedLvl(), 8+buffedLvl() * 2);
+            return Messages.get(this, "stats_desc",2, 7);
+        return Messages.get(this, "stats_desc",2+buffedLvl(), 7+buffedLvl() * 2);
     }
 
     @Override
