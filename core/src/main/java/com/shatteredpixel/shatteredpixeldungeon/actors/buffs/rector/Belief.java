@@ -121,7 +121,11 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     ArrayList<Mob> visibleTargets = new ArrayList<>();
 
                     for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
-                        if(Dungeon.level.visited[mob.pos] && !(mob instanceof NPC || mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL) && !(mob.properties().contains(Char.Property.IMMOVABLE ))){
+                        // 说明写的是「视野内的随机目标」：要看英雄此刻看不看得见（heroFOV），
+                        // 不是这一格有没有探索过（visited）——后者会隔着墙劈到地图另一头的怪。
+                        // 友方阵营（被腐化、魅惑过来的怪）不在候选里。
+                        if(Dungeon.level.heroFOV[mob.pos] && mob.alignment != Char.Alignment.ALLY
+                                && !(mob instanceof NPC || mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL) && !(mob.properties().contains(Char.Property.IMMOVABLE ))){
                             visibleTargets.add(mob);
                         } else {
                             visibleTargets.remove(mob);
