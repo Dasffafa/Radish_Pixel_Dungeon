@@ -1745,7 +1745,9 @@ public class Talent {
 		// 骰子法师特殊：清空 T3 通用，放入魔法学派，并附加魔力点数
 		if (cls == HeroSubClasses.DICE_MAGE){
 			talents.get(2).clear();
-			if (Dungeon.hero != null) Buff.affect(Dungeon.hero, MagicPoint.class);
+			//这个方法也被「转职说明」窗口拿来生成一份只用于展示的天赋表。
+			//只有在填的是英雄自己的天赋表（真的转职）时才发魔力点，否则看一眼说明身上就永久多一个魔力点状态
+			if (Dungeon.hero != null && talents == Dungeon.hero.talents) Buff.affect(Dungeon.hero, MagicPoint.class);
 		}
 
 		initTier(talents.get(2), cls.subclassT3(), new LinkedHashMap<>());
