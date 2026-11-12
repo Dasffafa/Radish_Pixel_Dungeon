@@ -33,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.MagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -179,6 +180,9 @@ public class LloydsBeacon extends Artifact {
 				Level.beforeTransition();
 				InterlevelScene.mode = InterlevelScene.Mode.RETURN;
 				InterlevelScene.returnDepth = returnDepth;
+				// 道标只能在主线设置、也只能在主线使用（interfloorTeleportAllowed），目标一定在主线。
+				// 不设的话用的是上一次回传留下的分支；本次启动后还没回传过时是 null，换层直接抛异常。
+				InterlevelScene.returnBranchId = Branches.MAIN;
 				InterlevelScene.returnPos = returnPos;
 				Game.switchScene( InterlevelScene.class );
 			}
