@@ -12,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionHero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Fury;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerLoot;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfTenacity;
@@ -61,6 +62,14 @@ public class DM175 extends Mob {
     public void die( Object cause ) {
         super.die( cause );
     }
+
+    @Override
+    public void rollToDropLoot() {
+        super.rollToDropLoot();
+        //工程师：机械敌人死亡时掉金属零件
+        EngineerLoot.onMechanicalDeath( this );
+    }
+
     @Override
     protected String heroKilledMessage() {
         return Messages.capitalize(Messages.get(DM175.class, "kill"));

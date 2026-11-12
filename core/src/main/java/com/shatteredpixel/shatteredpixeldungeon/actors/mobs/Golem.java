@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerLoot;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -85,6 +86,8 @@ public class Golem extends Mob {
 	public void rollToDropLoot() {
 		Imp.Quest.process( this );
 		super.rollToDropLoot();
+		//工程师：机械敌人死亡时掉金属零件（矮人国王的魔像继承这里）
+		EngineerLoot.onMechanicalDeath( this );
 	}
 
 	public Item createLoot() {

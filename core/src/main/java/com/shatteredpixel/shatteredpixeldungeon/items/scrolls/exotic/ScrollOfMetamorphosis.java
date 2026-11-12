@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerRules;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Transmuting;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.InventoryScroll;
@@ -180,6 +181,8 @@ public class ScrollOfMetamorphosis extends ExoticScroll {
 		static {
 			restrictedTalents.put(Talent.RUNIC_TRANSFERENCE, HeroClasses.WARRIOR);
 			restrictedTalents.put(Talent.WAND_PRESERVATION, HeroClasses.MAGE);
+			//工程师那些离不开脉冲法杖、多用军刀、改装的天赋，别的职业蜕变到了也用不上
+			EngineerRules.restrictToEngineer( restrictedTalents );
 		}
 
 		public static WndMetamorphReplace INSTANCE;

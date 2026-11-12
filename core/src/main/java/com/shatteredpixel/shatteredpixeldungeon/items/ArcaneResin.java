@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.UnstableSpell;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -105,7 +106,8 @@ public class ArcaneResin extends Item {
 
 		@Override
 		public boolean itemSelectable(Item item) {
-			return item instanceof Wand && item.isIdentified();
+			//工程师的脉冲法杖等级跟着英雄等级走，不吃聚酯
+			return item instanceof Wand && !(item instanceof PulseWand) && item.isIdentified();
 		}
 
 		@Override
@@ -153,6 +155,7 @@ public class ArcaneResin extends Item {
 		public boolean testIngredients(ArrayList<Item> ingredients) {
 			return ingredients.size() == 1
 					&& ingredients.get(0) instanceof Wand
+					&& !(ingredients.get(0) instanceof PulseWand)
 					&& ingredients.get(0).isIdentified()
 					&& !ingredients.get(0).cursed;
 		}

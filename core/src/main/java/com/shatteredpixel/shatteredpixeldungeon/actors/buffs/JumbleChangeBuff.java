@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerRules;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -307,6 +308,7 @@ public class JumbleChangeBuff extends Buff {
 		HashMap<Talent, HeroClass> restricted = new HashMap<>();
 		restricted.put(Talent.RUNIC_TRANSFERENCE, HeroClasses.WARRIOR);
 		restricted.put(Talent.WAND_PRESERVATION, HeroClasses.MAGE);
+		EngineerRules.restrictToEngineer( restricted );
 
 		for (HeroClass cls : HeroClasses.ALL) {
 			Talent[] tierTalents = classTalentsAtTier(cls, tierIndex);

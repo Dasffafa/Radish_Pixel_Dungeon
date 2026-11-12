@@ -65,6 +65,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ExoticScrol
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.HerbMaker;
 import com.shatteredpixel.shatteredpixeldungeon.items.talentitem.SpellQueue;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ShardOfOblivion;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -1097,6 +1098,9 @@ public class Talent {
 		}
 
 		handleCardTricksterTalent(hero, talent);
+
+		//工程师「杖构工学」+3：脉冲法杖的充能上限要跟着变
+		PulseWand.onTalentUpgraded( hero, talent );
 	}
 
 	private static void handleCardTricksterTalent(Hero hero, Talent talent) {

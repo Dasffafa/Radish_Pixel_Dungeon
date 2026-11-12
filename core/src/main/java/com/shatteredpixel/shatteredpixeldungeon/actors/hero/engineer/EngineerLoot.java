@@ -88,7 +88,11 @@ public class EngineerLoot {
 		}
 	}
 
-	/** 机械敌人结算掉落时调用（各机械怪的 rollToDropLoot）。 */
+	/**
+	 * 机械敌人结算掉落时调用（各机械怪的 rollToDropLoot；只有敌对阵营的怪死亡才会走到）。
+	 * 调用点在 super.rollToDropLoot() 之后：基类里「英雄等级超过怪物 maxLvl + 2 就不掉落」的判断拦不到这里，
+	 * 要按同样的规则拦，得在这里自己判断。
+	 */
 	public static void onMechanicalDeath( Mob mob ) {
 	}
 

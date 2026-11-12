@@ -19,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Corrosion;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.curses.ITempLevelCurse;
+import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModHooks;
 import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModState;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
@@ -747,7 +748,8 @@ public class Armor extends EquipableItem {
 	}
 
 	public final int DRMin(){
-		return DRMin(buffedLvl());
+		//改装的挂点放在这里而不是带参数的 DRMin(int)：后者被十几件护甲覆写，战斗里取防御走的都是这个无参版本
+		return ModHooks.armorDRMin( this, DRMin(buffedLvl()), DRMax() );
 	}
 
 	public int DRMin(int lvl){
@@ -799,6 +801,8 @@ public class Armor extends EquipableItem {
 		if (hasGlyph(Survival.class, owner)){
 			evasion *= Survival.evasionMultiplier(owner, procLvl());
 		}
+
+		evasion = ModHooks.armorEvasion( this, owner, evasion );
 
 		return evasion + augment.evasionFactor(buffedLvl());
 	}
@@ -1082,7 +1086,16 @@ public class Armor extends EquipableItem {
 			}
 		}
 
+		info += ModHooks.infoText( this );
+
 		return info;
+	}
+
+	//物品格左下角的小字：有改装时显示改装的剩余寿命
+	@Override
+	public String special() {
+		String slot = ModHooks.slotText( this );
+		return slot != null ? slot : super.special();
 	}
 
 	public String statsInfo(){
@@ -1149,6 +1162,7 @@ public class Armor extends EquipableItem {
 		}
 		//沉重/超轻诅咒：力量需求修正
 		req += curseStrReqMod();
+		req = ModHooks.armorStrReq( this, req );
 		return req;
 	}
 
@@ -1278,7 +1292,7 @@ public class Armor extends EquipableItem {
 		public abstract int proc( Armor armor, Char attacker, Char defender, int damage);
 
 		protected float procChanceMultiplier( Char defender ){
-			return RingOfArcana.enchantPowerMultiplier(defender);
+			return ModHooks.glyphProcMultiplier( armor, defender, RingOfArcana.enchantPowerMultiplier(defender) );
 		}
 
 		public String name() {

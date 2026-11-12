@@ -57,7 +57,8 @@ public class TrapHack {
 	/**
 	 * 有东西压到陷阱格时问一次，返回 false 表示这次不触发。
 	 * presser 是踩上去的角色；物品落地、法术落点等没有踩踏者的情况为 null。
-	 * hard 为 true 表示「硬踩」（英雄、物品落地），明面上的陷阱只有硬踩或已骇入时才会被走上去的怪物触发。
+	 * hard 为 false 表示「软踩」（英雄和羊以外的角色走上去）：软踩不会碰到隐藏陷阱，所以这里只会收到明面上的陷阱；
+	 * 英雄、羊、物品落地都是硬踩。
 	 */
 	public static boolean allowsPress( Trap trap, Char presser, boolean hard ) {
 		return true;
