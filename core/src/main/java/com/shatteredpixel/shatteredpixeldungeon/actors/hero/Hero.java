@@ -577,6 +577,7 @@ public class Hero extends Char {
 
 	private static final String DEADKNGITH = "deadknight";
 	private static final String CARD_DECK = "card_deck";
+	private static final String SUPERSTITION_CNT = "superstition_cnt";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -606,6 +607,7 @@ public class Hero extends Char {
 
 			belongings.storeInBundle( bundle );
 			bundle.put( CARD_DECK, cardDeck );
+			if (superstitionCounter != null) bundle.put( SUPERSTITION_CNT, superstitionCounter.cnt );
 		}
 	}
 
@@ -628,6 +630,13 @@ public class Hero extends Char {
 		skin = bundle.getInt( SKIN );
 		powerOfImp = bundle.getBoolean(IMP_POWER);
 		Talent.restoreTalentsFromBundle( bundle, this );
+
+		// 星界沟通的计数器只在点天赋的那一刻创建，以前不进存档：读档后一直是 null，这一局剩下的时间里天赋不再给信仰。
+		// 读档时按「有没有这个天赋」重建；旧存档没有这个键，从 0 开始攒
+		if (hasTalent(Talent.SUPERSTITION)) {
+			superstitionCounter = new SuperstitionCounter();
+			if (bundle.contains(SUPERSTITION_CNT)) superstitionCounter.cnt = bundle.getInt(SUPERSTITION_CNT);
+		}
 
 		attackSkill = bundle.getInt( ATTACK );
 		defenseSkill = bundle.getInt( DEFENSE );
