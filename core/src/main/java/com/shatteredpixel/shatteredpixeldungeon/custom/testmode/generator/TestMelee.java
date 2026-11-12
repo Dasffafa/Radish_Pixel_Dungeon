@@ -79,7 +79,10 @@ public class TestMelee extends TestGenerator {
     }
 
     private void createWeapon(){
-        Weapon melee = Reflection.newInstance(weaponList(tier)[weapon_id]);
+        // 换到武器更少的阶数后，记着的「第几把」可能已经超出这一阶的数量（各阶数量不同，还会随存档带过来），
+        // 和窗口上显示所选武器时一样收到最后一把，否则这里数组越界直接闪退
+        Class<? extends Weapon>[] list = weaponList(tier);
+        Weapon melee = Reflection.newInstance(list[Math.max(0, Math.min(weapon_id, list.length - 1))]);
         melee = modifyWeapon(melee);
         melee.identify();
         if(melee.collect()){
@@ -152,15 +155,6 @@ public class TestMelee extends TestGenerator {
 
     private String currentEnchName(Class<? extends Weapon.Enchantment> ench, String wepName) {
         return Messages.get(ench, "name", wepName);
-    }
-
-    private int maxSlots(int t){
-        switch (t){
-            case 1:return 4;
-            case 4: case 5:return 12;
-            case 2:default:return 9;
-            case 3:return 8;
-        }
     }
 
     private class SettingsWindow extends Window {
@@ -283,7 +277,9 @@ public class TestMelee extends TestGenerator {
                 IconButton btn = new IconButton() {
                     @Override
                     protected void onClick() {
-                        weapon_id = Math.min(maxSlots(tier)-1, j);
+                        // 图标就是按这一阶的武器表逐个建的，点第几个就是第几把。
+                        // 以前这里按一张写死的「每阶几把」再收一次，表早就对不上了，点靠后的图标会选成别的武器
+                        weapon_id = j;
                         updateSelectedWeaponText();
                         super.onClick();
                     }
