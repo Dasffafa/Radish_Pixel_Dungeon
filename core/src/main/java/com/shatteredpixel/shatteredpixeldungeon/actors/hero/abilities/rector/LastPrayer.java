@@ -32,6 +32,16 @@ public class LastPrayer extends ArmorAbility {
     @Override
     protected void activate(ClassArmor armor, Hero hero, Integer target) {
 
+        //取消选格、被缠绕而跳不出去时技能没有施放：必须在扣血、给无敌和回血之前返回，
+        //否则不花充能、不花回合就能反复拿到无敌和回血
+        if (target == null) {
+            return;
+        }
+        if (hero.rooted) {
+            PixelScene.shake(1, 1f);
+            return;
+        }
+
         // reg to store hp remain
         int HpRemain = hero.HP - 1;
 
@@ -40,11 +50,6 @@ public class LastPrayer extends ArmorAbility {
 
         // Jump
         if (target != null) {
-
-            if (hero.rooted) {
-                PixelScene.shake(1, 1f);
-                return;
-            }
 
             Ballistica route = new Ballistica(hero.pos, target, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID);
             int cell = route.collisionPos;
