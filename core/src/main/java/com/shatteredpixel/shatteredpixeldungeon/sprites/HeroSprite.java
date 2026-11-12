@@ -176,7 +176,9 @@ public class HeroSprite extends CharSprite {
 		die = new Animation( 20, false );
 		// 标准素材的死亡帧是骷髅落地：第 12 帧是第 11 帧整体上移 1 像素的「弹起」，最后要回到第 11 帧才算落定。
 		// 月华整张图和混灵那一行画的是一路倒下、消散的连续过程，第 12 帧就是终态，回到第 11 帧反而会倒放一帧。
-		boolean endsOnLastFrame = Assets.Sprites.MOONLIGHT.equals( sheetAsset ) || t == ArmorOutfit.ROW_SOULMIX;
+		// 混灵的消散动画只画在有专属外观的贴图上，所以要看当前显示的贴图，不能只认行号。
+		boolean endsOnLastFrame = Assets.Sprites.MOONLIGHT.equals( sheetAsset )
+				|| (t == ArmorOutfit.ROW_SOULMIX && ArmorOutfit.sheetHasOutfit( sheetAsset ));
 		die.frames( film, 8, 9, 10, 11, 12, endsOnLastFrame ? 12 : 11 );
 
 		attack = new Animation( 15, false );
