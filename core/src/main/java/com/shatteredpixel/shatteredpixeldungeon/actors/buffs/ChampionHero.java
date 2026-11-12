@@ -243,7 +243,8 @@ public abstract class ChampionHero extends Buff implements IDamageModifier {
             @Override
             public boolean attachTo(Char target) {
             for (Buff b:target.buffs()){
-                if (MY_ANTI_MAGIC.contains(b)){
+                //集合里放的是状态的类，要拿类去比；拿状态实例去比永远不相等，已有的负面状态一个也清不掉
+                if (MY_ANTI_MAGIC.contains(b.getClass())){
                     b.detach();
                 }
             }
