@@ -213,8 +213,9 @@ public class AshKing extends ArmorAbility {
 					// mob在轨迹上，取轨迹终点作为推开目标
 					targetPos = heroToMob.path.get(heroToMob.path.size() - 1);
 				} else {
-					// mob不在轨迹上（可能在侧面），直接用mob位置
-					targetPos = mob.pos;
+					//走到这里说明怪物已经是这条线在地图内的最后一格，身后就是地图边界，无处可退。
+					//不能拿怪物自己的格子当目标：起点和终点相同的弹道会退化成一条指向左上的斜线，把怪物朝不相干的方向扔出去
+					continue;
 				}
 				// 创建从mob到推开目标的轨迹（使用MAGIC_BOLT不受墙壁阻挡）
 				Ballistica knockbackPath = new Ballistica(mob.pos, targetPos, Ballistica.MAGIC_BOLT);
