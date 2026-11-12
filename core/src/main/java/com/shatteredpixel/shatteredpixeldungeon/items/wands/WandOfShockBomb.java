@@ -138,7 +138,7 @@ public class WandOfShockBomb extends DamageWand {
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
-                FloatingText.show(p.x, p.y, pos, "WARNING!!!", CharSprite.NEGATIVE);
+                FloatingText.show(p.x, p.y, pos, Messages.get(WandOfShockBomb.class, "warning"), CharSprite.NEGATIVE);
 
                 // 显示圆形范围标记
                 for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
@@ -338,7 +338,7 @@ public class WandOfShockBomb extends DamageWand {
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
-                FloatingText.show(p.x, p.y, pos, "NUKE!!!", CharSprite.NEGATIVE);
+                FloatingText.show(p.x, p.y, pos, Messages.get(WandOfShockBomb.class, "nuke"), CharSprite.NEGATIVE);
 
                 // 显示圆形范围标记
                 for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
