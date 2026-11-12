@@ -36,7 +36,8 @@ public class TridentGauntlet extends SecondaryArmor {
 		DamageType type = info.getType();
 		if (type == DamageType.FIRE || type == DamageType.FROST || type == DamageType.LIGHTNING) {
 			info.addFinalMultModifier(1f + elementalBonus() / 100f, "trident gauntlet");
-		} else if (type == DamageType.PHYSICAL) {
+		} else if (type == DamageType.PHYSICAL || type == DamageType.PHYSICAL_NO_ARMOR) {
+			// 无视护甲的物理伤害也是物理伤害：狙击手的远程投掷走的就是这个类型
 			info.addFinalMultModifier(PHYSICAL_MULT, "trident gauntlet phys");
 		}
 	}
