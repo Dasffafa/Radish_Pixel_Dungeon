@@ -645,7 +645,7 @@ public class AlchemyScene extends PixelScene {
 
 			Recipe recipe = recipes.get(i);
 
-			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.cost(ingredients) );
+			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.energyCost(ingredients) );
 
 			outputs[i].visible = true;
 			outputs[i].setRect(outputs[0].left(), top, BTN_SIZE, BTN_SIZE);
@@ -689,7 +689,7 @@ public class AlchemyScene extends PixelScene {
 		Item result = null;
 
 		if (recipe != null){
-			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.cost(ingredients) );
+			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.energyCost(ingredients) );
 			if (toolkit != null){
 				cost = toolkit.consumeEnergy(cost);
 			}

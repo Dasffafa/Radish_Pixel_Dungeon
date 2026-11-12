@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.AlchemyApprenticeChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Blandfruit;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MeatPie;
@@ -69,6 +70,12 @@ public abstract class Recipe {
 	public abstract boolean testIngredients(ArrayList<Item> ingredients);
 	
 	public abstract int cost(ArrayList<Item> ingredients);
+
+	//配方最终要消耗的能量。炼金界面上显示的数字、能量够不够的判定、实际扣除的数量以及图鉴里的数字都必须从这里取，
+	//不要直接调 cost()：cost() 只是配方自己的基础消耗，「炼金学徒」挑战的加价统一叠加在这里
+	public final int energyCost(ArrayList<Item> ingredients){
+		return AlchemyApprenticeChallenge.recipeCost(cost(ingredients));
+	}
 	
 	public abstract Item brew(ArrayList<Item> ingredients);
 	
