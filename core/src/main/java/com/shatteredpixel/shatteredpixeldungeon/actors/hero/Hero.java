@@ -2477,7 +2477,9 @@ public class Hero extends Char {
 					&& info.getType() == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL) {
 				dmg = Math.max(0, Math.round(dmg * (1f - (10 + 2 * secArmor.level) / 100f)));
 			}
-				if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
+			// 饥饿伤害每次只有 1 点，一并减掉的话没有状态时就永远饿不死，所以不减饥饿伤害
+			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
+					&& info.getType() != DamageType.HUNGER
 					&& buffs().stream().noneMatch(buff -> buff.type != com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.buffType.NEUTRAL)) {
 				dmg = Math.max(0, dmg - Math.round(2 + 0.2f * secArmor.level));
 			}
