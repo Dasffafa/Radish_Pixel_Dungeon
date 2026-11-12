@@ -376,6 +376,9 @@ public class SpawnWeapon extends TestItem {
 
         private void updateEnchantIdSlider(){
             int maxId = getEnchantCount(enchant_rarity) - 1;
+            // 各类附魔的数量不同：换种类后记着的编号可能已经超出这一类。只挪滑块不收编号的话，
+            // 滑块指着这一类的最后一个，生成出来的武器却没有附魔
+            enchant_id = Math.max(0, Math.min(enchant_id, maxId));
             if (OptionSlider_EnchantId != null) {
                 remove(OptionSlider_EnchantId);
                 OptionSlider_EnchantId.destroy();
