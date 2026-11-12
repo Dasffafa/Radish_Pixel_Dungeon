@@ -68,7 +68,9 @@ public class TestArmor extends TestGenerator {
     }
 
     private void createArmor(){
-        Armor armor = Reflection.newInstance(armorList(tier)[armor_id]);
+        // 切换阶数后 armor_id 可能还停在上一阶更长的列表里，取用时和界面显示一样收到末项
+        Class<? extends Armor>[] list = armorList(tier);
+        Armor armor = Reflection.newInstance(list[Math.min(armor_id, list.length - 1)]);
         armor = modifyArmor(armor);
         armor.identify();
         if(armor.collect()){
