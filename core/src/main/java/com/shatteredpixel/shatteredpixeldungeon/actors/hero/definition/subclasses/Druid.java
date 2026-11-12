@@ -12,7 +12,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidOakSage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidSunflower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidVines;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidWolf;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.utils.Bundle;
@@ -334,7 +336,7 @@ public class Druid extends HeroSubClass {
 					ch.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
 							dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
 					ignite( ch );
-					if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1) {
+					if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1 && ch.isAlive()) {
 						knockBack( ch, hero.pos );
 					}
 				}
@@ -437,21 +439,15 @@ public class Druid extends HeroSubClass {
 		return cells;
 	}
 
+	// 击退统一走 WandOfBlastWave.throwChar：推动动画、落点压格（陷阱、门、草），以及首领减半、
+	// 被定身或不可移动的单位不动、大体型不进窄道这些规则都在那里，不要在这里手写改坐标。
 	private static void knockBack( Char ch, int from ) {
-		int best = ch.pos;
-		for (int n : com.watabou.utils.PathFinder.NEIGHBOURS8) {
-			int c = ch.pos + n;
-			if (c >= 0 && c < Dungeon.level.length()
-					&& Dungeon.level.passable[c] && !Dungeon.level.solid[c]
-					&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null
-					&& Dungeon.level.distance( c, from ) > Dungeon.level.distance( best, from )) {
-				best = c;
-			}
-		}
-		if (best != ch.pos) {
-			ch.pos = best;
-			ch.sprite.place( best );
-		}
+		// 先画一条从施法者穿过目标的弹道，再截取目标身后的那一段作为击退路线
+		Ballistica trajectory = new Ballistica( from, ch.pos, Ballistica.STOP_TARGET );
+		trajectory = new Ballistica( trajectory.collisionPos,
+				trajectory.path.get( trajectory.path.size() - 1 ), Ballistica.PROJECTILE );
+		// 天赋文本写明击退 2 格；文本没有提撞墙伤害，所以不结算碰撞伤害与麻痹
+		WandOfBlastWave.throwChar( ch, trajectory, 2, true, false, Dungeon.hero );
 	}
 
 	/** 附魔箭：持续期间灵能弓附魔效率提升并转为法术伤害。 */
