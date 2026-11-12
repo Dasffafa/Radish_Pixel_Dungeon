@@ -112,7 +112,10 @@ public class FlashCrystal extends Item {
 		public boolean itemSelectable(Item item) {
 			//等级和诅咒都要是玩家已经知道的：按真实值变灰的话，打开这个窗口（不花回合、不耗闪晶）
 			//就能看出哪件未鉴定装备被诅咒或已经 +3 以上
+			//还要是能被升级的装备：灵能短弓、神器这类 isUpgradable() 为 false 的物品显示的等级不是 trueLevel()，
+			//灵能短弓的 trueLevel() 恒为 0，掷到「下降」那 33% 就直接被摧毁，哪怕它显示的是 +2
 			return item instanceof EquipableItem
+					&& item.isUpgradable()
 					&& item.levelKnown && item.cursedKnown
 					&& item.level() < 3
 					&& !item.cursed;
