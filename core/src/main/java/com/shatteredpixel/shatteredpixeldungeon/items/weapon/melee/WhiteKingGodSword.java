@@ -80,7 +80,9 @@ public class WhiteKingGodSword extends MeleeWeapon {
                             @Override
                             public void call() {
                                 int enchantedDamage = weapon.proc(Dungeon.hero, mob, damage);
-                                mob.damage(DamageInfo.of(enchantedDamage, DamageType.PHYSICAL, Dungeon.hero, this)
+                                // 说明写的是「真实伤害」，伤害系统重构之前这里也不吃护甲（直接 damage(数值, 来源)）。
+                                // 重构时写成了普通物理伤害，会被护甲减免，只有跳字图标还是「无视格挡」的那个
+                                mob.damage(DamageInfo.of(enchantedDamage, DamageType.PHYSICAL_NO_ARMOR, Dungeon.hero, this)
 										.setFloatingTextIcon(FloatingText.PHYS_DMG_NO_BLOCK));
                                 Buff.detach( mob, Paralysis.class);
                             }
