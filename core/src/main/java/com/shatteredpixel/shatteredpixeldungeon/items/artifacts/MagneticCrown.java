@@ -167,9 +167,6 @@ public class MagneticCrown extends Artifact {
                 return;
             }
 
-            charge--;
-            updateQuickslot();
-
             // 计算实际拖拽位置
             Ballistica trajectory = new Ballistica(nearest.pos, targetPos, Ballistica.PROJECTILE);
             int newPos = trajectory.collisionPos;
@@ -193,13 +190,20 @@ public class MagneticCrown extends Artifact {
                 newPos = bestPos;
             }
 
-            if (newPos != nearest.pos) {
-                Actor.addDelayed(new Pushing(nearest, nearest.pos, newPos), -1);
-                nearest.pos = newPos;
-                Dungeon.level.occupyCell(nearest);
-                showRange(nearest.pos, range, nearest);
-                Dungeon.hero.spendAndNext(1f);
+            // 目标被围死、四周没有可落脚的格子时什么都拖不动：不扣充能、不揭示陷阱，按「没有目标」处理
+            if (newPos == nearest.pos) {
+                GLog.w(Messages.get(MagneticCrown.this, "no_target"));
+                return;
             }
+
+            charge--;
+            updateQuickslot();
+
+            Actor.addDelayed(new Pushing(nearest, nearest.pos, newPos), -1);
+            nearest.pos = newPos;
+            Dungeon.level.occupyCell(nearest);
+            showRange(nearest.pos, range, nearest);
+            Dungeon.hero.spendAndNext(1f);
 
             try {
                 Trap t = Dungeon.level.traps.get(target).reveal();
