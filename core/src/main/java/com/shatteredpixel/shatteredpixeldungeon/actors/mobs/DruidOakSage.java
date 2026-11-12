@@ -15,7 +15,9 @@ public class DruidOakSage extends Mob {
 
 	{
 		spriteClass = DruidOakSageSprite.class;
-		alignment = Alignment.ALLY;
+		// 中立：敌人选目标时只在友方单位和英雄里挑，中立单位不会被当成攻击目标（原版的羊、莲花也是这样避开火力的）。
+		// 下面的光环按「目标是不是友方」发放，与它自己的阵营无关。
+		alignment = Alignment.NEUTRAL;
 		state = WANDERING;
 	}
 
@@ -28,10 +30,17 @@ public class DruidOakSage extends Mob {
 
 	// 橡木智者不受任何伤害，也从来没有设过生命值，HP 和 HT 都是 0；而底层用「HP 大于 0」判断一个单位是否还在场上。
 	// 用放大镜查看它时因此被当成已经死掉的单位，只提示「你不清楚那里有什么」，名字和说明都看不到。
-	// 这里只让「是否在场」按实际情况回答。不要改成给它补生命值：那样敌人会从「看不见它」变成一直围着它打，等于改了它的强度。
+	// 这里只让「是否在场」按实际情况回答。不要改成给它补生命值：有了生命值，英雄点它就会和它换位，它就不再是原地不动的了。
 	@Override
 	public boolean isActive() {
 		return Actor.chars().contains( this );
+	}
+
+	// 变成中立之后，英雄这边「对视野内所有非友方生效」的效果（恐惧、盛怒、魅惑之类）也会扫到它。
+	// 它不该被吓跑、激怒或魅惑，所以和原版的羊、莲花一样不接受任何状态。
+	@Override
+	public boolean add( Buff buff ) {
+		return false;
 	}
 
 	@Override
