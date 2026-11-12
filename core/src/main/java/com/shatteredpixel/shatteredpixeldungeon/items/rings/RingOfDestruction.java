@@ -67,7 +67,9 @@ public class RingOfDestruction extends Ring {
 			float enemyDmg = enemyDamagePercent(level);
 			return Messages.get(this, "stats", selfDmg, enemyDmg);
 		} else {
-			return Messages.get(this, "typical_stats");
+			// 未鉴定时按 +0 戒指（效果等级 1）给数值。必须带参数：不带参数的文本不会过 format，
+			// 里面的 %% 会原样显示成两个百分号
+			return Messages.get(this, "typical_stats", selfDamagePercent(1), enemyDamagePercent(1));
 		}
 	}
 
