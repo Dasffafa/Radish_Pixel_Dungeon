@@ -86,7 +86,7 @@ public class CloakOfConcealment extends Artifact{
                     float toGain=RingOfEnergy.artifactChargeMultiplier(target);
                     if (target.buff(MoveCount.class)!=null)
                         toGain*=target.buff(MoveCount.class).chargeMultiplier(Dungeon.hero);
-                    // 小数部分攒起来而不是四舍五入：四舍五入时 1.5 倍以下的加成（+1、+2 的能量之戒、
+                    // 小数部分攒起来而不是四舍五入：四舍五入时 1.5 倍以下的加成（+0、+1 的能量之戒、
                     // 低层数的动能天赋）完全不起作用，到 1.5 倍又直接变成翻倍
                     partialCharge += toGain;
                     while (partialCharge >= 1f) {
