@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
@@ -40,6 +41,10 @@ public class Reversal extends Weapon.Enchantment {
         Char attacker = event.getAttacker();
         Char defender = event.getDefender();
         if (defender == null || !defender.isAlive() || attacker == null || !attacker.isAlive()) {
+            return;
+        }
+        //魔法免疫期间附魔整体失效：命中分支的伤害归零已经不生效，这里也不能再补伤害
+        if (attacker.buff( MagicImmune.class ) != null) {
             return;
         }
 
