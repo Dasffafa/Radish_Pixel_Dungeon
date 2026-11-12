@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Snake;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Shopkeeper;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
@@ -84,8 +85,14 @@ public class WndCellContents extends Window {
 					}
 				});
 			} else {
+				//商品堆里要花钱的只有压在最底下的那一件（见 Heap.forSaleItem），它那一行带上价格；
+				//叠在它上面的东西不要钱，照常只写名字。不是商品堆时 forSale 为 null，每一行都只写名字
+				final Item forSale = heap.forSaleItem();
 				for (final Item item : heap.items.toArray(new Item[0])) {
-					pos = addRow(pos, item.title(), new ItemSprite(item), new Runnable() {
+					String label = item == forSale
+							? Messages.get(Heap.class, "for_sale", Shopkeeper.sellPrice(item), item.title())
+							: item.title();
+					pos = addRow(pos, label, new ItemSprite(item), new Runnable() {
 						@Override
 						public void run() {
 							GameScene.show(new WndInfoItem(item));

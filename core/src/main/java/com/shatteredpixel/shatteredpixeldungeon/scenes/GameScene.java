@@ -1744,7 +1744,10 @@ public class GameScene extends PixelScene {
 						textLines.add(0, Messages.get(GameScene.class, "pick_up"));
 						break;
 					case FOR_SALE:
-						textLines.add(0, Messages.get(GameScene.class, "purchase"));
+						//只剩商品一件时点这一格才是购买；商品上面还叠着别的东西时，
+						//点一下是先把上面的捡走（见 Hero.handle），菜单要写实际会发生的事
+						textLines.add(0, Messages.get(GameScene.class,
+								((Heap) objects.get(0)).size() == 1 ? "purchase" : "pick_up"));
 						break;
 					default:
 						textLines.add(0, Messages.get(GameScene.class, "interact"));
