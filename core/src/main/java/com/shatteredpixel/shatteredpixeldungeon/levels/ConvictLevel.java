@@ -103,26 +103,40 @@ public class ConvictLevel extends Level {
 		return true;
 	}
 
-	/** Boss 发现玩家后把门锁上（玩家进来后被困住，直到击败他） */
+	/**
+	 * 传奇重犯醒着的每个回合都会来调一次。门只在英雄和他都在门里面时锁着（玩家被困住，直到击败他）：
+	 * 只要有一方在门外，锁着的门就会让两边再也碰不到面，而这一层在打败他之前是出不去的，
+	 * 所以那种时候不锁，已经锁上的也要重新打开。
+	 */
 	public void sealBossDoor() {
-		//玩家还在门下方的走廊里时不能锁，否则会被关在竞技场外、又没有钥匙，直接卡死
-		if (Dungeon.hero != null && Dungeon.hero.pos / width() > DOOR_Y) {
+		if (!inArena( Dungeon.hero.pos ) || felonOutsideArena()) {
+			openBossDoor();
 			return;
 		}
 		int door = pointToCell( DOOR_X, DOOR_Y );
+		//门上站着角色或压着物品时地形是 OPEN_DOOR，要等门合上才锁，不会把谁封在门里
 		if (map[door] == Terrain.DOOR) {
 			Level.set( door, Terrain.LOCKED_DOOR, this );
 			//Level.set 只改数据不改贴图，必须通知场景重画这一格，否则看着还是普通门
-			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
+			GameScene.updateMap( door );
 		}
 	}
 
-	/** 击败传奇重犯后把上锁的门打开 */
+	private boolean felonOutsideArena() {
+		for (Mob m : mobs) {
+			if (m instanceof LegendaryFelon && !inArena( m.pos )) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** 把上锁的门重新打开：击败传奇重犯时，以及有一方到了门外时 */
 	public void openBossDoor() {
 		int door = pointToCell( DOOR_X, DOOR_Y );
 		if (map[door] == Terrain.LOCKED_DOOR) {
 			Level.set( door, Terrain.DOOR, this );
-			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
+			GameScene.updateMap( door );
 		}
 	}
 
