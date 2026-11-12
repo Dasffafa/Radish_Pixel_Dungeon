@@ -147,6 +147,12 @@ public class Warden extends Mob {
 			activatingTurnsLeft = 0;
 		}
 
+		//旧版本在开战前把典狱长设成 PASSIVE，开战后也只有凑够 3 台友军才改回来，
+		//于是没有机体可唤醒时它会一直站着挨打。现在出场就是 HUNTING，这里只为纠正旧存档
+		if (state == PASSIVE) {
+			state = HUNTING;
+		}
+
 		//拥有 3 个以上友军后才主动追击玩家
 		if (activatedAllies() >= 3 && state != HUNTING && state != FLEEING) {
 			state = HUNTING;
@@ -167,8 +173,8 @@ public class Warden extends Mob {
 					spend( 1 / speed() );
 					return moveSprite( oldPos, pos );
 				}
-				spend( TICK );
-				return true;
+				//走不过去（去路被别的角色堵住、或者自己被定身）：这一回合交给通用 AI，
+				//否则它会一直原地空等，连贴在身边的敌人都不打
 			}
 		}
 
