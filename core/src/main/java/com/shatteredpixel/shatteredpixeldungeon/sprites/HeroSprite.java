@@ -174,8 +174,10 @@ public class HeroSprite extends CharSprite {
 		run.frames( film, 2, 3, 4, 5, 6, 7 );
 
 		die = new Animation( 20, false );
-		// 死亡动画只有 5 帧素材，第 6 帧沿用第 5 帧收尾，避免最后倒回第 4 帧看起来缺一帧
-		die.frames( film, 8, 9, 10, 11, 12, 12 );
+		// 标准素材的死亡帧是骷髅落地：第 12 帧是第 11 帧整体上移 1 像素的「弹起」，最后要回到第 11 帧才算落定。
+		// 月华整张图和混灵那一行画的是一路倒下、消散的连续过程，第 12 帧就是终态，回到第 11 帧反而会倒放一帧。
+		boolean endsOnLastFrame = Assets.Sprites.MOONLIGHT.equals( sheetAsset ) || t == ArmorOutfit.ROW_SOULMIX;
+		die.frames( film, 8, 9, 10, 11, 12, endsOnLastFrame ? 12 : 11 );
 
 		attack = new Animation( 15, false );
 		attack.frames( film, 13, 14, 15, 0 );
