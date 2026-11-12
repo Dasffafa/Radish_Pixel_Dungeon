@@ -42,6 +42,9 @@ public class Tornado extends Blob {
 		int width = Dungeon.level.width();
 		for (int cell = 0; cell < cur.length; cell++) {
 			if (cur[cell] <= 0) {
+				//off 里留着的是两回合前的值，这里不清零的话，结算后一交换，
+				//已经散掉的龙卷风会隔一回合又冒出 1 点来继续拖怪（场上还有别的龙卷风时）
+				off[cell] = 0;
 				continue;
 			}
 			off[cell] = cur[cell] - 1;
