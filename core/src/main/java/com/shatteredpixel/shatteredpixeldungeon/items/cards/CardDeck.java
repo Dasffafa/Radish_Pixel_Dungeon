@@ -235,6 +235,12 @@ public class CardDeck implements Bundlable {
 		for (Bundlable b : bundle.getCollection(STORED)) {
 			if (b instanceof Card) stored.add((Card) b);
 		}
+		// 旧存档兼容：弃牌堆已经移除，读入后并入牌堆底。
+		// 留在 discardPile 里的卡只有牌堆抽空时才会洗回来，而现在打出的卡回牌堆底，牌堆基本不会空
+		if (!discardPile.isEmpty()) {
+			drawPile.addAll(0, discardPile);
+			discardPile.clear();
+		}
 		held = (Card) bundle.get(HELD);
 		stashedCard = (Card) bundle.get(STASHED);
 		deletesLeft = bundle.getInt(DELETES);
