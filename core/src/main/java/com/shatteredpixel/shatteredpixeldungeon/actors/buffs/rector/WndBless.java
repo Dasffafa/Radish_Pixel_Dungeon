@@ -254,11 +254,12 @@ public class WndBless extends Window {
                                 && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<(isDead ? 20 : (hero.subClass == HeroSubClasses.BATTLEPREIST ? 15 : 20))) {
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
 
+                            // 这是代行神权的免费分支（信仰不够、用天赋冷却换一次释放），不扣信仰。
+                            // 原来这里照常扣 20 / 15，信仰本来就不够，结果是把手里剩下的全部清零。
                             if(isDead){
                                 creaditSkills.useSkills(Belief.SkillList.valueOf("ENDDEAD"));
                             } else {
                                 creaditSkills.useSkills(hero.subClass == HeroSubClasses.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
-                                creaditSkills.DownBelief(hero.subClass == HeroSubClasses.BATTLEPREIST ? 15 : 20);
                             }
 
                             WndBless.this.hide();
