@@ -1324,6 +1324,13 @@ public class Hero extends Char {
 						GLog.w(Messages.get(w, "fade"));
 					}
 					hero.damage(DamageInfo.physicalNoArmor(1, w));
+					// 这 1 点伤害能杀死只剩 1 血的英雄。伤害来源自己负责死亡结算（其它自伤来源都是这么做的），
+					// 以前这里没有：这一局不进排行榜，也没有任何死亡提示。结算后不再处理剩下的粘液，免得重复结算
+					if (!isAlive()) {
+						Dungeon.fail(w);
+						GLog.n(Messages.get(this, "slime_death"));
+						break;
+					}
 				}
 			}
 		}
