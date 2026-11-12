@@ -1,7 +1,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -33,7 +35,9 @@ public class Flawless extends Weapon.Enchantment {
 
         ArrayList<Buff> debuffs = new ArrayList<>();
         for (Buff buff : hero.buffs()) {
-            if (buff.type == Buff.buffType.NEGATIVE) {
+            //与原版净化合剂相同的排除项。「遗落行囊」被驱散的话，背包会当场全部回来，不用再回去捡遗物
+            if (buff.type == Buff.buffType.NEGATIVE
+                    && !(buff instanceof AllyBuff) && !(buff instanceof LostInventory)) {
                 debuffs.add( buff );
             }
         }
