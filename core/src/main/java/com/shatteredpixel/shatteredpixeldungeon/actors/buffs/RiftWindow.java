@@ -50,12 +50,17 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 	private Char target;
 	private int openedDepth = -1;
 	private int turnsLeft = WINDOW_TURNS;
+	// 开窗后的第一次结算只用来对齐回合，不计入 WINDOW_TURNS，原因见 act()
+	private boolean fresh = false;
 
 	/** 打开（或刷新）窗口，锁定这次被攻击的敌人。 */
 	public void open( Char target ){
 		this.target = target;
 		this.openedDepth = Dungeon.depth;
 		this.turnsLeft = WINDOW_TURNS;
+		this.fresh = true;
+		// 刷新已有窗口时把下一次结算拉回当前时刻，和新开的窗口一样从这一拍重新数
+		timeToNow();
 		ActionIndicator.setAction( this );
 		BuffIndicator.refreshHero();
 		GLog.p( Messages.get( DimensionalRipper.class, "window_open" ) );
@@ -159,7 +164,15 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 
 	@Override
 	public boolean act() {
-		if (!stillValid() || --turnsLeft <= 0){
+		// 刚挂上的 buff 会在当前时刻立刻结算一次（Actor.add 把它排在 now），
+		// 这一拍在英雄下一次行动之前。它如果也扣回合，写着 3 回合的窗口实际只有 2 回合可用，
+		// 按钮上也永远看不到 3。
+		if (fresh){
+			fresh = false;
+		} else {
+			turnsLeft--;
+		}
+		if (!stillValid() || turnsLeft <= 0){
 			detach();
 			return true;
 		}
