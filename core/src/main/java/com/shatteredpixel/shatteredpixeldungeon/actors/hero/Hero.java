@@ -2720,6 +2720,11 @@ public class Hero extends Char {
 				} else {
 					Sample.INSTANCE.play(Assets.Sounds.HEALTH_WARN, 1/3f + flashIntensity * 4f);
 				}
+				//hero gets interrupted on taking serious damage, regardless of any other factor
+				// 原版的这两行在 2024-09 重写本方法后半段时丢了，这里补回：
+				// 点过「继续移动」后普通伤害不打断移动，但严重伤害必须打断，否则英雄会顶着重伤一路走到目的地
+				interrupt();
+				damageInterrupt = true;
 			}
 		}
 	}
