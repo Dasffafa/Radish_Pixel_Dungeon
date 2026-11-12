@@ -174,7 +174,8 @@ public final class CardEffects {
 			case SPIN: {
 				int amount = card.power >= 3 ? 5 : card.power == 2 ? 4 : 3;
 				int spun = hero.cardDeck.spinBlank(amount);
-				GLog.i(Messages.get(CardEffects.class, "spin_done", amount, spun));
+				// 文本只有一个 %d，说的是「移到牌堆底的张数」：要传实际空转掉的 spun，不是检视的 amount
+				GLog.i(Messages.get(CardEffects.class, "spin_done", spun));
 				if (hero.pointsInTalent(Talent.FANCY_SHUFFLE) >= 4) CardDrawer.cancelCooldown(hero);
 				fancySpin(hero, spun);
 				finish(hero, card, false, card.type.time);
@@ -942,6 +943,11 @@ public final class CardEffects {
 		@Override
 		public String icon() {
 			return BuffIndicator.INVERT_MARK;
+		}
+
+		@Override
+		public String desc() {
+			return Messages.get(this, "desc", Math.round(ratio * 100), stored);
 		}
 
 		private static final String STORED = "stored";
