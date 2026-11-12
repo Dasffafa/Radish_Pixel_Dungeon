@@ -99,6 +99,9 @@ public class CloakOfConcealment extends Artifact{
         public void detach(){
             if (target.buff(Invisibility_neutral.class)!=null)
                 Buff.detach(target, Invisibility_neutral.class);
+            // 「暴露」只会在斗篷还穿着且诅咒已解除时被 act() 摘掉。斗篷带着诅咒离开身体
+            // （反魔法期间脱下、被嬗变成别的神器）之后再没有人管它，佩戴者会永久免疫隐形。
+            Buff.detach(target, Disposed.class);
             super.detach();
         }
     }
