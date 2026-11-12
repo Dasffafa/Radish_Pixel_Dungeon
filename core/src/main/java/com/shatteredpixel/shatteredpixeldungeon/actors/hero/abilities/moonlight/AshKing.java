@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
@@ -32,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -85,6 +88,13 @@ public class AshKing extends ArmorAbility {
 	@Override
 	public Talent[] talents() {
 		return new Talent[]{Talent.HOLY_LANCE, Talent.SOUL_STREAM, Talent.FATAL_BLADE, Talent.HEROIC_ENERGY};
+	}
+
+	//英雄每次行动前刷新索命弯刀形态的「附近有没有敌人」，移速在这之后才会被用到
+	@SubscribeEvent(event = HeroActEvent.class, priority = 0)
+	public static void onHeroAct(HeroActEvent event) {
+		FatalBladeForm form = event.getHero().buff(FatalBladeForm.class);
+		if (form != null) form.refreshEnemyNearby();
 	}
 
 	/**
@@ -331,17 +341,17 @@ public class AshKing extends ArmorAbility {
 			return Math.max(0, (DURATION - visualcooldown()) / DURATION);
 		}
 
-		@Override
-		public boolean act() {
+		//不能重写 act() 来做这件事：限时 buff 的 act() 只在持续时间走完的那一刻执行一次，而且那一次必须结束形态。
+		//放在 act() 里的话，持续期间一次也不会刷新，到点之后形态又永远不结束。所以由 AshKing.onHeroAct 每回合调用
+		private void refreshEnemyNearby() {
 			hasEnemyNearby = false;
 			for (Mob mob : Dungeon.level.mobs) {
-				if (Dungeon.level.distance(target.pos, mob.pos) <= 4) {
+				if (mob.alignment == Char.Alignment.ENEMY
+						&& Dungeon.level.distance(target.pos, mob.pos) <= 4) {
 					hasEnemyNearby = true;
 					break;
 				}
 			}
-			spend(TICK);
-			return true;
 		}
 
 		@Override
