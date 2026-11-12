@@ -12,9 +12,12 @@
  */
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamagePipeline;
+import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -120,13 +123,25 @@ public class SoulMix extends Armor {
 		}
 	}
 
-	@SubscribeEvent(event = AttackHitEvent.class, priority = 0)
-	public static void onKill( AttackHitEvent event ){
-		if (!(event.getAttacker() instanceof Hero)) return;
-		Char defender = event.getDefender();
-		if (defender == null || defender.isAlive()
-				|| defender.alignment != Char.Alignment.ENEMY) return;
-		Armor armor = ((Hero) event.getAttacker()).belongings.armor();
-		if (armor instanceof SoulMix) ((SoulMix) armor).gainStack();
+	/**
+	 * 击杀判定挂在最终伤害事件上，而不是 AttackHitEvent：法杖、法术这类不经过 attack() 的伤害
+	 * 不会发 AttackHitEvent，只认它的话法师用法杖击杀永远叠不了层。
+	 */
+	@SubscribeEvent(event = CharFinalDamageEvent.class, priority = 0)
+	public static void onKill( CharFinalDamageEvent event ){
+		Hero hero = Dungeon.hero;
+		if (hero == null) return;
+		Armor armor = hero.belongings.armor();
+		if (!(armor instanceof SoulMix)) return;
+
+		Char victim = event.getTarget();
+		if (victim.alignment != Char.Alignment.ENEMY || victim.isAlive()) return;
+
+		// 事件自带的 attacker 只有伤害来源对象本身是角色时才有值（法杖伤害的来源是法杖），
+		// 凶手要从本次伤害的 DamageInfo 里取
+		DamageInfo info = DamagePipeline.activeInfo();
+		if (info == null || info.getAttacker() != hero) return;
+
+		((SoulMix) armor).gainStack();
 	}
 }
