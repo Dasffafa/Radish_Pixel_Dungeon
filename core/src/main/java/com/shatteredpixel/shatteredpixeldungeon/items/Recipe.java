@@ -21,8 +21,10 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.challenge.AlchemyApprenticeChallenge;
+import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Blandfruit;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.MeatPie;
@@ -80,6 +82,37 @@ public abstract class Recipe {
 	public abstract Item brew(ArrayList<Item> ingredients);
 	
 	public abstract Item sampleOutput(ArrayList<Item> ingredients);
+
+	//一次炼制给出多种物品时的打包结果。brew() 只能返回一件 Item，产物不止一种的配方就返回它，
+	//炼金界面拿到后逐件发放、每种占一个产出格。它只存在于 brew() 与发放之间，不进背包也不进存档
+	public static class MultiOutput extends Item {
+
+		public final ArrayList<Item> items = new ArrayList<>();
+
+		public MultiOutput add( Item item ){
+			if (item == null || item.quantity() <= 0) return this;
+			//同种可堆叠物先并成一叠：炼金界面是按「各项互不相同」来逐格展示并回填数量的
+			for (Item existing : items){
+				if (existing.stackable && existing.isSimilar(item)){
+					existing.merge(item);
+					return this;
+				}
+			}
+			items.add(item);
+			return this;
+		}
+
+		//万一被当成普通物品直接收取，也只把里面的东西交出去，自己不占背包格子
+		@Override
+		public boolean collect( Bag container ){
+			for (Item item : items){
+				if (!item.collect(container)){
+					Dungeon.level.drop(item, Dungeon.hero.pos);
+				}
+			}
+			return true;
+		}
+	}
 	
 	//subclass for the common situation of a recipe with static inputs and outputs
 	public static abstract class SimpleRecipe extends Recipe {

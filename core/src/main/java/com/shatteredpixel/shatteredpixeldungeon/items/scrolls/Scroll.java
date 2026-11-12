@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Soulstaker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.AlchemyApprenticeChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
 import com.shatteredpixel.shatteredpixeldungeon.events.ReadScrollEvent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
@@ -446,9 +447,18 @@ public abstract class Scroll extends Item {
 			Scroll s = (Scroll) ingredients.get(0);
 
 			s.quantity(s.quantity() - 1);
+
+			Runestone result = Reflection.newInstance(stones.get(s.getClass()));
+			result.quantity(2);
+
+			//「炼金学徒」挑战下拆解不再鉴定卷轴，并且其中一颗符石会换成随机种类
+			if (AlchemyApprenticeChallenge.isActive()){
+				return AlchemyApprenticeChallenge.replaceOneStone(result);
+			}
+
 			s.identify();
 
-			return Reflection.newInstance(stones.get(s.getClass())).quantity(2);
+			return result;
 		}
 
 		@Override
@@ -457,11 +467,20 @@ public abstract class Scroll extends Item {
 
 			Scroll s = (Scroll) ingredients.get(0);
 
+			Runestone result;
 			if (!s.isKnown()){
-				return new Runestone.PlaceHolder().quantity(2);
+				result = new Runestone.PlaceHolder();
 			} else {
-				return Reflection.newInstance(stones.get(s.getClass())).quantity(2);
+				result = Reflection.newInstance(stones.get(s.getClass()));
 			}
+			result.quantity(2);
+
+			//「炼金学徒」挑战下有一颗符石是随机的，预览要如实体现这一点
+			if (AlchemyApprenticeChallenge.isActive()){
+				return new AlchemyApprenticeChallenge.StonePreview(result);
+			}
+
+			return result;
 		}
 	}
 }
