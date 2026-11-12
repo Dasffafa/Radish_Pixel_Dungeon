@@ -45,10 +45,25 @@ public class DruidOakSage extends Mob {
 				: 0;
 		int radius = 2 + pts;
 		int shield = 2 + Math.round( pts * 0.5f );
+		// 护盾只补到当前楼层数为止，楼层的取法与自然能量上限里的「当前楼层」相同
+		int cap = Dungeon.depth;
 		for (Char ch : Actor.chars()) {
 			if (ch.alignment == Alignment.ALLY && ch != this
 					&& Dungeon.level.distance( pos, ch.pos ) <= radius) {
-				Buff.affect( ch, Barrier.class ).incShield( shield );
+				// 按目标身上所有来源的护盾合计来算。已经到上限就完全不碰它：
+				// 不再加，不削减别的来源给的护盾，也不打断那些护盾自己的衰减
+				int room = cap - ch.shielding();
+				if (room <= 0) {
+					continue;
+				}
+				Barrier barrier = Buff.affect( ch, Barrier.class );
+				int had = barrier.shielding();
+				barrier.incShield( Math.min( shield, room ) );
+				// 英雄获得护盾的量可能被别的效果放大，补完超过上限时，只把这一次多出来的部分收回
+				int over = ch.shielding() - cap;
+				if (over > 0) {
+					barrier.decShield( Math.min( over, barrier.shielding() - had ) );
+				}
 			}
 		}
 		Hero h = Dungeon.hero;
