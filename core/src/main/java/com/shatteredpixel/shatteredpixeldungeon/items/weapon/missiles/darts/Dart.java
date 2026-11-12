@@ -355,7 +355,21 @@ public class Dart extends MissileWeapon {
 
 		@Override
 		public boolean itemSelectable(Item item) {
-			return item instanceof Potion && !(item instanceof ExoticPotion || item instanceof Brew || item instanceof AlchemicalCatalyst);
+			if (!(item instanceof Potion) || item instanceof ExoticPotion || item instanceof Brew || item instanceof AlchemicalCatalyst) {
+				return false;
+			}
+			//只有能对应到种子的药水才能选。各种秘药（Elixir）、女儿红陈酿也是 Potion，却没有对应的种子，
+			//选中后拿不到涂药飞镖的种类，会直接崩溃
+			return hasSeed((Potion) item);
+		}
+
+		private boolean hasSeed(Potion potion) {
+			for (Class<? extends Potion> potionClass : types.values()) {
+				if (potionClass.isInstance(potion)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private Plant.Seed convertToSeed(Potion potion) {
@@ -378,6 +392,7 @@ public class Dart extends MissileWeapon {
 			if (item == null) return;
 
 			Plant.Seed seed = convertToSeed((Potion) item);
+			if (seed == null) return;
 
 			final int singleSeedDarts;
 
