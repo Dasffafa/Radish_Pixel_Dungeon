@@ -12,6 +12,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -209,6 +210,13 @@ public class WardenPrototype extends Mob implements Callback {
 			if (enemy.sprite.visible) {
 				enemy.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
 				enemy.sprite.flash();
+			}
+			//远程闪电不走 Char.attack()，打死英雄时的结算要自己补，和 DM-100 一样；
+			//否则这一局不会进排行榜，日志里也没有死因
+			if (enemy == Dungeon.hero && !enemy.isAlive()) {
+				Badges.validateDeathFromEnemyMagic();
+				Dungeon.fail( this );
+				GLog.n( Messages.get( DM100.class, "zap_kill" ) );
 			}
 		} else {
 			enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
