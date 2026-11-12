@@ -1092,9 +1092,11 @@ public abstract class Mob extends Char {
 			Buff.affect(hero, MagicPoint.class).gainKillPoint();
 		}
 
-		if(hero.subClass == HeroSubClasses.SNIPER){
-			next();
-		}
+		//怪正占着回合（比如攻击动画播到一半、在等动画回调）时被别的东西打死，死亡动画会顶掉原来的动画，
+		//那个回调永远不来，回合就永久卡在这只死怪身上。所以死的时候如果正轮到它，就把回合交出去。
+		//next() 只在「当前行动者就是自己」时才起作用，其它情况是空操作；怪在自己回合里正常死掉时多调一次也无害。
+		//这句原来只对狙击手生效（给疾风骤雨的追加箭兜底），其它在回合外结算伤害的效果照样会卡死。
+		next();
 
 
 		if(cause instanceof Wand && hero.pointsInTalent(Talent.SMART_BLESSING)>=2){
