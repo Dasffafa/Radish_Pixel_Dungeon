@@ -23,12 +23,12 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix;
 /**
  * 六个角色 × 四套护甲动画的外观映射。
  *
- * 每张 armor_outfit_N.png 是 256×128 的 2 次幂贴图：前 5 行各 21 帧 12×15
- * （16×16 源帧完整重采样，不裁边），其余为透明补齐行。
- * 前四行依次对应伯爵礼服 / 寒铁大衣 / 棱镜护铠 / 混灵。
- * 六张按 HeroClasses.ALL 的前六个职业顺序对应。
- * 源素材第 6~9 帧是骷髅/剪影，已按项目动画语义只放进 die 段（贴图帧 8~12）；
- * idle / run / attack / operate 等段一律使用角色帧，映射表见生成脚本 FRAME_MAP。
+ * 素材本身就是项目标准 12×15 网格、每行 21 帧：每张 256×80 的图里
+ * 4 套动画各占 15 行，只是每张图顶部透明行数不同（y=5/10/8/9/9/8）。
+ * 四行依次对应伯爵礼服 / 寒铁大衣 / 棱镜护铠 / 混灵，逐字节复制到对应
+ * 角色贴图的第 18~21 行，零缩放、零裁剪、零拉伸。
+ * 六张素材依次对应 战士 / 法师 / 盗贼 / 女猎手 / 牧师 / 戏卡者（红头发）；
+ * 月华有专属贴图逻辑、工程师没有对应素材，都不加载新外观图。
  */
 public final class ArmorOutfit {
 
@@ -45,14 +45,14 @@ public final class ArmorOutfit {
 
 	private ArmorOutfit() {}
 
-	/** 只有前五个职业的贴图追加了新行；月华有特殊贴图逻辑，不加载新外观图。 */
+	/** 追加了 18~21 行的六张角色贴图；月华与工程师没有对应素材，保持原生护甲行。 */
 	public static boolean hasOutfit( HeroClass cl ){
-		int i = 0;
-		for (HeroClass h : HeroClasses.ALL){
-			if (h == cl) return i < 5;
-			i++;
-		}
-		return false;
+		return cl == HeroClasses.WARRIOR
+				|| cl == HeroClasses.MAGE
+				|| cl == HeroClasses.ROGUE
+				|| cl == HeroClasses.HUNTRESS
+				|| cl == HeroClasses.RECTOR
+				|| cl == HeroClasses.CARDTRICKSTER;
 	}
 
 	public static int rowFor( Armor armor ){
