@@ -200,6 +200,8 @@ public class Wheelchair extends Artifact {
         WandOfBlastWave.BlastWave.blast(hero.pos, 5);
         // 对5x5范围内敌人造成伤害（使用副本避免 ConcurrentModificationException）
         for (Mob mob : new ArrayList<>(Dungeon.level.mobs)) {
+            // 天赋说明写的是「范围内的敌人」：友方单位（召唤物、被腐化的怪）不该挨这一下
+            if (mob.alignment == hero.alignment) continue;
             if (Dungeon.level.distance(hero.pos, mob.pos) <= 2) {
                 // 2格距离是5x5范围
                 mob.damage(new DamageInfo(damage, DamageType.PHYSICAL, hero, this, this));
