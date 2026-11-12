@@ -1855,10 +1855,13 @@ public class Talent {
 
 	//按名称查找天赋（用于存档反序列化），自动处理改名映射
 	public static Talent byName(String name){
-		if (renamedTalents.containsKey(name)){
-			name = renamedTalents.get(name);
+		//先按原名查：改名表是从原版带过来的，其中 ARMSMASTERS_INTUITION、ENERGIZING_UPGRADE 这两个「旧名字」
+		//在本项目里仍是正在使用的天赋，对应的新名字反而不存在。先走改名表的话这两个天赋永远查不到
+		Talent talent = nameToTalent.get(name);
+		if (talent == null && renamedTalents.containsKey(name)){
+			talent = nameToTalent.get(renamedTalents.get(name));
 		}
-		return nameToTalent.get(name);
+		return talent;
 	}
 
 	private static final HashMap<String, Talent> nameToTalent = new HashMap<>();
