@@ -131,7 +131,10 @@ public class DimensionalRipper extends Scimitar {
 
 	@Override
 	public String statsInfo() {
-		return Messages.get( this, "stats_desc", Math.round( procChance( buffedLvl() ) * 100 ) );
+		// 等级未知时按 +0 显示，和 MeleeWeapon.info() 对伤害数值的处理一致；
+		// 否则不用鉴定就能从这个百分比反推出强化等级
+		int lvl = levelKnown ? buffedLvl() : 0;
+		return Messages.get( this, "stats_desc", Math.round( procChance( lvl ) * 100 ) );
 	}
 
 	/** 本项目没有决斗家，不展示任何武技说明。 */
