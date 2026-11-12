@@ -8,12 +8,14 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.LegendaryFelon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Bundle;
 
 import java.util.Arrays;
 
@@ -31,6 +33,9 @@ public class ConvictLevel extends Level {
 	private static final int ENTRANCE_X = 6, ENTRANCE_Y = 16;
 	//上锁的门
 	private static final int DOOR_X = 6, DOOR_Y = 12;
+
+	private static final String FELON_SPAWNED = "felon_spawned";
+	private boolean felonSpawned = false;
 
 	{
 		color1 = 0x6a723d;
@@ -127,10 +132,40 @@ public class ConvictLevel extends Level {
 
 	@Override
 	protected void createMobs() {
+		// Boss 不在关卡加载时铺好：玩家踩到门口就看见人是不对的。
+		// 真正踏进竞技场那一刻由 occupyCell -> spawnFelon() 一次性生成。
+	}
+
+	/** 玩家踏进竞技场（门上方）时一次性生成传奇重犯；老存档里已在场的不再重复生成。 */
+	public void spawnFelon(){
+		if (felonSpawned) return;
+		for (Mob m : mobs){
+			if (m instanceof LegendaryFelon){ felonSpawned = true; return; }
+		}
+		felonSpawned = true;
 		LegendaryFelon felon = new LegendaryFelon();
-		//出生在竞技场中心
 		felon.pos = pointToCell( 6, 6 );
-		mobs.add( felon );
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( felon );
+	}
+
+	@Override
+	public void occupyCell( Char ch ){
+		super.occupyCell( ch );
+		if (ch == Dungeon.hero && ch.pos >= 0 && ch.pos / width() < DOOR_Y){
+			spawnFelon();
+		}
+	}
+
+	@Override
+	public void storeInBundle( Bundle bundle ){
+		super.storeInBundle( bundle );
+		bundle.put( FELON_SPAWNED, felonSpawned );
+	}
+
+	@Override
+	public void restoreFromBundle( Bundle bundle ){
+		super.restoreFromBundle( bundle );
+		felonSpawned = bundle.getBoolean( FELON_SPAWNED );
 	}
 
 	@Override
