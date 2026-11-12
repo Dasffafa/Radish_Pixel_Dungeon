@@ -375,7 +375,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
     private boolean slotHeldByOtherBuff() {
         ActionIndicator.Action current = ActionIndicator.action;
         return current != null && current != this
-                && current instanceof Buff && target.buffs().contains(current);
+                && current instanceof Buff && target.buff(((Buff) current).getClass()) == current;
     }
 
     /**

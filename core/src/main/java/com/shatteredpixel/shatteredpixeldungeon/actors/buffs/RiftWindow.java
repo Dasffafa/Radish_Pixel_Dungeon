@@ -223,7 +223,7 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		// 槽位空出来了才还，而且只还给仍然挂在这个英雄身上的状态：
 		// 窗口期间对方可能已经解除（比如连击断了），那就没有可还的了。
 		if (ActionIndicator.action == null && displaced instanceof Buff
-				&& target != null && target.buffs().contains( displaced )){
+				&& target != null && target.buff( ((Buff) displaced).getClass() ) == displaced){
 			ActionIndicator.setAction( displaced );
 		}
 		displaced = null;
