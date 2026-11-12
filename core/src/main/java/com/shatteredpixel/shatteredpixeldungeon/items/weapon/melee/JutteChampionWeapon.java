@@ -46,7 +46,8 @@ import com.watabou.utils.Random;
 
 public class JutteChampionWeapon extends MeleeWeapon {
 
-    public int tier = 1;
+    // 阶数直接用 MeleeWeapon.tier。这里曾经另声明过一个同名字段，把父类的遮住了：
+    // 十手自己看到的是 1~5 阶，说明文字、嬗变卷轴、商店估价等按 MeleeWeapon 读到的却是 0 阶
 
     private static final int BASE_STR = 10;
     private static final float ATTACK_DELAY = 0.75f;
@@ -77,6 +78,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     {
         image = ItemSpriteSheet.JUTTE_CHAMPION_WEAPON;
         defaultAction = AC_THROW;
+        tier = 1;
     }
 
     public JutteChampionWeapon() {
@@ -317,7 +319,8 @@ public class JutteChampionWeapon extends MeleeWeapon {
     public void restoreFromBundle(Bundle bundle) {
         super.restoreFromBundle(bundle);
         durability = bundle.getFloat(DURABILITY);
-        tier = bundle.getInt(TIER_KEY);
+        // 阶数用来查伤害表和格挡表，落在 1~5 之外会越界
+        tier = Math.max(1, Math.min(5, bundle.getInt(TIER_KEY)));
         talentBonus = bundle.getFloat(TALENT_BONUS_KEY);
         
         // After restore, check if talent has been upgraded and update durability accordingly
