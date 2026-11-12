@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoMob;
 import com.watabou.noosa.BitmapText;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.ui.Component;
@@ -305,10 +306,9 @@ public class BossHealthBar extends Component {
 		// 检查是否已存在
 		for (int i = 0; i < MAX_BOSSES; i++) {
 			if (bosses[i] == boss) {
-				// 如果已存在，强制刷新其Buff
+				// 如果已存在，强制刷新其Buff（只打标记：重排由渲染线程里的 update() 每帧做，这里可能是逻辑线程）
 				if (instance != null && instance.buffs[i] != null) {
 					instance.buffs[i].needsRefresh = true;
-					instance.buffs[i].layout();
 				}
 				return;
 			}
@@ -343,26 +343,34 @@ public class BossHealthBar extends Component {
 			shown[emptyIndex] = instance != null;
 
 			if (instance != null) {
-				instance.visible = instance.active = true;
+				// 登记 Boss 多半发生在逻辑线程（Mob.notice 等），而血条每帧都在渲染线程里重排这些 Buff 图标
+				// （BuffIndicator.layout 没有加锁）。界面这一段挪到渲染线程做，免得两个线程同时改同一个图标栏。
+				final int index = emptyIndex;
+				Game.runOnRenderThread(() -> {
+					// 排到渲染线程的这一会儿里，场景可能已经销毁，这个槽位也可能已经换了 Boss
+					if (instance == null || bosses[index] != boss) return;
 
-				// 更新BuffIndicator
-				if (instance.buffs[emptyIndex] != null) {
-					instance.remove(instance.buffs[emptyIndex]);
-					instance.buffs[emptyIndex].destroy();
-				}
-				instance.buffs[emptyIndex] = new BuffIndicator(boss, false);
-				BuffIndicator.setBossInstance(emptyIndex, instance.buffs[emptyIndex]);
-				instance.add(instance.buffs[emptyIndex]);
+					instance.visible = instance.active = true;
 
-				instance.buffs[emptyIndex].needsRefresh = true;
-				instance.buffs[emptyIndex].layout();  // 强制布局
-				instance.buffs[emptyIndex].update();  // 强制更新
-				instance.setComponentVisible(emptyIndex, true);
+					// 更新BuffIndicator
+					if (instance.buffs[index] != null) {
+						instance.remove(instance.buffs[index]);
+						instance.buffs[index].destroy();
+					}
+					instance.buffs[index] = new BuffIndicator(boss, false);
+					BuffIndicator.setBossInstance(index, instance.buffs[index]);
+					instance.add(instance.buffs[index]);
 
-				instance.layout();
+					instance.buffs[index].needsRefresh = true;
+					instance.buffs[index].layout();  // 强制布局
+					instance.buffs[index].update();  // 强制更新
+					instance.setComponentVisible(index, true);
 
-				// 全局刷新所有Boss Buff
-				BuffIndicator.refreshAllBosses();
+					instance.layout();
+
+					// 全局刷新所有Boss Buff
+					BuffIndicator.refreshAllBosses();
+				});
 			}
 		}
 	}
