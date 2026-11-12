@@ -106,8 +106,22 @@ public class WardenPrototype extends Mob implements Callback {
 		return Messages.get( this, heavy() ? "name_175" : "name_100" );
 	}
 
+	//查看窗口、格子内容窗口拿到的是没有 link() 的精灵，机型和是否激活要在这里交给它，
+	//否则一律显示成构造时的默认贴图
+	@Override
+	public CharSprite sprite() {
+		CharSprite sprite = super.sprite();
+		sprite.linkVisuals( this );
+		return sprite;
+	}
+
 	public boolean isInactive() {
 		return protoState == INACTIVE && isAlive();
+	}
+
+	/** 是否已经被某一方激活；和 isInactive() 不同，机体被打坏之后这里的结果不变。 */
+	public boolean isActivated() {
+		return protoState != INACTIVE;
 	}
 
 	public boolean isWardenAlly() {
