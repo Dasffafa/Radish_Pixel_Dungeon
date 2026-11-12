@@ -47,7 +47,7 @@ public class VoidRift extends Weapon.Enchantment {
 		float chance = Math.min( 0.40f, 0.10f + 0.02f * level ) * procChanceMultiplier( attacker );
 		if (Random.Float() < chance){
 			VoidRiftTracker tracker = Buff.affect( defender, VoidRiftTracker.class );
-			tracker.setup( attacker, weapon, level );
+			tracker.setup( attacker, weapon, this, level );
 		}
 		return damage;
 	}
@@ -64,11 +64,13 @@ public class VoidRift extends Weapon.Enchantment {
 
 		private Char attacker;
 		private Weapon weapon;
+		private VoidRift enchant;
 		private int level;
 
-		void setup( Char attacker, Weapon weapon, int level ){
+		void setup( Char attacker, Weapon weapon, VoidRift enchant, int level ){
 			this.attacker = attacker;
 			this.weapon = weapon;
+			this.enchant = enchant;
 			this.level = level;
 		}
 
@@ -97,7 +99,11 @@ public class VoidRift extends Weapon.Enchantment {
 			} else {
 				// 地块撕不开时改走高额真实伤害，不另写进游戏说明。
 				int extra = Math.max( 1, Math.round( target.HT * (0.45f + 0.02f * level) ) );
-				target.damage( new DamageInfo( extra, DamageType.TRUE, attacker, weapon, this ) );
+				// 伤害来源记成附魔本身，和其它附魔的追加伤害一致：Mob.die 靠来源是不是
+				// 武器 / 附魔来认「武器击杀」，记成这个追踪 buff 就不算了。
+				// 这几个字段不入档，读档后恢复出来的追踪器拿不到附魔，才退回用自己。
+				Object source = enchant != null ? enchant : this;
+				target.damage( new DamageInfo( extra, DamageType.TRUE, attacker, weapon, source ) );
 			}
 		}
 
