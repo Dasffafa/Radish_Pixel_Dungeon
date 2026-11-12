@@ -215,7 +215,15 @@ public final class CardEffects {
 								}
 								if (hero.pointsInTalent(Talent.FANCY_SHUFFLE) >= 4) CardDrawer.cancelCooldown(hero);
 								finish(hero, card, false, card.type.time);
-							}));
+							}) {
+						// 牌堆顶已经给玩家看过了，取消也要算打出；否则可以不花卡、不花回合地反复偷看。
+						// 确认那条路在回调里已经结算过，finish 开头的「手牌还是不是这张」检查让这里变成空操作
+						@Override
+						public void hide() {
+							super.hide();
+							finish(hero, card, false, card.type.time);
+						}
+					});
 				}
 				break;
 			}
