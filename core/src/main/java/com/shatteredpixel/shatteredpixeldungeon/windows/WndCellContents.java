@@ -58,7 +58,9 @@ public class WndCellContents extends Window {
 						GameScene.show(new WndHero());
 					}
 				});
-			} else if (ch instanceof Mob) {
+			} else if (ch instanceof Mob && Dungeon.level.heroFOV[cell]) {
+				//只列看得见的格子上的怪（GameScene.getObjectsAtCell 也是这个条件）：
+				//检视一格记在地图上、现在看不见的格子时，不能告诉玩家那里此刻站着什么
 				final Mob mob = (Mob) ch;
 				pos = addRow(pos, Messages.titleCase(mob.name()), mob.sprite(), new Runnable() {
 					@Override
@@ -74,10 +76,9 @@ public class WndCellContents extends Window {
 
 		Heap heap = Dungeon.level.heaps.get(cell);
 		if (heap != null && heap.seen) {
-			if (heap.type == Heap.Type.CHEST
-					|| heap.type == Heap.Type.LOCKED_CHEST
-					|| heap.type == Heap.Type.CRYSTAL_CHEST) {
-				// Chest contents remain hidden until the chest is opened.
+			if (heap.type != Heap.Type.HEAP && heap.type != Heap.Type.FOR_SALE) {
+				//没打开的容器（各种宝箱、墓碑、骸骨、遗骸）：里面有什么要打开才知道，只列容器本身。
+				//按「不是散放的物品堆」来判断而不是逐个列举容器类型，以后新增容器类型时默认也是不泄露的
 				pos = addRow(pos, heap.title(), new ItemSprite(heap), new Runnable() {
 					@Override
 					public void run() {
