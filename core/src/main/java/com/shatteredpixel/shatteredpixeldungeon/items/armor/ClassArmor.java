@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -233,7 +234,17 @@ abstract public class ClassArmor extends Armor {
 								curseInfusionBonus = armor.curseInfusionBonus;
 								masteryPotionBonus = armor.masteryPotionBonus;
 								BrokenSeal seal = armor.checkSeal();
-								if (seal != null) affixSeal(seal);
+								if (seal != null) {
+									affixSeal(seal);
+								} else {
+									//自己身上的纹章如果升过级，那一级是记在护甲等级里的。上面把等级整个换成了来源护甲的，
+									//要把这一级补回来，否则它就凭空没了，以后拆下纹章还要再扣一级
+									BrokenSeal own = checkSeal();
+									if (own != null && own.level() > 0) {
+										level(trueLevel() + 1);
+										Badges.validateItemLevelAquired(ClassArmor.this);
+									}
+								}
 
 								identify();
 
