@@ -62,6 +62,7 @@ public class WandOfShockBomb extends DamageWand {
         ShockBombTracker tracker = Buff.append(Dungeon.hero, ShockBombTracker.class);
         tracker.damage = damageRoll();
         tracker.setPos(targetPos, buffedLvl());
+        tracker.fromZap = true;
     }
 
     @Override
@@ -121,6 +122,9 @@ public class WandOfShockBomb extends DamageWand {
         private int turnsLeft = 1;
         private boolean[] fieldOfView;
         private ShockBombVFX halo;
+        //是不是直接施放法杖放下的。只有这种爆炸算一次法杖命中（wandProc），
+        //战斗法师近战触发的不算，和其它法杖的近战附带效果一致
+        private boolean fromZap = false;
 
         @Override
         public boolean act() {
@@ -174,12 +178,23 @@ public class WandOfShockBomb extends DamageWand {
             for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE5x[i];
                 if (inBlastArea(pos, cell, 2)) {
+                    if (fromZap) {
+                        //要赶在伤害之前：目标被炸死之后再挂灵魂标记就没有意义了
+                        Char ch = Actor.findChar(cell);
+                        if (ch != null && takesBlastDamage(ch)) {
+                            wandProc(ch, level, 1);
+                        }
+                    }
                     runExplode(damage, cell, pos);
                 }
             }
 
             Dungeon.observe();
             GameScene.updateFog();
+        }
+
+        private static boolean takesBlastDamage(Char ch) {
+            return ch.alignment == Char.Alignment.ENEMY || (ch instanceof Mimic && ch.alignment == Char.Alignment.NEUTRAL);
         }
 
         //CIRCLE5x / CIRCLE7x 是按格子下标算的偏移，爆心贴着地图左右边界时会绕到相邻行的另一头，
@@ -199,7 +214,7 @@ public class WandOfShockBomb extends DamageWand {
             if (Dungeon.level.insideMap(cell)) {
                 Char ch = Actor.findChar(cell);
                 if (ch != null) {
-                    if (ch.alignment == Char.Alignment.ENEMY || (ch instanceof Mimic && ch.alignment == Char.Alignment.NEUTRAL)) {
+                    if (takesBlastDamage(ch)) {
                         ch.damage(new DamageInfo(damage, DamageType.LIGHTNING, null, null, new DM100.LightningBolt()));
                     }
                     if (ch.alignment == Char.Alignment.ALLY) {
@@ -269,6 +284,7 @@ public class WandOfShockBomb extends DamageWand {
         private static final String LEFT = "left";
 
         private static final String DAMAGE = "damage";
+        private static final String FROM_ZAP = "from_zap";
 
         @Override
         public void storeInBundle(Bundle bundle) {
@@ -281,6 +297,7 @@ public class WandOfShockBomb extends DamageWand {
             bundle.put(LEVEL, level);
             bundle.put(LEFT, turnsLeft);
             bundle.put(DAMAGE, damage);
+            bundle.put(FROM_ZAP, fromZap);
         }
 
         @Override
@@ -294,6 +311,8 @@ public class WandOfShockBomb extends DamageWand {
             level = bundle.getInt(LEVEL);
             turnsLeft = bundle.getInt(LEFT);
             damage = bundle.getInt(DAMAGE);
+            //改动前的存档里没有这个键，按「不是施放放下的」处理
+            fromZap = bundle.contains(FROM_ZAP) && bundle.getBoolean(FROM_ZAP);
         }
 
     }
