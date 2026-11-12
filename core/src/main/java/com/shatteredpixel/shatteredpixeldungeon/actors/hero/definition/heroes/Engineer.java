@@ -16,9 +16,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.engineer.F
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.engineer.SummoningBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerPassive;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfParalyticGas;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSpike;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 
 /** 工程师 - 自 reXuns Pixel Dungeon (xun分支) 移植 */
@@ -78,6 +80,13 @@ public class Engineer extends HeroDefinition {
 		hero.belongings.weapon.activate(hero);
 		Dungeon.quickslot.setSlot(0, hero.belongings.weapon);
 		ActionIndicator.setAction(Buff.affect(hero, Pulse.class));
+
+		ThrowingSpike spikes = new ThrowingSpike();
+		spikes.quantity(2).collect();
+		Dungeon.quickslot.setSlot(1, spikes);
+
+		//常驻状态：对机械敌人的被动、每回合驱动已骇入陷阱等都挂在它上面
+		Buff.affect(hero, EngineerPassive.class);
 
 		new PotionOfParalyticGas().identify();
 		new ScrollOfRecharging().identify();
