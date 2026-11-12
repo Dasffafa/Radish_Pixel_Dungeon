@@ -14,6 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
@@ -149,6 +150,13 @@ public class Yamato extends MeleeWeapon {
 	}
 
 	private void useRapidSlash(Hero hero, int selectedCell) {
+		// 被缠住、扎根时不能位移（与原版的突进类技能一致）；以前疾走居合可以直接冲出缠绕
+		if (hero.rooted) {
+			PixelScene.shake(1, 1f);
+			GLog.w(Messages.get(this, "rooted"));
+			return;
+		}
+
 		int heroX = hero.pos % Dungeon.level.width();
 		int heroY = hero.pos / Dungeon.level.width();
 		int targetX = selectedCell % Dungeon.level.width();
