@@ -1626,8 +1626,8 @@ public class Talent {
 		if (hero.hasTalent(COMMON_SHOT) && hero.subClass == HeroSubClasses.SNIPER) {
 			if (!(hero.belongings.attackingWeapon() instanceof MissileWeapon)) {
 				int points = hero.pointsInTalent(COMMON_SHOT);
-				// +1: 33%, +2: 66%, +3: 100%
-				int chance = points * 33;
+				// +1: 33%, +2: 66%, +3: 100%（points * 33 在 +3 时是 99，不是说明写的「必定」）
+				int chance = points >= 3 ? 100 : points * 33;
 				if (Random.Int(100) < chance) {
 					Buff.prolong(enemy, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark.class, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark.DURATION).set(enemy.id(), Dungeon.hero.belongings.weapon() != null ? Dungeon.hero.belongings.weapon().buffedLvl() : 0);
 				}
