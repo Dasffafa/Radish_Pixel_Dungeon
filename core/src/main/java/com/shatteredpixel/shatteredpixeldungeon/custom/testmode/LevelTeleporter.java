@@ -19,7 +19,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Imp;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Wandmaker;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
-import com.shatteredpixel.shatteredpixeldungeon.custom.utils.Constants;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
@@ -32,6 +31,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.CavesBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.CityBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.HallsBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branch;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
@@ -112,7 +112,7 @@ public class LevelTeleporter extends TestItem {
     public void execute( Hero hero, String action ) {
         super.execute( hero, action );
         if(action.equals(AC_DESCEND)) {
-            if(Dungeon.hero.buff(LockedFloor.class) != null || depth>= Constants.MAX_DEPTH) {
+            if(Dungeon.hero.buff(LockedFloor.class) != null || depth >= maxDepthOf(Dungeon.branchId)) {
                 GLog.w(Messages.get(this,"cannot_send"));
                 return;
             }
@@ -128,7 +128,8 @@ public class LevelTeleporter extends TestItem {
             Game.switchScene( InterlevelScene.class );
 
         } else if(action.equals(AC_ASCEND)) {
-            if (Dungeon.hero.buff(LockedFloor.class) != null || depth <= 0) {
+            // 每个分支的楼层都从 1 开始编号，第 1 层上面没有楼层
+            if (Dungeon.hero.buff(LockedFloor.class) != null || depth <= 1) {
                 GLog.w(Messages.get(this, "cannot_send"));
                 return;
             }
@@ -267,8 +268,22 @@ public class LevelTeleporter extends TestItem {
         }
     }
 
+    /**
+     * 某个分支最深到第几层。
+     * 支线只有一两层，不能拿主线的总层数去比：跳到不存在的楼层要等切到加载界面才报错，那时已经是闪退。
+     */
+    private static int maxDepthOf(String branch) {
+        Branch b = Branches.get(branch);
+        return b == null ? 0 : b.maxDepth;
+    }
+
     /** 「跳层」的公共逻辑：网格选层 / 手动输入层数 / Boss 直达共用 */
     private static void jumpTo(int targetDepth, String branch, Class<? extends Level> forcedLevel) {
+        if (targetDepth < 1 || targetDepth > maxDepthOf(branch)) {
+            GLog.w(Messages.get(LevelTeleporter.class, "cannot_send"));
+            return;
+        }
+
         TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
         if (timeFreeze != null) timeFreeze.disarmPresses();
         Swiftthistle.TimeBubble timeBubble = Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
@@ -318,6 +333,8 @@ public class LevelTeleporter extends TestItem {
         private static final int PANE_MAX_HEIGHT = 96;
 
         private int selectedLevel = 1;
+        // 面板只在当前分支里跳，可选的楼层数跟着当前分支走（支线只有一两层）
+        private final int maxDepth = Math.max(1, maxDepthOf(Dungeon.branchId));
         private ArrayList<DepthButton> btns = new ArrayList<>();
         private StyledButton icb;
         private StyledButton inputBtn;
@@ -360,7 +377,7 @@ public class LevelTeleporter extends TestItem {
             float xpos = (WIDTH - 5*BTN_SIZE - GAP*8)/2f;
             float ypos = 0;
             float each = GAP*2 + BTN_SIZE;
-            for(int i=0; i< Constants.MAX_DEPTH; ++i){
+            for(int i=0; i< maxDepth; ++i){
                 int column = i % 5;
                 int row = i / 5;
                 final int j = i + 1; // 楼层从1开始，不再出现「0层」
@@ -403,7 +420,7 @@ public class LevelTeleporter extends TestItem {
             add(bossBtn);
             bossBtn.setRect(0, icb.bottom() + GAP * 2, WIDTH, BTN_SIZE);
 
-            setSelectedLevel(Math.max(1, Math.min(Constants.MAX_DEPTH, depth)));
+            setSelectedLevel(Math.max(1, Math.min(maxDepth, depth)));
 
             sp.scrollTo(0, 0);
 
@@ -416,7 +433,7 @@ public class LevelTeleporter extends TestItem {
         private void showNumberInput() {
             GameScene.show(new WndTextNumberInput(
                     M.L(LevelTeleporter.class, "interlevel_teleport_input_title"),
-                    M.L(LevelTeleporter.class, "interlevel_teleport_input_body", 1, Constants.MAX_DEPTH),
+                    M.L(LevelTeleporter.class, "interlevel_teleport_input_body", 1, maxDepth),
                     String.valueOf(selectedLevel),
                     2,
                     false,
@@ -430,11 +447,11 @@ public class LevelTeleporter extends TestItem {
                     try {
                         target = Integer.parseInt(text.trim());
                     } catch (NumberFormatException e) {
-                        GLog.w(M.L(LevelTeleporter.class, "interlevel_teleport_invalid", Constants.MAX_DEPTH));
+                        GLog.w(M.L(LevelTeleporter.class, "interlevel_teleport_invalid", maxDepth));
                         return;
                     }
-                    if (target < 1 || target > Constants.MAX_DEPTH) {
-                        GLog.w(M.L(LevelTeleporter.class, "interlevel_teleport_invalid", Constants.MAX_DEPTH));
+                    if (target < 1 || target > maxDepth) {
+                        GLog.w(M.L(LevelTeleporter.class, "interlevel_teleport_invalid", maxDepth));
                         return;
                     }
                     jumpTo(target, Dungeon.branchId, null);
@@ -445,7 +462,7 @@ public class LevelTeleporter extends TestItem {
         private void setSelectedLevel(int lvl){
             this.selectedLevel = lvl;
             icb.text(M.L(LevelTeleporter.class, "interlevel_teleport_go", selectedLevel));
-            icb.enable(selectedLevel <= Constants.MAX_DEPTH);
+            icb.enable(selectedLevel <= maxDepth);
         }
     }
 
