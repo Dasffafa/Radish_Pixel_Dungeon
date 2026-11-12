@@ -57,6 +57,9 @@ public class LightBeamSpell extends DiceMageSpell {
                 }
                 int dmg = Random.IntRange(45, 60) + strBonusDamage(hero); // 近似 +10 法杖
                 if (!spendMagic(hero)) return;
+                // 伤害在飞弹落地的回调里结算，回合也要等到那时才结束（同法杖的做法）：
+                // 先 spendAndNext 的话怪物会在 Actor 线程上行动，同时渲染线程在回调里改同一批角色
+                hero.busy();
                 MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.FORCE, hero.sprite, target.pos, new Callback() {
                     @Override
                     public void call() {
@@ -65,9 +68,9 @@ public class LightBeamSpell extends DiceMageSpell {
                             CellEmitter.center(target.pos).burst(EnergyParticle.FACTORY, 8);
                         }
                         Sample.INSTANCE.play(Assets.Sounds.BLAST);
+                        hero.spendAndNext(1f);
                     }
                 });
-                hero.spendAndNext(1f);
             }
 
             @Override
