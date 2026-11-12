@@ -367,16 +367,31 @@ public class Belief extends Buff implements ActionIndicator.Action {
     @Override
     public boolean act() {
         FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
+        // 动作按钮只有一个槽位。信仰之力是常驻按钮，每回合都会来这里刷新一次；
+        // 别的状态的按钮（比如次元撕裂者只开 3 回合的裂隙窗口）正占着槽位时让给它，
+        // 否则每回合都把人家顶掉。对方用完会清掉自己的按钮，下一回合这里再补回来。
+        // 同理，清按钮时只清自己的。
         if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
-            ActionIndicator.clearAction();
+            ActionIndicator.clearAction(this);
         } else if (credibility >= 0f){
-            ActionIndicator.setAction(this);
+            if (!slotHeldByOtherBuff()) {
+                ActionIndicator.setAction(this);
+            }
         } else {
-            ActionIndicator.clearAction();
+            ActionIndicator.clearAction(this);
         }
         not_link = failed != null;
         spend(TICK);
         return true;
+    }
+
+    // 槽位里是不是「这个英雄身上另一个还挂着的状态」的按钮。
+    // 只给这种让位：上一局遗留的、或者已经解除却没清掉的按钮不算，照常接管，
+    // 免得信仰之力的按钮被一个已经不存在的东西永久挡住。
+    private boolean slotHeldByOtherBuff() {
+        ActionIndicator.Action current = ActionIndicator.action;
+        return current != null && current != this
+                && current instanceof Buff && target.buffs().contains(current);
     }
 
     /**
