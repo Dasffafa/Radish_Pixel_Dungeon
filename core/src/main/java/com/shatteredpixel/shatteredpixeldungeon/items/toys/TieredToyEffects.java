@@ -56,7 +56,10 @@ public final class TieredToyEffects {
 			for (Mob mob : hero.getVisibleEnemies()) if (mob.isAlive() && mob.HP < mob.HT) wounded++;
 			Buff.affect(hero, Barrier.class).incShield(3 + 3 * wounded);
 		}
-		if (has(TieredToy.Sponge.class)) hero.buff(TieredToyBuff.class).startSponge();
+		// 玩具状态可能不在：未祝福复活会摘掉它，护甲没被选为保留物品时不会重新激活，
+		// 而 has(...) 看的是原始装备栏，仍然为真。本类其它方法都对它判空了，这里也一样。
+		TieredToyBuff state = hero.buff(TieredToyBuff.class);
+		if (has(TieredToy.Sponge.class) && state != null) state.startSponge();
 		if (has(TieredToy.Doomblade.class)) hero.damage(new DamageInfo(20, DamageType.TRUE, hero, null, TieredToy.Doomblade.class));
 	}
 
