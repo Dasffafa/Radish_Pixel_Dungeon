@@ -54,8 +54,9 @@ public class Warden extends Mob {
 	private int     nextSpawnHp  = 30;   // 下一次补生成原型机的生命阈值
 	private int     speedBonus   = 0;    // 失去 60 生命后 +1
 
-	//玩家进入视野前，典狱长保持静止（不激活原型机、不移动）
-	private boolean awake = false;
+	//旧版本的典狱长在关卡生成时就摆在场上，靠这个标记区分开没开战。
+	//现在开战时才生成，一出场就是 true；只剩 WardenBossLevel 读旧版本存档时还要用它
+	private boolean awake = true;
 
 	//当前正在激活的原型机
 	private WardenPrototype activating = null;
@@ -119,27 +120,6 @@ public class Warden extends Mob {
 				activatingTurnsLeft = 0;
 			}
 			pendingActivatingCell = -1;
-		}
-
-		boolean heroEnteredArena = Dungeon.level instanceof WardenBossLevel
-				&& Dungeon.hero != null
-				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos );
-		if (!awake && heroEnteredArena) {
-			awake = true;
-			//玩家真正踏进战斗区才把 11 台原型机一次性刷出来
-			((WardenBossLevel) Dungeon.level).spawnInitialPrototypes();
-			notice();
-		}
-		if (awake && Dungeon.level instanceof WardenBossLevel
-				&& !((WardenBossLevel) Dungeon.level).bossDead() && !Dungeon.level.locked) {
-			Dungeon.level.seal();
-		}
-
-		// 玩家还没进门看到它：保持静止，既不移动也不激活原型机
-		if (!awake) {
-			state = PASSIVE;
-			spend(Actor.TICK);
-			return true;
 		}
 
 		//通用AI处理麻痹、恐惧及Amok目标切换，不能让开机策略抢占这些状态。
@@ -229,19 +209,6 @@ public class Warden extends Mob {
 	@Override
 	public void damage( DamageInfo info ) {
 
-		if (info != null && info.getDamage() > 0 && isAlive()
-				&& Dungeon.level instanceof WardenBossLevel
-				&& Dungeon.hero != null
-				//只有英雄真的踏进战斗区才算开战：远程从门外/门外通道偷袭不该封锁整层
-				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos )
-				&& !((WardenBossLevel) Dungeon.level).bossDead()) {
-			awake = true;
-			notice();
-			if (!Dungeon.level.locked) {
-				Dungeon.level.seal();
-			}
-		}
-
 		int preHP = HP;
 		super.damage( info );
 		int lost = preHP - HP;
@@ -250,8 +217,8 @@ public class Warden extends Mob {
 		//这一击已经把自己打死了：尸体不该再补生成原型机、也不再播形态切换的台词
 		if (!isAlive()) return;
 
-		//每失去 30 生命补生成一台 DM-100 原型机；玩家还站门口没开战时不补，避免门外凭空刷人
-		while ( awake && lostTotal() >= nextSpawnHp ) {
+		//每失去 30 生命补生成一台 DM-100 原型机
+		while ( lostTotal() >= nextSpawnHp ) {
 			nextSpawnHp += 30;
 			if (Dungeon.level instanceof WardenBossLevel) {
 				((WardenBossLevel) Dungeon.level).spawnPrototype( 100 );
@@ -299,6 +266,11 @@ public class Warden extends Mob {
 	/** 半血后的红眼形态（供精灵读档时同步） */
 	public boolean isEnraged() {
 		return enraged;
+	}
+
+	/** 只给 WardenBossLevel 读旧版本存档用，含义见 awake 字段。 */
+	public boolean awake() {
+		return awake;
 	}
 
 	@Override
