@@ -129,7 +129,7 @@ public class WandOfShockBomb extends DamageWand {
                 // 显示圆形范围标记
                 for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
                     int cell = pos + PathFinder.CIRCLE5x[i];
-                    if (Dungeon.level.insideMap(cell)) {
+                    if (inBlastArea(pos, cell, 2)) {
                         if (target != null && target.sprite != null) {
                             target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
                         }
@@ -165,11 +165,19 @@ public class WandOfShockBomb extends DamageWand {
             // 使用相同的圆形范围
             for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE5x[i];
-                runExplode(damage, cell, pos);
+                if (inBlastArea(pos, cell, 2)) {
+                    runExplode(damage, cell, pos);
+                }
             }
 
             Dungeon.observe();
             GameScene.updateFog();
+        }
+
+        //CIRCLE5x / CIRCLE7x 是按格子下标算的偏移，爆心贴着地图左右边界时会绕到相邻行的另一头，
+        //所以除了要在地图内，还得按坐标确认这一格真的在爆心周围
+        private static boolean inBlastArea(int center, int cell, int radius) {
+            return Dungeon.level.insideMap(cell) && Dungeon.level.distance(center, cell) <= radius;
         }
 
         private static void runExplode(int damage, int cell, int center) {
@@ -280,7 +288,7 @@ public class WandOfShockBomb extends DamageWand {
                 // 显示圆形范围标记
                 for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
                     int cell = pos + PathFinder.CIRCLE7x[i];
-                    if (Dungeon.level.insideMap(cell)) {
+                    if (ShockBombTracker.inBlastArea(pos, cell, 3)) {
                         if (target != null && target.sprite != null) {
                             target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
                         }
@@ -316,7 +324,9 @@ public class WandOfShockBomb extends DamageWand {
             // 使用相同的圆形范围
             for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE7x[i];
-                ShockBombTracker.runExplode(damage, cell, pos);
+                if (ShockBombTracker.inBlastArea(pos, cell, 3)) {
+                    ShockBombTracker.runExplode(damage, cell, pos);
+                }
             }
 
             Dungeon.observe();
