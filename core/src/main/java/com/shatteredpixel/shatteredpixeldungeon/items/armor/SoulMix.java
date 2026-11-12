@@ -13,6 +13,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
@@ -134,7 +135,7 @@ public class SoulMix extends Armor {
 		Armor armor = hero.belongings.armor();
 		if (!(armor instanceof SoulMix)) return;
 
-		Char victim = event.getTarget();
+		final Char victim = event.getTarget();
 		if (victim.alignment != Char.Alignment.ENEMY || victim.isAlive()) return;
 
 		// 事件自带的 attacker 只有伤害来源对象本身是角色时才有值（法杖伤害的来源是法杖），
@@ -142,6 +143,21 @@ public class SoulMix extends Armor {
 		DamageInfo info = DamagePipeline.activeInfo();
 		if (info == null || info.getAttacker() != hero) return;
 
-		((SoulMix) armor).gainStack();
+		// 这个事件发出时 die() 还没执行，生命归零不等于真的死了：矮人尸群（Ghoul）附近有同伴时会在 die() 里
+		// 转入倒地待救的状态，isAlive() 又变回 true。挂一个一次性的 Actor，等这次行动结算完再确认。
+		final SoulMix soulMix = (SoulMix) armor;
+		Actor.add( new Actor() {
+			{ actPriority = VFX_PRIO; }
+
+			@Override
+			protected boolean act() {
+				Actor.remove( this );
+				Hero wearer = Dungeon.hero;
+				if (wearer != null && soulMix.isEquipped( wearer ) && !victim.isAlive()) {
+					soulMix.gainStack();
+				}
+				return true;
+			}
+		} );
 	}
 }
