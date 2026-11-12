@@ -44,7 +44,8 @@ public class WandOfGnollKing extends DamageWand{
         usesTargeting = false;
     }
 
-    private int firetarget;
+    //这次施放打中的角色所在的格子，幻影在 wandUsed() 里朝它集火；-1 表示这次没有打中任何角色
+    private int firetarget = -1;
     private MirrorGnoll firingone;
 
     public int min(int lvl){
@@ -89,6 +90,9 @@ public class WandOfGnollKing extends DamageWand{
 
     @Override
     public boolean tryToZap(Hero owner, int target) {
+        //狂野魔法之类的效果只调 onZap() 不调 wandUsed()，上一次留下的集火目标不能带进这一次施放
+        firetarget = -1;
+
         int currentGnollNum = 0;
         for (Char ch : Actor.chars()) {
             if (ch instanceof MirrorGnoll)
@@ -126,7 +130,11 @@ public class WandOfGnollKing extends DamageWand{
             Sample.INSTANCE.play( Assets.Sounds.HIT_MAGIC, 1, Random.Float(0.87f, 1.15f) );
 
             firetarget = bolt.collisionPos;
-        } else if (gnollAvailable) {
+        } else {
+            firetarget = -1;
+        }
+
+        if (ch == null && gnollAvailable) {
             if (!Dungeon.level.passable[target]){
                 GLog.w( Messages.get(this, "bad_location"));
             } else {
@@ -152,26 +160,32 @@ public class WandOfGnollKing extends DamageWand{
 
     @Override
     public void wandUsed() {
-        if (Char.findChar(firetarget)==null || Char.findChar(firetarget) instanceof MirrorGnoll || Char.findChar(firetarget) instanceof Hero) {
+        //集火目标只对这一次施放有效，取出来就清掉。原先一直留着上次打中的那一格：
+        //之后再对空地施放（召唤幻影）或触发诅咒效果时，幻影会朝碰巧站在那一格上的任何角色投矛，包括盟友和商人
+        final int target = firetarget;
+        firetarget = -1;
+
+        Char targetChar = target >= 0 ? Char.findChar(target) : null;
+        if (targetChar == null || targetChar instanceof MirrorGnoll || targetChar instanceof Hero) {
             super.wandUsed();
             return;
         }
         ArrayList<MirrorGnoll> gnolls2fire = new ArrayList<>();
         for (Char gnoll : Actor.chars()) {
-            if (gnoll instanceof MirrorGnoll && new Ballistica( gnoll.pos, firetarget, Ballistica.PROJECTILE).collisionPos == firetarget)
+            if (gnoll instanceof MirrorGnoll && new Ballistica( gnoll.pos, target, Ballistica.PROJECTILE).collisionPos == target)
                 gnolls2fire.add((MirrorGnoll) gnoll);
         }
-        if (gnolls2fire.isEmpty()) {
+
+        firingone = nextThrower(gnolls2fire);
+        if (firingone == null) {
             super.wandUsed();
             return;
         }
 
-        firingone = gnolls2fire.remove(0);
-
         Callback callback = new Callback() {
             @Override
             public void call() {
-                Char enemy = Char.findChar(firetarget);
+                Char enemy = Char.findChar(target);
                 if(enemy==null || !enemy.isAlive()) {
                     WandOfGnollKing.super.wandUsed();
                     return;
@@ -179,16 +193,28 @@ public class WandOfGnollKing extends DamageWand{
 
                 firingone.attack(enemy, 0.75f, 0, 1f);
 
-                if (enemy.isAlive() && !gnolls2fire.isEmpty()) {
-                    firingone = gnolls2fire.remove(0);
-                    firingone.sprite.zap(firetarget, this);
+                firingone = enemy.isAlive() ? nextThrower(gnolls2fire) : null;
+                if (firingone != null) {
+                    firingone.sprite.zap(target, this);
                 } else {
                     WandOfGnollKing.super.wandUsed();
                 }
             }
         };
 
-        firingone.sprite.zap(firetarget, callback);
+        firingone.sprite.zap(target, callback);
+    }
+
+    //从排队的幻影里取下一只还能投矛的。前面的投矛可能引来反击或爆炸，把后面排队的幻影打死：
+    //死掉的幻影播不出投矛动画，回调永远不会来，这次施放就结束不了
+    private static MirrorGnoll nextThrower(ArrayList<MirrorGnoll> queue) {
+        while (!queue.isEmpty()) {
+            MirrorGnoll gnoll = queue.remove(0);
+            if (gnoll.isAlive() && gnoll.sprite != null && gnoll.sprite.parent != null) {
+                return gnoll;
+            }
+        }
+        return null;
     }
 
     @Override
