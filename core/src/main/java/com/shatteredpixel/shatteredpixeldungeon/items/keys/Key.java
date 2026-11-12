@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndJournal;
 import com.watabou.noosa.audio.Sample;
@@ -77,7 +78,9 @@ public abstract class Key extends Item {
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		depth = bundle.getInt( DEPTH );
-		branchId = bundle.getString( BRANCH_ID );
+		//没有这个字段的旧钥匙都是主线的。getString 对不存在的键返回空串，
+		//空串对不上任何分支：这把钥匙开不了门，钥匙栏里也不显示
+		branchId = bundle.contains( BRANCH_ID ) ? bundle.getString( BRANCH_ID ) : Branches.MAIN;
 	}
 	
 	@Override
