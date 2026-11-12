@@ -53,7 +53,8 @@ public class Radish extends Trinket {
     }
 
     public void doDrop( Hero hero ) {
-       super.doThrow(hero);
+        // 这里原先调的是 super.doThrow：点「放下」弹出来的是投掷选格，东西并没有放到脚下
+        super.doDrop(hero);
         Buff.detach(hero, GlobalCritChance.class);
     }
 
