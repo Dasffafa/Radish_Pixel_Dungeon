@@ -133,8 +133,8 @@ public class ScrollOfUpgrade extends InventoryScroll {
 		Statistics.upgradesUsed++;
 		Badges.validateMageUnlock();
 
+		//卷轴自己的使用次数由 readAnimation 记（升级窗口先调它再调这里），这里再记一次就每张记两次
 		Catalog.countUse(item.getClass());
-		Catalog.countUse(ScrollOfUpgrade.class);
 
 		//嫉妒附魔：根据升级卷轴的使用对象调整嫉妒值
 		Jealousy.onUpgradeScrollUsed(item);

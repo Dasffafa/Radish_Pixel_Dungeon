@@ -84,8 +84,8 @@ public class MagicalInfusion extends InventorySpell {
 		GLog.p( Messages.get(this, "infuse",item.name()) );
 		Badges.validateItemLevelAquired(item);
 
+		//法术自己的使用次数在 useAnimation 里记，这里再记一次就每用一个记两次
 		Catalog.countUse(item.getClass());
-		Catalog.countUse(getClass());
 
 		Statistics.upgradesUsed++;
 
