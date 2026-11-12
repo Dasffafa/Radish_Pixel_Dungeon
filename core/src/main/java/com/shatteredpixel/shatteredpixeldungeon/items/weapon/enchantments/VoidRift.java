@@ -35,7 +35,10 @@ import com.watabou.utils.Random;
 
 import java.util.Objects;
 
-/** 虚空附魔：撕扯空间，攻击后有机会把目标脚下的地块撕成深渊使其坠落。 */
+/**
+ * 虚空附魔：撕扯空间，攻击后有机会把目标脚下的地块撕成深渊使其坠落。
+ * 撕掉会断路的过道上只开一道转瞬即合的裂隙，目标照样坠落，但不留下深渊。
+ */
 public class VoidRift extends Weapon.Enchantment {
 
 	private static final ItemSprite.Glowing VOID_GLOW = new ItemSprite.Glowing( 0x7A2BE2 );
@@ -93,10 +96,17 @@ public class VoidRift extends Weapon.Enchantment {
 					|| Char.hasProp( target, Char.Property.MINIBOSS );
 			// 只有怪物会被撕下去；英雄被怪物手里的虚空武器打中时走下面的伤害兜底
 			if (target instanceof Mob && !boss && canRip( lvl, cell )){
-				// 三参 set 会同步刷新该格的 pit 标记，之后踩上去也会正常坠落。
-				Level.set( cell, Terrain.CHASM, lvl );
-				GameScene.updateMap( cell );
-				CellEmitter.get( cell ).burst( RiftParticle.SCATTER, 12 );
+				if (Passage.wouldCut( cell, lvl.width(), lvl.height(),
+						lvl.map, lvl.passable, lvl.avoid, lvl.pit )){
+					// 这一格是过道：地形不动，裂隙转瞬合拢，只把怪带走，不留下断路的坑。
+					// 在普通地板上直接让怪坠落并不特殊，原版落穴陷阱就是这么做的。
+					CellEmitter.center( cell ).burst( RiftParticle.IMPLODE, 12 );
+				} else {
+					// 三参 set 会同步刷新该格的 pit 标记，之后踩上去也会正常坠落。
+					Level.set( cell, Terrain.CHASM, lvl );
+					GameScene.updateMap( cell );
+					CellEmitter.get( cell ).burst( RiftParticle.SCATTER, 12 );
+				}
 				Chasm.mobFall( (Mob) target );
 			} else {
 				// 地块撕不开时改走高额真实伤害，不另写进游戏说明。
@@ -161,6 +171,124 @@ public class VoidRift extends Weapon.Enchantment {
 			}
 
 			return true;
+		}
+	}
+
+	/**
+	 * 判断「把某一格撕成深渊，会不会把路撕断」，只看被撕格周围一圈 8 格。
+	 *
+	 * 凡是经过被撕格的路，都是从圈上一格进来、再从圈上另一格出去的，所以只要圈上能走的格子
+	 * 彼此还连着，原来的路就能沿着这一圈绕过去。这个判定偏严：绕一大圈其实能通的环形走廊
+	 * 也会被当成过道，宁可少留一个坑。
+	 *
+	 * 这里全是不碰游戏全局状态的静态纯函数，参数只有基本类型和数组，可以脱离游戏单独穷举验证。
+	 */
+	static final class Passage {
+
+		/** 墙、深渊、地图外：既不能走，也没有够不着的问题。 */
+		static final int OTHER = 0;
+		/** 现在就能正常走过去。只有这一类能充当绕行路线。 */
+		static final int PASS = 1;
+		/** 不能拿来绕行，但撕完之后必须还够得着：上锁的门、已显形的陷阱之类。 */
+		static final int KEEP = 2;
+
+		// 周围一圈，从正北起顺时针
+		private static final int[] DX = {  0,  1, 1, 1, 0, -1, -1, -1 };
+		private static final int[] DY = { -1, -1, 0, 1, 1,  1,  0, -1 };
+
+		// NEAR[i] 的第 j 位：圈上第 i 格和第 j 格是否挨着。
+		// 游戏里是八向移动，斜着走不看拐角两侧是不是墙，门也能斜着进出，所以斜向同样算挨着。
+		private static final int[] NEAR = new int[8];
+		static {
+			for (int i = 0; i < 8; i++){
+				for (int j = 0; j < 8; j++){
+					if (i != j && Math.abs( DX[i] - DX[j] ) <= 1 && Math.abs( DY[i] - DY[j] ) <= 1){
+						NEAR[i] |= 1 << j;
+					}
+				}
+			}
+		}
+
+		private Passage(){}
+
+		/** 撕掉 cell 会不会断路，或者把须保留可达的格子孤立起来。地图按行存成一维数组。 */
+		static boolean wouldCut( int cell, int width, int height,
+				int[] map, boolean[] passable, boolean[] avoid, boolean[] pit ){
+			int[] around = ring( cell, width, height );
+			int[] kinds = new int[8];
+			for (int i = 0; i < 8; i++){
+				int n = around[i];
+				kinds[i] = n < 0 ? OTHER : classOf( map[n], passable[n], avoid[n], pit[n] );
+			}
+			return !removable( kinds );
+		}
+
+		/**
+		 * 周围 8 格的下标，顺序同 DX / DY；进不去的格子记 -1。
+		 * 必须按坐标算：直接拿下标加减，贴着左右边界时会绕到相邻那一行去。
+		 */
+		static int[] ring( int cell, int width, int height ){
+			int x = cell % width;
+			int y = cell / width;
+			int[] result = new int[8];
+			for (int i = 0; i < 8; i++){
+				int nx = x + DX[i];
+				int ny = y + DY[i];
+				// 地图最外一圈和地图外同样处理：Level.buildFlagMaps 每次都会把最外一圈封死
+				boolean inside = nx > 0 && ny > 0 && nx < width - 1 && ny < height - 1;
+				result[i] = inside ? nx + ny * width : -1;
+			}
+			return result;
+		}
+
+		/** 一格属于哪一类。passable / avoid / pit 取关卡当前的标记，它们会被场上的效果改写。 */
+		static int classOf( int terrain, boolean passable, boolean avoid, boolean pit ){
+			if (passable) return PASS;
+			// 已显形的陷阱、水井：寻路会绕开，但英雄可以主动踩上去，不能让它够不着
+			if (avoid && !pit) return KEEP;
+			switch (terrain){
+				// 拿到钥匙才开的门和出口
+				case Terrain.LOCKED_DOOR:
+				case Terrain.CRYSTAL_DOOR:
+				case Terrain.LOCKED_EXIT:
+				// 还没被发现的门，后面可能是唯一的去路
+				case Terrain.SECRET_DOOR:
+				// 烧掉之后就是路：路障用来堵门，隐藏符石房用一整排书架隔开
+				case Terrain.BARRICADE:
+				case Terrain.BOOKSHELF:
+				// 炼金锅要贴着才能用
+				case Terrain.ALCHEMY:
+					return KEEP;
+			}
+			// 地形本身能走、眼下却被封住的格子（魔法火焰房间的永恒之火）：火灭了就是路
+			if ((Terrain.flags[terrain] & Terrain.PASSABLE) != 0) return KEEP;
+			return OTHER;
+		}
+
+		/** kinds 是周围 8 格的类别，顺序同 ring。返回 true 表示撕掉中间这格不碍事。 */
+		static boolean removable( int[] kinds ){
+			int pass = 0, keep = 0;
+			for (int i = 0; i < 8; i++){
+				if (kinds[i] == PASS) pass |= 1 << i;
+				else if (kinds[i] == KEEP) keep |= 1 << i;
+			}
+
+			// 须保留可达的格子原本都挨着中间这格；撕掉之后，圈上得另有一个能走的格子挨着它
+			for (int i = 0; i < 8; i++){
+				if ((keep & (1 << i)) != 0 && (NEAR[i] & pass) == 0) return false;
+			}
+
+			// 圈上能走的格子只靠彼此相连，必须连成一片：从其中一格出发，看能不能走遍
+			int reached = pass & -pass;
+			int frontier = reached;
+			while (frontier != 0){
+				int i = Integer.numberOfTrailingZeros( frontier );
+				frontier &= frontier - 1;
+				int more = NEAR[i] & pass & ~reached;
+				reached |= more;
+				frontier |= more;
+			}
+			return reached == pass;
 		}
 	}
 }
