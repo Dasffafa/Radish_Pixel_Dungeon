@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PaperCutter;
@@ -400,12 +401,14 @@ public final class CardEffects {
 			}
 			case TELEPORT: {
 				int cell = target == null ? hero.pos : target;
-				int old = hero.pos;
-				hero.pos = cell;
-				hero.sprite.place(cell);
-				Dungeon.level.pressCell(cell);
-				Dungeon.observe();
-				GameScene.updateFog();
+				// 走传送卷轴的定点传送，不手写位移：它负责连通性检查（不能传进隔开的区域）、
+				// 离开门格时关门、漂浮时不踩陷阱、解除缠绕、刷新视野。到不了时卡留在手上
+				if (cell != hero.pos
+						&& !ScrollOfTeleportation.teleportToLocation(hero, cell, false)) {
+					return;
+				}
+				// 落点上的陷阱可能把英雄杀死，死了就不再结算这张卡（否则施法动作会盖在死亡动画上）
+				if (!hero.isAlive()) return;
 				CardDrawer.cancelCooldown(hero);
 				int swift = hero.pointsInTalent(Talent.SWIFT_STEP);
 				if (swift > 0) {
