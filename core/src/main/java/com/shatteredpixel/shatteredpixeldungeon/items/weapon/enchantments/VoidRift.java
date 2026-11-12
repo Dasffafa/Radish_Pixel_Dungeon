@@ -99,7 +99,7 @@ public class VoidRift extends Weapon.Enchantment {
 				if (Passage.wouldCut( cell, lvl.width(), lvl.height(),
 						lvl.map, lvl.passable, lvl.avoid, lvl.pit )){
 					// 这一格是过道：地形不动，裂隙转瞬合拢，只把怪带走，不留下断路的坑。
-					// 在普通地板上直接让怪坠落并不特殊，原版落穴陷阱就是这么做的。
+					// 在普通地板上直接让怪坠落并不特殊，原版塌方陷阱（PitfallTrap）就是这么做的。
 					CellEmitter.center( cell ).burst( RiftParticle.IMPLODE, 12 );
 				} else {
 					// 三参 set 会同步刷新该格的 pit 标记，之后踩上去也会正常坠落。
@@ -130,7 +130,7 @@ public class VoidRift extends Weapon.Enchantment {
 
 		/** 这一格能不能撕成深渊。撕出来的坑是永久地形，所以撕不开的情况都交给 resolve() 的伤害兜底。 */
 		private boolean canRip( Level lvl, int cell ){
-			// 和原版落穴陷阱（PitfallTrap）同一条规则：首领层、25 层以后、支线层不开坑。
+			// 和原版塌方陷阱（PitfallTrap）同一条规则：首领层、25 层以后、支线层不开坑。
 			// 这些楼层要么没有能掉下去的下一层，要么留下的坑能让英雄跳下去绕过首领战。
 			if (Dungeon.bossLevel() || Dungeon.depth > 25
 					|| !Objects.equals( Dungeon.branchId, Branches.MAIN )){
