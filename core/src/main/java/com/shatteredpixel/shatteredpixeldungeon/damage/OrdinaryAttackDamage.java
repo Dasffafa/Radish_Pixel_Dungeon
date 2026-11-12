@@ -83,12 +83,8 @@ public class OrdinaryAttackDamage {
 			}
 		}
 
-		if (includeBarkskin) {
-			Barkskin bark = defender.buff(Barkskin.class);
-			if (bark != null) {
-				dr += Random.NormalIntRange(0, bark.level());
-			}
-		}
+		// 树肤已经在 Char.drRoll() 里算过一次（和原版一致）；这里不能再加，否则树肤减伤翻倍。
+		// includeBarkskin 参数保留只是为了不改调用点的签名。
 
 		return dr;
 	}
