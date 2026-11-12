@@ -111,7 +111,14 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		return Integer.toString((int)comboTime);
 	}
 
+	//战技自己发起的攻击正在结算
+	private boolean moveAttacking = false;
+
 	public void hit() {
+		//角斗士「命中 +1 连击」的子职业钩子挂在 Hero.attackProc 里，战技自己的 hero.attack() 也会经过它。
+		//战技命中后加不加连击由 doAttack 自己决定，钩子的这一次必须忽略，否则战技每次命中都算两遍：
+		//终结技「连斩」每打一下扣 1 连击，命中又被钩子加回来，只有打空才会真的减少
+		if (moveAttacking) return;
 		count++;
 		if(count%2==1)couldUseTime++;
 		int point=Dungeon.hero.pointsInTalent(Talent.KEEP_VIGILANCE);
@@ -393,6 +400,17 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		}
 	}
 	private static ComboMove moveBeingUsed;
+
+	//战技自己的攻击：结算期间屏蔽子职业钩子的那一次 hit()
+	private boolean moveAttack(Hero hero, Char enemy, float dmgMulti, float dmgBonus, float accMulti) {
+		moveAttacking = true;
+		try {
+			return hero.attack(enemy, dmgMulti, dmgBonus, accMulti);
+		} finally {
+			moveAttacking = false;
+		}
+	}
+
 	private void doAttack(final Char enemy) {
 		AttackIndicator.target(enemy);
 
@@ -427,7 +445,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 
 				break;
 		}
-		if (hero.attack(enemy, dmgMulti, dmgBonus,accMulti)){
+		if (moveAttack(hero, enemy, dmgMulti, dmgBonus, accMulti)){
 			//special on-hit effects
 			switch (moveBeingUsed) {
 				case CRUSH:
@@ -523,7 +541,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 						target.sprite.attack(enemy.pos, new Callback() {
 							@Override
 							public void call() {
-								if (hero.attack(enemy, 0.75f, 0, 0.85f)){
+								if (moveAttack(hero, enemy, 0.75f, 0, 0.85f)){
 									hit();
 								}
 								hero.spendAndNext(hero.attackDelay());
