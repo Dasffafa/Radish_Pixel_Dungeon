@@ -81,15 +81,8 @@ public class DimensionalRipper extends Scimitar {
 			return false;
 		}
 		int oldPos = ch.pos;
+		// 落点、贴图可见性、英雄视野刷新都由 teleportChar 负责，这里不再另行修正贴图
 		if (!ScrollOfTeleportation.teleportChar( ch )) return false;
-		// 本仓库 teleportToLocation 在 Dungeon.observe() 之前用旧 FOV 设置 visible，
-		// 英雄被传走后会一直保持不可见；传送完成后按新状态纠正。
-		if (ch == Dungeon.hero){
-			ch.sprite.visible = true;
-			ch.sprite.alpha( 1f );
-		} else {
-			ch.sprite.visible = Dungeon.level.heroFOV[ch.pos];
-		}
 		teleportFx( oldPos, ch.pos );
 		if (ch instanceof Mob){
 			Mob mob = (Mob) ch;

@@ -19,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.DimensionalRipper;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
@@ -123,9 +124,11 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		ScrollOfTeleportation.appear( hero, cell );
 		// 出入场粒子：appear 只管非英雄角色的起点光点，英雄传送两端都得自己补。
 		DimensionalRipper.teleportFx( from, hero.pos );
-		// appear 不会把 visible 设回来；若本窗口是「英雄自己被传走」开的，之前可能已是 false。
-		hero.sprite.visible = true;
-		hero.sprite.alpha( 1f );
+		// appear 只挪位置和贴图，不刷新视野；和原版传送信标一样由调用方补上，
+		// 否则这一拍用的还是落点之前的视野
+		Dungeon.observe();
+		GameScene.updateFog();
+		hero.checkVisibleMobs();
 		AttackIndicator.target( target );
 
 		final Char victim = target;
