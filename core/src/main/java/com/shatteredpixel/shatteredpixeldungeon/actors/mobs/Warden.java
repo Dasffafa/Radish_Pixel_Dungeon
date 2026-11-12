@@ -298,6 +298,11 @@ public class Warden extends Mob {
 		nextSpawnHp = bundle.contains( NEXT_SPAWN ) ? bundle.getInt( NEXT_SPAWN ) : 30;
 		speedBonus = bundle.getInt( SPEED_BONUS );
 		awake = bundle.getBoolean( AWAKE );
+		//读档出来的是个新对象，血条要重新登记，否则要等它下一次 notice() 才出现，追击途中一般等不到。
+		//旧版本存档里还没开战的典狱长会被关卡清掉，不登记
+		if (awake) {
+			BossHealthBar.assignBoss( this );
+		}
 		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.link()
 		activating = null;
 		activatingTurnsLeft = 0;
