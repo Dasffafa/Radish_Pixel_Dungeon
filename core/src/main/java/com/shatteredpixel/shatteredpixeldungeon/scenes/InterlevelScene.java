@@ -634,7 +634,9 @@ public class InterlevelScene extends PixelScene {
 			Mob.holdAllies( Dungeon.level );
 			
 			// Snake Bite challenge: teleport all monsters to exit before descending
-			if (Dungeon.isChallenged(Challenges.SNAKE_BITE)) {
+			//没有向下出口的关卡 exit() 返回 0（地图左上角），那里没有「出口附近」可言，不挪
+			if (Dungeon.isChallenged(Challenges.SNAKE_BITE)
+					&& Dungeon.level.getTransitionByDirection(LevelTransition.Direction.DOWN) != null) {
 				int exitPos = Dungeon.level.exit();
 				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 					if (mob.alignment != Mob.Alignment.ALLY && mob.pos != exitPos) {
@@ -798,6 +800,7 @@ public class InterlevelScene extends PixelScene {
 		
 		for (int n : neighbours) {
 			int cell = centerPos + n;
+			if (!reachableOffset(cell, centerPos)) continue;
 			if (Dungeon.level.passable[cell] && Actor.findChar(cell) == null) {
 				if (Dungeon.level.openSpace[cell]) {
 					candidates.add(cell);
@@ -810,6 +813,7 @@ public class InterlevelScene extends PixelScene {
 			for (int n : neighbours) {
 				for (int n2 : neighbours) {
 					int cell = centerPos + n + n2;
+					if (!reachableOffset(cell, centerPos)) continue;
 					if (Dungeon.level.passable[cell] && Actor.findChar(cell) == null) {
 						if (Dungeon.level.openSpace[cell]) {
 							candidates.add(cell);
@@ -824,5 +828,12 @@ public class InterlevelScene extends PixelScene {
 		}
 		
 		return Random.element(candidates);
+	}
+
+	//「出口 + 偏移」不能直接当数组下标用：出口在地图最上/最下两行时会越界（在加载线程里抛异常 = 换层时闪退），
+	//贴着左右边缘时会绕到相邻行的另一头。两步之内、且真的在地图里的格子才算数
+	private static boolean reachableOffset(int cell, int centerPos) {
+		return cell >= 0 && cell < Dungeon.level.length()
+				&& Dungeon.level.distance(cell, centerPos) <= 2;
 	}
 }
