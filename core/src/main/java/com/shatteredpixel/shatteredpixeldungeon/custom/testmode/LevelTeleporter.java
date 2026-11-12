@@ -159,6 +159,13 @@ public class LevelTeleporter extends TestItem {
                 // 黑smith区域：进入采矿分支
                 targetBranch = Branches.MINING;
                 targetDepth = 1;
+                // 矿洞回主线的楼梯通向铁匠所在的那一层。还没有任何一层生成过铁匠时这一层是未知的，
+                // 矿洞建不出来（加载时抛异常，直接闪退），所以先拦下
+                if (Blacksmith.Quest.entranceDepth() < 1
+                        && !Dungeon.levelHasBeenGenerated(targetDepth, targetBranch)) {
+                    GLog.w(Messages.get(this, "no_branch_here"));
+                    return;
+                }
             } else if (depth >= 2 && depth <= 4) {
                 // Sewer区域：进入苔藓分支
                 targetBranch = Branches.MOSS;
