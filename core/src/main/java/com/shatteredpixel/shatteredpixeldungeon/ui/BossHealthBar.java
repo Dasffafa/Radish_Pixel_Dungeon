@@ -54,6 +54,8 @@ public class BossHealthBar extends Component {
 	// 静态变量改为数组
 	private static Mob[] bosses = new Mob[MAX_BOSSES];
 	private static boolean[] bleeding = new boolean[MAX_BOSSES];
+	// 这个槽位里的 Boss 是否已经在某个场景的血条上显示过（assignBoss 靠它认出上一个场景留下的 Boss）
+	private static boolean[] shown = new boolean[MAX_BOSSES];
 
 	private static String asset = Assets.Interfaces.BOSSHP;
 	private static BossHealthBar instance;
@@ -142,6 +144,7 @@ public class BossHealthBar extends Component {
 
 			// Buff指示器
 			if (bosses[i] != null) {
+				shown[i] = true;
 				buffs[i] = new BuffIndicator(bosses[i], false);
 				BuffIndicator.setBossInstance(index, buffs[i]);
 				add(buffs[i]);
@@ -311,6 +314,19 @@ public class BossHealthBar extends Component {
 			}
 		}
 
+		// 没有血条实例 = 正在读档或生成关卡。这时还占着槽位、并且在之前的场景里显示过的 Boss，
+		// 属于已经结束的那一局（槽位只在「返回主菜单」时清空）。不先清掉的话，读出来的 Boss 会被排到
+		// 后面的槽位，而 bleed(boolean) / isBleeding() 这些原版留下的接口只认第 0 号槽。
+		// 仍在当前关卡里的不动：同一次读档里先后登记的几个 Boss 也不会被清（它们还没显示过）。
+		if (instance == null) {
+			for (int i = 0; i < MAX_BOSSES; i++) {
+				if (bosses[i] != null && shown[i]
+						&& (Dungeon.level == null || !Dungeon.level.mobs.contains(bosses[i]))) {
+					removeBoss(i);
+				}
+			}
+		}
+
 		// 找到第一个空位置
 		int emptyIndex = -1;
 		for (int i = 0; i < MAX_BOSSES; i++) {
@@ -324,6 +340,7 @@ public class BossHealthBar extends Component {
 		if (emptyIndex != -1) {
 			bosses[emptyIndex] = boss;
 			bleeding[emptyIndex] = false;
+			shown[emptyIndex] = instance != null;
 
 			if (instance != null) {
 				instance.visible = instance.active = true;
@@ -369,6 +386,7 @@ public class BossHealthBar extends Component {
 		if (index >= 0 && index < MAX_BOSSES) {
 			bosses[index] = null;
 			bleeding[index] = false;
+			shown[index] = false;
 
 			if (instance != null && instance.buffs[index] != null) {
 				BuffIndicator.setBossInstance(index, null);
@@ -464,6 +482,7 @@ public class BossHealthBar extends Component {
 		for (int i = 0; i < MAX_BOSSES; i++) {
 			bosses[i] = null;
 			bleeding[i] = false;
+			shown[i] = false;
 		}
 		if (instance != null) {
 			instance.destroy();
