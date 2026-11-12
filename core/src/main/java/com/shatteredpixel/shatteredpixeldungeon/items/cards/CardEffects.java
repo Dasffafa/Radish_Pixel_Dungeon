@@ -131,7 +131,7 @@ public final class CardEffects {
 				finish(hero, card, false, card.type.time);
 				break;
 			case IDENTIFY: {
-				identifyRandom(hero, 1, false);
+				// [audit x-turns IM-4 trial fix] 鉴定挪到玩家选完之后：先鉴定再弹窗的话，窗口开着时存档读档可以白拿鉴定
 				if (card.power >= 2) {
 					GameScene.show(new WndOptions(
 							Messages.get(CardEffects.class, "destroy_title"),
@@ -140,16 +140,19 @@ public final class CardEffects {
 							Messages.get(CardEffects.class, "destroy_no")) {
 						@Override
 						protected void onSelect(int index) {
+							identifyRandom(hero, 1, false);
 							finish(hero, card, index == 0, card.type.time);
 						}
 
 						@Override
 						public void onBackPressed() {
 							hide();
+							identifyRandom(hero, 1, false);
 							finish(hero, card, false, card.type.time);
 						}
 					});
 				} else {
+					identifyRandom(hero, 1, false);
 					finish(hero, card, false, card.type.time);
 				}
 				break;
