@@ -26,9 +26,6 @@ public class CountessDress extends Armor {
 
 	@Override public int DRMax(int lvl){ return 4 + 2 * lvl + augment.defenseFactor(lvl); }
 	@Override public int DRMin(int lvl){ return 1 + lvl; }
-	@Override protected ArmorBuff buff(){ return new CountessBuff(); }
-
-	public class CountessBuff extends ArmorBuff {}
 
 	private int healAmount(){ return Math.round( 1 + 0.5f * buffedLvl() ); }
 
