@@ -98,7 +98,9 @@ public class StartScene extends PixelScene {
 			slotsHeight -= slotCount-1;
 		}
 		
-		float yPos = (h - slotsHeight + title.bottom() + 2)/2f;
+		//居中时也要把给清档按钮留的那一行扣掉：上面的循环是按「扣掉之后的高度」压缩列表的，
+		//这里不扣的话留出来的空间上下各分一半，按钮仍然会压在最后一个槽位上
+		float yPos = (h - reservedSpace - slotsHeight + title.bottom() + 2)/2f;
 		
 		for (GamesInProgress.Info game : games) {
 			SaveSlotButton existingGame = new SaveSlotButton();
@@ -132,8 +134,9 @@ public class StartScene extends PixelScene {
 					return Messages.get(StartScene.class, "clear_saves_title");
 				}
 			};
+			//yPos 此时是「最后一个槽位的底边 + slotGap」，列表被压缩时 slotGap 是负数，要先加回去
 			clearSaves.setRect( (w - SLOT_WIDTH) / 2f,
-					Math.min(yPos + CLEAR_SAVES_MARGIN, h - CLEAR_SAVES_HEIGHT - 2),
+					Math.min(yPos - Math.min(slotGap, 0) + CLEAR_SAVES_MARGIN, h - CLEAR_SAVES_HEIGHT - 2),
 					SLOT_WIDTH, CLEAR_SAVES_HEIGHT );
 			align(clearSaves);
 			add(clearSaves);
