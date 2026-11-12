@@ -46,6 +46,10 @@ public class Seeking extends Weapon.Enchantment {
         //标记绑定的武器（仅内存中有效，读档后按类名重新建立）
         public transient Weapon weapon;
 
+        //读档时记下的武器类名。读档那一刻角色还没注册进回合系统，找不到攻击者，
+        //只能等之后第一次用到时再和英雄手里的武器对上
+        private String savedWeaponClass = null;
+
         //剩余标记回合数，最多为 MAX_DURATION
         public float left = 0;
 
@@ -57,10 +61,17 @@ public class Seeking extends Weapon.Enchantment {
         public void bind( Char attacker, Weapon weapon ) {
             this.attackerID = attacker.id();
             this.weapon = weapon;
+            this.savedWeaponClass = null;
             this.left = MAX_DURATION;
         }
 
         public boolean isBoundWeapon( KindOfWeapon w ) {
+            //读档后第一次比对：类名对得上就重新绑定
+            if (weapon == null && savedWeaponClass != null
+                    && w instanceof Weapon && w.getClass().getName().equals( savedWeaponClass )) {
+                weapon = (Weapon) w;
+                savedWeaponClass = null;
+            }
             return w == weapon;
         }
 
@@ -71,6 +82,9 @@ public class Seeking extends Weapon.Enchantment {
             bundle.put( LEFT, left );
             if (weapon != null) {
                 bundle.put( WEAPON_CLASS, weapon.getClass().getName() );
+            } else if (savedWeaponClass != null) {
+                //读档后还没来得及重新绑定就又存档
+                bundle.put( WEAPON_CLASS, savedWeaponClass );
             }
         }
 
@@ -79,19 +93,10 @@ public class Seeking extends Weapon.Enchantment {
             super.restoreFromBundle( bundle );
             attackerID = bundle.getInt( ATTACKER_ID );
             left = Math.min( MAX_DURATION, bundle.getFloat( LEFT ) );
-            //武器对象没有稳定 id，读档后按类名在英雄当前武器中重新绑定；
-            //找不到时下一回合 act() 会移除标记
+            //武器对象没有稳定 id，读档后按类名在英雄当前武器中重新绑定（见 isBoundWeapon）；
+            //对不上时 act() 会移除标记
             weapon = null;
-            if (bundle.contains( WEAPON_CLASS )) {
-                String cls = bundle.getString( WEAPON_CLASS );
-                Char attacker = (Char) Actor.findById( attackerID );
-                if (attacker instanceof Hero) {
-                    KindOfWeapon current = ((Hero) attacker).belongings.attackingWeapon();
-                    if (current instanceof Weapon && current.getClass().getName().equals( cls )) {
-                        weapon = (Weapon) current;
-                    }
-                }
-            }
+            savedWeaponClass = bundle.contains( WEAPON_CLASS ) ? bundle.getString( WEAPON_CLASS ) : null;
         }
 
         @Override
