@@ -232,6 +232,9 @@ public class JournalScene extends PixelScene {
     public void destroy() {
 
         Badges.saveGlobal();
+        //在这里读过的文档页只是打了个「待保存」的标记，离开界面时要落盘，
+        //否则不进游戏直接退出的话，下次启动这些页又变回未读
+        Journal.saveGlobal();
 
         super.destroy();
     }
