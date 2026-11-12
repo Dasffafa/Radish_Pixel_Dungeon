@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
@@ -44,7 +45,10 @@ public class WndInfoSubclass extends WndTitledMessage {
 		Talent.initSubclassTalents(subCls, talentList);
 		Talent.initT4Talents(cls,subCls,talentList);
 
-		if (talentList.get(2).isEmpty()) {
+		//骰子法师的第三层不是固定天赋而是各个学派，这里用一段文字说明。
+		//原先靠「第三层为空」来判断，但 initSubclassTalents 清空之后又把学派填了进去，这个条件永远不成立，
+		//结果显示成一排学派图标（连内部用的占位项也在里面）
+		if (subCls == HeroSubClasses.DICE_MAGE || talentList.get(2).isEmpty()) {
 			RenderedTextBlock explanation = PixelScene.renderTextBlock(Messages.get(this, "dice_mage_talents"), 6);
 			explanation.maxWidth(width);
 			explanation.setPos(0, height + 5);
