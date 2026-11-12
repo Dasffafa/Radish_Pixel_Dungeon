@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.DaughterWine;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
@@ -70,6 +71,49 @@ public class LegendaryFelon extends Prisoner {
 
 		// 使用带技能的狩猎状态
 		HUNTING = new FelonHunting();
+	}
+
+	private static final String SKILL_CD    = "skill_cd";
+	private static final String ROAR_CD     = "roar_cd";
+	private static final String MARKED_CELL = "marked_cell";
+	private static final String QUAKE_RING  = "quake_ring";
+	private static final String SKILL_STATE = "skill_state";
+
+	@Override
+	public void storeInBundle( Bundle bundle ) {
+		super.storeInBundle( bundle );
+		bundle.put( SKILL_CD, skillCd );
+		bundle.put( ROAR_CD, roarCd );
+		bundle.put( MARKED_CELL, markedCell );
+		bundle.put( QUAKE_RING, quakeRing );
+		// Mob 只会保存自带的五种状态，技能的三个状态要自己存，否则读档后会停在默认的沉睡
+		if (state == CHARGING) {
+			bundle.put( SKILL_STATE, Charging.TAG );
+		} else if (state == SLAMMING) {
+			bundle.put( SKILL_STATE, Slamming.TAG );
+		} else if (state == QUAKING) {
+			bundle.put( SKILL_STATE, Quaking.TAG );
+		}
+	}
+
+	@Override
+	public void restoreFromBundle( Bundle bundle ) {
+		super.restoreFromBundle( bundle );
+		// 旧存档没有这些键，保持字段初始值
+		if (bundle.contains( SKILL_CD )) skillCd = bundle.getInt( SKILL_CD );
+		if (bundle.contains( ROAR_CD )) roarCd = bundle.getInt( ROAR_CD );
+		if (bundle.contains( MARKED_CELL )) markedCell = bundle.getInt( MARKED_CELL );
+		if (bundle.contains( QUAKE_RING )) quakeRing = bundle.getInt( QUAKE_RING );
+		if (bundle.contains( SKILL_STATE )) {
+			String skillState = bundle.getString( SKILL_STATE );
+			if (skillState.equals( Charging.TAG )) {
+				state = CHARGING;
+			} else if (skillState.equals( Slamming.TAG )) {
+				state = SLAMMING;
+			} else if (skillState.equals( Quaking.TAG )) {
+				state = QUAKING;
+			}
+		}
 	}
 
 	@Override
@@ -272,7 +316,8 @@ public class LegendaryFelon extends Prisoner {
 				@Override
 				public void call() {
 					leaping = false;
-					impact( land );
+					// 跃起动画期间其他行动者照常行动，落地前可能已经被毒、流血或队友打死：尸体不能再砸人、再挪位置
+					if (isAlive()) impact( land );
 				}
 			} );
 		} else {
@@ -286,6 +331,11 @@ public class LegendaryFelon extends Prisoner {
 		if (ch != null && ch != this && ch.alignment != alignment) {
 			int dmg = Math.round( damageRoll() * 2f );
 			ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, this, null, this ) );
+			// 技能伤害不经过 Char.attack，砸死英雄要自己记录死因，否则这局不会进排行榜
+			if (ch == Dungeon.hero && !ch.isAlive()) {
+				Dungeon.fail( getClass() );
+				GLog.n( Messages.capitalize( Messages.get( Char.class, "kill", name() ) ) );
+			}
 		}
 
 		// 落地（目标格被占据时落到旁边）
@@ -341,6 +391,10 @@ public class LegendaryFelon extends Prisoner {
 					ch.damage( new DamageInfo( damageRoll(), DamageType.PHYSICAL, this, null, this ) );
 					if (ch.isAlive()) {
 						Buff.affect( ch, Cripple.class, 2f );
+					} else if (ch == Dungeon.hero) {
+						// 同坠落：地裂波震死英雄也要自己记录死因
+						Dungeon.fail( getClass() );
+						GLog.n( Messages.capitalize( Messages.get( Char.class, "kill", name() ) ) );
 					}
 				}
 			}
