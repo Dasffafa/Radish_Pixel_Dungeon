@@ -581,8 +581,15 @@ public abstract class Level implements Bundlable {
 
 	abstract protected void createItems();
 
+	//有支线楼梯的层上，同一个方向有两个过渡点（主线第 3 层：正常入口 + 从苔藓洞窟回来的楼梯；
+	//主线第 2、8 层和有铁匠的那一层：正常出口 + 支线入口），谁排在前面取决于房间的绘制顺序。
+	//只按方向找的话，这些层的 entrance() / exit() 大约一半的种子会指到支线楼梯上，
+	//指南针、复活与重置的落点、「怪不刷在入口附近」的判断都跟着错。
+	//所以和原版一样先按类型找正常楼梯；找不到（支线层的入口 / 出口本身就是支线楼梯）再按方向找。
 	public int entrance(){
-		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.UP);
+		LevelTransition l = transitionOfType(LevelTransition.Type.REGULAR_ENTRANCE);
+		if (l == null) l = transitionOfType(LevelTransition.Type.SURFACE);
+		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.UP);
 		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.SURFACE);
 		if (l != null){
 			return l.cell();
@@ -591,11 +598,20 @@ public abstract class Level implements Bundlable {
 	}
 
 	public int exit(){
-		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.DOWN);
+		LevelTransition l = transitionOfType(LevelTransition.Type.REGULAR_EXIT);
+		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.DOWN);
 		if (l != null){
 			return l.cell();
 		}
 		return 0;
+	}
+
+	//严格按类型找，找不到返回 null（getTransition(Type) 找不到时会退回成「任意入口」，这里不能用它）
+	private LevelTransition transitionOfType(LevelTransition.Type type){
+		for (LevelTransition transition : transitions){
+			if (transition.type == type) return transition;
+		}
+		return null;
 	}
 
 	public LevelTransition getTransition(LevelTransition.Type type){
