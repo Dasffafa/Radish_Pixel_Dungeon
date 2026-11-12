@@ -238,71 +238,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     Buff.affect(hero, Barrier.class).setShield( hero.lvl );
                 }
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
-                    switch (Random.Int(4)){
-                        //财富蓝色掉落
-                        case 0:
-                            Item i = genMidValueConsumable();
-                            Dungeon.level.drop(i,target.pos);
-                            new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
-                            break;
-                        case 1:
-                            hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
-                            hero.earnExp( hero.maxExp()/2, getClass() );
-                            new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "experience_success",hero.maxExp()/2));
-                            break;
-                        case 2:
-                            ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
-                            for (Item w : belongingsItems.toArray(new Item[0])){
-                                ScrollOfRemoveCurse.uncurse( hero, w );
-                                Sample.INSTANCE.play( Assets.Sounds.RAY );
-                            }
-                            new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "curse_remove_success"));
-                            break;
-                        case 3:
-                            hero.heal(hero.HT / 3);
-                            if (hero.HP > hero.HT) {
-                                hero.HP = hero.HT;
-                            }
-                            new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "heal_success"));
-                            break;
-                    }
+                    grantPrayer();
                 }
-                switch (Random.Int(4)){
-                    //财富蓝色掉落
-                    case 0:
-                        Item i = genMidValueConsumable();
-                        Dungeon.level.drop(i,target.pos);
-                        new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
-                    break;
-                    case 1:
-                        hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
-                        hero.earnExp( hero.maxExp()/2, getClass() );
-                        new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "experience_success",hero.maxExp()/2));
-                    break;
-                    case 2:
-                        ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
-                        for (Item w : belongingsItems.toArray(new Item[0])){
-                            ScrollOfRemoveCurse.uncurse( hero, w );
-                            Sample.INSTANCE.play( Assets.Sounds.RAY );
-                        }
-                        new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "curse_remove_success"));
-                    break;
-                    case 3:
-                        hero.heal(hero.HT / 3);
-                        if (hero.HP > hero.HT) {
-                            hero.HP = hero.HT;
-                        }
-                        new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "heal_success"));
-                    break;
-                }
+                grantPrayer();
                 switch (hero.pointsInTalent(Talent.LIGHT_WASH)){
                     case 1:
                         hero.HP = Math.min(hero.HP+3, hero.HT);
@@ -364,6 +302,46 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 GLog.w(Messages.get(this,"enddead_success",count));
                 break;
             default:
+                break;
+        }
+    }
+
+    // 虔诚祷告的一次随机结果。绝望祷言会让祷告触发两次，所以单独成一个方法。
+    private void grantPrayer() {
+        switch (Random.Int(4)){
+            //财富蓝色掉落
+            case 0:
+                Item i = genMidValueConsumable();
+                Dungeon.level.drop(i,target.pos);
+                new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
+                break;
+            case 1:
+                // 先算好这次给多少，飘字、发放、日志用同一个数：
+                // 给完经验可能当场升级，那之后 maxExp() 已经是下一级的了
+                int expGain = hero.maxExp()/2;
+                hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(expGain), FloatingText.EXPERIENCE);
+                hero.earnExp( expGain, getClass() );
+                new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "experience_success",expGain));
+                break;
+            case 2:
+                ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
+                for (Item w : belongingsItems.toArray(new Item[0])){
+                    ScrollOfRemoveCurse.uncurse( hero, w );
+                    Sample.INSTANCE.play( Assets.Sounds.RAY );
+                }
+                new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "curse_remove_success"));
+                break;
+            case 3:
+                // 说明是「回复 1/3 的最大血量，并获得与恢复血量数同等回合的祝福」
+                int healed = hero.heal(hero.HT / 3);
+                if (healed > 0) {
+                    Buff.prolong(hero, Bless.class, healed);
+                }
+                new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "heal_success"));
                 break;
         }
     }
