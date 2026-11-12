@@ -432,6 +432,14 @@ public class SpellQueue extends Item {
             if (thirdWand!=null) {
                 wands.add(thirdWand);
             }
+            // 紧贴着墙朝墙里射时，弹道的落点是英雄自己的格子，法杖会打在自己身上。
+            // 法杖自己的选格逻辑（Wand.zapper）两种情况都拦，这里原先只拦了「目标就是脚下」。
+            for (Wand w : wands) {
+                if (new Ballistica(Dungeon.hero.pos, target, w.collisionProperties(target)).collisionPos == Dungeon.hero.pos) {
+                    GLog.w(Messages.get(Wand.class, "self_target"));
+                    return;
+                }
+            }
             float chargeUsePerShot = 2;
 
             Dungeon.hero.busy();
