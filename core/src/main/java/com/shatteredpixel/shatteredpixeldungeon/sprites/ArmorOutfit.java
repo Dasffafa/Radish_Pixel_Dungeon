@@ -25,8 +25,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix;
  *
  * 与 PrisonArmor、DarkCoat 等带专属外观的护甲同一套机制：外观是英雄贴图里的一整行
  * （行高 15 像素，每行 21 帧），按行号取用，不更换贴图。
- * 只有 hasOutfit() 里的六个职业的贴图画了这四行。月华的贴图只有 17 行、工程师只有 8 行，
- * 对它们用这些行号会取到贴图之外，所以用行号之前必须先过 hasOutfit()。
+ * 只有 hasOutfit() 里的六个职业的贴图画了这四行。各职业贴图的行数并不一样（月华只有 17 行），
+ * 对没画的职业用这些行号可能取到贴图之外，所以用行号之前必须先过 hasOutfit()。
  */
 public final class ArmorOutfit {
 

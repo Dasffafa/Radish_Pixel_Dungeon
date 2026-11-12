@@ -160,8 +160,8 @@ public class HeroSprite extends CharSprite {
 		int outfitRow = ArmorOutfit.rowFor( armor );
 		if (outfitRow >= 0 && ArmorOutfit.hasOutfit( hero.heroClass )) t = outfitRow;
 
-		// 行号是按英雄本职业算的，实际显示的贴图不一定有这一行：被变装成月华（17 行）或工程师（8 行）时，
-		// 以及工程师自己穿上螃蟹甲这类有专属外观行的护甲时，都会取到不存在的行，TextureFilm 直接空指针。
+		// 行号是按英雄本职业和护甲算的，而各职业贴图的行数并不一样（月华只有 17 行），实际显示的贴图不一定有这一行：
+		// 变装成行数更少的职业，或者本职业的贴图没画这件护甲的专属外观行，都会取到不存在的行，TextureFilm 直接空指针。
 		// 每张英雄贴图都有 0~6 行，这时退回按护甲阶数取行。
 		if (tiers(sheetAsset).get( t ) == null) t = hero.tier();
 
@@ -313,8 +313,8 @@ public class HeroSprite extends CharSprite {
 
 		TextureFilm rows = tiers( cl.spritesheet() );
 		RectF patch = rows.get( armorTier );
-		// 调用方只给职业和行号，行号可能超出这张贴图（工程师贴图只有 8 行，状态栏、存档窗口
-		// 却会按螃蟹甲等护甲传来第 8 行以后的行号）。这里拿不到英雄，退回每张图都有的第 0 行。
+		// 调用方只给职业和行号，行号可能超出这张贴图（状态栏、存档窗口的行号是按护甲算的，
+		// 不看这个职业的贴图有没有画那一行）。这里拿不到英雄，退回每张图都有的第 0 行。
 		if (patch == null) patch = rows.get( 0 );
 		Image avatar = new Image( cl.spritesheet() );
 		RectF frame = avatar.texture.uvRect( 1, 0, FRAME_WIDTH, FRAME_HEIGHT );
