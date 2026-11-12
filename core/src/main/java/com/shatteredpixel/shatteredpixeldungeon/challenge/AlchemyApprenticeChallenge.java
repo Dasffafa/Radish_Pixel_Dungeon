@@ -23,7 +23,7 @@ public class AlchemyApprenticeChallenge {
 	//每个炼金配方额外消耗的炼金能量
 	public static final int EXTRA_ENERGY_COST = 2;
 
-	//原本不消耗能量的配方（种子酿药水、卷轴拆符石、冰霜炸弹、羊毛炸弹）是否也要加价。
+	//原本不消耗能量的配方（种子酿药水、卷轴拆符石、寒霜炸弹、绵绵炸弹）是否也要加价。
 	//设计原文是「所有炼金配方」，这里按字面实现；如果只想让本来就耗能的配方变贵，把它改成 false 即可
 	public static final boolean CHARGE_FREE_RECIPES = true;
 
