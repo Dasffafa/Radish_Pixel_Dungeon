@@ -89,6 +89,9 @@ public class FloorTester extends TestItem {
 		} else if (action.equals( AC_ARENA )) {
 			// 生成一张空白测试场（Dungeon.newLevel 会读取该标记）
 			TestArenaLevel.requested = true;
+			// 测试场不算这一层的正式楼层：去掉「本层已生成」的记录，离开后再回到这一层会重新生成正常楼层。
+			// 否则测试场会永久顶替这一层，而它没有下楼的楼梯，从下一层走楼梯上来时找不到落点就闪退
+			Dungeon.generatedLevels.remove( Dungeon.levelKey( Dungeon.branchId, Dungeon.depth ) );
 			InterlevelScene.mode = InterlevelScene.Mode.RESET;
 			Game.switchScene( InterlevelScene.class );
 		}
