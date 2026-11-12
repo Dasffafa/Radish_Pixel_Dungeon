@@ -725,9 +725,12 @@ public class Druid extends HeroSubClass {
 		// 动作按钮只有一个槽位，而法术书只能从这个按钮打开，所以槽位一空出来就要补占。
 		// 只在槽位空着或本来就是自己时动手，不去抢别的按钮（例如次元撕裂者的三回合窗口）。
 		private void claimAction() {
-			if (ActionIndicator.action == null) {
+			ActionIndicator.Action held = ActionIndicator.action;
+			// 槽里如果是另一个 DruidEnergy，只可能是读档前那个英雄身上的旧对象：有的读档路径不清动作槽
+			// （例如在护符画面选「留下」回到游戏）。不换成自己的话，按钮上的能量数字会一直停在读档前的值。
+			if (held == null || (held != this && held instanceof DruidEnergy)) {
 				ActionIndicator.setAction( this );
-			} else if (ActionIndicator.action == this) {
+			} else if (held == this) {
 				ActionIndicator.refresh();
 			}
 		}
