@@ -43,6 +43,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ArmorOutfit;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -235,7 +236,12 @@ public class Belongings implements Iterable<Item> {
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
 		if (bundle.contains( ARMOR )){
 			Armor armor = ((Armor)bundle.get( ARMOR ));
-			if (armor instanceof ClassArmor){
+			// 取行规则要和 Hero.tier_for_image() 一致：本次运行里存档预览用的是那边的结果，
+			// 重启游戏后才走这里，两边不一致的话同一个存档重启前后预览的小人穿着不一样
+			int outfitRow = ArmorOutfit.rowFor( armor );
+			if (outfitRow >= 0 && ArmorOutfit.hasOutfit( info.heroClass )){
+				info.armorTier = outfitRow;
+			} else if (armor instanceof ClassArmor){
 				info.armorTier = 6;
 			} else {
 				if (armor instanceof PrisonArmor) info.armorTier=7;
@@ -244,7 +250,8 @@ public class Belongings implements Iterable<Item> {
 				else if (armor instanceof AfterGlow) info.armorTier=10;
 				else if (armor instanceof CloakofGreyFeather) info.armorTier=11;
 				else if (armor instanceof RatArmor) info.armorTier=12;
-				else if (armor instanceof EnergyArmor) ((EnergyArmor) armor).Energy();
+				//原先只调用不赋值，能量胸甲在重启后的预览里一直是没穿护甲的样子
+				else if (armor instanceof EnergyArmor) info.armorTier = ((EnergyArmor) armor).Energy();
 				else info.armorTier = armor.tier;
 			}
 		} else {
