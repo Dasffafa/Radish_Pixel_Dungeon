@@ -27,11 +27,16 @@ public class CountessDress extends Armor {
 	@Override public int DRMax(int lvl){ return 4 + 2 * lvl + augment.defenseFactor(lvl); }
 	@Override public int DRMin(int lvl){ return 1 + lvl; }
 
-	private int healAmount(){ return Math.round( 1 + 0.5f * buffedLvl() ); }
+	private static int healAmount( int lvl ){ return Math.round( 1 + 0.5f * lvl ); }
 
+	// 未鉴定时只给 +0 的数值，否则能从描述里的数字反推出等级
 	@Override
 	public String statsInfo() {
-		return Messages.get( this, "stats_desc", healAmount() );
+		if (isIdentified()) {
+			return Messages.get( this, "stats_desc", healAmount( buffedLvl() ) );
+		} else {
+			return Messages.get( this, "typical_stats_desc", healAmount( 0 ) );
+		}
 	}
 
 	/** 金币变化回调：由改动金币的代码在改完之后调用。赎回已卖出物品的扣款按设计不算，不要在那里调用。 */
@@ -42,6 +47,6 @@ public class CountessDress extends Armor {
 		Armor armor = hero.belongings.armor();
 		if (!(armor instanceof CountessDress)) return;
 		// 走统一治疗入口：直接改 HP 不会发出 HeroHealEvent，依赖它的机制会漏掉这次回血
-		hero.heal( ((CountessDress) armor).healAmount() );
+		hero.heal( healAmount( armor.buffedLvl() ) );
 	}
 }

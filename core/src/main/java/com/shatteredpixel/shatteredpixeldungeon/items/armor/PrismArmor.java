@@ -38,11 +38,16 @@ public class PrismArmor extends Armor {
 	@Override public int DRMin(int lvl){ return 2 + lvl; }
 
 	/** 反射概率，单位为百分点。 */
-	private int reflectChance(){ return 10 + 7 * buffedLvl(); }
+	private static int reflectChance( int lvl ){ return 10 + 7 * lvl; }
 
+	// 未鉴定时只给 +0 的数值，否则能从描述里的数字反推出等级
 	@Override
 	public String statsInfo() {
-		return Messages.get( this, "stats_desc", reflectChance() );
+		if (isIdentified()) {
+			return Messages.get( this, "stats_desc", reflectChance( buffedLvl() ) );
+		} else {
+			return Messages.get( this, "typical_stats_desc", reflectChance( 0 ) );
+		}
 	}
 
 	@Override
@@ -112,7 +117,7 @@ public class PrismArmor extends Armor {
 		@Override
 		public void onDamageTaken( int dealt, DamageInfo info ) {
 			if (!(target instanceof Hero) || !isRangedSpell( target, info )) return;
-			if (Random.Float() >= reflectChance() / 100f) return;
+			if (Random.Float() >= reflectChance( buffedLvl() ) / 100f) return;
 			reflect( target, info.getAttacker(), Math.max( 1, info.getDamage() ) );
 		}
 	}

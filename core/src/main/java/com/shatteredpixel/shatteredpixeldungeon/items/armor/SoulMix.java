@@ -52,9 +52,14 @@ public class SoulMix extends Armor {
 
 	public static int maxStacks( int lvl ){ return 1 + Math.round( 0.33f * lvl ); }
 
+	// 未鉴定时只给 +0 的数值，否则能从描述里的数字反推出等级
 	@Override
 	public String statsInfo() {
-		return Messages.get( this, "stats_desc", maxStacks( level() ), DURATION );
+		if (isIdentified()) {
+			return Messages.get( this, "stats_desc", maxStacks( level() ), DURATION );
+		} else {
+			return Messages.get( this, "typical_stats_desc", maxStacks( 0 ), DURATION );
+		}
 	}
 
 	/** 供 Weapon.buffedLvl() 调用：只对英雄当前装备的武器生效，层数取英雄穿着的那件混灵。 */
