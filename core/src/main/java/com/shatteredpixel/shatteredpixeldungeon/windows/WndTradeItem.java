@@ -123,8 +123,7 @@ public class WndTradeItem extends WndInfoItem {
 
 		selling = false;
 
-		Item forSale = heap.forSaleItem();
-		final Item item = forSale != null ? forSale : heap.peek();
+		Item item = heap.peek();
 
 		float pos = height;
 
@@ -272,8 +271,7 @@ public class WndTradeItem extends WndInfoItem {
 
 	private void buy( Heap heap ) {
 
-		Item sale = heap.forSaleItem();
-		Item item = sale != null ? heap.pickUp( sale ) : heap.pickUp();
+		Item item = heap.pickUp();
 		if (item == null) return;
 
 		int price = Shopkeeper.sellPrice( item );
