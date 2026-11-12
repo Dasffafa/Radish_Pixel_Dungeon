@@ -167,7 +167,13 @@ public class Bones {
 
 				depth = bundle.getInt( LEVEL );
 				
+				if (bundle.contains(BRANCH_ID)) {
 					branchId = bundle.getString(BRANCH_ID);
+				} else {
+					//字符串支线 id 之前的遗骸文件只有整数 "branch"，0 是主线；
+					//不认它的话，升级前留下的遗骸永远匹配不上任何一层
+					branchId = bundle.getInt("branch") == 0 ? Branches.MAIN : null;
+				}
 				
 				if (depth > 0) {
 					if (bundle.contains(ITEM)) {
