@@ -212,7 +212,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     Buff.affect(hero, Barrier.class).setShield( hero.lvl );
                 }
                 curUser = hero;
-                if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
+                // 绝望祷言：+1 只强化惩戒和光能灌注，净化和祷告的强化是 +2 的内容。
+                // 这里和下面的祷告原来都只判断「有没有点」，点 1 级就全拿到了，第 2 级等于白点。
+                if (hero.pointsInTalent(Talent.NOHOPE_LANG) >= 2 && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     ArrayList<Item> items = hero.belongings.getAllItems(Item.class);
                     for (Item w : items.toArray(new Item[0])){
                        w.cursed = false;
@@ -237,7 +239,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
                     Buff.affect(hero, Barrier.class).setShield( hero.lvl );
                 }
-                if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
+                if (hero.pointsInTalent(Talent.NOHOPE_LANG) >= 2 && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     grantPrayer();
                 }
                 grantPrayer();
