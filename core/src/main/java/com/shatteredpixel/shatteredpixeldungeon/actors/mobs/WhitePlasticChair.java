@@ -78,5 +78,9 @@ public class WhitePlasticChair extends Mob {
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
 		kicked = bundle.getBoolean(KICKED);
+		// 阵营不进存档：踹过的椅子读档后要重新变回中立，否则又会被当成敌人
+		if (kicked) {
+			alignment = Alignment.NEUTRAL;
+		}
 	}
 }
