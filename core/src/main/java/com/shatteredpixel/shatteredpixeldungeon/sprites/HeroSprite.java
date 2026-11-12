@@ -169,7 +169,8 @@ public class HeroSprite extends CharSprite {
 		run.frames( film, 2, 3, 4, 5, 6, 7 );
 
 		die = new Animation( 20, false );
-		die.frames( film, 8, 9, 10, 11, 12, 11 );
+		// 死亡动画只有 5 帧素材，第 6 帧沿用第 5 帧收尾，避免最后倒回第 4 帧看起来缺一帧
+		die.frames( film, 8, 9, 10, 11, 12, 12 );
 
 		attack = new Animation( 15, false );
 		attack.frames( film, 13, 14, 15, 0 );
