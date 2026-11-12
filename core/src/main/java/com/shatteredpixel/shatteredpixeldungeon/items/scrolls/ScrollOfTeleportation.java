@@ -67,6 +67,19 @@ public class ScrollOfTeleportation extends Scroll {
 		identify();
 
 	}
+
+	//外部来源（陷阱、怪物技能、诅咒等）传送 ch 之前先问这里，返回 true 表示被空间碎片挡下，不应再传送。
+	//传送相关的空间碎片免疫只在这一处判定：直接调用 appear() 的外部来源也要先过这个方法，
+	//不要在各调用点自己去问 SpaceFragment，否则又会出现有的入口免疫、有的入口漏掉的情况。
+	public static boolean blocksExternalTeleport( Char ch ){
+		if (!SpaceFragment.blocksPassiveDisplacement( ch )){
+			return false;
+		}
+		if (ch == Dungeon.hero){
+			GLog.w( Messages.get(SpaceFragment.class, "blocked_teleport") );
+		}
+		return true;
+	}
 	
 	public static boolean teleportToLocation(Char ch, int pos){
 		PathFinder.buildDistanceMap(pos, BArray.or(Dungeon.level.passable, Dungeon.level.avoid, null));
@@ -90,60 +103,41 @@ public class ScrollOfTeleportation extends Scroll {
 		
 	}
 
-	/**
-	 * 传送角色，默认【外部来源】（怪物、陷阱等被动位移）
-	 */
+	//isExternalSource 为 true 表示外部来源，装备空间碎片的角色不会被传走；false 表示玩家主动
+	public static boolean teleportToLocation( Char ch, int pos, boolean isExternalSource ){
+		//调用方找不到落点时可能把 -1 传进来，原版的两参方法不防越界
+		if (pos < 0 || pos >= Dungeon.level.length()){
+			return false;
+		}
+		if (isExternalSource && blocksExternalTeleport( ch )){
+			return false;
+		}
+		//原版的两参方法只服务英雄和已经自行筛过落点的调用方，不检查大体型
+		if (Char.hasProp(ch, Char.Property.LARGE) && !Dungeon.level.openSpace[pos]){
+			return false;
+		}
+		return teleportToLocation( ch, pos );
+	}
+
+	//不带来源参数时一律按外部来源处理：新调用点忘了分类时宁可多免疫，也不要漏掉。
+	//玩家主动的传送（读卷轴、信标、对自己施法等）要显式传 false。
 	public static boolean teleportChar( Char ch ) {
-		return teleportChar(ch, Dungeon.level.randomDestination(ch), true);
+		return teleportChar( ch, true );
 	}
 
-	/**
-	 * @param isExternalSource true = 外部被动传送（魔像、陷阱）；false = 玩家主动（传送卷轴）
-	 */
+	public static boolean teleportChar( Char ch, boolean isExternalSource ) {
+		if (isExternalSource && blocksExternalTeleport( ch )){
+			return false;
+		}
+		return teleportChar( ch, ScrollOfTeleportation.class );
+	}
+
+	//定点传送的旧签名，等同于带来源参数的 teleportToLocation，只为兼容已有调用而保留
 	public static boolean teleportChar( Char ch, int target, boolean isExternalSource ) {
-		return teleportToLocation(ch, target, isExternalSource);
+		return teleportToLocation( ch, target, isExternalSource );
 	}
 
-	public static boolean teleportToLocation(Char ch, int target, boolean isExternalSource){
-
-		// ✅ 只有外部传送才检查空间碎片免疫
-		if (isExternalSource && SpaceFragment.blocksPassiveDisplacement(ch)){
-			if (ch instanceof Hero) {
-				GLog.w(Messages.get(SpaceFragment.class, "blocked_teleport"));
-			}
-			return false;
-		}
-
-		// ========== 下面原版 teleportToLocation 代码原封不动保留 ==========
-		if (Dungeon.level == null || !Dungeon.level.passable[target]){
-			return false;
-		}
-		if (Actor.findChar(target) != null){
-			return false;
-		}
-		if (Char.hasProp(ch, Char.Property.LARGE) && !Dungeon.level.openSpace[target]){
-			return false;
-		}
-
-		ch.pos = target;
-		ch.sprite.place(target);
-		ch.sprite.visible = Dungeon.level.heroFOV[ch.pos];
-
-		if (ch instanceof Hero) {
-			Dungeon.observe();
-			GameScene.updateFog();
-		}
-		// 上面第 130 行用旧 FOV 设过 visible；observe() 之后必须按新状态纠正，
-		// 否则虫洞陷阱 / 次元撕裂者把英雄传走后人物会整个消失。
-		if (ch.sprite != null) {
-			ch.sprite.visible = ch == Dungeon.hero || Dungeon.level.heroFOV[ch.pos];
-		}
-		Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
-		CellEmitter.get(ch.pos).burst( Speck.factory(Speck.LIGHT), 4 );
-
-		return true;
-	}
-
+	//带 source 的重载是原版流程本身，不判定空间碎片
 	public static boolean teleportChar( Char ch, Class source ) {
 
 		if (!(Dungeon.level instanceof RegularLevel)){
@@ -154,7 +148,7 @@ public class ScrollOfTeleportation extends Scroll {
 			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 			return false;
 		}
-
+		
 		int count = 20;
 		int pos;
 		do {
@@ -163,30 +157,30 @@ public class ScrollOfTeleportation extends Scroll {
 				break;
 			}
 		} while (pos == -1 || Dungeon.level.secret[pos]);
-
+		
 		if (pos == -1) {
-
+			
 			GLog.w( Messages.get(ScrollOfTeleportation.class, "no_tele") );
 			return false;
-
+			
 		} else {
-
+			
 			appear( ch, pos );
 			Dungeon.level.occupyCell( ch );
 			Buff.detach(ch, Roots.class);
-
+			
 			if (ch == Dungeon.hero) {
 				GLog.i( Messages.get(ScrollOfTeleportation.class, "tele") );
-
+				
 				Dungeon.observe();
 				GameScene.updateFog();
 				Dungeon.hero.interrupt();
 			}
 			return true;
-
+			
 		}
 	}
-
+	
 	public static boolean teleportPreferringUnseen( Hero hero ){
 		
 		if (!(Dungeon.level instanceof RegularLevel)){
@@ -222,7 +216,8 @@ public class ScrollOfTeleportation extends Scroll {
 		}
 		
 		if (candidates.isEmpty()){
-			return teleportChar( hero );
+			//读卷轴是玩家主动传送
+			return teleportChar( hero, false );
 		} else {
 			int pos = Random.element(candidates);
 			boolean secretDoor = false;
