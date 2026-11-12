@@ -470,7 +470,9 @@ public class HeroSelectScene extends PixelScene {
 		skin.setPos(frame.x + frame.width * 0.618f - skin.width() / 2f, frame.y);
 		PixelScene.align(skin);
 
-		Image title = new Image(Assets.Interfaces.BANNERS, 0, 0, 126, TITLE_HEIGHT);
+		//图里的 Radish 字样左边留了 15 像素空白，裁 126 宽时右边只剩 11，字会偏右 2 像素；
+		//裁到 130 宽让两边空白一样多（多裁进来的 4 列是全透明的），字才落在正中
+		Image title = new Image(Assets.Interfaces.BANNERS, 0, 0, 130, TITLE_HEIGHT);
 		title.setPos(
 				frame.x + (frame.width - title.width()) / 2f,
 				titleY + (TITLE_HEIGHT - title.height()) / 2f);
@@ -495,7 +497,8 @@ public class HeroSelectScene extends PixelScene {
 		add(signs);
 
 		float torchY = title.y + title.height() / 2f;
-		placeTorch(title.x - 8, torchY);
+		//两支火把离标题一样远（原来左边远、右边近，左边那支还贴着屏幕边）
+		placeTorch(title.x - 4, torchY);
 		placeTorch(title.x + title.width() + 4, torchY);
 
 		fadeIn();
