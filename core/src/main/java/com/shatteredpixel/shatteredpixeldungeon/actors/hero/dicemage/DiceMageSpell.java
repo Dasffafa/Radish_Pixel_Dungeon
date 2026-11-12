@@ -46,7 +46,18 @@ import com.watabou.utils.Random;
  * 当学派投入 N 点天赋时，只允许使用该学派列表中的第 N 个法术（前序法术不可用）。
  * 被动技能(isPassive)不消耗魔力点、不可主动施放。
  */
-public abstract class DiceMageSpell {
+public abstract class DiceMageSpell implements Hero.Doom {
+
+    /**
+     * 英雄被自己的法术打死（燃烧 / 撕裂的自伤）时的结算。
+     * Hero.die 只对实现了 Doom 的死因调 onDeath，由死因自己负责 Dungeon.fail；
+     * 不实现的话这一局不会写进排行榜，存档却照样被删。
+     */
+    @Override
+    public void onDeath() {
+        Dungeon.fail(this);
+        GLog.n(Messages.get(DiceMageSpell.class, "ondeath"));
+    }
 
     public String name() {
         return Messages.get(getClass(), "name");
