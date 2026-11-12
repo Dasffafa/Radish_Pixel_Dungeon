@@ -42,7 +42,8 @@ public class Tonfa extends MeleeWeapon{
     public void restoreFromBundle( Bundle bundle ) {
         super.restoreFromBundle(bundle);
         if (bundle.contains(ENE_CHARGE))
-            energy_charge = bundle.getInt(ENE_CHARGE);
+            // 旧存档里可能存着被连发扣成负数的充能
+            energy_charge = Math.max(0, bundle.getInt(ENE_CHARGE));
     }
 
     @Override
@@ -122,7 +123,17 @@ public class Tonfa extends MeleeWeapon{
                         return;
                     }
 
-                    curUser.sprite.zap(cell);
+                    // 充能在出手时就扣。以前等弹道飞到了才扣，而这个法术不占回合：
+                    // 弹道还在飞的时候再点一次，充能看起来还够，20% 充能能连放好几发，扣成负数
+                    if (ss.energy_charge < 20) return;
+                    ss.energy_charge -= 20;
+                    updateQuickslot();
+
+                    // 不占回合，但弹道飞行期间要占住英雄：伤害是弹道落地时才结算的，
+                    // 这期间放英雄去走路，结算就会和怪物的回合撞在一起
+                    final Hero user = curUser;
+                    user.playAnimationNoTime(null);
+                    user.sprite.zap(cell);
 
                     //attempts to target the cell aimed at if something is there, otherwise targets the collision pos.
                     if (Actor.findChar(target) != null)
@@ -132,6 +143,7 @@ public class Tonfa extends MeleeWeapon{
                     ss.fx(shot, new Callback() {
                             public void call() {
                                 ss.onZap(shot);
+                                user.finishAnimationNoTime();
                             }
                         });
             }
@@ -165,8 +177,6 @@ public class Tonfa extends MeleeWeapon{
         } else {
             Dungeon.level.pressCell(bolt.collisionPos);
         }
-        energy_charge -=20;
-        updateQuickslot();
     }
 
     public static class TonfaBolt {}
