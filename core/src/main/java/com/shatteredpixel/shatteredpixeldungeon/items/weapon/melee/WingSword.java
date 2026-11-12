@@ -154,14 +154,15 @@ public class WingSword extends MeleeWeapon {
                                                 Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
                                             }
                                             Invisibility.dispel();
-                                            hero.spendAndNext(hero.attackDelay());
+                                            //先落地（踩陷阱 / 掉深渊都在这里结算），再结束回合
                                             levitation.detach();
+                                            hero.spendAndNext(hero.attackDelay());
                                         }
                                     });
                                 } else {
                                     GLog.w(Messages.get(WingSword.class, "ability_no_target"));
-                                    hero.spendAndNext(1 / hero.speed());
                                     levitation.detach();
+                                    hero.spendAndNext(1 / hero.speed());
                                 }
                             }
                         });
