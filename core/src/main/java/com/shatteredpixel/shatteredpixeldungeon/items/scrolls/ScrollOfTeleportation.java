@@ -133,6 +133,11 @@ public class ScrollOfTeleportation extends Scroll {
 			Dungeon.observe();
 			GameScene.updateFog();
 		}
+		// 上面第 130 行用旧 FOV 设过 visible；observe() 之后必须按新状态纠正，
+		// 否则虫洞陷阱 / 次元撕裂者把英雄传走后人物会整个消失。
+		if (ch.sprite != null) {
+			ch.sprite.visible = ch == Dungeon.hero || Dungeon.level.heroFOV[ch.pos];
+		}
 		Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
 		CellEmitter.get(ch.pos).burst( Speck.factory(Speck.LIGHT), 4 );
 
