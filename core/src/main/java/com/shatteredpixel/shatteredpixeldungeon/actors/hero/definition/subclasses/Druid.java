@@ -619,7 +619,7 @@ public class Druid extends HeroSubClass {
 		}
 	}
 
-	/** 火山口：每 2 回合喷发落石。 */
+	/** 火山口：每 2 回合喷发一次，把范围内的敌人重新点燃。 */
 	public static class VolcanoField extends Buff {
 
 		{
@@ -649,16 +649,14 @@ public class Druid extends HeroSubClass {
 				return true;
 			}
 			turns--;
+			// 喷发只把范围内的敌人重新点燃，伤害由原版的燃烧结算，火山本身不再打人。
+			// 说明里的 30 + 等级 点伤害只在施放的那一下结算一次；每次喷发都再打一遍的话，
+			// 50 回合里喷发 25 次，总伤害是说明所写的 26 倍。
 			if (turns % 2 == 0) {
-				Hero hero = Dungeon.hero;
-				int lvl = hero != null ? hero.lvl : 1;
-				int dmg = 30 + lvl;
 				for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
 						: Dungeon.level.mobs.toArray( new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0] )) {
 					if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive()
 							&& Dungeon.level.distance( cell, mob.pos ) <= 3) {
-						mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
-								dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, this ) );
 						ignite( mob );
 					}
 				}
