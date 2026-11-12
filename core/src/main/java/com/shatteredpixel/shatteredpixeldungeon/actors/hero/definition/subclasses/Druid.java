@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidWolf;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.utils.Bundle;
@@ -622,8 +623,7 @@ public class Druid extends HeroSubClass {
 		}
 	}
 
-	public static class DruidEnergy extends Buff
-			implements com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.Action {
+	public static class DruidEnergy extends Buff implements ActionIndicator.Action {
 
 		{
 			type = buffType.POSITIVE;
@@ -640,16 +640,40 @@ public class Druid extends HeroSubClass {
 
 		public void gain( float amount ) {
 			energy = Math.min( max(), energy + amount );
-			com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.setAction( this );
+			claimAction();
+		}
+
+		// 动作按钮只有一个槽位，而法术书只能从这个按钮打开，所以槽位一空出来就要补占。
+		// 只在槽位空着或本来就是自己时动手，不去抢别的按钮（例如次元撕裂者的三回合窗口）。
+		private void claimAction() {
+			if (ActionIndicator.action == null) {
+				ActionIndicator.setAction( this );
+			} else if (ActionIndicator.action == this) {
+				ActionIndicator.refresh();
+			}
+		}
+
+		// 读档时 Hero.restoreFromBundle 的末尾会把动作槽整个清空，在 restoreFromBundle 里占位留不住。
+		// 贴图挂接（进入场景、刚获得这个 buff）时每个 buff 都会收到一次 fx(true)，借这个时机占位。
+		@Override
+		public void fx( boolean on ) {
+			if (on) {
+				claimAction();
+			}
+		}
+
+		// 每回合检查一次：别的按钮用完把槽位清空后，下一回合法术书按钮自己回来
+		@Override
+		public boolean act() {
+			claimAction();
+			spend( TICK );
+			return true;
 		}
 
 		@Override
-		public boolean attachTo( Char target ) {
-			if (super.attachTo( target )) {
-				com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.setAction( this );
-				return true;
-			}
-			return false;
+		public void detach() {
+			ActionIndicator.clearAction( this );
+			super.detach();
 		}
 
 		public boolean useEnergy( float amount ) {
@@ -657,7 +681,7 @@ public class Druid extends HeroSubClass {
 				return false;
 			}
 			energy -= amount;
-			com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.refresh();
+			ActionIndicator.refresh();
 			return true;
 		}
 
@@ -709,7 +733,11 @@ public class Druid extends HeroSubClass {
 		public void restoreFromBundle( Bundle bundle ) {
 			super.restoreFromBundle( bundle );
 			energy = bundle.getFloat( ENERGY );
-			com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.setAction( this );
+			// 旧版本里这个 buff 没有自己的 act，默认实现会把它的行动时间设成「永不行动」并存进存档。
+			// 这里清零让它重新进入回合循环，否则旧存档里每回合补占按钮的逻辑不会运行。
+			if (time >= Float.MAX_VALUE) {
+				clearTime();
+			}
 		}
 	}
 }
