@@ -76,17 +76,11 @@ abstract public class ClassArmor extends Armor {
 	}
 
 	@Override
-	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
-		if (super.doUnequip( hero, collect, single )) {
-			if (charger != null){
-				charger.detach();
-				charger = null;
-			}
-			return true;
-
-		} else {
-			return false;
-
+	public void removeFromWearer( Hero hero ) {
+		super.removeFromWearer( hero );
+		if (charger != null){
+			charger.detach();
+			charger = null;
 		}
 	}
 
@@ -227,7 +221,9 @@ abstract public class ClassArmor extends Armor {
 								Armor armor = (Armor)item;
 								armor.detach(hero.belongings.backpack);
 								if (hero.belongings.armor == armor){
-									hero.belongings.armor = null;
+									//穿在身上的护甲被直接消耗掉，没有经过「脱下」：
+									//它自带的状态、玩具效果和外观要在这里摘掉
+									armor.removeFromWearer(hero);
 								}
 								level(armor.trueLevel());
 								tier = armor.tier;
