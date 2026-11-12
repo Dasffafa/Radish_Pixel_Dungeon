@@ -22,8 +22,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -151,6 +153,16 @@ public class FlashCrystal extends Item {
 			// 0级装备降级失败时会被直接摧毁
 			if (destroyed) {
 				GLog.n(Messages.get(FlashCrystal.class, "destroyed", item.name()));
+				//护甲上贴着的破损纹章先拆下来还给玩家：它是战士唯一的职业物品，不能跟着护甲一起消失。
+				//必须在 doUnequip 之前拆，那之后护甲连同附着物就被丢弃了
+				if (item instanceof Armor && ((Armor) item).checkSeal() != null) {
+					Armor armor = (Armor) item;
+					BrokenSeal seal = armor.checkSeal();
+					armor.detachSeal(curUser);
+					if (!seal.collect()) {
+						Dungeon.level.drop(seal, curUser.pos).sprite.drop();
+					}
+				}
 				if (item.isEquipped(curUser)) {
 					// Use the normal unequip path so equipment buffs and slot references are cleared.
 					if (((EquipableItem) item).doUnequip(curUser, false, false)) {
