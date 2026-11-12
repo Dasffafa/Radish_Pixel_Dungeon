@@ -111,6 +111,15 @@ public class WndDiceMageTalentChoice extends Window {
         super.hide();
     }
 
+    @Override
+    public void destroy() {
+        //界面重建（改变窗口大小、分屏等）时窗口是被直接销毁的，不经过 hide()。
+        //不在这里注销的话，已销毁的窗口留在 open 里，之后在重开的窗口里选学派时
+        //refreshOpenWindows() 会去刷新它的卡片，往已销毁的控件里增删子节点 = 空指针闪退
+        open.remove(this);
+        super.destroy();
+    }
+
     private static void refreshOpenWindows() {
         for (WndDiceMageTalentChoice w : new ArrayList<>(open)) {
             w.refreshCards();
