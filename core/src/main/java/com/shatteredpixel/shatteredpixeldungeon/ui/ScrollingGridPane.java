@@ -70,6 +70,8 @@ public class ScrollingGridPane extends ScrollPane {
     public synchronized void clear() {
         content.clear();
         items.clear();
+        // 分隔线也在 content 里，上面已经一起清掉了；缓存不跟着清的话，下次排版复用到的是画不出来的旧对象
+        separators.clear();
     }
 
     @Override
