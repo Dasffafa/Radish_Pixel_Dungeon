@@ -219,7 +219,8 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			updateFrame();
 		}
 		
-		float speed = SPEED;
+		// 飞多久由下面的位置补间决定；倍率只乘在上面的 speed 向量上不起作用，位置每帧都被补间盖掉
+		float speed = SPEED * speedMultiplier;
 		if ((item instanceof Dart && Dungeon.hero.belongings.weapon() instanceof Crossbow)
 				||(Dungeon.hero.belongings.weapon() instanceof ScorpionCrossbow && (
 				item instanceof Javelin
