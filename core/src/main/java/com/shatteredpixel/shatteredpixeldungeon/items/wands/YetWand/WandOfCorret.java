@@ -59,7 +59,8 @@ public class WandOfCorret extends DamageWand {
         if(hero.subClass == HeroSubClasses.REDCARDINAL){
             float timeToZap;
             timeToZap = -hero.cooldown();
-            curUser.spendAndNext(timeToZap);
+            //退回的是已经按减速/加速折算过的实际时间，不能再折算一次（spend 会再除一遍时间倍率）
+            curUser.spendAndNextConstant(timeToZap);
         }
     }
 
