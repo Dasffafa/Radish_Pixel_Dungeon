@@ -50,21 +50,12 @@ public class ShatteredPixelDungeon extends Game {
 		super( sceneClass == null ? WelcomeScene.class : sceneClass, platform );
 
 		//pre-v2.4.0
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.potions.brews.UnstableBrew.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.potions.AlchemicalCatalyst" );
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.spells.UnstableSpell.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.spells.ArcaneCatalyst" );
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfFeatherFall.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.spells.FeatherFall" );
+		//原版在这里还把 AlchemicalCatalyst / ArcaneCatalyst / FeatherFall / AquaBlast 四个旧类名
+		//指到了它们在 v2.4.0 的替代品上。本项目里这四个类一直都在，别名会抢在真实的类之前生效，
+		//背包里的这四种物品一读档就变成另一种物品，所以这四条不能要。
 		com.watabou.utils.Bundle.addAlias(
 				com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfFeatherFall.FeatherBuff.class,
 				"com.shatteredpixel.shatteredpixeldungeon.items.spells.FeatherFall$FeatherBuff" );
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.potions.brews.AquaBrew.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.spells.AquaBlast" );
 
 		com.watabou.utils.Bundle.addAlias(
 				com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.entrance.EntranceRoom.class,
