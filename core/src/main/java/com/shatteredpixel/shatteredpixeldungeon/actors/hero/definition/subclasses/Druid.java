@@ -339,9 +339,12 @@ public class Druid extends HeroSubClass {
 					}
 				}
 			}
-			if (pos != hero.pos) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(
-						pos, 1, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class );
+			// 火焰要交给 GameScene.add 登记才会进回合循环；只 seed 的话本层第一次起火时当回合不烧，
+			// 要等别处起火或读档才突然烧起来。地图最外圈不放火：Fire 在边界行上演算会数组越界。
+			if (pos != hero.pos && Dungeon.level.insideMap( pos )) {
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add(
+						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(
+								pos, 1, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class ) );
 			}
 			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( pos ).burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
