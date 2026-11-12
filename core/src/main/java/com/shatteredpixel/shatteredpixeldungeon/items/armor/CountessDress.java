@@ -43,7 +43,7 @@ public class CountessDress extends Armor {
 	public static void onGoldChanged(){
 		Hero hero = Dungeon.hero;
 		if (hero == null) return;
-		// 取 armor() 而不是 armor 字段：物品栏遗失期间身上的护甲不生效
+		// 取 armor() 而不是 armor 字段：遗落行囊期间身上的护甲不生效
 		Armor armor = hero.belongings.armor();
 		if (!(armor instanceof CountessDress)) return;
 		// 走统一治疗入口：直接改 HP 不会发出 HeroHealEvent，依赖它的机制会漏掉这次回血

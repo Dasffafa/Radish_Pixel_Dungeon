@@ -69,12 +69,12 @@ public class PrismArmor extends Armor {
 	 */
 	private boolean isRangedSpell( Char wearer, DamageInfo info ) {
 		if (wearer == null || info == null || Dungeon.level == null) return false;
-		// 与 proc() 的生效条件保持一致：物品栏被封住时护甲不起作用
+		// 与 proc() 的生效条件保持一致：遗落行囊期间护甲不起作用
 		if (Char.defendingArmor( wearer ) != this) return false;
 
 		DamageType type = info.getType();
 		if (type == null || !type.isMagical() || type.isTrueDamage()) return false;
-		// 生命链接分摊过来的伤害，attacker 填的是被分摊的那一方，不是施法者
+		// 生命联结分摊过来的伤害，attacker 填的是被分摊的那一方，不是施法者
 		if (info.getSource() instanceof LifeLink) return false;
 
 		Char caster = info.getAttacker();

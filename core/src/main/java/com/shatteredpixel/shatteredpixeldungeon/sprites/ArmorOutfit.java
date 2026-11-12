@@ -47,7 +47,7 @@ public final class ArmorOutfit {
 				|| cl == HeroClasses.CARDTRICKSTER;
 	}
 
-	/** 按贴图路径问同一件事：变装后显示的是别的职业的贴图，要看的是这张贴图本身有没有画。 */
+	/** 按贴图路径问同一件事：伪装后显示的是别的职业的贴图，要看的是这张贴图本身有没有画。 */
 	public static boolean sheetHasOutfit( String sheetAsset ){
 		for (HeroClass cl : HeroClasses.ALL){
 			if (cl.spritesheet().equals( sheetAsset )) return hasOutfit( cl );

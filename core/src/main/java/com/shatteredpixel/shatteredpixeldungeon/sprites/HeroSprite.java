@@ -161,7 +161,7 @@ public class HeroSprite extends CharSprite {
 		if (outfitRow >= 0 && ArmorOutfit.hasOutfit( hero.heroClass )) t = outfitRow;
 
 		// 行号是按英雄本职业和护甲算的，而各职业贴图的行数并不一样（月华只有 17 行），实际显示的贴图不一定有这一行：
-		// 变装成行数更少的职业，或者本职业的贴图没画这件护甲的专属外观行，都会取到不存在的行，TextureFilm 直接空指针。
+		// 伪装成行数更少的职业，或者本职业的贴图没画这件护甲的专属外观行，都会取到不存在的行，TextureFilm 直接空指针。
 		// 每张英雄贴图都有 0~6 行，这时退回按护甲阶数取行。
 		if (tiers(sheetAsset).get( t ) == null) t = hero.tier();
 
@@ -289,7 +289,7 @@ public class HeroSprite extends CharSprite {
 		HeroDisguise disguise = hero.buff( HeroDisguise.class );
 		HeroClass cl = disguise != null ? disguise.getDisguise() : hero.heroClass;
 		// 头像要与游戏内角色一致，所以取外观行而不是护甲阶数；
-		// 但变装后的贴图可能没有这一行（见 updateArmor），没有就退回按护甲阶数取行。
+		// 但伪装后的贴图可能没有这一行（见 updateArmor），没有就退回按护甲阶数取行。
 		int row = hero.tier_for_image();
 		if (tiers( cl.spritesheet() ).get( row ) == null) row = hero.tier();
 		return avatar( cl, row );
