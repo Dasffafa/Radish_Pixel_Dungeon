@@ -160,12 +160,18 @@ public class Artificer extends HeroSubClass {
 		boolean isWeapon = false;
 		com.shatteredpixel.shatteredpixeldungeon.items.Item gear = null;
 
+		// 身上的装备一律经 weapon() / secondWep() / armor() 取：遗落行囊期间它们返回 null，
+		// 直接读字段的话，已经随行囊遗落的装备也能被改装出去
+		com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon mainWep = hero.belongings.weapon();
+		com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon secondWep = hero.belongings.secondWep();
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor wornArmor = hero.belongings.armor();
+
 		// 优先投掷背包里的备用武器
 		com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon active =
 				hero.belongings.attackingWeapon();
 		for (com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg
 				: new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.class ) )) {
-			if (wg != active && wg != hero.belongings.weapon && wg != hero.belongings.secondWep) {
+			if (wg != active && wg != mainWep && wg != secondWep) {
 				gear = wg;
 				isWeapon = true;
 				tier = Math.min(5, Math.max(1, wg.level() + 1));
@@ -175,16 +181,16 @@ public class Artificer extends HeroSubClass {
 		}
 		// 没有备用武器时，允许把当前装备的武器改装出去
 		if (gear == null) {
-			if (hero.belongings.weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
+			if (mainWep instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
 				com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg =
-						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) hero.belongings.weapon;
+						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) mainWep;
 				gear = wg;
 				isWeapon = true;
 				tier = Math.min(5, Math.max(1, wg.level() + 1));
 				level = wg.level();
-			} else if (hero.belongings.secondWep instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
+			} else if (secondWep instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
 				com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg =
-						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) hero.belongings.secondWep;
+						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) secondWep;
 				gear = wg;
 				isWeapon = true;
 				tier = Math.min(5, Math.max(1, wg.level() + 1));
@@ -195,7 +201,7 @@ public class Artificer extends HeroSubClass {
 		if (gear == null) {
 			for (com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor ag
 					: new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor.class ) )) {
-				if (ag != hero.belongings.armor) {
+				if (ag != wornArmor) {
 					gear = ag;
 					isWeapon = false;
 					tier = ag.tier;
@@ -205,11 +211,11 @@ public class Artificer extends HeroSubClass {
 			}
 		}
 		// 最后允许把当前装备的护甲改装出去
-		if (gear == null && hero.belongings.armor != null) {
-			gear = hero.belongings.armor;
+		if (gear == null && wornArmor != null) {
+			gear = wornArmor;
 			isWeapon = false;
-			tier = hero.belongings.armor.tier;
-			level = hero.belongings.armor.level();
+			tier = wornArmor.tier;
+			level = wornArmor.level();
 		}
 		if (gear == null) {
 			return false;
@@ -219,14 +225,19 @@ public class Artificer extends HeroSubClass {
 		int def = (tier + level) * 2;
 
 		// 从装备槽或背包中移除
-		if (gear == hero.belongings.weapon) {
-			hero.belongings.weapon = null;
-		} else if (gear == hero.belongings.secondWep) {
-			hero.belongings.secondWep = null;
-		} else if (gear == hero.belongings.armor) {
-			hero.belongings.armor = null;
+		if (gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem && gear.isEquipped( hero )) {
+			// 身上的装备按正常流程卸下，和把它扔出去是同一条路：被诅咒的卸不下来，不能借改装甩掉；
+			// 护甲留在英雄身上的状态（刻印 buff、印章护盾、挂载的玩具）和小人外观都由卸下流程清理
+			if (!((com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) gear).doUnequip( hero, false, false )) {
+				return false;
+			}
+		} else {
+			// 成叠的投掷武器只拿出一件：detach 返回拆出来的那一件，原来那一叠仍留在背包里，不能把它交给友方
+			gear = gear.detach( hero.belongings.backpack );
+			if (gear == null) {
+				return false;
+			}
 		}
-		gear.detach( hero.belongings.backpack );
 
 		// 直接装备到友方单位上，让它真正获得攻击/防御
 		if (ally instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) {
