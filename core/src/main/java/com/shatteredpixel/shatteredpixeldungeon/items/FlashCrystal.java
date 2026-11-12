@@ -108,7 +108,10 @@ public class FlashCrystal extends Item {
 
 		@Override
 		public boolean itemSelectable(Item item) {
+			//等级和诅咒都要是玩家已经知道的：按真实值变灰的话，打开这个窗口（不花回合、不耗闪晶）
+			//就能看出哪件未鉴定装备被诅咒或已经 +3 以上
 			return item instanceof EquipableItem
+					&& item.levelKnown && item.cursedKnown
 					&& item.level() < 3
 					&& !item.cursed;
 		}
