@@ -186,7 +186,10 @@ public abstract class Scroll extends Item {
 		if(original) {
 			boolean isNotDouble = !(curItem instanceof ScrollOfRemoveCurse || curItem instanceof ScrollOfUpgrade || curItem instanceof ScrollOfIdentify || curItem instanceof ScrollOfTransmutation);
 			if (Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 1 && isNotDouble && Random.Int(0,100)>=50) {
-				Item MagicStone = Reflection.newInstance(stones.get(curItem.getClass()));
+				//赐福卷轴、图纸这类不在炼金表里的卷轴没有对应的符石
+				Class<? extends Runestone> stoneCls = stones.get(curItem.getClass());
+				if (stoneCls == null) return;
+				Item MagicStone = Reflection.newInstance(stoneCls);
 				if(log)GLog.p(Messages.get(Scroll.class,"scrollToStone",MagicStone.name()));
 				Dungeon.level.drop(MagicStone, curUser.pos);
 			}
