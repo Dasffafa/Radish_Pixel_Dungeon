@@ -2,8 +2,9 @@
  * Radish Pixel Dungeon
  *
  * 次要护甲：穿在主要护甲之外的一件附加装备，只提供少量格挡，并附带一个特殊效果。
- * 无法附魔、无法打磨；成长固定为 0/0/0/1/1/1/1/1/2（+1 到 +8 时的格挡增量）。
- * 等级直接沿用 Item.level，由升级卷轴的 Item.upgrade() 维护。
+ * 它不是 Armor 的子类，所以刻印、附魔、强化符石的选择器都选不中它；能用升级卷轴强化。
+ * 等级直接用 Item.level，存读档也走 Item 的 "level" 键：早期版本自己另存过一个同名键，
+ * 老存档读进来落在同一个字段上，不需要额外兼容。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
@@ -15,11 +16,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 public abstract class SecondaryArmor extends EquipableItem {
 
-	/** 等级成长：+1..+8 时格挡值的增量 */
+	/** 格挡上下限随等级的加值，下标就是等级（+0 到 +8），超过 +8 按 +8 算 */
 	private static final int[] GROWTH = {0, 0, 0, 1, 1, 1, 1, 1, 2};
 
 	public int tier;
@@ -55,18 +55,9 @@ public abstract class SecondaryArmor extends EquipableItem {
 		return true;
 	}
 
+	@Override
 	public boolean isEquipped(Hero hero) {
 		return hero.belongings.secondaryArmor() == this;
-	}
-
-	/** 是否因为力量不足而让特殊效果失效 */
-	public boolean powerShort(Hero hero) {
-		return hero.STR() < STRReq();
-	}
-
-	/** 已经正常装备时，超力惩罚（相当于主要护甲 50%） */
-	public void applyOverweightPenalty(Hero hero) {
-		// 具体惩罚在 Hero 的回避/速度结算里按“次要护甲超力”统一处理，这里只留钩子
 	}
 
 	@Override
@@ -140,12 +131,7 @@ public abstract class SecondaryArmor extends EquipableItem {
 		return new Object[0];
 	}
 
-	@Override
-	public String trueName() {
-		// Item.title() 统一追加可见等级；这里仅返回基名，避免标题出现两次 +N。
-		return Messages.get(this, "name");
-	}
-
+	// 次要护甲没有「穿一阵子就认出等级」的途径，等级不做隐藏，未鉴定时也照实显示
 	@Override
 	public int visiblyUpgraded() {
 		return level;
@@ -159,7 +145,7 @@ public abstract class SecondaryArmor extends EquipableItem {
 	@Override
 	public String desc() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.get(this, "base_desc", tier, (int)DRMin(), (int)DRMax(), STRReq()));
+		sb.append(Messages.get(this, "base_desc", tier, DRMin(), DRMax(), STRReq()));
 		// 力量不足那段只在真的不满足力量需求时显示
 		if (Dungeon.hero != null && Dungeon.hero.STR() < STRReq()) {
 			sb.append("\n\n").append(Messages.get(this, "strength_penalty"));
@@ -173,6 +159,4 @@ public abstract class SecondaryArmor extends EquipableItem {
 		}
 		return sb.toString();
 	}
-
-	// level 的存读档由 Item.storeInBundle / restoreFromBundle 统一处理（键名同为 "level"，老存档兼容）。
 }
