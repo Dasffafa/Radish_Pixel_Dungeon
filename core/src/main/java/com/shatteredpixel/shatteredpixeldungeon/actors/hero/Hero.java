@@ -1292,6 +1292,9 @@ public class Hero extends Char {
 		next();
 	}
 
+	// 粘液倒计时用的时钟（上次扣到的绝对游戏时间）；不存档，读档 / 换层后重新对齐
+	private float slimeClock = -1f;
+
 	@Override
 	public boolean act() {
 
@@ -1307,11 +1310,17 @@ public class Hero extends Char {
 		fieldOfView = Dungeon.level.heroFOV;
 
 		//粘液逻辑
+		// 说明写的是「还有 N 回合」：按经过的游戏时间扣，而不是按 act() 被调用的次数扣
+		// （一次攻击 / 每走一步都会多调一次 act()）。Statistics.duration + Actor.now() 不受存档时 Actor.fixTime() 影响。
+		float slimeNow = Statistics.duration + Actor.now();
+		if (slimeClock < 0 || slimeNow < slimeClock) slimeClock = slimeNow;
+		int slimeTicks = (int)(slimeNow - slimeClock);
+		slimeClock += slimeTicks;
 		ArrayList<Frog.PoulWater> poulWaters = hero.belongings.getAllItems(Frog.PoulWater.class);
 		if(poulWaters != null){
 			for (Frog.PoulWater w : poulWaters.toArray(new Frog.PoulWater[0])) {
 				if(w.cooldown >0){
-					w.cooldown--;
+					w.cooldown -= slimeTicks;
 				}
 				if(w.cooldown <= 0){
 					w.detach(hero.belongings.backpack);
