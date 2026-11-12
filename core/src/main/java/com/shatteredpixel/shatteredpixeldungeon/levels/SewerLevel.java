@@ -169,7 +169,7 @@ public class SewerLevel extends RegularLevel {
 		}
 		if(Dungeon.depth == 1 && Dungeon.branchId.equals(Branches.MAIN)){
 			MoonLight npc18 = new MoonLight();
-			npc18.pos = entrance()-1;
+			npc18.pos = moonLightCell();
 			mobs.add(npc18);
 		}
 
@@ -179,6 +179,31 @@ public class SewerLevel extends RegularLevel {
 		}
 
 		super.createMobs();
+	}
+
+	/**
+	 * 月华站的格子：入口左边一格。那一格上已经有物品时换到入口旁边别的空格：
+	 * 给新玩家的冒险者指南是随机丢在入口房间里的，可能正好落在这一格，而月华不可移动，被她压住的东西永远捡不到。
+	 * 新手引导期间入口房间的门是隐藏的，捡起并读完指南才显形（引导期间也搜不出来），
+	 * 所以指南被压住的那一局英雄出不了入口房间。
+	 */
+	private int moonLightCell() {
+		int preferred = entrance() - 1;
+		if (heaps.get( preferred ) == null && findMob( preferred ) == null) {
+			return preferred;
+		}
+		//先上下左右，再斜向；不用随机数，免得改变这一层其它内容的生成
+		int[][] order = { com.watabou.utils.PathFinder.NEIGHBOURS4, com.watabou.utils.PathFinder.NEIGHBOURS8 };
+		for (int[] dirs : order) {
+			for (int dir : dirs) {
+				int cell = entrance() + dir;
+				if (passable[cell] && !pit[cell] && heaps.get( cell ) == null && findMob( cell ) == null
+						&& traps.get( cell ) == null && plants.get( cell ) == null) {
+					return cell;
+				}
+			}
+		}
+		return preferred;
 	}
 
 	/** 游商之间至少隔开的格数（按真实地图距离，不是格子编号差）。 */
