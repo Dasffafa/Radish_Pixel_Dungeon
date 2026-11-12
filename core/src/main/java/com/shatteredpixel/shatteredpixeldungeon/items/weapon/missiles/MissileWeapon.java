@@ -135,7 +135,10 @@ abstract public class MissileWeapon extends Weapon {
 	//use the parent item if this has been thrown from a parent
 	public int buffedLvl(){
 
-		if (Dungeon.hero != null && (hero.belongings.contains(this) || parent != null)) {
+		//一叠里的最后一枚（或单独的一枚）投出去时已经不在背包里、也没有 parent，
+		//但结算这一击时它是英雄的投出武器，同样要算，否则伤害按比背包里显示的低一档的等级结算
+		if (Dungeon.hero != null && (hero.belongings.contains(this) || parent != null
+				|| hero.belongings.thrownWeapon == this)) {
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			if(riverGlass != null){
 				return super.buffedLvl() + riverGlass.virtualLevel();
