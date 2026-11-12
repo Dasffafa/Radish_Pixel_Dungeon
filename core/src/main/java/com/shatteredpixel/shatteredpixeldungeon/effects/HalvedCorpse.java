@@ -232,10 +232,11 @@ public class HalvedCorpse extends Group {
 					@Override
 					protected void onComplete() {
 						img.killAndErase();
+						// 残骸要等淡出播完才能移除：在这之前就移除的话两半会跟着一起被杀掉，淡出根本看不到
+						corpse.killAndErase();
 					}
 				} );
 			}
-			corpse.killAndErase();
 		}
 	}
 }
