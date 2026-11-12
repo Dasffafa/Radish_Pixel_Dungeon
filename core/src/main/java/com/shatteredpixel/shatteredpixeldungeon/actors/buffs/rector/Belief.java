@@ -385,7 +385,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
      */
     public void getBelief(float value) {
         boolean[] cursedItemsProcessed = new boolean[5];
-        float roundedValue = (float) (Math.round(value * 100) / 100);
+        // 保留两位小数。除数必须是浮点：两个整数相除会把小数整个丢掉，
+        // 0.33（灵活信仰）变成 0，1.8（深层的击杀）变成 1
+        float roundedValue = Math.round(value * 100) / 100f;
         credibility += roundedValue;
 
         int cursedItems = 0;
@@ -438,8 +440,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
             credibility += exp;
         }
 
+        // 飘字也带上小数，否则获得 0.33 时头顶飘的是「0」
         hero.sprite.showStatusWithIcon(Window.TITLE_COLOR,
-                Integer.toString((int) Math.floor(roundedValue + exp)), FloatingText.BELIEF);
+                Messages.decimalFormat("#.##", roundedValue + exp), FloatingText.BELIEF);
     }
 
 
