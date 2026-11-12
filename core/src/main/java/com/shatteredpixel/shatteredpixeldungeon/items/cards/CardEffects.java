@@ -70,12 +70,9 @@ public final class CardEffects {
 			case BLANK: {
 				// 陷阱师：对未触发的陷阱使用空白卡 -> 记录该陷阱，卡片转为陷阱卡
 				Trap trap = Dungeon.level.traps.get(pos);
-				if (trap != null && hero.subClass == HeroSubClasses.JOKER) {
-					// 只能吸收尚未触发的陷阱（active == true 表示未触发）
-					if (!trap.active) {
-						GLog.w(Messages.get(CardEffects.class, "trap_already_used"));
-						return;
-					}
+				// 只吸收看得见、已发现、尚未触发的陷阱（与 CardTargeter 的判定一致）。
+				// 其余情况这一格按普通目标处理：敌人站在隐藏的或已触发的陷阱格上时照常打它
+				if (trap != null && hero.subClass == HeroSubClasses.JOKER && CardTargeter.absorbableTrap(pos)) {
 					card.type = CardType.TRAP;
 					card.trapClass = trap.getClass();
 					GLog.i(Messages.get(CardEffects.class, "trap_recorded", trap.name()));
