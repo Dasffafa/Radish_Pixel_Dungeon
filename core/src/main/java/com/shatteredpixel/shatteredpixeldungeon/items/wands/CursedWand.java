@@ -489,9 +489,10 @@ public class CursedWand {
 					toHeal = target;
 					toDamage = user;
 				}
-				toHeal.HP = Math.min(toHeal.HT,(Dungeon.isChallenged(Challenges.DAMAGE_NO) ? 1 : toHeal.HP + damage/2));
+				//「伤痛难愈」挑战下只回 1 点。原先这一行在挑战开启时是把生命直接「设为」1，被治疗的一方反而只剩 1 点血。
+				//走统一治疗入口，绿字由它显示，数字是实际回复量（原先显示的是伤害值，比回复量多一倍）
+				toHeal.heal( Dungeon.isChallenged(Challenges.DAMAGE_NO) ? 1 : damage/2 );
 				toHeal.sprite.emitter().burst(Speck.factory(Speck.HEALING), 3);
-				toHeal.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(damage), FloatingText.HEALING );
 
 				toDamage.damage(new DamageInfo(damage, DamageType.MAGICAL, user, origin, new CursedWand()));
 				toDamage.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
