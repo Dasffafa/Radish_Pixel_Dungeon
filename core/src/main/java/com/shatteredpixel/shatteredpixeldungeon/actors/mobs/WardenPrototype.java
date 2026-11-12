@@ -37,6 +37,7 @@ public class WardenPrototype extends Mob implements Callback {
 	private static final String MODEL      = "model";
 	private static final String STATE      = "proto_state";
 	private static final String PROGRESS   = "proto_progress";
+	private static final String SHIELD_GRANTED = "shield_granted";
 
 	//INACTIVE：未激活；W_ALLY：已归典狱长；H_ALLY：已归玩家
 	public static final int INACTIVE = 0;
@@ -45,6 +46,10 @@ public class WardenPrototype extends Mob implements Callback {
 
 	private int protoState = INACTIVE;
 	private int progress   = 0;   // 玩家侧激活还剩的回合
+
+	//DM-175 的护盾一台机体只给一次，和普通 DM-175 的做法一致；
+	//不记下来的话护盾被打掉或自然衰减完之后，下一回合又会补满
+	private boolean shieldGranted = false;
 
 	{
 		spriteClass = DMPrototypeSprite.class;
@@ -200,9 +205,10 @@ public class WardenPrototype extends Mob implements Callback {
 
 	@Override
 	protected boolean act() {
-		if (model == 175 && protoState != INACTIVE && buff(Barrier.class) == null
+		if (model == 175 && protoState != INACTIVE && !shieldGranted
 				&& Dungeon.level.heroFOV[pos]) {
 			Buff.affect(this, Barrier.class).setShield(60);
+			shieldGranted = true;
 		}
 
 		if (protoState == INACTIVE) {
@@ -232,6 +238,7 @@ public class WardenPrototype extends Mob implements Callback {
 		bundle.put( MODEL, model );
 		bundle.put( STATE, protoState );
 		bundle.put( PROGRESS, progress );
+		bundle.put( SHIELD_GRANTED, shieldGranted );
 	}
 
 	@Override
@@ -240,6 +247,11 @@ public class WardenPrototype extends Mob implements Callback {
 		model = bundle.getInt( MODEL );
 		protoState = bundle.getInt( STATE );
 		progress = bundle.getInt( PROGRESS );
+		//旧档没有这个键：已经激活的机体在旧版本里早就拿过护盾，按已给过处理，
+		//否则更新后每台都会再白拿一次
+		shieldGranted = bundle.contains( SHIELD_GRANTED )
+				? bundle.getBoolean( SHIELD_GRANTED )
+				: protoState != INACTIVE;
 		if (protoState == W_ALLY) alignment = Alignment.ENEMY;
 		else if (protoState == H_ALLY) alignment = Alignment.ALLY;
 		else alignment = Alignment.NEUTRAL;
