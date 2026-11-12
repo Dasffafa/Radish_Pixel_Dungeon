@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -12,13 +13,21 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidOakSage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidSunflower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidVines;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidWolf;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
+
+import java.util.ArrayList;
 
 /**
  * 德鲁伊：女猎手的第三转职。
@@ -127,20 +136,15 @@ public class Druid extends HeroSubClass {
 	}
 
 	public static boolean summonWolves( Hero hero ) {
-		int amount = 3;
-		float cost = animalCost( hero, 16f );
-		if (!spendEnergy( hero, cost )) {
-			return false;
-		}
-		enforceAnimalLimit( hero, DruidWolf.class );
-		for (int i = 0; i < amount; i++) {
+		DruidWolf[] pack = new DruidWolf[3];
+		for (int i = 0; i < pack.length; i++) {
 			DruidWolf wolf = new DruidWolf();
 			wolf.lvl = hero.lvl;
 			wolf.power = animalPower( hero );
 			wolf.HP = wolf.HT = Math.round( (22 + hero.lvl / 2f) * wolf.power );
-			place( wolf, hero );
+			pack[i] = wolf;
 		}
-		return true;
+		return summon( hero, animalCost( hero, 16f ), animalsToReplace( hero, DruidWolf.class ), pack );
 	}
 
 	public static boolean summonBear( Hero hero ) {
@@ -151,65 +155,78 @@ public class Druid extends HeroSubClass {
 		return spawnAnimal( hero, bear, animalCost( hero, 20f ) );
 	}
 
-	private static boolean spawnAnimal( Hero hero, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, float cost ) {
+	private static boolean spawnAnimal( Hero hero, Mob m, float cost ) {
+		return summon( hero, cost, animalsToReplace( hero, m.getClass() ), m );
+	}
+
+	// 这次召唤会顶替掉场上哪些动物：同种的全部；其它种类已经占满名额时，其它种类也全部顶替
+	private static ArrayList<Mob> animalsToReplace( Hero hero, Class<?> newType ) {
+		int allowed = hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 3 ? 3
+				: hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 2 ? 2 : 1;
+		ArrayList<Mob> animals = new ArrayList<>();
+		for (Char ch : Actor.chars()) {
+			if (ch instanceof DruidBoar || ch instanceof DruidWolf || ch instanceof DruidBear) {
+				animals.add( (Mob) ch );
+			}
+		}
+		java.util.HashSet<Class<?>> otherTypes = new java.util.HashSet<>();
+		for (Mob a : animals) {
+			if (a.getClass() != newType) {
+				otherTypes.add( a.getClass() );
+			}
+		}
+		ArrayList<Mob> replaced = new ArrayList<>();
+		for (Mob a : animals) {
+			if (a.getClass() == newType || otherTypes.size() >= allowed) {
+				replaced.add( a );
+			}
+		}
+		return replaced;
+	}
+
+	// 植物同一时间只留一株，新召唤的会顶替场上已有的任何一种
+	private static ArrayList<Mob> plantsToReplace() {
+		ArrayList<Mob> replaced = new ArrayList<>();
+		for (Char ch : Actor.chars()) {
+			if (ch instanceof DruidOakSage || ch instanceof DruidVines || ch instanceof DruidSunflower) {
+				replaced.add( (Mob) ch );
+			}
+		}
+		return replaced;
+	}
+
+	// 所有召唤共用的结算。顺序不能换：先确认能量够、周围有落点，然后才扣能量、顶替旧召唤物。
+	// 反过来做的话，周围没有空位时旧召唤物已经白白消失，狼群还会照扣能量却一只都不出来。
+	private static boolean summon( Hero hero, float cost, ArrayList<Mob> replaced, Mob... fresh ) {
+		if (energy( hero ) < cost) {
+			GLog.w( Messages.get( HeroSubClass.class, "druid_no_energy" ) );
+			return false;
+		}
+		ArrayList<Integer> spots = findSpots( hero, replaced, fresh.length );
+		if (spots.isEmpty()) {
+			GLog.w( Messages.get( HeroSubClass.class, "druid_no_space" ) );
+			return false;
+		}
 		if (!spendEnergy( hero, cost )) {
 			return false;
 		}
-		enforceAnimalLimit( hero, m.getClass() );
-		if (!place( m, hero )) {
-			gainEnergy( hero, cost );
-			return false;
+		for (Mob old : replaced) {
+			old.die( null );
+		}
+		// 落点比要召唤的数量少时，能放几个放几个（只有狼群会遇到）
+		for (int i = 0; i < fresh.length && i < spots.size(); i++) {
+			int c = spots.get( i );
+			fresh[i].pos = c;
+			GameScene.add( fresh[i] );
+			CellEmitter.get( c ).burst( Speck.factory( Speck.STAR ), 10 );
 		}
 		return true;
 	}
 
-	private static void enforceAnimalLimit( Hero hero, Class<?> newType ) {
-		int allowed = hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 3 ? 3
-				: hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 2 ? 2 : 1;
-		java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob> animals = new java.util.ArrayList<>();
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.Char ch : com.shatteredpixel.shatteredpixeldungeon.actors.Actor.chars()) {
-			if (ch instanceof DruidBoar || ch instanceof DruidWolf || ch instanceof DruidBear) {
-				animals.add( (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) ch );
-			}
-		}
-		// 重新召唤同类时替换旧的同类召唤物
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob a : animals) {
-			if (a.getClass() == newType) {
-				a.die( null );
-			}
-		}
-		// 统计其它种类，若达到上限则清空
-		java.util.HashSet<Class<?>> types = new java.util.HashSet<>();
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob a : animals) {
-			if (a.getClass() != newType) {
-				types.add( a.getClass() );
-			}
-		}
-		if (types.size() >= allowed) {
-			for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob a : animals) {
-				if (a.getClass() != newType) {
-					a.die( null );
-				}
-			}
-		}
-	}
-
-	private static void enforcePlantLimit() {
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.Char ch : com.shatteredpixel.shatteredpixeldungeon.actors.Actor.chars()) {
-			if (ch instanceof DruidOakSage || ch instanceof DruidVines || ch instanceof DruidSunflower) {
-				((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) ch).die( null );
-			}
-		}
-	}
-
-	private static boolean mobAt( int cell ) {
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m : Dungeon.level.mobs) {
-			if (m.pos == cell) return true;
-		}
-		return false;
-	}
-
-	private static boolean place( com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, Hero hero ) {
+	// 在英雄周围两圈内由近到远找落点，最多找 amount 个。
+	// vacating 里的旧召唤物马上会被顶替，它们站着的格子也算空位。
+	private static ArrayList<Integer> findSpots( Hero hero, ArrayList<Mob> vacating, int amount ) {
+		ArrayList<Integer> spots = new ArrayList<>();
 		int w = Dungeon.level.width();
 		int hx = hero.pos % w, hy = hero.pos / w;
 		for (int radius = 1; radius <= 2; radius++) {
@@ -223,20 +240,29 @@ public class Druid extends HeroSubClass {
 						continue;
 					}
 					int c = ny * w + nx;
-					if (Dungeon.level.passable[c] && !Dungeon.level.solid[c]
-							&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null
-							&& !mobAt( c )) {
-						m.pos = c;
-						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( m );
-						com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( c ).burst(
-								com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-										com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STAR ), 10 );
-						return true;
+					if (spots.size() < amount
+							&& Dungeon.level.passable[c] && !Dungeon.level.solid[c]
+							&& isVacant( c, vacating )) {
+						spots.add( c );
 					}
 				}
 			}
 		}
-		return false;
+		return spots;
+	}
+
+	// 沿用原先的双重检查：既查回合循环里登记的角色，也查本层的怪物列表
+	private static boolean isVacant( int cell, ArrayList<Mob> vacating ) {
+		Char ch = Actor.findChar( cell );
+		if (ch != null && !vacating.contains( ch )) {
+			return false;
+		}
+		for (Mob m : Dungeon.level.mobs) {
+			if (m.pos == cell && !vacating.contains( m )) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	// ===== 召唤植物 =====
@@ -268,16 +294,8 @@ public class Druid extends HeroSubClass {
 		return spawnPlant( hero, flower, 30f );
 	}
 
-	private static boolean spawnPlant( Hero hero, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, float cost ) {
-		if (!spendEnergy( hero, cost )) {
-			return false;
-		}
-		enforcePlantLimit();
-		if (!place( m, hero )) {
-			gainEnergy( hero, cost );
-			return false;
-		}
-		return true;
+	private static boolean spawnPlant( Hero hero, Mob m, float cost ) {
+		return summon( hero, cost, plantsToReplace(), m );
 	}
 
 	private static int countGrass( int center, int radius ) {
@@ -309,6 +327,7 @@ public class Druid extends HeroSubClass {
 
 	public static boolean castEnchantArrow( Hero hero ) {
 		if (!spendEnergy( hero, spellCost( hero, 5f ) )) {
+			GLog.w( Messages.get( HeroSubClass.class, "druid_no_energy" ) );
 			return false;
 		}
 		Buff.affect( hero, EnchantArrow.class, 20f );

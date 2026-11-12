@@ -230,12 +230,11 @@ public class WndDruidSkills extends Window {
 			case 9: Druid.promptTargeted( hero, 2 ); return;
 			default: return;
 		}
+		// 没放出来时不在这里提示：原因不止能量不足（还可能是周围没有空位），由 Druid 里的各个入口自己说明
 		if (ok) {
 			Sample.INSTANCE.play( Assets.Sounds.READ );
 			hero.sprite.operate( hero.pos );
 			hero.spendAndNext( 1f );
-		} else {
-			GLog.w( Messages.get( this, "no_energy" ) );
 		}
 	}
 }
