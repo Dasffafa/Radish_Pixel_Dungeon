@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM300;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FungalSpinner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Spinner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
@@ -53,6 +54,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 public class SnakeSprite extends MobSprite {
@@ -197,7 +200,10 @@ public class SnakeSprite extends MobSprite {
 	public void onComplete( Animation anim ) {
 		if (anim == zap) {
 			idle();
-			if (ch instanceof Eye) {
+			if (animCallback != null) {
+				// 带回调的 zap（豺狼王法杖的镜像豺狼）由 CharSprite.onComplete 统一执行回调，这里不按怪物种类收尾
+			}
+			else if (ch instanceof Eye) {
 				if (Actor.findChar(zapPos) != null) {
 					parent.add(new Beam.DeathRay(center(), Actor.findChar(zapPos).sprite.center()));
 				} else {
@@ -212,23 +218,20 @@ public class SnakeSprite extends MobSprite {
 			else if (ch instanceof FungalSpinner) {
 				((FungalSpinner)ch).shootWeb();
 			}
+			else if (ch instanceof Necromancer) {
+				// 与 NecromancerSprite 一致：召唤起手的 zap 只是动画，回合已在 act() 里结算，不能再收尾一次
+				if (!((Necromancer)ch).summoning) {
+					((Necromancer)ch).onZapComplete();
+				}
+			}
 			// All other ranged mobs: use generic green magic missile
 			else {
-				MagicMissile.boltFromChar(parent, MagicMissile.FOLIAGE, this, zapPos, new Callback() {
-					@Override
-					public void call() {
-						// Try onZapComplete method
-						try {
-							ch.getClass().getMethod("onZapComplete").invoke(ch);
-						} catch (Exception e) {
-							// Fallback to Callback interface
-							if (ch instanceof Callback) {
-								((Callback)ch).call();
-							}
-						}
-					}
-				});
-				Sample.INSTANCE.play(Assets.Sounds.ZAP);
+				Callback done = zapCompleteHandler();
+				// 没有收尾方法的怪（天狗）zap 只是个动画，不发飞弹
+				if (done != null) {
+					MagicMissile.boltFromChar(parent, MagicMissile.FOLIAGE, this, zapPos, done);
+					Sample.INSTANCE.play(Assets.Sounds.ZAP);
+				}
 			}
 		} else if (anim == pumpAttack) {
 			triggerEmitters();
@@ -246,10 +249,57 @@ public class SnakeSprite extends MobSprite {
 	}
 
 	// Store target position for zap attacks
+	// 必须播 zap 动画：播 attack 的话动画结束走的是 Mob.onAttackComplete()，
+	// 怪物的施法逻辑不执行，变成隔着几格打一次普通近战
 	@Override
-	public void zap( int pos ) {
+	public synchronized void zap( int pos, Callback callback ) {
 		zapPos = pos;
-		attack( pos );
+		super.zap( pos, callback );
+	}
+
+	// 施法动画和飞弹播完后把回合交还给怪物。各怪的收尾方法签名不一样：
+	// 多数是 onZapComplete()，炮手 / 盾法师是 onZapComplete(int)，DM-100 一类只实现了 Callback。
+	// 三种都没有时返回 null
+	private Callback zapCompleteHandler() {
+		final Char caster = ch;
+		try {
+			final Method noArg = caster.getClass().getMethod( "onZapComplete" );
+			return new Callback() {
+				@Override
+				public void call() {
+					invokeZapComplete( noArg, caster );
+				}
+			};
+		} catch (NoSuchMethodException e) {
+			//没有无参版本，接着找
+		}
+		try {
+			final Method withCell = caster.getClass().getMethod( "onZapComplete", int.class );
+			final int cell = zapPos;
+			return new Callback() {
+				@Override
+				public void call() {
+					invokeZapComplete( withCell, caster, cell );
+				}
+			};
+		} catch (NoSuchMethodException e) {
+			//也没有带格子参数的版本
+		}
+		return caster instanceof Callback ? (Callback) caster : null;
+	}
+
+	// 怪物施法逻辑里抛出的异常原样抛出：吞掉的话回合不会结束，也没有任何报错
+	private static void invokeZapComplete( Method method, Char caster, Object... args ) {
+		try {
+			method.invoke( caster, args );
+		} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+			if (cause instanceof Error) throw (Error) cause;
+			throw new RuntimeException( cause );
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException( e );
+		}
 	}
 
 	// ==================== Ghoul/Drake Compatibility ====================
