@@ -2079,6 +2079,14 @@ public class Hero extends Char {
 
 		enemy = action.target;
 
+		// 魅惑判定和原版一样放在最前面。以前它排在锁链分支后面的 else if 里，
+		// 拿着锁链时永远走不到：被魅惑也照样能攻击（或拉过来）魅惑自己的那只怪
+		if (isCharmedBy( enemy )){
+			GLog.w( Messages.get(Charm.class, "cant_attack"));
+			ready();
+			return false;
+		}
+
 		// 检查武器是否可以攻击（特殊武器如斩舰刀可能在此等待）
 		// 这个方法里都用 weapon() 而不是字段：丢失背包期间没被保留的武器不生效（空手不该还能等待蓄力、甩锁链）
 		if (belongings.weapon() != null && !belongings.weapon().actAttack(hero, enemy, action)) {
@@ -2100,10 +2108,6 @@ public class Hero extends Char {
 				ready();
 				GLog.w( Messages.get(LockChain.class, "cant_attack"));
 			}
-			return false;
-		} else if (isCharmedBy( enemy )){
-			GLog.w( Messages.get(Charm.class, "cant_attack"));
-			ready();
 			return false;
 		} else if (fearBlocksMelee()){
 			// 恐惧期间双手发抖，无法使用近战攻击（远程、法杖、投掷仍可用）
