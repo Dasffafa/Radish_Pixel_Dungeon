@@ -436,7 +436,10 @@ public class Belief extends Buff implements ActionIndicator.Action {
         }
         float exp = 0f;
         if (hero.hasTalent(Talent.DEAD_POWER)) {
-            exp = cursedItems * beliefExpert;
+            // 殉道之力是「获得的信仰值增加 16% / 32% / 50%」，加成要乘上这次的获得量。
+            // 不乘的话每次固定多给 0.16 / 0.32 / 0.5：获得量为 0 的时候（越级的怪、
+            // 星界沟通没攒够经验的那几次）也照给，获得 15 点的时候又只多给零点几。
+            exp = roundedValue * cursedItems * beliefExpert;
             credibility += exp;
         }
 
