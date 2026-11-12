@@ -24,6 +24,8 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.LevelTeleporter;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobAttributeViewer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobPlacer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SnakeBiteToggle;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CycleTestPortal;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.GateTester;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.SnDFunctions;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TalentSetter;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TerrainPlacer;
@@ -291,6 +293,8 @@ public abstract class HeroDefinition {
 		new TestMissile().collect( testbag3 );
 		new TestRing().collect( testbag3 );
 		new SnDFunctions().collect( testbag3 );
+		new GateTester().collect( testbag3 );
+		new CycleTestPortal().collect( testbag3 );
 		new TestPotion().collect( testbag3 );
 
 		new TestTalentOFTerminalBook().collect( testbag3 );

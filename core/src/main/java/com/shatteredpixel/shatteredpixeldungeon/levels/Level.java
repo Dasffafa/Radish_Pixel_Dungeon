@@ -176,6 +176,13 @@ public abstract class Level implements Bundlable {
 
 	public ArrayList<LevelTransition> transitions;
 
+	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor> specialDoors = new java.util.HashMap<>();
+
+	/** 测试支线入口楼梯所在格（-1 表示没有） */
+	public int testPortalCell = -1;
+
+	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair> specialStairs = new java.util.HashMap<>();
+
 	//when a boss level has become locked.
 	public boolean locked = false;
 
@@ -314,6 +321,8 @@ public abstract class Level implements Bundlable {
 			width = height = length = 0;
 
 			transitions = new ArrayList<>();
+			specialDoors = new java.util.HashMap<>();
+			specialStairs = new java.util.HashMap<>();
 
 			mobs = new HashSet<>();
 			heaps = new SparseArray<>();
@@ -331,6 +340,7 @@ public abstract class Level implements Bundlable {
 
 		buildFlagMaps();
 		cleanWalls();
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.applyLevelFlags(this);
 
 		createMobs();
 		createItems();
@@ -399,6 +409,26 @@ public abstract class Level implements Bundlable {
 		traps = new SparseArray<>();
 		customTiles = new HashSet<>();
 		customWalls = new HashSet<>();
+
+		specialDoors = new java.util.HashMap<>();
+		if (bundle.contains("special_doors")) {
+			for (com.watabou.utils.Bundlable b : bundle.getCollection("special_doors")) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor d =
+						(com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor) b;
+				specialDoors.put(d.cell, d);
+			}
+		}
+
+		testPortalCell = bundle.getInt("test_portal_cell");
+
+		specialStairs = new java.util.HashMap<>();
+		if (bundle.contains("special_stairs")) {
+			for (com.watabou.utils.Bundlable b : bundle.getCollection("special_stairs")) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair s =
+						(com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair) b;
+				specialStairs.put(s.cell, s);
+			}
+		}
 
 		map		= bundle.getIntArray( MAP );
 
@@ -473,6 +503,7 @@ public abstract class Level implements Bundlable {
 
 		buildFlagMaps();
 		cleanWalls();
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.applyLevelFlags(this);
 
 	}
 
@@ -485,6 +516,9 @@ public abstract class Level implements Bundlable {
 		bundle.put( VISITED, visited );
 		bundle.put( MAPPED, mapped );
 		bundle.put( TRANSITIONS, transitions );
+		bundle.put( "special_doors", specialDoors.values() );
+		bundle.put( "special_stairs", specialStairs.values() );
+		bundle.put( "test_portal_cell", testPortalCell );
 		bundle.put( LOCKED, locked );
 		bundle.put( HEAPS, heaps.valueList() );
 		bundle.put( PLANTS, plants.valueList() );
@@ -686,6 +720,19 @@ public abstract class Level implements Bundlable {
 //		if (locked){
 //			return false;
 //		}
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair stair =
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.of(this, transition);
+		com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent attempt =
+				new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent(hero, transition, stair);
+		com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
+		if (attempt.isCancelled()) {
+			return false;
+		}
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.onUsed(transition);
+		com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(
+				new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUsedEvent(hero, transition, stair));
 
 		beforeTransition();
 		InterlevelScene.curTransition = transition;
@@ -1278,12 +1325,14 @@ public abstract class Level implements Bundlable {
 			}
 
 			//characters which are not the hero or a sheep 'soft' press cells
-			pressCell( ch.pos, ch instanceof Hero || ch instanceof Sheep);
+			pressCell( ch.pos, ch instanceof Hero || ch instanceof Sheep, ch);
 		} else {
 			if (map[ch.pos] == Terrain.DOOR){
 				Door.enter( ch.pos );
 			}
 		}
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.onEntered(ch, ch.pos);
 
 		if (ch.isAlive() && ch instanceof Piranha && !water[ch.pos]){
 			((Piranha) ch).dieOnLand();
@@ -1292,12 +1341,31 @@ public abstract class Level implements Bundlable {
 
 	//public method for forcing the hard press of a cell. e.g. when an item lands on it
 	public void pressCell( int cell ){
-		pressCell( cell, true );
+		pressCell( cell, true, null );
 	}
 
 	//a 'soft' press ignores hidden traps
 	//a 'hard' press triggers all things
-	private void pressCell( int cell, boolean hard ) {
+	private void pressCell( int cell, boolean hard, Char ch ) {
+
+		if (Dungeon.hero != null && cell == Dungeon.hero.pos) {
+			if (com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.onStep(Dungeon.hero, cell)) {
+				return;
+			}
+		}
+
+		if (testPortalCell >= 0 && cell == testPortalCell && Dungeon.hero != null && cell == Dungeon.hero.pos) {
+			com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.pendingReturnDepth = Dungeon.depth;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.mode =
+					com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.Mode.RETURN;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnBranchId =
+					com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.TEST;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnDepth = 1;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnPos =
+					com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL;
+			com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.class);
+			return;
+		}
 
 		Trap trap = null;
 

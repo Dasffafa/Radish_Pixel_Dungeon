@@ -219,6 +219,9 @@ public class Dungeon {
 	// 当前分支的字符串标识（如 "main", "moss", "mining"）
 	public static String branchId = Branches.MAIN;
 
+	/** 循环楼梯每一条链当前轮到第几个（0=A,1=B,2=C） */
+	public static final java.util.HashMap<String, Integer> gateChains = new java.util.HashMap<>();
+
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static HashSet<String> generatedLevels = new HashSet<>();
 	public static boolean levelJustGenerated;
@@ -294,6 +297,7 @@ public class Dungeon {
 		
 		depth = 1;
 		branchId = Branches.MAIN;
+		gateChains.clear();
 		generatedLevels.clear();
 		levelJustGenerated = false;
 
@@ -544,6 +548,8 @@ public class Dungeon {
 		PathFinder.setMapSize(level.width(), level.height());
 		
 		Dungeon.level = level;
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.applyLevelFlags(level);
+
 		hero.pos = pos;
 
 		if (hero.buff(AscensionChallenge.class) != null){
@@ -692,6 +698,8 @@ public class Dungeon {
 	private static final String MOBS_TO_CHAMPION	= "mobs_to_champion";
 	private static final String HERO		= "hero";
 	private static final String DEPTH		= "depth";
+	private static final String GATE_CHAINS	= "gate_chains";
+	private static final String LEGACY_CYCLE_CHAINS	= "cycle_chains";
 		private static final String BRANCH_ID		= "branch_id";
 		private static final String GENERATED_LEVELS    = "generated_levels";
 		private static final String GOLD		= "gold";
@@ -725,6 +733,12 @@ public class Dungeon {
 				bundle.put( HERO, hero );
 				bundle.put( DEPTH, depth );
 				bundle.put( BRANCH_ID, branchId );
+				String[] chains = new String[gateChains.size()];
+				int ci = 0;
+				for (java.util.Map.Entry<String,Integer> e : gateChains.entrySet()) {
+					chains[ci++] = e.getKey() + "|" + e.getValue();
+				}
+				bundle.put( GATE_CHAINS, chains );
 
 				bundle.put( GOLD, gold );
 				bundle.put( ENERGY, energy );
@@ -902,6 +916,18 @@ public class Dungeon {
 		
 		depth = bundle.getInt( DEPTH );
 		branchId = bundle.getString(BRANCH_ID);
+
+		gateChains.clear();
+		String[] chains = bundle.getStringArray(GATE_CHAINS);
+		if (chains == null) {
+			chains = bundle.getStringArray(LEGACY_CYCLE_CHAINS);
+		}
+		if (chains != null) {
+			for (String s : chains) {
+				String[] parts = s.split("\\|");
+				if (parts.length == 2) gateChains.put(parts[0], Integer.parseInt(parts[1]));
+			}
+		}
 		if (!bundle.contains(BRANCH_ID) || !Branches.exists(branchId)) {
 			throw new IncompatibleSaveException("Invalid saved branch: " + branchId);
 		}

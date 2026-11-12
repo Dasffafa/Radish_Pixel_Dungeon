@@ -148,7 +148,9 @@ public class Bomb extends Item {
 		Sample.INSTANCE.play( Assets.Sounds.BLAST );
 
 		if (explodesDestructively()) {
-			
+			com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(
+					new com.shatteredpixel.shatteredpixeldungeon.events.ExplosionEvent(cell));
+
 			ArrayList<Char> affected = new ArrayList<>();
 			
 			if (Dungeon.level.heroFOV[cell]) {
@@ -164,9 +166,12 @@ public class Bomb extends Item {
 					}
 					
 					if (Dungeon.level.flamable[c]) {
-						Dungeon.level.destroy(c);
-						GameScene.updateMap(c);
-						terrainAffected = true;
+						//特殊门不会被爆炸摧毁，避免刚被炸开的门又被同一次爆炸烧掉
+						if (!com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.isIndestructible(c)) {
+							Dungeon.level.destroy(c);
+							GameScene.updateMap(c);
+							terrainAffected = true;
+						}
 					}
 					
 					//destroys items / triggers bombs caught in the blast.
@@ -224,6 +229,8 @@ public class Bomb extends Item {
 		this.fuse = null;
 
 		if (explodesDestructively()) {
+			com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(
+					new com.shatteredpixel.shatteredpixeldungeon.events.ExplosionEvent(cell));
 
 			ArrayList<Char> affected = new ArrayList<>();
 
@@ -245,7 +252,6 @@ public class Bomb extends Item {
 					}
 				}
 			}
-
 			for (Char ch : affected) {
 
 				//if they have already been killed by another bomb

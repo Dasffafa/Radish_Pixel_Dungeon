@@ -67,6 +67,8 @@ public class Assets {
 
 		public static final String WATER_MOSS = "environment/water_moss.png";
 		public static final String MOSS_ENTER = "environment/custom_tiles/moss_enter.png";
+		public static final String SEALED_DOOR = "environment/custom_tiles/sealed_door.png";
+		public static final String CYCLE_STAIR = "environment/custom_tiles/cycle_stair.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";
 		public static final String TILES_CAVES_GNOLL    = "environment/tiles_caves_gnoll.png";
