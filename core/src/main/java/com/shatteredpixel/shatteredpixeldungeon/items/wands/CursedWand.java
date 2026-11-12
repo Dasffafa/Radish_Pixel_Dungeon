@@ -878,11 +878,16 @@ public class CursedWand {
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 
 			ArrayList<Char> affectedChars = new ArrayList<>();
-			if (cone == null && Actor.findChar(bolt.collisionPos) != null){
+			//范围只对紧跟在特效后面的这一次结算有效，取出来就清掉。这个效果对象全局只有一个：
+			//不清的话，之后不经过特效直接结算（混沌元素近战）时，拿到的是上一次施放留下的那片范围
+			ConeAOE area = cone;
+			cone = null;
+			if (area == null){
 				//cone may be null in cases like chaos elemental melee
-				affectedChars.add(Actor.findChar(bolt.collisionPos));
+				Char target = Actor.findChar(bolt.collisionPos);
+				if (target != null) affectedChars.add(target);
 			} else {
-				for (Integer cell : cone.cells){
+				for (Integer cell : area.cells){
 					if (cell == user.pos) {
 						continue;
 					}
