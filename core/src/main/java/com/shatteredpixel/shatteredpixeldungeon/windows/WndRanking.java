@@ -434,8 +434,10 @@ public class WndRanking extends WndTabbed {
 			for (int i=0; i < Challenges.NAME_IDS.length; i++) {
 
 				final String challenge = Challenges.NAME_IDS[i];
+				//追加挑战的文本不在 Challenges 名下，与挑战选择窗口取同一处，两边显示的名称和说明才一致
+				final Class<?> textSource = WndChallenges.textSource(i);
 
-				WndChallenges.CanScrollCheckBox cb = new WndChallenges.CanScrollCheckBox( Messages.titleCase(Messages.get(Challenges.class, challenge)) );
+				WndChallenges.CanScrollCheckBox cb = new WndChallenges.CanScrollCheckBox( Messages.titleCase(Messages.get(textSource, challenge)) );
 				cb.checked( (Dungeon.challenges & Challenges.MASKS[i]) != 0 );
 				cb.active = false;
 
@@ -451,7 +453,7 @@ public class WndRanking extends WndTabbed {
 					protected void onClick() {
 						super.onClick();
 						ShatteredPixelDungeon.scene().add(
-								new WndMessage(Messages.get(Challenges.class, challenge+"_desc"))
+								new WndMessage(Messages.get(textSource, challenge+"_desc"))
 						);
 					}
 				};
