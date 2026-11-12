@@ -384,6 +384,11 @@ public class Belongings implements Iterable<Item> {
 			secondWep().identify();
 			Badges.validateItemLevelAquired(secondWep());
 		}
+		// 这里是逐栏写死的，后加的次要护甲栏漏了：觉察之泉鉴定全身装备时唯独不鉴定它
+		if (secondaryArmor() != null){
+			secondaryArmor().identify();
+			Badges.validateItemLevelAquired(secondaryArmor());
+		}
 		for (Item item : backpack) {
 			if (item instanceof EquipableItem || item instanceof Wand) {
 				item.cursedKnown = true;
