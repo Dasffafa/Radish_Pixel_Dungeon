@@ -4,6 +4,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.watabou.utils.Bundle;
 
 public class LethalDefense extends Buff{
     public float duration;
@@ -29,6 +30,21 @@ public class LethalDefense extends Buff{
         }
     }
 
+
+    private static final String DURATION = "duration";
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(DURATION, duration);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        //旧存档没有这个字段时保持 0：读档后的第一个回合自然结束，和以前的表现一样
+        if (bundle.contains(DURATION)) duration = bundle.getFloat(DURATION);
+    }
 
     @Override
     public boolean act() {
