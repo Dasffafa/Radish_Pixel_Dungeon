@@ -125,7 +125,8 @@ public class TestArmor extends TestGenerator {
             case 4:
                 return (Class<? extends Armor>[]) Generator.Category.ARM_T4.classes.clone();
             case 5:
-                return (Class<? extends Armor>[]) Generator.Category.ARM_T5.classes.clone();
+                // ARM_T5 里还混着概率为 0 的职业护甲，生成器只列自然掉落的那几件
+                return (Class<? extends Armor>[]) Generator.Category.ARM_T5_NATURE.classes.clone();
         }
     }
 
