@@ -129,7 +129,8 @@ public class StatusPane extends Component {
 		};
 		add(heroInfo);
 
-		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, lastTier );
+		// 按英雄当前的样子画（伪装期间是伪装职业）；带着伪装读档时状态栏是重新建的
+		avatar = HeroSprite.avatar( Dungeon.hero );
 		add( avatar );
 
 		talentBlink = 0;
@@ -408,7 +409,8 @@ public class StatusPane extends Component {
 		int tier = Dungeon.hero.tier_for_image();
 		if (tier != lastTier) {
 			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
+			// 与 updateAvatar() 用同一个取法：伪装期间换护甲，头像不能变回本职业
+			avatar.copy( HeroSprite.avatar( Dungeon.hero ) );
 		}
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);
