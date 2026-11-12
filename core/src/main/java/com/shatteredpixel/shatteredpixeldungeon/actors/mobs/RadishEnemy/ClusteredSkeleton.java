@@ -38,6 +38,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.RadishEnemySprite.Cluste
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -60,6 +61,22 @@ public class ClusteredSkeleton extends Mob {
     }
 
     private boolean isDead = false;
+
+    //和原版 Brute 的 hasRaged 一样要存：否则倒计时期间读档会被当成第一次濒死，护盾重置、预警再弹一遍
+    private static final String IS_DEAD = "is_dead";
+
+    @Override
+    public void storeInBundle( Bundle bundle ) {
+        super.storeInBundle( bundle );
+        bundle.put( IS_DEAD, isDead );
+    }
+
+    @Override
+    public void restoreFromBundle( Bundle bundle ) {
+        super.restoreFromBundle( bundle );
+        //旧存档没有这个键，保持默认值
+        if (bundle.contains( IS_DEAD )) isDead = bundle.getBoolean( IS_DEAD );
+    }
 
 
     @Override
@@ -126,6 +143,10 @@ public class ClusteredSkeleton extends Mob {
     }
     @Override
     public void die( Object cause ) {
+
+        //走到这里就是真的死了，包括坠入深渊这类不经过濒死倒计时的死法：
+        //不先置位的话，之后任何一次 isAlive() 都会对着尸体再启动倒计时并弹出爆炸预警
+        isDead = true;
 
         super.die( cause );
 
