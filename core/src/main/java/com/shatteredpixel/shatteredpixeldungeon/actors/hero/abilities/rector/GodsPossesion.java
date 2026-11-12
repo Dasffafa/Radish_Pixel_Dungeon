@@ -32,6 +32,11 @@ public class GodsPossesion extends ArmorAbility {
     @Override
     protected void activate(ClassArmor armor, Hero hero, Integer target) {
 
+        // 和其它护甲技能一样先扣充能。这里原先漏了：技能说明写着消耗充能，实际一点不扣，
+        // 充能够一次的量就能每回合连放（带治愈圣启时等于无限回血加全屏击退）
+        armor.charge -= chargeUse(hero);
+        armor.updateQuickslot();
+
         // avatar (talent)
         if(hero.hasTalent(Talent.AVATAR)){
             Buff.affect(hero, MagicalSight.class,30f);
