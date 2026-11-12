@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.AttackEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -117,6 +118,13 @@ public class Rlyeh extends MeleeWeapon {
         }
         Sample.INSTANCE.play(Assets.Sounds.CURSED);
         attacker.damage(DamageInfo.physical(rlyeh.damageRoll(defender), attacker, rlyeh));
+
+        // 英雄自己的攻击被弹回来、把自己打死了：这次攻击随后被取消，攻击流程不会再做死亡结算，
+        // 不在这里补的话这次死亡不进排行榜，也没有任何死因提示
+        if (attacker == player && !player.isAlive()) {
+            Dungeon.fail(rlyeh);
+            GLog.n(Messages.capitalize(Messages.get(Char.class, "kill", rlyeh.name())));
+        }
 
         // 取消本次攻击：原伤害不再结算
         event.cancel();
