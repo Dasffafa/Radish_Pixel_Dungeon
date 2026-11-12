@@ -114,7 +114,7 @@ public class Druid extends HeroSubClass {
 		return spawnAnimal( hero, boar, animalCost( hero, 12f ) );
 	}
 
-	private static float animalCost( Hero hero, float base ) {
+	public static float animalCost( Hero hero, float base ) {
 		int pts = hero.pointsInTalent( Talent.ANIMAL_COMPANION );
 		if (pts >= 3) {
 			return base + 6f;

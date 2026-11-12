@@ -45,6 +45,28 @@ public class WndDruidSkills extends Window {
 			{ 6, 7, 8, 9 }
 	};
 
+	// COSTS 是基础消耗，实际扣多少还要看天赋：动物伙伴让三种动物加价，元素掌握让四个法术减价。
+	// 能否施放、悬停提示都必须用这个值，否则会出现「按钮是亮的却放不出」或「够能量却被拒绝」。
+	private static int realCost( int index ) {
+		Hero hero = Dungeon.hero;
+		if (index <= 2) {
+			return (int) Druid.animalCost( hero, COSTS[index] );
+		} else if (index >= 6) {
+			return (int) Druid.spellCost( hero, COSTS[index] );
+		}
+		return COSTS[index];
+	}
+
+	// 说明文字里写的是基础消耗；天赋改变了消耗时在末尾补一行当前的实际数值
+	private String descOf( int index ) {
+		String desc = Messages.get( this, KEYS[index] + ".desc" );
+		int cost = realCost( index );
+		if (cost != COSTS[index]) {
+			desc += "\n\n" + Messages.get( this, "cost_talent", cost );
+		}
+		return desc;
+	}
+
 	private final Druid.DruidEnergy energy;
 
 	public WndDruidSkills( Druid.DruidEnergy energy, boolean info ) {
@@ -75,8 +97,9 @@ public class WndDruidSkills extends Window {
 		if (info) {
 			msg = PixelScene.renderTextBlock( Messages.get( this, "info_desc" ), 6 );
 		} else {
+			// 向下取整，和快捷栏按钮上的数字一致；四舍五入会出现「显示 12 却放不出 12 点的法术」
 			String energyLine = Messages.get( this, "energy",
-					Math.round( Druid.energy( Dungeon.hero ) ), (int) Druid.maxEnergy( Dungeon.hero ) );
+					(int) Druid.energy( Dungeon.hero ), (int) Druid.maxEnergy( Dungeon.hero ) );
 			String hint = DeviceCompat.isDesktop()
 					? Messages.get( this, "cast_desc_desktop" )
 					: Messages.get( this, "cast_desc_mobile" );
@@ -138,7 +161,7 @@ public class WndDruidSkills extends Window {
 		}
 
 		private boolean canCast() {
-			return Druid.energy( Dungeon.hero ) >= COSTS[index];
+			return Druid.energy( Dungeon.hero ) >= realCost( index );
 		}
 
 		@Override
@@ -162,7 +185,7 @@ public class WndDruidSkills extends Window {
 			if (info) {
 				GameScene.show( new WndTitledMessage( new HeroIcon( HeroIcon.DRUID_SKILL ),
 						Messages.titleCase( Messages.get( WndDruidSkills.this, KEYS[index] ) ),
-						Messages.get( WndDruidSkills.this, KEYS[index] + ".desc" ) ) );
+						descOf( index ) ) );
 				return;
 			}
 			hide();
@@ -177,14 +200,14 @@ public class WndDruidSkills extends Window {
 		protected boolean onLongClick() {
 			GameScene.show( new WndTitledMessage( new HeroIcon( HeroIcon.DRUID_SKILL ),
 					Messages.titleCase( Messages.get( WndDruidSkills.this, KEYS[index] ) ),
-					Messages.get( WndDruidSkills.this, KEYS[index] + ".desc" ) ) );
+					descOf( index ) ) );
 			return true;
 		}
 
 		@Override
 		protected String hoverText() {
 			return "_" + Messages.titleCase( Messages.get( WndDruidSkills.this, KEYS[index] ) ) + "_\n"
-					+ Messages.get( WndDruidSkills.this, "cost", COSTS[index] );
+					+ Messages.get( WndDruidSkills.this, "cost", realCost( index ) );
 		}
 	}
 
