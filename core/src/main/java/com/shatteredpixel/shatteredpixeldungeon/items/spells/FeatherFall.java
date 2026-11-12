@@ -51,6 +51,7 @@ public class FeatherFall extends Spell {
 		
 		detach( curUser.belongings.backpack );
 		updateQuickslot();
+		Spell.onSpellUsed( hero, this );
 		hero.spendAndNext( 1f );
 	}
 	

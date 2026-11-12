@@ -104,6 +104,7 @@ public class MagicalInfusion extends InventorySpell {
 		if (Random.Float() < ((Spell) curItem).talentChance) {
 			Talent.onScrollUsed(curUser, curUser.pos, ((Spell) curItem).talentFactor);
 		}
+		Spell.onSpellUsed( curUser, this );
 	}
 
 	@Override
