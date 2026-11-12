@@ -143,6 +143,8 @@ public class BuffIndicator extends Component {
 
 	public static final String SPELL_VULNERABLE = "spell_vulnerable";
 
+	public static final String SPELL_FOOD = "spell_food"; // 工程师「劳碌一餐」的进食中状态
+
 	public static final int SIZE_SMALL  = 7;
 	public static final int SIZE_LARGE  = 16;
 

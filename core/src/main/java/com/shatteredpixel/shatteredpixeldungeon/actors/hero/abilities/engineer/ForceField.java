@@ -36,6 +36,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -72,6 +75,20 @@ public class ForceField extends ArmorAbility {
 	@Override
 	public Talent[] talents() {
 		return new Talent[]{Talent.MECHANICAL_REFINEMENT, Talent.MOMENTUM_TRANSFORM, Talent.ACTIVE_DEFENSE, Talent.HEROIC_ENERGY};
+	}
+
+	/** 「动能转换」存下的恒动伤害，是否由 owner 手里的武器（不论有没有恒动附魔）在下一次普通攻击时释放。 */
+	public static boolean releasesKinetic(Char owner) {
+		return false;
+	}
+
+	public static void onAttackHit(AttackHitEvent event) {
+	}
+
+	public static void onAttackMiss(AttackMissEvent event) {
+	}
+
+	public static void onFinalDamage(CharFinalDamageEvent event) {
 	}
 
 	public static class Field extends FlavourBuff {

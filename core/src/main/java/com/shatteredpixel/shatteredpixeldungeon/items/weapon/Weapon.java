@@ -41,6 +41,7 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
+import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModState;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfFuror;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
@@ -153,6 +154,9 @@ abstract public class Weapon extends KindOfWeapon {
 	public boolean curseInfusionBonus = false;
 	public boolean masteryPotionBonus = false;
 
+	//工程师的改装部件；没有改装时为 null
+	public ModState mods;
+
 	public boolean readyToIdentify(){
 		return !isIdentified() && usesLeftToID <= 0;
 	}
@@ -231,6 +235,8 @@ abstract public class Weapon extends KindOfWeapon {
 		bundle.put( AUGMENT, augment );
 
 		bundle.put("is_shining",isShining);
+
+		if (mods != null) mods.storeInBundle( bundle );
 	}
 	
 	@Override
@@ -249,6 +255,8 @@ abstract public class Weapon extends KindOfWeapon {
 			isShining=bundle.getBoolean("is_shining");
 		}
 
+		mods = ModState.restoreFromBundle( bundle );
+
 	}
 	
 	@Override
@@ -256,6 +264,8 @@ abstract public class Weapon extends KindOfWeapon {
 		super.reset();
 		usesLeftToID = USES_TO_ID;
 		availableUsesToID = USES_TO_ID/2f;
+		//装备可以留在遗骸里带到下一局，改装不带
+		mods = null;
 	}
 	
 	@Override

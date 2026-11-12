@@ -19,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.curses.Corrosion;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.*;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.curses.ITempLevelCurse;
+import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModState;
 import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfKing;
@@ -116,6 +117,9 @@ public class Armor extends EquipableItem {
 
 	public boolean masteryPotionBonus = false;
 
+	//工程师的改装部件；没有改装时为 null
+	public ModState mods;
+
 	public int tier;
 
 	private static final int USES_TO_ID = 10;
@@ -151,6 +155,7 @@ public class Armor extends EquipableItem {
 		}
 		toyBundle.put("toy_count", attachedToys.size());
 		bundle.put(ATTACHED_TOYS, toyBundle);
+		if (mods != null) mods.storeInBundle( bundle );
 	}
 
 	@Override
@@ -182,6 +187,7 @@ public class Armor extends EquipableItem {
 				}
 			}
 		}
+		mods = ModState.restoreFromBundle( bundle );
 	}
 
 	@Override
@@ -192,6 +198,7 @@ public class Armor extends EquipableItem {
 		// armor can be kept in bones between runs, attachments cannot.
 		toyCharge = 0;
 		attachedToys.clear();
+		mods = null;
 	}
 
 	public boolean readyToIdentify(){
