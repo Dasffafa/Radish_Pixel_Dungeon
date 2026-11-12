@@ -69,7 +69,8 @@ public class SpaceFragment extends MeleeWeapon {
             GLog.w(Messages.get(SpaceFragment.class, "cooldown"));
             return false;
         }
-        if (!ScrollOfTeleportation.teleportChar(hero)) {
+        // 能走到这里必然装备着碎片，按外部来源传送会被碎片自己的免疫挡下
+        if (!ScrollOfTeleportation.teleportChar(hero, false)) {
             return false;
         }
         Buff.affect(hero, AbyssCooldown.class, ABYSS_COOLDOWN);

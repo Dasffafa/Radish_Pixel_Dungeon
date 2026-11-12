@@ -199,14 +199,15 @@ public class LloydsBeacon extends Artifact {
 			updateQuickslot();
 
 			if (Actor.findChar(target) == curUser){
-				ScrollOfTeleportation.teleportChar(curUser);
+				//对自己使用是玩家主动传送
+				ScrollOfTeleportation.teleportChar(curUser, false);
 				curUser.spendAndNext(1f);
 			} else {
 				final Ballistica bolt = new Ballistica( curUser.pos, target, Ballistica.MAGIC_BOLT );
 				final Char ch = Actor.findChar(bolt.collisionPos);
 
 				if (ch == curUser){
-					ScrollOfTeleportation.teleportChar(curUser);
+					ScrollOfTeleportation.teleportChar(curUser, false);
 					curUser.spendAndNext( 1f );
 				} else {
 					Sample.INSTANCE.play( Assets.Sounds.ZAP );
