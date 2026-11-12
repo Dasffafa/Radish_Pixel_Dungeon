@@ -78,6 +78,8 @@ public class SnDSFX {
         define("bite/biteSmall", "bite/biteSmall", 4);
 
         // death/
+        // 骷髅类的死亡音效：playSnDDeathSoundVariant 按 "death/bones" 取，文件是 death/bones_0..2.wav
+        define("death/bones", "death/bones", 3);
         define("death/deathAlien", "death/deathAlien", 2);
         define("death/deathBig", "death/deathBig", 4);
         define("death/deathCute", "death/deathCute", 3);
