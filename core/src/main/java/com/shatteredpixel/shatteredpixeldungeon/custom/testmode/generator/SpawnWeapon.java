@@ -239,6 +239,10 @@ public class SpawnWeapon extends TestItem {
             // 设置窗口尺寸
             resize(WIDTH, HEIGHT);
 
+            // 阶数和「第几把」会随物品存档，而武器表会随版本增减：先收回到现在的表里
+            tier = Math.max(1, Math.min(tier, 5));
+            weapon_id = Math.max(0, Math.min(weapon_id, maxSlots(tier) - 1));
+
             // 创建武器阶数选项滑块
             OptionSlider_Tier = new OptionSlider(Messages.get(this, "weapon_tier"), "1", "5", 1, 5) {
                 @Override
@@ -247,6 +251,10 @@ public class SpawnWeapon extends TestItem {
                     tier = getSelectedValue();
                     clearImage();
                     createWeaponImage(getWeapon(tier));
+                    // 各阶的武器数量不同：换阶后原来选的「第几把」可能已经超出这一阶，不收回来的话
+                    // 点「生成」只会得到一句「无法放置」，按钮上也还写着上一阶那把武器的名字
+                    weapon_id = Math.max(0, Math.min(weapon_id, maxSlots(tier) - 1));
+                    if (initialized) updateSelectedWeaponText();
                 }
             };
             OptionSlider_Tier.setSelectedValue(tier);
