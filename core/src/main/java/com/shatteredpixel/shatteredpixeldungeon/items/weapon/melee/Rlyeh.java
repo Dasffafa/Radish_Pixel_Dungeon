@@ -38,14 +38,22 @@ public class Rlyeh extends MeleeWeapon {
 
     @Override
     public boolean doEquip( Hero hero ) {
-        Buff.affect(hero,StateProject.class);
-        return super.doEquip(hero);
+        // 装备可能失败（手里是脱不下来的诅咒武器、村正狂热），确认装上了再挂 buff
+        if (super.doEquip(hero)) {
+            Buff.affect(hero,StateProject.class);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean doUnequip(Hero hero, boolean collect, boolean single) {
-        Buff.detach(hero,StateProject.class);
-        return super.doUnequip(hero, collect, single);
+        // 同理，被诅咒卸不下来时 buff 不能摘，否则反弹概率不再随等级更新
+        if (super.doUnequip(hero, collect, single)) {
+            Buff.detach(hero,StateProject.class);
+            return true;
+        }
+        return false;
     }
 
 

@@ -35,15 +35,24 @@ public class WhiteKingGodSword extends MeleeWeapon {
             GLog.n(Messages.get(this, "already_wielding"));
             return false;
         }
-        Buff.affect(hero, OnlyOneEyeAttack.class);
-        return super.doEquip(hero);
+        // 装备可能失败（手里是脱不下来的诅咒武器、村正狂热），确认装上了再挂 buff。
+        // 没装上却挂着 buff 时，视野里的敌人会被白白标记成「已经被圣剑打过」
+        if (super.doEquip(hero)) {
+            Buff.affect(hero, OnlyOneEyeAttack.class);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean doUnequip(Hero hero, boolean collect, boolean single){
-        if(hero.buff(OnlyOneEyeAttack.class) != null)
-            hero.buff(OnlyOneEyeAttack.class).detach();
-        return super.doUnequip(hero, collect, single);
+        // 同理，圣剑被诅咒卸不下来时 buff 不能摘，否则剑还在手上、效果却没了
+        if (super.doUnequip(hero, collect, single)) {
+            if(hero.buff(OnlyOneEyeAttack.class) != null)
+                hero.buff(OnlyOneEyeAttack.class).detach();
+            return true;
+        }
+        return false;
     }
 
     @Override
