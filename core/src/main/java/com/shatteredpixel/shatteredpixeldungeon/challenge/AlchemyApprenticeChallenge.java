@@ -38,7 +38,7 @@ public class AlchemyApprenticeChallenge {
 	}
 
 	//配方自身的基础消耗经过本挑战之后的数值。
-	//加价算在配方本身上，所以它先于工匠的减免和炼金工具箱的代付结算
+	//加价算在配方本身上，所以它先于奇械师的减免和炼金工具箱的代付结算
 	public static int recipeCost( int baseCost ){
 		if (!isActive()) return baseCost;
 		if (baseCost <= 0 && !CHARGE_FREE_RECIPES) return baseCost;
