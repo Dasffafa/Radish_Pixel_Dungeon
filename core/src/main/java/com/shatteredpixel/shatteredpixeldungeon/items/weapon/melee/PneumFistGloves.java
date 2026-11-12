@@ -74,17 +74,23 @@ public class PneumFistGloves extends MeleeWeapon {
         DLY = 0.8f;
     }
 
+    // 启动状态的伤害加成是靠烧炼金能量换来的：能量为 0 时这一击就是常规攻击
+    // （proc 里的提示也是这么说的）。以前只看开关不看能量，开着开关、一点能量不花也白拿加成
+    private boolean powered() {
+        return active && Dungeon.energy > 0;
+    }
+
     @Override
     public int min(int lvl) {
         int originDamage = 4+lvl;
-        return active ? (int) (originDamage * ((0.1f * lvl) + 1.5f)) : originDamage;
+        return powered() ? (int) (originDamage * ((0.1f * lvl) + 1.5f)) : originDamage;
     }
 
 
     @Override
     public int max(int lvl) {
         int originDamage = 15 + lvl * 3;
-        return active ? (int) (originDamage * ((0.1f * lvl) + 1.5f)) : originDamage;
+        return powered() ? (int) (originDamage * ((0.1f * lvl) + 1.5f)) : originDamage;
     }
 
     @Override
