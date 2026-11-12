@@ -151,15 +151,22 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		hero.checkVisibleMobs();
 		AttackIndicator.target( victim );
 
-		hero.sprite.attack( victim.pos, new Callback() {
-			@Override
-			public void call() {
-				if (victim.isAlive()){
+		// appear 会触发落点的地块效果：踩中暗藏陷阱时英雄可能被再次挪走，甚至倒下。
+		// 和原版突进类技能一样，出手前复核一次还够不够得着，够不着就只结算这次行动，
+		// 否则会隔着半张地图打出一记必中的近战。
+		if (hero.isAlive() && victim.isAlive() && hero.canAttack( victim )){
+			hero.sprite.attack( victim.pos, new Callback() {
+				@Override
+				public void call() {
 					hero.attack( victim, 1f, 0f, Char.INFINITE_ACCURACY );
+					// 英雄出手后一律解除隐形；这条路径不经过 Hero.onAttackComplete，要自己补上
+					Invisibility.dispel();
+					hero.spendAndNext( hero.attackDelay() );
 				}
-				hero.spendAndNext( hero.attackDelay() );
-			}
-		});
+			});
+		} else {
+			hero.spendAndNext( hero.attackDelay() );
+		}
 		detach();
 	}
 
