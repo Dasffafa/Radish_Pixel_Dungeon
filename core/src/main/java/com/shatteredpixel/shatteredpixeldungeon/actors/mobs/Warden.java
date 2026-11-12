@@ -318,7 +318,7 @@ public class Warden extends Mob {
 		if (awake) {
 			BossHealthBar.assignBoss( this );
 		}
-		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.link()
+		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.linkVisuals()
 		activating = null;
 		activatingTurnsLeft = 0;
 		pendingActivatingCell = -1;
