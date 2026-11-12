@@ -59,14 +59,16 @@ public class Engineer extends HeroDefinition {
 	public TalentSet talents() {
 		TalentSet set = new TalentSet();
 		set.setTier1(new Talent[]{
-				Talent.KEEN_MEAL, Talent.FINE_INTUITION, Talent.TESTED_MAINTENANCE,
+				Talent.RATION_PLANNING, Talent.FINE_INTUITION,
 				Talent.GENERAL_DISARM, Talent.PULSE_ENERGY });
 		set.setTier2(new Talent[]{
-				Talent.TOILSOME_MEAL, Talent.IONIC_LIQUID, Talent.STRONG_PULSE,
-				Talent.RESONANT_SENSING, Talent.APART_ANYTHING, Talent.REMOTE_DESTRUCTION });
+				Talent.TOILSOME_MEAL, Talent.SCROLL_VIGILANCE, Talent.STRONG_PULSE,
+				Talent.DISMANTLE_URGE, Talent.FAVORITE_WORK });
 		set.setTier3(new Talent[]{
-				Talent.DURABLE_MODIFIES, Talent.ELECTRONIC_REPAIR, Talent.IONIZING_RADIATION });
-		set.setTier4(new Talent[0]);
+				Talent.COORDINATED_ACTION, Talent.ELECTRONIC_REPAIR });
+		//四阶通用天赋；小恶魔「激发潜力」开放四阶后才出现，与护甲技能二选一
+		set.setTier4(new Talent[]{
+				Talent.ATTACHED_PULSE, Talent.INSTANT_REPAIR });
 		return set;
 	}
 

@@ -45,6 +45,7 @@ def talentNames = { File sourceFile ->
             'heroic_energy_mage',
             'heroic_energy_rogue',
             'heroic_energy_huntress',
+            'heroic_energy_engineer',
             'heroic_energy_rat'
     ])
     // 这些天赋通过 icon() 重写复用了其他天赋的图标，本身不参与 runtime-atlas 打包，无需专属 PNG。

@@ -144,7 +144,7 @@ public class Detonator extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[]{Talent.STACKED_CHARGE, Talent.ALCHEMY_CRAFT, Talent.DECOY, Talent.PORTABLE_DETONATOR, Talent.HEROIC_ENERGY};
+		return new Talent[]{Talent.ALCHEMY_CRAFT, Talent.DECOY, Talent.STACKED_CHARGE, Talent.HEROIC_ENERGY};
 	}
 
 	public static class DetonationMob extends Mob {
