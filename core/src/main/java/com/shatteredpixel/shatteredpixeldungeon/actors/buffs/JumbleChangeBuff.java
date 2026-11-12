@@ -238,6 +238,18 @@ public class JumbleChangeBuff extends Buff {
 		t.printStackTrace();
 	}
 
+	/** 场景重建时调用：旧精灵上的变身演出和兜底计时器都随旧场景丢了，直接把「变身中」状态收掉（逻辑结果早已提交）。 */
+	public static void abortPendingVisual() {
+		if (Dungeon.hero == null) return;
+		JumbleChangeBuff b = Dungeon.hero.buff(JumbleChangeBuff.class);
+		if (b == null) return;
+		synchronized (STATE_LOCK) {
+			if (!b.changing) return;
+			b.changing = false;
+			b.visualChangeToken++;
+		}
+	}
+
 	private void finishVisualChange(int token) {
 		Hero hero;
 		synchronized (STATE_LOCK) {

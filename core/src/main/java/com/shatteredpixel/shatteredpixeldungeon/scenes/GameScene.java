@@ -301,6 +301,11 @@ public class GameScene extends PixelScene {
 		mobs = new Group();
 		add( mobs );
 
+		// 不占回合的阻塞动画（Hero.playAnimationNoTime）靠旧场景里的精灵回调 / VirtualTimer 清位；
+		// 场景重建后它们都随旧场景没了，这里直接收尾，否则英雄的 act() 会永远 return false。
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.JumbleChangeBuff.abortPendingVisual();
+		Dungeon.hero.animationBusy = false;
+
 		hero = Dungeon.hero.heroClass.createSkinSprite();
 		hero.place( Dungeon.hero.pos );
 		hero.updateArmor();
