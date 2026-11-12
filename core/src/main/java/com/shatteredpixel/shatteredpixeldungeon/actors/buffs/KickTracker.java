@@ -43,6 +43,7 @@ import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -209,6 +210,14 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     public void detach() {
         super.detach();
         ActionIndicator.clearAction(this);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        //这个状态只有按下按钮用掉才会消失，读档后要把按钮放回去。
+        //不放的话状态还留在身上，checkKick 看到已有状态就不会再给，这次踹飞再也用不出来
+        ActionIndicator.setAction(this);
     }
 
     @Override
