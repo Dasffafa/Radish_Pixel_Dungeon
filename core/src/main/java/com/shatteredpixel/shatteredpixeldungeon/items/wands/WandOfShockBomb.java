@@ -114,6 +114,9 @@ public class WandOfShockBomb extends DamageWand {
 
     public static class ShockBombTracker extends Buff {
         public int pos;
+        //放置时所在的楼层，由 setPos 记录。旧存档里的 tracker 没有这两项，branchId 保持 null
+        private int depth = -1;
+        private String branchId = null;
         private int level;
         private int turnsLeft = 1;
         private boolean[] fieldOfView;
@@ -121,6 +124,11 @@ public class WandOfShockBomb extends DamageWand {
 
         @Override
         public boolean act() {
+            if (!onFloor(depth, branchId)) {
+                detach();
+                return true;
+            }
+
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
@@ -180,6 +188,13 @@ public class WandOfShockBomb extends DamageWand {
             return Dungeon.level.insideMap(cell) && Dungeon.level.distance(center, cell) <= radius;
         }
 
+        //tracker 挂在英雄身上，会跟着英雄换层，而 pos 只是放置时那一层的格子下标，
+        //到了别的楼层指向的是一个不相干的位置，不能在那里显示预警或结算爆炸。
+        //branchId 为 null 说明是旧存档里没有记录楼层的 tracker，只能当作还在原来那一层
+        private static boolean onFloor(int depth, String branchId) {
+            return branchId == null || (depth == Dungeon.depth && branchId.equals(Dungeon.branchId));
+        }
+
         private static void runExplode(int damage, int cell, int center) {
             if (Dungeon.level.insideMap(cell)) {
                 Char ch = Actor.findChar(cell);
@@ -230,11 +245,13 @@ public class WandOfShockBomb extends DamageWand {
         public void setPos(int pos, int level) {
             this.pos = pos;
             this.level = level;
+            this.depth = Dungeon.depth;
+            this.branchId = Dungeon.branchId;
         }
 
         @Override
         public void fx(boolean on) {
-            if (on && (halo == null || halo.parent == null)) {
+            if (on && onFloor(depth, branchId) && (halo == null || halo.parent == null)) {
                 halo = new ShockBombVFX();
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 halo.point(p.x, p.y);
@@ -246,6 +263,8 @@ public class WandOfShockBomb extends DamageWand {
 
         // 序列化相关
         private static final String POS = "pos";
+        private static final String DEPTH = "depth";
+        private static final String BRANCH_ID = "branch_id";
         private static final String LEVEL = "level";
         private static final String LEFT = "left";
 
@@ -255,6 +274,10 @@ public class WandOfShockBomb extends DamageWand {
         public void storeInBundle(Bundle bundle) {
             super.storeInBundle(bundle);
             bundle.put(POS, pos);
+            if (branchId != null) {
+                bundle.put(DEPTH, depth);
+                bundle.put(BRANCH_ID, branchId);
+            }
             bundle.put(LEVEL, level);
             bundle.put(LEFT, turnsLeft);
             bundle.put(DAMAGE, damage);
@@ -264,6 +287,10 @@ public class WandOfShockBomb extends DamageWand {
         public void restoreFromBundle(Bundle bundle) {
             super.restoreFromBundle(bundle);
             pos = bundle.getInt(POS);
+            if (bundle.contains(BRANCH_ID)) {
+                depth = bundle.getInt(DEPTH);
+                branchId = bundle.getString(BRANCH_ID);
+            }
             level = bundle.getInt(LEVEL);
             turnsLeft = bundle.getInt(LEFT);
             damage = bundle.getInt(DAMAGE);
@@ -273,6 +300,8 @@ public class WandOfShockBomb extends DamageWand {
 
     public static class ShockMageBombTracker extends Buff {
         public int pos;
+        private int depth = -1;
+        private String branchId = null;
         private int level;
         private int turnsLeft = 1;
         private boolean[] fieldOfView;
@@ -280,6 +309,11 @@ public class WandOfShockBomb extends DamageWand {
 
         @Override
         public boolean act() {
+            if (!ShockBombTracker.onFloor(depth, branchId)) {
+                detach();
+                return true;
+            }
+
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
@@ -360,11 +394,13 @@ public class WandOfShockBomb extends DamageWand {
         public void setPos(int pos, int level) {
             this.pos = pos;
             this.level = level;
+            this.depth = Dungeon.depth;
+            this.branchId = Dungeon.branchId;
         }
 
         @Override
         public void fx(boolean on) {
-            if (on && (halo == null || halo.parent == null)) {
+            if (on && ShockBombTracker.onFloor(depth, branchId) && (halo == null || halo.parent == null)) {
                 halo = new ShockBombVFX();
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 halo.point(p.x, p.y);
@@ -376,6 +412,8 @@ public class WandOfShockBomb extends DamageWand {
 
         // 序列化相关
         private static final String POS = "pos";
+        private static final String DEPTH = "depth";
+        private static final String BRANCH_ID = "branch_id";
         private static final String LEVEL = "level";
         private static final String LEFT = "left";
 
@@ -385,6 +423,10 @@ public class WandOfShockBomb extends DamageWand {
         public void storeInBundle(Bundle bundle) {
             super.storeInBundle(bundle);
             bundle.put(POS, pos);
+            if (branchId != null) {
+                bundle.put(DEPTH, depth);
+                bundle.put(BRANCH_ID, branchId);
+            }
             bundle.put(LEVEL, level);
             bundle.put(LEFT, turnsLeft);
             bundle.put(DAMAGE, damage);
@@ -394,6 +436,10 @@ public class WandOfShockBomb extends DamageWand {
         public void restoreFromBundle(Bundle bundle) {
             super.restoreFromBundle(bundle);
             pos = bundle.getInt(POS);
+            if (bundle.contains(BRANCH_ID)) {
+                depth = bundle.getInt(DEPTH);
+                branchId = bundle.getString(BRANCH_ID);
+            }
             level = bundle.getInt(LEVEL);
             turnsLeft = bundle.getInt(LEFT);
             damage = bundle.getInt(DAMAGE);
