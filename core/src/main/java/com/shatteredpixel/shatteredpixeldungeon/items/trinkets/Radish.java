@@ -72,9 +72,13 @@ public class Radish extends Trinket {
         @Override
         public boolean act() {
             Radish radish = Dungeon.hero.belongings.getItem(Radish.class);
-            if(radish != null){
-                critChance = radish.critChance(radish.buffedLvl());
+            if(radish == null){
+                // 萝卜不经过放下 / 投掷也会离开背包（被嬗变成别的饰物、在炼金釜里拆成能量……），
+                // 这时没有人来摘这个状态，暴击率加成会一直留到下次读档
+                detach();
+                return true;
             }
+            critChance = radish.critChance(radish.buffedLvl());
             spend(TICK);
             return true;
         }
