@@ -59,6 +59,9 @@ public class JutteChampionWeapon extends MeleeWeapon {
     // Store talent bonus for durability (to fix "one jutte talent only adds empty durability")
     private float talentBonus = 0f;
 
+    // 读档时背包里的十手先于 Dungeon.hero 恢复，那一刻问不到天赋；记下来，等英雄就位后再补同步
+    private boolean talentSyncPending = false;
+
     private static final int[][] TIER_DAMAGE = {
         {5, 20},   // tier 1
         {6, 24},   // tier 2
@@ -186,7 +189,15 @@ public class JutteChampionWeapon extends MeleeWeapon {
         durability = Math.min(durability, getMaxDurability());
     }
 
+    private void syncTalentIfPending() {
+        if (talentSyncPending && Dungeon.hero != null) {
+            talentSyncPending = false;
+            updateDurabilityFromTalent();
+        }
+    }
+
     public float getDurability() {
+        syncTalentIfPending();
         return durability;
     }
 
@@ -195,6 +206,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     }
 
     public void consumeDurability(float amount) {
+        syncTalentIfPending();
         if (isBroken()) return;
 
         durability -= amount;
@@ -258,6 +270,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
 
     @Override
     public String statsInfo() {
+        syncTalentIfPending();
         String info = Messages.get(this, "stats",
                 TIER_BLOCK[tier-1][0], TIER_BLOCK[tier-1][1],
                 (int)durability, (int)getMaxDurability());
@@ -324,6 +337,11 @@ public class JutteChampionWeapon extends MeleeWeapon {
         talentBonus = bundle.getFloat(TALENT_BONUS_KEY);
         
         // After restore, check if talent has been upgraded and update durability accordingly
-        updateDurabilityFromTalent();
+        if (Dungeon.hero != null) {
+            updateDurabilityFromTalent();
+        } else {
+            // 英雄还没就位时按「没有天赋」算上限，会把带天赋加成的耐久压回 50
+            talentSyncPending = true;
+        }
     }
 }
