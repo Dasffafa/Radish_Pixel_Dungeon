@@ -88,6 +88,11 @@ public class Heap implements Bundlable {
 	public boolean hidden = false; //sets alpha to 15%
 	
 	public LinkedList<Item> items = new LinkedList<>();
+
+	/** 只有这些 Item 实例是商店商品；玩家自己放下的物品不在此列，不需要购买。 */
+	private final ArrayList<Item> forSaleItems = new ArrayList<>();
+	/** 仅供存档：读档后把 items 的前 N 个重新标记为商品。 */
+	private int forSaleCount = 0;
 	
 	public void open( Hero hero ) {
 		switch (type) {
@@ -145,6 +150,7 @@ public class Heap implements Bundlable {
 			return null;
 		}
 		Item item = items.removeFirst();
+		refreshSaleState();
 		if (items.isEmpty()) {
 			destroy();
 		} else if (sprite != null) {
@@ -158,12 +164,46 @@ public class Heap implements Bundlable {
 		return items.peek();
 	}
 
+	public void markForSale( Item item ){
+		if (item != null && !identityContains(forSaleItems, item)) forSaleItems.add( item );
+		forSaleCount = forSaleItems.size();
+	}
+
+	/** 清掉已不在堆里的标记；商品全没了就把堆降级成普通堆。 */
+	private void refreshSaleState(){
+		for (int i = forSaleItems.size()-1; i >= 0; i--){
+			if (!identityContains(items, forSaleItems.get(i))) forSaleItems.remove(i);
+		}
+		forSaleCount = forSaleItems.size();
+		if (type == Type.FOR_SALE && forSaleItems.isEmpty()) type = Type.HEAP;
+	}
+
+	public boolean hasForSale(){
+		refreshSaleState();
+		return type == Type.FOR_SALE && !forSaleItems.isEmpty();
+	}
+
+	public Item forSaleItem(){
+		refreshSaleState();
+		return forSaleItems.isEmpty() ? null : forSaleItems.get(0);
+	}
+
+	public boolean isForSale( Item item ){
+		return hasForSale() && identityContains(forSaleItems, item);
+	}
+
+	private static boolean identityContains( Collection<?> c, Object o ){
+		for (Object e : c) if (e == o) return true;
+		return false;
+	}
+
 	/** 取走堆中指定的物品（用于多物品堆中选取特定物品拾取）。 */
 	public Item pickUp( Item item ) {
 		if (item == null || !items.contains( item )) {
 			return null;
 		}
 		items.remove( item );
+		refreshSaleState();
 		if (items.isEmpty()) {
 			destroy();
 		} else if (sprite != null) {
@@ -188,7 +228,7 @@ public class Heap implements Bundlable {
 		}
 
 		//lost backpack must always be on top of a heap
-		if ((item.dropsDownHeap && type != Type.FOR_SALE) || peek() instanceof LostBackpack) {
+		if (type == Type.FOR_SALE || (item.dropsDownHeap && type != Type.FOR_SALE) || peek() instanceof LostBackpack) {
 			items.add( item );
 		} else {
 			items.addFirst( item );
@@ -391,8 +431,9 @@ public class Heap implements Bundlable {
 	public String title(){
 		switch(type){
 			case FOR_SALE:
-				Item i = peek();
-				if (size() == 1) {
+				Item i = forSaleItem();
+				if (i == null) i = peek();
+				if (size() == 1 && i != null) {
 					return Messages.get(this, "for_sale", Shopkeeper.sellPrice(i), i.title());
 				} else {
 					return i.title();
@@ -479,6 +520,10 @@ public class Heap implements Bundlable {
 		haunted = bundle.getBoolean( HAUNTED );
 		autoExplored = bundle.getBoolean( AUTO_EXPLORED );
 		hidden = bundle.getBoolean( HIDDEN );
+		// 老存档没有该键：整堆都视为商品，保持原行为
+		int n = bundle.contains( "for_sale_count" ) ? bundle.getInt( "for_sale_count" ) : items.size();
+		for (int i = 0; i < Math.min(n, items.size()); i++) forSaleItems.add( items.get(i) );
+		forSaleCount = forSaleItems.size();
 	}
 
 	@Override
@@ -490,6 +535,7 @@ public class Heap implements Bundlable {
 		bundle.put( HAUNTED, haunted );
 		bundle.put( AUTO_EXPLORED, autoExplored );
 		bundle.put( HIDDEN, hidden );
+		bundle.put( "for_sale_count", forSaleItems.size() );
 	}
 	
 }

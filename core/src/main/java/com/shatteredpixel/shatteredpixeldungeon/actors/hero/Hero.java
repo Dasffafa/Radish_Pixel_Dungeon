@@ -1640,7 +1640,7 @@ public class Hero extends Char {
 			ready();
 
 			Heap heap = Dungeon.level.heaps.get( dst );
-			if (heap != null && heap.type == Type.FOR_SALE && !heap.isEmpty()) {
+			if (heap != null && heap.hasForSale()) {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
@@ -2981,7 +2981,14 @@ public class Hero extends Char {
 					break;
 				case FOR_SALE:
 					// 商品堆一律走购买流程，堆里有多件物品也不能变成免费拾取
-					curAction = new HeroAction.Buy( cell );
+					// 只有真商品才需要购买；玩家放在商品格上的东西应该能直接捡起
+					if (heap.hasForSale()) {
+						curAction = new HeroAction.Buy( cell );
+					} else {
+						pendingPickupItem = null;
+						pickupWindowCell = -1;
+						curAction = new HeroAction.PickUp( cell );
+					}
 					break;
 				default:
 					curAction = new HeroAction.OpenChest( cell );

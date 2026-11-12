@@ -140,7 +140,9 @@ public class ShopRoom extends SpecialRoom {
 				} while (level.heaps.get( cell ) != null || level.findMob( cell ) != null);
 			}
 
-			level.drop( item, cell ).type = Heap.Type.FOR_SALE;
+			Heap shopHeap = level.drop( item, cell );
+			shopHeap.type = Heap.Type.FOR_SALE;
+			shopHeap.markForSale( shopHeap.peek() );
 		}
 
 	}
