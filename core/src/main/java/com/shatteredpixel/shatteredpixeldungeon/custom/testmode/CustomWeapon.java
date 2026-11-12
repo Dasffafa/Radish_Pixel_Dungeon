@@ -83,7 +83,9 @@ public class CustomWeapon extends MeleeWeapon {
     }
 
     private long enchOn = 0L;
-    public static ArrayList<Enchantment> enchList = new ArrayList<>();
+    // 每把武器各有一份。以前这是所有自定义武器共用的一张表：同一次启动里再开一局，
+    // 新武器会带着上一局勾的附魔（它的勾选框却显示一个都没勾），读别的存档里的那把也会把这一把的附魔冲掉
+    private final ArrayList<Enchantment> enchList = new ArrayList<>();
     public static LinkedHashMap<Class<? extends Enchantment>, Integer> enchPrio = new LinkedHashMap<>();
     static{
         enchPrio.put(Blazing.class,1);
