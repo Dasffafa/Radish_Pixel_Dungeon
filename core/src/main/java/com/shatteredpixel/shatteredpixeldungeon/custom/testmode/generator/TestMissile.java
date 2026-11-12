@@ -18,7 +18,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingHa
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSpear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.WreckingBall;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingStone;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Tomahawk;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Trident;
@@ -136,15 +135,13 @@ public class TestMissile extends TestGenerator {
             case 14:
                 return ForceCube.class;
             case 15:
-                return WreckingBall.class;
-            case 16:
                 return Senbon.class;
         }
     }
 
     private void buildList() {
         if (missileList.isEmpty()) {
-            for (int i = 0; i < 17; ++i) {
+            for (int i = 0; i < 16; ++i) {
                 missileList.add(idToMissile(i));
             }
         }

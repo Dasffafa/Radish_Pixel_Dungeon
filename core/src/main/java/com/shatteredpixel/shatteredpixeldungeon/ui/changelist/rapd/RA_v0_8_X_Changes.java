@@ -37,9 +37,8 @@ public class RA_v0_8_X_Changes {
         changes.hardlight(Window.TITLE_COLOR);
         changeInfos.add(changes);
 
-        changes.addButton(new ChangeButton(new ItemSprite(WRECKING_BALL), "新投掷物：破坏球与千本",
-                ("_-_ 破坏球：投出后撞墙按入射角弹开，最多反射 3 次；也能放在脚下，站到旁边按住动作按钮蓄力击飞。\n\n" +
-                        "_-_ 千本：一次扇形甩出 12 枚钢针，各自飞行，真正扎中目标才结算一次普通物理伤害。")));
+        changes.addButton(new ChangeButton(new ItemSprite(SENBON), "新投掷物：千本",
+                ("_-_ 千本：一次扇形甩出 12 枚钢针，各自飞行，真正扎中目标才结算一次普通物理伤害。")));
 
         changes.addButton(new ChangeButton(new ItemSprite(ARMOR_COUNTESS), "四件新护甲",
                 ("_-_ 伯爵礼服：获得或花费金币后回血（赎回除外）。\n\n" +
@@ -217,7 +216,8 @@ public class RA_v0_8_X_Changes {
                         "_-_ 修复 踩虫洞陷阱传送后人物消失、传奇重犯踩门就出现的问题\n\n" +
                         "_-_ 修复 商店重叠物品被误判为待售，玩家放下的物品现在不需购买且可拾起\n\n" +
                         "_-_ 修正 死亡动画第 6 帧沿用第 5 帧收尾，不再倒回第 4 帧显得缺一帧\n\n" +
-                        "_-_ 补齐 戏卡者的四件新护甲动画，穿戴时游戏内小人与左上角头像同步切换")));
+                        "_-_ 补齐 戏卡者的四件新护甲动画，穿戴时游戏内小人与左上角头像同步切换\n\n" +
+                        "_-_ 撤回 破坏球投掷物及其蓄力击飞机制，本次更新仅保留千本")));
     }
 
     public static void add_v08_3_Changes(ArrayList<ChangeInfo> changeInfos) {
