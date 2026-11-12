@@ -6,7 +6,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
  * 横扫附魔：近战命中时，同时击中目标两侧的敌人。
@@ -49,6 +51,13 @@ public class Sweeping extends Weapon.Enchantment {
                 continue;
             }
             ch.damage( new DamageInfo( sideDamage, DamageType.PHYSICAL, attacker, weapon, this ) );
+
+            //被波及的不是这次攻击的目标，普通攻击的死亡结算管不到。怪物拿着横扫武器打英雄身边的同伴、
+            //波及的伤害把英雄打死时要在这里结算，否则不记排行榜、也没有死因提示
+            if (ch == Dungeon.hero && !ch.isAlive()) {
+                Dungeon.fail( attacker.getClass() );
+                GLog.n( Messages.capitalize( Messages.get( Char.class, "kill", attacker.name() ) ) );
+            }
         }
 
         return damage;
