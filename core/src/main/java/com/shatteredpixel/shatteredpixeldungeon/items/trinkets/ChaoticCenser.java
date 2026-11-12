@@ -235,9 +235,13 @@ public class ChaoticCenser extends Trinket {
         }
 
         if (!candidateCells.isEmpty()) {
-            int targetCell = Random.chances(candidateCells);
-            GameScene.add(Blob.seed(targetCell, (int) gasQuantity, gasToSpawn));
-            MagicMissile.boltFromChar(Dungeon.hero.sprite.parent, MISSILE_VFX.get(gasToSpawn), Dungeon.hero.sprite, targetCell, null);
+            // 有目标时权重是「最远距离 - 本格距离」：候选格只有一个、或者都和目标一样远时权重全是 0，
+            // Random.chances 返回 null，直接拆箱成 int 会空指针（上游后来的版本也是这样判空的）
+            Integer targetCell = Random.chances(candidateCells);
+            if (targetCell != null) {
+                GameScene.add(Blob.seed(targetCell, (int) gasQuantity, gasToSpawn));
+                MagicMissile.boltFromChar(Dungeon.hero.sprite.parent, MISSILE_VFX.get(gasToSpawn), Dungeon.hero.sprite, targetCell, null);
+            }
         }
 
     }
