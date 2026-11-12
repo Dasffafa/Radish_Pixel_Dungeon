@@ -307,6 +307,14 @@ public abstract class Level implements Bundlable {
 							feeling = Feeling.NONE;
 						}
 				}
+
+				//支线最后一层不能是「深渊层」：深渊层整张图先填满深渊、房间画在中间，
+				//而这一层下面没有可掉的层，convertChasmOnBranchEnd 会把所有深渊改成地板——
+				//房间外的整片虚空就成了一直铺到地图最外圈的空地（连边界那一行也画成地板）。
+				//放在抽完之后再改：随机数的消耗不变，没抽到深渊层的种子生成结果和以前完全一样。
+				if (feeling == Feeling.CHASM && isBranchEnd()) {
+					feeling = Feeling.NONE;
+				}
 			}
 		}
 
@@ -674,20 +682,20 @@ public abstract class Level implements Bundlable {
 		return -1;
 	}
 
+	/** 当前这一层是不是支线的最后一层（下面没有可以掉下去的层）。主线不算。 */
+	private static boolean isBranchEnd() {
+		if (Dungeon.branchId.equals(Branches.MAIN)) return false;
+		Branch branch = Branches.get(Dungeon.branchId);
+		return branch == null || !branch.hasMoreDepth(Dungeon.depth);
+	}
+
 	/**
 	 * 支线终点：将 Chasm 转换为普通地板
 	 * 如果当前分支没有下一层，玩家不应该掉落，所以移除 Chasm
 	 */
 	protected void convertChasmOnBranchEnd() {
-		// 主线不处理
-		if (Dungeon.branchId.equals(Branches.MAIN)) return;
-		
-		// 检查是否有下一层
-		Branch branch = Branches.get(Dungeon.branchId);
-		if (branch != null && branch.hasMoreDepth(Dungeon.depth)) {
-			// 有下一层，保留 Chasm
-			return;
-		}
+		// 主线不处理；支线里还有下一层的，保留 Chasm
+		if (!isBranchEnd()) return;
 		
 		// 没有下一层，将 Chasm 转换为 EMPTY
 		for (int i = 0; i < length(); i++) {
