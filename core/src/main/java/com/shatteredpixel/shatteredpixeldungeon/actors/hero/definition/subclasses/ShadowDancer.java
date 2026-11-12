@@ -160,6 +160,22 @@ public class ShadowDancer extends HeroSubClass {
 	/** 本次破隐来自攻击：攻击已照常结算，不再追加突袭。 */
 	private static boolean attackBreak = false;
 
+	/** 上面这些标记是在哪个场景里记下的，见 dropStaleFlags。 */
+	private static Object flagsScene = null;
+
+	// 这些标记是静态的，而突袭选点提示属于当时的地牢场景：提示开着时场景被换掉（读档、回主菜单再进、换层），
+	// 提示随旧场景消失，选点回调不会被调用，selecting 就一直为真，这次运行里突袭选点再也弹不出来。
+	// 所以每次用到这些标记之前，先把上一个场景遗留下来的清掉
+	private static void dropStaleFlags() {
+		Object scene = Game.scene();
+		if (scene != flagsScene) {
+			flagsScene = scene;
+			selecting = false;
+			pendingRush = false;
+			attackBreak = false;
+		}
+	}
+
 	/** 只要处于任意隐身（主动隐身/斗篷之下/闪避触发）即可突袭。 */
 	public static boolean hasVeil( Hero hero ) {
 		return hero != null && hero.invisible > 0;
@@ -201,6 +217,7 @@ public class ShadowDancer extends HeroSubClass {
 		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER) {
 			return;
 		}
+		dropStaleFlags();
 		// 攻击破隐：攻击本身已经结算（含必中与伏击），不再追加突袭
 		if (attackBreak) {
 			attackBreak = false;
@@ -219,6 +236,7 @@ public class ShadowDancer extends HeroSubClass {
 
 	/** 英雄就绪时补开待处理的突袭选点（由 Hero.ready() 调用，演员线程）。 */
 	public static void onHeroReady( Hero hero ) {
+		dropStaleFlags();
 		// 上一轮攻击未走到 onAttackComplete 时兜底清理
 		attackBreak = false;
 		tryOpenSelector( hero );
