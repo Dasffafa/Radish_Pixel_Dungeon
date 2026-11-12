@@ -294,8 +294,10 @@ public class WardenBossLevel extends Level {
 			if (mob instanceof WardenPrototype) {
 				mob.alignment = Char.Alignment.NEUTRAL;
 				mob.destroy();
+				//精灵要走正常的死亡流程：直接 killAndErase() 会让它脱离场景却仍挂在角色身上，
+				//范围效果里排在后面的结算、或者正是这台机体放电打死了典狱长时，再用到它就会空指针
 				if (mob.sprite != null) {
-					mob.sprite.killAndErase();
+					mob.sprite.die();
 				}
 			}
 		}

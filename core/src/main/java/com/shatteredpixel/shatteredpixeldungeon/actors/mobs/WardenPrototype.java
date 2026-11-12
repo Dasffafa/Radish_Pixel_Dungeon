@@ -213,6 +213,11 @@ public class WardenPrototype extends Mob implements Callback {
 		} else {
 			enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
 		}
+		//这一击打死典狱长时，清场会把自己也一并销毁：不能再去播放电动画等回调，
+		//正在死亡的精灵不保证会把动画播完，next() 就没人叫了
+		if (!isAlive()) {
+			return true;
+		}
 		if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
 			sprite.zap(enemy.pos);
 			return false;
