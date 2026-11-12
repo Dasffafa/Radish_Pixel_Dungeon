@@ -116,6 +116,12 @@ public class ConvictLevel extends Level {
 		int door = pointToCell( DOOR_X, DOOR_Y );
 		//门上站着角色或压着物品时地形是 OPEN_DOOR，要等门合上才锁，不会把谁封在门里
 		if (map[door] == Terrain.DOOR) {
+			//还有同伴落在门外时，和原版矮人王层锁门时一样把同伴带到英雄身边，免得整场战斗被关在外面。
+			//同伴都已经进来了就不动他们
+			if (allyOutsideArena()) {
+				Mob.holdAllies( this, door );
+				Mob.restoreAllies( this, Dungeon.hero.pos, door );
+			}
 			Level.set( door, Terrain.LOCKED_DOOR, this );
 			//Level.set 只改数据不改贴图，必须通知场景重画这一格，否则看着还是普通门
 			GameScene.updateMap( door );
@@ -125,6 +131,15 @@ public class ConvictLevel extends Level {
 	private boolean felonOutsideArena() {
 		for (Mob m : mobs) {
 			if (m instanceof LegendaryFelon && !inArena( m.pos )) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean allyOutsideArena() {
+		for (Mob m : mobs) {
+			if (m.alignment == Char.Alignment.ALLY && !inArena( m.pos )) {
 				return true;
 			}
 		}
