@@ -52,10 +52,20 @@ public class HolyLand extends Item {
             Sample.INSTANCE.play( Assets.Sounds.BURNING );
         }
 
-        for (int offset : pathfinder()){
-            if (!Dungeon.level.solid[cell+offset]) {
-                if(Dungeon.level.passable [cell+offset]) {
-                    int targetCell = cell + offset;
+        int[] area = pathfinder();
+        // 这几张偏移表是按格子下标算的，半径 2 或 3。落点贴近地图边缘时，下标会越界，
+        // 或者绕到相邻行的另一头去，所以先按行列确认这一格确实在落点周围
+        int radius = (area == PathFinder.CIRCLE7x || area == PathFinder.CIRCLE7) ? 3 : 2;
+        int width = Dungeon.level.width();
+        for (int offset : area){
+            int targetCell = cell + offset;
+            if (!Dungeon.level.insideMap(targetCell)
+                    || Math.abs(targetCell % width - cell % width) > radius
+                    || Math.abs(targetCell / width - cell / width) > radius) {
+                continue;
+            }
+            if (!Dungeon.level.solid[targetCell]) {
+                if(Dungeon.level.passable [targetCell]) {
                     int terrain = Dungeon.level.map[targetCell];
                     if (terrain != Terrain.EXIT && terrain != Terrain.ENTRANCE &&
                             terrain != Terrain.HIGH_GRASS && terrain != Terrain.WELL) {
