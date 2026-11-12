@@ -526,7 +526,13 @@ public class Dungeon {
 		return depth == 1 ||depth == 6 || depth == 11 || depth == 16 || depth == 21;
 	}
 	
+	//「当前所在的这一层是不是首领层」。支线的 depth 从 1 重新计数，不能套主线的 5/10/15…：
+	//传奇重犯副本整层就是首领战，其余支线层都不是。
+	//要问「主线第 N 层是不是首领层」的调用方用下面带参数的重载。
 	public static boolean bossLevel() {
+		if (!Branches.MAIN.equals( branchId )) {
+			return Branches.CONVICT.equals( branchId );
+		}
 		return bossLevel( depth );
 	}
 	
