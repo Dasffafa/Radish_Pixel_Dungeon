@@ -125,14 +125,12 @@ public class WandOfBlastWave extends DamageWand {
 			wandProc(ch, chargesPerCast());
 			ch.damage(new DamageInfo(damageRoll(), DamageType.MAGICAL, curUser, this, this));
 
-			if (ch.pos == bolt.collisionPos) {
-				//中心怪的方向取弹道方向（上一个格子 -> 中心），再往外推一格
-				int from = bolt.dist > 0 ? bolt.path.get(bolt.dist - 1) : ch.pos;
-				int dx = Integer.compare(ch.pos % w, from % w);
-				int dy = Integer.compare(ch.pos / w, from / w);
-				if (dx != 0 || dy != 0) {
-					pushOutward(ch, ch.pos + dx + dy * w, buffedLvl() + 3);
-				}
+			//方向取弹道越过爆心后的下一格（原版写法），目标顺着弹道的延伸方向飞出去。
+			//弹道路径只收地图内的格子且逐格相邻，这一格不会越界也不会绕行，不用再按坐标推算
+			if (bolt.path.size() > bolt.dist+1 && ch.pos == bolt.collisionPos) {
+				Ballistica trajectory = new Ballistica(ch.pos, bolt.path.get(bolt.dist + 1), Ballistica.MAGIC_BOLT);
+				int strength = buffedLvl() + 3;
+				throwChar(ch, trajectory, strength, false, true, this);
 			}
 		}
 
