@@ -112,9 +112,9 @@ public class DeviloonSprite extends MobSprite {
         super.onComplete( anim );
 
         if (anim == zap) {
+            // 结算和 next() 由 zap() 里魔弹到达时的回调（Deviloon.onZapComplete）做，这里不能再做一遍：
+            // 一次 return false 只能对应一次 next()，多出来的那次会在它下一次行动的动画期间提前放行行动队列
             idle();
-            ((Deviloon)ch).callOfRune();
-            ch.next();
         } else if (anim == die){
             chargeParticles.killAndErase();
         }
