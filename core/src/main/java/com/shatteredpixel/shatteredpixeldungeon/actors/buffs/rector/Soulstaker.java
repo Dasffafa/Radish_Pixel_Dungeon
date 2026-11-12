@@ -131,7 +131,9 @@ public class Soulstaker extends FlavourBuff {
     @Override
     public void detach() {
         // Sacrifice heal
-        if(target instanceof Hero){
+        // 暗色契约在施放时扣了 等级*2 的血，这里是把它还回来（+1 还一半，+2 起全还）。
+        // 没点这个天赋的人施放时没扣血，结束时也就没有可还的。
+        if(target instanceof Hero && ((Hero)target).hasTalent(Talent.SACRIFICE)){
             if(((Hero)target).pointsInTalent(Talent.SACRIFICE) > 1){
                 Buff.affect(target, Healing.class).setHeal(((Hero) target).lvl * 2,1,0);
             } else {
