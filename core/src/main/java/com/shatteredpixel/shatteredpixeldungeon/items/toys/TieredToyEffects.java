@@ -12,6 +12,8 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemArmorAttachable;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 import com.watabou.utils.Bundle;
 
@@ -60,7 +62,14 @@ public final class TieredToyEffects {
 		// 而 has(...) 看的是原始装备栏，仍然为真。本类其它方法都对它判空了，这里也一样。
 		TieredToyBuff state = hero.buff(TieredToyBuff.class);
 		if (has(TieredToy.Sponge.class) && state != null) state.startSponge();
-		if (has(TieredToy.Doomblade.class)) hero.damage(new DamageInfo(20, DamageType.TRUE, hero, null, TieredToy.Doomblade.class));
+		if (has(TieredToy.Doomblade.class)) {
+			hero.damage(new DamageInfo(20, DamageType.TRUE, hero, null, TieredToy.Doomblade.class));
+			// 说明写明这一下可以致死。英雄的死亡流程本身不提交排行榜记录，要由造成伤害的一方来报
+			if (!hero.isAlive()) {
+				Dungeon.fail(TieredToy.Doomblade.class);
+				GLog.n(Messages.get(TieredToy.class, "doomblade_ondeath"));
+			}
+		}
 	}
 
 	public static int adjustMaxHealth(int health) {
