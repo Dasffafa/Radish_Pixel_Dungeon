@@ -341,8 +341,12 @@ abstract public class MissileWeapon extends Weapon {
 			int endY = Math.max(0, Math.min(height - 1, fromY + (int) Math.round(dy * reach)));
 			final int collision = new Ballistica(thrower.pos, endX + endY * width, Ballistica.MAGIC_BOLT).collisionPos;
 
+			//侧箭的命中统一在主投掷物结算时处理（resolveSplitProjectiles），这里的飞行只是表现。
+			//不能等侧箭自己落地再结算：它比主投掷物飞得远时，落地已经是英雄回合结束之后，
+			//那一下会在渲染线程上、回合之外打死正在出手的怪，那只怪的回合就再也结束不了（卡回合）
+			shot.pendingCells.add(collision);
 			((MissileSprite) thrower.sprite.parent.recycle(MissileSprite.class)).reset(
-					thrower.sprite, collision, this, () -> splitProjectileArrived(shot, collision));
+					thrower.sprite, collision, this, null);
 		}
 		return shot;
 	}
@@ -363,14 +367,6 @@ abstract public class MissileWeapon extends Weapon {
 		for (int cell : new ArrayList<>(splitShot.pendingCells)) resolveSplitProjectile(splitShot, cell);
 		splitShot.pendingCells.clear();
 		splitShot = null;
-	}
-
-	private static void splitProjectileArrived(SplitShot shot, int cell) {
-		if (!shot.primaryResolved || shot.weapon == null) {
-			shot.pendingCells.add(cell);
-		} else {
-			shot.weapon.resolveSplitProjectile(shot, cell);
-		}
 	}
 
 	private void resolveSplitProjectile(SplitShot shot, int cell) {
