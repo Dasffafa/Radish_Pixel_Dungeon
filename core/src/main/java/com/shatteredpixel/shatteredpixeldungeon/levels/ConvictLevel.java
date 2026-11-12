@@ -11,11 +11,14 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.LegendaryFelon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.PathFinder;
 
 import java.util.Arrays;
 
@@ -33,6 +36,8 @@ public class ConvictLevel extends Level {
 	private static final int ENTRANCE_X = 6, ENTRANCE_Y = 16;
 	//上锁的门
 	private static final int DOOR_X = 6, DOOR_Y = 12;
+	//传奇重犯的出生点：竞技场正中
+	private static final int FELON_X = 6, FELON_Y = 6;
 
 	private static final String FELON_SPAWNED = "felon_spawned";
 	private boolean felonSpawned = false;
@@ -132,28 +137,75 @@ public class ConvictLevel extends Level {
 
 	@Override
 	protected void createMobs() {
-		// Boss 不在关卡加载时铺好：玩家踩到门口就看见人是不对的。
-		// 真正踏进竞技场那一刻由 occupyCell -> spawnFelon() 一次性生成。
-	}
-
-	/** 玩家踏进竞技场（门上方）时一次性生成传奇重犯；老存档里已在场的不再重复生成。 */
-	public void spawnFelon(){
-		if (felonSpawned) return;
-		for (Mob m : mobs){
-			if (m instanceof LegendaryFelon){ felonSpawned = true; return; }
-		}
-		felonSpawned = true;
-		LegendaryFelon felon = new LegendaryFelon();
-		felon.pos = pointToCell( 6, 6 );
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( felon );
+		//不在建关时放 Boss：站在门口就能看见他是不对的，要等英雄踏进竞技场才生成（见 occupyCell）
 	}
 
 	@Override
-	public void occupyCell( Char ch ){
+	public void occupyCell( Char ch ) {
 		super.occupyCell( ch );
-		if (ch == Dungeon.hero && ch.pos >= 0 && ch.pos / width() < DOOR_Y){
+		if (ch == Dungeon.hero && !felonSpawned && inArena( ch.pos )) {
 			spawnFelon();
 		}
+	}
+
+	/** 门上方算竞技场里面，门格本身不算。 */
+	private boolean inArena( int cell ) {
+		return cell / width() < DOOR_Y;
+	}
+
+	private void spawnFelon() {
+		for (Mob m : mobs) {
+			//更早的存档里他在建关时就放好了，不再多生成一个
+			if (m instanceof LegendaryFelon) {
+				felonSpawned = true;
+				return;
+			}
+		}
+
+		int cell = felonSpawnCell();
+		if (cell == -1) {
+			//竞技场里一个能站的格子都没有：这次先不生成，英雄下一次挪动时再试
+			return;
+		}
+
+		//出生格上的绵羊直接顶掉，和原版矮人王召唤随从时一样，不能因为一只羊就不出来
+		Char sheep = Actor.findChar( cell );
+		if (sheep != null) {
+			sheep.die( null );
+		}
+
+		felonSpawned = true;
+		LegendaryFelon felon = new LegendaryFelon();
+		felon.pos = cell;
+		GameScene.add( felon );
+	}
+
+	/**
+	 * 传奇重犯该站的格子：离出生点最近、上面没有别的角色的那一格（绵羊不算，会被顶掉）。
+	 * 出生点上只有一只羊时还是出生点；被别的角色占着时（比如英雄直接传送到了正中间）让到旁边。
+	 * 只在竞技场里、从出生点走得到的格子里找，找不到返回 -1。
+	 */
+	private int felonSpawnCell() {
+		PathFinder.buildDistanceMap( pointToCell( FELON_X, FELON_Y ), passable );
+		int best = -1;
+		for (int cell = 0; cell < length(); cell++) {
+			if (!inArena( cell ) || PathFinder.distance[cell] == Integer.MAX_VALUE) {
+				continue;
+			}
+			Char ch = Actor.findChar( cell );
+			if (ch != null && !(ch instanceof Sheep)) {
+				continue;
+			}
+			if (best == -1 || spawnCost( cell ) < spawnCost( best )) {
+				best = cell;
+			}
+		}
+		return best;
+	}
+
+	//离出生点越近越好；一样近时，空格优先于要顶掉一只绵羊的格子
+	private int spawnCost( int cell ) {
+		return 2 * PathFinder.distance[cell] + (Actor.findChar( cell ) == null ? 0 : 1);
 	}
 
 	@Override
