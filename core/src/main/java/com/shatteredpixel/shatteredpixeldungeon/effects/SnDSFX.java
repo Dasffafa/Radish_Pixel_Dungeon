@@ -236,9 +236,6 @@ public class SnDSFX {
                 play("block");
                 break;
             case Assets.Sounds.HIT_CRUSH:
-            //圣宣换成专属命中音效之前用的是 HIT_CRUSH；这里没有对应分支的音效在骰子法师手里是不出声的，
-            //所以让它继续走原来的替换音效
-            case Assets.Sounds.HOLY_DECREE_HIT:
                 play("impact");
                 break;
             case Assets.Sounds.HIT_MAGIC:
@@ -249,6 +246,12 @@ public class SnDSFX {
                 break;
             case Assets.Sounds.HIT_STRONG:
                 play("slam");
+                break;
+            default:
+                // 替换表只覆盖通用的几种命中音效；武器自带的专属命中音（斩舰刀、圣宣……）没有对应的 SnD 音效，
+                // 不兜底的话在骰子法师手里命中是不出声的，所以原样播放它自己的音效
+                Sample.INSTANCE.play(hitSound);
+                break;
         }
     }
 
