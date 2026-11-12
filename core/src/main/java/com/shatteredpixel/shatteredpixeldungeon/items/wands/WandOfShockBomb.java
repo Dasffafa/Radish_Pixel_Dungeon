@@ -68,6 +68,8 @@ public class WandOfShockBomb extends DamageWand {
     @Override
     public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
         float triggerChance = 15 + (float) buffedLvl() /4 + buffedLvl();
+        //蓄能打击天赋会放大法杖近战附带效果的触发率，其它法杖都乘了这个倍率
+        triggerChance *= procChanceMultiplier(attacker);
         triggerChance = Math.min(triggerChance, 100); // 限制最大概率为100%
 
         if (Random.Int(100) < triggerChance) {

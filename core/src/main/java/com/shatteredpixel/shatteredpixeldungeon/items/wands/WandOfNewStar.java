@@ -208,7 +208,8 @@ public class WandOfNewStar extends DamageWand {
             triggerChance += (buffedLvl() - 12) / 2;
         }
 
-        triggerChance = Math.min(triggerChance, 100);
+        //蓄能打击天赋会放大法杖近战附带效果的触发率，其它法杖都乘了这个倍率
+        float finalChance = Math.min(100f, triggerChance * procChanceMultiplier(attacker));
 
         ArrayList<Wand> wands = hero.belongings.getAllItems(Wand.class);
         for (Wand w : wands.toArray(new Wand[0])) {
@@ -216,7 +217,7 @@ public class WandOfNewStar extends DamageWand {
         }
 
         wandTotalLevel += staff.buffedLvl();
-        if (Random.Int(100) < triggerChance) {
+        if (Random.Int(100) < finalChance) {
             if (hero.buff(Healing.StarHealing.class) == null) {
                 Buff.affect(hero, Healing.StarHealing.class).setHeal(wandTotalLevel, 0, wandTotalLevel / 4);
             }
