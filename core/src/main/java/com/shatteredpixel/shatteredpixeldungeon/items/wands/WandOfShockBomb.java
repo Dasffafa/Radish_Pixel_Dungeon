@@ -10,7 +10,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -166,14 +165,14 @@ public class WandOfShockBomb extends DamageWand {
             // 使用相同的圆形范围
             for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE5x[i];
-                runExplode(damage, cell);
+                runExplode(damage, cell, pos);
             }
 
             Dungeon.observe();
             GameScene.updateFog();
         }
 
-        private static void runExplode(int damage, int cell) {
+        private static void runExplode(int damage, int cell, int center) {
             if (Dungeon.level.insideMap(cell)) {
                 Char ch = Actor.findChar(cell);
                 if (ch != null) {
@@ -181,16 +180,14 @@ public class WandOfShockBomb extends DamageWand {
                         ch.damage(new DamageInfo(damage, DamageType.LIGHTNING, null, null, new DM100.LightningBolt()));
                     }
                     if (ch.alignment == Char.Alignment.ALLY) {
-                        int pushTarget = cell;
-                        for (int j = 0; j < 2; j++) {
-                            int nextCell = cell + PathFinder.CIRCLE5x[Random.Int(8)];
-                            if (Dungeon.level.passable[nextCell] && Actor.findChar(nextCell) == null) {
-                                pushTarget = nextCell;
-                            }
-                        }
-                        if (pushTarget != cell) {
-                            Actor.addDelayed(new Pushing(ch, cell, pushTarget), -1);
-                            ch.pos = pushTarget;
+                        //正好站在爆心上的友军没有「向外」的方向，原地不动。
+                        //这个判断不能省：起点和终点相同的弹道会退化成一条指向左上的斜线
+                        if (cell != center) {
+                            //和激流陷阱推开周围目标的写法相同：先从爆心穿过友军拉一条线定出方向，再从友军脚下沿这条线走弹道。
+                            //落点交给 throwChar 判定，不会越界也不会穿墙，落地后照常触发地格效果；友军不结算撞墙伤害
+                            Ballistica trajectory = new Ballistica(center, cell, Ballistica.STOP_TARGET);
+                            trajectory = new Ballistica(trajectory.collisionPos, trajectory.path.get(trajectory.path.size() - 1), Ballistica.PROJECTILE);
+                            WandOfBlastWave.throwChar(ch, trajectory, 2, true, false, WandOfShockBomb.class);
                         }
                         WandOfBlastWave.BlastWave.blast(cell,2);
                     }
@@ -319,7 +316,7 @@ public class WandOfShockBomb extends DamageWand {
             // 使用相同的圆形范围
             for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE7x[i];
-                ShockBombTracker.runExplode(damage, cell);
+                ShockBombTracker.runExplode(damage, cell, pos);
             }
 
             Dungeon.observe();
