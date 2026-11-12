@@ -74,11 +74,15 @@ public class ShieldMage extends Mob {
         return Messages.capitalize(Messages.get(ShieldMage.class, "kill"));
     }
     protected boolean canAttack( Char enemy ) {
-        return new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
+        // 相邻、挑战装备的武器距离、精英（索敌 / 巨型）的额外攻击距离都由父类判定
+        return super.canAttack( enemy )
+                || new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
     }
     protected boolean doAttack(Char enemy ) {
 
-        if (Dungeon.level.adjacent( pos, enemy.pos )) {
+        // 弹道被挡住还能进到这里，说明是靠父类的攻击距离够到的，和相邻一样走普通攻击
+        if (Dungeon.level.adjacent( pos, enemy.pos )
+                || new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos != enemy.pos) {
 
             return super.doAttack( enemy );
 
