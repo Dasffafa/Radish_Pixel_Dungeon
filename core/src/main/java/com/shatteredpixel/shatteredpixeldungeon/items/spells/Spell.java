@@ -65,6 +65,14 @@ public abstract class Spell extends Item {
 	
 	@Override
 	public void execute( final Hero hero, String action ) {
+
+		// func 4 Muramasa mania
+		// Item.execute 里的 return 只退出基类方法：这里和 Potion / Scroll / InventoryStone 一样再拦一次，
+		// 否则会带着旧的 curUser / curItem（可能是 null）继续往下施放
+		if (hero.buff(com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa.MuramasaMania.class) != null){
+			GLog.n(Messages.get(com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.Muramasa.MuramasaMania.class,"mania"));
+			return;
+		}
 		
 		super.execute( hero, action );
 		
