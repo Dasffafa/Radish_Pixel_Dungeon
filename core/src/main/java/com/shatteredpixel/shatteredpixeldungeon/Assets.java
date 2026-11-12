@@ -337,8 +337,6 @@ public class Assets {
 		public static final String WARRIOR  = "sprites/warrior.png";
 		public static final String MAGE     = "sprites/mage.png";
 		public static final String ROGUE    = "sprites/rogue.png";
-
-		// 六个角色各自的四套护甲动画（素材 16x16 帧已重排为 12x15 / 21 帧）
 		public static final String HUNTRESS = "sprites/huntress.png";
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String MOONLIGHT = "sprites/moonlight.png";

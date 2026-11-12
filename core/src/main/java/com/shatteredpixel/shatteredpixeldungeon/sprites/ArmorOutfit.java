@@ -21,23 +21,15 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.PrismArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix;
 
 /**
- * 六个角色 × 四套护甲动画的外观映射。
+ * 四件新护甲在英雄贴图上的外观行。
  *
- * 素材本身就是项目标准 12×15 网格、每行 21 帧：每张 256×80 的图里
- * 4 套动画各占 15 行，只是每张图顶部透明行数不同（y=5/10/8/9/9/8）。
- * 四行依次对应伯爵礼服 / 寒铁大衣 / 棱镜护铠 / 混灵，逐字节复制到对应
- * 角色贴图的第 18~21 行，零缩放、零裁剪、零拉伸。
- * 六张素材依次对应 战士 / 法师 / 盗贼 / 女猎手 / 牧师 / 戏卡者（红头发）；
- * 月华有专属贴图逻辑、工程师没有对应素材，都不加载新外观图。
+ * 与 PrisonArmor、DarkCoat 等带专属外观的护甲同一套机制：外观是英雄贴图里的一整行
+ * （行高 15 像素，每行 21 帧），按行号取用，不更换贴图。
+ * 只有 hasOutfit() 里的六个职业的贴图画了这四行。月华的贴图只有 17 行、工程师只有 8 行，
+ * 对它们用这些行号会取到贴图之外，所以用行号之前必须先过 hasOutfit()。
  */
 public final class ArmorOutfit {
 
-	/**
-	 * 与项目既有护甲（PrisonArmor=t7、DarkCoat=t9、RatArmor=t12 …）完全同一套机制：
-	 * 四套新护甲动画直接追加在角色贴图 sprites/warrior.png 等的第 18~21 行
-	 * （每行 21 帧 12x15，贴图扩到 256x512，原有 0..255 行像素保持不变），
-	 * 这里只返回行索引，绝不切换贴图。
-	 */
 	public static final int ROW_COUNTESS = 18;
 	public static final int ROW_COLDIRON = 19;
 	public static final int ROW_PRISM    = 20;
@@ -45,7 +37,7 @@ public final class ArmorOutfit {
 
 	private ArmorOutfit() {}
 
-	/** 追加了 18~21 行的六张角色贴图；月华与工程师没有对应素材，保持原生护甲行。 */
+	/** 贴图里画了 18~21 行的职业。 */
 	public static boolean hasOutfit( HeroClass cl ){
 		return cl == HeroClasses.WARRIOR
 				|| cl == HeroClasses.MAGE
