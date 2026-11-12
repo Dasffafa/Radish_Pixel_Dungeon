@@ -1340,7 +1340,10 @@ public class Hero extends Char {
 					if (!isAlive()) {
 						Dungeon.fail(w);
 						GLog.n(Messages.get(this, "slime_death"));
-						break;
+						// 英雄死在自己的 act() 中途：到此为止，不再往下走到 ready()。
+						// 否则死掉的英雄又回到「可操作」状态（地图还能点、只看 ready 的按钮还能按）
+						ready = false;
+						return false;
 					}
 				}
 			}
