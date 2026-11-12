@@ -198,9 +198,16 @@ public class LevelTeleporter extends TestItem {
             if (Dungeon.branchId.equals(Branches.MOSS)) {
                 returnDepth = 2;  // 苔藓分支返回主线第2层
             } else if (Dungeon.branchId.equals(Branches.MINING)) {
-                returnDepth = Dungeon.depth;  // 采矿分支返回主线对应层
+                // 采矿分支返回主线对应层。矿洞在自己的分支里永远是第 1 层，不能拿当前层数当主线层数；
+                // 它回主线的楼梯通向铁匠所在的那一层，这里也回那一层
+                returnDepth = Blacksmith.Quest.entranceDepth();
             } else {
                 returnDepth = 1;
+            }
+
+            if (returnDepth < 1 || returnDepth > maxDepthOf(Branches.MAIN)) {
+                GLog.w(Messages.get(this, "cannot_send"));
+                return;
             }
 
             TimekeepersHourglass.timeFreeze timeFreeze = Dungeon.hero.buff(TimekeepersHourglass.timeFreeze.class);
