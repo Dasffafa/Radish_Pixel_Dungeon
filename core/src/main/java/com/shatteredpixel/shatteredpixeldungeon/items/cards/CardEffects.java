@@ -224,7 +224,10 @@ public final class CardEffects {
 					GLog.w(Messages.get(CardTargeter.class, "bad_target"));
 					return;
 				}
-				boolean free = Buff.affect(hero, NextAttackFree.class).consume();
+				// 只有身上已经有「下一张攻击卡不耗回合」时才免费。
+				// Buff.affect 在没有这个状态时会当场新建一个，新建的一定能 consume，等于所有攻击卡都不耗回合
+				NextAttackFree naf = hero.buff(NextAttackFree.class);
+				boolean free = naf != null && naf.consume();
 				// 基础伤害 1~5，再附加一份 1~5 的额外伤害
 				int dmg = Random.NormalIntRange(1, 5) + Random.NormalIntRange(1, 5);
 
