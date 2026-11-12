@@ -32,6 +32,9 @@ public class DeviloonSprite extends MobSprite {
         zap = new Animation(11,false);
         zap.frames(frames,9,10,11,12,13);
 
+        // 蓄力沿用施法帧（与 DeminionSprite 一致）；不赋值的话 charge() 播放的是空动画，贴图只会冻在上一帧
+        charging = zap.clone();
+
         die = new Animation( 11, false );
         die.frames( frames, 14,15,16,17,18);
 
