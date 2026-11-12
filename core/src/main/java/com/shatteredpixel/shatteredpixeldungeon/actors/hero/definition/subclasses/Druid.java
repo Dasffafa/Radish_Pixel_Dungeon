@@ -506,6 +506,12 @@ public class Druid extends HeroSubClass {
 			if (target == null || hero == null) {
 				return;
 			}
+			// 三个选格法术只能对英雄当前看得见的格子施放。在扣能量之前就拒绝，所以不花能量也不花回合
+			if (!Dungeon.level.heroFOV[target]) {
+				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(
+						com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( HeroSubClass.class, "druid_not_visible" ) );
+				return;
+			}
 			boolean ok = which == 0 ? castFirestorm( hero, target )
 					: which == 1 ? castThundercloud( hero, target )
 					: castCataclysm( hero, target );
