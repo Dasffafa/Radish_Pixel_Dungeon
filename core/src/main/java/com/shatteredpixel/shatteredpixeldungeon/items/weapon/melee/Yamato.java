@@ -224,7 +224,8 @@ public class Yamato extends MeleeWeapon {
 		Invisibility.dispel();
 		Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 		updateQuickslot();
-		hero.ready();
+		//技能是一次出手：和原版武器技能一样花一次攻击的时间（原来只有 hero.ready()，不花任何时间）
+		hero.spendAndNext(hero.attackDelay());
 	}
 
 	@Override
