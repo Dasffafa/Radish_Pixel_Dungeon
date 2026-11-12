@@ -99,7 +99,9 @@ public class SeedFindScene extends PixelScene {
                             NumberFormatException e) {
                     }
                 }*/
-                if (positive && text != "") {
+                //这里原来写的是 text != ""，比较的是引用：输入框交回来的空串不是同一个对象，
+                //什么都没填也会开始搜索，而空串能匹配任何物品名
+                if (positive && !text.trim().isEmpty()) {
                     String[] itemList = Arrays.copyOfRange(text.split("\n"), 0, text.split("\n").length);
 
                     Component content = list.content();
