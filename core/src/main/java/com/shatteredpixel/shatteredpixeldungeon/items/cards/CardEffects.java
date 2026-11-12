@@ -458,7 +458,8 @@ public final class CardEffects {
 				if (hero.cardDeck == null || hero.cardDeck.held != card) return;
 
 				if (item.isEquipped(hero) && item instanceof EquipableItem) {
-					if (!((EquipableItem) item).doUnequip(hero, false, false)) return;
+					// [audit x-turns IM-5 trial fix] single = true：卸装备当场花掉这 1 回合（spendAndNext），而不是只记账、英雄还能接着行动
+					if (!((EquipableItem) item).doUnequip(hero, false, true)) return;
 				}
 				item.detachAll(hero.belongings.backpack);
 
