@@ -64,7 +64,8 @@ public class LethalDefense extends Buff{
     @Override
     public float iconFadePercent() {
         float time = 0;
-        int point=Dungeon.hero.pointsInTalent(Talent.KEEP_VIGILANCE);
+        //总时长要和 resetTime() 用同一个天赋（以战养战）来算
+        int point=Dungeon.hero.pointsInTalent(Talent.LETHAL_DEFENSE);
         switch (point){
             case 1:
                 time=2f;
@@ -76,6 +77,7 @@ public class LethalDefense extends Buff{
                 time=4f;
                 break;
         }
+        if (time <= 0) return 0;
         return Math.max(0, (time- duration)/time);
     }
 
