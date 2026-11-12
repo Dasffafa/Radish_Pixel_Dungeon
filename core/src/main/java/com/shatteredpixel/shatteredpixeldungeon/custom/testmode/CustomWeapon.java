@@ -57,7 +57,6 @@ public class CustomWeapon extends MeleeWeapon {
         image = ItemSpriteSheet.WEAPON_HOLDER;
         unique = true;
         bones = false;
-        adjustStatus();
         defaultAction = AC_SETTING;
     }
 
@@ -75,6 +74,13 @@ public class CustomWeapon extends MeleeWeapon {
     private float s_delay = 1f;
     private boolean s_delay_swap = false;
     private int s_reach = 1;
+
+    // 必须写在上面这些默认值的后面：初始化按书写顺序执行，写在它们前面时读到的全是 0，
+    // 新武器的阶数、精度、攻击间隔、攻击距离都成了 0（距离 0 连相邻的敌人都够不着），
+    // 要等打开一次设置窗口或读一次档才恢复
+    {
+        adjustStatus();
+    }
 
     private long enchOn = 0L;
     public static ArrayList<Enchantment> enchList = new ArrayList<>();
