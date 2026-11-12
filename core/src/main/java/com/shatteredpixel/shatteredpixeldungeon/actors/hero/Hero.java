@@ -487,7 +487,8 @@ public class Hero extends Char {
 		}
 
 		// DoggingDog on 20250914
-		if(belongings.misc instanceof InversionBeta || belongings.ring instanceof InversionBeta){
+		// 用 misc() / ring() 而不是字段：丢失背包期间没被保留的装备不生效
+		if(belongings.misc() instanceof InversionBeta || belongings.ring() instanceof InversionBeta){
 			HT = InversionBeta.betaHP(this);
 		}
 		HT = TieredToyEffects.adjustMaxHealth(HT);
@@ -758,8 +759,8 @@ public class Hero extends Char {
 		} else if (RingOfForce.getBuffedBonus(this, RingOfForce.Force.class) > 0) {
 			//pitch deepens by 2.5% (additive) per point of strength, down to 75%
 			super.hitSound( pitch * GameMath.gate( 0.75f, 1.25f - 0.025f*STR(), 1f) );
-		} else if (hero.belongings.weapon != null) {
-			hero.belongings.weapon.hitSound(pitch);
+		} else if (belongings.weapon() != null) {
+			belongings.weapon().hitSound(pitch);
 		} else {
 			super.hitSound(pitch * 1.1f);
 		}
@@ -996,7 +997,7 @@ public class Hero extends Char {
 		}
 
 		// DoggingDog on 20250914
-		if(belongings.ring instanceof InversionBeta || belongings.misc instanceof InversionBeta){
+		if(belongings.ring() instanceof InversionBeta || belongings.misc() instanceof InversionBeta){
 			dr = InversionBeta.betaDR(this);
 		}
 
@@ -1246,8 +1247,9 @@ public class Hero extends Char {
 			delay *= belongings.attackingWeapon().delayFactor( this );
 
 		// DoggingDog on 20250520
-		if(belongings.armor instanceof Showdarker){
-			delay /= (2f + 0.25f * ((Showdarker) belongings.armor).buffedLvl());
+		// 用 armor() 而不是字段：丢失背包期间没被保留的护甲不生效
+		if(belongings.armor() instanceof Showdarker){
+			delay /= (2f + 0.25f * ((Showdarker) belongings.armor()).buffedLvl());
 		}
 
 		if ( buff(Adrenaline.class) != null) delay /= 1.5f;
@@ -2078,13 +2080,14 @@ public class Hero extends Char {
 		enemy = action.target;
 
 		// 检查武器是否可以攻击（特殊武器如斩舰刀可能在此等待）
-		if (belongings.weapon != null && !belongings.weapon.actAttack(hero, enemy, action)) {
+		// 这个方法里都用 weapon() 而不是字段：丢失背包期间没被保留的武器不生效（空手不该还能等待蓄力、甩锁链）
+		if (belongings.weapon() != null && !belongings.weapon().actAttack(hero, enemy, action)) {
 			// 武器需要等待，已处理等待逻辑
 			return false;
 		}
 
-		if(belongings.weapon instanceof LockChain) {
-			LockChain lk = (LockChain) hero.belongings.weapon;
+		if(belongings.weapon() instanceof LockChain) {
+			LockChain lk = (LockChain) belongings.weapon();
 			if(Dungeon.level.distance( enemy.pos, pos ) <= 1){
 				sprite.attack(enemy.pos);
 			} else if(Dungeon.level.distance( enemy.pos,pos ) <= lk.RCH
@@ -2119,7 +2122,7 @@ public class Hero extends Char {
 			sprite.attack( enemy.pos );
 
 			// 攻击成功后，移除斩舰刀的等待 buff
-			if (belongings.weapon instanceof KillBoatSword) {
+			if (belongings.weapon() instanceof KillBoatSword) {
 				Buff buff = buff(KillBoatSwordWaitBuff.class);
 				if (buff != null) {
 					buff.detach();
@@ -2186,7 +2189,7 @@ public class Hero extends Char {
 			Buff.affect(Dungeon.hero, Talent.PatientStrikeTracker.class).pos = Dungeon.hero.pos;
 		}
 
-		if(hero.belongings.weapon instanceof KillBoatSword && hero.buff(KillBoatSwordWaitBuff.class) == null) {
+		if(hero.belongings.weapon() instanceof KillBoatSword && hero.buff(KillBoatSwordWaitBuff.class) == null) {
 			Buff.affect(this, KillBoatSwordWaitBuff.class);
 			hero.sprite.centerEmitter().burst(EnergyParticle.FACTORY, 15);
 			Sample.INSTANCE.play(Assets.Sounds.KILL_BOAT_SWORD_SWING);
