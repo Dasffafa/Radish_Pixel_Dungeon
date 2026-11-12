@@ -83,23 +83,6 @@ public class SoulMix extends Armor {
 	}
 
 	@Override
-	public void activate( Char ch ) {
-		// 只有英雄的击杀会叠层。工匠把穿着的护甲改装给友方单位时不经过 doUnequip，残留的层数在这里清掉
-		if (!(ch instanceof Hero)) clearStacks();
-		super.activate( ch );
-	}
-
-	@Override
-	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
-		if (super.doUnequip( hero, collect, single )) {
-			// 层数只在穿着期间有效，脱下即清空
-			clearStacks();
-			return true;
-		}
-		return false;
-	}
-
-	@Override
 	public void reset() {
 		super.reset();
 		// 留在遗骸里的护甲会进下一局，层数不能跟过去
@@ -121,13 +104,22 @@ public class SoulMix extends Armor {
 		stacks = turnsLeft > 0 && bundle.contains( STACKS ) ? bundle.getInt( STACKS ) : 0;
 	}
 
-	/** 只负责每回合给层数计时，自身不带状态。 */
+	/**
+	 * 给层数计时，自身不带状态。层数的寿命跟着它走：它被摘下来（脱下、换甲、英雄死亡或复活、
+	 * 护甲被转给别的角色）层数就清空。读档时它是重新创建的，不经过 detach()，层数从护甲的存档里恢复。
+	 */
 	public class SoulMixBuff extends ArmorBuff {
 		@Override
 		public boolean act(){
 			if (turnsLeft > 0 && --turnsLeft <= 0) clearStacks();
 			spend( TICK );
 			return true;
+		}
+
+		@Override
+		public void detach(){
+			super.detach();
+			clearStacks();
 		}
 	}
 
