@@ -608,7 +608,11 @@ public class Dungeon {
 		hero.curAction = hero.lastAction = null;
 
 		// 术士4-4 腐化怨灵：进入新层时生成怨灵
-		Talent.onNewFloor(hero);
+		// switchLevel 在读档、回到去过的楼层、复活时也会走到；只有这一层是刚生成的才算「新的一层」，
+		// 否则每读一次档、每回一次旧楼层都会再生成一批怨灵
+		if (levelJustGenerated) {
+			Talent.onNewFloor(hero);
+		}
 
 		observe();
 		try {
