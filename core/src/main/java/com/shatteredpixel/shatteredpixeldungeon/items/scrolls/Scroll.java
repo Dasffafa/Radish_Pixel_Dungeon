@@ -260,21 +260,9 @@ public abstract class Scroll extends Item {
 	public abstract void doRead();
 
 	public void readAnimation() {
-		Invisibility.dispel();
-		curUser.spend( TIME_TO_READ );
-		curUser.busy();
-		((HeroSprite)curUser.sprite).read();
-
-		// TheCatist 2026/07/21 无序魔典的卷轴使用是anonymous不会触发天赋
-		if (!anonymous) {
-			// 发射阅读卷轴事件
-			EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
-			Catalog.countUse(getClass());
-			if (Random.Float() < talentChance) {
-				Talent.onScrollUsed(curUser, curUser.pos, talentFactor);
-			}
-		}
-
+		//两个重载必须走同一段结算：以前各写各的，普通卷轴拿不到充能强化 / 潜心苦读，
+		//秘卷不计使用次数、不触发卷轴类天赋。「秘卷翻倍」按卷轴自己的类型定。
+		readAnimation( this instanceof ExoticScroll );
 	}
 
 	protected void readAnimation( boolean toDouble) {
@@ -283,8 +271,15 @@ public abstract class Scroll extends Item {
 		curUser.busy();
 		((HeroSprite)curUser.sprite).read();
 
+		// TheCatist 2026/07/21 无序魔典的卷轴使用是anonymous不会触发天赋
+		if (anonymous) return;
+
 		// 发射阅读卷轴事件
 		EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
+		Catalog.countUse(getClass());
+		if (Random.Float() < talentChance) {
+			Talent.onScrollUsed(curUser, curUser.pos, talentFactor);
+		}
 
 		/*if (curUser.hasTalent(Talent.SPELL_QUEUE)){
 			Buff.affect(curUser, ScrollEmpower.class).reset();
