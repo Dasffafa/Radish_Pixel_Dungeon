@@ -248,7 +248,8 @@ public class MagneticCrown extends Artifact {
     }
 
     public class Recharge extends ArtifactBuff {
-        private float partialCharge = 0f;
+        // 零头充能直接记在神器本身的 partialCharge 上（Artifact 负责存读档）。
+        // 这里不能再声明一个同名字段：它会遮住神器的那个，零头就只活在这个不进存档的状态对象里，读档、穿脱即丢。
 
         @Override
         public boolean act() {
