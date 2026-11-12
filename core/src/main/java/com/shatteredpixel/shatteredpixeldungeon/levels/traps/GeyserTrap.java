@@ -110,7 +110,10 @@ public class GeyserTrap extends Trap {
 				ArrayList<Integer> candidates = new ArrayList<>();
 				for (int i : PathFinder.NEIGHBOURS8){
 					//add as a candidate if both cells on the trajectory are safe
-					if (!Dungeon.level.avoid[pos + i] && !Dungeon.level.avoid[pos + i + i]){
+					//原版关卡的地板到不了第 1 行，第二格的下标不会出界；本项目有地板铺到第 1 行的关卡（典狱长战斗区、测试场），
+					//英雄站在那里触发时第二格会落到地图之外。第一格不在最外圈，第二格的下标才一定有效
+					if (Dungeon.level.insideMap(pos + i)
+							&& !Dungeon.level.avoid[pos + i] && !Dungeon.level.avoid[pos + i + i]){
 						candidates.add(pos + i);
 					}
 				}
