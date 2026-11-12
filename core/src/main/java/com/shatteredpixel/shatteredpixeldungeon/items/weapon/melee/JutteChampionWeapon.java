@@ -217,9 +217,32 @@ public class JutteChampionWeapon extends MeleeWeapon {
             Hero hero = Dungeon.hero;
             Sample.INSTANCE.play(Assets.Sounds.JUTTE_BREAK);
             if (isEquipped(hero)) {
-                doUnequip(hero, true, true);
+                //损坏不是「卸下」：不能在这里 doUnequip —— 那会多花一次卸装备的回合，
+                //还会在攻击结算的半路上 spendAndNext，并让这一击的攻击耗时按「空手」算。
+                //这一击（伤害、攻击耗时）结算完、英雄回合结束后，再让它从手上消失。
+                final JutteChampionWeapon self = this;
+                Actor.add(new Actor() {
+                    {
+                        actPriority = VFX_PRIO;
+                    }
+
+                    @Override
+                    protected boolean act() {
+                        Actor.remove(this);
+                        if (hero.belongings.secondWep == self) {
+                            hero.belongings.secondWep = null;
+                        } else if (hero.belongings.weapon == self) {
+                            hero.belongings.weapon = null;
+                        }
+                        self.onDetach();
+                        Dungeon.quickslot.clearItem(self);
+                        updateQuickslot();
+                        return true;
+                    }
+                });
+            } else {
+                detach(hero.belongings.backpack);
             }
-            detach(hero.belongings.backpack);
 
             if (level() > 0 && hero.hasTalent(Talent.IRON_QUENCH)) {
                 ScrollOfUpgrade scroll = new ScrollOfUpgrade();
