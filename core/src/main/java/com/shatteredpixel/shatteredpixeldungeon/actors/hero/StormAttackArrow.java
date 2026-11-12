@@ -39,6 +39,9 @@ public class StormAttackArrow extends MissileWeapon {
         if(owner instanceof Hero){
             int lv = ((Hero) owner).pointsInTalent(Talent.STORM_ATTACK);
             SpiritBow bow = ((Hero) owner).belongings.getItem(SpiritBow.class);
+            // 弓可能不在身上（丢在了地上；或未祝福复活后没选择保留它），这时投掷别的武器照样会触发追加箭矢。
+            // 没有弓可算，按固定 1 点伤害结算，否则下面直接空指针、游戏崩溃
+            if (bow == null) return 1;
             switch (lv){
                 case 2: case 4:
                     return bow.damageRoll(owner)/4;
