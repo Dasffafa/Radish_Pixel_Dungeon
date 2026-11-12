@@ -235,6 +235,13 @@ public class CustomWeapon extends MeleeWeapon {
         bundle.put("s_delay_swap", s_delay_swap);
         bundle.put("s_reach", s_reach);
         bundle.put("ench_on", enchOn);
+        // ench_on 只记「表里的第几位」，而表里靠扫描附魔池补进来的条目和排在表尾的虚空，位置都会随着
+        // 往池里加新附魔而移动：旧存档读回来会整体错成别的附魔。所以另外按类名存一份，读档以它为准
+        Class[] classes = new Class[enchList.size()];
+        for (int i = 0; i < classes.length; i++) {
+            classes[i] = enchList.get(i).getClass();
+        }
+        bundle.put("ench_classes", classes);
     }
 
     @Override
@@ -253,9 +260,23 @@ public class CustomWeapon extends MeleeWeapon {
         s_delay = bundle.getFloat("s_delay");
         s_delay_swap = bundle.getBoolean("s_delay_swap");
         s_reach = bundle.getInt("s_reach");
-        enchOn = bundle.getLong("ench_on");
         adjustStatus();
-        setEnchant(enchOn);
+        if (bundle.contains("ench_classes")) {
+            dispelAllEnch();
+            Class[] classes = bundle.getClassArray("ench_classes");
+            if (classes != null) {
+                for (Class<?> c : classes) {
+                    // 已经从游戏里删掉的附魔读出来是 null；不在表里的也跳过，否则它没有对应的勾选框，取消不掉
+                    if (c != null && enchPrio.containsKey(c)) {
+                        enchant((Enchantment) Reflection.newInstance(c));
+                    }
+                }
+            }
+        } else {
+            // 这一版之前的存档只有位掩码，只能按现在的位序解读
+            enchOn = bundle.getLong("ench_on");
+            setEnchant(enchOn);
+        }
     }
 
     private static final String AC_SETTING = "setting";
