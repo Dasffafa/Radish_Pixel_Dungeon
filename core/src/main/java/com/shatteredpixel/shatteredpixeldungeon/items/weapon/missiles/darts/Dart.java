@@ -358,6 +358,11 @@ public class Dart extends MissileWeapon {
 			if (!(item instanceof Potion) || item instanceof ExoticPotion || item instanceof Brew || item instanceof AlchemicalCatalyst) {
 				return false;
 			}
+			//没鉴定的药水不能选：确认窗会写出对应的种子和涂药飞镖的名字，点取消又不消耗任何东西，
+			//等于不花代价把背包里的药水全鉴定一遍
+			if (!item.isIdentified()) {
+				return false;
+			}
 			//只有能对应到种子的药水才能选。各种秘药（Elixir）、女儿红陈酿也是 Potion，却没有对应的种子，
 			//选中后拿不到涂药飞镖的种类，会直接崩溃
 			return hasSeed((Potion) item);
