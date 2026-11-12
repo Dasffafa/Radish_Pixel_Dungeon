@@ -361,7 +361,12 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		}
 		@Override
 		public void detach() {
-			if (isFinish) target.buff(Combo.class).detach();
+			if (isFinish) {
+				//连击可能已经先一步没了：英雄在格挡的回合里死亡或复活时，身上的状态按挂上去的先后逐个移除，
+				//连击总是先于格挡被移除
+				Combo combo = target.buff(Combo.class);
+				if (combo != null) combo.detach();
+			}
 			super.detach();
 		}
 	}
