@@ -744,11 +744,36 @@ public class GameScene extends PixelScene {
 		}
 	}
 	
+	/**
+	 * 存档前等 Actor 线程跑到下一个等待点（等玩家输入 / 等动画回调 / 等精灵走完），不打断它。
+	 * 不能用 waitForActorThread( ms, true )：interrupt 会让 Actor.process() 把 Actor.current 清掉，
+	 * 回到前台后正在等动画回调的 actor 会被重新调一次 act()（远程怪一次施法结算两次、英雄投掷途中变成可操作）。
+	 */
+	private boolean waitForActorThreadIdle( int msToWait ){
+		Thread t = actorThread;
+		if (t == null || !t.isAlive()) {
+			return true;
+		}
+		long deadline = System.currentTimeMillis() + msToWait;
+		while (t.isAlive() && t.getState() != Thread.State.WAITING) {
+			if (System.currentTimeMillis() >= deadline) {
+				return false;
+			}
+			try {
+				Thread.sleep( 5 );
+			} catch (InterruptedException e) {
+				ShatteredPixelDungeon.reportException(e);
+				return false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public synchronized void onPause() {
 		try {
 			// 变身提交在 Actor 线程中执行；保存前等待当前动作完成，避免序列化到半变身状态。
-			if (!waitForActorThread( 4500, true )) {
+			if (!waitForActorThreadIdle( 4500 )) {
 				throw new IOException("timeout waiting for actor thread before save");
 			}
 			Dungeon.saveAll();
