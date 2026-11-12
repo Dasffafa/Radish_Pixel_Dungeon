@@ -559,7 +559,7 @@ public class CursedWand {
 			}
 
 			int pos = bolt.collisionPos;
-			user.sprite.parent.add(new Lightning(pos - 1, user.pos + 1, null));
+			user.sprite.parent.add(new Lightning(pos - 1, pos + 1, null));
 			user.sprite.parent.add(new Lightning(pos - Dungeon.level.width(), pos + Dungeon.level.width(), null));
 			user.sprite.parent.add(new Lightning(pos - 1 - Dungeon.level.width(), pos + 1 + Dungeon.level.width(), null));
 			user.sprite.parent.add(new Lightning(pos - 1 + Dungeon.level.width(), pos + 1 - Dungeon.level.width(), null));
