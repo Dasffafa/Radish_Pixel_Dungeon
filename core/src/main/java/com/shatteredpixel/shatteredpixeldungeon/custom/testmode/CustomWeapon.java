@@ -126,7 +126,9 @@ public class CustomWeapon extends MeleeWeapon {
                 // 虚空的位置固定在表尾，见循环后面的说明
                 if (e == VoidRift.class) continue;
                 if (!enchPrio.containsKey(e)) {
-                    enchPrio.put(e, e.getName().endsWith(".curses.") ? 2 : 1);
+                    // 诅咒排在最先结算的那一档。按「它是从哪个池里扫出来的」判断：
+                    // 以前这里拿类的全名去比是不是以 ".curses." 结尾，全名以类名结尾，永远比不上
+                    enchPrio.put(e, pool == Enchantment.curses ? 2 : 1);
                 }
             }
         }
