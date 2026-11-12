@@ -228,9 +228,7 @@ public class SewerLevel extends RegularLevel {
 			if (heaps.get(cell) != null) {
 				continue;
 			}
-			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(cell) != null) {
-				continue;
-			}
+			//「已有单位」不在这里排除，放到下面抽取的时候查（见那里的说明）
 			// 别刷在陷阱或植物上：游商是常驻 NPC，压住陷阱格会让人看不清那里有东西
 			if (traps.get(cell) != null || plants.get(cell) != null) {
 				continue;
@@ -277,6 +275,13 @@ public class SewerLevel extends RegularLevel {
 			for (int cell : pool) {
 				if (chosen.size() >= PeddlerCatalog.COUNT) {
 					break;
+				}
+				//已经站着别的单位（月华、房间里的食人鱼、水晶宝箱怪……）的格子不放。
+				//原来在收集候选格时用 Actor.findChar 查，但建关时角色表是空的，那个判断永远不成立，
+				//游商会和别的单位叠在同一格。要查这一层自己的怪物表；
+				//并且放在这里查而不是从候选格里剔掉：洗牌用掉的随机数个数不变，没有撞车的种子生成结果和以前一样。
+				if (findMob(cell) != null) {
+					continue;
 				}
 				boolean ok = true;
 				for (int other : chosen) {
