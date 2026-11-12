@@ -67,9 +67,12 @@ public class SoulMix extends Armor {
 	private void gainStack(){
 		stacks = Math.min( maxStacks( level() ), stacks + 1 );
 		turnsLeft = DURATION;
+		// 额外等级直接显示在物品栏、快捷栏的等级数字上，层数变了要通知它们重画
+		updateQuickslot();
 	}
 
 	private void clearStacks(){
+		if (stacks > 0) updateQuickslot();
 		stacks = 0;
 		turnsLeft = 0;
 	}
@@ -117,7 +120,7 @@ public class SoulMix extends Armor {
 	public class SoulMixBuff extends ArmorBuff {
 		@Override
 		public boolean act(){
-			if (turnsLeft > 0 && --turnsLeft <= 0) stacks = 0;
+			if (turnsLeft > 0 && --turnsLeft <= 0) clearStacks();
 			spend( TICK );
 			return true;
 		}
