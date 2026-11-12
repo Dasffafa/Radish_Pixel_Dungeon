@@ -7,6 +7,9 @@ package com.shatteredpixel.shatteredpixeldungeon.challenge;
 
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 
 public class AlchemyApprenticeChallenge {
 
@@ -29,6 +32,12 @@ public class AlchemyApprenticeChallenge {
 		if (!isActive()) return baseCost;
 		if (baseCost <= 0 && !CHARGE_FREE_RECIPES) return baseCost;
 		return baseCost + EXTRA_ENERGY_COST;
+	}
+
+	//把这件物品转化为炼金能量时是否不再顺带鉴定它。
+	//设计原文只提到药水与卷轴（合剂、秘卷也是它们的子类），其它物品照旧
+	public static boolean blocksEnergizeIdentify( Item item ){
+		return isActive() && (item instanceof Potion || item instanceof Scroll);
 	}
 
 }

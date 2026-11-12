@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.windows;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.AlchemyApprenticeChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.items.EnergyCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -128,12 +129,14 @@ public class WndEnergizeItem extends WndInfoItem {
 
 	public static void energize(Item item){
 		Hero hero = Dungeon.hero;
+		//所有转化入口（炼金釜里的转化窗口、炼金菱晶）最后都汇到这里，所以「炼金学徒」挑战只需在这一处拦下鉴定
+		boolean identify = !AlchemyApprenticeChallenge.blocksEnergizeIdentify(item);
 
 		if (ShatteredPixelDungeon.scene() instanceof AlchemyScene){
 
 			Dungeon.energy += item.energyVal();
 			((AlchemyScene) ShatteredPixelDungeon.scene()).createEnergy();
-			if (!item.isIdentified()){
+			if (identify && !item.isIdentified()){
 				((AlchemyScene) ShatteredPixelDungeon.scene()).showIdentify(item);
 			}
 
@@ -142,7 +145,7 @@ public class WndEnergizeItem extends WndInfoItem {
 			//energizing items doesn't spend time
 			hero.spend(-hero.cooldown());
 			new EnergyCrystal(item.energyVal()).doPickUp(hero);
-			item.identify();
+			if (identify) item.identify();
 			GLog.h(Messages.get(Alchemize.class,"refoge") + item.name());
 
 		}
