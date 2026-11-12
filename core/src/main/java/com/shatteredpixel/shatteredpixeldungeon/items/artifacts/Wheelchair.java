@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.events.BeforeHeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
@@ -243,6 +244,15 @@ public class Wheelchair extends Artifact {
     // 充能上限：3 + 等级，最大10
     public int maxCharge() {
         return Math.min(10, 3 + level());
+    }
+
+    @Override
+    public Item upgrade() {
+        super.upgrade();
+        // 读档时 Item 先按等级逐级调用 upgrade()，随后 Artifact 才用 chargeCap 去夹存档里的充能。
+        // 上限不在这里跟着等级走的话，那一刻它还是初始的 3，高于 3 的充能每次读档都会被削掉。
+        chargeCap = maxCharge();
+        return this;
     }
 
     private CellSelector.Listener rideTargeter = new CellSelector.Listener() {
