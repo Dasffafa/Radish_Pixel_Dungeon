@@ -333,7 +333,7 @@ public class Druid extends HeroSubClass {
 						&& hit.add( ch )) {
 					ch.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
 							dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-					Buff.affect( ch, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
+					ignite( ch );
 					if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1) {
 						knockBack( ch, hero.pos );
 					}
@@ -389,7 +389,7 @@ public class Druid extends HeroSubClass {
 			if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive()
 					&& Dungeon.level.distance( cell, mob.pos ) <= 3) {
 				mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo( dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-				Buff.affect( mob, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
+				ignite( mob );
 				com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( mob.pos ).burst(
 						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 6 );
 			}
@@ -401,6 +401,14 @@ public class Druid extends HeroSubClass {
 		v.cell = cell;
 		v.turns = 50 + (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 3 ? 25 : 0);
 		return true;
+	}
+
+	// 只 Buff.affect 而不 reignite 的燃烧剩余时间是 0，烧一跳就熄灭；这里按原版火系效果的写法补上 reignite。
+	// 已被这次伤害打死的目标不再点燃，免得给尸体挂上燃烧特效。
+	private static void ignite( Char ch ) {
+		if (ch.isAlive()) {
+			Buff.affect( ch, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class ).reignite( ch );
+		}
 	}
 
 	/** 从 from 到 to 的直线格（Bresenham）。 */
@@ -575,7 +583,7 @@ public class Druid extends HeroSubClass {
 							&& Dungeon.level.distance( cell, mob.pos ) <= 3) {
 						mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
 								dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, this ) );
-						Buff.affect( mob, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
+						ignite( mob );
 					}
 				}
 			}
