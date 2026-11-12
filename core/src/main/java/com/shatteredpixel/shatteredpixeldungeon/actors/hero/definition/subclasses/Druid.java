@@ -628,6 +628,9 @@ public class Druid extends HeroSubClass {
 		{
 			type = buffType.POSITIVE;
 			announced = false;
+			// 复活时会清掉所有不带这个标记的 buff；自然能量是转职资源，
+			// 和 MonkEnergy、MagicPoint 这些职业资源一样要留下，否则复活后能量归零、法术书按钮也跟着消失
+			revivePersists = true;
 		}
 
 		public float energy = 0f;
