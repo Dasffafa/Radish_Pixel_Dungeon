@@ -234,7 +234,8 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 		if (power > 1f){
 			shieldMultiplier *= power;
 			levelRecovery *= 2f - power;
-			turnRecovery *= (int) (2f - power);
+			//原版写法：按 (2 - 怒气) 的比例缩短冷却。把这个比例先截成整数的话，怒气一过 100% 它就恒为 0，冷却直接归零
+			turnRecovery *= 2f - power;
 		}
 
 		WarriorShield shield = target.buff(WarriorShield.class);
