@@ -443,9 +443,14 @@ public class Belief extends Buff implements ActionIndicator.Action {
             credibility += exp;
         }
 
-        // 飘字也带上小数，否则获得 0.33 时头顶飘的是「0」
-        hero.sprite.showStatusWithIcon(Window.TITLE_COLOR,
-                Messages.decimalFormat("#.##", roundedValue + exp), FloatingText.BELIEF);
+        // 这次什么都没得到（越级的怪、星界沟通没攒够经验的那几次）就不飘字，
+        // 否则每打死一只怪头顶都多飘一个「0」
+        float gained = roundedValue + exp;
+        if (gained > 0) {
+            // 飘字也带上小数，否则获得 0.33 时头顶飘的是「0」
+            hero.sprite.showStatusWithIcon(Window.TITLE_COLOR,
+                    Messages.decimalFormat("#.##", gained), FloatingText.BELIEF);
+        }
     }
 
 
