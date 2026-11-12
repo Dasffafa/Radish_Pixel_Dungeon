@@ -45,11 +45,11 @@ public final class ArmorOutfit {
 
 	private ArmorOutfit() {}
 
-	/** 只有前六个职业的贴图追加了新行；其余职业保持原有护甲行，避免取到空白帧。 */
+	/** 只有前五个职业的贴图追加了新行；月华有特殊贴图逻辑，不加载新外观图。 */
 	public static boolean hasOutfit( HeroClass cl ){
 		int i = 0;
 		for (HeroClass h : HeroClasses.ALL){
-			if (h == cl) return i < 6;
+			if (h == cl) return i < 5;
 			i++;
 		}
 		return false;
