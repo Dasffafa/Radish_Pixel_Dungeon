@@ -49,7 +49,7 @@ import com.watabou.utils.Random;
 public abstract class DiceMageSpell implements Hero.Doom {
 
     /**
-     * 英雄被自己的法术打死（燃烧 / 撕裂的自伤）时的结算。
+     * 英雄被自己的法术打死（燃烧 / 割破的自伤）时的结算。
      * Hero.die 只对实现了 Doom 的死因调 onDeath，由死因自己负责 Dungeon.fail；
      * 不实现的话这一局不会写进排行榜，存档却照样被删。
      */
