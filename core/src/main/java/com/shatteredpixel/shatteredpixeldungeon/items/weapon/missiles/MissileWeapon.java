@@ -299,7 +299,8 @@ abstract public class MissileWeapon extends Weapon {
 			if(Dungeon.hero != null){
 				if(Dungeon.hero.hasTalent(Talent.STORM_ATTACK)){
 					StormAttackArrow arrow = new StormAttackArrow();
-					arrow.cast(Dungeon.hero,cell);
+					//这次投掷的回合结束之后再射，见 castAfterCurrentAction 的注释
+					arrow.castAfterCurrentAction(Dungeon.hero,cell);
 				}
 			}
 

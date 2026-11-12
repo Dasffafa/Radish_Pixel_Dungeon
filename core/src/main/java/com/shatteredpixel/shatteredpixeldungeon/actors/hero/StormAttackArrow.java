@@ -89,6 +89,33 @@ public class StormAttackArrow extends MissileWeapon {
     int flurryCount = -1;
     Actor flurryActor = null;
 
+    /**
+     * 在「当前这次行动」结束之后再射出追加箭。
+     * <p>
+     * 追加箭不能直接 cast：主箭一落地就 spendAndNext 结束了英雄的回合，追加箭晚到的那一下
+     * 会在渲染线程上、回合之外结算——能把正在出手的怪射死，那只怪的回合就再也结束不了。
+     * 这里排一个一次性 Actor：主箭的回合一结束它立刻行动（优先级仅次于特效），
+     * 射出追加箭并占住 Actor 线程，直到追加箭结算完才放手（和原版狙击手连射的写法一致）。
+     */
+    public void castAfterCurrentAction(final Hero user, final int dst) {
+        Actor.add(new Actor() {
+            {
+                actPriority = VFX_PRIO - 1;
+            }
+
+            @Override
+            protected boolean act() {
+                Actor.remove(this);
+                if (!user.isAlive() || user.sprite == null || user.sprite.parent == null) {
+                    return true;
+                }
+                flurryActor = this;
+                cast(user, dst);
+                return false;
+            }
+        });
+    }
+
     @Override
     public void cast(final Hero user, final int dst) {
         final int cell = throwPos(user, dst);
@@ -219,6 +246,11 @@ public class StormAttackArrow extends MissileWeapon {
 
                         if (flurryCount > 0) {
                             scheduleNextFlurry(user, enemy, cell);
+                            // 这一箭如果是一次性 Actor 射出的，下一箭已经排好，这里要放开它占着的 Actor 线程
+                            if (flurryActor != null) {
+                                flurryActor.next();
+                                flurryActor = null;
+                            }
                         } else {
                             finalizeFlurryAttack(user, dst);
                         }
