@@ -312,7 +312,11 @@ public class JutteChampionWeapon extends MeleeWeapon {
             Buff.affect(hero, Combo.class).hit();
         }
 
-        Dungeon.level.drop(this, cell).sprite.drop(cell);
+        // 这一掷把耐久打光时十手已经报废（近战打坏时是直接消失的），
+        // 不能再落到地上变成一把捡得起来、伤害永远为 0、也没有办法修的废品
+        if (!isBroken()) {
+            Dungeon.level.drop(this, cell).sprite.drop(cell);
+        }
     }
     
     // Serialization: store and restore durability
