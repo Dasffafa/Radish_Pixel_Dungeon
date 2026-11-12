@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchool;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -79,7 +80,7 @@ public class WndDiceMageTalentChoice extends Window {
             cardsBottom = secondCard.bottom();
         }
 
-        DiceMageUI.DiceButton random = new DiceMageUI.DiceButton("随机提升某学派") {
+        DiceMageUI.DiceButton random = new DiceMageUI.DiceButton(Messages.get(this, "random")) {
             @Override
             protected void onClick() {
                 choose(randomAvailableSchool());
@@ -89,7 +90,7 @@ public class WndDiceMageTalentChoice extends Window {
         random.setRect(22, cardsBottom + PAD, w - 44, BUTTON_HEIGHT);
         add(random);
 
-        DiceMageUI.DiceButton skip = new DiceMageUI.DiceButton("跳过") {
+        DiceMageUI.DiceButton skip = new DiceMageUI.DiceButton(Messages.get(this, "skip")) {
             @Override
             protected void onClick() {
                 skip();
