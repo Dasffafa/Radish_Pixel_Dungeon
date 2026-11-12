@@ -79,6 +79,12 @@ public class WingSword extends MeleeWeapon {
         super.execute(hero, action);
 
         if (action.equals(AC_DIVE_ATTACK)) {
+            // 动作列表里只有装备着才给这个按钮，但它同时是默认动作：
+            // 放在快捷栏里不装备也能点到这里，于是拿着别的武器也能吃到翼剑的俯冲和等级加成
+            if (hero.belongings.weapon() != this) {
+                GLog.w(Messages.get(WingSword.class, "not_equipped"));
+                return;
+            }
             Levitation levitation = hero.buff(Levitation.class);
             if (levitation == null) {
                 GLog.w(Messages.get(WingSword.class, "dive_no_levitation"));
@@ -94,11 +100,12 @@ public class WingSword extends MeleeWeapon {
                         }
 
                         Char enemy = Actor.findChar(target);
-                        if (Dungeon.level.heroFOV[target]) {
-                            if (enemy == null || enemy == hero || hero.isCharmedBy(enemy)) {
-                                GLog.w(Messages.get(WingSword.class, "ability_no_target"));
-                                return;
-                            }
+                        // 与原版突刺相同的条件：目标格必须看得见、上面有可以攻击的敌人。
+                        // 以前只在「看得见」时才检查有没有敌人，点视野外的格子反而一律放行：
+                        // 英雄白跳一格、丢掉悬浮，或者直接砍到看不见的敌人
+                        if (enemy == null || enemy == hero || hero.isCharmedBy(enemy) || !Dungeon.level.heroFOV[target]) {
+                            GLog.w(Messages.get(WingSword.class, "ability_no_target"));
+                            return;
                         }
 
                         if (hero.rooted || Dungeon.level.distance(hero.pos, target) < 2
