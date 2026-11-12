@@ -780,10 +780,14 @@ public class Armor extends EquipableItem {
 	public float evasionFactor( Char owner, float evasion ){
 
 		if (hasGlyph(Stone.class, owner) ){
+			//磐岩刻印把闪避清零，但它自己结算减伤时要读一次「本来的闪避」，那一刻不能清零。
+			//刻印可能在护甲上，也可能在纹章上（符文传递），两处是同一个对象或各自一个，哪一个正在结算都算。
+			//原先只要纹章带着磐岩就一律清零，结果减伤永远算出 0：闪避没了，伤害也一点没减
 			BrokenSeal s = checkSeal();
-			if((glyph instanceof Stone && !((Stone)glyph).testingEvasion())
-					|| (s != null && s.getGlyph() != null && s.getGlyph() instanceof Stone))
-				return 0;
+			Glyph sealGlyph = s != null ? s.getGlyph() : null;
+			boolean testing = (glyph instanceof Stone && ((Stone)glyph).testingEvasion())
+					|| (sealGlyph instanceof Stone && ((Stone)sealGlyph).testingEvasion());
+			if (!testing) return 0;
 		}
 
 		if (owner instanceof Hero){
