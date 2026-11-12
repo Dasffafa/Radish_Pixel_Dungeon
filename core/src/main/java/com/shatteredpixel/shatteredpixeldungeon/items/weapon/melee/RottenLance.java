@@ -168,10 +168,14 @@ public class RottenLance extends MeleeWeapon{// idea is from relic pd
 
         @Override
         public boolean act() {
+            // 每回合都要检查。以前这里返回 super.act()，而 Buff.act() 会让 buff 停止行动，
+            // 于是只在扎根的那一刻检查一次，之后着火也烧不掉，人被钉在火里
             if (target.buff(Burning.class)!=null){
                 detach();
+            } else {
+                spend(TICK);
             }
-            return super.act();
+            return true;
         }@Override
         public boolean attachTo( Char target ) {
             if (super.attachTo( target )) {
