@@ -13,6 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Recipe;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
 import com.shatteredpixel.shatteredpixeldungeon.items.stones.Runestone;
+import com.shatteredpixel.shatteredpixeldungeon.journal.Document;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
@@ -81,6 +82,19 @@ public class AlchemyApprenticeChallenge {
 		//没有任何可换的种类时保持原样
 		if (index == -1) return Reflection.newInstance(original);
 		return (Runestone) Reflection.newInstance(classes[index]);
+	}
+
+	//炼金指南的符石页和能量页，原文写着拆解、转化会顺带鉴定物品，开启挑战后不再成立。
+	//指南界面会把这里返回的说明补在该页正文后面；不需要补充的页返回 null
+	public static String guideNote( int pageIdx ){
+		if (!isActive()) return null;
+
+		if (pageIdx == Document.ALCHEMY_GUIDE.pageIdx("Stones")){
+			return Messages.get(Challenges.class, "alchemy_apprentice_guide_stones");
+		} else if (pageIdx == Document.ALCHEMY_GUIDE.pageIdx("Energy_Food")){
+			return Messages.get(Challenges.class, "alchemy_apprentice_guide_energy");
+		}
+		return null;
 	}
 
 	//只用于展示的预览物品。拆解的产物是「对应的符石加一颗随机符石」，而一个产出格只能放一种物品，
