@@ -150,7 +150,7 @@ public class WardenPrototype extends Mob implements Callback {
 		alignment = Alignment.ENEMY;
 		if (sprite != null) {
 			sprite.showStatus( 0xFFCC22, Messages.get( this, "activated_warden" ) );
-			((DMPrototypeSprite) sprite).activate();
+			activateSprite();
 		}
 	}
 
@@ -163,6 +163,13 @@ public class WardenPrototype extends Mob implements Callback {
 		alignment = Alignment.ALLY;
 		if (sprite != null) {
 			sprite.showStatus( 0x22CCFF, Messages.get( this, "activated_hero" ) );
+			activateSprite();
+		}
+	}
+
+	//蛇咬挑战会把怪物精灵整个换成蛇，那时 sprite 不是 DMPrototypeSprite，不能直接强转
+	private void activateSprite() {
+		if (sprite instanceof DMPrototypeSprite) {
 			((DMPrototypeSprite) sprite).activate();
 		}
 	}
