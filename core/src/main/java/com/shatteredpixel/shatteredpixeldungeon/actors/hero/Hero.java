@@ -2783,7 +2783,6 @@ public class Hero extends Char {
 		int step = -1;
 
 		if (Dungeon.level.adjacent( pos, target )) {
-			subClass.onMove(this);
 			path = null;
 
 			if (Actor.findChar( target ) == null) {
@@ -2878,7 +2877,6 @@ public class Hero extends Char {
 		if (step != -1) {
 
 			float delay = 1 / speed();
-			subClass.onMove(this);
 
 			if (Dungeon.level.pit[step] && !Dungeon.level.solid[step]
 					&& (!flying || buff(Levitation.class) != null && buff(Levitation.class).detachesWithinDelay(delay))){
@@ -2895,6 +2893,10 @@ public class Hero extends Char {
 				canSelfTrample = false;
 				return false;
 			}
+
+			// 和原版一样，只在确定要迈出这一步时记一次移动。以前「目标在隔壁」的分支开头还多调了一次，
+			// 而且两处都在判断能不能走之前：点隔壁的墙、点深渊弹出确认框（都不动也不花时间）也涨动量，走相邻格一步涨两层
+			subClass.onMove(this);
 
 			if (hasTalent(Talent.MOVING_DEFENSE)){
 				if (Random.Float()<0.33f*pointsInTalent(Talent.MOVING_DEFENSE)+0.01f){
