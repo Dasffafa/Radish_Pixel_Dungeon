@@ -339,7 +339,8 @@ public class StatusPane extends Component {
 		for(VitaeBuff s:Dungeon.hero.buffs(VitaeBuff.class)){
 			vitaeSpan += (float) s.maxVitae;
 		}
-		vitae.scale.x = vitaeMax/vitaeSpan * Math.min(vitaeSpan,vt);
+		// 身上没有 VitaeBuff 时 vitaeSpan 是 0，直接除会得到 NaN 并一路传进这条血条的顶点数据
+		vitae.scale.x = vitaeSpan > 0 ? vitaeMax/vitaeSpan * Math.min(vitaeSpan,vt) : 0;
 
 		if (shield > health) {
 			rawShielding.scale.x = Math.min(1, shield / (float) max);
