@@ -42,7 +42,8 @@ public class RingOfSharpshooting extends Ring {
 			}
 			return info;
 		} else {
-			return Messages.get(this, "typical_stats", 1, Messages.decimalFormat("#.##", 20f));
+			// 耐久每级 1.1 倍（见 durabilityMultiplier），+0 戒指是 10%；这里和下面的 upgradeStat2 原先留着旧的 1.2 倍
+			return Messages.get(this, "typical_stats", 1, Messages.decimalFormat("#.##", 10f));
 		}
 	}
 
@@ -55,7 +56,7 @@ public class RingOfSharpshooting extends Ring {
 	@Override
 	public String upgradeStat2(int level) {
 		if (cursed && cursedKnown) level = Math.min(-1, level-3);
-		return Messages.decimalFormat("#.##", 100f * (Math.pow(1.2, level+1)-1f)) + "%";
+		return Messages.decimalFormat("#.##", 100f * (Math.pow(1.1, level+1)-1f)) + "%";
 	}
 	
 	@Override

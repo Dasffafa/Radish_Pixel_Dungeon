@@ -69,12 +69,16 @@ public class RingOfTenacity extends Ring {
 
 	public String upgradeStat1(int level){
 		if (cursed && cursedKnown) level = Math.min(-1, level-3);
-		return Messages.decimalFormat("#.##", 100f * (1f - Math.pow(0.85f, level+1))) + "%";
+		// 用实际结算的同一条公式；这里原先留着原版的 1 - 0.85^等级（+0 显示 15%，实际只有 10%）
+		return Messages.decimalFormat("#.##", 100f * (1f - damageMultiplier(level+1))) + "%";
 	}
 
 	public static float damageMultiplier( Char t ){
 		if (wieldingCircleSword(t)) return 1f;
-		int gbb=getBuffedBonus( t, Tenacity.class);
+		return damageMultiplier(getBuffedBonus( t, Tenacity.class));
+	}
+
+	private static float damageMultiplier( int gbb ){
 		if (gbb>0)
 			return Math.max(0.01f,(float)Math.pow(0.944,gbb-1)-0.1f);
 		else
