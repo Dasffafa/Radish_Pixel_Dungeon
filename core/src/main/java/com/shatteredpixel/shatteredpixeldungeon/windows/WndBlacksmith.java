@@ -431,7 +431,11 @@ public class WndBlacksmith extends Window {
 			return item.isUpgradable()
 					&& item.isIdentified()
 					&& !item.cursed
-					&& item.level() < 2;
+					&& item.level() < 2
+					//精制附魔的武器升不了级（upgrade() 什么都不做），选它只会白扣好感、白占一次升级次数
+					&& !(item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
+						&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) item).enchantment
+							instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined);
 		}
 
 		@Override
