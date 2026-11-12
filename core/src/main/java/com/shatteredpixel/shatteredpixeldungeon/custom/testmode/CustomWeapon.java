@@ -87,7 +87,6 @@ public class CustomWeapon extends MeleeWeapon {
         enchPrio.put(Corrupting.class, 0);
         enchPrio.put(Elastic.class, 1);
         enchPrio.put(Grim.class, 0);
-        enchPrio.put(VoidRift.class, 0);
         enchPrio.put(Jealousy.class, 1);
         enchPrio.put(Kinetic.class, 0);
         enchPrio.put(Lucky.class, 0);
@@ -116,11 +115,19 @@ public class CustomWeapon extends MeleeWeapon {
             for (Class<?> c : pool) {
                 @SuppressWarnings("unchecked")
                 Class<? extends Enchantment> e = (Class<? extends Enchantment>) c;
+                // 虚空的位置固定在表尾，见循环后面的说明
+                if (e == VoidRift.class) continue;
                 if (!enchPrio.containsKey(e)) {
                     enchPrio.put(e, e.getName().endsWith(".curses.") ? 2 : 1);
                 }
             }
         }
+
+        // ench_on 按这张表的迭代顺序逐位存档。虚空是在上面的位序都定下来之后才加入的：
+        // 把它登记在表中间，或者让池扫描按 rare 池的位置把它排到诅咒前面，
+        // 都会让排在它后面的附魔在旧存档里整体错一位，所以单独接在最后。
+        // 优先级 0：和死神一样排在其它附魔之后结算。
+        enchPrio.put(VoidRift.class, 0);
     }
 
     @Override
