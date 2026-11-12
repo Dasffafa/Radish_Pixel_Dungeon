@@ -19,7 +19,9 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -249,6 +251,27 @@ public class ConvictLevel extends Level {
 		//没有这个键的存档来自建关时就把他放好的版本：不管他现在是死是活，都算已经生成过。
 		//缺省成 false 的话，在早就打败他的存档里再走进竞技场，他会重新出现一次
 		felonSpawned = !bundle.contains( FELON_SPAWNED ) || bundle.getBoolean( FELON_SPAWNED );
+	}
+
+	//和原版的 Boss 层一样只给入口旁边的空位。基类会在全图随便挑一个能走的格子，
+	//而这张图的围墙外面有几块封死的空腔：未祝福的十字架复活时，英雄或遗失的背包会被放进去，再也出不来
+	@Override
+	public int randomRespawnCell( Char ch ) {
+		ArrayList<Integer> candidates = new ArrayList<>();
+		for (int i : PathFinder.NEIGHBOURS8) {
+			int cell = entrance() + i;
+			if (passable[cell]
+					&& Actor.findChar( cell ) == null
+					&& (!Char.hasProp( ch, Char.Property.LARGE ) || openSpace[cell])) {
+				candidates.add( cell );
+			}
+		}
+
+		if (candidates.isEmpty()) {
+			return -1;
+		} else {
+			return Random.element( candidates );
+		}
 	}
 
 	@Override
