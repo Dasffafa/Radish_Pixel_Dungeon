@@ -20,6 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.TengusMask;
 import com.shatteredpixel.shatteredpixeldungeon.levels.WardenBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WardenSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -88,6 +89,14 @@ public class Warden extends Mob {
 	@Override
 	public String description() {
 		return Messages.get( this, "desc" );
+	}
+
+	//查看窗口、格子内容窗口拿到的是没有 link() 的精灵，是不是红眼形态要在这里交给它
+	@Override
+	public CharSprite sprite() {
+		CharSprite sprite = super.sprite();
+		sprite.linkVisuals( this );
+		return sprite;
 	}
 
 	@Override

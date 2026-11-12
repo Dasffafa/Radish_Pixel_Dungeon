@@ -64,13 +64,13 @@ public class WardenSprite extends MobSprite {
 		play( idle );
 	}
 
+	//红眼形态按 Boss 的真实状态补上。放在 linkVisuals() 而不是 link()：
+	//读档后新建的精灵会经由 link() 走到这里，查看窗口、攻击指示器用的精灵则只走这里
 	@Override
-	public void link( Char ch ) {
-		super.link( ch );
-		//读档时精灵是后建的，restoreFromBundle 里拿不到 sprite，
-		//所以红眼形态必须在 link 时按 Boss 的真实状态补上
-		if (ch instanceof Warden && ((Warden) ch).isEnraged()) {
-			setEnraged( true );
+	public void linkVisuals( Char ch ) {
+		super.linkVisuals( ch );
+		if (ch instanceof Warden) {
+			setEnraged( ((Warden) ch).isEnraged() );
 		}
 	}
 
