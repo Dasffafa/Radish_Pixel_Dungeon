@@ -9,7 +9,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -88,6 +91,35 @@ public abstract class SecondaryArmor extends EquipableItem {
 			this.collect();
 		}
 		return true;
+	}
+
+	/**
+	 * 怪物受到任意来源的伤害、进入伤害管线之前，由 Mob.damage 调用一次。
+	 * 攻击方一侧的修正钩子目前只有普通攻击会走，法杖、投掷物与持续伤害都不经过，
+	 * 所以「不分来源」的次要护甲效果只能在受伤入口上挂修正器。
+	 */
+	public static void procMobDamage(Mob target, DamageInfo info) {
+		Hero hero = Dungeon.hero;
+		if (hero == null) return;
+
+		// 灌能臂缠留下的增伤挂在英雄身上，换下臂缠后仍在持续，所以不看当前穿着。
+		// 必须先于下面的护甲钩子结算：触发增伤的那一发法杖伤害自己吃不到加成。
+		if (info.getAttacker() == hero) {
+			InfusedArmbandBuff boost = hero.buff(InfusedArmbandBuff.class);
+			if (boost != null) info.addPreFinalAddModifier(boost.bonus(), "infused armband bonus");
+		}
+
+		SecondaryArmor armor = hero.belongings.secondaryArmor();
+		if (armor != null && hero.STR() >= armor.STRReq()) {
+			armor.onMobDamaged(hero, target, info);
+		}
+	}
+
+	/**
+	 * 本件护甲对「怪物受到的一次伤害」的修正或触发，只在已装备且力量达标时调用。
+	 * 伤害不一定来自英雄（陷阱、盟友、怪物互伤都会进来），要限定来源的子类自己判断 info.getAttacker()。
+	 */
+	protected void onMobDamaged(Hero hero, Mob target, DamageInfo info) {
 	}
 
 	/**

@@ -1067,8 +1067,8 @@ public class Hero extends Char {
 
 		if (dmg < 0) dmg = 0;
 
-		// 次要护甲「所有伤害」加成已统一移到 Mob.damage 的 DamageInfo 修改器；
-		// 这里不再重复结算（否则近战乘两次，而法杖/投掷物仍吃不到）。
+		// 次要护甲的增减伤在怪物受伤入口统一结算（SecondaryArmor.procMobDamage），
+		// 这里再算一遍会让近战重复吃加成。
 
 		return dmg;
 	}
