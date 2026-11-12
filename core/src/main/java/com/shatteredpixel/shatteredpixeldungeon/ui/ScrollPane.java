@@ -170,6 +170,9 @@ public class ScrollPane extends Component {
 			if (thumbTimer <= 0){
 				thumbTimer = 0;
 				thumb.am = 0;
+				// 淡出后要真的隐藏：按下判定只看 visible，只把透明度归零的话，
+				// 看不见的缩略条还会把落在它身上的点击吃掉（onClick 收不到）
+				thumb.visible = false;
 			} else {
 				thumb.am = THUMB_ALPHA * Math.min(1f, thumbTimer / 0.3f);
 			}
@@ -180,7 +183,8 @@ public class ScrollPane extends Component {
 	protected void showThumb(){
 		thumbTimer = THUMB_HOLD;
 		if (thumb != null){
-			thumb.visible = height < content.height();
+			// 亮出来之前先按当前滚动量摆好：计时归零期间没人更新它的位置和大小
+			updateThumb();
 			thumb.am = THUMB_ALPHA;
 		}
 	}
