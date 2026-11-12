@@ -160,6 +160,11 @@ public class HeroSprite extends CharSprite {
 		int outfitRow = ArmorOutfit.rowFor( armor );
 		if (outfitRow >= 0 && ArmorOutfit.hasOutfit( hero.heroClass )) t = outfitRow;
 
+		// 行号是按英雄本职业算的，实际显示的贴图不一定有这一行：被变装成月华（17 行）或工程师（8 行）时，
+		// 以及工程师自己穿上螃蟹甲这类有专属外观行的护甲时，都会取到不存在的行，TextureFilm 直接空指针。
+		// 每张英雄贴图都有 0~6 行，这时退回按护甲阶数取行。
+		if (tiers(sheetAsset).get( t ) == null) t = hero.tier();
+
 		TextureFilm film = new TextureFilm( tiers(sheetAsset), t, FRAME_WIDTH, FRAME_HEIGHT );
 
 		idle = new Animation( 1, true );
@@ -277,17 +282,13 @@ public class HeroSprite extends CharSprite {
 	}
 
 	public static Image avatar( Hero hero ){
-		int row = avatarRow( hero );
-		if (hero.buff(HeroDisguise.class) != null){
-			return avatar(hero.buff(HeroDisguise.class).getDisguise(), row);
-		} else {
-			return avatar(hero.heroClass, row);
-		}
-	}
-
-	/** HUD / 信息窗口头像要与游戏内角色一致：四件新护甲在 18~21 行，其余沿用 armor.tier。 */
-	private static int avatarRow( Hero hero ){
-		return hero == null ? 0 : hero.tier_for_image();
+		HeroDisguise disguise = hero.buff( HeroDisguise.class );
+		HeroClass cl = disguise != null ? disguise.getDisguise() : hero.heroClass;
+		// 头像要与游戏内角色一致，所以取外观行而不是护甲阶数；
+		// 但变装后的贴图可能没有这一行（见 updateArmor），没有就退回按护甲阶数取行。
+		int row = hero.tier_for_image();
+		if (tiers( cl.spritesheet() ).get( row ) == null) row = hero.tier();
+		return avatar( cl, row );
 	}
 	
 	public static Image avatar( HeroClass cl, int armorTier ) {
@@ -306,7 +307,11 @@ public class HeroSprite extends CharSprite {
 			return avatar;
 		}
 
-		RectF patch = tiers( cl.spritesheet() ).get( armorTier );
+		TextureFilm rows = tiers( cl.spritesheet() );
+		RectF patch = rows.get( armorTier );
+		// 调用方只给职业和行号，行号可能超出这张贴图（工程师贴图只有 8 行，状态栏、存档窗口
+		// 却会按螃蟹甲等护甲传来第 8 行以后的行号）。这里拿不到英雄，退回每张图都有的第 0 行。
+		if (patch == null) patch = rows.get( 0 );
 		Image avatar = new Image( cl.spritesheet() );
 		RectF frame = avatar.texture.uvRect( 1, 0, FRAME_WIDTH, FRAME_HEIGHT );
 		frame.shift( patch.left, patch.top );
@@ -332,6 +337,9 @@ public class HeroSprite extends CharSprite {
 			body.frame( frame );
 			return body;
 		}
+
+		// 同 avatar()：行号超出贴图时取到的是贴图之外的区域，退回第 0 行
+		if (tiers( cl.spritesheet() ).get( armorTier ) == null) armorTier = 0;
 
 		return new Image( cl.spritesheet(), 0, 15 * armorTier, FRAME_WIDTH, FRAME_HEIGHT );
 	}
