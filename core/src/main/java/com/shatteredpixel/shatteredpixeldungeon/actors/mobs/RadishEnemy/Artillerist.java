@@ -102,6 +102,11 @@ public class Artillerist extends Mob {
                 Dungeon.hero.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, null, new Bomb()));
             }
         }
+        // 落点中心也可能站着怪（目标是英雄的随从，或炮手被腐化 / 混乱后瞄准的怪），和四邻一样结算
+        Mob centerMob = Dungeon.level.findMob(cell);
+        if(centerMob != null){
+            centerMob.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, this, new Bomb()));
+        }
         for(int c: PathFinder.NEIGHBOURS4){
             CellEmitter.get(cell+c).burst(BlastParticle.FACTORY, 20);
             Mob mob = Dungeon.level.findMob(cell+c);
