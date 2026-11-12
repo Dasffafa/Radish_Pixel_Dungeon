@@ -317,12 +317,13 @@ public class WardenBossLevel extends Level {
 		updateDoor();
 	}
 
-	//门只在「开战期间、英雄人在战斗区里」时锁着。
-	//人在门外门却锁着（旧版本存档、测试传送）就进不去了，封层又让楼梯用不了，等于卡死。
+	//门只在「开战期间、英雄和典狱长都在战斗区里」时锁着。
+	//人在门外门却锁着（旧版本存档、测试传送）就进不去了，封层又让楼梯用不了，等于卡死；
+	//典狱长追到门外时也不能锁，否则英雄先回到战斗区就把它关在了外面，同样卡死。
 	//门格上站着角色时先不锁，免得把它嵌进实心格里，等它走开再补上
 	private void updateDoor() {
 		int door = pointToCell( doorCell );
-		if (fightStarted && !bossDead && heroInBossArena( Dungeon.hero.pos )) {
+		if (fightStarted && !bossDead && heroInBossArena( Dungeon.hero.pos ) && wardenInArena()) {
 			if (map[door] != Terrain.LOCKED_DOOR && Actor.findChar( door ) == null) {
 				Level.set( door, Terrain.LOCKED_DOOR, this );
 				GameScene.updateMap( door );
@@ -331,6 +332,16 @@ public class WardenBossLevel extends Level {
 			Level.set( door, Terrain.DOOR, this );
 			GameScene.updateMap( door );
 		}
+	}
+
+	//开战的那一刻典狱长还没放进场，这时按在场内算，门照常锁上
+	private boolean wardenInArena() {
+		for (Mob mob : mobs) {
+			if (mob instanceof Warden) {
+				return heroInBossArena( mob.pos );
+			}
+		}
+		return true;
 	}
 
 	//和天狗层一样只给入口旁边的格子：从上一层掉下来的英雄和物品、封层后复活的英雄
