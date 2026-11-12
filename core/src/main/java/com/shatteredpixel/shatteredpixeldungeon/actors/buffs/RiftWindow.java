@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Visual;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
 
 /**
@@ -36,7 +37,7 @@ import com.watabou.utils.Callback;
  *
  * 按文档规格：按回合记账（act 里 spend(TICK)）、按钮带剩余回合数、
  * 落点用 appear（无视距离）、必中追击、出入场都有裂隙粒子、武器离手/换层/目标死亡即关窗。
- * 锁定的目标是 Char 引用，刻意不实现存档，读档后首次 act 自行关闭。
+ * 锁定的目标只记 actor id（同原版 SnipersMark 的做法），随 buff 一起存档。
  */
 public class RiftWindow extends Buff implements ActionIndicator.Action {
 
@@ -47,18 +48,19 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 
 	public static final int WINDOW_TURNS = 3;
 
-	private Char target;
-	private int openedDepth = -1;
+	// 只记目标的 actor id，不直接持有 Char：id 能进存档；换层、或目标被移出本层之后
+	// findById 查不到，窗口自然失效，不会对着一个已经不在场上的角色传送和出手。
+	// 字段也不能叫 target，那会遮住 Buff.target（持有本 buff 的英雄）。
+	private int object = 0;
 	private int turnsLeft = WINDOW_TURNS;
 	// 开窗后的第一次结算只用来对齐回合，不计入 WINDOW_TURNS，原因见 act()
 	private boolean fresh = false;
 
 	/** 打开（或刷新）窗口，锁定这次被攻击的敌人。 */
-	public void open( Char target ){
-		this.target = target;
-		this.openedDepth = Dungeon.depth;
-		this.turnsLeft = WINDOW_TURNS;
-		this.fresh = true;
+	public void open( Char enemy ){
+		object = enemy.id();
+		turnsLeft = WINDOW_TURNS;
+		fresh = true;
 		// 刷新已有窗口时把下一次结算拉回当前时刻，和新开的窗口一样从这一拍重新数
 		timeToNow();
 		ActionIndicator.setAction( this );
@@ -66,18 +68,30 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		GLog.p( Messages.get( DimensionalRipper.class, "window_open" ) );
 	}
 
+	/** 锁定的敌人：必须还在本层的 Actor 表里并且活着，否则返回 null。 */
+	private Char lockedEnemy(){
+		Actor actor = Actor.findById( object );
+		if (actor instanceof Char && ((Char) actor).isAlive()){
+			return (Char) actor;
+		}
+		return null;
+	}
+
 	private boolean stillValid(){
-		Hero hero = Dungeon.hero;
-		return hero != null
-				&& target != null && target.isAlive()
-				&& Dungeon.depth == openedDepth
-				&& DimensionalRipper.equipped( hero ) != null;
+		return lockedEnemy() != null
+				&& target instanceof Hero
+				&& DimensionalRipper.equipped( (Hero) target ) != null;
 	}
 
 	@Override
 	public boolean attachTo( Char target ) {
-		// affect() 发生在 open() 之前，此刻还没锁定目标；这里只把「武器仍在手上」的关。
-		return super.attachTo( target ) && DimensionalRipper.equipped( Dungeon.hero ) != null;
+		if (super.attachTo( target )){
+			// 读档恢复也会走到这里：窗口还开着就把按钮挂回去。
+			// 这时英雄和关卡都还在读档途中，不能去读 Dungeon.hero / Dungeon.level。
+			if (object != 0) ActionIndicator.setAction( this );
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -113,12 +127,13 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 
 	@Override
 	public void doAction() {
-		Hero hero = Dungeon.hero;
-		if (!stillValid()){
+		final Char victim = lockedEnemy();
+		if (victim == null || !stillValid()){
 			detach();
 			return;
 		}
-		int cell = freeCellNear( target.pos );
+		final Hero hero = (Hero) target;
+		int cell = freeCellNear( victim.pos );
 		if (cell < 0){
 			GLog.w( Messages.get( DimensionalRipper.class, "no_space" ) );
 			return;
@@ -134,9 +149,8 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		Dungeon.observe();
 		GameScene.updateFog();
 		hero.checkVisibleMobs();
-		AttackIndicator.target( target );
+		AttackIndicator.target( victim );
 
-		final Char victim = target;
 		hero.sprite.attack( victim.pos, new Callback() {
 			@Override
 			public void call() {
@@ -184,18 +198,28 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 
 	@Override
 	public void detach() {
-		ActionIndicator.clearAction( this );
-		target = null;
 		super.detach();
+		ActionIndicator.clearAction( this );
+	}
+
+	private static final String OBJECT = "object";
+	private static final String TURNS  = "turns_left";
+	private static final String FRESH  = "fresh";
+
+	@Override
+	public void storeInBundle( Bundle bundle ) {
+		super.storeInBundle( bundle );
+		bundle.put( OBJECT, object );
+		bundle.put( TURNS, turnsLeft );
+		bundle.put( FRESH, fresh );
 	}
 
 	@Override
-	public String toString() {
-		return Messages.get( this, "name" );
-	}
-
-	@Override
-	public String desc() {
-		return Messages.get( this, "desc" );
+	public void restoreFromBundle( Bundle bundle ) {
+		super.restoreFromBundle( bundle );
+		// 这几个键是后加的：此前存下的窗口没有它们，按「没有锁定目标」处理，读档后首次结算自行关闭
+		object = bundle.contains( OBJECT ) ? bundle.getInt( OBJECT ) : 0;
+		turnsLeft = bundle.contains( TURNS ) ? bundle.getInt( TURNS ) : 0;
+		fresh = bundle.contains( FRESH ) && bundle.getBoolean( FRESH );
 	}
 }
