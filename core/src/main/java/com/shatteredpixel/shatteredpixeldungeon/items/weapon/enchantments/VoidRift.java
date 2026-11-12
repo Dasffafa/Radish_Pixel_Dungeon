@@ -26,9 +26,11 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 import java.util.Objects;
@@ -104,6 +106,15 @@ public class VoidRift extends Weapon.Enchantment {
 				// 这几个字段不入档，读档后恢复出来的追踪器拿不到附魔，才退回用自己。
 				Object source = enchant != null ? enchant : this;
 				target.damage( new DamageInfo( extra, DamageType.TRUE, attacker, weapon, source ) );
+
+				// 追踪器在这次攻击结算完之后才出手，Char.attack 里「英雄被打死」的收尾已经错过了。
+				// 延后生效的伤害要像流血、中毒那样自己补上，否则这一局不会提交排行榜，也没有死亡提示。
+				if (target == Dungeon.hero && !target.isAlive()){
+					Dungeon.fail( attacker != null ? attacker.getClass() : VoidRift.class );
+					if (attacker != null){
+						GLog.n( Messages.capitalize( Messages.get( Char.class, "kill", attacker.name() ) ) );
+					}
+				}
 			}
 		}
 
