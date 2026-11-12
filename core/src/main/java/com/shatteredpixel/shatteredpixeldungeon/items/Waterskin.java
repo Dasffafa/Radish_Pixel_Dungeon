@@ -87,7 +87,7 @@ public class Waterskin extends Item {
 
 			if (volume > 0) {
 
-				float missingHealthPercent = 1f - (hero.HP / (float)hero.HT) / (Dungeon.isChallenged(Challenges.DAMAGE_NO) ? 5 : 1);
+				float missingHealthPercent = 1f - (hero.HP / (float)hero.HT);
 
 				int curShield = 0;
 				if (hero.buff(Barrier.class) != null) curShield = hero.buff(Barrier.class).shielding();
@@ -103,6 +103,9 @@ public class Waterskin extends Item {
 				//trimming off 0.01 drops helps with floating point errors
 				int dropsNeeded = (int)Math.ceil((missingHealthPercent / 0.05f) - 0.01f);
 				dropsNeeded = (int)GameMath.gate(1, dropsNeeded, volume);
+				//伤痛难愈：Dewdrop.consumeDew 不管喝几滴都只回 1 点血，所以一口只喝 1 滴。
+				//原来这里把「/ 5」除到了当前血量比例上，缺的血反而被算成至少 80%，一口就喝掉 16~20 滴
+				if (Dungeon.isChallenged(Challenges.DAMAGE_NO)) dropsNeeded = 1;
 
 				if (Dewdrop.consumeDew(dropsNeeded, hero, true)){
 					volume -= dropsNeeded;
