@@ -78,7 +78,6 @@ public class GodsPossesion extends ArmorAbility {
                     trajectory = new Ballistica(mob.pos, toMob.path.get(toMob.path.size() - 1), Ballistica.PROJECTILE);
                 }
                 throwChar(mob, trajectory, strength, false, true, getClass());
-                Dungeon.hero.spendAndNext(1f);
             }
         }
     }
