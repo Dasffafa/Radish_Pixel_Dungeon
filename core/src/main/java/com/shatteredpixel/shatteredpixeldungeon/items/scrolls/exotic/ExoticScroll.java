@@ -139,7 +139,7 @@ public abstract class ExoticScroll extends Scroll {
 	public void ExoticScrollToScroll(boolean log,boolean original){
 		if(original) {
 			if (Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 2 && Random.Int(0,100)>=75) {
-				Item scroll = Reflection.newInstance(exoToReg.get(curItem.getClass()));
+				Item scroll = Reflection.newInstance(exoToReg.get(getClass()));
 				if(log) GLog.p(Messages.get(Scroll.class,"exscrolltoscroll",scroll.name()));
 				Dungeon.level.drop(scroll, curUser.pos);
 			}

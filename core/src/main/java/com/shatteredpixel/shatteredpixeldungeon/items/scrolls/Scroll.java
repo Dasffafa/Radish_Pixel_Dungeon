@@ -184,10 +184,11 @@ public abstract class Scroll extends Item {
 	 */
 	public void MagicStone(boolean log,boolean original){
 		if(original) {
-			boolean isNotDouble = !(curItem instanceof ScrollOfRemoveCurse || curItem instanceof ScrollOfUpgrade || curItem instanceof ScrollOfIdentify || curItem instanceof ScrollOfTransmutation);
+			//用 this 而不是 curItem：结算挪到 readAnimation 之后，curItem 不一定还是这张卷轴（比如连续升级的窗口）
+			boolean isNotDouble = !(this instanceof ScrollOfRemoveCurse || this instanceof ScrollOfUpgrade || this instanceof ScrollOfIdentify || this instanceof ScrollOfTransmutation);
 			if (Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 1 && isNotDouble && Random.Int(0,100)>=50) {
 				//赐福卷轴、图纸这类不在炼金表里的卷轴没有对应的符石
-				Class<? extends Runestone> stoneCls = stones.get(curItem.getClass());
+				Class<? extends Runestone> stoneCls = stones.get(getClass());
 				if (stoneCls == null) return;
 				Item MagicStone = Reflection.newInstance(stoneCls);
 				if(log)GLog.p(Messages.get(Scroll.class,"scrollToStone",MagicStone.name()));
@@ -246,12 +247,8 @@ public abstract class Scroll extends Item {
 					&& !(this instanceof ScrollOfRemoveCurse || this instanceof ScrollOfAntiMagic)){
 				GLog.n( Messages.get(this, "cursed") );
 			} else {
-				MagicStone(true,true);
-				ExoticScrollToScroll(true,true);
 				curUser = hero;
-				ShadowBooks(hero);
 				doRead();
-				com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( hero );
 			}
 
 		}
@@ -273,6 +270,13 @@ public abstract class Scroll extends Item {
 
 		// TheCatist 2026/07/21 无序魔典的卷轴使用是anonymous不会触发天赋
 		if (anonymous) return;
+
+		//「读卷轴时」的这几样只在卷轴真的读出来之后结算。它们原先写在 execute 里、doRead 的前后，
+		//而需要选目标的卷轴 doRead 只是弹出窗口：点开再取消（卷轴不消耗、不花回合）也照算，可以无限刷
+		MagicStone(true,true);
+		ExoticScrollToScroll(true,true);
+		ShadowBooks((Hero)curUser);
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( (Hero)curUser );
 
 		// 发射阅读卷轴事件
 		EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
