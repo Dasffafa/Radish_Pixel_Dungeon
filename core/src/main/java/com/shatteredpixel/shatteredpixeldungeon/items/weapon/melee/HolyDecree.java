@@ -31,7 +31,7 @@ public class HolyDecree extends Whip {
 
 	{
 		image = ItemSpriteSheet.HOLY_DECREE;
-		hitSound = Assets.Sounds.HIT_CRUSH;
+		hitSound = Assets.Sounds.HOLY_DECREE_HIT;
 		hitSoundPitch = 1f;
 
 		tier = 4;

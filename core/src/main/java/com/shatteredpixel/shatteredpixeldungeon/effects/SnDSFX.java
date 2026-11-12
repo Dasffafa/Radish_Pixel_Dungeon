@@ -236,6 +236,9 @@ public class SnDSFX {
                 play("block");
                 break;
             case Assets.Sounds.HIT_CRUSH:
+            //圣宣换成专属命中音效之前用的是 HIT_CRUSH；这里没有对应分支的音效在骰子法师手里是不出声的，
+            //所以让它继续走原来的替换音效
+            case Assets.Sounds.HOLY_DECREE_HIT:
                 play("impact");
                 break;
             case Assets.Sounds.HIT_MAGIC:
