@@ -370,10 +370,11 @@ public class ShadowDancer extends HeroSubClass {
 
 		com.shatteredpixel.shatteredpixeldungeon.effects.DashSlashEffect.showOn( hero, ang );
 		if (pos != hero.pos) {
-			hero.pos = pos;
-			hero.sprite.place( pos );
+			// 落位走角色自己的移动入口：离开门格时关门、触发关卡的落位处理（踩陷阱、踩草、首领层封门等），漂浮时不踩格子。
+			// 直接改坐标再手动压格的话，门不会关、关卡的落位处理不触发，漂浮着也照样踩陷阱
+			hero.move( pos, false );
+			hero.sprite.place( hero.pos );
 			hero.sprite.visible = true;
-			Dungeon.level.pressCell( pos );
 			Dungeon.observe();
 		}
 	}
@@ -434,10 +435,10 @@ public class ShadowDancer extends HeroSubClass {
 		}
 
 		if (beyond < Dungeon.level.map.length) {
-			hero.pos = beyond;
-			hero.sprite.place( beyond );
+			// 与 dashTo 相同：落位走角色自己的移动入口
+			hero.move( beyond, false );
+			hero.sprite.place( hero.pos );
 			hero.sprite.visible = true;
-			Dungeon.level.pressCell( beyond );
 			Dungeon.observe();
 		}
 	}
