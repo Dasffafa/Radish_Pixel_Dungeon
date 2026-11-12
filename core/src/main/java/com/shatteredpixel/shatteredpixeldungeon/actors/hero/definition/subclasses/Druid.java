@@ -340,10 +340,18 @@ public class Druid extends HeroSubClass {
 		}
 		int dmg = 12 + hero.lvl;
 		java.util.HashSet<Char> hit = new java.util.HashSet<>();
+		// 火焰实际烧到的最后一格，收尾的特效放在这里
+		int end = hero.pos;
 		for (int pos : lineCells( hero.pos, cell )) {
 			if (pos < 0 || pos >= Dungeon.level.length()) {
 				continue;
 			}
+			// 火焰不穿墙：直线遇到实心格（墙、雕像、关着的门等）就停在它前面，这一格和它后面的格子都不烧、不结算伤害。
+			// 与原版投射物的规则相同：实心格本身不算命中
+			if (pos != hero.pos && Dungeon.level.solid[pos]) {
+				break;
+			}
+			end = pos;
 			// 火焰沿路径扩散，命中路径两侧一格内的敌人
 			for (int off : com.watabou.utils.PathFinder.NEIGHBOURS9) {
 				int c = pos + off;
@@ -372,7 +380,7 @@ public class Druid extends HeroSubClass {
 					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
 							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 4 );
 		}
-		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( cell ).burst(
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( end ).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 12 );
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( hero.pos ).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 6 );
