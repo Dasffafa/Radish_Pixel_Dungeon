@@ -41,9 +41,17 @@ public class DruidSunflower extends Mob {
 		return super.drRoll() + Char.combatRoll( 8, 12 ) + grassTiles;
 	}
 
+	// 扎根的植物不会自己走动：追击、游荡、逃跑时都留在原地。
+	// 不要用「把 move 覆写成空」来实现：英雄与友方换位靠的就是 move，
+	// 它不生效时英雄会走进植物所在的格子，两个单位叠在同一格，植物的贴图还会错位。
 	@Override
-	public void move( int step, boolean travelling ) {
-		// 太阳花无法移动
+	protected boolean getCloser( int target ) {
+		return false;
+	}
+
+	@Override
+	protected boolean getFurther( int target ) {
+		return false;
 	}
 
 	@Override
