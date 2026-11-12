@@ -173,6 +173,12 @@ public class BigSnake_Zikk extends Mob {
     protected boolean doAttack(Char enemy) {
         if (enemy != null && Dungeon.level.distance(pos, enemy.pos) == 3 && enemy.buff(Poison.class) != null) {
             return false;
+        } else if (enemy != null && Dungeon.level.distance(pos, enemy.pos) == 3
+                && !(sprite != null && (sprite.visible || enemy.sprite.visible))) {
+            //双方都不在玩家视野里时不走精灵回调，要在这里结算毒液；
+            //否则 Mob.doAttack 会隔着 3 格按近战咬一口（造成物理伤害、只上 2 回合毒）
+            zap();
+            return true;
         } else {
             return super.doAttack(enemy);
         }
