@@ -420,8 +420,11 @@ public class Hero extends Char {
 			int m = 24 - 4 * hero.pointsInTalent(Talent.SUPERSTITION);
 			cnt += exp;
 			if(cnt >= m){
-				cnt = m % cnt;
-				return 1f;
+				// 这里原来写的是 cnt = m % cnt（取余写反了）：超出阈值后 cnt 停在 m 上，之后每次获得经验都给 1 点信仰。
+				// 按描述「每获取 m 点经验 1 点信仰」：一次给够几个 m 就给几点，零头留到下次
+				int gained = cnt / m;
+				cnt = cnt % m;
+				return gained;
 			}
 			return 0;
 		}
