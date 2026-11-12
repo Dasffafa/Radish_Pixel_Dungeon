@@ -133,9 +133,10 @@ public class FlashCrystal extends Item {
 
 			if (roll < 0.33f) {
 				// 33% 上升一级
-				item.upgrade();
+				// 成叠的投掷武器 upgrade() 只分出一支去升级并返回它，提示要用返回的那一支
+				Item upgraded = item.upgrade();
 				Item.updateQuickslot();
-				GLog.p(Messages.get(FlashCrystal.class, "up", item.name(), item.level()));
+				GLog.p(Messages.get(FlashCrystal.class, "up", upgraded.name(), upgraded.level()));
 			} else if (roll < 0.66f) {
 				// 33% 下降一级
 				if (item.trueLevel() == 0) {
