@@ -32,6 +32,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.CountessDress;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -279,7 +280,12 @@ public class WndTradeItem extends WndInfoItem {
 		if (Dungeon.hero.hasTalent(Talent.ROGUES_INSTINCT)) {
 			chanceToPay -= 0.05f + Dungeon.hero.pointsInTalent(Talent.ROGUES_INSTINCT) * 0.175f;
 		}
-		if (Random.Float()<=chanceToPay) Dungeon.gold -= price;
+		if (Random.Float()<=chanceToPay) {
+			Dungeon.gold -= price;
+			//伯爵礼服「花费金币后回血」：游商那两处扣款都通知了，普通商店这里漏了。
+			//免单天赋触发时没有花钱，不算
+			CountessDress.onGoldChanged();
+		}
 		if (!item.doPickUp( Dungeon.hero )) {
 			Dungeon.level.drop( item, heap.pos ).sprite.drop();
 		}
