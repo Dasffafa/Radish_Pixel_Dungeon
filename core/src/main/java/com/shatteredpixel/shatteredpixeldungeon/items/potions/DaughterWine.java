@@ -66,12 +66,7 @@ public class DaughterWine extends Potion {
 
 	@Override
 	public void shatter( int cell ) {
-		splash( cell );
-		if (Dungeon.level.heroFOV[cell]) {
-			identify();
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-		}
-
+		//先看有没有火再 splash：splash 会把落点这一格的火浇灭，正好砸在唯一着火的那一格上时就判成「没有火」了
 		Fire fire = (Fire) Dungeon.level.blobs.get( Fire.class );
 		boolean burning = false;
 		for (int i : PathFinder.NEIGHBOURS9) {
@@ -80,6 +75,12 @@ public class DaughterWine extends Potion {
 				burning = true;
 				break;
 			}
+		}
+
+		splash( cell );
+		if (Dungeon.level.heroFOV[cell]) {
+			identify();
+			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 		}
 
 		if (!burning) {
