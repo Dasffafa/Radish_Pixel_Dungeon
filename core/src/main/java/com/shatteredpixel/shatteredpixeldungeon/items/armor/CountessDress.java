@@ -14,7 +14,6 @@ package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
@@ -31,19 +30,21 @@ public class CountessDress extends Armor {
 
 	public class CountessBuff extends ArmorBuff {}
 
+	private int healAmount(){ return Math.round( 1 + 0.5f * buffedLvl() ); }
+
 	@Override
 	public String statsInfo() {
-		return Messages.get( this, "stats_desc", Math.round( 1 + 0.5f * buffedLvl() ) );
+		return Messages.get( this, "stats_desc", healAmount() );
 	}
 
-	/** 金币变化回调：Gold 拾取、Midas 附魔与三处商店扣款调用；赎回扣款刻意不调用。 */
+	/** 金币变化回调：由改动金币的代码在改完之后调用。赎回已卖出物品的扣款按设计不算，不要在那里调用。 */
 	public static void onGoldChanged(){
 		Hero hero = Dungeon.hero;
-		if (hero == null || !(hero.belongings.armor instanceof CountessDress)) return;
-		CountessDress dress = (CountessDress) hero.belongings.armor;
-		int heal = Math.round( 1 + 0.5f * dress.buffedLvl() );
-		if (heal <= 0 || hero.HP >= hero.HT || !hero.isAlive()) return;
-		hero.HP = Math.min( hero.HT, hero.HP + heal );
-		hero.sprite.showStatus( CharSprite.POSITIVE, "+" + heal );
+		if (hero == null) return;
+		// 取 armor() 而不是 armor 字段：物品栏遗失期间身上的护甲不生效
+		Armor armor = hero.belongings.armor();
+		if (!(armor instanceof CountessDress)) return;
+		// 走统一治疗入口：直接改 HP 不会发出 HeroHealEvent，依赖它的机制会漏掉这次回血
+		hero.heal( ((CountessDress) armor).healAmount() );
 	}
 }
