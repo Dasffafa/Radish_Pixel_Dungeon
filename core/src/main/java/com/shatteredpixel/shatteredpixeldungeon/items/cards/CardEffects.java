@@ -375,6 +375,20 @@ public final class CardEffects {
 					if (topBlank != null) {
 						hero.cardDeck.drawPile.remove(topBlank);
 						triggerTrap(topBlank, pos);
+						// 空白卡没有记录陷阱，上面那句对它什么都不做；打出去的卡要回到牌堆底，
+						// 否则每打一张陷阱卡牌组就永久少一张空白卡
+						hero.cardDeck.addToBottom(topBlank);
+					}
+				}
+
+				// 卡组连携 +1：要在这张卡退回空白卡之前结算。
+				// 原来写在 finish 里，那时 type 已经是 BLANK，对真正的陷阱卡永远不触发，
+				// 反而会被 +3「空白卡用后变成陷阱卡」触发
+				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 1) {
+					Card next = hero.cardDeck.drawPile.isEmpty() ? null
+							: hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
+					if (next == null || next.type != CardType.TRAP) {
+						rechargeWandsAndArtifacts(hero, 2f);
 					}
 				}
 
@@ -564,16 +578,6 @@ public final class CardEffects {
 		// 僵化/激素强化：每打出一张卡，前置一格
 		if (card.type != CardType.RIGID && card.type != CardType.HORMONE) {
 			advanceEnhanced(hero);
-		}
-
-		// 卡组连携 +1：陷阱卡打出后，若牌堆顶不是陷阱卡，获得法杖/神器充能
-		int combo = hero.pointsInTalent(Talent.DECK_COMBO);
-		if (combo >= 1 && card.type == CardType.TRAP) {
-			Card next = hero.cardDeck.drawPile.isEmpty() ? null
-					: hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
-			if (next == null || next.type != CardType.TRAP) {
-				rechargeWandsAndArtifacts(hero, 2f);
-			}
 		}
 
 		hero.sprite.operate(hero.pos);
