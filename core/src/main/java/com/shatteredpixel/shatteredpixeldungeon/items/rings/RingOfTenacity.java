@@ -94,13 +94,21 @@ public class RingOfTenacity extends Ring {
 
 	public class Tenacity extends RingBuff implements IDamageModifier {
 
+		// attackMultiplier / damageMultiplier 取的已经是两枚戒指合计的效果等级，
+		// 而同时戴两枚时身上有两个 Tenacity，各算一遍就成了平方。只让第一个生效。
+		private boolean firstOnTarget() {
+			return target != null && target.buff(Tenacity.class) == this;
+		}
+
 		@Override
 		public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
+			if (!firstOnTarget()) return;
 			info.addDirectMultModifier(attackMultiplier(attacker), "tenacity", this);
 		}
 
 		@Override
 		public float finalMultiply(int dmg, DamageInfo info) {
+			if (!firstOnTarget()) return 1f;
 			return RingOfTenacity.damageMultiplier(target);
 		}
 	}
