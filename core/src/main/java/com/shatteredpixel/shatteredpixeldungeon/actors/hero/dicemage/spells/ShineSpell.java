@@ -51,14 +51,21 @@ public class ShineSpell extends DiceMageSpell {
                 if (cell == null) return;
                 if (!spendMagic(hero)) return;
 
-                // 区域视野
-                RevealedArea a = Buff.affect(hero, RevealedArea.class, 15f);
-                a.depth = Dungeon.depth;
-                a.pos = cell;
-                Dungeon.observe();
-
                 int width = Dungeon.level.width();
                 int cx = cell % width, cy = cell / width;
+
+                // 区域视野
+                // Dungeon.observe / Level.updateFieldOfView 按 RevealedArea.pos 周围 3x3 直接取数组下标、不查越界，
+                // 选到地图最外一圈（选格时点得到）会数组越界闪退；视野中心往里收到内圈，伤害范围仍以选中的格子为中心
+                RevealedArea a = Buff.affect(hero, RevealedArea.class, 15f);
+                a.depth = Dungeon.depth;
+                // 上一次闪耀的视野还没结束时复用的是同一个 buff，分支要跟着这一次施法走
+                a.branchId = Dungeon.branchId;
+                int vx = Math.max(1, Math.min(width - 2, cx));
+                int vy = Math.max(1, Math.min(Dungeon.level.height() - 2, cy));
+                a.pos = vx + vy * width;
+                Dungeon.observe();
+
                 int hit = 0;
                 for (int x = cx - 5; x <= cx + 5; x++) {
                     for (int y = cy - 5; y <= cy + 5; y++) {
