@@ -56,6 +56,19 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 	// 开窗后的第一次结算只用来对齐回合，不计入 WINDOW_TURNS，原因见 act()
 	private boolean fresh = false;
 
+	// 开窗期间被这个窗口顶掉的按钮。动作按钮只有一个槽位，窗口关闭时要把它还回去：
+	// 有些状态只在特定时机设置自己的按钮（工程师的脉冲只在开局和读档时设一次），
+	// 不还的话那个按钮就一直不见了。只在内存里记，不进存档：读档时那些状态会先各自
+	// 重新设置按钮，本窗口随后在 attachTo 里占槽，照样能记到。
+	private ActionIndicator.Action displaced;
+
+	/** 占用动作槽，并记下被顶掉的是谁。 */
+	private void takeActionSlot(){
+		ActionIndicator.Action current = ActionIndicator.action;
+		if (current != null && current != this) displaced = current;
+		ActionIndicator.setAction( this );
+	}
+
 	/** 打开（或刷新）窗口，锁定这次被攻击的敌人。 */
 	public void open( Char enemy ){
 		object = enemy.id();
@@ -63,7 +76,7 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		fresh = true;
 		// 刷新已有窗口时把下一次结算拉回当前时刻，和新开的窗口一样从这一拍重新数
 		timeToNow();
-		ActionIndicator.setAction( this );
+		takeActionSlot();
 		BuffIndicator.refreshHero();
 		GLog.p( Messages.get( DimensionalRipper.class, "window_open" ) );
 	}
@@ -88,7 +101,7 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 		if (super.attachTo( target )){
 			// 读档恢复也会走到这里：窗口还开着就把按钮挂回去。
 			// 这时英雄和关卡都还在读档途中，不能去读 Dungeon.hero / Dungeon.level。
-			if (object != 0) ActionIndicator.setAction( this );
+			if (object != 0) takeActionSlot();
 			return true;
 		}
 		return false;
@@ -198,7 +211,7 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 			return true;
 		}
 		// 每回合重占动作槽，避免被其它动作按钮顶掉后按钮消失。
-		ActionIndicator.setAction( this );
+		takeActionSlot();
 		spend( TICK );
 		return true;
 	}
@@ -207,6 +220,13 @@ public class RiftWindow extends Buff implements ActionIndicator.Action {
 	public void detach() {
 		super.detach();
 		ActionIndicator.clearAction( this );
+		// 槽位空出来了才还，而且只还给仍然挂在这个英雄身上的状态：
+		// 窗口期间对方可能已经解除（比如连击断了），那就没有可还的了。
+		if (ActionIndicator.action == null && displaced instanceof Buff
+				&& target != null && target.buffs().contains( displaced )){
+			ActionIndicator.setAction( displaced );
+		}
+		displaced = null;
 	}
 
 	private static final String OBJECT = "object";
