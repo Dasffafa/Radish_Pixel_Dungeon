@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.FungalSpinner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Goo;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishBoss.BigSnake_Zikk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Spinner;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.YogFist;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Beam;
@@ -246,6 +247,17 @@ public class SnakeSprite extends MobSprite {
 			}
 		}
 		super.onComplete( anim );
+	}
+
+	// 大蛇祖克隔空的「攻击」是毒液：ZikkSprite 重写了 attack，目标不相邻时发飞弹再调 onZapComplete()。
+	// 这里不照做的话走的是普通近战结算，变成隔着 3 格咬人
+	@Override
+	public void attack( int cell ) {
+		if (ch instanceof BigSnake_Zikk && !Dungeon.level.adjacent( cell, ch.pos )) {
+			zap( cell );
+		} else {
+			super.attack( cell );
+		}
 	}
 
 	// Store target position for zap attacks
