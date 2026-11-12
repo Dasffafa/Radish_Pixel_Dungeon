@@ -108,7 +108,9 @@ public class RingOfDestruction extends Ring {
 			}
 			for (Mob mob : Dungeon.level.mobs) {
 				if (mob instanceof WardenPrototype && ((WardenPrototype) mob).isInactive()) continue;
-				if (mob != target && mob.alignment != target.alignment
+				// 只算敌对单位，中立的 NPC 不算：店主被「伤害」一次就警告、第二次就带着全部商品消失；
+				// 而且视野里只有 NPC 时，佩戴者也会跟着白白掉血
+				if (mob != target && mob.alignment == Char.Alignment.ENEMY
 						&& target.fieldOfView != null && mob.pos >= 0 && mob.pos < target.fieldOfView.length
 						&& target.fieldOfView[mob.pos]
 						&& mob.isAlive()
