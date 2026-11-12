@@ -136,7 +136,8 @@ public class BigSnake_Zikk extends Mob {
             }
         }
         // 其他情况下进行近战攻击
-        return Dungeon.level.adjacent(pos, enemy.pos);
+        //交给父类判断：除了相邻，还包括「智能怪物」挑战的武器攻击距离和精英词缀的额外距离
+        return super.canAttack(enemy);
     }
 
     @Override
