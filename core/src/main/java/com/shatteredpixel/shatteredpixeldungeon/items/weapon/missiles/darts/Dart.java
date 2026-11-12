@@ -405,16 +405,18 @@ public class Dart extends MissileWeapon {
 				// +1: 4枚, +2: 6枚
 				baseDarts = (points >= 2) ? 6 : 4;
 			}
-			singleSeedDarts = baseDarts;
+			//手里的飞镖不够数时只涂现有的这些。原先固定产出 4（6）枚，
+			//只剩 1 枚飞镖也能换回 4 枚涂药飞镖，等于凭空多出飞镖
+			singleSeedDarts = Math.min(curItem.quantity(), baseDarts);
 			options = new String[]{
-					Messages.get(Dart.class, "tip_potion"),
+					Messages.get(Dart.class, "tip_potion", singleSeedDarts),
 					Messages.get(Dart.class, "tip_cancel")};
 
 			TippedDart tipResult = TippedDart.getTipped(seed, 1);
 
 			GameScene.show(new WndOptions(new ItemSprite(seed),
 					Messages.titleCase(seed.name()),
-					Messages.get(Dart.class, "tip_pdesc", tipResult.name()) + "\n\n" + tipResult.desc(),
+					Messages.get(Dart.class, "tip_pdesc", tipResult.name(), baseDarts) + "\n\n" + tipResult.desc(),
 					options) {
 
 				@Override
