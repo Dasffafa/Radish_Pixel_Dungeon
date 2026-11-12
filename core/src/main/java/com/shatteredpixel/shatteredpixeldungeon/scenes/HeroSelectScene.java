@@ -231,6 +231,9 @@ public class HeroSelectScene extends PixelScene {
 
 		int nPatches = (int)(sky.width() / GrassPatch.WIDTH + 1);
 
+		//这个列表是静态的：不清的话每进一次选人界面就多留一批已经销毁的草丛，update() 每帧还要把它们全遍历一遍
+		grassPatches.clear();
+
 		for (int i=0; i < nPatches * 4; i++) {
 			GrassPatch patch = new GrassPatch( (i - 0.75f) * GrassPatch.WIDTH / 4, SKY_HEIGHT + 1, dayTime,heroClass() );
 			patch.brightness( dayTime ? 0.7f : 0.4f );
