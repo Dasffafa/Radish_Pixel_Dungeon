@@ -22,6 +22,7 @@ import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
 
 public class GnollKingBossLevel extends Level {
 
@@ -90,22 +91,22 @@ public class GnollKingBossLevel extends Level {
         Sample.INSTANCE.play( Assets.Sounds.ROCKS );
 
         GnollKing gk = new GnollKing();
-        gk.pos = GNOLL_KING_POS;
+        gk.pos = kingSpawnCell( GNOLL_KING_POS );
         BossHealthBar.assignBoss(gk);
         gk.state = gk.WANDERING;
         GameScene.add(gk);
 
-        CellEmitter.get( GNOLL_KING_POS ).start( Speck.factory( Speck.BUBBLE ), 0.07f, 10 );
+        CellEmitter.get( gk.pos ).start( Speck.factory( Speck.BUBBLE ), 0.07f, 10 );
         PixelScene.shake( 3, 0.7f );
         Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
 
         GnollShamanKing gsk = new GnollShamanKing();
-        gsk.pos = SHAMAN_KING_POS;
+        gsk.pos = kingSpawnCell( SHAMAN_KING_POS );
         BossHealthBar.assignBoss(gsk);
         gsk.state = gsk.WANDERING;
         GameScene.add(gsk);
 
-        CellEmitter.get( SHAMAN_KING_POS ).start( Speck.factory( Speck.BUBBLE ), 0.07f, 10 );
+        CellEmitter.get( gsk.pos ).start( Speck.factory( Speck.BUBBLE ), 0.07f, 10 );
         PixelScene.shake( 3, 0.7f );
         Sample.INSTANCE.play( Assets.Sounds.TELEPORT );
 
@@ -117,6 +118,27 @@ public class GnollKingBossLevel extends Level {
                 }
             }
         });
+    }
+
+    //王的出生格。两个基座离入口正好 3 格，而封层的条件就是「英雄离入口 3 格远」：
+    //英雄第一步踩上基座（或者传送、坠落落在基座上，或者同伴先站了上去）时，那一格上已经有角色了。
+    //这时让到离基座最近的空位，不然王会和那个角色叠在同一格
+    private int kingSpawnCell( int pedestal ) {
+        if (Actor.findChar( pedestal ) == null) {
+            return pedestal;
+        }
+        PathFinder.buildDistanceMap( pedestal, passable );
+        int best = -1;
+        for (int cell = 0; cell < length(); cell++) {
+            if (PathFinder.distance[cell] == Integer.MAX_VALUE || Actor.findChar( cell ) != null) {
+                continue;
+            }
+            if (best == -1 || PathFinder.distance[cell] < PathFinder.distance[best]) {
+                best = cell;
+            }
+        }
+        //整张图一个空位都没有时没有更好的选择，仍然用基座
+        return best == -1 ? pedestal : best;
     }
 
     @Override
