@@ -214,7 +214,9 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		cleaveUsed= bundle.getBoolean(CLEAVE_USED);
 		furyUsed = bundle.getBoolean(FURY_USED);
 		spurtUsed = bundle.getBoolean(SPURT_USED);
-		if (count >= 2) ActionIndicator.setAction(this);
+		//与 hit() 里按钮出现的条件保持一致：战技次数用完后按钮是收起来的，读档不能把它再放出来
+		//（战技窗口本身不检查剩余次数，按钮回来就等于白送战技）
+		if (count > 0 && couldUseTime > 0) ActionIndicator.setAction(this);
 	}
 
 	@Override
