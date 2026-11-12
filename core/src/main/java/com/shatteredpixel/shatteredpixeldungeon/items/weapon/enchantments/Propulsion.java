@@ -154,10 +154,12 @@ public class Propulsion extends Weapon.Enchantment {
                 continue;
             }
 
-            hero.pos = cell;
-            hero.sprite.place( cell );
+            //走角色自己的瞬移流程，而不是直接改坐标再踩格子：离开门格要关门、漂浮时不该踩到陷阱和草、
+            //落点的蛛网要生效，英雄移动事件也要照常发出
+            hero.sprite.interruptMotion();
+            hero.move( cell, false );
+            hero.sprite.place( hero.pos );
             hero.sprite.visible = true;
-            Dungeon.level.pressCell( cell );
             Dungeon.observe();
             return;
         }
