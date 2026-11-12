@@ -26,6 +26,14 @@ public class DruidOakSage extends Mob {
 		return true;
 	}
 
+	// 橡木智者不受任何伤害，也从来没有设过生命值，HP 和 HT 都是 0；而底层用「HP 大于 0」判断一个单位是否还在场上。
+	// 用放大镜查看它时因此被当成已经死掉的单位，只提示「你不清楚那里有什么」，名字和说明都看不到。
+	// 这里只让「是否在场」按实际情况回答。不要改成给它补生命值：那样敌人会从「看不见它」变成一直围着它打，等于改了它的强度。
+	@Override
+	public boolean isActive() {
+		return Actor.chars().contains( this );
+	}
+
 	@Override
 	protected boolean act() {
 		if (--lifespan <= 0) {
