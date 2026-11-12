@@ -38,6 +38,9 @@ public class Yamato extends MeleeWeapon {
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1.2f;
 		tier = 5;
+		// 攻击间隔减半。写在 DLY 上而不是覆写 delayFactor()，数值完全一样，
+		// 区别是说明里的特性句读的是这个字段：以前这把刀出手快一倍，说明里却只字不提
+		DLY = 0.5f;
 	}
 
 	@Override
@@ -53,11 +56,6 @@ public class Yamato extends MeleeWeapon {
 	@Override
 	public int STRReq(int lvl) {
 		return 18;
-	}
-
-	@Override
-	public float delayFactor(Char owner) {
-		return super.delayFactor(owner) * 0.5f;
 	}
 
 	@Override
