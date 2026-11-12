@@ -109,6 +109,9 @@ public class MakeshiftSlingshot extends Item {
 			stone.detach(curUser.belongings.backpack);
 			curItem.detach(curUser.belongings.backpack);
 
+			// 石头飞行期间英雄不可行动；回合在 onThrowReached 里结束
+			curUser.busy();
+
 			Sample.INSTANCE.play(Assets.Sounds.HIT);
 			MissileSprite missile = (MissileSprite) curUser.sprite.parent.recycle(MissileSprite.class);
 			// The consumed stone supplies the projectile sprite.
