@@ -149,7 +149,7 @@ public class Wheelchair extends Artifact {
     public static boolean tryTriggerCatapultStart(Hero hero) {
         if (hero == null) return false;
         if (hero.pointsInTalent(Talent.CATAPULT_START) < 1) return false;
-        if (!(hero.belongings.artifact instanceof Wheelchair)) return false;
+        if (equippedOn(hero) == null) return false;
         if (hero.buff(CatapultStartCooldown.class) != null) return false;
         if (hero.buff(Cripple.class) == null && hero.buff(Frost.class) == null) return false;
 
@@ -409,13 +409,25 @@ public class Wheelchair extends Artifact {
     }
 
     /**
+     * 英雄身上装备着的轮椅，没有则为 null。
+     * 轮椅是神器，神器栏被别的神器占着时会装进杂项栏，所以两个栏位都要认。
+     * 读原始字段而不是 artifact() / misc()：遗失背包期间这两个访问器返回 null，
+     * 月华会因此一步也走不了、捡不回背包。
+     */
+    private static Wheelchair equippedOn(Hero hero) {
+        if (hero.belongings.artifact instanceof Wheelchair) return (Wheelchair) hero.belongings.artifact;
+        if (hero.belongings.misc instanceof Wheelchair) return (Wheelchair) hero.belongings.misc;
+        return null;
+    }
+
+    /**
      * 月华没有强壮体质天赋且没有装备轮椅时就不能移动，这是猫叠的恶趣味
      */
     @SubscribeEvent(event = BeforeHeroMoveEvent.class)
     public static void onBeforeHeroMove(BeforeHeroMoveEvent event) {
         Hero hero = event.getHero();
         if (hero.heroClass == HeroClasses.MOONLIGHT && hero.pointsInTalent(Talent.STRONG_BODY) == 0) {
-            if (!(hero.belongings.artifact instanceof Wheelchair)) {
+            if (equippedOn(hero) == null) {
                 GLog.w(Messages.get(hero, "wheelchair_needed"));
                 event.cancel();
             }
@@ -431,8 +443,8 @@ public class Wheelchair extends Artifact {
         Hero hero = event.getHero();
 
         // 升级逻辑：仅当装备轮椅时执行
-        if (hero.belongings.artifact instanceof Wheelchair) {
-            Wheelchair wheelchair = (Wheelchair) hero.belongings.artifact;
+        Wheelchair wheelchair = equippedOn(hero);
+        if (wheelchair != null) {
             if (wheelchair.cursed) return;
 
             wheelchair.moveDistance++;
