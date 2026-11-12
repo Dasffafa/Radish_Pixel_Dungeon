@@ -502,6 +502,8 @@ public class JumbleChangeBuff extends Buff {
 
 		int slot = Dungeon.quickslot.getSlot(oldItem);
 		boolean oldCursed = oldItem.cursed;
+		// 记下换装前英雄还剩多少时间没过完，换完后只退掉装备 API 自己扣的那一段
+		float cooldownBefore = hero.cooldown();
 
 		// 嬗变必须先摘下旧装备；临时清除诅咒以允许摘下，结果仍继承原诅咒状态。
 		oldItem.cursed = false;
@@ -536,8 +538,10 @@ public class JumbleChangeBuff extends Buff {
 			rollbackEquipmentReplacement(hero, oldItem, oldCursed, result);
 			return false;
 		}
-		//装备 API 会正常扣除装备/卸下时间；蜕变是即时效果，抵消本次冷却。
-		hero.spend(-hero.cooldown());
+		//装备 API 会正常扣除装备/卸下时间；蜕变是即时效果，只抵消装备 API 这次扣的时间。
+		//不能写 hero.spend(-hero.cooldown())：那会把玩家刚做的动作和 act() 里的 hero.spend(TICK) 一起退掉；
+		//用 spendConstant 是因为 spend 会按减速 / 冰冻 / 加速缩放，退不回原值。
+		hero.spendConstant(cooldownBefore - hero.cooldown());
 
 		//恢复快捷栏
 		if (slot != -1
