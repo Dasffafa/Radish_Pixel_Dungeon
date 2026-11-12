@@ -72,16 +72,20 @@ public class DruidSunflower extends Mob {
 	}
 
 	private static final String GRASS = "grass";
+	private static final String POWER = "power";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
 		bundle.put( GRASS, grassTiles );
+		bundle.put( POWER, power );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		grassTiles = bundle.getInt( GRASS );
+		// 旧存档没有这个键，按未强化处理
+		power = bundle.contains( POWER ) ? bundle.getFloat( POWER ) : 1f;
 	}
 }
