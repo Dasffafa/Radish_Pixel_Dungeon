@@ -3,10 +3,12 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -67,10 +69,13 @@ public class Propulsion extends Weapon.Enchantment {
             return;
         }
 
-        if (!(hero.belongings.weapon() instanceof Weapon)) {
-            return;
+        //看主手栏位里的武器，不能用 belongings.weapon()：投掷、射击结算期间它返回的是飞出去的那一件，
+        //于是投掷武器和灵能弓的攻击永远不会触发，与说明里的「远程物理均可」不符
+        KindOfWeapon held = hero.belongings.weapon;
+        if (held != null && hero.buff( LostInventory.class ) != null && !held.keptThoughLostInvent) {
+            held = null;
         }
-        if (!(((Weapon) hero.belongings.weapon()).enchantment instanceof Propulsion)) {
+        if (!(held instanceof Weapon) || !(((Weapon) held).enchantment instanceof Propulsion)) {
             return;
         }
         if (!target.isAlive()) {
