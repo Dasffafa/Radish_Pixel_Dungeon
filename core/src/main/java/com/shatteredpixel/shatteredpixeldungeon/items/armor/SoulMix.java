@@ -12,7 +12,6 @@
  */
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
@@ -31,6 +30,11 @@ public class SoulMix extends Armor {
 	/** 额外等级持续回合数：每次击杀刷新，归零后层数清空。 */
 	public static final int DURATION = 10;
 
+	// 层数和剩余回合记在护甲上而不是 SoulMixBuff 里：ArmorBuff 是非静态内部类，不进存档，
+	// 读档时 activate() 会重新 new 一个，记在它身上的状态读档即丢。
+	private int stacks = 0;
+	private int turnsLeft = 0;
+
 	{ image = ItemSpriteSheet.ARMOR_SOULMIX; }
 
 	public SoulMix() { super( 5 ); }
@@ -39,7 +43,7 @@ public class SoulMix extends Armor {
 	@Override public int DRMin(int lvl){ return 1 + lvl; }
 
 	/** 护甲自身的额外等级；武器侧在 Weapon.buffedLvl() 里加同一份。 */
-	@Override public int buffedLvl(){ return super.buffedLvl() + stacks( Dungeon.hero ); }
+	@Override public int buffedLvl(){ return super.buffedLvl() + stacks; }
 
 	@Override protected ArmorBuff buff(){ return new SoulMixBuff(); }
 
@@ -50,48 +54,69 @@ public class SoulMix extends Armor {
 		return Messages.get( this, "stats_desc", maxStacks( level() ), DURATION );
 	}
 
-	/** 英雄身上混灵的当前层数。 */
-	public static int stacks( Hero hero ){
-		if (hero == null) return 0;
-		SoulMixBuff b = hero.buff( SoulMixBuff.class );
-		return b == null || b.turnsLeft <= 0 ? 0 : b.stacks;
-	}
-
-	/** 供 Weapon.buffedLvl() 调用：只对英雄当前装备的武器生效。 */
+	/** 供 Weapon.buffedLvl() 调用：只对英雄当前装备的武器生效，层数取英雄穿着的那件混灵。 */
 	public static int bonusLevel( Hero hero, Weapon weapon ){
 		if (hero == null || weapon == null || !weapon.isEquipped( hero )) return 0;
-		return stacks( hero );
+		Armor armor = hero.belongings.armor();
+		return armor instanceof SoulMix ? ((SoulMix) armor).stacks : 0;
 	}
 
-	public class SoulMixBuff extends ArmorBuff {
-		public int stacks = 0;
-		public int turnsLeft = 0;
+	private void gainStack(){
+		stacks = Math.min( maxStacks( level() ), stacks + 1 );
+		turnsLeft = DURATION;
+	}
 
-		public void gain(){
-			stacks = Math.min( maxStacks( SoulMix.this.level() ), stacks + 1 );
-			turnsLeft = DURATION;
+	private void clearStacks(){
+		stacks = 0;
+		turnsLeft = 0;
+	}
+
+	@Override
+	public void activate( Char ch ) {
+		// 只有英雄的击杀会叠层。工匠把穿着的护甲改装给友方单位时不经过 doUnequip，残留的层数在这里清掉
+		if (!(ch instanceof Hero)) clearStacks();
+		super.activate( ch );
+	}
+
+	@Override
+	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
+		if (super.doUnequip( hero, collect, single )) {
+			// 层数只在穿着期间有效，脱下即清空
+			clearStacks();
+			return true;
 		}
+		return false;
+	}
 
+	@Override
+	public void reset() {
+		super.reset();
+		// 留在遗骸里的护甲会进下一局，层数不能跟过去
+		clearStacks();
+	}
+
+	@Override
+	public void storeInBundle( Bundle bundle ){
+		super.storeInBundle( bundle );
+		bundle.put( STACKS, stacks );
+		bundle.put( TURNS, turnsLeft );
+	}
+
+	@Override
+	public void restoreFromBundle( Bundle bundle ){
+		super.restoreFromBundle( bundle );
+		// 改动前的存档里没有这两个键
+		turnsLeft = bundle.contains( TURNS ) ? bundle.getInt( TURNS ) : 0;
+		stacks = turnsLeft > 0 && bundle.contains( STACKS ) ? bundle.getInt( STACKS ) : 0;
+	}
+
+	/** 只负责每回合给层数计时，自身不带状态。 */
+	public class SoulMixBuff extends ArmorBuff {
 		@Override
 		public boolean act(){
 			if (turnsLeft > 0 && --turnsLeft <= 0) stacks = 0;
 			spend( TICK );
 			return true;
-		}
-
-		@Override
-		public void storeInBundle( Bundle bundle ){
-			super.storeInBundle( bundle );
-			bundle.put( STACKS, stacks );
-			bundle.put( TURNS, turnsLeft );
-		}
-
-		@Override
-		public void restoreFromBundle( Bundle bundle ){
-			super.restoreFromBundle( bundle );
-			stacks = bundle.getInt( STACKS );
-			// 老存档没有回数字段：仍有层数就补一个完整持续期，避免读档后加成直接消失。
-			turnsLeft = bundle.contains( TURNS ) ? bundle.getInt( TURNS ) : (stacks > 0 ? DURATION : 0);
 		}
 	}
 
@@ -101,8 +126,7 @@ public class SoulMix extends Armor {
 		Char defender = event.getDefender();
 		if (defender == null || defender.isAlive()
 				|| defender.alignment != Char.Alignment.ENEMY) return;
-		Hero hero = (Hero) event.getAttacker();
-		SoulMixBuff b = hero.buff( SoulMixBuff.class );
-		if (b != null) b.gain();
+		Armor armor = ((Hero) event.getAttacker()).belongings.armor();
+		if (armor instanceof SoulMix) ((SoulMix) armor).gainStack();
 	}
 }
