@@ -36,7 +36,8 @@ public class Engineer extends HeroDefinition {
 
 	@Override
 	public String splashArt() {
-		return Assets.Splashes.NEW_HERO;
+		//工程师还没有自己的开场图；原先指向的 newhero.jpg 是一张征稿启事，先用下水道区域图顶替
+		return Assets.Splashes.SEWERS;
 	}
 
 	@Override
