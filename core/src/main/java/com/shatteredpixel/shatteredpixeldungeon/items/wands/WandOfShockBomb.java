@@ -140,23 +140,8 @@ public class WandOfShockBomb extends DamageWand {
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 FloatingText.show(p.x, p.y, pos, Messages.get(WandOfShockBomb.class, "warning"), CharSprite.NEGATIVE);
 
-                // 显示圆形范围标记
-                for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
-                    int cell = pos + PathFinder.CIRCLE5x[i];
-                    if (inBlastArea(pos, cell, 2)) {
-                        if (target != null && target.sprite != null) {
-                            target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
-                        }
-                    }
-                }
-
-                // 添加视觉效果
-                if (halo == null) {
-                    halo = new ShockBombVFX();
-                    halo.point(p.x, p.y);
-                    halo.hardlight(0.5f, 0.2f, 0f);
-                    GameScene.effect(halo);
-                }
+                // 显示圆形范围标记。光圈不在这里建：挂上 tracker 或进入场景时 fx() 已经建好了
+                markBlastArea(pos, PathFinder.CIRCLE5x, 2);
 
                 turnsLeft--;
             } else {
@@ -166,6 +151,16 @@ public class WandOfShockBomb extends DamageWand {
 
             spend(TICK);
             return true;
+        }
+
+        //在爆炸范围的每一格上画一个预警标记，大约两秒后自己淡出
+        private static void markBlastArea(int center, int[] offsets, int radius) {
+            for (int offset : offsets) {
+                int cell = center + offset;
+                if (inBlastArea(center, cell, radius)) {
+                    GameScene.effect(new TargetedCell(cell, Window.RADISH));
+                }
+            }
         }
 
         private void explode() {
@@ -274,6 +269,9 @@ public class WandOfShockBomb extends DamageWand {
                 halo.point(p.x, p.y);
                 halo.hardlight(1, 0.2f, 0f);
                 GameScene.effect(halo);
+                //读档或重新进入这一层时场景是重建的，之前画的预警标记已经不在了。
+                //预警报过、只差引爆的话补画一次，否则只看得到光圈，看不出会炸到哪几格
+                if (turnsLeft <= 0) markBlastArea(pos, PathFinder.CIRCLE5x, 2);
             }
             super.fx(on);
         }
@@ -340,23 +338,8 @@ public class WandOfShockBomb extends DamageWand {
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 FloatingText.show(p.x, p.y, pos, Messages.get(WandOfShockBomb.class, "nuke"), CharSprite.NEGATIVE);
 
-                // 显示圆形范围标记
-                for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
-                    int cell = pos + PathFinder.CIRCLE7x[i];
-                    if (ShockBombTracker.inBlastArea(pos, cell, 3)) {
-                        if (target != null && target.sprite != null) {
-                            target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
-                        }
-                    }
-                }
-
-                // 添加视觉效果
-                if (halo == null) {
-                    halo = new ShockBombVFX();
-                    halo.point(p.x, p.y);
-                    halo.hardlight(0.2f, 0.2f, 0f);
-                    GameScene.effect(halo);
-                }
+                // 显示圆形范围标记。光圈不在这里建：挂上 tracker 或进入场景时 fx() 已经建好了
+                ShockBombTracker.markBlastArea(pos, PathFinder.CIRCLE7x, 3);
 
                 turnsLeft--;
             } else {
@@ -427,6 +410,8 @@ public class WandOfShockBomb extends DamageWand {
                 halo.point(p.x, p.y);
                 halo.hardlight(0.2f, 1f, 1f);
                 GameScene.effect(halo);
+                //同上：读档后把预警标记补画一次
+                if (turnsLeft <= 0) ShockBombTracker.markBlastArea(pos, PathFinder.CIRCLE7x, 3);
             }
             super.fx(on);
         }
