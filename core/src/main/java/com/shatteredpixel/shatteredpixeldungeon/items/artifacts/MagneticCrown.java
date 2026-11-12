@@ -52,6 +52,8 @@ public class MagneticCrown extends Artifact {
     @Override
     public void execute(Hero hero, String action) {
         super.execute(hero, action);
+        // 反魔法期间神器一律不可用（原版各神器的 execute 都有这一句）
+        if (hero.buff(MagicImmune.class) != null) return;
         if (action.equals(AC_ACTIVATE)) {
             if (!isEquipped(hero)) {
                 GLog.w(Messages.get(this, "no_equip"));
