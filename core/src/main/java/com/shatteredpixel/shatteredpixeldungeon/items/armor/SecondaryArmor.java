@@ -71,15 +71,17 @@ public abstract class SecondaryArmor extends EquipableItem {
 
 	@Override
 	public boolean doEquip(Hero hero) {
+		// 先把自己从背包里取出来：背包满的时候，换下来的那件要靠这个空位才放得回去
+		detach(hero.belongings.backpack);
+
 		if (hero.belongings.secondaryArmor == null
 				|| hero.belongings.secondaryArmor.doUnequip(hero, true, false)) {
 			hero.belongings.secondaryArmor = this;
-			// 装到次要护甲栏之后必须从背包里摘掉，否则背包里会同时留着一份（还带着“已装备”的高亮框）
-			detach( hero.belongings.backpack );
-			// 原版穿戴装备不弹提示，这里也不弹（保留键仅作兼容）
 			return true;
+		} else {
+			collect(hero.belongings.backpack);
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -88,7 +90,15 @@ public abstract class SecondaryArmor extends EquipableItem {
 			hero.belongings.secondaryArmor = null;
 		}
 		if (collect) {
-			this.collect();
+			// 丢失背包期间只有「被保留」的物品收得进背包，和基类一样临时标记一下，
+			// 让被顶下来的那件先回到背包里，等找回背包后再出现
+			boolean wasKept = keptThoughLostInvent;
+			keptThoughLostInvent = true;
+			if (!collect(hero.belongings.backpack)) {
+				// 背包放不下就落在脚边，不能让护甲凭空消失
+				Dungeon.level.drop(this, hero.pos).sprite.drop();
+			}
+			keptThoughLostInvent = wasKept;
 		}
 		return true;
 	}
