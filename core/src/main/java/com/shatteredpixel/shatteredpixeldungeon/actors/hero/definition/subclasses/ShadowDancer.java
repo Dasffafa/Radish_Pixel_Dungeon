@@ -296,6 +296,9 @@ public class ShadowDancer extends HeroSubClass {
 
 		int maxDist = 5;
 		int pos = hero.pos;
+		// lastFree：冲刺途中最后一个没有别的角色站着的格子，冲刺只能停在这样的格子上
+		int lastFree = hero.pos;
+		boolean reachedDest = false;
 		int enemyPassed = 0;
 		for (int i = 0; i < maxDist; i++) {
 			int nx = pos % w + stepx;
@@ -321,10 +324,21 @@ public class ShadowDancer extends HeroSubClass {
 					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
 							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STEAM ), 3 );
 			pos = next;
+			// 被穿过的敌人可能已经被这一击打死，所以重新查这一格现在还有没有人
+			boolean occupied = Actor.findChar( pos ) != null;
+			if (!occupied) {
+				lastFree = pos;
+			}
 			if (pos == dest) {
+				reachedDest = true;
+			}
+			// 到了所选的格子就停；但选的就是敌人所在的格子时不能停在它身上，继续穿过去，停在它身后第一个空格
+			if (reachedDest && !occupied) {
 				break;
 			}
 		}
+		// 穿过敌人之后没有落脚点（墙、另一个角色、冲刺距离用完）时退回 lastFree，绝不能和别的角色站在同一格
+		pos = lastFree;
 
 		com.shatteredpixel.shatteredpixeldungeon.effects.DashSlashEffect.showOn( hero, ang );
 		if (pos != hero.pos) {
