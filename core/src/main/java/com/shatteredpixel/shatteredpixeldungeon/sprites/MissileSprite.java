@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.HeavyBoome
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Javelin;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Kunai;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Perfidy;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Shuriken;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSpear;
@@ -121,7 +122,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		revive();
 
 		if (item == null)   view(ItemSpriteSheet.SOMETHING, null);
-		else                view( item );
+		else {
+			view( item );
+			if (item instanceof Senbon) frame( ItemSpriteSheet.SENBON_PROJECTILE );
+		}
 
 		setup( from,
 				to,
@@ -159,6 +163,8 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		ANGULAR_SPEEDS.put(Bolas.class,         1440);
 		
 		ANGULAR_SPEEDS.put(Shuriken.class,                  2160);
+		//千本不旋转
+		ANGULAR_SPEEDS.put(Senbon.class,                    0);
 		ANGULAR_SPEEDS.put(TenguSprite.TenguShuriken.class, 2160);
 	}
 
@@ -204,6 +210,12 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (item instanceof GnollGeomancer.Boulder){
 			angle = 0;
 			flipHorizontal = false;
+			updateFrame();
+		}
+
+		//千本贴图朝上，其他投掷物朝右上，差值 45 度；镜像贴图时方向相反
+		if (item instanceof Senbon){
+			angle += flipHorizontal ? -45 : 45;
 			updateFrame();
 		}
 		
