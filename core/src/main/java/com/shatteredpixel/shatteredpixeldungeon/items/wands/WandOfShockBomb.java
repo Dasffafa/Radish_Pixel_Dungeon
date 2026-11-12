@@ -38,12 +38,12 @@ public class WandOfShockBomb extends DamageWand {
 
     @Override
     public int min(int lvl) {
-        return 3+buffedLvl();
+        return 3+lvl;
     }
 
     @Override
     public int max(int lvl) {
-        return 10+buffedLvl()*4;
+        return 10+lvl*4;
     }
 
     @Override
