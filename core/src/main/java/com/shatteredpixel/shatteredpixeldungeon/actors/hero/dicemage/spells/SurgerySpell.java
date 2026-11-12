@@ -62,7 +62,9 @@ public class SurgerySpell extends DiceMageSpell {
         }
 
         Mob ally = Reflection.newInstance(mp.lastKilledMob());
-        if (Char.hasProp(ally, Char.Property.BOSS)) {
+        // STATIC 是能量塔、恶魔孵化器、腐烂之心这类固定机关（原版里它们免疫一切盟友化）：
+        // 它们的行动和死亡结算都绑在原来的楼层上，换个地方当盟友，能量塔一死就把当前关卡强转成 DM-300 的关卡而闪退
+        if (ally == null || Char.hasProp(ally, Char.Property.BOSS) || Char.hasProp(ally, Char.Property.STATIC)) {
             GLog.w(Messages.get(this, "too_big"));
             return;
         }
