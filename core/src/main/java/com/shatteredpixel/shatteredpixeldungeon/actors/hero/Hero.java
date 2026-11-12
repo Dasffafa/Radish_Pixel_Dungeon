@@ -2428,6 +2428,13 @@ public class Hero extends Char {
 			damage = rockArmor.absorb(damage);
 		}
 
+		// 战术投掷（老魔杖灌注灵壤法杖）给的是它自己的那个灵壤护甲 buff，以前这里没接上：
+		// 它的 absorb() 没有任何地方调用，既不挡伤害、护甲量也永远不减少
+		TacticalThrowTalen4Battlemage.RockArmor throwRockArmor = buff(TacticalThrowTalen4Battlemage.RockArmor.class);
+		if (throwRockArmor != null) {
+			damage = throwRockArmor.absorb(damage);
+		}
+
 		return super.defenseProc( enemy, damage );
 	}
 
