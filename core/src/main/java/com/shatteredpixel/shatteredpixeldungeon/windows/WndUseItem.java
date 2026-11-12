@@ -62,7 +62,8 @@ public class WndUseItem extends WndInfoItem {
 							item.execute( Dungeon.hero, action );
 						}
 						Item.updateQuickslot();
-						if (action == item.defaultAction && item.usesTargeting && owner == null){
+						//默认动作要问 defaultAction() 而不是读字段：有的物品的默认动作是按当前状态算出来的，字段里是空的
+						if (action.equals(item.defaultAction()) && item.usesTargeting && owner == null){
 							InventoryPane.useTargeting();
 						}
 					}
@@ -71,7 +72,7 @@ public class WndUseItem extends WndInfoItem {
 				buttons.add(btn);
 				add( btn );
 
-				if (action.equals(item.defaultAction)) {
+				if (action.equals(item.defaultAction())) {
 					btn.textColor( TITLE_COLOR );
 				}
 
