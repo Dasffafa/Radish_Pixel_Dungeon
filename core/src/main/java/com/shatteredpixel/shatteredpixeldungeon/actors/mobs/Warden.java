@@ -60,6 +60,9 @@ public class Warden extends Mob {
 	//当前正在激活的原型机
 	private WardenPrototype activating = null;
 	private int activatingTurnsLeft = 0;
+	//读档时只能先记下目标所在的格子：那时关卡还没装好，Dungeon.level 是 null，
+	//要等到第一次行动才能按格子把机体找回来
+	private int pendingActivatingCell = -1;
 
 	@Override
 	public int attackSkill( Char target ) {
@@ -107,6 +110,16 @@ public class Warden extends Mob {
 			fieldOfView = new boolean[Dungeon.level.length()];
 		}
 		Dungeon.level.updateFieldOfView( this, fieldOfView );
+
+		if (pendingActivatingCell != -1) {
+			Char target = Actor.findChar( pendingActivatingCell );
+			if (target instanceof WardenPrototype) {
+				activating = (WardenPrototype) target;
+			} else {
+				activatingTurnsLeft = 0;
+			}
+			pendingActivatingCell = -1;
+		}
 
 		boolean heroEnteredArena = Dungeon.level instanceof WardenBossLevel
 				&& Dungeon.hero != null
@@ -298,6 +311,10 @@ public class Warden extends Mob {
 		if (activating != null && activating.isAlive()) {
 			bundle.put( ACTIVATING, activating.pos );
 			bundle.put( ACTIVATING_TURNS, activatingTurnsLeft );
+		} else if (pendingActivatingCell != -1) {
+			//读档后还没轮到自己行动就又存档：目标还没找回来，原样写回去
+			bundle.put( ACTIVATING, pendingActivatingCell );
+			bundle.put( ACTIVATING_TURNS, activatingTurnsLeft );
 		}
 	}
 
@@ -312,15 +329,10 @@ public class Warden extends Mob {
 		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.link()
 		activating = null;
 		activatingTurnsLeft = 0;
+		pendingActivatingCell = -1;
 		if (bundle.contains( ACTIVATING )) {
-			int cell = bundle.getInt( ACTIVATING );
-			for (Mob m : Dungeon.level.mobs) {
-				if (m instanceof WardenPrototype && m.pos == cell) {
-					activating = (WardenPrototype) m;
-					activatingTurnsLeft = bundle.getInt( ACTIVATING_TURNS );
-					break;
-				}
-			}
+			pendingActivatingCell = bundle.getInt( ACTIVATING );
+			activatingTurnsLeft = bundle.getInt( ACTIVATING_TURNS );
 		}
 	}
 }
