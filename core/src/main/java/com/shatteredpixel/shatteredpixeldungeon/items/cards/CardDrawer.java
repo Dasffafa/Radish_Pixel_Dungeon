@@ -41,6 +41,12 @@ public class CardDrawer extends Item {
 		cursedKnown = true;
 	}
 
+	//等级对抽卡器没有任何作用，不让升级卷轴选中它，免得白白浪费一张
+	@Override
+	public boolean isUpgradable() {
+		return false;
+	}
+
 	@Override
 	public ArrayList<String> actions(Hero hero) {
 		ArrayList<String> actions = super.actions(hero);
