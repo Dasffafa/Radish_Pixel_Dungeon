@@ -267,6 +267,24 @@ public class Artificer extends HeroSubClass {
 		public int bonusHp = 0;
 		public int bonusDef = 0;
 
+		// 怪物的闪避值不进存档，读档后回到基础值，而这里记着的加成还在：
+		// 读档挂回怪物身上时要把加成补上，否则加成凭空消失，之后解除改装时还会从基础值里再扣一次
+		private boolean restored = false;
+
+		@Override
+		public boolean attachTo( Char target ) {
+			if (!super.attachTo( target )) {
+				return false;
+			}
+			if (restored) {
+				restored = false;
+				if (target instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) {
+					((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target).defenseSkill += bonusDef;
+				}
+			}
+			return true;
+		}
+
 		public void apply( int hp, int def ) {
 			unapply();
 			bonusHp = hp;
@@ -316,6 +334,7 @@ public class Artificer extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			bonusHp = bundle.getInt( HP );
 			bonusDef = bundle.getInt( DEF );
+			restored = true;
 		}
 	}
 
