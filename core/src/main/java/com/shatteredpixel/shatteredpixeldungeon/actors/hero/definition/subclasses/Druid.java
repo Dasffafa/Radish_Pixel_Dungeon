@@ -399,6 +399,8 @@ public class Druid extends HeroSubClass {
 		ThunderField f = Buff.affect( hero, ThunderField.class );
 		f.cell = cell;
 		f.turns = 10;
+		f.depth = Dungeon.depth;
+		f.branch = Dungeon.branchId;
 		return true;
 	}
 
@@ -422,7 +424,16 @@ public class Druid extends HeroSubClass {
 		VolcanoField v = Buff.affect( hero, VolcanoField.class );
 		v.cell = cell;
 		v.turns = 50 + (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 3 ? 25 : 0);
+		v.depth = Dungeon.depth;
+		v.branch = Dungeon.branchId;
 		return true;
+	}
+
+	// 雷场和火山是放在某一层地面上的，但它们的 buff 挂在英雄身上，会跟着英雄换层。
+	// 所以施放时记下楼层与分支，英雄不在那一层时让场地消散；
+	// 否则它会在新楼层的同一个格子编号上继续打怪，位置和原来毫无关系。
+	private static boolean onCastFloor( int depth, String branch ) {
+		return depth == Dungeon.depth && java.util.Objects.equals( branch, Dungeon.branchId );
 	}
 
 	// 只 Buff.affect 而不 reignite 的燃烧剩余时间是 0，烧一跳就熄灭；这里按原版火系效果的写法补上 reignite。
@@ -519,10 +530,22 @@ public class Druid extends HeroSubClass {
 
 		public int cell = -1;
 		public int turns = 0;
+		// 施放时所在的楼层与分支，-1 表示还没有记录（旧存档）
+		public int depth = -1;
+		public String branch = null;
 
 		@Override
 		public boolean act() {
 			if (cell < 0 || turns <= 0 || Dungeon.level == null) {
+				detach();
+				return true;
+			}
+			// 旧存档里没有记录楼层，按读档后第一次生效时所在的楼层算
+			if (depth == -1) {
+				depth = Dungeon.depth;
+				branch = Dungeon.branchId;
+			}
+			if (!onCastFloor( depth, branch )) {
 				detach();
 				return true;
 			}
@@ -555,12 +578,18 @@ public class Druid extends HeroSubClass {
 
 		private static final String CELL = "cell";
 		private static final String TURNS = "turns";
+		private static final String DEPTH = "depth";
+		private static final String BRANCH = "branch";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( CELL, cell );
 			bundle.put( TURNS, turns );
+			if (depth != -1) {
+				bundle.put( DEPTH, depth );
+				bundle.put( BRANCH, branch );
+			}
 		}
 
 		@Override
@@ -568,6 +597,11 @@ public class Druid extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			cell = bundle.getInt( CELL );
 			turns = bundle.getInt( TURNS );
+			// 旧存档没有这两个键：保持未记录的状态，等第一次生效时再绑定楼层
+			if (bundle.contains( DEPTH )) {
+				depth = bundle.getInt( DEPTH );
+				branch = bundle.getString( BRANCH );
+			}
 		}
 	}
 
@@ -581,10 +615,22 @@ public class Druid extends HeroSubClass {
 
 		public int cell = -1;
 		public int turns = 0;
+		// 施放时所在的楼层与分支，-1 表示还没有记录（旧存档）
+		public int depth = -1;
+		public String branch = null;
 
 		@Override
 		public boolean act() {
 			if (cell < 0 || turns <= 0 || Dungeon.level == null) {
+				detach();
+				return true;
+			}
+			// 旧存档里没有记录楼层，按读档后第一次生效时所在的楼层算
+			if (depth == -1) {
+				depth = Dungeon.depth;
+				branch = Dungeon.branchId;
+			}
+			if (!onCastFloor( depth, branch )) {
 				detach();
 				return true;
 			}
@@ -614,12 +660,18 @@ public class Druid extends HeroSubClass {
 
 		private static final String CELL = "cell";
 		private static final String TURNS = "turns";
+		private static final String DEPTH = "depth";
+		private static final String BRANCH = "branch";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( CELL, cell );
 			bundle.put( TURNS, turns );
+			if (depth != -1) {
+				bundle.put( DEPTH, depth );
+				bundle.put( BRANCH, branch );
+			}
 		}
 
 		@Override
@@ -627,6 +679,11 @@ public class Druid extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			cell = bundle.getInt( CELL );
 			turns = bundle.getInt( TURNS );
+			// 旧存档没有这两个键：保持未记录的状态，等第一次生效时再绑定楼层
+			if (bundle.contains( DEPTH )) {
+				depth = bundle.getInt( DEPTH );
+				branch = bundle.getString( BRANCH );
+			}
 		}
 	}
 
