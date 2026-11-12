@@ -423,6 +423,7 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 		power-=need[p];
 		BuffIndicator.refreshHero();
 		if (power<need[p]) ActionIndicator.clearAction(this);
-		if (p<2) Dungeon.hero.spend(1f);
+		//只 spend 不 next 的话英雄仍可行动，这一回合要欠到下一个动作才结算
+		if (p<2) Dungeon.hero.spendAndNext(1f);
 	}
 }
