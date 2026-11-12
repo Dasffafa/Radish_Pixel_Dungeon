@@ -62,8 +62,21 @@ public class GodsPossesion extends ArmorAbility {
         Set<Mob> mobs = Collections.synchronizedSet(Dungeon.level.mobs);
         for(Mob mob:mobs){
             if(hero.fieldOfView[mob.pos] && mob.alignment == Char.Alignment.ENEMY){
-                int direction = mob.pos - hero.pos;
-                Ballistica trajectory = new Ballistica(mob.pos, mob.pos + direction, Ballistica.MAGIC_BOLT);
+                //击退方向的目标格是英雄关于怪物的对称点
+                int w = Dungeon.level.width();
+                int targetX = 2 * (mob.pos % w) - hero.pos % w;
+                int targetY = 2 * (mob.pos / w) - hero.pos / w;
+                Ballistica trajectory;
+                if (targetX >= 0 && targetX < w && targetY >= 0) {
+                    //超出地图下沿不用另外处理：弹道只把目标下标换算回坐标来定方向，这时换算结果仍然正确
+                    trajectory = new Ballistica(mob.pos, targetX + targetY * w, Ballistica.MAGIC_BOLT);
+                } else {
+                    //横向出界的下标会绕到相邻的行，向上出界会变成负数，换算回坐标后方向是错的，怪物会被推向不相干的方向。
+                    //这时改用「英雄 -> 怪物」连线的延长线，取它在地图内的最后一格当目标。
+                    //这一格之外就是地图边界，所以弹道要在目标格停下；怪物自己就站在这一格时弹道长度为 0，不位移
+                    Ballistica toMob = new Ballistica(hero.pos, mob.pos, Ballistica.STOP_TARGET);
+                    trajectory = new Ballistica(mob.pos, toMob.path.get(toMob.path.size() - 1), Ballistica.PROJECTILE);
+                }
                 throwChar(mob, trajectory, strength, false, true, getClass());
                 Dungeon.hero.spendAndNext(1f);
             }
