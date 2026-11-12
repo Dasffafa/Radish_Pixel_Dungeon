@@ -128,9 +128,15 @@ public abstract class DiceMageSpell implements Hero.Doom {
         return mp.getIntPoints() >= mpCost() || mp.canAfford(mpCost());
     }
 
+    // 玩家已经在「消耗法杖充能」确认窗里点了确认。充能要等到真正扣魔力点（spendMagic）时才换成魔力点：
+    // 确认之后还有选格 / 目标校验，取消或目标无效时法术没放出去，不能白扣法杖充能
+    private boolean wandDrainConfirmed = false;
+
     public void cast() {
         Hero hero = Dungeon.hero;
         if (hero == null) return;
+
+        wandDrainConfirmed = false;
 
         if (!canCast()) {
             GLog.w(Messages.get(DiceMageSpell.class, "no_mp"));
@@ -147,24 +153,21 @@ public abstract class DiceMageSpell implements Hero.Doom {
         onCast(hero);
     }
 
-    /** 法杖充能消耗确认后，继续本次施法（魔力已被补充到足够）。 */
+    /** 法杖充能消耗确认后，继续本次施法（法杖充能留到 spendMagic 时再换成魔力点）。 */
     public void continueCast(Hero hero) {
         if (hero == null) return;
-        if (!mpCheck()) return;
+        if (!canCast()) return;
+        wandDrainConfirmed = true;
         onCast(hero);
-    }
-
-    private boolean mpCheck() {
-        Hero hero = Dungeon.hero;
-        if (hero == null) return false;
-        MagicPoint mp = hero.buff(MagicPoint.class);
-        if (mp == null) return false;
-        if (!mp.offCooldown(getClass())) return false;
-        return mp.getIntPoints() >= mpCost();
     }
 
     protected boolean spendMagic(Hero hero) {
         MagicPoint mp = hero.buff(MagicPoint.class);
+        if (mp != null && wandDrainConfirmed && !mp.infiniteMana()
+                && mp.getIntPoints() < mpCost() && mp.canAfford(mpCost())) {
+            mp.drainWandsFor(mpCost());
+        }
+        wandDrainConfirmed = false;
         if (mp != null && mp.spendPoints(mpCost())) {
             return true;
         }
