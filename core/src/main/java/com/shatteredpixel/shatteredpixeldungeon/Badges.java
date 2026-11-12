@@ -925,7 +925,8 @@ public class Badges {
 			badge = Badge.MASTERY_CARDTRICKSTER;
 		}
 
-		unlock(badge);
+		//工程师没有对应的精通徽章；unlock 会读 badge.type，传 null 进去就是空指针
+		if (badge != null) unlock(badge);
 	}
 
 	public static void validateRatmogrify(){
