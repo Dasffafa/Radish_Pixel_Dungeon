@@ -1,6 +1,6 @@
 # 杂散皮肤与变身机制（Jumble Skin & Shift System）
 
-> 状态：**已实现**。
+> 状态：**已实现**。触发时会消耗一回合；动画期间阻塞行动但不额外耗时。
 
 ## 概述
 
@@ -94,16 +94,10 @@ if (ch == Dungeon.hero) {
 
 `act()` 每回合递减 `turnsRemaining`，归零时：
 
-1. `hero.busy()` —— 阻塞玩家行动（`Hero.act()` 在 `!ready` 时不行动），**不消耗回合**。
-2. `sprite.playChange(cb)` —— 播放**当前组**的消失（变身）动画。
-3. 动画完成回调内依次：
-   - `doTalentMetamorph(hero)` —— 随机化天赋；
-   - `doEquipmentTransmute(hero)` —— 变换装备；
-   - `Random.Int(6)` 随机选 1 个目标组，`sprite.playAppear(newGroup, cb)` 切换到新组并播放出现动画。
-4. 出现动画完成回调 → `finishChange()`：
-   - `changing = false`、`resetCountdown()`（重置 180-220 倒计时）；
-   - `hero.sprite.idle()` 回到待机；
-   - `hero.ready()` 恢复行动。
+1. 触发时调用 `hero.interrupt()` 并 `hero.spend(TICK)`，因此本次变身消耗一回合。
+2. 动画启动前完成 `doTalentMetamorph(hero)`、`doEquipmentTransmute(hero)`、选择并提交目标形态，同时重置倒计时。
+3. 消失/出现动画只负责演示已提交的变身结果；等待演出期间使用不耗时动画阻塞机制。
+4. `changing` 标志防止动画播放期间重入；变身期间 `act()` 不递减倒计时。
 
 > 守卫：`changing` 标志防止动画播放期间重入；变身期间 `act()` 不递减倒计时。
 
@@ -162,7 +156,7 @@ actors.buffs.jumblechangebuff.name/desc/countdown
 ## 6. 设计约定与坑
 
 - **Buff 不可移除**：`detach()` 覆盖为 no-op，务必在类内自行管理状态，任何外部移除都不会生效。
-- **阻塞不消耗回合**：用 `hero.busy()` + 动画回调驱动，期间 `spend(TICK)` 保持 Buff 激活但不变身逻辑重入。
+- **动画期间阻塞不额外消耗回合**：变身触发本身已消耗一回合；演出期间通过不耗时动画机制阻止英雄继续行动，`act()` 不会重入变身逻辑。
 - **护甲变换**：原版 `ScrollOfTransmutation.changeItem()` 不处理 `Armor`，需单独实现按 tier 随机。
 - **神器重复**：直接访问 `Generator.Category.ARTIFACT.classes` 全池随机，绕过 `probs` 唯一性，满足杂散"变身时可重复神器"的需求。
 - **线程安全**：变身逻辑在动画回调（渲染线程）中执行，与项目内其它变身/卷轴实现一致，属可接受模式；务必保证 `hero` 存活判断后再 `ready()`。

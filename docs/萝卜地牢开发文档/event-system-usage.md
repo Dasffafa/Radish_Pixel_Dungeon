@@ -1,6 +1,6 @@
 # 事件系统使用指南
 
-> 状态：**已实现**。本文是 `event-system-design.md` 的操作篇，聚焦"如何写事件、如何订阅、如何发布"。
+> 状态：**已实现**。本文聚焦如何编写、订阅和发布事件；本目录没有单独的 `event-system-design.md`，事件规则以本文和当前代码为准。
 
 ## 概述
 
@@ -107,7 +107,7 @@ if (event.isCancelled()) {
 
 ## 既有事件示例：伤害事件
 
-伤害在 `Char.damage(int, Object, DamageType)` 收口处发布两套事件（详见设计文档）：
+伤害在 `Char.applyDamage(DamageInfo)` 中发布两套事件（详见设计文档）：
 
 - **`CharUnprocedDamageEvent`**：减免计算前，携带原始伤害 `dmg`。
 - **`CharFinalDamageEvent`**：减免计算后，携带实际 HP 扣减 `dealt`，`dealt>0` 才发。

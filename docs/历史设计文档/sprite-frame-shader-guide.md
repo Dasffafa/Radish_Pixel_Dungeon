@@ -1,6 +1,8 @@
-# Sprite 逐帧 Shader 动画
+# Sprite 逐帧 Shader 设计提案（未实现）
 
-本文说明如何像 `WandererSprite` 的 affix 一样，为 Sprite 的每个动画帧附加 Shader 及其参数。该方案不引入新的动画系统：继续使用现有的 `Animation`、`curAnim` 和 `curFrame`，只在帧切换时同步视觉附加数据。
+> 状态：本文描述的 `ShaderFrame`、逐帧回调及相关 API 尚未在当前代码中实现。以下内容仅作历史设计记录，不可作为现有接口使用；当前着色器效果请查阅 `GLSL_Shader_System.md` 并以代码为准。
+
+本文原拟为 Sprite 的每个动画帧附加 Shader 及其参数。以下方案不代表当前实现。
 
 ## 设计目标
 

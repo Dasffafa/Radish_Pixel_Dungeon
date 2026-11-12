@@ -2,7 +2,7 @@
 
 > 状态：**已实现**。
 
-Item、Talent 和 Buff 图标已经不再使用手工拼接的整张 atlas。每个图标都是独立 PNG，游戏启动后按目录中的 `manifest.txt` 动态生成纹理页。
+Item、Talent 和 Buff 图标已经不再使用手工拼接的整张 atlas。每个图标都是独立 PNG，游戏构建时由 Gradle 生成 manifest；运行时按 manifest 加载纹理页。Runtime Atlas 还管理 `interfaces/hero_icons` 资源。
 
 本文中的路径均相对于项目根目录。
 
@@ -28,7 +28,7 @@ PNG:  potion_healing.png
 - 文件名与 Java 中的资源 ID 完全一致。
 - 不使用空格、连字符、中文或大写字母作为资源 ID。
 
-`manifest.txt` 由 Gradle 根据目录中的 PNG 自动生成。不要手工编辑；执行 Desktop 或 Android 构建时，Gradle 会在复制和打包资源前更新全部 manifest。
+`manifest.txt` 由 Gradle 根据目录中的 PNG 自动生成。不要手工编辑；可显式运行 `./gradlew generateRuntimeAtlasManifests` 生成并校验清单。具体构建变体是否依赖该任务，以 Gradle 任务依赖关系为准，不要假定所有 Desktop 或 Android 构建都会自动执行它。
 
 需要在不编译游戏的情况下单独生成并校验资源时，在项目根目录运行：
 
@@ -36,7 +36,7 @@ PNG:  potion_healing.png
 ./gradlew generateRuntimeAtlasManifests
 ```
 
-该任务只使用 Gradle/Groovy，不依赖 Python。它会按文件名排序生成 manifest，并检查文件名、Item 常量、Talent 枚举、Buff 常量及对应 PNG 是否一致。
+该任务只使用 Gradle/Groovy，不依赖 Python。它会按文件名排序生成 manifest，并检查文件名、Item 常量、Talent 定义、Buff 常量及对应 PNG 是否一致。
 
 ## 新增 Item 贴图
 
@@ -108,9 +108,7 @@ Runtime Atlas 支持宽度或高度超过 16 像素的 Item PNG。装箱时使�
 
 大图可能会增大 atlas 页或产生更多纹理页，但不会在生成 atlas 时被压缩、裁断或与其他图片重叠。单张图片加上边缘扩展后不能超过设备的 OpenGL 最大纹理尺寸。
 
-当前显示阶段只会裁剪透明边界，不会自动缩小超过 16x16 的非透明外接矩形。因此，大图虽然能够安全进入 atlas，但会按实际尺寸显示，可能超出背包格子或标准地面物品范围。在自动适配缩放功能完成前，普通 Item 的非透明外接矩形仍建议控制在 16x16 以内。
-
-计划中的显示适配规则是：当裁剪后的外接矩形超过 16x16 时，不修改 PNG 或 atlas，只对 `ItemSprite` 的显示应用等比缩小，使其宽高都不超过 16 像素；16x16 及更小的图片保持原始像素尺寸。
+运行时会先裁剪透明边界，再由 `ItemSprite` 按裁剪帧绘制。请在新增大图前检查其实际显示尺寸与背包格子、地面物品布局是否匹配；不要依赖文档中的计划功能自动缩放。
 
 新增装备后，还需要按项目约定重新生成押韵表。
 
@@ -122,7 +120,7 @@ Talent 资源目录：
 core/src/main/assets/interfaces/talents/
 ```
 
-Talent 枚举位于：
+Talent 定义位于：
 
 ```text
 core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/hero/Talent.java
@@ -130,7 +128,7 @@ core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/actors/hero/Talent.j
 
 ### 普通 Talent
 
-普通 Talent 的图片名由枚举名自动转换，不需要声明图标字段。
+普通 Talent 的默认图片名由 Talent 定义名自动转换，不需要声明图标字段。
 
 1. 声明枚举：
 

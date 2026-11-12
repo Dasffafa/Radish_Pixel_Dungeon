@@ -1,6 +1,6 @@
 # 伤害类型系统设计文档
 
-> 状态：**已实现**（核心已落地，部分迁移进行中，见文末）。
+> 状态：**已实现**。旧调用迁移已完成；本文按当前实现描述。
 
 ## 一、概述
 
@@ -77,7 +77,7 @@ public enum DamageType {
 
 常用属性方法：`isMagical()`、`ignoresArmor()`、`ignoresShields()`（TRUE/HUNGER 无视护盾）、`isTrueDamage()`、`isPhysical()`、`isElemental()`、`isDoT()`。
 
-> 兼容方法 `fromSource(Object)` 存在，用于旧调用迁移，待全部调用点显式化后删除。
+> 历史兼容方法 `fromSource(Object)` 不应用于新调用；业务代码应显式指定 `DamageType`。
 
 ### 3.2 DamageModifier
 
@@ -148,7 +148,7 @@ DamageInfo info = DamageInfo.physical(10, hero, sword);
 info.addFlatModifier(5, "天赋：猎杀直觉")
     .addDirectMultModifier(1.2f, "弱点攻击");
 int finalDamage = info.getDamage();  // (10+5) × 1.2 = 18
-enemy.damage(info);
+DamagePipeline.apply(enemy, info);
 ```
 
 ### 4.2 叠加乘区 vs 直接乘算
@@ -194,37 +194,21 @@ public void act() {
     if (target.buff(Vulnerable.class) != null) {
         info.addDirectMultModifier(1.33f, "易伤");
     }
-    target.damage(info);
+    DamagePipeline.apply(target, info);
 }
 ```
 
 ## 五、Char.java 集成
 
-```java
-// 新入口：使用 DamageInfo
-public void damage(DamageInfo info) {
-    DamagePipeline.apply(this, info);
-}
-
-// 兼容入口：旧式调用，包装成 DamageInfo.fromSource 走管线
-public void damage(int dmg, Object src) {
-    DamageInfo active = DamagePipeline.activeInfo();
-    if (active != null) {
-        damage(dmg, src, active.getType());
-    } else {
-        DamageInfo info = new DamageInfo(dmg, DamageType.fromSource(src));
-        DamagePipeline.apply(this, info);
-    }
-}
-```
+推荐以 `DamageInfo` 显式携带类型和来源，再交由 `DamagePipeline.apply(target, info)` 处理。旧式 `damage(int, Object)` 入口仅为兼容遗留调用保留；新代码不要依赖来源对象推断伤害类型。
 
 ## 六、与事件系统的配合
 
-伤害在 `Char.damage(int, Object, DamageType)` 收口处发布两套事件：
+伤害在 `Char.applyDamage(DamageInfo)` 中发布两套事件：
 - **`CharUnprocedDamageEvent`**：减免前，携带原始伤害 `dmg`。
 - **`CharFinalDamageEvent`**：减免后，携带实际 HP 扣减 `dealt`，`dealt>0` 才发。
 
-订阅方据此在合适的阶段修改或响应伤害（详见 `event-system-design.md`）。
+订阅方据此在合适的阶段修改或响应伤害（事件订阅用法见 `event-system-usage.md`）。
 
 ## 七、文件结构
 
@@ -253,8 +237,6 @@ core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/damage/
 | DamagePipeline → Char.applyDamage | ✅ 已实现（权威路径） |
 | DamageResult | ✅ 已实现 |
 | MixedDamage / 来源链 | ✅ 已实现 |
-| `fromSource` 全调用点显式化 | ⚠️ 进行中（大量调用点待迁移） |
+| `fromSource` 业务调用迁移 | ✅ 已完成；保留的兼容符号不应用于新代码 |
 
-**迁移建议顺序**：先骰子法术 → 怪物技能 → 武器物品；全部显式化后删除 `fromSource`、`isNoArmorPhysicalSource`、`NO_ARMOR_PHYSICAL_SOURCES`，管线切换纯类型判定。
-
-> 详细重构过程与测试清单见 `damage-system-refactor-test-log.md`。
+新代码应显式指定伤害类型。

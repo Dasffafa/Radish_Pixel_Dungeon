@@ -1,6 +1,6 @@
 # Radish Pixel Dungeon UI 设计与布局方案
 
-> 状态：**已实现**。
+> 状态：**部分过时**。本文保留设计背景，但状态栏、生命格资源与背包槽位等具体实现已变化；实现细节以当前 `DiceMageUI`、`StatusPane` 和 `InventorySlot` 代码为准。
 
 ## 一、概述
 
@@ -10,7 +10,7 @@ Radish Pixel Dungeon 的 UI 系统基于 Noosa 游戏框架构建，采用 Compo
 
 ### 2.1 Component 基类
 
-位置：`SPD-classes/src/main/java/com/watabou/noosa/ui/Component.java`
+基础 UI 组件由 `SPD-classes` 模块提供；本文仅记录项目侧的骰子法师 UI 设计。
 
 Component 是所有 UI 组件的基类，继承自 Group（可包含多个 Visual 对象）。
 

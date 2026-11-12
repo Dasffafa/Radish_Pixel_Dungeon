@@ -1,8 +1,6 @@
-# 伤害系统重构改动日志 + 回家测试清单
+# 伤害系统重构历史记录
 
-> 状态：📋 记录（重构已完成，本文为过程日志与测试清单，供回归参考）。
-> 用途：本次对 DamageType/DamagePipeline 的大型重构改动记录，供你回家逐个编译验证。
-> 所有改动**未跑 Gradle**，以下按功能域归类，每项都给了「改了什么」和「回家怎么测」。
+> 归档：本文记录重构过程中的实现摘要和当时拟定的测试清单，不是当前待办，也不代表当前代码状态。旧调用数量、兼容方法和测试结果应以现行代码及近期验证为准；不要照旧清单执行迁移。
 
 ---
 
@@ -16,7 +14,7 @@
   - `damage(int,Object)` 改为包装成 `DamageInfo.fromSource` → 走管线（**兼容入口**，未删除）。
   - 删除 `applyDamageLegacy`、`CritClass`、`NoArmorCritClass`。
 
-### 回家怎么测
+### 当时拟定的验证步骤（历史记录）
 - 普通攻击、暴击、陷阱、DoT、毒/火/冰/雷伤害是否正常生效。
 - 浮字图标是否正常（跳字已改为按 DamageType，见第四节）。
 
@@ -33,7 +31,7 @@
 ### ⚠️ 数值顺序变化（重要）
 护甲现在在管线里，位于承伤倍率（lunar ×2、doom ×1.67、champion、抗性）**之后**做平坦扣减。即「先乘后减」。与旧逻辑「先减后乘」数值不同，**平衡会变**。
 
-### 回家怎么测
+### 当时拟定的验证步骤（历史记录）
 - 普通物理攻击的护甲吸收量是否符合预期（护甲值 × 减伤）。
 - 天球仪（CelestialSphere）、狙击手远程、Torturer 等「无视护甲」的来源是否仍无视护甲。
 - 陷阱/毒等非攻击伤害**不应**套护甲。
@@ -52,7 +50,7 @@
   - 删除死代码 `invalidateCache()`/`recalculate()`。
 - 现有承伤倍率（lunar/doom/champion/抗性）**维持原版依次乘算**，未迁移（新增叠加乘区能力保留备用）。
 
-### 回家怎么测
+### 当时拟定的验证步骤（历史记录）
 - 现有伤害数值是否与之前基本一致（叠加乘区能力默认未用，不改变现有战斗）。
 - 新增需求若用到叠加乘区，用 `addStackMultModifier` 验证是否按 `1+Σ` 计算。
 
@@ -64,7 +62,7 @@
 - `actors/Char.java` 跳字段：删掉 17 个 `src instanceof ...` 长链，改为以 `info.getFloatingTextIcon()`（按 DamageType + 暴击）为基准。
 - 仅保留少数特例：`NO_ARMOR_PHYSICAL_SOURCES`（只对 PHYSICAL）、`AntiMagic.RESISTS`、狙击手远程、`OnlyOneEyeAttack`、`DeminionCritClass`。
 
-### 回家怎么测
+### 当时拟定的验证步骤（历史记录）
 - 毒/火/冰/闪电/流血/腐蚀/粘液/延迟/腐化/护符/镐子/魔法的浮字图标是否仍正确。
 - 暴击图标（CRIT / CRIT_NO_BLOCK）是否正确。
 - 无护甲物理伤害（Spike/Rockfall/Chasm 等）图标是否仍显示「无视护甲」。
@@ -110,7 +108,7 @@
 - 其余 mob 技能、部分法杖/法术、怪物能力仍走 `damage(int,Object)` + `fromSource`。
 - **`fromSource` / `isNoArmorPhysicalSource` / `NO_ARMOR_PHYSICAL_SOURCES` 尚未删除**（要等全部调用点显式化后才能删）。
 
-### 回家怎么测（针对已迁移项）
+### 当时拟定的验证步骤（历史记录）（针对已迁移项）
 - 法师 WarpBeacon 传送粉碎对魔法抗性/魔免怪是否生效。
 - DisintegrationTrap 射线是否被魔免。
 - HolyDart 对亡灵/恶魔是否造成魔法伤害。
@@ -188,7 +186,7 @@
   - `actors/buffs/Bleeding.java`：新增 `causeChain` + `set(float, Class, List<?> chain)`；`act()`/`finishAllBleedingDamage` 注入链。
   - `items/armor/glyphs/Thorns.java`（荆棘）：反伤时传链 `[防御者, Thorns]`。
 
-### 回家怎么测
+### 当时拟定的验证步骤（历史记录）
 - **编译**：4 个改动文件 + 1 个新文件能否编译。
 - **无副作用回归**：烈焰附魔点燃、灼烧、荆棘反伤、流血伤害数值与之前是否完全一致（本系统不改数值）。
 - **API 可用性**（开发侧）：能否用
@@ -226,7 +224,7 @@ dmg.setMixedDamage(md);   // 自动 validate + 置 MIXED
 target.damage(dmg);
 ```
 
-### 回家怎么测
+### 当时拟定的验证步骤（历史记录）
 - **编译**：2 个新文件（MixedDamage）+ 4 个改动文件能否编译。
 - **单一伤害跳字回归**：普通物理/火/毒等跳字图标是否仍正常（FloatingText 重构是否影响单图标）。
 - **`MixedDamage.validate()` 断言**：和 != 1 时是否抛异常；和 == 1 时正常。

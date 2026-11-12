@@ -1,9 +1,10 @@
 # 门与楼梯系统重构方案（特殊门 / 特殊楼梯）
 
-- 状态：已在 `feat/special-gates` 分支实现，编译通过
-- 适用分支：`feat/special-gates`（基于 `luojimen` @ `3822019ec`）
-- 关联文档：`gate-system-review-issues.md`（现状问题清单）
-- 目标：把“特殊门”和“特殊楼梯”拆成两套独立模型；用事件驱动替换 `GateType` 的枚举分支
+> 状态：方案主体已落地。本文保留设计决策和历史方案，不作为完整的当前 API 指南；新增或修改门/楼梯逻辑请以 `门系统与CombatRoom使用指南.md` 和现行代码为准。
+
+- 原实现分支：`feat/special-gates`（基于 `luojimen` @ `3822019ec`）
+- 旧实现审查记录已归档至 `../历史设计文档/gate-system-review-issues.md`
+- 本文描述的设计目标和实施步骤是历史记录，不是当前待办。
 
 ## 1. 结论摘要
 
@@ -374,7 +375,7 @@ Hero.actTransition / Level.activateTransition:
 
 ### 6.3 与普通楼梯配对系统的关系
 
-`stair_pair_id_system.md` 和 `CycleState` 描述的是“同一层多扇普通楼梯轮换落点”，与本方案的“特殊楼梯自身的 A/B/C 链”不是同一件事，且当前 `CycleState` 没有任何调用方。不要把它当作门链状态的载体，避免两套循环概念再次混在一起。
+旧文档 `stair_pair_id_system.md` 描述的是楼梯配对与循环设计，属于已被现行楼梯模型取代的历史设计，不应作为当前实现依据。它与本方案的特殊楼梯 A/B/C 链不是同一机制；当前 `CycleState` 没有调用方。
 
 ## 7. 使用示例
 
@@ -532,8 +533,8 @@ SpecialStairs.addCycle(level, cellC, "cycletest", 2).dest("test", 2, destCell);
 - 新增 `GateSignalEvent`：门进入、楼梯使用可以配置 `signalOnEnter/signalOnUse` 发布具名信号，其他条件门用 `locked("signal:<id>")` 订阅。机关、踏板只需调用 `GateTriggers.signal("sewer.lever")`。
 - `EventManager` 改为“先具体事件类，未取消再分发 `GameEvent` 基类”。
 - 单向门关闭时写 `level.passable=false`；英雄在 `fromMask` 允许的邻格点击时走 `HeroAction.EnterDoor`，同一回合开门并进入。
-- 旧存档迁移未实现：分支尚未发布，旧 `door_gates/cycle_stairs/used_gates` 字段被忽略，新存档只写 `special_doors/special_stairs/gate_chains`。
+- 兼容性说明：本方案记录的旧存档字段迁移未实现；历史字段 `door_gates/cycle_stairs/used_gates` 会被忽略。修改存档结构时应重新核对当前版本的兼容策略。
 - 新增条件出现门：`SpecialDoor.toggle/appeared` + `SpecialDoors.addToggle(...)`；每次匹配触发器在 `WALL` 与 `DOOR` 之间翻转，状态随存档保存。
 - 一次性门封死前先清空门格：其他角色和物品会被弹到相邻空格（优先英雄前进方向的反侧），相邻格不可用时退到两格内；找不到落点则本次不封门。
 - 普通门循环确认不支持；ABCABC 循环由 `SpecialStair` 表达。
-- 新增示例房间 `CombatRoom`：继承 `EmptyRoom`，和普通房间一样参与生成，门数由构建器决定；生成 2~4 个当前层怪物，英雄进入后锁住该房的全部门，房内敌人全灭后恢复。`doorCells/guardIds/started/cleared` 随房间存档。
+- 新增示例房间 `CombatRoom`：继承 `EmptyRoom`，和普通房间一样参与生成，门数由构建器决定；目标生成 2~4 个当前层怪物（可用位置不足时数量会更少），英雄进入后锁住该房的全部门，房内敌人全灭后恢复。`doorCells/guardIds/started/cleared` 随房间存档。
