@@ -224,7 +224,15 @@ public abstract class Char extends Actor {
             return true;
         }
 
-        int curPos = pos;
+        //we do a little raw position shuffling here so that the characters are never
+        // on the same cell when logic such as occupyCell() is triggered
+        int oldPos = pos;
+        int newPos = c.pos;
+
+        //can't swap or ally warp if either char is immovable
+        if (hasProp(this, Property.IMMOVABLE) || hasProp(c, Property.IMMOVABLE)) {
+            return true;
+        }
 
         //warp instantly with allies in this case
         if (c == hero && hero.hasTalent(Talent.ALLY_WARP)) {
@@ -232,8 +240,10 @@ public abstract class Char extends Actor {
             if (PathFinder.distance[pos] == Integer.MAX_VALUE) {
                 return true;
             }
-            ScrollOfTeleportation.appear(this, c.pos);
-            ScrollOfTeleportation.appear(c, curPos);
+            pos = newPos;
+            c.pos = oldPos;
+            ScrollOfTeleportation.appear(this, newPos);
+            ScrollOfTeleportation.appear(c, oldPos);
             Dungeon.observe();
             GameScene.updateFog();
             return true;
@@ -244,15 +254,20 @@ public abstract class Char extends Actor {
             return true;
         }
 
-        moveSprite(pos, c.pos);
-        move(c.pos);
+        //螃蟹甲：横向换位更快、纵向更慢（按换位前两者是否同一行判断）
         float speedAdj = 1f;
         if (c.buff(CrabArmor.likeCrab.class) != null) {
-            if (c.pos / Dungeon.level.width() == curPos / Dungeon.level.width()) speedAdj = 1.75f;
+            if (newPos / Dungeon.level.width() == oldPos / Dungeon.level.width()) speedAdj = 1.75f;
             else speedAdj = 5f / 6f;
         }
-        c.sprite.move(c.pos, curPos);
-        c.move(curPos);
+
+        c.pos = oldPos;
+        moveSprite(oldPos, newPos);
+        move(newPos);
+
+        c.pos = newPos;
+        c.sprite.move(newPos, oldPos);
+        c.move(oldPos);
 
         c.spend(1 / (c.speed() * speedAdj));
 
@@ -592,12 +607,12 @@ public abstract class Char extends Actor {
             if (attacker == hero)
                 bless_adj_a *= RingOfBenediction.periodMultiplier(attacker);
             else if (defender == hero)
-                bless_adj_d *= RingOfBenediction.periodMultiplier(attacker);
+                bless_adj_d *= RingOfBenediction.periodMultiplier(defender);
         }
+        //祝福的命中加成只乘一次（原版那一行已经并进 bless_adj_a，不能再乘一遍 1.25）
         if (attacker.buff(Bless.class) != null) acuRoll *= bless_adj_a;
         //祝福之戒
 
-        if (attacker.buff(Bless.class) != null) acuRoll *= 1.25f;
         // 命中修正取"加法叠加"：各效果的增减百分比直接相加，而不是连乘，
         // 避免多个减益叠乘后命中率掉得过狠。怨魂缠身等通过 FlavourBuff 的钩子参与。
         float accMod = 1f;
@@ -621,7 +636,7 @@ public abstract class Char extends Actor {
         } else {
             defRoll = Random.Float(defStat);
         }
-        if (defender.buff(Bless.class) != null) defRoll *= 1.25f;
+        if (defender.buff(Bless.class) != null) defRoll *= bless_adj_d;
         // 闪避修正同样取加法叠加，规则见上。
         float defMod = 1f;
         if (defender.buff(Hex.class) != null) defMod -= 0.2f;
