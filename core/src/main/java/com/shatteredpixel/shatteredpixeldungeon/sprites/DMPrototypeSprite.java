@@ -35,6 +35,10 @@ public class DMPrototypeSprite extends MobSprite {
 	/** 激活后换成对应型号怪物的原始贴图与动画 */
 	public void activate() {
 		setup( model, true );
+		//帧尺寸变了，不重新摆位会相对格子偏出去；移动途中的落点由补间负责，不去打断
+		if (ch != null && !isMoving) {
+			place( ch.pos );
+		}
 	}
 
 	//每次都把整套动画一起重建，任何一条都不能留空帧：
@@ -83,7 +87,8 @@ public class DMPrototypeSprite extends MobSprite {
 
 		} else {
 			tx = Assets.Sprites.DM100;
-			TextureFilm frames = new TextureFilm( tx, 16, 16 );
+			//和 DM100Sprite 一样按 16x14 切：贴图最下面两行是空的，按 16 高切会让机体悬空两像素
+			TextureFilm frames = new TextureFilm( tx, 16, 14 );
 
 			idle = new Animation( 1, true );
 			idle.frames( frames, 0, 1 );
@@ -94,7 +99,8 @@ public class DMPrototypeSprite extends MobSprite {
 			attack = new Animation( 12, false );
 			attack.frames( frames, 2, 3, 4, 0 );
 
-			zap = attack.clone();
+			zap = new Animation( 8, false );
+			zap.frames( frames, 5, 5, 1 );
 
 			die = new Animation( 12, false );
 			die.frames( frames, 10, 11, 12, 13, 14, 15 );
