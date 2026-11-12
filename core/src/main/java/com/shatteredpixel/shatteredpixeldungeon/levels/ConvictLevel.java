@@ -217,7 +217,9 @@ public class ConvictLevel extends Level {
 	@Override
 	public void restoreFromBundle( Bundle bundle ){
 		super.restoreFromBundle( bundle );
-		felonSpawned = bundle.getBoolean( FELON_SPAWNED );
+		//没有这个键的存档来自建关时就把他放好的版本：不管他现在是死是活，都算已经生成过。
+		//缺省成 false 的话，在早就打败他的存档里再走进竞技场，他会重新出现一次
+		felonSpawned = !bundle.contains( FELON_SPAWNED ) || bundle.getBoolean( FELON_SPAWNED );
 	}
 
 	@Override
