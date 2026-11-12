@@ -331,8 +331,18 @@ public class ShadowDancer extends HeroSubClass {
 			Char ch = Actor.findChar( next );
 			if (ch != null) {
 				if (ch.alignment == Char.Alignment.ENEMY && enemyPassed < 1) {
-					int dmg = Math.round( hero.damageRoll() * 1.25f );
-					ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, hero.belongings.attackingWeapon(), hero ) );
+					// 突袭伤害通常为 125%；双重打击 +3 时改为结算两次、每次 75%。
+					// 这条规则原先只写在 rush() 里，而 rush() 已经没有调用方，实际生效的突袭是这里
+					if (hero.pointsInTalent( Talent.DOUBLE_STRIKE ) >= 3) {
+						int dmg = Math.round( hero.damageRoll() * 0.75f );
+						ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, hero.belongings.attackingWeapon(), hero ) );
+						if (ch.isAlive()) {
+							ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, hero.belongings.attackingWeapon(), hero ) );
+						}
+					} else {
+						int dmg = Math.round( hero.damageRoll() * 1.25f );
+						ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, hero.belongings.attackingWeapon(), hero ) );
+					}
 					enemyPassed++;
 				} else {
 					break;
