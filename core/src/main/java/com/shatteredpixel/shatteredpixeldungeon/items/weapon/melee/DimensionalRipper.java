@@ -66,7 +66,8 @@ public class DimensionalRipper extends Scimitar {
 			if (warped != null){
 				// 原说明只把本武器登记为 CORROSION 换跳字色；统一到本项目已有的腐蚀类型。
 				defender.damage( new DamageInfo( 1, WeaponDamageTypes.CORROSION, attacker, this, this ) );
-				if (attacker == Dungeon.hero){
+				// 这 1 点腐蚀可能刚好把目标打死，那就没有可追击的对象了，不开窗也不提示
+				if (attacker == Dungeon.hero && defender.isAlive()){
 					Buff.affect( Dungeon.hero, RiftWindow.class ).open( defender );
 				}
 			}
