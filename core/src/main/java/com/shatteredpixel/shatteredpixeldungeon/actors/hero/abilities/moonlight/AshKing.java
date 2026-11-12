@@ -207,7 +207,9 @@ public class AshKing extends ArmorAbility {
 		public static void knockbackEnemies(Hero hero) {
 			ArrayList<Mob> enemies = new ArrayList<>();
 			for (Mob mob : Dungeon.level.mobs) {
-				if (Dungeon.level.distance(hero.pos, mob.pos) <= 3) {
+				//只推敌人：关卡里的怪还包括友军（召唤物、被腐化的怪）和中立单位，它们不该被推开、吃碰撞伤害
+				if (mob.alignment == Char.Alignment.ENEMY
+						&& Dungeon.level.distance(hero.pos, mob.pos) <= 3) {
 					enemies.add(mob);
 				}
 			}
