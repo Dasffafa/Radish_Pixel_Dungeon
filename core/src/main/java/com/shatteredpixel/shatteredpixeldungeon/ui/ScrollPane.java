@@ -128,18 +128,19 @@ public class ScrollPane extends Component {
 	}
 
 	/**
-	 * 缩略条是 ScrollPane 的子节点，坐标相对 ScrollPane 自身（从 0 到 height），
-	 * 所以这里不能再叠加 this.y —— 之前叠了一次，滚到底时缩略条正好被推出窗口下沿。
+	 * 缩略条与 ScrollPane 画在同一个相机里，子节点并不相对父节点定位，
+	 * 所以它的坐标要从面板自己的左上角 (x, y) 算起（原版也是这样）；少了这一步，
+	 * 面板不在窗口原点时缩略条就画到面板外面去了。
 	 */
 	protected void updateThumb() {
 		if (thumb == null) return;
 		// 只有内容比视口高、且刚刚滚动过（thumbTimer 还在）时才露出来；
-		// 位置要夹在视口内，否则滚到底时缩略条会被推出窗口下沿。
+		// 最小高度 12 可能比按比例算出的高度大，位置要夹在视口内，否则滚到底时缩略条会被推出面板下沿。
 		if (thumbTimer > 0 && height < content.height()) {
 			thumb.visible = true;
 			thumb.scale.set( 3, Math.max( 12, height * height / content.height() ) );
-			thumb.x = width - thumb.width() - 1;
-			thumb.y = Math.min( height - thumb.height(),
+			thumb.x = x + width - thumb.width() - 1;
+			thumb.y = y + Math.min( height - thumb.height(),
 					height * content.camera.scroll.y / content.height() );
 		} else {
 			thumb.visible = false;
@@ -256,7 +257,7 @@ public class ScrollPane extends Component {
 		protected void onPointerDown( PointerEvent event ) {
 			// 按住缩略条 = 直接拖滚动条（桌面端和手机都适用）
 			if (thumb != null && thumb.visible) {
-				PointF p = localPoint( event.current );
+				PointF p = cameraPoint( event.current );
 				if (p.x >= thumb.x - 2 && p.x <= thumb.x + thumb.width() + 2
 						&& p.y >= thumb.y - 2 && p.y <= thumb.y + thumb.height() + 2) {
 					thumbDragging = true;
@@ -296,9 +297,9 @@ public class ScrollPane extends Component {
 		private float thumbScrollStart = 0;
 		private PointF lastPos = new PointF();
 
-		private PointF localPoint( PointF screen ){
-			PointF p = camera().screenToCamera( (int)screen.x, (int)screen.y );
-			return new PointF( p.x - x, p.y - y );
+		// 面板所在相机里的点：与缩略条的坐标是同一套，可以直接比较
+		private PointF cameraPoint( PointF screen ){
+			return camera().screenToCamera( (int)screen.x, (int)screen.y );
 		}
 
 		@Override
@@ -309,7 +310,7 @@ public class ScrollPane extends Component {
 				float thumbH = thumb.height();
 				float maxScroll = Math.max( 1, content.height() - height );
 				float maxThumbY = Math.max( 1, track - thumbH );
-				float dy = localPoint( event.current ).y - thumbStartY;
+				float dy = cameraPoint( event.current ).y - thumbStartY;
 				setScrollY( thumbScrollStart + dy * maxScroll / maxThumbY );
 				showThumb();
 				return;
