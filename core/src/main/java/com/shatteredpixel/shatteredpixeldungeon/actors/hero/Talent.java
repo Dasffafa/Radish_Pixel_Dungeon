@@ -849,6 +849,57 @@ public class Talent {
 		}
 	}
 
+	// 月华 4-1 光之永恒：被怪物打掉生命后 8 回合内自然回复加快，每次受击单独计时、效果叠加
+	public static class LightEternityRegen extends Buff {
+		{ type = buffType.POSITIVE; }
+
+		public static final float DURATION = 8f;
+		private ArrayList<Float> left = new ArrayList<>();
+
+		public void addStack(){
+			left.add(DURATION);
+		}
+
+		@Override
+		public boolean act() {
+			ArrayList<Float> next = new ArrayList<>();
+			for (float t : left) if (t - TICK > 0) next.add(t - TICK);
+			left = next;
+			if (left.isEmpty()) detach();
+			spend(TICK);
+			return true;
+		}
+
+		public static float regenMultiplier(Char ch){
+			LightEternityRegen buff = ch.buff(LightEternityRegen.class);
+			if (!(ch instanceof Hero) || buff == null) return 1f;
+			int points = ((Hero) ch).pointsInTalent(LIGHT_ETERNITY);
+			float rate = points >= 4 ? 0.40f : points == 3 ? 0.31f : points == 2 ? 0.23f : points == 1 ? 0.15f : 0f;
+			return 1f + rate * buff.left.size();
+		}
+
+		private static final String LEFT = "left";
+
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			super.storeInBundle(bundle);
+			float[] arr = new float[left.size()];
+			for (int i = 0; i < arr.length; i++) arr[i] = left.get(i);
+			bundle.put(LEFT, arr);
+		}
+
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			super.restoreFromBundle(bundle);
+			left = new ArrayList<>();
+			if (bundle.contains(LEFT)) for (float t : bundle.getFloatArray(LEFT)) left.add(t);
+		}
+	}
+
+	public static void onLightEternityHit(Hero hero, Char attacker){
+		if (hero.hasTalent(LIGHT_ETERNITY) && attacker instanceof Mob) {
+			Buff.affect(hero, LightEternityRegen.class).addStack();
+		}
 	}
 	public static class EmpoweredStrikeTracker extends FlavourBuff{
 		//blast wave on-hit doesn't resolve instantly, so we delay detaching for it

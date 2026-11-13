@@ -2606,6 +2606,7 @@ public class Hero extends Char {
 		int effectiveDamage = preHP - postHP;
 		int trueDamage=preTrueHP-HP;
 		if (effectiveDamage <= 0) return;
+		if (trueDamage > 0) Talent.onLightEternityHit(this, info.getAttacker());
 		if (trueDamage>0){
 			if (this.hasTalent(Talent.EMERGENCY_PROTECTION) ){
 				Class<?> srcClass = src.getClass();
