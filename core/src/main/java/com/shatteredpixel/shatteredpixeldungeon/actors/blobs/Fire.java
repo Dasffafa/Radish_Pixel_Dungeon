@@ -58,7 +58,7 @@ public class Fire extends Blob {
 						continue;
 					}
 
-					burn( cell );
+					burnCell( cell );
 
 					fire = cur[cell] - 1;
 					if (fire <= 0 && flamable[cell]) {
@@ -78,7 +78,7 @@ public class Fire extends Blob {
 							|| cur[cell-Dungeon.level.width()] > 0
 							|| cur[cell+Dungeon.level.width()] > 0)) {
 						fire = 4;
-						burn( cell );
+						burnCell( cell );
 						area.union(i, j);
 					} else {
 						fire = 0;
@@ -97,9 +97,17 @@ public class Fire extends Blob {
 		}
 	}
 	
+	protected void burnCell( int pos ) {
+		burn( pos );
+	}
+
 	public static void burn( int pos ) {
+		burn( pos, true );
+	}
+
+	protected static void burn( int pos, boolean burnCharacter ) {
 		Char ch = Actor.findChar( pos );
-		if (ch != null && !ch.isImmuneTo(DamageType.FIRE)) {
+		if (burnCharacter && ch != null && !ch.isImmuneTo(DamageType.FIRE)) {
 			Buff.affect( ch, Burning.class ).reignite( ch );
 		}
 		

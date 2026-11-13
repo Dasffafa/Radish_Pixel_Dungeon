@@ -3,6 +3,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclass
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
@@ -14,6 +16,10 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidSunflower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidVines;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidWolf;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.custom.utils.RangeMap;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
@@ -21,11 +27,17 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.BArray;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
 
 import java.util.ArrayList;
 
@@ -372,9 +384,7 @@ public class Druid extends HeroSubClass {
 			// 火焰要交给 GameScene.add 登记才会进回合循环；只 seed 的话本层第一次起火时当回合不烧，
 			// 要等别处起火或读档才突然烧起来。地图最外圈不放火：Fire 在边界行上演算会数组越界。
 			if (pos != hero.pos && Dungeon.level.insideMap( pos )) {
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add(
-						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(
-								pos, 1, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class ) );
+				GameScene.add( Blob.seed( pos, 1, FirestormFire.class ) );
 			}
 			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( pos ).burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
@@ -392,46 +402,37 @@ public class Druid extends HeroSubClass {
 		if (!spendEnergy( hero, spellCost( hero, 16f ) )) {
 			return false;
 		}
-		int dmg = 16 + hero.lvl;
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob : Dungeon.level.mobs.toArray( new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0] )) {
-			if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive()
-					&& Dungeon.level.distance( cell, mob.pos ) <= 2) {
-				mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo( dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-				com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( mob.pos ).burst(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STORM ), 6 );
-			}
-		}
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( cell ).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STORM ), 12 );
 		com.watabou.noosa.audio.Sample.INSTANCE.play( com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.ZAP );
 		ThunderField f = Buff.affect( hero, ThunderField.class );
 		f.cell = cell;
 		f.turns = 10;
+		f.remainingBolts = 5 + (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 2 ? 3 : 0);
 		f.depth = Dungeon.depth;
 		f.branch = Dungeon.branchId;
 		return true;
+	}
+
+	public static void onSpiritBowHit( Hero hero, Char defender ) {
+		ThunderField field = hero.buff( ThunderField.class );
+		if (field != null && defender.isAlive() && defender.alignment == Char.Alignment.ENEMY
+				&& onCastFloor( field.depth, field.branch ) && field.inRange( defender )) {
+			field.strike( hero, defender );
+		}
 	}
 
 	public static boolean castCataclysm( Hero hero, int cell ) {
 		if (!spendEnergy( hero, spellCost( hero, 30f ) )) {
 			return false;
 		}
-		int dmg = 30 + hero.lvl;
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob : Dungeon.level.mobs.toArray( new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0] )) {
-			if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive()
-					&& Dungeon.level.distance( cell, mob.pos ) <= 3) {
-				mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo( dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-				ignite( mob );
-				com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( mob.pos ).burst(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 6 );
-			}
-		}
-		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( cell ).burst(
-				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.ROCK ), 16 );
+		CellEmitter.get( cell ).burst( Speck.factory( Speck.ROCK ), 16 );
 		com.watabou.noosa.audio.Sample.INSTANCE.play( com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.ROCKS );
 		VolcanoField v = Buff.affect( hero, VolcanoField.class );
+		v.clearWarnings();
 		v.cell = cell;
 		v.turns = 50 + (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 3 ? 25 : 0);
+		v.turnsUntilImpact = 2;
 		v.depth = Dungeon.depth;
 		v.branch = Dungeon.branchId;
 		return true;
@@ -544,13 +545,14 @@ public class Druid extends HeroSubClass {
 
 		public int cell = -1;
 		public int turns = 0;
+		private int remainingBolts = 5;
 		// 施放时所在的楼层与分支，-1 表示还没有记录（旧存档）
 		public int depth = -1;
 		public String branch = null;
 
 		@Override
 		public boolean act() {
-			if (cell < 0 || turns <= 0 || Dungeon.level == null) {
+			if (cell < 0 || turns <= 0 || remainingBolts <= 0 || Dungeon.level == null) {
 				detach();
 				return true;
 			}
@@ -565,24 +567,53 @@ public class Druid extends HeroSubClass {
 			}
 			turns--;
 			Hero hero = Dungeon.hero;
-			int lvl = hero != null ? hero.lvl : 1;
-			int bolts = 5 + (hero != null && hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 2 ? 3 : 0);
-			int dmg = 16 + lvl;
-			int hits = 0;
 			for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
 					: Dungeon.level.mobs.toArray( new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0] )) {
-				if (hits >= bolts) {
+				if (remainingBolts <= 0) {
 					break;
 				}
-				if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive()
-						&& Dungeon.level.distance( cell, mob.pos ) <= 2) {
-					mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
-							dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, this ) );
-					hits++;
+				if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive() && inRange( mob )) {
+					strike( hero, mob );
 				}
 			}
 			spend( TICK );
 			return true;
+		}
+
+		private boolean inRange( Char ch ) {
+			return Dungeon.level.trueDistance( cell, ch.pos ) <= 2f;
+		}
+
+		private void strike( Hero hero, Char first ) {
+			if (remainingBolts <= 0) return;
+			remainingBolts--;
+			ArrayList<Char> reached = new ArrayList<>();
+			ArrayList<Lightning.Arc> arcs = new ArrayList<>();
+			java.util.HashSet<Char> seen = new java.util.HashSet<>();
+			reached.add( first );
+			seen.add( first );
+			boolean[] passable = BArray.not( Dungeon.level.solid, null );
+			for (int i = 0; i < reached.size(); i++) {
+				Char from = reached.get( i );
+				PathFinder.buildDistanceMap( from.pos, passable, Dungeon.level.water[from.pos] ? 2 : 1 );
+				for (Char ch : Actor.chars()) {
+					if (ch.isAlive() && ch.alignment == Char.Alignment.ENEMY
+							&& PathFinder.distance[ch.pos] < Integer.MAX_VALUE && seen.add( ch )) {
+						reached.add( ch );
+						if (from.sprite != null && ch.sprite != null) {
+							arcs.add( new Lightning.Arc( from.sprite.center(), ch.sprite.center() ) );
+						}
+					}
+				}
+			}
+			if (!arcs.isEmpty() && hero != null && hero.sprite != null && hero.sprite.parent != null) {
+				hero.sprite.parent.addToFront( new Lightning( arcs, null ) );
+			}
+			int damage = 16 + (hero == null ? 1 : hero.lvl);
+			for (Char ch : reached) {
+				ch.damage( new DamageInfo( damage, DamageType.MAGICAL, hero, null, this ) );
+			}
+			if (remainingBolts == 0) detach();
 		}
 
 		@Override
@@ -594,12 +625,14 @@ public class Druid extends HeroSubClass {
 		private static final String TURNS = "turns";
 		private static final String DEPTH = "depth";
 		private static final String BRANCH = "branch";
+		private static final String BOLTS = "remaining_bolts";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( CELL, cell );
 			bundle.put( TURNS, turns );
+			bundle.put( BOLTS, remainingBolts );
 			if (depth != -1) {
 				bundle.put( DEPTH, depth );
 				bundle.put( BRANCH, branch );
@@ -611,6 +644,7 @@ public class Druid extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			cell = bundle.getInt( CELL );
 			turns = bundle.getInt( TURNS );
+			remainingBolts = bundle.contains( BOLTS ) ? bundle.getInt( BOLTS ) : 5;
 			// 旧存档没有这两个键：保持未记录的状态，等第一次生效时再绑定楼层
 			if (bundle.contains( DEPTH )) {
 				depth = bundle.getInt( DEPTH );
@@ -619,7 +653,20 @@ public class Druid extends HeroSubClass {
 		}
 	}
 
-	/** 火山口：每 2 回合喷发一次，把范围内的敌人重新点燃。 */
+	public static class FirestormFire extends Fire {
+		@Override
+		protected void burnCell( int cell ) {
+			Char ch = Actor.findChar( cell );
+			burn( cell, ch != null && ch.alignment != Char.Alignment.ALLY && ch != Dungeon.hero );
+		}
+
+		@Override
+		public String tileDesc() {
+			return Messages.get( Fire.class, "desc" );
+		}
+	}
+
+	/** 火山口的落点提前一回合确定，并随存档保留。 */
 	public static class VolcanoField extends Buff {
 
 		{
@@ -632,10 +679,14 @@ public class Druid extends HeroSubClass {
 		// 施放时所在的楼层与分支，-1 表示还没有记录（旧存档）
 		public int depth = -1;
 		public String branch = null;
+		private int turnsUntilImpact = 2;
+		private int[] warnedCells = new int[0];
+		private final ArrayList<Image> warnings = new ArrayList<>();
 
 		@Override
 		public boolean act() {
 			if (cell < 0 || turns <= 0 || Dungeon.level == null) {
+				clearWarnings();
 				detach();
 				return true;
 			}
@@ -645,24 +696,98 @@ public class Druid extends HeroSubClass {
 				branch = Dungeon.branchId;
 			}
 			if (!onCastFloor( depth, branch )) {
+				clearWarnings();
 				detach();
 				return true;
 			}
 			turns--;
-			// 喷发只把范围内的敌人重新点燃，伤害由原版的燃烧结算，火山本身不再打人。
-			// 说明里的 30 + 等级 点伤害只在施放的那一下结算一次；每次喷发都再打一遍的话，
-			// 50 回合里喷发 25 次，总伤害是说明所写的 26 倍。
-			if (turns % 2 == 0) {
-				for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
-						: Dungeon.level.mobs.toArray( new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0] )) {
-					if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive()
-							&& Dungeon.level.distance( cell, mob.pos ) <= 3) {
-						ignite( mob );
+			if (--turnsUntilImpact == 0) {
+				Hero hero = (Hero) target;
+				for (int impact : warnedCells) {
+					if (!hero.isAlive()) {
+						break;
 					}
+					landRock( hero, impact );
 				}
+				clearWarnings();
+				turnsUntilImpact = 2;
+			} else if (turns > 0) {
+				warnedCells = chooseImpactCells();
+				showWarnings();
 			}
 			spend( TICK );
 			return true;
+		}
+
+		private int[] chooseImpactCells() {
+			ArrayList<Integer> ground = new ArrayList<>();
+			ArrayList<Integer> enemies = new ArrayList<>();
+			for (int candidate : RangeMap.circleArea( cell, 3f )) {
+				if (!Dungeon.level.insideMap( candidate ) || Dungeon.level.solid[candidate]) {
+					continue;
+				}
+				ground.add( candidate );
+				Char ch = Actor.findChar( candidate );
+				if (ch != null && ch.isAlive() && ch.alignment == Char.Alignment.ENEMY) {
+					enemies.add( candidate );
+				}
+			}
+			if (ground.isEmpty()) {
+				return new int[0];
+			}
+			int aimed = Random.element( enemies.isEmpty() ? ground : enemies );
+			return new int[]{ aimed, Random.element( ground ) };
+		}
+
+		private void landRock( Hero hero, int impact ) {
+			CellEmitter.get( impact ).burst( Speck.factory( Speck.ROCK ), 12 );
+			int damage = 30 + hero.lvl;
+			for (int tile : RangeMap.centeredRect( impact, 1, 1 )) {
+				Char ch = Actor.findChar( tile );
+				if (ch != null && ch.isAlive()) {
+					int amount = tile == impact ? damage : Math.round( damage * 0.5f );
+					ch.damage( new DamageInfo( amount, DamageType.MAGICAL, hero, null, this ) );
+				}
+				if (Dungeon.level.insideMap( tile ) && !Dungeon.level.solid[tile] && Random.Float() < 0.75f) {
+					int duration = 2 - Blob.volumeAt( tile, Fire.class );
+					if (duration > 0) {
+						GameScene.add( Blob.seed( tile, duration, Fire.class ) );
+					}
+				}
+			}
+		}
+
+		private void showWarnings() {
+			if (Dungeon.level == null || !onCastFloor( depth, branch )) {
+				return;
+			}
+			for (int impact : warnedCells) {
+				Image warning = Icons.TARGET.get();
+				warning.hardlight( 0xFF6600 );
+				warning.point( DungeonTilemap.tileToWorld( impact ) );
+				GameScene.effect( warning );
+				warnings.add( warning );
+			}
+		}
+
+		private void clearWarnings() {
+			removeWarningSprites();
+			warnedCells = new int[0];
+		}
+
+		private void removeWarningSprites() {
+			for (Image warning : warnings) {
+				warning.killAndErase();
+			}
+			warnings.clear();
+		}
+
+		@Override
+		public void fx( boolean on ) {
+			removeWarningSprites();
+			if (on) {
+				showWarnings();
+			}
 		}
 
 		@Override
@@ -674,12 +799,16 @@ public class Druid extends HeroSubClass {
 		private static final String TURNS = "turns";
 		private static final String DEPTH = "depth";
 		private static final String BRANCH = "branch";
+		private static final String IMPACT_IN = "impact_in";
+		private static final String WARNED_CELLS = "warned_cells";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( CELL, cell );
 			bundle.put( TURNS, turns );
+			bundle.put( IMPACT_IN, turnsUntilImpact );
+			bundle.put( WARNED_CELLS, warnedCells );
 			if (depth != -1) {
 				bundle.put( DEPTH, depth );
 				bundle.put( BRANCH, branch );
@@ -691,6 +820,10 @@ public class Druid extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			cell = bundle.getInt( CELL );
 			turns = bundle.getInt( TURNS );
+			if (bundle.contains( IMPACT_IN )) {
+				turnsUntilImpact = bundle.getInt( IMPACT_IN );
+				warnedCells = bundle.getIntArray( WARNED_CELLS );
+			}
 			// 旧存档没有这两个键：保持未记录的状态，等第一次生效时再绑定楼层
 			if (bundle.contains( DEPTH )) {
 				depth = bundle.getInt( DEPTH );
