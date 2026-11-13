@@ -181,8 +181,14 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 		return chance;
 	}
 
+	//无尽怒火：怒气上限 150/175/200%，伤害加成上限随之到 75/87.5/100%
+	private float maxPower(){
+		return target instanceof Hero && ((Hero)target).hasTalent(Talent.ENDLESS_RAGE)
+				? 1.25f + 0.25f*((Hero)target).pointsInTalent(Talent.ENDLESS_RAGE) : 1f;
+	}
+
 	public float damageFactor(float dmg){
-		return dmg * Math.min(1.5f, 1f + (power / 2f));
+		return dmg * (1f + Math.min(power, maxPower()) / 2f);
 	}
 
 	@Override
@@ -250,8 +256,7 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 
 	public void damage(int damage){
 		if (state != State.NORMAL) return;
-		float maxPower = Dungeon.hero.hasTalent(Talent.ENDLESS_RAGE) ?  1.25f + 0.25f*((Hero)target).pointsInTalent(Talent.ENDLESS_RAGE) : 1f ;
-		power = Math.min(maxPower, power + (damage/(float)target.HT)/3f );
+		power = Math.min(maxPower(), power + (damage/(float)target.HT)/3f );
 		BuffIndicator.refreshHero(); //show new power immediately
 		powerLossBuffer = 3; //2 turns until rage starts dropping
 		if (power >= 0.5f){
@@ -340,8 +345,7 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 	public float iconFadePercent() {
 		switch (state){
 			case NORMAL: default:
-				//怒气上限与 damage() 里的保持一致，否则怒气高过旧上限时这里会算出负数
-				float maxPower = ((Hero)target).hasTalent(Talent.ENDLESS_RAGE) ? 1.25f + 0.25f*((Hero)target).pointsInTalent(Talent.ENDLESS_RAGE) : 1f;
+				float maxPower = maxPower();
 				return Math.max(0, (maxPower - power)/maxPower);
 			case BERSERK:
 				return 0f;
