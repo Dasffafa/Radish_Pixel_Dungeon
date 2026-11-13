@@ -27,6 +27,36 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\rpd-selftest\run.ps1 -
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\rpd-selftest\run.ps1 -Worktree <路径> -Scenario selftest
 ```
 
+### 不用 PowerShell：Java 版启动器（Windows / Linux / macOS）
+
+`tools/RunSelftest.java` 是 `run.ps1` + `tools/build-target.ps1` 的 Java 移植，单文件，只需要 JDK 11 以上，直接从源码运行、不用先编译。
+参数名、默认值、输出格式、运行目录结构、退出码都与 `run.ps1` 相同；两者共用 `out/<worktree 目录名>/classpath.txt`，所以一边构建过、另一边可以直接 `-SkipBuild`。
+
+```sh
+java <rpd-selftest>/tools/RunSelftest.java -Worktree <路径> -Scenario "Extra_NcEng_*"
+./run.sh -Worktree <路径> -Scenario selftest            # Linux / macOS 的包装脚本，等同上一行
+```
+
+比 `run.ps1` 多的参数：
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `-Jdk <目录>` | `JAVA_HOME`，再不行用运行本文件的 JDK | 编译场景、跑游戏进程用的 JDK。 |
+| `-Proxy host:port` / `none` | 环境变量 `RPD_SELFTEST_PROXY`（或 `RPD_PROXY`）；都没设时如果 `127.0.0.1:7890` 能连上就用它 | 传给 Gradle 的 HTTP(S) 代理。 |
+
+`ANDROID_HOME` 已设就照用；没设时依次找 `~/Android/Sdk`、`~/Library/Android/sdk`、`%LOCALAPPDATA%\Android\Sdk`。
+
+和 `run.ps1` 的不同：
+
+- 全机上限（最多 4 个游戏进程、2 个 Gradle 构建）用 `<java.io.tmpdir>/rpd-selftest-locks` 里的锁文件实现，不是 Windows 具名信号量；
+  **不和同时在跑的 `run.ps1` / `rpd-tools\build.ps1` 共享上限**，两种启动器别在同一台机器上同时大批量跑。
+  锁由操作系统持有，启动器进程意外退出时自动释放。
+- 进程外的「可见窗口」检查（判 UNSAFE）只在 Windows 上有；进程内的检查（`HarnessGame` / `Launcher` 的窗口监听）各平台都有。
+- `-ImportSave` / `-ExportSave` 真正接上了（`run.ps1` 只校验了参数）：导入时把 `<目录>/<场景名>`（没有这个子目录就用 `<目录>` 本身）复制进沙盒的 `save/`，
+  并传 `-Drpd.importedSave`；场景结束后把沙盒 `save/` 复制到 `<目录>/<结果名>`，已有的同名导出改名为 `.old-<时间>`，不删除。
+- macOS 上游戏进程自动加 `-XstartOnFirstThread`（LWJGL3 要求）。
+- 输出被管道读取时用 UTF-8；直接在终端里看时用终端自己的编码。
+
 本机实测：一个场景一个 JVM，2～10 秒；同时最多 2 个游戏进程；`all`（37 个场景）约 85～135 秒（机器忙时更慢；全部 PASS 时也更慢，因为没有场景提前崩掉），另加构建时间（增量构建 15～50 秒）。
 
 ## 2. `run.ps1` 参数
