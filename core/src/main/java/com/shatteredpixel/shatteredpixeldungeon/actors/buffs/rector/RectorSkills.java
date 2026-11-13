@@ -46,6 +46,11 @@ public class RectorSkills extends Item {
     }
 
     public static class LIGHTIMUEE extends RectorSkills {
+        public static int baseVitae(boolean battlePriest) {
+            int perRegion = battlePriest ? 12 : 8;
+            return Dungeon.depth < 5 ? perRegion / 2 : Dungeon.depth / 5 * perRegion;
+        }
+
         {
             image = ItemSpriteSheet.LIGHTIMUEE;
         }
@@ -65,10 +70,10 @@ public class RectorSkills extends Item {
         @Override
         public String desc() {
             String desc = "";
-            int level = Dungeon.depth/5*8;
+            int level = baseVitae(false);
 
             if(Dungeon.hero.subClass == HeroSubClasses.BATTLEPREIST){
-                desc += Messages.get(this, "desc_plus",Dungeon.depth/5 *12 ,  Dungeon.depth+10,Dungeon.depth/5 * 4);
+                desc += Messages.get(this, "desc_plus", baseVitae(true),  Dungeon.depth+10,Dungeon.depth/5 * 4);
             }  else {
                 desc += Messages.get(this, "desc",level, Dungeon.depth+10);
             }

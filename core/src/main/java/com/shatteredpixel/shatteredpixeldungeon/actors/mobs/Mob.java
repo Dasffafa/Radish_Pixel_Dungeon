@@ -1124,15 +1124,15 @@ public abstract class Mob extends Char {
 				switch (hero.pointsInTalent(Talent.EXP_IMPOTION)){
 					case 1:
 						Dungeon.hero.earnExp(6, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(2);
+						Buff.affect(hero, VitaeBuff.class).addVitae(2);
 						break;
 					case 2:
 						Dungeon.hero.earnExp(9, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(2);
+						Buff.affect(hero, VitaeBuff.class).addVitae(2);
 						break;
 					case 3:
 						Dungeon.hero.earnExp(12, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(2);
+						Buff.affect(hero, VitaeBuff.class).addVitae(2);
 						break;
 				}
 			}

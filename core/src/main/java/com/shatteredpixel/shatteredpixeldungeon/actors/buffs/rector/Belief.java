@@ -183,25 +183,25 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 }
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     int originStamina = 10 + Dungeon.depth/5 - 1;
-                    int originVitae = Dungeon.depth/5*8 + 8;
+                    int originVitae = RectorSkills.LIGHTIMUEE.baseVitae(false) + 8;
 
-                    int originVitaePlus = Dungeon.depth/5 * 12 + 8;
+                    int originVitaePlus = RectorSkills.LIGHTIMUEE.baseVitae(true) + 8;
                     int adrenaline =  Dungeon.depth/5 * 4 - 1 ;
 
                     if(hero.subClass == HeroSubClasses.BATTLEPREIST){
-                        Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitaePlus * 1.5f));
+                        Buff.affect(hero, VitaeBuff.class).addVitae((int) (originVitaePlus * 1.5f));
                         Buff.affect(target, Adrenaline.class,adrenaline);
                     } else {
-                        Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitae * 1.5f));
+                        Buff.affect(hero, VitaeBuff.class).addVitae((int) (originVitae * 1.5f));
                     }
 
                     Buff.affect(hero, Stamina.class,originStamina  * 1.5f);
                 } else {
                     if(hero.subClass == HeroSubClasses.BATTLEPREIST){
-                        Buff.affect(hero, VitaeBuff.class).setVitae(Dungeon.depth/5 * 12);
+                        Buff.affect(hero, VitaeBuff.class).addVitae(RectorSkills.LIGHTIMUEE.baseVitae(true));
                         Buff.affect(target, Adrenaline.class,Dungeon.depth/5 * 4-1);
                     } else {
-                        Buff.affect(hero, VitaeBuff.class).setVitae(Dungeon.depth/5*8);
+                        Buff.affect(hero, VitaeBuff.class).addVitae(RectorSkills.LIGHTIMUEE.baseVitae(false));
                     }
                     Buff.affect(hero, Stamina.class, Dungeon.depth+10-1);
                 }

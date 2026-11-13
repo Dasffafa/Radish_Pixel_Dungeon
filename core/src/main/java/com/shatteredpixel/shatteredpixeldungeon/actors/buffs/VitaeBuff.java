@@ -16,19 +16,18 @@ public class VitaeBuff extends Buff{
         return vitae;
     }
 
-    public void setVitae(int vt){
-        this.vitae = vt;
-        this.maxVitae = vt;
+    public void addVitae(int amount){
+        int points = Dungeon.hero.pointsInTalent(Talent.VITAE_BOOST);
+        int bonus = points <= 2 ? points : 0;
+        vitae += amount + bonus;
+        maxVitae = vitae;
+    }
 
-        // DoggingDog on 20250818
-        if(Dungeon.hero.hasTalent(Talent.VITAE_BOOST)){
-            switch (Dungeon.hero.pointsInTalent(Talent.VITAE_BOOST)){
-                case 1:this.vitae+=1;break;
-                case 2:this.vitae+=2;break;
-                default:break;
-            }
-        }
-        //
+    /** Explicit assignment for tools and legacy callers. Gameplay grants use addVitae. */
+    @Deprecated
+    public void setVitae(int amount){
+        vitae = 0;
+        addVitae(amount);
     }
 
     /**
@@ -41,6 +40,7 @@ public class VitaeBuff extends Buff{
             vitae -= dmg;
             dmg = 0;
         } else {
+            dmg -= vitae;
             vitae = 0;
         }
         if (vitae == 0){

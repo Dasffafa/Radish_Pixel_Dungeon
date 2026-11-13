@@ -1285,7 +1285,7 @@ public class Talent {
 		if (!(event.getTarget() instanceof Hero) || !(event.getSource() instanceof Mob)) return;
 		Hero hero = (Hero) event.getTarget();
 		if (!hero.hasTalent( BLOODY_VITAE )) return;
-		Buff.affect( hero, VitaeBuff.class ).setVitae( 2 + hero.pointsInTalent( BLOODY_VITAE ) );
+		Buff.affect( hero, VitaeBuff.class ).addVitae( 2 + hero.pointsInTalent( BLOODY_VITAE ) );
 	}
 
 	/** 受衅怒火：护盾从正值被打到 0 时授予（护盾全额吸收、没能扣到血也算）。 */

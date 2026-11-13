@@ -302,7 +302,7 @@ public abstract class Scroll extends Item {
 			// Strengthen if ExoticScroll used
 			ptSkill = (this instanceof ExoticScroll)?ptSkill*2:ptSkill;
 
-			Buff.affect(curUser, VitaeBuff.class).setVitae(ptSkill + 4);
+			Buff.affect(curUser, VitaeBuff.class).addVitae(ptSkill + 4);
 		}
 
 	}

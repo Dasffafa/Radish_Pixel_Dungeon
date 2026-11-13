@@ -1353,7 +1353,7 @@ public class Hero extends Char {
 		SmallWoodenCross smallWoodenCross = hero.belongings.getItem(SmallWoodenCross.class);
 		if (smallWoodenCross != null && Dungeon.smwcLevel()) {
 			if(!Statistics.RectorGetHP){
-				Buff.affect(hero, VitaeBuff.class).setVitae(6);
+				Buff.affect(hero, VitaeBuff.class).addVitae(6);
 				Statistics.RectorGetHP = true;
 				GLog.p(Messages.get(smallWoodenCross, "bless"));
 			}
