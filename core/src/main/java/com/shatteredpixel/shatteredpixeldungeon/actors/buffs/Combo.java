@@ -257,7 +257,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 
 	@Override
 	public void doAction() {
-		GameScene.show(new WndCombo(this));
+		if (couldUseTime > 0) GameScene.show(new WndCombo(this));
 	}
 
 	public enum ComboMove {
@@ -296,11 +296,13 @@ public class Combo extends Buff implements ActionIndicator.Action {
 	public void setComboCount(int newCount) {
 		count = Math.max(0, newCount);
 		comboTime = 4f; // 重置连击计时
-		ActionIndicator.setAction(this);
+		if (couldUseTime > 0 && count > 0) ActionIndicator.setAction(this);
+		else ActionIndicator.clearAction(this);
 		BuffIndicator.refreshHero();
 	}
 
 	public boolean canUseMove(ComboMove move){
+		if (couldUseTime <= 0) return false;
 		if (move == ComboMove.CRUSH && crushUsed)   return false;
 		if (move == ComboMove.PARRY && parryUsed)  return false;
 		if (move == ComboMove.CLEAVE && cleaveUsed)  return false;
