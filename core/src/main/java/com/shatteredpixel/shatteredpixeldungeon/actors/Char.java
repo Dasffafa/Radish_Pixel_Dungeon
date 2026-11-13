@@ -599,7 +599,7 @@ public abstract class Char extends Actor {
         float acuRoll;
         // 注定一抽：攻击者命中判定取最大值
         FatedDraw.FatedDrawTracker trackerA = attacker instanceof Hero ? ((Hero) attacker).buff(FatedDraw.FatedDrawTracker.class) : null;
-        if (trackerA != null && trackerA.remainingChecks > 0) {
+        if (trackerA != null && trackerA.ready()) {
             acuRoll = acuStat; // 取最大值
             trackerA.consume("attack_hit");
         } else {
@@ -635,7 +635,7 @@ public abstract class Char extends Actor {
         float defRoll;
         // 注定一抽：防御者闪避判定取最大值
         FatedDraw.FatedDrawTracker trackerD = defender instanceof Hero ? ((Hero) defender).buff(FatedDraw.FatedDrawTracker.class) : null;
-        if (trackerD != null && trackerD.remainingChecks > 0) {
+        if (trackerD != null && trackerD.ready()) {
             defRoll = defStat; // 取最大值
             trackerD.consume("defense_evasion");
         } else {
@@ -669,7 +669,7 @@ public abstract class Char extends Actor {
     public static int combatRoll(int min, int max) {
         // 注定一抽：伤害判定取最大值（需要在调用点处理）
         FatedDraw.FatedDrawTracker tracker = Dungeon.hero != null ? Dungeon.hero.buff(FatedDraw.FatedDrawTracker.class) : null;
-        if (tracker != null && tracker.remainingChecks > 0) {
+        if (tracker != null && tracker.ready()) {
             // 不在这里消耗，由调用点决定是否消耗
             return max;
         }

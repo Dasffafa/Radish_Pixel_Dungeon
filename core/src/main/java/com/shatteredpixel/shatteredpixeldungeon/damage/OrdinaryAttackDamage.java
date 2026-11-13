@@ -65,7 +65,7 @@ public class OrdinaryAttackDamage {
 
 		if (defender instanceof Hero) {
 			FatedDraw.FatedDrawTracker trackerD = defender.buff(FatedDraw.FatedDrawTracker.class);
-			if (trackerD != null && trackerD.remainingChecks > 0) {
+			if (trackerD != null && trackerD.ready()) {
 				trackerD.consume("defense_block");
 			}
 		}
@@ -111,7 +111,7 @@ public class OrdinaryAttackDamage {
 			}
 			if (attacker instanceof Hero) {
 				FatedDraw.FatedDrawTracker trackerA = attacker.buff(FatedDraw.FatedDrawTracker.class);
-				if (trackerA != null && trackerA.remainingChecks > 0) {
+				if (trackerA != null && trackerA.ready()) {
 					trackerA.consume("attack_damage");
 				}
 			}
