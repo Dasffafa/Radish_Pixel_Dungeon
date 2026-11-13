@@ -1127,6 +1127,7 @@ public class Badges {
 	}
 
 	public static void unlock( Badge badge ){
+		if (Dungeon.hero != null && Dungeon.isChallenged(Challenges.TEST_MODE)) return;
 		if (!isUnlocked(badge) && (badge.type == BadgeType.JOURNAL || Dungeon.customSeedText.isEmpty())){
 			global.add( badge );
 			saveNeeded = true;
