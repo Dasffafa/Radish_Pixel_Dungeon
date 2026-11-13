@@ -23,6 +23,11 @@ import com.watabou.utils.Random;
 public class ShineSpell extends DiceMageSpell {
 
     @Override
+    protected boolean canTargetUnseenCell() {
+        return true;
+    }
+
+    @Override
     public Talent school() {
         return Talent.SCHOOL_SPECIAL;
     }

@@ -186,7 +186,25 @@ public abstract class DiceMageSpell implements Hero.Doom {
     protected abstract void onCast(Hero hero);
 
     protected void getTarget(CellSelector.Listener listener) {
-        GameScene.selectCell(listener);
+        GameScene.selectCell(new CellSelector.Listener() {
+            @Override
+            public void onSelect(Integer target) {
+                if (target != null && !canTargetUnseenCell() && !Dungeon.level.heroFOV[target]) {
+                    GLog.w(Messages.get(DiceMageSpell.class, "target_not_visible"));
+                    return;
+                }
+                listener.onSelect(target);
+            }
+
+            @Override
+            public String prompt() {
+                return listener.prompt();
+            }
+        });
+    }
+
+    protected boolean canTargetUnseenCell() {
+        return false;
     }
 
     protected boolean isValidEnemy(Char target) {
