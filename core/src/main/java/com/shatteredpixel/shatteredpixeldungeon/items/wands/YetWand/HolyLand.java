@@ -67,8 +67,11 @@ public class HolyLand extends Item {
             if (!Dungeon.level.solid[targetCell]) {
                 if(Dungeon.level.passable [targetCell]) {
                     int terrain = Dungeon.level.map[targetCell];
-                    if (terrain != Terrain.EXIT && terrain != Terrain.ENTRANCE &&
-                            terrain != Terrain.HIGH_GRASS && terrain != Terrain.WELL) {
+                    if (terrain != Terrain.EXIT && terrain != Terrain.ENTRANCE
+                            && terrain != Terrain.UNLOCKED_EXIT && terrain != Terrain.LOCKED_EXIT
+                            && terrain != Terrain.OPEN_DOOR && terrain != Terrain.DOOR && terrain != Terrain.WATER
+                            && Dungeon.level.traps.get(targetCell) == null
+                            && terrain != Terrain.HIGH_GRASS && terrain != Terrain.WELL) {
                         Level.set(targetCell, Terrain.HOLY_LAND);
                         GameScene.updateMap(cell);
                         GameScene.updateMap(targetCell);
