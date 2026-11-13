@@ -1264,6 +1264,7 @@ public class Hero extends Char {
         //But there's going to be that one guy who gets a furor+force ring combo
         //This is for that one guy, you shall get your fists of fury!
         float speed = RingOfFuror.attackSpeedMultiplier(this);
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidOakSage.OakAura.class) != null) speed *= 1.25f;
 
         if (hasTalent(Talent.BOW_DULES) && (buff(SnipersMark.class) != null
                 || Dungeon.level != null && Dungeon.level.mobs.stream().anyMatch(

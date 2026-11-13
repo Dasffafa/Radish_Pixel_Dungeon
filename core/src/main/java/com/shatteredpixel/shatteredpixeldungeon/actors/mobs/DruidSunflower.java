@@ -19,6 +19,7 @@ public class DruidSunflower extends Mob {
 	public int grassTiles = 0;
 
 	public float power = 1f;
+	private int allyHealing = 0;
 
 	@Override
 	public int damageRoll() {
@@ -63,17 +64,26 @@ public class DruidSunflower extends Mob {
 			HP += heal;
 		}
 		int left = damage - heal;
-		if (left > 0) {
+		if (left > 0 && allyHealing < 200) {
+			left = Math.min( left, 200 - allyHealing );
+			java.util.ArrayList<Char> allies = new java.util.ArrayList<>();
 			for (Char ch : Actor.chars()) {
 				if (ch.alignment == Alignment.ALLY && ch != this && ch.isAlive()
 						&& ch.HP < ch.HT) {
-					int give = Math.min( left, ch.HT - ch.HP );
+					allies.add( ch );
+				}
+			}
+			allies.sort( java.util.Comparator.comparingInt( Char::id ) );
+			while (left > 0 && !allies.isEmpty()) {
+				int share = Math.max( 1, left / allies.size() );
+				for (Char ch : allies) {
+					int give = Math.min( left, Math.min( share, ch.HT - ch.HP ) );
 					ch.HP += give;
 					left -= give;
-					if (left <= 0) {
-						break;
-					}
+					allyHealing += give;
+					if (left == 0) break;
 				}
+				allies.removeIf( ch -> ch.HP >= ch.HT );
 			}
 		}
 		return damage;
@@ -87,6 +97,7 @@ public class DruidSunflower extends Mob {
 		super.storeInBundle( bundle );
 		bundle.put( GRASS, grassTiles );
 		bundle.put( POWER, power );
+		bundle.put( "ally_healing", allyHealing );
 	}
 
 	@Override
@@ -95,5 +106,6 @@ public class DruidSunflower extends Mob {
 		grassTiles = bundle.getInt( GRASS );
 		// 旧存档没有这个键，按未强化处理
 		power = bundle.contains( POWER ) ? bundle.getFloat( POWER ) : 1f;
+		allyHealing = bundle.getInt( "ally_healing" );
 	}
 }

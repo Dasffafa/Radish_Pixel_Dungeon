@@ -64,11 +64,7 @@ public class WandOfFrost extends DamageWand {
 		if (heap != null) {
 			heap.freeze();
 		}
-
-		Fire fire = (Fire) Dungeon.level.blobs.get(Fire.class);
-		if (fire != null && fire.volume > 0) {
-			fire.clear( bolt.collisionPos );
-		}
+		Fire.extinguish( bolt.collisionPos );
 
 		MagicalFireRoom.EternalFire eternalFire = (MagicalFireRoom.EternalFire)Dungeon.level.blobs.get(MagicalFireRoom.EternalFire.class);
 		if (eternalFire != null && eternalFire.volume > 0) {

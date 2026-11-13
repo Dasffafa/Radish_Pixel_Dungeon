@@ -451,10 +451,7 @@ public class Potion extends Item {
 	}
 
 	protected void splash( int cell ) {
-		Fire fire = (Fire)Dungeon.level.blobs.get( Fire.class );
-		if (fire != null) {
-			fire.clear(cell);
-		}
+		Fire.extinguish( cell );
 
 		Char ch = Actor.findChar(cell);
 		if (ch != null && ch.alignment == Char.Alignment.ALLY) {

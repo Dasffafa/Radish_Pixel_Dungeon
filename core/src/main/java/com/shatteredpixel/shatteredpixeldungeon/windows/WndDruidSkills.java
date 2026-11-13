@@ -25,9 +25,9 @@ import java.util.ArrayList;
 /**
  * 德鲁伊法术书。
  *
- * <p>布局与破碎的 {@code WndClericSpells} 一致：120 宽，法术按阶分行，
+ * 布局与破碎的 {@code WndClericSpells} 一致：120 宽，法术按阶分行，
  * 每行居中排列 20×20 图标；右上角按钮在「施放 / 说明」之间切换；
- * 点图标直接施放，长按或右键查看说明。</p>
+ * 点图标直接施放，长按或右键查看说明。
  */
 public class WndDruidSkills extends Window {
 
