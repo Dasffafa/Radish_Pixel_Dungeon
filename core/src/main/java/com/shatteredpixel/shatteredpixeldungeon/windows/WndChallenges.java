@@ -104,9 +104,14 @@ public class WndChallenges extends Window {
 				RenderedTextBlock block = PixelScene.renderTextBlock(10);
 				block.text(M.L(TextChallenges.class, "expansion"));
 				block.hardlight(0xFF00FF);
-				block.setPos((WIDTH - block.width()) / 2,
-						pos + GAP *4);
+				Image trophy = Icons.CHALLENGE_ON.get();
+				trophy.flipVertical = true;
+				float left = (WIDTH - trophy.width() - 3 - block.width()) / 2;
+				block.setPos(left + trophy.width() + 3, pos + GAP * 4);
+				trophy.setPos(left, block.top() + (block.height() - trophy.height()) / 2);
+				PixelScene.align(trophy);
 				PixelScene.align(block);
+				content.add(trophy);
 				content.add(block);
 				pos += block.height() + 8*GAP;
 			}
