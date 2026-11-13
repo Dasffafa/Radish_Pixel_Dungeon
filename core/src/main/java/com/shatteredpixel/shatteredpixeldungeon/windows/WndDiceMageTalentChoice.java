@@ -60,11 +60,8 @@ public class WndDiceMageTalentChoice extends Window {
         // 窄屏适配：窗口宽度不能超出 UI 相机可用宽度
         int w = Math.min(WIDTH, PixelScene.uiCamera.width - chrome.marginHor());
 
-        DiceMageSchool first = weightedPick();
-        DiceMageSchool second = weightedPick();
-        if (second == first) {
-            second = weightedPick();
-        }
+        DiceMageSchool first = weightedPick(null);
+        DiceMageSchool second = weightedPick(first);
 
         float cardsBottom = PAD;
         if (first != null) {
@@ -146,10 +143,10 @@ public class WndDiceMageTalentChoice extends Window {
         return false;
     }
 
-    private static DiceMageSchool weightedPick() {
+    private static DiceMageSchool weightedPick(DiceMageSchool excluded) {
         ArrayList<DiceMageSchool> pool = new ArrayList<>();
         for (DiceMageSchool s : DiceMageSchool.values()) {
-            if (DiceMageSchools.canInvest(s)) pool.add(s);
+            if (s != excluded && DiceMageSchools.canInvest(s)) pool.add(s);
         }
         if (pool.isEmpty()) return null;
 
