@@ -109,7 +109,7 @@ public class WandOfBlastWave extends DamageWand {
 				wandProc(ch, chargesPerCast());
 				if (ch.alignment != Char.Alignment.ALLY) ch.damage(new DamageInfo(damageRoll(), DamageType.MAGICAL, curUser, this, this));
 
-				if (ch.pos == cell) {
+				if (ch != Dungeon.hero && ch.pos == cell) {
 					//方向由「中心 -> 这只怪」的坐标差决定，确保是从中心向外
 					int dx = Integer.compare(cell % w, cx);
 					int dy = Integer.compare(cell / w, cy);
@@ -127,7 +127,7 @@ public class WandOfBlastWave extends DamageWand {
 
 			//方向取弹道越过爆心后的下一格（原版写法），目标顺着弹道的延伸方向飞出去。
 			//弹道路径只收地图内的格子且逐格相邻，这一格不会越界也不会绕行，不用再按坐标推算
-			if (bolt.path.size() > bolt.dist+1 && ch.pos == bolt.collisionPos) {
+			if (ch != Dungeon.hero && bolt.path.size() > bolt.dist+1 && ch.pos == bolt.collisionPos) {
 				Ballistica trajectory = new Ballistica(ch.pos, bolt.path.get(bolt.dist + 1), Ballistica.MAGIC_BOLT);
 				int strength = buffedLvl() + 3;
 				throwChar(ch, trajectory, strength, false, true, this);
