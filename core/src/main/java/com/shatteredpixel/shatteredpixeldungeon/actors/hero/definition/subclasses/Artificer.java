@@ -5,6 +5,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
@@ -142,118 +148,45 @@ public class Artificer extends HeroSubClass {
 
 	// ===== 即用改装：把武器/护甲改装给友方单位 =====
 
-	public static boolean readyModify( Hero hero, Char ally ) {
-		if (hero == null || ally == null || ally == hero
-				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
+	public static boolean canReadyModify( Hero hero, Char ally, Item gear ) {
+		return hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER
+				&& hero.pointsInTalent( Talent.READY_MODIFICATION ) > 0
+				&& ally instanceof Mob && ally.isAlive() && ally.alignment == Char.Alignment.ALLY
+				&& (gear instanceof Weapon || gear instanceof Armor);
+	}
+
+	public static boolean readyModify( Hero hero, Char ally, Item gear ) {
+		if (!canReadyModify( hero, ally, gear )) {
 			return false;
 		}
-		// 友方包括所有非敌对单位（召唤物、宠物、被安抚的中立单位）
-		if (ally.alignment == Char.Alignment.ENEMY) {
-			return false;
-		}
-		int pts = hero.pointsInTalent( Talent.READY_MODIFICATION );
-		if (pts <= 0) {
-			return false;
-		}
-
-		int tier = 0, level = 0;
-		boolean isWeapon = false;
-		com.shatteredpixel.shatteredpixeldungeon.items.Item gear = null;
-
-		// 身上的装备一律经 weapon() / secondWep() / armor() 取：遗落行囊期间它们返回 null，
-		// 直接读字段的话，已经随行囊遗落的装备也能被改装出去
-		com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon mainWep = hero.belongings.weapon();
-		com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon secondWep = hero.belongings.secondWep();
-		com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor wornArmor = hero.belongings.armor();
-
-		// 优先投掷背包里的备用武器
-		com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon active =
-				hero.belongings.attackingWeapon();
-		for (com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg
-				: new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.class ) )) {
-			if (wg != active && wg != mainWep && wg != secondWep) {
-				gear = wg;
-				isWeapon = true;
-				tier = Math.min(5, Math.max(1, wg.level() + 1));
-				level = wg.level();
-				break;
-			}
-		}
-		// 没有备用武器时，允许把当前装备的武器改装出去
-		if (gear == null) {
-			if (mainWep instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
-				com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg =
-						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) mainWep;
-				gear = wg;
-				isWeapon = true;
-				tier = Math.min(5, Math.max(1, wg.level() + 1));
-				level = wg.level();
-			} else if (secondWep instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) {
-				com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon wg =
-						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) secondWep;
-				gear = wg;
-				isWeapon = true;
-				tier = Math.min(5, Math.max(1, wg.level() + 1));
-				level = wg.level();
-			}
-		}
-		// 再找背包里的备用护甲
-		if (gear == null) {
-			for (com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor ag
-					: new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor.class ) )) {
-				if (ag != wornArmor) {
-					gear = ag;
-					isWeapon = false;
-					tier = ag.tier;
-					level = ag.level();
-					break;
-				}
-			}
-		}
-		// 最后允许把当前装备的护甲改装出去
-		if (gear == null && wornArmor != null) {
-			gear = wornArmor;
-			isWeapon = false;
-			tier = wornArmor.tier;
-			level = wornArmor.level();
-		}
-		if (gear == null) {
-			return false;
-		}
-
-		int hp = (tier + level) * (pts >= 3 ? 8 : pts >= 2 ? 6 : 4);
-		int def = (tier + level) * 2;
-
-		// 从装备槽或背包中移除
-		if (gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem && gear.isEquipped( hero )) {
-			// 身上的装备按正常流程卸下，和把它扔出去是同一条路：被诅咒的卸不下来，不能借改装甩掉；
-			// 护甲留在英雄身上的状态（刻印 buff、印章护盾、挂载的玩具）和小人外观都由卸下流程清理
-			if (!((com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) gear).doUnequip( hero, false, false )) {
+		int tier = gear instanceof Armor ? ((Armor) gear).tier : Math.min( 5, Math.max( 1, gear.level() + 1 ) );
+		int quality = Math.max( 0, tier + gear.level() );
+		if (gear.isEquipped( hero )) {
+			if (!((EquipableItem) gear).doUnequip( hero, false, false )) {
 				return false;
 			}
 		} else {
-			// 成叠的投掷武器只拿出一件：detach 返回拆出来的那一件，原来那一叠仍留在背包里，不能把它交给友方
 			gear = gear.detach( hero.belongings.backpack );
 			if (gear == null) {
 				return false;
 			}
 		}
 
-		// 直接装备到友方单位上，让它真正获得攻击/防御
-		if (ally instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) {
-			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
-					(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) ally;
-			if (isWeapon && gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon) {
-				mob.mobEquipment.weapon = (com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon) gear;
-			} else if (!isWeapon && gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) {
-				mob.mobEquipment.armor = (com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) gear;
-			}
-			if (gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) {
-				((com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) gear).activate( ally );
-			}
+		Mob mob = (Mob) ally;
+		Item previous;
+		if (gear instanceof KindOfWeapon) {
+			previous = mob.mobEquipment.weapon;
+			mob.mobEquipment.weapon = (KindOfWeapon) gear;
+		} else {
+			previous = mob.mobEquipment.armor;
+			mob.mobEquipment.armor = (Armor) gear;
 		}
-
-		Buff.affect( ally, ReadyMod.class ).apply( hp, def );
+		if (previous != null) {
+			com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.drop( previous, ally.pos ).sprite.drop();
+		}
+		((EquipableItem) gear).activate( ally );
+		int points = hero.pointsInTalent( Talent.READY_MODIFICATION );
+		Buff.affect( ally, ReadyMod.class ).apply( quality * (2 + 2 * points), quality * 2 );
 		return true;
 	}
 
@@ -358,6 +291,7 @@ public class Artificer extends HeroSubClass {
 		{
 			type = buffType.NEUTRAL;
 			announced = false;
+			revivePersists = true;
 		}
 
 		@Override
