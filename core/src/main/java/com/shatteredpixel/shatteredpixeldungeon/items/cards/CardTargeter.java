@@ -6,6 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeldCardTracker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -99,8 +100,19 @@ public final class CardTargeter {
 					offerSafeReturn(hero, card);
 				} else {
 					GameScene.selectCell(new CellSelector.Listener() {
+						// 弹窗时 GameScene.show 会再取消一次选格、再回调一次 null
+						private boolean cancelOffered = false;
+
 						@Override
 						public void onSelect(Integer cell) {
+							if (cell == null && card.type == CardType.TRAP
+									&& hero.pointsInTalent(Talent.CAREFUL_SELECTION) >= 2) {
+								if (!cancelOffered) {
+									cancelOffered = true;
+									offerTrapCancel(hero, card);
+								}
+								return;
+							}
 							if (cell == null || !isValidTarget(hero, card, cell)) {
 								if (cell != null) {
 									com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(
@@ -226,6 +238,26 @@ public final class CardTargeter {
 						com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.refresh();
 					}
 				}
+			}
+		});
+	}
+
+	// 精挑细选 +2：取消释放陷阱卡，放回牌堆底；+3 同时取消抽卡冷却；+4 不消耗回合
+	private static void offerTrapCancel(Hero hero, Card card) {
+		GameScene.show(new WndOptions(
+				Messages.get(CardTargeter.class, "trap_cancel_title"),
+				Messages.get(CardTargeter.class, "trap_cancel_desc"),
+				Messages.get(CardTargeter.class, "safe_return"),
+				Messages.get(CardTargeter.class, "cancel")) {
+			@Override
+			protected void onSelect(int index) {
+				if (index != 0 || hero.cardDeck == null || hero.cardDeck.held != card) return;
+				int points = hero.pointsInTalent(Talent.CAREFUL_SELECTION);
+				hero.cardDeck.putHeldBack(card);
+				HeldCardTracker.clear(hero);
+				if (points >= 3) CardDrawer.cancelCooldown(hero);
+				if (points < 4) hero.spendAndNext(1f);
+				com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.refresh();
 			}
 		});
 	}

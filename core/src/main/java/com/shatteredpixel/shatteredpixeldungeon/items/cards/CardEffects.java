@@ -379,6 +379,9 @@ public final class CardEffects {
 				Class<?> trapCls = card.trapClass;
 				triggerTrap(card, pos);
 				trapMasteryAfterPlay(hero, trapCls);
+				if (hero.pointsInTalent(Talent.CAREFUL_SELECTION) >= 1) {
+					CardDrawer.reduceCooldown(hero, 5);
+				}
 
 				// 卡组连携 +2：同时把牌堆顶的空白卡打到同一落点
 				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 2) {
