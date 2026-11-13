@@ -1595,6 +1595,8 @@ public abstract class Level implements Bundlable {
 				}
 			}
 
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Warden.addGrassVision(heroMindFov);
+
 			if (c.buff( Awareness.class ) != null) {
 				for (Heap heap : heaps.valueList()) {
 					int p = heap.pos;

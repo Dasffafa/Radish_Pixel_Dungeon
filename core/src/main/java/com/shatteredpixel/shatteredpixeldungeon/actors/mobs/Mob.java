@@ -891,7 +891,8 @@ public abstract class Mob extends Char {
 		public float speed() {
 			float speed = super.speed() * AscensionChallenge.enemySpeedModifier(this);
 			if (mobEquipment.armor != null) speed = mobEquipment.armor.speedFactor(this, speed);
-			return speed * RingOfHaste.speedMultiplier(this);
+			return speed * RingOfHaste.speedMultiplier(this)
+					* com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Warden.grassSpeedFactor(this);
 		}
 
 		public final boolean surprisedBy( Char enemy ){
