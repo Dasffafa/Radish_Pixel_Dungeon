@@ -639,7 +639,13 @@ public class InterlevelScene extends PixelScene {
 					&& Dungeon.level.getTransitionByDirection(LevelTransition.Direction.DOWN) != null) {
 				int exitPos = Dungeon.level.exit();
 				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-					if (mob.alignment != Mob.Alignment.ALLY && mob.pos != exitPos) {
+					if (mob.alignment == Mob.Alignment.ENEMY && mob.pos != exitPos
+							&& !(mob instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC)
+							&& !(mob instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue)
+							&& !(mob instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Piranha)
+							&& !mob.properties().contains(Mob.Property.BOSS)
+							&& !mob.properties().contains(Mob.Property.MINIBOSS)
+							&& !mob.properties().contains(Mob.Property.IMMOVABLE)) {
 						// Find a random passable cell near the exit
 						int newPos = findNearbyPassable(exitPos, mob);
 						if (newPos != -1) {
