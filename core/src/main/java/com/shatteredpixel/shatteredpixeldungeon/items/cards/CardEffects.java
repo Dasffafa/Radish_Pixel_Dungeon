@@ -404,6 +404,7 @@ public final class CardEffects {
 				break;
 			}
 			case TELEPORT: {
+				if (hero.rooted) return;
 				int cell = target == null ? hero.pos : target;
 				// 走传送卷轴的定点传送，不手写位移：它负责连通性检查（不能传进隔开的区域）、
 				// 离开门格时关门、漂浮时不踩陷阱、解除缠绕、刷新视野。到不了时卡留在手上

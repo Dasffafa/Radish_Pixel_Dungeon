@@ -183,7 +183,7 @@ public class ShadowDancer extends HeroSubClass {
 
 	/** 以攻击破除隐身：该次攻击替换为对目标的突袭（任意隐身来源均可）。 */
 	public static void rushFromVeil( Hero hero, Char first ) {
-		if (hero == null || first == null || !hasVeil( hero )) {
+		if (hero == null || first == null || hero.rooted || !hasVeil( hero )) {
 			return;
 		}
 		rushing = true;
@@ -250,7 +250,7 @@ public class ShadowDancer extends HeroSubClass {
 		if (!pendingRush) {
 			return;
 		}
-		if (hero == null || Dungeon.hero != hero || !hero.isAlive()
+		if (hero == null || Dungeon.hero != hero || !hero.isAlive() || hero.rooted
 				|| Dungeon.level == null || Dungeon.level.heroFOV == null) {
 			pendingRush = false;
 			return;
@@ -264,7 +264,7 @@ public class ShadowDancer extends HeroSubClass {
 		Game.runOnRenderThread( new Callback() {
 			@Override
 			public void call() {
-				if (Dungeon.hero != null && Dungeon.hero.ready && Dungeon.hero.isAlive()
+				if (Dungeon.hero != null && Dungeon.hero.ready && Dungeon.hero.isAlive() && !Dungeon.hero.rooted
 						&& Dungeon.level != null && Dungeon.level.heroFOV != null) {
 					GameScene.selectCell( rushListener );
 				} else {
@@ -281,7 +281,7 @@ public class ShadowDancer extends HeroSubClass {
 		public void onSelect( Integer target ) {
 			selecting = false;
 			Hero hero = Dungeon.hero;
-			if (target == null || hero == null) {
+			if (target == null || hero == null || hero.rooted) {
 				return;
 			}
 			rushing = true;
@@ -299,7 +299,7 @@ public class ShadowDancer extends HeroSubClass {
 
 	/** 突袭：向指定目标点冲刺，途中最多穿过 1 名敌人并造成 125% 武器伤害。 */
 	public static void dashTo( Hero hero, int dest ) {
-		if (hero == null || Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
+		if (hero == null || hero.rooted || Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
 			return;
 		}
 		int w = Dungeon.level.width();
