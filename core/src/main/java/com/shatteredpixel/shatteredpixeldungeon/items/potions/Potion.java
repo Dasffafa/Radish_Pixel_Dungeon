@@ -298,6 +298,10 @@ public class Potion extends Item {
 		}
 	}
 
+	public boolean isThrowOnly() {
+		return mustThrowPots.contains(getClass());
+	}
+
 	protected void drink( Hero hero ) {
 
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( hero );
