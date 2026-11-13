@@ -49,7 +49,7 @@ public class WandOfShockBomb extends DamageWand {
     @Override
     public String statsDesc() {
         if (levelKnown)
-            return Messages.get(this, "stats_desc", min(),max());
+            return Messages.get(this, "stats_desc", rollMin(buffedLvl()),rollMax(buffedLvl()));
         else
             return Messages.get(this, "stats_desc", min(0),max(0));
     }

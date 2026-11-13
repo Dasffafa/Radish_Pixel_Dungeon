@@ -181,7 +181,7 @@ public class WandOfNewStar extends DamageWand {
     public String statsDesc() {
         int radius = 5 + (buffedLvl() / 3) * 2;
         if (levelKnown)
-            return Messages.get(this, "stats_desc", radius, radius, min(), max(), buffedLvl() + 2);
+            return Messages.get(this, "stats_desc", radius, radius, rollMin(buffedLvl()), rollMax(buffedLvl()), buffedLvl() + 2);
         else
             return Messages.get(this, "stats_desc", 5, 5, min(0), max(0), 2);
     }
