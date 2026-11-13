@@ -67,7 +67,10 @@ public class SharpeningEdgeTalent {
     public static void execute(Hero hero, Item sacrificeItem, Item targetItem) {
         // 消耗代价物品（先卸下再丢弃）
         if (sacrificeItem instanceof EquipableItem && sacrificeItem.isEquipped(hero)) {
-            ((EquipableItem)sacrificeItem).doUnequip(hero, false, true);
+            // 卸不下来（被诅咒等）就当不了祭品：否则祭品还留在身上，目标却照样被鉴定，可以无限次白嫖
+            if (!((EquipableItem)sacrificeItem).doUnequip(hero, false, true)) {
+                return;
+            }
         }
         sacrificeItem.detach(hero.belongings.backpack);
 

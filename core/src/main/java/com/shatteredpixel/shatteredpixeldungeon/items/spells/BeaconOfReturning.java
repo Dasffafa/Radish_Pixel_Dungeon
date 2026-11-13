@@ -177,6 +177,7 @@ public class BeaconOfReturning extends Spell {
 		if (Random.Float() < talentChance){
 			Talent.onScrollUsed(curUser, curUser.pos, talentFactor);
 		}
+		Spell.onSpellUsed( hero, this );
 	}
 	
 	@Override

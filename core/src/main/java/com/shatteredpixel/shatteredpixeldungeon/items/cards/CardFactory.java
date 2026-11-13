@@ -41,6 +41,22 @@ public final class CardFactory {
 		return new Card(CardType.PREPARED);
 	}
 
+	public static Card gaze() {
+		return new Card(CardType.GAZE);
+	}
+
+	public static Card trap(Class<?> trapClass) {
+		Card c = new Card(CardType.TRAP);
+		c.trapClass = trapClass;
+		return c;
+	}
+
+	public static Card teleport(int range) {
+		Card c = new Card(CardType.TELEPORT);
+		c.teleportRange = range;
+		return c;
+	}
+
 	public static Card attack() {
 		return new Card(CardType.ATTACK);
 	}

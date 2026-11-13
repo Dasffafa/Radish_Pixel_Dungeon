@@ -1,6 +1,6 @@
 # GLSL 着色器系统设计文档
 
-> 状态：**已实现**。
+> 状态：**部分适用，含过时实现示例**。`ShaderEffect` 和着色器注册已实现，但本文中的控制器状态、调用流程与代码片段存在旧内容；使用前须以现行 `Shaders`、`ShaderEffect`、`ShaderDeathAnimation` 实现为准。
 
 ## 一、概述
 
@@ -58,15 +58,13 @@ core/src/main/assets/shaders/
 ├── wipe.vert / wipe.frag        # 方向擦除着色器
 ├── alpha.vert / alpha.frag      # 透明淡出着色器
 ├── noise.vert / noise.frag      # 噪声溶解着色器
-└── noise_texture.png            # Slice&Dice 噪声纹理
-
-SPD-classes/src/main/java/com/watabou/glwrap/
-└── GlslShaderScript.java        # 通用 GLSL 着色器基类
+├── light_dissolve.vert / .frag  # 光解消散着色器
+└── light_evaporate.vert / .frag # 光蒸发着色器
 
 core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/
 ├── effects/
 │   ├── Shaders.java             # 着色器注册表
-│   └── ShaderEffect.java        # 着色器效果控制器（待实现）
+│   └── ShaderEffect.java        # 着色器效果控制器
 │
 └── effects/shaders/
     ├── CutShader.java
@@ -77,14 +75,16 @@ core/src/main/java/com/shatteredpixel/shatteredpixeldungeon/
     ├── AcidShader.java
     ├── WipeShader.java
     ├── AlphaShader.java
-    └── NoiseShader.java
+    ├── NoiseShader.java
+    ├── LightDissolveShader.java
+    └── LightEvaporateShader.java
 ```
 
 ## 三、核心类设计
 
 ### 3.1 GlslShaderScript（基类）
 
-**位置：** `SPD-classes/src/main/java/com/watabou/glwrap/GlslShaderScript.java`
+**位置：** 项目使用的 `GlslShaderScript` 基类由 `SPD-classes` 模块提供（该模块不在本文维护范围内）。
 
 ```java
 package com.watabou.glwrap;
@@ -667,7 +667,7 @@ Shaders.cut.setCutLine(sprite.x, sprite.y, 1, 1);
 ShaderEffect.apply(sprite, Shaders.cut, 0.5f);  // 0.5秒动画
 ```
 
-> **注意**：`ShaderEffect` 效果控制器尚未实现，后续需要创建它来管理动画时间线。
+> 注：此处调用说明来自早期设计稿；当前效果创建、计时和绘制流程以现行 `ShaderEffect` 与 `ShaderDeathAnimation` 实现为准。
 
 ### 5.4 集成到 DiceMageSpellFX
 
@@ -755,4 +755,4 @@ public static void kill(Char target, Type type) {
 
 ---
 
-*文档状态：已实现
+*文档状态：历史设计稿，部分实现示例已过时

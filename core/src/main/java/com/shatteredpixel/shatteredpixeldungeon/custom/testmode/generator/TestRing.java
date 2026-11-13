@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfConcentration;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfBenediction;
+import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfDestruction;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfElements;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEvasion;
@@ -67,6 +68,8 @@ public class TestRing extends TestGenerator {
     private int selected;
     private static final int RING_CAT = 0;
     private static final int WAND_CAT = 1;
+    // idToRing 里的戒指数。毁灭之戒是后来加进游戏的，这里以前没跟着加，生成器里选不到它
+    private static final int RING_COUNT = 15;
     private static final String AC_SETTING = "setting";
 
     @Override
@@ -167,6 +170,8 @@ public class TestRing extends TestGenerator {
                 return RingOfKing.class;
             case 13:
                 return RingOfConcentration.class;
+            case 14:
+                return RingOfDestruction.class;
             default:
                 return RingOfBenediction.class;
         }
@@ -215,7 +220,7 @@ public class TestRing extends TestGenerator {
 
     private void buildRingList() {
         if (!ringList.isEmpty()) return;
-        for (int i = 0; i < 14; ++i) {
+        for (int i = 0; i < RING_COUNT; ++i) {
             ringList.add(idToRing(i));
         }
     }
@@ -228,7 +233,7 @@ public class TestRing extends TestGenerator {
     }
 
     private int total(int category){
-        if (category == RING_CAT) return 14;
+        if (category == RING_CAT) return RING_COUNT;
         if (category == WAND_CAT) return 16;
         return 0;
     }

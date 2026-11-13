@@ -52,6 +52,6 @@ public class ChallengeBag extends Bag {
     }
 
     public int capacity(){
-        return 25;
+        return 40;
     }
 }

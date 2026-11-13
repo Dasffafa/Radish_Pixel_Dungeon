@@ -17,7 +17,6 @@ uniform float uRandom;     // 当前特效实例的随机种子
 uniform float uEmissive;   // 当前 emissive 强度（原作从 1 升到 10）
 uniform float uCellScale;  // 1 = 每个源像素一格；>1 用于小尺寸精灵放大格子
 
-// 与 ETG 的 burn 相同的逐像素 hash，保证同一格在整个动画中只取一次随机值。
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -56,11 +55,7 @@ void main() {
   vec2 cellSize = ps * max(uCellScale, 1.0);
   vec2 cell = floor(localUV / cellSize);
   float rnd = hash(cell + vec2(uRandom * 37.0, uRandom * 17.0));
-
-  // ETG 的核心规则：随机阈值 + 进度裁切
   float alive = step(p, rnd);
-
-  // ETG 的 emissive：整只精灵随进度变亮，而不是只点亮消失边缘
   col.rgb = min(col.rgb * max(uEmissive, 1.0), vec3(1.0));
   col.a *= alive * uAlpha;
 

@@ -82,6 +82,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.PitfallTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WornDartTrap;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ShadowCaster;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
 import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
@@ -131,8 +132,13 @@ public abstract class RegularLevel extends Level {
 		
 	}
 
-	// 为所有副本（分支）上下楼梯加上带黄边的贴图覆盖
+	// 为所有副本（分支）上下楼梯加上带黄边的贴图覆盖。
+	// 建关时调一次，读档后再调一次：旧版本存下来的档里这块贴图读不回来（存读档一次就没了），
+	// 所以读档后一律按过渡点重建。先清掉已有的再加，重复调用不会越加越多。
 	private void addBranchStairsVisuals() {
+		for (Iterator<CustomTilemap> it = customTiles.iterator(); it.hasNext(); ) {
+			if (it.next() instanceof BranchStairsVisual) it.remove();
+		}
 		for (LevelTransition t : transitions) {
 			if (t.type == LevelTransition.Type.BRANCH_ENTRANCE
 					|| t.type == LevelTransition.Type.BRANCH_EXIT) {
@@ -263,6 +269,13 @@ public abstract class RegularLevel extends Level {
 		}
 
 		return mobs;
+	}
+
+	/** 是否是苔藓分支（跆拳洞穴）第 2 层。 */
+	protected boolean isMossFloor2() {
+		return Dungeon.depth == 2
+				&& Branches.MOSS.equals(Dungeon.branchId)
+				&& Dungeon.level instanceof SmallGrassMiniLevel;
 	}
 	
 	@Override
@@ -475,7 +488,10 @@ public abstract class RegularLevel extends Level {
 					Heap dropped = drop(toDrop, cell);
 					if (heaps.get(cell) == dropped) {
 						dropped.type = Heap.Type.LOCKED_CHEST;
-						addItemToSpawn(new GoldenKey(Dungeon.depth));
+						// 跆拳洞穴第2层的金钥匙改由哥布林骑手掉落，不在此随机生成
+						if (!isMossFloor2()) {
+							addItemToSpawn(new GoldenKey(Dungeon.depth));
+						}
 					}
 				}
 			} else {
@@ -492,11 +508,14 @@ public abstract class RegularLevel extends Level {
 			int cell = randomDropCell();
 			if (item instanceof TrinketCatalyst){
 				drop( item, cell ).type = Heap.Type.LOCKED_CHEST;
-				int keyCell = randomDropCell();
-				drop( new GoldenKey(Dungeon.depth), keyCell ).type = Heap.Type.HEAP;
-				if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
-					map[keyCell] = Terrain.GRASS;
-					losBlocking[keyCell] = false;
+				// 跆拳洞穴第2层的金钥匙改由哥布林骑手掉落，这里不再随机生成
+				if (!isMossFloor2()) {
+					int keyCell = randomDropCell();
+					drop( new GoldenKey(Dungeon.depth), keyCell ).type = Heap.Type.HEAP;
+					if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
+						map[keyCell] = Terrain.GRASS;
+						losBlocking[keyCell] = false;
+					}
 				}
 			} else {
 				drop( item, cell ).type = Heap.Type.HEAP;
@@ -977,6 +996,8 @@ public abstract class RegularLevel extends Level {
 				}
 			}
 		}
+
+		addBranchStairsVisuals();
 	}
 	
 }

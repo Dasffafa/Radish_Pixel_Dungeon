@@ -74,7 +74,8 @@ public class CircleSword extends MeleeWeapon {
     @Override
     public int max(int lvl) {
         if(Dungeon.hero != null && Dungeon.hero.belongings.armor() != null && isEquipped(Dungeon.hero)){
-            return 20 + Dungeon.hero.belongings.armor().DRMax() + lvl * 4;
+            // 每级 +5，与 damageRoll 里实际掷的 20 + 等级*5 一致（这里曾写成 *4，穿着护甲时面板比实际低）
+            return 20 + Dungeon.hero.belongings.armor().DRMax() + lvl * 5;
         } else {
             return 20 + lvl * 5;
         }

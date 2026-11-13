@@ -122,7 +122,7 @@ public class PixelScene extends Scene {
 			scaleFactor = 2.5f;
 		}
 
-		maxDefaultZoom = (int)Math.min(Game.width/minWidth, Game.height/minHeight);
+		maxDefaultZoom = Math.max( 2, (int)Math.min(Game.width/minWidth, Game.height/minHeight) );
 		maxScreenZoom = (int)Math.min(Game.dispWidth/minWidth, Game.dispHeight/minHeight);
 		defaultZoom = SPDSettings.scale();
 
@@ -139,8 +139,9 @@ public class PixelScene extends Scene {
 
 		Camera.reset( new PixelCamera( defaultZoom ) );
 
-		float uiZoom = defaultZoom;
-		uiCamera = Camera.createFullscreen( uiZoom );
+		//UI 缩放必须与 defaultZoom 一致：一旦单独降档，就会出现在设置里选 8X 反而比 6X 更小的
+		//怪现象（调回破碎地牢原版行为）
+		uiCamera = Camera.createFullscreen( defaultZoom );
 		Camera.add( uiCamera );
 
 		// 3x5 (6)

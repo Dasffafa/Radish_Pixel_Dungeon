@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.watabou.utils.Random;
 
 public class Combos extends Weapon.Enchantment {
+
     private static ItemSprite.Glowing COMBOS = new ItemSprite.Glowing( 0xD8BFD8 );
     @Override
     public int proc(Weapon weapon, Char attacker, Char defender, int damage) {

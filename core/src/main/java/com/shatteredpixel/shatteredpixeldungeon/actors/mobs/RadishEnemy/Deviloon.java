@@ -93,7 +93,8 @@ public class Deviloon extends Mob {
                 return true;
             } else
                 //if the beam is charged, it has to attack, will aim at previous location of target.
-                return blastCharged;
+                // 弹道不通时，相邻、挑战装备的武器距离、精英（索敌 / 巨型）的额外攻击距离仍由父类判定
+                return blastCharged || super.canAttack(enemy);
         } else
             return super.canAttack(enemy);
     }
@@ -139,9 +140,24 @@ public class Deviloon extends Mob {
     }
 
     @Override
+    public void onAttackComplete() {
+        // 蛇咬挑战下 SnakeSprite.zap 播的是普通攻击动画，释放印记的回调会落到这里。
+        // 普通攻击只在没蓄力时发生，蓄力完成还进到这里就一定是在释放印记；
+        // 不接住的话 blastCharged 永远不复位，之后每次行动都是一次无视距离的普通攻击。
+        if (blastCharged) {
+            callOfRune();
+            next();
+        } else {
+            super.onAttackComplete();
+        }
+    }
+
+    @Override
     protected boolean doAttack( Char enemy ) {
 
-        if (blastCooldown > 0) {
+        // 没蓄力、弹道又被挡住还能进到这里，说明是靠父类的攻击距离够到的，和冷却中一样走普通攻击
+        if (blastCooldown > 0
+                || (!blastCharged && new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos != enemy.pos)) {
             return super.doAttack(enemy);
         } else if (!blastCharged){
             if (sprite instanceof DeviloonSprite) {
@@ -467,7 +483,8 @@ public class Deviloon extends Mob {
                         if (heap != null){
                             heap.explode();
                             for(Object i:heap.items.toArray()){
-                                if(i instanceof BlastRune){
+                                // 引信已经失效的印记（被捡起后又丢下的）没有引信可点，直接解引用会空指针
+                                if(i instanceof BlastRune && ((BlastRune)i).fuse != null){
                                     Actor.addDelayed(((BlastRune)i).fuse = ((BlastRune)i).fuse.ignite((BlastRune) i), 0);
                                     blastRunes.remove(i);
                                 }
@@ -501,12 +518,14 @@ public class Deviloon extends Mob {
                         }
                         ch.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, Deviloon.this, this));
                     }
+                    // 被这次伤害打死的角色已经在 damage 里结算过死亡，再调一次 die 会让经验、掉落、击杀数都算两遍；
+                    // 只剩 1 点血的仍按原规则处死，并放到英雄死亡结算之前，否则这种死法不进排行榜
+                    if(ch.isAlive() && ch.HP <= 1){
+                        ch.die(BlastRune.class);
+                    }
                     if (ch == Dungeon.hero && !ch.isAlive()) {
                         GLog.n(Messages.get(this, "ondeath"));
                         Dungeon.fail(Bomb.class);
-                    }
-                    if(ch.HP <= 1){
-                        ch.die(BlastRune.class);
                     }
 
                 }

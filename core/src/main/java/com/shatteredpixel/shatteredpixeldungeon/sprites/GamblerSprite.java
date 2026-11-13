@@ -57,7 +57,7 @@ public class GamblerSprite extends HeroSprite {
 		die = new Animation( 20, false );
 		die.frames( film, 8, 9, 10, 11, 12, 13 );
 
-		Animation enterInvisible = new Animation( 8, false );
+		enterInvisible = new Animation( 8, false );
 		enterInvisible.frames( film, 40, 41, 42, 43, 44, 45, 46, 47, 18, 19 );
 
 		slash = new Animation( 12, false );

@@ -355,7 +355,26 @@ public class Dart extends MissileWeapon {
 
 		@Override
 		public boolean itemSelectable(Item item) {
-			return item instanceof Potion && !(item instanceof ExoticPotion || item instanceof Brew || item instanceof AlchemicalCatalyst);
+			if (!(item instanceof Potion) || item instanceof ExoticPotion || item instanceof Brew || item instanceof AlchemicalCatalyst) {
+				return false;
+			}
+			//没鉴定的药水不能选：确认窗会写出对应的种子和涂药飞镖的名字，点取消又不消耗任何东西，
+			//等于不花代价把背包里的药水全鉴定一遍
+			if (!item.isIdentified()) {
+				return false;
+			}
+			//只有能对应到种子的药水才能选。各种秘药（Elixir）、女儿红陈酿也是 Potion，却没有对应的种子，
+			//选中后拿不到涂药飞镖的种类，会直接崩溃
+			return hasSeed((Potion) item);
+		}
+
+		private boolean hasSeed(Potion potion) {
+			for (Class<? extends Potion> potionClass : types.values()) {
+				if (potionClass.isInstance(potion)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private Plant.Seed convertToSeed(Potion potion) {
@@ -378,6 +397,7 @@ public class Dart extends MissileWeapon {
 			if (item == null) return;
 
 			Plant.Seed seed = convertToSeed((Potion) item);
+			if (seed == null) return;
 
 			final int singleSeedDarts;
 
@@ -390,16 +410,18 @@ public class Dart extends MissileWeapon {
 				// +1: 4枚, +2: 6枚
 				baseDarts = (points >= 2) ? 6 : 4;
 			}
-			singleSeedDarts = baseDarts;
+			//手里的飞镖不够数时只涂现有的这些。原先固定产出 4（6）枚，
+			//只剩 1 枚飞镖也能换回 4 枚涂药飞镖，等于凭空多出飞镖
+			singleSeedDarts = Math.min(curItem.quantity(), baseDarts);
 			options = new String[]{
-					Messages.get(Dart.class, "tip_potion"),
+					Messages.get(Dart.class, "tip_potion", singleSeedDarts),
 					Messages.get(Dart.class, "tip_cancel")};
 
 			TippedDart tipResult = TippedDart.getTipped(seed, 1);
 
 			GameScene.show(new WndOptions(new ItemSprite(seed),
 					Messages.titleCase(seed.name()),
-					Messages.get(Dart.class, "tip_pdesc", tipResult.name()) + "\n\n" + tipResult.desc(),
+					Messages.get(Dart.class, "tip_pdesc", tipResult.name(), baseDarts) + "\n\n" + tipResult.desc(),
 					options) {
 
 				@Override

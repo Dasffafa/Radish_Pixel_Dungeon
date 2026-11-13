@@ -21,7 +21,6 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SmallGrassMiniLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.ZeroLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 
 import java.util.HashMap;
@@ -41,6 +40,7 @@ public class Branches {
     public static final String MOSS = "moss";
     public static final String MINING = "mining";
     public static final String CONVICT = "convict";
+    public static final String TEST = "test";
     
     /**
      * 初始化所有分支（在游戏启动时调用）
@@ -59,6 +59,9 @@ public class Branches {
         
         // 传奇重犯副本分支
         register(createConvictBranch());
+
+        // 测试分支（无实际内容，仅验证循环门）
+        register(createTestBranch());
     }
     
     /**
@@ -105,7 +108,7 @@ public class Branches {
         @SuppressWarnings("unchecked")
         Class<? extends Level>[] levels = new Class[27];  // 索引 0-26，但 0 不用
         
-        levels[0] = ZeroLevel.class;
+        levels[0] = DeadEndLevel.class;
         levels[1] = SewerLevel.class;
         levels[2] = SewerLevel.class;
         levels[3] = SewerLevel.class;
@@ -157,6 +160,15 @@ public class Branches {
         levels[1] = MiningLevel.class;
         
         return new Branch(MINING, 1, "branch_mining", levels);
+    }
+
+    private static Branch createTestBranch() {
+        @SuppressWarnings("unchecked")
+        Class<? extends Level>[] levels = new Class[3];
+        levels[0] = DeadEndLevel.class;
+        levels[1] = com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.class;
+        levels[2] = com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.class;
+        return new Branch(TEST, 2, "branch_test", levels);
     }
 
     private static Branch createConvictBranch() {

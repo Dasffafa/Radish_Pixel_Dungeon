@@ -66,15 +66,20 @@ public class HeroSprite extends CharSprite {
 	/** 标准英雄小人待机帧序（TextureFilm 索引）。 */
 	public static final int[] IDLE_FRAMES = { 0, 0, 0, 1, 0, 0, 1, 1 };
 	
-	private static TextureFilm tiers;
-	
+	/** 每个英雄贴图各自缓存的「护甲行」胶片（不同高度的贴图不能共用 UV）。 */
+	private static final java.util.HashMap<String, TextureFilm> tierFilms = new java.util.HashMap<>();
+
+	/** 当前精灵使用的贴图资源路径，用于取对应高度的行胶片。 */
+	private String sheetAsset = Assets.Sprites.ROGUE;
+
 	protected Animation fly;
 	protected Animation read;
 
 	public HeroSprite() {
 		super();
 		
-		texture( hero.heroClass.spritesheet() );
+		sheetAsset = hero.heroClass.spritesheet();
+		texture( sheetAsset );
 		updateArmor();
 		
 		link( hero );
@@ -86,7 +91,8 @@ public class HeroSprite extends CharSprite {
 	}
 
 	public void disguise(HeroClass cls){
-		texture( cls.spritesheet() );
+		sheetAsset = cls.spritesheet();
+		texture( sheetAsset );
 		updateArmor();
 	}
 
@@ -150,7 +156,16 @@ public class HeroSprite extends CharSprite {
 			}
 		}
 
-		TextureFilm film = new TextureFilm( tiers(), t, FRAME_WIDTH, FRAME_HEIGHT );
+		// 四件新护甲：与既有护甲一样只切换到角色贴图的对应行，不更换贴图。
+		int outfitRow = ArmorOutfit.rowFor( armor );
+		if (outfitRow >= 0 && ArmorOutfit.hasOutfit( hero.heroClass )) t = outfitRow;
+
+		// 行号是按英雄本职业和护甲算的，而各职业贴图的行数并不一样（月华只有 17 行），实际显示的贴图不一定有这一行：
+		// 伪装成行数更少的职业，或者本职业的贴图没画这件护甲的专属外观行，都会取到不存在的行，TextureFilm 直接空指针。
+		// 每张英雄贴图都有 0~6 行，这时退回按护甲阶数取行。
+		if (tiers(sheetAsset).get( t ) == null) t = hero.tier();
+
+		TextureFilm film = new TextureFilm( tiers(sheetAsset), t, FRAME_WIDTH, FRAME_HEIGHT );
 
 		idle = new Animation( 1, true );
 		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
@@ -159,7 +174,12 @@ public class HeroSprite extends CharSprite {
 		run.frames( film, 2, 3, 4, 5, 6, 7 );
 
 		die = new Animation( 20, false );
-		die.frames( film, 8, 9, 10, 11, 12, 11 );
+		// 标准素材的死亡帧是骷髅落地：第 12 帧是第 11 帧整体上移 1 像素的「弹起」，最后要回到第 11 帧才算落定。
+		// 月华整张图和混灵那一行画的是一路倒下、消散的连续过程，第 12 帧就是终态，回到第 11 帧反而会倒放一帧。
+		// 混灵的消散动画只画在有专属外观的贴图上，所以要看当前显示的贴图，不能只认行号。
+		boolean endsOnLastFrame = Assets.Sprites.MOONLIGHT.equals( sheetAsset )
+				|| (t == ArmorOutfit.ROW_SOULMIX && ArmorOutfit.sheetHasOutfit( sheetAsset ));
+		die.frames( film, 8, 9, 10, 11, 12, endsOnLastFrame ? 12 : 11 );
 
 		attack = new Animation( 15, false );
 		attack.frames( film, 13, 14, 15, 0 );
@@ -246,20 +266,33 @@ public class HeroSprite extends CharSprite {
 	}
 	
 	public static TextureFilm tiers() {
-		if (tiers == null) {
-			SmartTexture texture = TextureCache.get( Assets.Sprites.ROGUE );
-			tiers = new TextureFilm( texture, texture.width, FRAME_HEIGHT );
+		return tiers( Assets.Sprites.ROGUE );
+	}
+
+	/**
+	 * 取指定英雄贴图的「护甲行」胶片。
+	 *
+	 * <p>行胶片把整张图按 15px 高切成若干行；UV 归一化依赖贴图自身高度，
+	 * 因此不同高度的图（如月华 256×256）必须各建一份，不能共用 ROGUE 的。</p>
+	 */
+	public static TextureFilm tiers( String asset ) {
+		TextureFilm film = tierFilms.get( asset );
+		if ( film == null ) {
+			SmartTexture texture = TextureCache.get( asset );
+			film = new TextureFilm( texture, texture.width, FRAME_HEIGHT );
+			tierFilms.put( asset, film );
 		}
-		
-		return tiers;
+		return film;
 	}
 
 	public static Image avatar( Hero hero ){
-		if (hero.buff(HeroDisguise.class) != null){
-			return avatar(hero.buff(HeroDisguise.class).getDisguise(), hero.tier());
-		} else {
-			return avatar(hero.heroClass, hero.tier());
-		}
+		HeroDisguise disguise = hero.buff( HeroDisguise.class );
+		HeroClass cl = disguise != null ? disguise.getDisguise() : hero.heroClass;
+		// 头像要与游戏内角色一致，所以取外观行而不是护甲阶数；
+		// 但伪装后的贴图可能没有这一行（见 updateArmor），没有就退回按护甲阶数取行。
+		int row = hero.tier_for_image();
+		if (tiers( cl.spritesheet() ).get( row ) == null) row = hero.tier();
+		return avatar( cl, row );
 	}
 	
 	public static Image avatar( HeroClass cl, int armorTier ) {
@@ -278,7 +311,11 @@ public class HeroSprite extends CharSprite {
 			return avatar;
 		}
 
-		RectF patch = tiers().get( armorTier );
+		TextureFilm rows = tiers( cl.spritesheet() );
+		RectF patch = rows.get( armorTier );
+		// 调用方只给职业和行号，行号可能超出这张贴图（状态栏、存档窗口的行号是按护甲算的，
+		// 不看这个职业的贴图有没有画那一行）。这里拿不到英雄，退回每张图都有的第 0 行。
+		if (patch == null) patch = rows.get( 0 );
 		Image avatar = new Image( cl.spritesheet() );
 		RectF frame = avatar.texture.uvRect( 1, 0, FRAME_WIDTH, FRAME_HEIGHT );
 		frame.shift( patch.left, patch.top );
@@ -304,6 +341,9 @@ public class HeroSprite extends CharSprite {
 			body.frame( frame );
 			return body;
 		}
+
+		// 同 avatar()：行号超出贴图时取到的是贴图之外的区域，退回第 0 行
+		if (tiers( cl.spritesheet() ).get( armorTier ) == null) armorTier = 0;
 
 		return new Image( cl.spritesheet(), 0, 15 * armorTier, FRAME_WIDTH, FRAME_HEIGHT );
 	}

@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
@@ -254,10 +255,10 @@ public class ItemSlot extends Button {
 			itemIcon = ItemSpriteSheet.Icons.image(item.icon());
 			add(itemIcon);
 
-		} else if (item instanceof Weapon || item instanceof Armor) {
+		} else if (item instanceof Weapon || item instanceof Armor || item instanceof SecondaryArmor) {
 
 			if (item.levelKnown){
-				int str = item instanceof Weapon ? ((Weapon)item).STRReq() : ((Armor)item).STRReq();
+				int str = item instanceof Weapon ? ((Weapon)item).STRReq() : (item instanceof Armor ? ((Armor)item).STRReq() : ((SecondaryArmor)item).STRReq());
 				extra.text( Messages.format( TXT_STRENGTH, str ) );
 				if (Dungeon.hero != null && str > Dungeon.hero.STR()) {
 					extra.hardlight( DEGRADED );
@@ -269,7 +270,7 @@ public class ItemSlot extends Button {
 					extra.resetColor();
 				}
 			} else {
-				int str = item instanceof Weapon ? ((Weapon)item).STRReq(0) : ((Armor)item).STRReq(0);
+				int str = item instanceof Weapon ? ((Weapon)item).STRReq(0) : (item instanceof Armor ? ((Armor)item).STRReq(0) : ((SecondaryArmor)item).STRReq());
 				extra.text( Messages.format( TXT_TYPICAL_STR, str ) );
 				extra.hardlight( WARNING );
 			}

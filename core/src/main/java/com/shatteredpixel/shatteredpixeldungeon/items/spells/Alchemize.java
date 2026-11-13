@@ -273,6 +273,7 @@ public class Alchemize extends Spell {
 			if (curItem instanceof Alchemize && Random.Float() < ((Alchemize)curItem).talentChance){
 				Talent.onScrollUsed(curUser, curUser.pos, ((Alchemize) curItem).talentFactor);
 			}
+			if (curItem instanceof Alchemize) Spell.onSpellUsed( curUser, (Alchemize) curItem );
 		}
 
 	}

@@ -66,7 +66,9 @@ public class StarfireBuff extends FlavourBuff {
 
     @Override
     public String desc() {
-        return Messages.get(this, "desc", cooldown(), (int) accumulated);
+        // 回合数按整数传：英文文本用的是 %d，传 float 进去格式化失败，
+        // 说明会显示成没替换的原始格式串。取值和图标上的数字（(int) visualcooldown()）一致。
+        return Messages.get(this, "desc", (int) visualcooldown(), (int) accumulated);
     }
 
     @Override

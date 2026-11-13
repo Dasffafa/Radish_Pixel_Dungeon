@@ -414,12 +414,13 @@ public class QuickSlotButton extends Button {
 	}
 	
 	public static void cancel() {
-		if (targetingSlot != -1) {
-			for (QuickSlotButton btn : instance) {
-				btn.crossB.visible = false;
-				btn.crossM.remove();
-				targetingSlot = -1;
+		for (QuickSlotButton btn : instance) {
+			if (btn != null) {
+				if (btn.crossB != null) btn.crossB.visible = false;
+				if (btn.crossM != null) btn.crossM.remove();
 			}
 		}
+		targetingSlot = -1;
+		InventoryPane.cancelTargeting();
 	}
 }

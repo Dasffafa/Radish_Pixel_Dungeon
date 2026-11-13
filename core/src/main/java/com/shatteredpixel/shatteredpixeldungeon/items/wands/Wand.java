@@ -390,6 +390,9 @@ public abstract class Wand extends Item {
 		return this;
 	}
 
+	//上一次算等级时怒气给的加成，只用来判断要不要刷新显示，不进存档
+	private int lastBerserkBonus = 0;
+
 	@Override
 	public int buffedLvl() {
 		int lvl = super.buffedLvl();
@@ -397,8 +400,13 @@ public abstract class Wand extends Item {
 		boolean usedByHero = Dungeon.hero != null && (hero.belongings.contains(this)
 				|| charger != null && charger.target == hero);
 		if (usedByHero) {
-			if (Dungeon.hero.buff(Berserk.class) != null) {
-				lvl += Dungeon.hero.buff(Berserk.class).WandBuffedLvl();
+			Berserk berserk = Dungeon.hero.buff(Berserk.class);
+			int bonus = berserk != null ? berserk.WandBuffedLvl() : 0;
+			lvl += bonus;
+			//加成变了才要求刷新显示。原先只要身上有怒气，每次取等级都要求刷新，而界面刷新时又会来取等级：
+			//快捷栏或背包面板里显示着一根法杖时，界面就每一帧都重刷一遍
+			if (bonus != lastBerserkBonus) {
+				lastBerserkBonus = bonus;
 				updateQuickslot();
 			}
 
@@ -507,6 +515,11 @@ public abstract class Wand extends Item {
 	public void wandUsed() {
 		TieredToyEffects.onAbilityUsed(hero);
 
+
+		if (hero.subClass == HeroSubClasses.JOKER) {
+			com.shatteredpixel.shatteredpixeldungeon.items.cards.CardEffects.onWandUsed(hero);
+		}
+
 		if (hero.subClass == HeroSubClasses.DICE_MAGE){
 			Buff.affect(hero, MagicPoint.class).addPoints(0.2f + buffedLvl() * 0.2f);
 		}
@@ -549,6 +562,7 @@ public abstract class Wand extends Item {
 			// 使用免费次数，不消耗充能
 		} else {
 			curCharges -= cursed ? 1 : chargesPerCast();
+			Talent.onWandChargesSpent(hero, cursed ? 1 : chargesPerCast());
 		}
 		// 魔武士：使用法杖后为下次攻击叠加附魔强化
 		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.gainCharge(Dungeon.hero);
@@ -838,11 +852,15 @@ public abstract class Wand extends Item {
 						}
 
 						curWand.curCharges = 0;
+						curUser.sprite.showStatusWithIcon(
+								com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.POSITIVE,
+								Integer.toString(Math.round(shield)),
+								com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText.SHIELDING);
 						curUser.sprite.operate(curUser.pos);
 						Sample.INSTANCE.play(Assets.Sounds.CHARGEUP);
 						ScrollOfRecharging.charge(curUser);
 						updateQuickslot();
-						curUser.spend(Actor.TICK);
+						curUser.spendAndNext(Actor.TICK);
 						return;
 					}
 					GLog.i( Messages.get(Wand.class, "self_target") );

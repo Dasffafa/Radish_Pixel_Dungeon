@@ -37,6 +37,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.HeavyBoome
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Javelin;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Kunai;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Perfidy;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Shuriken;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSpear;
@@ -121,7 +122,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		revive();
 
 		if (item == null)   view(ItemSpriteSheet.SOMETHING, null);
-		else                view( item );
+		else {
+			view( item );
+			if (item instanceof Senbon) frame( ItemSpriteSheet.SENBON_PROJECTILE );
+		}
 
 		setup( from,
 				to,
@@ -159,6 +163,8 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		ANGULAR_SPEEDS.put(Bolas.class,         1440);
 		
 		ANGULAR_SPEEDS.put(Shuriken.class,                  2160);
+		//千本不旋转
+		ANGULAR_SPEEDS.put(Senbon.class,                    0);
 		ANGULAR_SPEEDS.put(TenguSprite.TenguShuriken.class, 2160);
 	}
 
@@ -206,8 +212,15 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			flipHorizontal = false;
 			updateFrame();
 		}
+
+		//千本贴图朝上，其他投掷物朝右上，差值 45 度；镜像贴图时方向相反
+		if (item instanceof Senbon){
+			angle += flipHorizontal ? -45 : 45;
+			updateFrame();
+		}
 		
-		float speed = SPEED;
+		// 飞多久由下面的位置补间决定；倍率只乘在上面的 speed 向量上不起作用，位置每帧都被补间盖掉
+		float speed = SPEED * speedMultiplier;
 		if ((item instanceof Dart && Dungeon.hero.belongings.weapon() instanceof Crossbow)
 				||(Dungeon.hero.belongings.weapon() instanceof ScorpionCrossbow && (
 				item instanceof Javelin

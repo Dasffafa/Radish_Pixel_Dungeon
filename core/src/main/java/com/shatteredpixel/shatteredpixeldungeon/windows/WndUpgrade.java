@@ -404,6 +404,19 @@ public class WndUpgrade extends Window {
             protected void onClick() {
                 super.onClick();
 
+                // 精制附魔无法升级：不消耗卷轴/法术，也不执行升级
+                if (toUpgrade instanceof Weapon
+                        && ((Weapon) toUpgrade).enchantment
+                        instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined) {
+                    com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( Messages.get(
+                            com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined.class,
+                            "cannot_upgrade" ) );
+                    //回到选物窗让玩家改选别的装备，而不是只关窗：卷轴是「读了才认出来」的那种时（force），
+                    //它在打开这个窗口之前就已经从背包里扣掉了，直接关窗等于白白吞掉一张升级卷轴
+                    onBackPressed();
+                    return;
+                }
+
                 ScrollOfUpgrade.upgrade(Dungeon.hero);
 
                 Item upgraded = toUpgrade;

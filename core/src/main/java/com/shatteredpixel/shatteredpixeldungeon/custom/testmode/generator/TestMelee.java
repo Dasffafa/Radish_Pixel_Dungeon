@@ -79,7 +79,10 @@ public class TestMelee extends TestGenerator {
     }
 
     private void createWeapon(){
-        Weapon melee = Reflection.newInstance(weaponList(tier)[weapon_id]);
+        // 换到武器更少的阶数后，记着的「第几把」可能已经超出这一阶的数量（各阶数量不同，还会随存档带过来），
+        // 和窗口上显示所选武器时一样收到最后一把，否则这里数组越界直接闪退
+        Class<? extends Weapon>[] list = weaponList(tier);
+        Weapon melee = Reflection.newInstance(list[Math.max(0, Math.min(weapon_id, list.length - 1))]);
         melee = modifyWeapon(melee);
         melee.identify();
         if(melee.collect()){
@@ -115,13 +118,16 @@ public class TestMelee extends TestGenerator {
 
     // 池数组驱动(与TestArmor的GLYPH_LISTS同思路)：直接引用四个附魔池，新增附魔入池后自动可选。
     // 超出列表长度时取最后一项(与TestArmor的越界钳制一致)。
+    @SuppressWarnings("unchecked")
     private Class<? extends Weapon.Enchantment> generateEnchant(int category, int id) {
-        Class<?>[] enchs = ENCH_LISTS[category];
-        if (enchs == null) {
+        if (category <= 0 || category >= ENCH_LISTS.length) {
             return null;
         }
-        int idx = Math.min(id, enchs.length - 1);
-        return (Class<? extends Weapon.Enchantment>) enchs[idx];
+        Class<?>[] enchs = ENCH_LISTS[category];
+        if (enchs == null || enchs.length == 0) {
+            return null;
+        }
+        return (Class<? extends Weapon.Enchantment>) enchs[Math.min(id, enchs.length - 1)];
     }
 
     private Class<? extends Weapon>[] weaponList(int t) {
@@ -149,15 +155,6 @@ public class TestMelee extends TestGenerator {
 
     private String currentEnchName(Class<? extends Weapon.Enchantment> ench, String wepName) {
         return Messages.get(ench, "name", wepName);
-    }
-
-    private int maxSlots(int t){
-        switch (t){
-            case 1:return 4;
-            case 4: case 5:return 12;
-            case 2:default:return 9;
-            case 3:return 8;
-        }
     }
 
     private class SettingsWindow extends Window {
@@ -232,7 +229,13 @@ public class TestMelee extends TestGenerator {
             o_enchant_rarity.setSelectedValue(enchant_rarity);
             add(o_enchant_rarity);
 
-            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", "12", 0, 12) {
+            int maxEnchantId = 0;
+            for (int i = 1; i < ENCH_LISTS.length; i++) {
+                if (ENCH_LISTS[i] != null) {
+                    maxEnchantId = Math.max(maxEnchantId, ENCH_LISTS[i].length - 1);
+                }
+            }
+            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", Integer.toString(maxEnchantId), 0, maxEnchantId) {
                 @Override
                 protected void onChange() {
                     enchant_id = getSelectedValue();
@@ -274,7 +277,9 @@ public class TestMelee extends TestGenerator {
                 IconButton btn = new IconButton() {
                     @Override
                     protected void onClick() {
-                        weapon_id = Math.min(maxSlots(tier)-1, j);
+                        // 图标就是按这一阶的武器表逐个建的，点第几个就是第几把。
+                        // 以前这里按一张写死的「每阶几把」再收一次，表早就对不上了，点靠后的图标会选成别的武器
+                        weapon_id = j;
                         updateSelectedWeaponText();
                         super.onClick();
                     }

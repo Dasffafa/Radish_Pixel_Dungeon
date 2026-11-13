@@ -526,6 +526,8 @@ public enum Icons {
 			return new ItemSprite(ItemSpriteSheet.HOLYANKH); // TODO: 添加MOONLIGHT专属图标
 		} else if (cl == HeroClasses.CARDTRICKSTER) {
 			return new ItemSprite(ItemSpriteSheet.CARD_DRAWER);
+		} else if (cl == HeroClasses.ENGINEER) {
+			return new ItemSprite(ItemSpriteSheet.ARMOR_ENGINEER);
 		} else {
 			return new ItemSprite(ItemSpriteSheet.SEAL); // 默认返回战士图标避免崩溃
 		}

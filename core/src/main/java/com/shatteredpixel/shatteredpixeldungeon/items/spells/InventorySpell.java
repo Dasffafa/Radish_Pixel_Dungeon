@@ -82,7 +82,10 @@ public abstract class InventorySpell extends Spell {
 			if (item != null) {
 
 				if (!(curItem instanceof MagicalInfusion)) {
-					curItem = detach(curUser.belongings.backpack);
+					Item detached = detach(curUser.belongings.backpack);
+					//背包里这一叠的数量已经是 0（旧存档里可能留着这样的坏数据）时 detach 返回 null
+					if (detached == null) return;
+					curItem = detached;
 				}
 				
 				((InventorySpell)curItem).onItemSelected( item );
@@ -98,6 +101,7 @@ public abstract class InventorySpell extends Spell {
 					if (Random.Float() < ((Spell) curItem).talentChance) {
 						Talent.onScrollUsed(curUser, curUser.pos, ((Spell) curItem).talentFactor);
 					}
+					Spell.onSpellUsed( curUser, (Spell) curItem );
 				}
 			}
 		}

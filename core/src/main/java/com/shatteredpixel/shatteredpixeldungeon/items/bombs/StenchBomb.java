@@ -35,7 +35,7 @@ import com.watabou.utils.BArray;
 import com.watabou.utils.PathFinder;
 
 public class StenchBomb extends Bomb {
-	
+
 	{
 		image = ItemSpriteSheet.NOISEMAKER;
 	}
@@ -64,9 +64,9 @@ public class StenchBomb extends Bomb {
 			GameScene.add( Blob.seed( cell, centerVolume, ToxicGas.class ) );
 			GameScene.add( Blob.seed( cell, centerVolume, StenchGas.class ) );
 		}
-		
+
 	}
-	
+
 	@Override
 	public int value() {
 		//prices of ingredients

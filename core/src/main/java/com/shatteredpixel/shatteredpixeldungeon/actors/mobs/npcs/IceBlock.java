@@ -29,7 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Chill;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CrystalSpireSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.IceBlockSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 
@@ -38,7 +38,7 @@ import com.watabou.utils.PathFinder;
 public class IceBlock extends NPC {
 
 	{
-		spriteClass = CrystalSpireSprite.Blue.class;
+		spriteClass = IceBlockSprite.class;
 	}
 
 	public int lifespan = 10;

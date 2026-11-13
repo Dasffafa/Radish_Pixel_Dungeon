@@ -9,43 +9,32 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.PreAttackEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.watabou.utils.Bundle;
 
+import java.util.HashSet;
+
 /**
  * 影舞者：盗贼的第三转职。
  *
- * 连续闪避敌人 3 次攻击后进入 3 回合隐身；解除隐身时冲刺穿过敌人并造成 125% 武器伤害。
+ * 连续闪避敌人 3 次攻击后进入 3 回合隐身。隐身时主动点击暗影斗篷解除斗篷隐身，可以选方向发动破隐突袭：
+ * 冲刺至多 5 格，途中最多穿过 1 名敌人并造成 125% 武器伤害。突袭只有这一个入口。
  * 武器与投掷武器的攻击会打出第二段伤害（双重打击），并能强化斗篷（阴影之赐）。
  */
 public class ShadowDancer extends HeroSubClass {
 
 	public ShadowDancer() {
 		super("SHADOW_DANCER", HeroIcon.SHADOW_DANCER);
-	}
-
-	/**
-	 * 破隐攻击替换为突袭：处于隐身时，本次普通攻击被取消，改为弹出突袭目标点选择。
-	 * 由攻击前事件驱动；取消后 {@code attack()} 视为该次行动已被消耗。
-	 */
-	@SubscribeEvent(event = PreAttackEvent.class, priority = 1000)
-	public static void onPreAttack(PreAttackEvent event) {
-		Char attacker = event.getAttacker();
-		if (!(attacker instanceof Hero)) return;
-		Hero hero = (Hero) attacker;
-		if (hero.subClass != HeroSubClasses.SHADOW_DANCER) return;
-		if (!hasVeil(hero)) return;
-		openSelector(hero);
-		event.cancel();
 	}
 
 	/** 闪避敌人攻击时累计连击（由攻击未命中事件驱动）。 */
@@ -103,7 +92,7 @@ public class ShadowDancer extends HeroSubClass {
 			return 1f;
 		}
 		Hero hero = (Hero) ch;
-		if (hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER) {
+		if (hero.subClass != HeroSubClasses.SHADOW_DANCER) {
 			return 1f;
 		}
 		int pts = hero.pointsInTalent( Talent.SHADOWS_GIFT );
@@ -115,13 +104,17 @@ public class ShadowDancer extends HeroSubClass {
 		if (cloak == null) {
 			return 1f;
 		}
+		// 「斗篷之下」＝斗篷隐身生效期间，效果不应常驻
+		if (hero.buff( com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows.cloakStealth.class ) == null) {
+			return 1f;
+		}
 		float per = pts >= 3 ? 0.23f : 0.15f;
 		return 1f + cloak.level() * per;
 	}
 
 	/** 闪避一次敌人攻击时由 Char 调用。 */
 	public static void onDodged( Hero hero ) {
-		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER) {
+		if (hero == null || hero.subClass != HeroSubClasses.SHADOW_DANCER) {
 			return;
 		}
 		ShadowDodgeCounter c = Buff.affect( hero, ShadowDodgeCounter.class );
@@ -139,105 +132,71 @@ public class ShadowDancer extends HeroSubClass {
 		}
 	}
 
-	public static boolean rushing = false;
-
-	/** 只要处于任意隐身（主动隐身/斗篷之下/闪避触发）即可突袭。 */
-	public static boolean hasVeil( Hero hero ) {
-		return hero != null && hero.invisible > 0;
-	}
-
-	/** 以攻击破除隐身：该次攻击替换为对目标的突袭（任意隐身来源均可）。 */
-	public static void rushFromVeil( Hero hero, Char first ) {
-		if (hero == null || first == null || !hasVeil( hero )) {
+	/** 破隐突袭的唯一入口：隐身时主动点击暗影斗篷、解除斗篷隐身之后由斗篷调用（渲染线程）。 */
+	public static void onCloakBroken( Hero hero ) {
+		if (hero == null || hero.subClass != HeroSubClasses.SHADOW_DANCER || !hero.isAlive() || hero.rooted
+				|| Dungeon.level == null || Dungeon.level.heroFOV == null) {
 			return;
 		}
-		rushing = true;
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility.dispel( hero );
-		rushing = false;
-		if (Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
-			return;
-		}
-
-		int pts = hero.pointsInTalent( Talent.SHADOW_RUSH );
-		int maxRush = pts >= 2 ? 3 : (pts >= 1 ? 2 : 1);
-		boolean allowSame = pts >= 3;
-
-		java.util.ArrayList<Char> used = new java.util.ArrayList<>();
-		used.add( first );
-		rush( hero, first );
-		int range = 4;
-		for (int i = 1; i < maxRush; i++) {
-			Char t = nearestEnemy( hero, range, used, allowSame );
-			if (t == null) {
-				break;
+		GameScene.selectCell( new CellSelector.Listener() {
+			@Override
+			public void onSelect( Integer target ) {
+				Hero h = Dungeon.hero;
+				if (target == null || h == null || h.rooted || !h.isAlive()) {
+					return;
+				}
+				Invisibility.dispel( h );
+				dashTo( h, target );
+				h.spendAndNext( 1f );
 			}
-			used.add( t );
-			rush( hero, t );
-			range = Math.max( 1, range - 1 );
-		}
-	}
 
-	/** 隐身结束（解除隐身）时冲刺，按影子闪袭层数可连续多次。 */
-	public static void onVeilEnd( Hero hero ) {
-		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER) {
-			return;
-		}
-		if (Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
-			return;
-		}
-
-		// 非攻击破隐：弹出选择突袭目标点
-		openSelector( hero );
-	}
-
-	/** 选择突袭方向：对所选位置附近的最近敌人发动突袭。 */
-	private static com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener rushListener =
-			new com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener() {
-		@Override
-		public void onSelect( Integer target ) {
-			Hero hero = Dungeon.hero;
-			if (target == null || hero == null) {
-				return;
+			@Override
+			public String prompt() {
+				return Messages.get( HeroSubClass.class, "shadow_dancer_rush_prompt" );
 			}
-			rushing = true;
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility.dispel( hero );
-			rushing = false;
-			dashTo( hero, target );
-			hero.spendAndNext( 1f );
-		}
-
-		@Override
-		public String prompt() {
-			return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( HeroSubClass.class, "shadow_dancer_rush_prompt" );
-		}
-	};
-
-	/** 打开突袭目标点选择。 */
-	public static void openSelector( Hero hero ) {
-		if (hero == null || Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
-			return;
-		}
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.selectCell( rushListener );
+		} );
 	}
 
-	/** 突袭：向指定目标点冲刺，途中最多穿过 1 名敌人并造成 125% 武器伤害。 */
+	/**
+	 * 突袭：朝目标点方向冲刺至多 5 格，途中最多穿过 1 名敌人并造成 125% 武器伤害。
+	 * 影子闪袭：穿过敌人后沿同一方向再突袭一次，每次少 1 格，+1 至多 2 次、+2/+3 至多 3 次；+3 可以再穿过同一名敌人。
+	 */
 	public static void dashTo( Hero hero, int dest ) {
-		if (hero == null || Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
+		if (hero == null || hero.rooted || Dungeon.level == null || Dungeon.level.heroFOV == null || !hero.isAlive()) {
 			return;
 		}
 		int w = Dungeon.level.width();
-		int ox = hero.pos % w, oy = hero.pos / w;
-		int gx = dest % w, gy = dest / w;
-		int stepx = Integer.signum( gx - ox );
-		int stepy = Integer.signum( gy - oy );
+		int stepx = Integer.signum( dest % w - hero.pos % w );
+		int stepy = Integer.signum( dest / w - hero.pos / w );
 		if (stepx == 0 && stepy == 0) {
 			return;
 		}
-		float ang = (float) Math.toDegrees( Math.atan2( gy - oy, gx - ox ) );
+		float ang = (float) Math.toDegrees( Math.atan2( dest / w - hero.pos / w, dest % w - hero.pos % w ) );
 
-		int maxDist = 5;
+		int pts = hero.pointsInTalent( Talent.SHADOW_RUSH );
+		int maxRushes = pts >= 2 ? 3 : pts >= 1 ? 2 : 1;
+		boolean allowSame = pts >= 3;
+		HashSet<Char> passed = new HashSet<>();
+		int dist = 5;
+		for (int r = 0; r < maxRushes && dist > 0; r++) {
+			Char hit = dashOnce( hero, stepx, stepy, dist, r == 0 ? dest : -1, ang, passed, allowSame );
+			if (hit == null || !hero.isAlive()) {
+				break;
+			}
+			passed.add( hit );
+			dist--;
+		}
+	}
+
+	/** 一次冲刺，返回穿过的敌人（没有穿过就是 null）。 */
+	private static Char dashOnce( Hero hero, int stepx, int stepy, int maxDist, int dest, float ang,
+								  HashSet<Char> passed, boolean allowSame ) {
+		int w = Dungeon.level.width();
 		int pos = hero.pos;
-		int enemyPassed = 0;
+		// lastFree：冲刺途中最后一个没有别的角色站着的格子，冲刺只能停在这样的格子上
+		int lastFree = hero.pos;
+		boolean reachedDest = false;
+		Char hitEnemy = null;
 		for (int i = 0; i < maxDist; i++) {
 			int nx = pos % w + stepx;
 			int ny = pos / w + stepy;
@@ -250,92 +209,53 @@ public class ShadowDancer extends HeroSubClass {
 			}
 			Char ch = Actor.findChar( next );
 			if (ch != null) {
-				if (ch.alignment == Char.Alignment.ENEMY && enemyPassed < 1) {
-					int dmg = Math.round( hero.damageRoll() * 1.25f );
-					ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, hero.belongings.attackingWeapon(), hero ) );
-					enemyPassed++;
+				if (ch.alignment == Char.Alignment.ENEMY && hitEnemy == null && (allowSame || !passed.contains( ch ))) {
+					// 突袭伤害通常为 125%；双重打击 +3 时改为结算两次、每次 75%
+					Item wp = hero.belongings.attackingWeapon();
+					if (hero.pointsInTalent( Talent.DOUBLE_STRIKE ) >= 3) {
+						int dmg = Math.round( hero.damageRoll() * 0.75f );
+						ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, wp, hero ) );
+						if (ch.isAlive()) {
+							ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, wp, hero ) );
+						}
+					} else {
+						int dmg = Math.round( hero.damageRoll() * 1.25f );
+						ch.damage( new DamageInfo( dmg, DamageType.PHYSICAL, hero, wp, hero ) );
+					}
+					hitEnemy = ch;
 				} else {
 					break;
 				}
 			}
+			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( next ).burst(
+					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STEAM ), 3 );
 			pos = next;
+			// 被穿过的敌人可能已经被这一击打死，所以重新查这一格现在还有没有人
+			boolean occupied = Actor.findChar( pos ) != null;
+			if (!occupied) {
+				lastFree = pos;
+			}
 			if (pos == dest) {
+				reachedDest = true;
+			}
+			// 到了所选的格子就停；但选的就是敌人所在的格子时不能停在它身上，继续穿过去，停在它身后第一个空格
+			if (reachedDest && !occupied) {
 				break;
 			}
 		}
+		// 穿过敌人之后没有落脚点（墙、另一个角色、冲刺距离用完）时退回 lastFree，绝不能和别的角色站在同一格
+		pos = lastFree;
 
 		com.shatteredpixel.shatteredpixeldungeon.effects.DashSlashEffect.showOn( hero, ang );
 		if (pos != hero.pos) {
-			hero.pos = pos;
-			hero.sprite.place( pos );
+			// 落位走角色自己的移动入口：离开门格时关门、触发关卡的落位处理（踩陷阱、踩草、首领层封门等），漂浮时不踩格子
+			hero.move( pos, false );
+			hero.sprite.place( hero.pos );
 			hero.sprite.visible = true;
-			Dungeon.level.pressCell( pos );
 			Dungeon.observe();
 		}
-	}
-
-	private static Char nearestEnemy( Hero hero, int range, java.util.List<Char> used, boolean allowSame ) {
-		Char target = null;
-		float best = Float.MAX_VALUE;
-		for (Char ch : Actor.chars()) {
-			if (ch.alignment == Char.Alignment.ENEMY && ch.isAlive()
-					&& Dungeon.level.heroFOV[ch.pos]
-					&& Dungeon.level.trueDistance( hero.pos, ch.pos ) <= range
-					&& (allowSame || !used.contains( ch ))) {
-				float d = Dungeon.level.trueDistance( hero.pos, ch.pos );
-				if (d < best) {
-					best = d;
-					target = ch;
-				}
-			}
-		}
-		return target;
-	}
-
-	private static void rush( Hero hero, Char target ) {
-		int dx = Dungeon.level.width();
-		int ox = hero.pos % dx, oy = hero.pos / dx;
-		int ex = target.pos % dx, ey = target.pos / dx;
-		int stepx = Integer.signum( ex - ox );
-		int stepy = Integer.signum( ey - oy );
-		int beyond = Dungeon.level.map.length;
-		if (Math.abs( ex - ox ) >= Math.abs( ey - oy )) {
-			stepy = 0;
-		} else {
-			stepx = 0;
-		}
-		int cx = ex + stepx, cy = ey + stepy;
-		if (cx >= 0 && cx < dx && cy >= 0 && cy < Dungeon.level.height()) {
-			int cell = cy * dx + cx;
-			if (Dungeon.level.passable[cell] && Actor.findChar( cell ) == null) {
-				beyond = cell;
-			}
-		}
-
-		// 冲刺斩击特效（沿冲刺方向）
-		float ang = (float) Math.toDegrees( Math.atan2( ey - oy, ex - ox ) );
-		com.shatteredpixel.shatteredpixeldungeon.effects.DashSlashEffect.showOn( target, ang );
-		com.shatteredpixel.shatteredpixeldungeon.effects.DashSlashEffect.showOn( hero, ang );
-
-		// 突袭伤害：通常为 125%；双重打击 +3 时改为造成两次 75%
-		com.shatteredpixel.shatteredpixeldungeon.items.Item wp = hero.belongings.attackingWeapon();
-		if (hero.pointsInTalent( Talent.DOUBLE_STRIKE ) >= 3) {
-			int d = Math.round( hero.damageRoll() * 0.75f );
-			target.damage( new DamageInfo( d, DamageType.PHYSICAL, hero, wp, hero ) );
-			if (target.isAlive()) {
-				target.damage( new DamageInfo( d, DamageType.PHYSICAL, hero, wp, hero ) );
-			}
-		} else {
-			target.damage( new DamageInfo( Math.round( hero.damageRoll() * 1.25f ), DamageType.PHYSICAL, hero, wp, hero ) );
-		}
-
-		if (beyond < Dungeon.level.map.length) {
-			hero.pos = beyond;
-			hero.sprite.place( beyond );
-			hero.sprite.visible = true;
-			Dungeon.level.pressCell( beyond );
-			Dungeon.observe();
-		}
+		return hitEnemy;
 	}
 
 	// 连击闪避计数
@@ -372,15 +292,7 @@ public class ShadowDancer extends HeroSubClass {
 		}
 	}
 
-	// 由闪避触发的隐身；结束时冲刺
+	// 由闪避触发的隐身
 	public static class ShadowVeil extends Invisibility {
-
-		@Override
-		public void detach() {
-			super.detach();
-			if (!rushing && target instanceof Hero && target.isAlive()) {
-				onVeilEnd( (Hero) target );
-			}
-		}
 	}
 }

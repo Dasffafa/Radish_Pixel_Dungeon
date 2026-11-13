@@ -47,6 +47,7 @@ public class BuffIndicator extends Component {
 	//transparent icon
 	public static final String NONE = "none";
 
+
 	//FIXME this is becoming a mess, should do a big cleaning pass on all of these
 	//and think about tinting options
 	public static final String MIND_VISION = "mind_vision";

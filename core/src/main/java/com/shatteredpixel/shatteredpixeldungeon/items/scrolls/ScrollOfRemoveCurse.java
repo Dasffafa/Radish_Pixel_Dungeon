@@ -114,6 +114,8 @@ public class ScrollOfRemoveCurse extends InventoryScroll {
 				GLog.w(Messages.get(ScrollOfRemoveCurse.class, "cleansed_to"));
 			} else if (procced) {
 				GLog.p( Messages.get(this, "cleansed") );
+			} else {
+				GLog.i( Messages.get(this, "not_cleansed") );
 			}
 
 		} else if (procced) {

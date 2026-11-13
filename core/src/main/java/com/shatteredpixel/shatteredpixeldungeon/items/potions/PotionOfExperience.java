@@ -48,9 +48,13 @@ public class PotionOfExperience extends Potion {
 	@Override
 	public void apply( Hero hero ) {
 		identify();
-		hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
+		if (hero.sprite != null) {
+			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
+		}
 		hero.earnExp( hero.maxExp(), getClass() );
-		new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
+		if (hero.sprite != null) {
+			new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
+		}
 
 		//经验药剂 直接获取15点信仰值
 		if(hero.heroClass == HeroClasses.RECTOR){

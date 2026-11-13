@@ -7,6 +7,8 @@ package com.shatteredpixel.shatteredpixeldungeon.challenge;
 
 import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.engineer.Detonator;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalSpire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -149,6 +151,9 @@ public class SnakeBiteChallengeManager {
 			WandOfWarding.Ward.class,
 			MirrorImage.class,
 			PrismaticImage.class,
+			// 这两个是英雄技能造出来的 Mob，自己的 sprite() 里把 super.sprite() 强转成专用贴图类，换成蛇会直接崩
+			Feint.AfterImage.class,
+			Detonator.DetonationMob.class,
 			CrystalSpire.class)
 	);
 

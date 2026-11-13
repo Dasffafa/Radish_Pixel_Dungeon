@@ -645,7 +645,7 @@ public class AlchemyScene extends PixelScene {
 
 			Recipe recipe = recipes.get(i);
 
-			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.cost(ingredients) );
+			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.energyCost(ingredients) );
 
 			outputs[i].visible = true;
 			outputs[i].setRect(outputs[0].left(), top, BTN_SIZE, BTN_SIZE);
@@ -689,7 +689,7 @@ public class AlchemyScene extends PixelScene {
 		Item result = null;
 
 		if (recipe != null){
-			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.cost(ingredients) );
+			int cost = com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.alchemyDiscount( Dungeon.hero, recipe.energyCost(ingredients) );
 			if (toolkit != null){
 				cost = toolkit.consumeEnergy(cost);
 			}
@@ -753,7 +753,11 @@ public class AlchemyScene extends PixelScene {
 		final java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> potions = new java.util.ArrayList<>();
 		for (Item it : ingredients) {
 			if (it instanceof com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion) {
-				potions.add( (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion) it );
+				com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion potion =
+						(com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion) it;
+				if (!potion.isThrowOnly()) {
+					potions.add( potion );
+				}
 			}
 		}
 		if (potions.isEmpty()) {
@@ -763,14 +767,21 @@ public class AlchemyScene extends PixelScene {
 		for (int i = 0; i < potions.size(); i++) {
 			opts[i] = potions.get( i ).name();
 		}
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-				new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions(
+		// 注意：必须挂到当前 AlchemyScene 上；GameScene.show 会把窗口加到非当前场景，导致完全看不到
+		addToFront( new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions(
 						Messages.get( AlchemyScene.class, "distill_title" ),
 						Messages.get( AlchemyScene.class, "distill_body" ),
 						opts ) {
 					@Override
 					protected void onSelect( int index ) {
-						potions.get( index ).apply( Dungeon.hero );
+						if (index < 0 || index >= potions.size()) {
+							return;
+						}
+						try {
+							potions.get( index ).apply( Dungeon.hero );
+						} catch (Throwable t) {
+							com.shatteredpixel.shatteredpixeldungeon.utils.GLog.n( "potion distill error: " + t );
+						}
 						com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer
 								.startDistillCooldown( Dungeon.hero );
 					}
@@ -782,9 +793,21 @@ public class AlchemyScene extends PixelScene {
 		smokeEmitter.burst(Speck.factory( Speck.WOOL ), 10 );
 		Sample.INSTANCE.play( Assets.Sounds.PUFF );
 
-		int resultQuantity = result.quantity();
-		if (!result.collect()){
-			Dungeon.level.drop(result, Dungeon.hero.pos);
+		//一次炼制可能给出多种物品，逐件发放；背包放不下的那几件和以前一样落在英雄脚下
+		ArrayList<Item> results = new ArrayList<>();
+		if (result instanceof Recipe.MultiOutput){
+			results.addAll(((Recipe.MultiOutput) result).items);
+		} else {
+			results.add(result);
+		}
+
+		int[] resultQuantities = new int[results.size()];
+		for (int i = 0; i < results.size(); i++){
+			Item item = results.get(i);
+			resultQuantities[i] = item.quantity();
+			if (!item.collect()){
+				Dungeon.level.drop(item, Dungeon.hero.pos);
+			}
 		}
 
 		Statistics.itemsCrafted++;
@@ -811,8 +834,35 @@ public class AlchemyScene extends PixelScene {
 
 		updateState();
 		//we reset the quantity in case the result was merged into another stack in the backpack
-		result.quantity(resultQuantity);
-		outputs[0].item(result);
+		for (int i = 0; i < results.size(); i++){
+			results.get(i).quantity(resultQuantities[i]);
+		}
+		showResults(results);
+	}
+
+	private void showResults( ArrayList<Item> results ){
+		if (results.isEmpty()) return;
+
+		//只有一种产物，或者投料格里还留着材料（产出格这时归配方预览使用）时，沿用原来的做法只占第一格
+		if (results.size() == 1 || !filterInput(Item.class).isEmpty()){
+			outputs[0].item(results.get(0));
+			return;
+		}
+
+		//多种产物各占一格，纵向排布方式与「同时有多个可用配方」时一致；下一次 updateState() 会把布局还原
+		int count = Math.min(results.size(), outputs.length);
+		float gap = count == 2 ? 6 : 2;
+
+		float height = inputs[2].bottom() - inputs[0].top();
+		height -= count*BTN_SIZE + (count-1)*gap;
+		float top = inputs[0].top() + height/2;
+
+		for (int i = 0; i < count; i++){
+			outputs[i].visible = true;
+			outputs[i].setRect(outputs[0].left(), top, BTN_SIZE, BTN_SIZE);
+			outputs[i].item(results.get(i));
+			top += BTN_SIZE+gap;
+		}
 	}
 
 	public void populate(ArrayList<Item> toFind, Belongings inventory){

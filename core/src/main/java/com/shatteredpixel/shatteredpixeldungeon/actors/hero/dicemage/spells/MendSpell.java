@@ -49,7 +49,8 @@ public class MendSpell extends DiceMageSpell {
         if (!spendMagic(hero)) return;
 
         int oldHP = hero.HP;
-        hero.HP = Math.min(healValue, hero.HT);
+        // 「把血量设置为 N」只往上补：血量已经高于 N 时提示的是「不会生效」，不能反过来把血拉低到 N
+        hero.HP = Math.max(hero.HP, Math.min(healValue, hero.HT));
         CellEmitter.center(hero.pos).start(Speck.factory(Speck.HEALING), 0.12f, 3);
         mp.decayHealValue();
         startCooldown(hero, COOLDOWN);

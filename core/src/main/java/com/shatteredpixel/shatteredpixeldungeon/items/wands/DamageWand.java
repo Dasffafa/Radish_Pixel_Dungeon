@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Berserk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.RiverCrystal;
@@ -50,13 +51,31 @@ public abstract class DamageWand extends Wand{
 
 	public abstract int max(int lvl);
 
+	// 骰子法师 4-2 鸡蛋篮子：最小伤害变为 1，最大伤害增加「最小值降低量 × 125% / 150% / 175% / 200%」
+	private static float eggBasketFactor(){
+		if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE) return 0f;
+		int points = hero.pointsInTalent(Talent.EGG_BASKET);
+		return points > 0 ? 1f + 0.25f * points : 0f;
+	}
+
+	public int rollMin(int lvl){
+		int min = min(lvl);
+		return eggBasketFactor() > 0 && min > 1 ? 1 : min;
+	}
+
+	public int rollMax(int lvl){
+		int min = min(lvl), max = max(lvl);
+		float factor = eggBasketFactor();
+		return factor > 0 && min > 1 ? max + Math.round((min - 1) * factor) : max;
+	}
+
 	public int damageRoll(){
 		return damageRoll(buffedLvl());
 	}
 
 	@SuppressWarnings("DefaultLocale")
     public int damageRoll(int lvl){
-		int dmg = Char.combatRoll(min(lvl), max(lvl));
+		int dmg = Char.combatRoll(rollMin(lvl), rollMax(lvl));
 
 		if(hero.hasTalent(Talent.FANATICISM_MAGIC)){
 			if (dmg > 0){
@@ -69,7 +88,7 @@ public abstract class DamageWand extends Wand{
 		if(riverGlass != null){
 			dmg = Integer.MAX_VALUE;
 			for (int i = 0; i < riverGlass.judgeTimes(); i++){
-				dmg = Math.min(dmg, Char.combatRoll(min(lvl), max(lvl)));
+				dmg = Math.min(dmg, Char.combatRoll(rollMin(lvl), rollMax(lvl)));
 			}
 		}
 
@@ -110,13 +129,13 @@ public abstract class DamageWand extends Wand{
 	@Override
 	public String statsDesc() {
 		if (levelKnown)
-			return Messages.get(this, "stats_desc", min(), max());
+			return Messages.get(this, "stats_desc", rollMin(buffedLvl()), rollMax(buffedLvl()));
 		else
-			return Messages.get(this, "stats_desc", min(0), max(0));
+			return Messages.get(this, "stats_desc", rollMin(0), rollMax(0));
 	}
 
 	@Override
 	public String upgradeStat1(int level) {
-		return min(level) + "-" + max(level);
+		return rollMin(level) + "-" + rollMax(level);
 	}
 }

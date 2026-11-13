@@ -50,7 +50,9 @@ public class PotionOfShielding extends ExoticPotion {
 			int amount = Random.NormalIntRange(4, 7);
 			hero.HTBoost += amount;
 			hero.updateHT(true);
-			hero.sprite.showStatus(CharSprite.POSITIVE, "+" + amount);
+			if (hero.sprite != null) {
+				hero.sprite.showStatus(CharSprite.POSITIVE, "+" + amount);
+			}
 			GLog.p( Messages.get(this, "msg", amount) );
 		}
 	}

@@ -136,7 +136,8 @@ public class BigSnake_Zikk extends Mob {
             }
         }
         // 其他情况下进行近战攻击
-        return Dungeon.level.adjacent(pos, enemy.pos);
+        //交给父类判断：除了相邻，还包括「智能怪物」挑战的武器攻击距离和精英词缀的额外距离
+        return super.canAttack(enemy);
     }
 
     @Override
@@ -173,6 +174,12 @@ public class BigSnake_Zikk extends Mob {
     protected boolean doAttack(Char enemy) {
         if (enemy != null && Dungeon.level.distance(pos, enemy.pos) == 3 && enemy.buff(Poison.class) != null) {
             return false;
+        } else if (enemy != null && Dungeon.level.distance(pos, enemy.pos) == 3
+                && !(sprite != null && (sprite.visible || enemy.sprite.visible))) {
+            //双方都不在玩家视野里时不走精灵回调，要在这里结算毒液；
+            //否则 Mob.doAttack 会隔着 3 格按近战咬一口（造成物理伤害、只上 2 回合毒）
+            zap();
+            return true;
         } else {
             return super.doAttack(enemy);
         }

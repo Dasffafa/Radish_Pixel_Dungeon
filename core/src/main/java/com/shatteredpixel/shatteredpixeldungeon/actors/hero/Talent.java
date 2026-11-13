@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
@@ -89,6 +90,11 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 
 public class Talent {
+
+	/**
+	 * 蜕变/重塑等非“花费天赋点”来源不应重复触发获得型天赋（原案注）。
+	 */
+	public static boolean suppressGain = false;
 
 	protected final String name;
 	protected final int maxPoints;
@@ -738,6 +744,40 @@ public class Talent {
 	public static final Talent GRAND_FINALE = new Talent("GRAND_FINALE", 3);
 	public static final Talent PREPARED = new Talent("PREPARED", 3);
 
+	// 恶魔之力（职业通用 T4）
+	public static final Talent GAZE_CARD = new Talent("GAZE_CARD", 4);
+	public static final Talent DATA_CLEANSE = new Talent("DATA_CLEANSE", 4);
+
+	// 收藏家 T4
+	public static final Talent CT_VENDETTA = new Talent("CT_VENDETTA", 4);
+	public static final Talent CT_LAST_STAND = new Talent("CT_LAST_STAND", 4);
+
+	// 空转大师 T4
+	public static final Talent MINIMALISM = new Talent("MINIMALISM", 4);
+	public static final Talent FANCY_SHUFFLE = new Talent("FANCY_SHUFFLE", 4);
+
+	// 陷阱师 T3
+	public static final Talent TRAP_CRAFT = new Talent("TRAP_CRAFT", 3);
+	public static final Talent SPIRIT_COORDINATION = new Talent("SPIRIT_COORDINATION", 3);
+	public static final Talent DECK_COMBO = new Talent("DECK_COMBO", 3);
+
+	// 陷阱师 T4
+	public static final Talent TRAP_MASTERY = new Talent("TRAP_MASTERY", 4);
+	public static final Talent CAREFUL_SELECTION = new Talent("CAREFUL_SELECTION", 4);
+
+	// 护甲技能天赋
+	public static final Talent SWIFT_STEP = new Talent("SWIFT_STEP", 4);
+	public static final Talent EMERGENCY_REPEAT = new Talent("EMERGENCY_REPEAT", 4);
+	public static final Talent MOMENTUM_TP = new Talent("MOMENTUM_TP", 4);
+
+	public static final Talent LONG_STORAGE = new Talent("LONG_STORAGE", 4);
+	public static final Talent BAG_EXPANSION = new Talent("BAG_EXPANSION", 4);
+	public static final Talent EFFECTIVE_USE = new Talent("EFFECTIVE_USE", 4);
+
+	public static final Talent HEAVY_REWARD = new Talent("HEAVY_REWARD", 4);
+	public static final Talent LINGERING = new Talent("LINGERING", 4);
+	public static final Talent EXTRA_BLESSING = new Talent("EXTRA_BLESSING", 4);
+
 	public static final Talent PLACEHOLDER_T3_1 = new Talent("PLACEHOLDER_T3_1", 3);
 	public static final Talent PLACEHOLDER_T3_2 = new Talent("PLACEHOLDER_T3_2", 3);
 	public static final Talent PLACEHOLDER_T3_3 = new Talent("PLACEHOLDER_T3_3", 3);
@@ -783,6 +823,84 @@ public class Talent {
 	public static class LethalMomentumTracker extends FlavourBuff{};
 	public static class StrikingWaveTracker extends FlavourBuff{};
 	public static class WandPreservationCounter extends CounterBuff{{revivePersists = true;}};
+
+	// 月华 4-2 月之辉煌：累计用掉的法杖充能，每满一档给身上的法杖随机回充能
+	public static class MoonGloryCounter extends CounterBuff{{revivePersists = true;}};
+
+	public static void onWandChargesSpent(Hero hero, int spent){
+		int points = hero.pointsInTalent(MOON_GLORY);
+		if (points <= 0 || spent <= 0) return;
+		int threshold = points >= 4 ? 10 : points == 3 ? 11 : 12;
+		int refund = points >= 2 ? 3 : 2;
+		MoonGloryCounter counter = Buff.affect(hero, MoonGloryCounter.class);
+		counter.countUp(spent);
+		while (counter.count() >= threshold) {
+			counter.countDown(threshold);
+			for (int i = 0; i < refund; i++) {
+				ArrayList<Wand> notFull = new ArrayList<>();
+				for (Wand w : hero.belongings.getAllItems(Wand.class)) {
+					if (w.curCharges < w.maxCharges) notFull.add(w);
+				}
+				if (notFull.isEmpty()) break;
+				Wand w = Random.element(notFull);
+				w.curCharges++;
+				w.updateQuickslot();
+			}
+		}
+	}
+
+	// 月华 4-1 光之永恒：被怪物打掉生命后 8 回合内自然回复加快，每次受击单独计时、效果叠加
+	public static class LightEternityRegen extends Buff {
+		{ type = buffType.POSITIVE; }
+
+		public static final float DURATION = 8f;
+		private ArrayList<Float> left = new ArrayList<>();
+
+		public void addStack(){
+			left.add(DURATION);
+		}
+
+		@Override
+		public boolean act() {
+			ArrayList<Float> next = new ArrayList<>();
+			for (float t : left) if (t - TICK > 0) next.add(t - TICK);
+			left = next;
+			if (left.isEmpty()) detach();
+			spend(TICK);
+			return true;
+		}
+
+		public static float regenMultiplier(Char ch){
+			LightEternityRegen buff = ch.buff(LightEternityRegen.class);
+			if (!(ch instanceof Hero) || buff == null) return 1f;
+			int points = ((Hero) ch).pointsInTalent(LIGHT_ETERNITY);
+			float rate = points >= 4 ? 0.40f : points == 3 ? 0.31f : points == 2 ? 0.23f : points == 1 ? 0.15f : 0f;
+			return 1f + rate * buff.left.size();
+		}
+
+		private static final String LEFT = "left";
+
+		@Override
+		public void storeInBundle(Bundle bundle) {
+			super.storeInBundle(bundle);
+			float[] arr = new float[left.size()];
+			for (int i = 0; i < arr.length; i++) arr[i] = left.get(i);
+			bundle.put(LEFT, arr);
+		}
+
+		@Override
+		public void restoreFromBundle(Bundle bundle) {
+			super.restoreFromBundle(bundle);
+			left = new ArrayList<>();
+			if (bundle.contains(LEFT)) for (float t : bundle.getFloatArray(LEFT)) left.add(t);
+		}
+	}
+
+	public static void onLightEternityHit(Hero hero, Char attacker){
+		if (hero.hasTalent(LIGHT_ETERNITY) && attacker instanceof Mob) {
+			Buff.affect(hero, LightEternityRegen.class).addStack();
+		}
+	}
 	public static class EmpoweredStrikeTracker extends FlavourBuff{
 		//blast wave on-hit doesn't resolve instantly, so we delay detaching for it
 		public boolean delayedDetach = false;
@@ -1001,6 +1119,12 @@ public class Talent {
 
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
 
+		// 天赋：弹射起步 —— 残废/冻伤可能在这之前就已经挂在身上了，
+		// 那种情况下不会重新 attach，所以点出天赋的当口补判一次
+		if (talent == CATAPULT_START) {
+			Wheelchair.tryTriggerCatapultStart(hero);
+		}
+
 		// Superstition by DoggingDog on 20250817
 		// 天赋：星界沟通
 		if(talent == SUPERSTITION){
@@ -1087,6 +1211,7 @@ public class Talent {
 	}
 
 	private static void handleCardTricksterTalent(Hero hero, Talent talent) {
+		if (suppressGain) return;
 		int points = hero.pointsInTalent(talent);
 		boolean cardHero = hero.heroClass == HeroClasses.CARDTRICKSTER;
 		com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDeck deck =
@@ -1094,11 +1219,7 @@ public class Talent {
 
 		if (cardHero) {
 			if (talent == FOOD_CARD) {
-				deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.smallRation());
-			} else if (talent == ADVANCED_FOOD) {
-				if (points == 1) {
-					deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.ration());
-				}
+				deck.addToTop(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.smallRation());
 			} else if (talent == IDENTIFY_CARD) {
 				if (points == 1) {
 					deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.identify());
@@ -1157,6 +1278,14 @@ public class Talent {
 						}
 					}
 				}
+			} else if (talent == GAZE_CARD) {
+				if (points == 1) {
+					deck.addToTop(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.gaze());
+				}
+			} else if (talent == MINIMALISM) {
+				deck.deletesLeft++;
+			} else if (talent == DATA_CLEANSE) {
+				deck.cleansesLeft++;
 			}
 			return;
 		}
@@ -1234,7 +1363,7 @@ public class Talent {
 		if (!(event.getTarget() instanceof Hero) || !(event.getSource() instanceof Mob)) return;
 		Hero hero = (Hero) event.getTarget();
 		if (!hero.hasTalent( BLOODY_VITAE )) return;
-		Buff.affect( hero, VitaeBuff.class ).setVitae( 2 + hero.pointsInTalent( BLOODY_VITAE ) );
+		Buff.affect( hero, VitaeBuff.class ).addVitae( 2 + hero.pointsInTalent( BLOODY_VITAE ) );
 	}
 
 	/** 受衅怒火：护盾从正值被打到 0 时授予（护盾全额吸收、没能扣到血也算）。 */
@@ -1575,8 +1704,8 @@ public class Talent {
 		if (hero.hasTalent(COMMON_SHOT) && hero.subClass == HeroSubClasses.SNIPER) {
 			if (!(hero.belongings.attackingWeapon() instanceof MissileWeapon)) {
 				int points = hero.pointsInTalent(COMMON_SHOT);
-				// +1: 33%, +2: 66%, +3: 100%
-				int chance = points * 33;
+				// +1: 33%, +2: 66%, +3: 100%（points * 33 在 +3 时是 99，不是说明写的「必定」）
+				int chance = points >= 3 ? 100 : points * 33;
 				if (Random.Int(100) < chance) {
 					Buff.prolong(enemy, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark.class, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark.DURATION).set(enemy.id(), Dungeon.hero.belongings.weapon() != null ? Dungeon.hero.belongings.weapon().buffedLvl() : 0);
 				}
@@ -1694,7 +1823,9 @@ public class Talent {
 		// 骰子法师特殊：清空 T3 通用，放入魔法学派，并附加魔力点数
 		if (cls == HeroSubClasses.DICE_MAGE){
 			talents.get(2).clear();
-			if (Dungeon.hero != null) Buff.affect(Dungeon.hero, MagicPoint.class);
+			//这个方法也被「转职说明」窗口拿来生成一份只用于展示的天赋表。
+			//只有在填的是英雄自己的天赋表（真的转职）时才发魔力点，否则看一眼说明身上就永久多一个魔力点状态
+			if (Dungeon.hero != null && talents == Dungeon.hero.talents) Buff.affect(Dungeon.hero, MagicPoint.class);
 		}
 
 		initTier(talents.get(2), cls.subclassT3(), new LinkedHashMap<>());
@@ -1804,10 +1935,13 @@ public class Talent {
 
 	//按名称查找天赋（用于存档反序列化），自动处理改名映射
 	public static Talent byName(String name){
-		if (renamedTalents.containsKey(name)){
-			name = renamedTalents.get(name);
+		//先按原名查：改名表是从原版带过来的，其中 ARMSMASTERS_INTUITION、ENERGIZING_UPGRADE 这两个「旧名字」
+		//在本项目里仍是正在使用的天赋，对应的新名字反而不存在。先走改名表的话这两个天赋永远查不到
+		Talent talent = nameToTalent.get(name);
+		if (talent == null && renamedTalents.containsKey(name)){
+			talent = nameToTalent.get(renamedTalents.get(name));
 		}
-		return nameToTalent.get(name);
+		return talent;
 	}
 
 	private static final HashMap<String, Talent> nameToTalent = new HashMap<>();

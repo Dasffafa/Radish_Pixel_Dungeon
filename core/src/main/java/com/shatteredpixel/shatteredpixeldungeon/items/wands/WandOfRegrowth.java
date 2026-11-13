@@ -311,7 +311,8 @@ public class WandOfRegrowth extends Wand {
 			//20 charges at base, plus:
 			//2/3.1/4.2/5.5/6.8/8.4/10.4/13.2/18.0/30.8/inf. charges per hero level, at wand level:
 			//0/1  /2  /3  /4  /5  /6   /7   /8   /9   /10
-			return Math.round(20 + heroLvl * (2+wndLvl) * (1f + (wndLvl/(50 - 5*wndLvl))));
+			//除数要按小数算：整数相除在 +8 以下恒为 0，升级预览里的上限就比实际的少了
+			return Math.round(20 + heroLvl * (2+wndLvl) * (1f + (wndLvl/(50 - 5f*wndLvl))));
 		}
 	}
 

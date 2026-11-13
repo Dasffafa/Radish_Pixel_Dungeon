@@ -7,6 +7,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.SphereSkin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -42,11 +44,14 @@ public class OrdinaryAttackDamage {
 		applyOutgoingModifiers(attacker, defender, info);
 		applyPreFinalModifiers(attacker, defender, info);
 		info.addPreFinalAddModifier(damageBonus, "attack bonus");
+		if (defender instanceof Mob && ((Mob) defender).surprisedBy(attacker)) {
+			info.addPreFinalAddModifier(LittleKnight.ambushBonus(attacker), "shield poke ambush");
+		}
 		applyFinalModifiers(attacker, defender, info);
 
-		// 圆球皮肤：近战伤害最终乘以 1.2（远程/投掷不生效）
+		// 圆球皮肤：仅普通近战武器或空手攻击最终伤害乘以 1.2。
 		if (attacker instanceof Hero && ((Hero) attacker).isSphereSkin()
-				&& !(sourceItem(attacker) instanceof MissileWeapon)) {
+				&& SphereSkin.isMeleeAttack(sourceItem(attacker))) {
 			info.addFinalMultModifier(1.2f, "sphere melee");
 		}
 
@@ -67,7 +72,7 @@ public class OrdinaryAttackDamage {
 
 		if (defender instanceof Hero) {
 			FatedDraw.FatedDrawTracker trackerD = defender.buff(FatedDraw.FatedDrawTracker.class);
-			if (trackerD != null && trackerD.remainingChecks > 0) {
+			if (trackerD != null && trackerD.ready()) {
 				trackerD.consume("defense_block");
 			}
 		}
@@ -85,12 +90,8 @@ public class OrdinaryAttackDamage {
 			}
 		}
 
-		if (includeBarkskin) {
-			Barkskin bark = defender.buff(Barkskin.class);
-			if (bark != null) {
-				dr += Random.NormalIntRange(0, bark.level());
-			}
-		}
+		// 树肤已经在 Char.drRoll() 里算过一次（和原版一致）；这里不能再加，否则树肤减伤翻倍。
+		// includeBarkskin 参数保留只是为了不改调用点的签名。
 
 		return dr;
 	}
@@ -117,7 +118,7 @@ public class OrdinaryAttackDamage {
 			}
 			if (attacker instanceof Hero) {
 				FatedDraw.FatedDrawTracker trackerA = attacker.buff(FatedDraw.FatedDrawTracker.class);
-				if (trackerA != null && trackerA.remainingChecks > 0) {
+				if (trackerA != null && trackerA.ready()) {
 					trackerA.consume("attack_damage");
 				}
 			}
@@ -171,6 +172,17 @@ public class OrdinaryAttackDamage {
 			}
 		}
 
+		// 心眼附魔：未暴击积累暴击率/暴击伤害，暴击后清空
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insight.MindEyeTracker insight = null;
+		if (weapon instanceof Weapon
+				&& ((Weapon) weapon).enchantment
+				instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insight) {
+			insight = Buff.affect(attacker,
+					com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insight.MindEyeTracker.class);
+			chance += insight.critChance;
+			multiplier += insight.critDamage;
+		}
+
 		if (!(attacker.buff(Calm.class) != null || attacker.buff(CriticalAttack.class) != null)) {
 			multiplier = Math.min(multiplier, attacker.critDamageCap());
 		}
@@ -193,6 +205,20 @@ public class OrdinaryAttackDamage {
 		if (Random.Float() * 100 < chance || critical
 				|| (attacker.rawCritDamage() >= 3 && attacker instanceof Hero && hero.buff(CriticalAttack.class) != null)) {
 			critical = true;
+		}
+
+		if (insight != null) {
+			if (critical) {
+				insight.detach();
+			} else {
+				insight.stacks++;
+				insight.critChance = Math.min(
+						com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insight.MAX_CRIT_CHANCE,
+						insight.critChance
+								+ com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insight.CRIT_CHANCE_PER_STACK);
+				insight.critDamage +=
+						com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Insight.CRIT_DAMAGE_PER_STACK;
+			}
 		}
 
 		return new CriticalRoll(damage, critical, multiplier);

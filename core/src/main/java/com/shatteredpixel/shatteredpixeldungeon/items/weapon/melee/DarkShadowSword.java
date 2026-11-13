@@ -25,8 +25,8 @@ public class DarkShadowSword extends MeleeWeapon {
             }
         }
         float speedBonus = (0.2f + 0.05f * level()) * visibleMobs;
-        delay = 1 - speedBonus;
-        return Math.max(0.25f, delay);
+        delay *= Math.max(0.25f, 1 - speedBonus);
+        return delay;
     }
 
     public String desc() {

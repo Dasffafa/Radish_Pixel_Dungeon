@@ -199,6 +199,8 @@ public class Drake extends Mob {
         return buffAdd;
     }
     public void stopHiding(){
+        //受伤、中负面状态现身时也要置位：否则贴身倒计时走完会再钻地一次，存档里也仍是「未现身」
+        isStopHiding = true;
         state = HUNTING;
         if (sprite != null) sprite.idle();
         if (Actor.chars().contains(this) && Dungeon.level.heroFOV[pos]) {
@@ -234,12 +236,14 @@ public class Drake extends Mob {
                         if (ch.pos == pos + i) {
                             Ballistica trajectory = new Ballistica(ch.pos, ch.pos + i, Ballistica.MAGIC_BOLT);
                             int strength = 2;
-                            throwChar(ch, trajectory, strength, false, true, getClass());
+                            //这里的 getClass() 是匿名回调类，排行榜查不到它的文案，死因要写亚龙本身
+                            throwChar(ch, trajectory, strength, false, true, Drake.class);
                             ch.damage(DamageInfo.of(Random.Int(10,25), DamageType.LIGHTNING, drake, this));
                                 GLog.w("\n"+Messages.get(Drake.class, "shock",ch.name()) );
                                 if(Dungeon.hero != null){
-                                    if(!Dungeon.hero.isAlive()){
-                                        Dungeon.fail(getClass());
+                                    //只在这次被掀飞的就是英雄且因此死亡时结算一次：对范围内每个角色都判一遍的话，英雄死后会重复提交排行榜记录
+                                    if(ch == Dungeon.hero && !ch.isAlive()){
+                                        Dungeon.fail(Drake.class);
                                         GLog.n('\n'+ Messages.get(Drake.class, "rock_punk_kill"));
                                     }
                                 }
@@ -262,19 +266,31 @@ public class Drake extends Mob {
 
     private static final String STOPHIDING	= "weapon";
 
+    //贴身倒计时也要存：否则读档会把已经开始的倒计时清掉，亚龙重新变回不会自己钻出来的石头
+    private static final String GOT_CLOSE = "got_close";
+    private static final String ULTIMATUM = "ultimatum";
+
     @Override
     public void storeInBundle( Bundle bundle ) {
         super.storeInBundle( bundle );
         bundle.put( STOPHIDING, isStopHiding );
+        bundle.put( GOT_CLOSE, gotClose );
+        bundle.put( ULTIMATUM, ultimatum );
     }
 
     @Override
     public void restoreFromBundle( Bundle bundle ) {
         super.restoreFromBundle( bundle );
         isStopHiding = bundle.getBoolean(STOPHIDING);
+        //旧存档没有这两个键，保持默认值（倒计时未开始）
+        if (bundle.contains(GOT_CLOSE)) gotClose = bundle.getBoolean(GOT_CLOSE);
+        if (bundle.contains(ULTIMATUM)) ultimatum = bundle.getInt(ULTIMATUM);
         if(isStopHiding){
             state = WANDERING;
-            alignment = Alignment.ENEMY;
         }
+        //阵营不进存档，读回来是初始的中立。没在潜伏的亚龙要和 act() 开头一样改回敌对，
+        //否则它在自己行动之前会显示成石头，点它触发的是钻地而不是攻击。
+        //buff 在 super 里已经挂回，腐化、魅惑设好的友方阵营不能在这里覆盖掉，所以只改中立的
+        if (alignment == Alignment.NEUTRAL && state != PASSIVE) alignment = Alignment.ENEMY;
     }
 }

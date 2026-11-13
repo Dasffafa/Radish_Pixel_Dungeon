@@ -93,6 +93,15 @@ public class CellSelector extends ScrollArea {
 			
 		} else {
 			
+			int cell = ((DungeonTilemap)target).screenToTile(
+				(int) event.current.x,
+				(int) event.current.y,
+				false );
+			if (cell == -1) {
+				select( -1, event.button );
+				return;
+			}
+
 			PointF p = Camera.main.screenToCamera( (int) event.current.x, (int) event.current.y );
 
 			//Prioritizes a sprite if it and a tile overlap, so long as that sprite isn't more than 4 pixels into another tile.
@@ -160,7 +169,9 @@ public class CellSelector extends ScrollArea {
 	}
 	
 	public void select( int cell, int button ) {
-		if (enabled && Dungeon.hero.ready && !GameScene.interfaceBlockingHero()
+		// PointerArea 的事件传播已经由 UI 控件的 blockLevel 和窗口 blocker 负责；
+		// 这里不要再次扫描窗口状态，否则同一个触碰事件会被两套路由规则重复裁决。
+		if (enabled && Dungeon.hero.ready
 				&& listener != null && cell != -1) {
 
 			switch (button){
@@ -191,6 +202,10 @@ public class CellSelector extends ScrollArea {
 	protected void onPointerDown( PointerEvent event ) {
 		camera.edgeScroll.set(-1);
 		if (curEvent == event) {
+			//每次按下都重置拖动状态：否则上一轮拖动结束后 dragging 仍是 true，
+			//下一次按下时第一个拖动事件会用上一轮的 lastPos 算差值，视图会整块跳走。
+			dragging = false;
+			lastPos.set(event.current);
 			longPressCandidate = !DeviceCompat.isDesktop() && event.button == PointerEvent.LEFT;
 			longPressStart = Game.timeTotal;
 		}

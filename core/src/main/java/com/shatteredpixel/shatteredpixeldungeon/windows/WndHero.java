@@ -147,7 +147,7 @@ public class WndHero extends WndTabbed {
 			Hero hero = Dungeon.hero;
 
 			IconTitle title = new IconTitle();
-			title.icon( HeroSprite.avatar(hero.heroClass, hero.tier()) );
+			title.icon( HeroSprite.avatar(hero.heroClass, hero.tier_for_image()) );
 			if (hero.name().equals(hero.className()))
 				title.label( Messages.get(this, "title", hero.lvl, hero.className() ).toUpperCase( Locale.ENGLISH ) );
 			else
@@ -231,7 +231,7 @@ public class WndHero extends WndTabbed {
 				int t_hour = t_all_sec / 3600;
 				int t_minute = (t_all_sec - t_hour * 3600) / 60;
 				int t_second = t_all_sec - t_hour * 3600 - t_minute * 60;
-				statSlot(M.L(HeroStat.class, "playtime"), String.format(Locale.ENGLISH, "%dd %dm %ds", t_hour, t_minute, t_second));
+				statSlot(M.L(HeroStat.class, "playtime"), String.format(Locale.ENGLISH, "%dh %dm %ds", t_hour, t_minute, t_second));
 			}
 			pos += GAP;
 
@@ -312,7 +312,7 @@ public class WndHero extends WndTabbed {
 				int t_minute = (t_all_sec - t_hour * 3600) / 60;
 				int t_second = t_all_sec - t_hour * 3600 - t_minute * 60;
 				statSlot(Icons.ABILITY_TIMES, M.L(HeroStat.class, "playtime"),
-						String.format(Locale.ENGLISH, "%dd %dm %ds", t_hour, t_minute, t_second), 0, false);
+						String.format(Locale.ENGLISH, "%dh %dm %ds", t_hour, t_minute, t_second), 0, false);
 				statSlot(Icons.ABILITY_TURNS, M.L(HeroStat.class, "turns"),
 						String.format(Locale.ENGLISH, "%.2f", Statistics.turnsPassed), WIDTH/2f, true);
 			}

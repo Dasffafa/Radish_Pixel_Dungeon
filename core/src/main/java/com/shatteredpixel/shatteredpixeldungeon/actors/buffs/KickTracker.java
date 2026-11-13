@@ -43,6 +43,7 @@ import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -98,9 +99,17 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     }
 
     @Override
-    public void doAction() {
-        // 执行踹飞
-        Hero hero = (Hero) target;
+    public boolean act() {
+        if (nearbyEnemies((Hero) target).size() < 3) {
+            detach();
+            ActionIndicator.clearAction(this);
+        } else {
+            spend(TICK);
+        }
+        return true;
+    }
+
+    private ArrayList<Char> nearbyEnemies(Hero hero) {
         ArrayList<Char> enemies = new ArrayList<>();
 
         // 检测周围3格内的敌人
@@ -112,9 +121,16 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
                 enemies.add(ch);
             }
         }
+        return enemies;
+    }
 
-        // 需要至少3个敌人
+    @Override
+    public void doAction() {
+        Hero hero = (Hero) target;
+        ArrayList<Char> enemies = nearbyEnemies(hero);
         if (enemies.size() < 3) {
+            detach();
+            ActionIndicator.clearAction(this);
             GLog.w(Messages.get(this, "not_enough_enemies"));
             return;
         }
@@ -156,10 +172,24 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
         int dy = enemy.pos / Dungeon.level.width() - hero.pos / Dungeon.level.width();
 
         // 目标位置：从敌人位置沿击退方向延伸
-        int targetPos = enemy.pos + dx * KICK_RANGE + dy * KICK_RANGE * Dungeon.level.width();
+        int targetX = enemy.pos % Dungeon.level.width() + dx * KICK_RANGE;
+        int targetY = enemy.pos / Dungeon.level.width() + dy * KICK_RANGE;
+        int targetPos;
+        if (targetX >= 0 && targetX < Dungeon.level.width() && targetY >= 0) {
+            //超出地图下沿不用另外处理：弹道只把目标下标换算回坐标来定方向，这时换算结果仍然正确
+            targetPos = targetX + targetY * Dungeon.level.width();
+        } else {
+            //横向出界的下标会绕到相邻的行，向上出界会变成负数，换算回坐标后方向是错的，敌人会被踹向不相干的方向。
+            //这时改用「英雄 -> 敌人」连线的延长线，取它在地图内的最后一格当目标
+            Ballistica toEnemy = new Ballistica(hero.pos, enemy.pos, Ballistica.STOP_TARGET);
+            targetPos = toEnemy.path.get(toEnemy.path.size() - 1);
+        }
 
         // 构建弹道轨迹（从敌人位置指向击退方向）
-        Ballistica trajectory = new Ballistica(enemy.pos, targetPos, Ballistica.PROJECTILE);
+        // 目标格只用来定方向，弹道不能在目标格停下：throwChar 把「弹道在击退距离之内结束」当成撞到了东西，
+        // 而紧挨英雄的敌人目标格离它正好 3 格，带着「到目标就停」会让它在空地上也结算撞墙伤害和麻痹。
+        // 与震爆法杖自己的写法一致，只在墙和角色前停下
+        Ballistica trajectory = new Ballistica(enemy.pos, targetPos, Ballistica.MAGIC_BOLT);
 
         // 使用BlastWand的throwChar方法，power=KICK_RANGE表示踹飞3格
         // collideDmg=true 造成碰撞伤害
@@ -195,6 +225,14 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     public void detach() {
         super.detach();
         ActionIndicator.clearAction(this);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        //这个状态只有按下按钮用掉才会消失，读档后要把按钮放回去。
+        //不放的话状态还留在身上，checkKick 看到已有状态就不会再给，这次踹飞再也用不出来
+        ActionIndicator.setAction(this);
     }
 
     @Override

@@ -330,7 +330,7 @@ public class Shopkeeper extends NPC {
 					@Override
 					protected boolean enabled(int index) {
 						if (index > 1){
-							return Dungeon.gold >= buybackItems.get(index-2).value()*3;
+							return Dungeon.gold >= buybackItems.get(index-2).value()*2;
 						} else {
 							return super.enabled(index);
 						}

@@ -47,6 +47,17 @@ public class DesktopLauncher {
 
 	public static void main (String[] args) {
 
+		//把未捕获异常写进 crash.log，方便定位闪退
+		Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+			try {
+				java.io.PrintWriter pw = new java.io.PrintWriter("crash.log", "UTF-8");
+				throwable.printStackTrace(pw);
+				pw.close();
+			} catch (Exception ignored) {
+			}
+			throwable.printStackTrace();
+		});
+
 		if (!DesktopLaunchValidator.verifyValidJVMState(args)){
 			return;
 		}

@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroAction;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
@@ -157,7 +158,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	public boolean act() {
 		if (target.invisible > 0){
 			turnsInvis++;
-			if (AttackLevel.getLvl(turnsInvis).blinkDistance() > 0 && target == Dungeon.hero){
+			if (!isShadowSurprise() && AttackLevel.getLvl(turnsInvis).blinkDistance() > 0 && target == Dungeon.hero){
 				ActionIndicator.setAction(this);
 			}
 			spend(TICK);
@@ -182,7 +183,13 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	}
 
 	public boolean canKO( Char defender ){
-		return !defender.isInvulnerable(target.getClass()) && AttackLevel.getLvl(turnsInvis).canKO(defender);
+		return !isShadowSurprise() && !defender.isInvulnerable(target.getClass())
+				&& AttackLevel.getLvl(turnsInvis).canKO(defender);
+	}
+
+	private boolean isShadowSurprise() {
+		return target instanceof Hero && ((Hero) target).subClass
+				== com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER;
 	}
 
 	/**
@@ -273,7 +280,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 		super.restoreFromBundle(bundle);
 		turnsInvis = bundle.getInt(TURNS);
 		stay=bundle.getBoolean("do_you_stay");
-		ActionIndicator.setAction(this);
+		if (!isShadowSurprise()) ActionIndicator.setAction(this);
 	}
 
 	@Override
@@ -316,6 +323,7 @@ public class Preparation extends Buff implements ActionIndicator.Action {
 	
 	@Override
 	public void doAction() {
+		if (isShadowSurprise()) return;
 		GameScene.selectCell(attack);
 	}
 	

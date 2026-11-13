@@ -19,14 +19,22 @@ public class ShadowBooks extends MeleeWeapon {
 
     @Override
     public boolean doEquip( Hero hero ) {
-        Buff.affect(hero, ShadowProject.class);
-        return super.doEquip(hero);
+        // 装备可能失败（手里是脱不下来的诅咒武器、村正狂热），确认装上了再挂 buff
+        if (super.doEquip(hero)) {
+            Buff.affect(hero, ShadowProject.class);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean doUnequip(Hero hero, boolean collect, boolean single) {
-        Buff.detach(hero, ShadowProject.class);
-        return super.doUnequip(hero, collect, single);
+        // 同理，卸不下来（诅咒）时 buff 要留着
+        if (super.doUnequip(hero, collect, single)) {
+            Buff.detach(hero, ShadowProject.class);
+            return true;
+        }
+        return false;
     }
 
     public static class ShadowProject extends Buff {
@@ -37,13 +45,22 @@ public class ShadowBooks extends MeleeWeapon {
 
         @Override
         public boolean act() {
-            ShadowBooks w2 = (ShadowBooks) hero.belongings.weapon;
-            if (w2 != null) {
-            			w2.chance = (int) (1 + 0.2*w2.buffedLvl());
-            		}
+            // 主手不一定是幻影之书：旧存档里可能留着装备失败时挂上的 buff，直接强转会崩溃
+            if (target instanceof Hero && ((Hero) target).belongings.weapon instanceof ShadowBooks) {
+                ShadowBooks w2 = (ShadowBooks) ((Hero) target).belongings.weapon;
+                w2.chance = w2.mirrorCasts();
+            } else {
+                detach();
+                return true;
+            }
             spend(TICK);
             return true;
         }
+    }
+
+    // 每读一张卷轴施放几次镜像，与 Scroll 里实际使用的公式一致
+    private int mirrorCasts() {
+        return (int) (1 + 0.2*level());
     }
 
     @Override
@@ -78,7 +95,8 @@ public class ShadowBooks extends MeleeWeapon {
         String desc;
 
         if(isIdentified()){
-            desc = Messages.get(this, "desc", chance);
+            // 数字现算：从没装备过的书 chance 字段还是 0；每次施放实际生成 2 个镜像
+            desc = Messages.get(this, "desc", 2 * mirrorCasts());
         } else {
             desc = Messages.get(this, "normal_desc",1);
         }

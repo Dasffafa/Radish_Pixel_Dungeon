@@ -68,7 +68,9 @@ public class TestArmor extends TestGenerator {
     }
 
     private void createArmor(){
-        Armor armor = Reflection.newInstance(armorList(tier)[armor_id]);
+        // 切换阶数后 armor_id 可能还停在上一阶更长的列表里，取用时和界面显示一样收到末项
+        Class<? extends Armor>[] list = armorList(tier);
+        Armor armor = Reflection.newInstance(list[Math.min(armor_id, list.length - 1)]);
         armor = modifyArmor(armor);
         armor.identify();
         if(armor.collect()){
@@ -123,6 +125,7 @@ public class TestArmor extends TestGenerator {
             case 4:
                 return (Class<? extends Armor>[]) Generator.Category.ARM_T4.classes.clone();
             case 5:
+                // ARM_T5 里还混着概率为 0 的职业护甲，生成器只列自然掉落的那几件
                 return (Class<? extends Armor>[]) Generator.Category.ARM_T5_NATURE.classes.clone();
         }
     }
@@ -139,11 +142,7 @@ public class TestArmor extends TestGenerator {
     }
 
     private int maxSlots(int t){
-        switch (t){
-            case 1:return 1;
-            case 2: case 4:
-            case 3: case 5: default:return 3;
-        }
+        return armorList(t).length;
     }
 
     private class SettingsWindow extends Window {
@@ -218,7 +217,13 @@ public class TestArmor extends TestGenerator {
             o_enchant_rarity.setSelectedValue(enchant_rarity);
             add(o_enchant_rarity);
 
-            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", "7", 0, 7) {
+            int maxGlyphId = 0;
+            for (int i = 1; i < GLYPH_LISTS.length; i++) {
+                if (GLYPH_LISTS[i] != null) {
+                    maxGlyphId = Math.max(maxGlyphId, GLYPH_LISTS[i].length - 1);
+                }
+            }
+            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", Integer.toString(maxGlyphId), 0, maxGlyphId) {
                 @Override
                 protected void onChange() {
                     enchant_id = getSelectedValue();

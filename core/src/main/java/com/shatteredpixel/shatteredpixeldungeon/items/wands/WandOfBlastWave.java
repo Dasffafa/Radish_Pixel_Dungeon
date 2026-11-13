@@ -91,17 +91,29 @@ public class WandOfBlastWave extends DamageWand {
 		}
 
 		//throws other chars around the center.
+		final int w = Dungeon.level.width();
+		final int cx = bolt.collisionPos % w;
+		final int cy = bolt.collisionPos / w;
+
 		for (int i  : PathFinder.NEIGHBOURS8){
-			Char ch = Actor.findChar(bolt.collisionPos + i);
+			int cell = bolt.collisionPos + i;
+			if (!Dungeon.level.insideMap(cell)) continue;
+
+			//NEIGHBOURS8 是行优先的偏移，贴着地图左右边界时会绕到上一行/下一行去，
+			//必须先确认这个格子真的和中心相邻，否则会推出错误方向、甚至推出墙外
+			if (Math.abs(cell % w - cx) > 1 || Math.abs(cell / w - cy) > 1) continue;
+
+			Char ch = Actor.findChar(cell);
 
 			if (ch != null){
 				wandProc(ch, chargesPerCast());
 				if (ch.alignment != Char.Alignment.ALLY) ch.damage(new DamageInfo(damageRoll(), DamageType.MAGICAL, curUser, this, this));
 
-				if (ch.pos == bolt.collisionPos + i) {
-					Ballistica trajectory = new Ballistica(ch.pos, ch.pos + i, Ballistica.MAGIC_BOLT);
-					int strength = 1 + Math.round(buffedLvl() / 2f);
-					throwChar(ch, trajectory, strength, false, true, this);
+				if (ch != Dungeon.hero && ch.pos == cell) {
+					//方向由「中心 -> 这只怪」的坐标差决定，确保是从中心向外
+					int dx = Integer.compare(cell % w, cx);
+					int dy = Integer.compare(cell / w, cy);
+					pushOutward(ch, ch.pos + dx + dy * w, 1 + Math.round(buffedLvl() / 2f));
 				}
 
 			}
@@ -113,13 +125,22 @@ public class WandOfBlastWave extends DamageWand {
 			wandProc(ch, chargesPerCast());
 			ch.damage(new DamageInfo(damageRoll(), DamageType.MAGICAL, curUser, this, this));
 
-			if (bolt.path.size() > bolt.dist+1 && ch.pos == bolt.collisionPos) {
+			//方向取弹道越过爆心后的下一格（原版写法），目标顺着弹道的延伸方向飞出去。
+			//弹道路径只收地图内的格子且逐格相邻，这一格不会越界也不会绕行，不用再按坐标推算
+			if (ch != Dungeon.hero && bolt.path.size() > bolt.dist+1 && ch.pos == bolt.collisionPos) {
 				Ballistica trajectory = new Ballistica(ch.pos, bolt.path.get(bolt.dist + 1), Ballistica.MAGIC_BOLT);
 				int strength = buffedLvl() + 3;
 				throwChar(ch, trajectory, strength, false, true, this);
 			}
 		}
 
+	}
+
+	//朝 next 这个格子所在方向把人推出去；next 出界或就是原地时不动
+	private void pushOutward(Char ch, int next, int strength){
+		if (!Dungeon.level.insideMap(next) || next == ch.pos) return;
+		Ballistica trajectory = new Ballistica(ch.pos, next, Ballistica.MAGIC_BOLT);
+		throwChar(ch, trajectory, strength, false, true, this);
 	}
 
 	public static void throwChar(final Char ch, final Ballistica trajectory, int power,
@@ -150,6 +171,18 @@ public class WandOfBlastWave extends DamageWand {
         int dist = Math.min(trajectory.dist, power);
 
 		boolean collided = dist == trajectory.dist;
+
+		//途经和落点都必须能站人，否则停在它前一格并算撞墙。
+		//「能站人」要和 Ballistica 一样按 passable 或 avoid 算：深渊、可见陷阱、水井都是 avoid 而不是 passable，
+		//只按 passable 判的话任何击退都落不到深渊格上，谁也推不下去
+		for (int i = 1; i <= dist; i++) {
+			int cell = trajectory.path.get(i);
+			if (!Dungeon.level.passable[cell] && !Dungeon.level.avoid[cell]){
+				dist = i-1;
+				collided = true;
+				break;
+			}
+		}
 
 		if (dist <= 0
 				|| ch.rooted

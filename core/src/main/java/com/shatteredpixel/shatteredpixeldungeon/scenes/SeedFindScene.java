@@ -42,6 +42,14 @@ import java.util.Arrays;
 
 public class SeedFindScene extends PixelScene {
 
+    //正在进行（或最近一次）的搜索。搜索在后台线程里最长跑 20 秒，离开界面时要把它停掉
+    private SeedFinder finder;
+
+    //搜索开始前「自定义种子」设置的值，null 表示没有需要还原的。
+    //搜索是借这个设置逐个试种子的：没找到（超时）或中途离开时不还原的话，最后试的那个种子会留在设置里，
+    //玩家下一局就在不知情的情况下成了自定义种子局（拿不到徽章）。找到了则照旧把找到的种子留下
+    private String seedBeforeSearch = null;
+
     @Override
     public void create() {
         super.create();
@@ -91,7 +99,9 @@ public class SeedFindScene extends PixelScene {
                             NumberFormatException e) {
                     }
                 }*/
-                if (positive && text != "") {
+                //这里原来写的是 text != ""，比较的是引用：输入框交回来的空串不是同一个对象，
+                //什么都没填也会开始搜索，而空串能匹配任何物品名
+                if (positive && !text.trim().isEmpty()) {
                     String[] itemList = Arrays.copyOfRange(text.split("\n"), 0, text.split("\n").length);
 
                     Component content = list.content();
@@ -108,7 +118,10 @@ public class SeedFindScene extends PixelScene {
                     list.scrollTo(0, 0);
 
                     // 异步搜索
-                    final SeedFinder finder = new SeedFinder();
+                    finder = new SeedFinder();
+                    seedBeforeSearch = SPDSettings.customSeed();
+                    final String notFound = Messages.get(SeedFinder.class, "not_found");
+                    final String timeout = Messages.get(SeedFinder.class, "timeout");
                     final ScrollPane finalList = list;
                     final Component finalContent = content;
                     final float finalColWidth = colWidth;
@@ -117,6 +130,18 @@ public class SeedFindScene extends PixelScene {
                     finder.findSeedAsync(itemList, floor+1, result -> {
                         // 回到主线程更新UI
                         Gdx.app.postRunnable(() -> {
+                            //结果回来时玩家可能已经离开了这个界面：界面销毁后再往里面加东西会空指针
+                            if (ShatteredPixelDungeon.scene() != SeedFindScene.this) return;
+
+                            if (result.equals(notFound) || result.equals(timeout)) {
+                                //超时只是打断搜索线程，这里再明确叫停一次，确保它不会在还原之后接着试下一个种子
+                                finder.cancelSearch();
+                                restoreSeed();
+                            } else {
+                                //找到了：找到的种子留在设置里，不还原
+                                seedBeforeSearch = null;
+                            }
+
                             Component c = finalList.content();
                             c.clear();
 
@@ -148,6 +173,24 @@ public class SeedFindScene extends PixelScene {
     @Override
     protected void onBackPressed() {
         ShatteredPixelDungeon.switchScene(TitleScene.class);
+    }
+
+    @Override
+    public void destroy() {
+        //搜索还在跑的话停掉它（它每试一个种子都要重建一遍 Dungeon 的静态状态，不能让它跑到别的界面里去），
+        //并把它借用的「自定义种子」设置还原
+        if (finder != null) {
+            finder.cancelSearch();
+        }
+        restoreSeed();
+        super.destroy();
+    }
+
+    private void restoreSeed() {
+        if (seedBeforeSearch != null) {
+            SPDSettings.customSeed(seedBeforeSearch);
+            seedBeforeSearch = null;
+        }
     }
 
     private void addLine(float y, Group content) {

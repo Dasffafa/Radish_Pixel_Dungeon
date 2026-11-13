@@ -237,6 +237,12 @@ public abstract class ItemArmorAttachable extends Item {
 			ItemArmorAttachable toy = (ItemArmorAttachable) curItem;
 			if (item instanceof Armor) {
 				Armor armor = (Armor) item;
+				//原版的限制，搬到这个基类时丢了：没鉴定等级的护甲不能贴纹章。
+				//贴上之后护甲说明里的「提供 N 点护盾」= 阶数 + 真实等级，等于免费看到等级
+				if (toy instanceof BrokenSeal && !armor.levelKnown) {
+					GLog.w(Messages.get(BrokenSeal.class, "unknown_armor"));
+					return;
+				}
 				armor.requestAttachToy(Dungeon.hero, toy);
 				Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.UNLOCK);
 			}

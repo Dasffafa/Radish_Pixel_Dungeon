@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 public class FlashBangBomb extends Bomb {
-	
+
 	{
 		image = ItemSpriteSheet.FLASHBANG;
 	}
@@ -87,7 +87,7 @@ public class FlashBangBomb extends Bomb {
 		Dungeon.hero.sprite.parent.addToFront(new Lightning(arcs, null));
 		Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 	}
-	
+
 	@Override
 	public int value() {
 		//prices of ingredients

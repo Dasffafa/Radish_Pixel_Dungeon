@@ -69,7 +69,8 @@ public class Barkskin extends Buff {
 			if (target == Dungeon.hero){
 				Buff ben=Dungeon.hero.buff(RingOfBenediction.Benediction.class);
 				if (ben!=null){
-					interval=(int)(interval*RingOfBenediction.periodMultiplier(target));
+					//never let the interval reach 0: act() would then burn every level in the same instant
+					interval=Math.max(1, (int)(interval*RingOfBenediction.periodMultiplier(target)));
 				}
 			}
 			spend(interval - cooldown() - 1);

@@ -100,7 +100,7 @@ public class QuickRecipe extends Component {
 	public QuickRecipe(Recipe r, ArrayList<Item> inputs, final Item output) {
 
 		ingredients = inputs;
-		int cost = r.cost(inputs);
+		int cost = r.energyCost(inputs);
 		boolean hasInputs = true;
 		this.inputs = new ArrayList<>();
 		for (final Item in : inputs) {

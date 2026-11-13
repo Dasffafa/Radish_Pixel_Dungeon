@@ -47,6 +47,7 @@ public class CelestialSphere extends MeleeWeapon {
      */
     @Override
     public void modifyDamageInfo(Char attacker, Char defender, DamageInfo info) {
+        super.modifyDamageInfo(attacker, defender, info);
         info.setSource(new DM100.LightningBolt());
     }
 

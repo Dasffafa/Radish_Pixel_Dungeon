@@ -83,7 +83,10 @@ public class Blueprint extends Scroll {
 			detach(curUser.belongings.backpack);
 			Invisibility.dispel();
 			curUser.spendAndNext( TIME_TO_READ*2 );
-			curUser.sprite.attack(dm100.pos);
+			// 只播挥手动画：不带回调的 attack() 播完会进 Hero.onAttackComplete()，
+			// 对上一次攻击过的目标再结算一次真实攻击并多 spend 一次攻击耗时
+			final com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero user = curUser;
+			user.sprite.attack(dm100.pos, () -> user.sprite.idle());
 			Catalog.countUse(getClass());
 
 		} else GLog.w(Messages.get(this, "no_metal"));

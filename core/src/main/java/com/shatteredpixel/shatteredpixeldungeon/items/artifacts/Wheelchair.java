@@ -9,6 +9,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairRush;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CatapultStartBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CatapultStartCooldown;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairCrashBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Speed;
@@ -25,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.events.BeforeHeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
@@ -72,6 +76,9 @@ public class Wheelchair extends Artifact {
         if (hero.buff(MagicImmune.class) != null) {
             return actions;
         }
+        // 兜底：残废/冻伤可能早于天赋获得（此时不会重新 attach），
+        // 也可能读档回来时状态与天赋并存，所以每次打开轮椅菜单都补判一次
+        tryTriggerCatapultStart(hero);
         if (isEquipped(hero) && (charge > 0 || canRideWithoutCharge(hero)) && !cursed) {
             actions.add(AC_RIDE);
         }
@@ -102,6 +109,9 @@ public class Wheelchair extends Artifact {
         if (action.equals(AC_RIDE)) {
             curUser = hero;
 
+            // 同上兜底：快捷键/快捷栏直接触发 AC_RIDE 时不会走 actions()
+            tryTriggerCatapultStart(hero);
+
             if (!isEquipped(hero)) {
                 GLog.i(Messages.get(Artifact.class, "need_to_equip"));
                 usesTargeting = false;
@@ -127,6 +137,27 @@ public class Wheelchair extends Artifact {
 
     private boolean canRideWithoutCharge(Hero hero) {
         return hero.buff(CatapultStartBuff.class) != null;
+    }
+
+    /**
+     * 弹射起步（Talent.CATAPULT_START）触发的唯一入口。
+     * 条件：天赋已点、身上背着轮椅、未在冷却、且当前有残废或冻伤。
+     * 触发后给一个限时的免费乘车窗口 + 进入 50 回合冷却。
+     * 单独抽成静态方法是因为触发点有多处：Cripple/Frost 首次附加、点出天赋的那一刻、
+     * 以及打开/使用轮椅时的兜底（状态先于天赋获得、或读档后两者并存）。
+     */
+    public static boolean tryTriggerCatapultStart(Hero hero) {
+        if (hero == null) return false;
+        if (hero.pointsInTalent(Talent.CATAPULT_START) < 1) return false;
+        if (equippedOn(hero) == null) return false;
+        if (hero.buff(CatapultStartCooldown.class) != null) return false;
+        if (hero.buff(Cripple.class) == null && hero.buff(Frost.class) == null) return false;
+
+        // 用 prolong：若窗口仍在（例如刚吃过残废又吃冻伤）则把它重新顶到满
+        Buff.prolong(hero, CatapultStartBuff.class, CatapultStartBuff.DURATION);
+        Buff.affect(hero, CatapultStartCooldown.class, CatapultStartCooldown.DURATION);
+        GLog.p(Messages.get(Wheelchair.class, "catapult_triggered"));
+        return true;
     }
 
     // 执行轮椅翻车
@@ -169,6 +200,8 @@ public class Wheelchair extends Artifact {
         WandOfBlastWave.BlastWave.blast(hero.pos, 5);
         // 对5x5范围内敌人造成伤害（使用副本避免 ConcurrentModificationException）
         for (Mob mob : new ArrayList<>(Dungeon.level.mobs)) {
+            // 天赋说明写的是「范围内的敌人」：友方单位（召唤物、被腐化的怪）不该挨这一下
+            if (mob.alignment == hero.alignment) continue;
             if (Dungeon.level.distance(hero.pos, mob.pos) <= 2) {
                 // 2格距离是5x5范围
                 mob.damage(new DamageInfo(damage, DamageType.PHYSICAL, hero, this, this));
@@ -213,6 +246,15 @@ public class Wheelchair extends Artifact {
     // 充能上限：3 + 等级，最大10
     public int maxCharge() {
         return Math.min(10, 3 + level());
+    }
+
+    @Override
+    public Item upgrade() {
+        super.upgrade();
+        // 读档时 Item 先按等级逐级调用 upgrade()，随后 Artifact 才用 chargeCap 去夹存档里的充能。
+        // 上限不在这里跟着等级走的话，那一刻它还是初始的 3，高于 3 的充能每次读档都会被削掉。
+        chargeCap = maxCharge();
+        return this;
     }
 
     private CellSelector.Listener rideTargeter = new CellSelector.Listener() {
@@ -369,13 +411,25 @@ public class Wheelchair extends Artifact {
     }
 
     /**
+     * 英雄身上装备着的轮椅，没有则为 null。
+     * 轮椅是神器，神器栏被别的神器占着时会装进杂项栏，所以两个栏位都要认。
+     * 读原始字段而不是 artifact() / misc()：遗失背包期间这两个访问器返回 null，
+     * 月华会因此一步也走不了、捡不回背包。
+     */
+    private static Wheelchair equippedOn(Hero hero) {
+        if (hero.belongings.artifact instanceof Wheelchair) return (Wheelchair) hero.belongings.artifact;
+        if (hero.belongings.misc instanceof Wheelchair) return (Wheelchair) hero.belongings.misc;
+        return null;
+    }
+
+    /**
      * 月华没有强壮体质天赋且没有装备轮椅时就不能移动，这是猫叠的恶趣味
      */
     @SubscribeEvent(event = BeforeHeroMoveEvent.class)
     public static void onBeforeHeroMove(BeforeHeroMoveEvent event) {
         Hero hero = event.getHero();
         if (hero.heroClass == HeroClasses.MOONLIGHT && hero.pointsInTalent(Talent.STRONG_BODY) == 0) {
-            if (!(hero.belongings.artifact instanceof Wheelchair)) {
+            if (equippedOn(hero) == null) {
                 GLog.w(Messages.get(hero, "wheelchair_needed"));
                 event.cancel();
             }
@@ -391,8 +445,8 @@ public class Wheelchair extends Artifact {
         Hero hero = event.getHero();
 
         // 升级逻辑：仅当装备轮椅时执行
-        if (hero.belongings.artifact instanceof Wheelchair) {
-            Wheelchair wheelchair = (Wheelchair) hero.belongings.artifact;
+        Wheelchair wheelchair = equippedOn(hero);
+        if (wheelchair != null) {
             if (wheelchair.cursed) return;
 
             wheelchair.moveDistance++;

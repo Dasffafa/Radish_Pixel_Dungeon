@@ -44,7 +44,10 @@ public class PotionOfStrength extends Potion {
 		identify();
 
 		hero.STR++;
-		hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, "1", FloatingText.STRENGTH);
+		// 炼金等界面里英雄 sprite 可能尚未创建，需判空
+		if (hero.sprite != null) {
+			hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, "1", FloatingText.STRENGTH);
+		}
 
 		GLog.p( Messages.get(this, "msg", hero.STR()) );
 		

@@ -126,7 +126,8 @@ public class TestArtifact extends TestGenerator {
     private static ArrayList<Class<? extends Artifact>> artifactList = new ArrayList<Class<? extends Artifact>>();
     private void buildArtifactArray(){
         if(!artifactList.isEmpty()) return;
-        for(int i=0;i<15;++i){
+        // idToArtifact 里有 0~15 共 16 项。以前这里只取到 14，排在最后的精英徽章没有图标，永远选不到
+        for(int i=0;i<16;++i){
             artifactList.add(idToArtifact(i));
         }
     }

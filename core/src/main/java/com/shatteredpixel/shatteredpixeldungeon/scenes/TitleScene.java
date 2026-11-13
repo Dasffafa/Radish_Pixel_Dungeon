@@ -210,32 +210,55 @@ public class TitleScene extends PixelScene {
 
 		add( version );
 
+		// 按钮区宽度固定成破碎原版的版心宽度并居中，不再跟着 logo 宽度走（高倍缩放下 logo 很宽，会把按钮撑出屏幕）
+		float contentWidth = Math.min(w - 8,
+				landscape() ? PixelScene.MIN_WIDTH_L - 6 : PixelScene.MIN_WIDTH_P - 2);
+		contentWidth = Math.max(contentWidth, 80);
+		float left = (w - contentWidth) / 2f;
+		if (left < 4) left = 4;
+
+		float halfW = (contentWidth - 2) / 2f;
+		float quarterW = (contentWidth - 6) / 4f;
+
+		// 行数固定：横屏 3 行、竖屏 6 行；空间不够时整体上移，保证最下面一行不会被屏幕截掉，
+		// 并且要给右下角的版本号留出高度，否则最后一行按钮会压住它
+		int rows = landscape() ? 3 : 6;
+		int need = rows * BTN_HEIGHT + (rows - 1) * GAP;
+		float bottomLimit = h - 4 - version.height() - 2;
+		float btnTop = topRegion + GAP;
+		if (btnTop + need > bottomLimit) {
+			btnTop = Math.max(2, bottomLimit - need);
+		}
+
 		if (landscape()) {
-			btnPlay.setRect(title.x-90, topRegion+GAP, ((title.width()+180)/2)-1, BTN_HEIGHT);
+			btnPlay.setRect(left, btnTop, halfW, BTN_HEIGHT);
 			align(btnPlay);
-			btnRankings.setRect(btnPlay.left(), btnPlay.bottom()+ GAP, (btnPlay.width()*.5f)-1, BTN_HEIGHT);
-			btnSeedTest.setRect(btnRankings.right()+2, btnPlay.bottom()+ GAP, (btnPlay.width()*.5f)-1, BTN_HEIGHT);
-			btnSeedAnalysis.setRect(btnSeedTest.right()+2, btnPlay.bottom()+ GAP, (btnPlay.width()*.5f)-1, BTN_HEIGHT);
-			btnBadges.setRect(btnRankings.left(), btnRankings.bottom()+GAP, ((title.width()+180)/2)-1, BTN_HEIGHT);
-			//btnNews.setRect(btnRankings.right()+2, btnRankings.top(), btnRankings.width(), BTN_HEIGHT);
+			btnChanges.setRect(left + halfW + 2, btnTop, halfW, BTN_HEIGHT);
 
-			btnChanges.setRect(btnPlay.right()+2, btnPlay.top(), ((title.width()+180)/2)-1, BTN_HEIGHT);
+			btnRankings.setRect(left, btnPlay.bottom() + GAP, quarterW, BTN_HEIGHT);
+			btnBadges.setRect(btnRankings.right() + 2, btnRankings.top(), quarterW, BTN_HEIGHT);
+			btnSeedTest.setRect(btnBadges.right() + 2, btnRankings.top(), quarterW, BTN_HEIGHT);
+			btnSeedAnalysis.setRect(btnSeedTest.right() + 2, btnRankings.top(), quarterW, BTN_HEIGHT);
 
-			btnSettings.setRect(btnSeedAnalysis.right()+2, btnPlay.bottom()+ GAP, (btnPlay.width()*.5f)-1, BTN_HEIGHT);
-			btnAbout.setRect(btnSeedAnalysis.left(), btnSeedAnalysis.bottom() + GAP, ((title.width()+180)/2)-1, BTN_HEIGHT);
-			seed.setRect(10, 0, seedWidth, seedHeight);
+			btnSettings.setRect(left, btnRankings.bottom() + GAP, quarterW, BTN_HEIGHT);
+			btnAbout.setRect(btnSettings.right() + 2, btnSettings.top(), quarterW, BTN_HEIGHT);
+			seed.setRect(left + 2*(quarterW + 2), btnSettings.top(), contentWidth - 2*(quarterW + 2), BTN_HEIGHT);
 		} else {
-			seed.setRect(10, version.y-10, seedWidth, seedHeight);
-			btnPlay.setRect(title.x-5, topRegion+GAP, title.width()+10, BTN_HEIGHT);
+			btnPlay.setRect(left, btnTop, contentWidth, BTN_HEIGHT);
 			align(btnPlay);
-			btnRankings.setRect(btnPlay.left(), btnPlay.bottom()+ GAP, btnPlay.width(), BTN_HEIGHT);
-			btnBadges.setRect(btnRankings.left(), btnRankings.bottom()+ GAP, (btnPlay.width()/2)-1, BTN_HEIGHT);
-			//btnNews.setRect(btnRankings.left(), btnRankings.bottom()+ GAP, btnRankings.width(), BTN_HEIGHT);
-			btnChanges.setRect(btnBadges.right()+2, btnBadges.top(), btnBadges.width(), BTN_HEIGHT);
-			btnSettings.setRect(btnBadges.left(), btnBadges.bottom() +GAP, (btnPlay.width()/2)-1, BTN_HEIGHT);
-			btnAbout.setRect(btnSettings.right()+2, btnBadges.bottom() +GAP, (btnPlay.width()/2)-1, BTN_HEIGHT);
-			btnSeedTest.setRect(btnSettings.left(), btnSettings.bottom() +GAP, (btnPlay.width()/2)-1, BTN_HEIGHT);
-			btnSeedAnalysis.setRect(btnSeedTest.right()+2, btnSettings.bottom() +GAP, (btnPlay.width()/2)-1, BTN_HEIGHT);
+
+			btnRankings.setRect(left, btnPlay.bottom() + GAP, contentWidth, BTN_HEIGHT);
+
+			btnBadges.setRect(left, btnRankings.bottom() + GAP, halfW, BTN_HEIGHT);
+			btnChanges.setRect(left + halfW + 2, btnBadges.top(), halfW, BTN_HEIGHT);
+
+			btnSettings.setRect(left, btnBadges.bottom() + GAP, halfW, BTN_HEIGHT);
+			btnAbout.setRect(left + halfW + 2, btnSettings.top(), halfW, BTN_HEIGHT);
+
+			btnSeedTest.setRect(left, btnSettings.bottom() + GAP, halfW, BTN_HEIGHT);
+			btnSeedAnalysis.setRect(left + halfW + 2, btnSeedTest.top(), halfW, BTN_HEIGHT);
+
+			seed.setRect(left, btnSeedTest.bottom() + GAP, contentWidth, BTN_HEIGHT);
 		}
 
 		if (DeviceCompat.isDesktop()) {

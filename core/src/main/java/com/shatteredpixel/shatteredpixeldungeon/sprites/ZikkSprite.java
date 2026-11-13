@@ -38,7 +38,8 @@ public class ZikkSprite extends MobSprite {
 
     @Override
     public void attack( int cell ) {
-        if (!Dungeon.level.adjacent(cell, ch.pos)) {
+        //只有正好隔 3 格才是喷毒液；靠武器攻击距离或精英词缀在 2 格、4 格出手时是普通攻击，要走带回调的攻击动画
+        if (Dungeon.level.distance(cell, ch.pos) == 3) {
 
             MagicMissile.boltFromChar( parent,
                     MagicMissile.SHAMAN_PURPLE,

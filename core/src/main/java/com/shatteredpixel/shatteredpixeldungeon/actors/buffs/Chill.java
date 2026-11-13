@@ -22,6 +22,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -44,6 +46,10 @@ public class Chill extends FlavourBuff {
 	@Override
 	public boolean attachTo(Char target) {
 		Buff.detach( target, Burning.class );
+
+		if(target instanceof Hero){
+			Wheelchair.tryTriggerCatapultStart((Hero) target);
+		}
 
 		return super.attachTo(target);
 	}

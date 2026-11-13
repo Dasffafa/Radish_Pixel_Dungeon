@@ -64,16 +64,22 @@ public class RingOfCompression extends Ring {
 	@Override
 	public String statsInfo() {
 		if (isIdentified()) {
+			// 第二个参数是碰撞伤害倍率（1.25^等级），原先传的是等级本身，+0 戒指会显示成「1 倍」
 			int level = soloBuffedBonus();
-			String info = Messages.get(this, "stats", level, level);
+			String info = Messages.get(this, "stats", level, multiplierText(level));
 			if (isEquippedDungeonHero() && soloBuffedBonus() != combinedBuffedBonusDungeonHero()) {
 				level = combinedBuffedBonusDungeonHero();
-				info += "\n\n" + Messages.get(this, "combined_stats", level, level);
+				info += "\n\n" + Messages.get(this, "combined_stats", level, multiplierText(level));
 			}
 			return info;
 		} else {
 			return Messages.get(this, "typical_stats");
 		}
+	}
+
+	// 与 collisionDamageMultiplier 同一套算法：等级不大于 0 时倍率是 1
+	private static String multiplierText(int level) {
+		return Messages.decimalFormat("#.##", level <= 0 ? 1.0 : Math.pow(1.25, level));
 	}
 
 	// 辅助方法，避免空指针

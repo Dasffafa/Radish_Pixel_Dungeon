@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CrossLevelChallenge
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
@@ -176,6 +177,13 @@ public abstract class Level implements Bundlable {
 
 	public ArrayList<LevelTransition> transitions;
 
+	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor> specialDoors = new java.util.HashMap<>();
+
+	/** 测试支线入口楼梯所在格（-1 表示没有） */
+	public int testPortalCell = -1;
+
+	public java.util.HashMap<Integer, com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair> specialStairs = new java.util.HashMap<>();
+
 	//when a boss level has become locked.
 	public boolean locked = false;
 
@@ -307,6 +315,14 @@ public abstract class Level implements Bundlable {
 							feeling = Feeling.NONE;
 						}
 				}
+
+				//支线最后一层不能是「深渊层」：深渊层整张图先填满深渊、房间画在中间，
+				//而这一层下面没有可掉的层，convertChasmOnBranchEnd 会把所有深渊改成地板——
+				//房间外的整片虚空就成了一直铺到地图最外圈的空地（连边界那一行也画成地板）。
+				//放在抽完之后再改：随机数的消耗不变，没抽到深渊层的种子生成结果和以前完全一样。
+				if (feeling == Feeling.CHASM && isBranchEnd()) {
+					feeling = Feeling.NONE;
+				}
 			}
 		}
 
@@ -314,6 +330,8 @@ public abstract class Level implements Bundlable {
 			width = height = length = 0;
 
 			transitions = new ArrayList<>();
+			specialDoors = new java.util.HashMap<>();
+			specialStairs = new java.util.HashMap<>();
 
 			mobs = new HashSet<>();
 			heaps = new SparseArray<>();
@@ -331,6 +349,7 @@ public abstract class Level implements Bundlable {
 
 		buildFlagMaps();
 		cleanWalls();
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.applyLevelFlags(this);
 
 		createMobs();
 		createItems();
@@ -399,6 +418,26 @@ public abstract class Level implements Bundlable {
 		traps = new SparseArray<>();
 		customTiles = new HashSet<>();
 		customWalls = new HashSet<>();
+
+		specialDoors = new java.util.HashMap<>();
+		if (bundle.contains("special_doors")) {
+			for (com.watabou.utils.Bundlable b : bundle.getCollection("special_doors")) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor d =
+						(com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor) b;
+				specialDoors.put(d.cell, d);
+			}
+		}
+
+		testPortalCell = bundle.getInt("test_portal_cell");
+
+		specialStairs = new java.util.HashMap<>();
+		if (bundle.contains("special_stairs")) {
+			for (com.watabou.utils.Bundlable b : bundle.getCollection("special_stairs")) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair s =
+						(com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair) b;
+				specialStairs.put(s.cell, s);
+			}
+		}
 
 		map		= bundle.getIntArray( MAP );
 
@@ -473,6 +512,7 @@ public abstract class Level implements Bundlable {
 
 		buildFlagMaps();
 		cleanWalls();
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.applyLevelFlags(this);
 
 	}
 
@@ -485,6 +525,9 @@ public abstract class Level implements Bundlable {
 		bundle.put( VISITED, visited );
 		bundle.put( MAPPED, mapped );
 		bundle.put( TRANSITIONS, transitions );
+		bundle.put( "special_doors", specialDoors.values() );
+		bundle.put( "special_stairs", specialStairs.values() );
+		bundle.put( "test_portal_cell", testPortalCell );
 		bundle.put( LOCKED, locked );
 		bundle.put( HEAPS, heaps.valueList() );
 		bundle.put( PLANTS, plants.valueList() );
@@ -581,8 +624,15 @@ public abstract class Level implements Bundlable {
 
 	abstract protected void createItems();
 
+	//有支线楼梯的层上，同一个方向有两个过渡点（主线第 3 层：正常入口 + 从苔藓洞窟回来的楼梯；
+	//主线第 2、8 层和有铁匠的那一层：正常出口 + 支线入口），谁排在前面取决于房间的绘制顺序。
+	//只按方向找的话，这些层的 entrance() / exit() 大约一半的种子会指到支线楼梯上，
+	//指南针、复活与重置的落点、「怪不刷在入口附近」的判断都跟着错。
+	//所以和原版一样先按类型找正常楼梯；找不到（支线层的入口 / 出口本身就是支线楼梯）再按方向找。
 	public int entrance(){
-		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.UP);
+		LevelTransition l = transitionOfType(LevelTransition.Type.REGULAR_ENTRANCE);
+		if (l == null) l = transitionOfType(LevelTransition.Type.SURFACE);
+		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.UP);
 		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.SURFACE);
 		if (l != null){
 			return l.cell();
@@ -591,11 +641,20 @@ public abstract class Level implements Bundlable {
 	}
 
 	public int exit(){
-		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.DOWN);
+		LevelTransition l = transitionOfType(LevelTransition.Type.REGULAR_EXIT);
+		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.DOWN);
 		if (l != null){
 			return l.cell();
 		}
 		return 0;
+	}
+
+	//严格按类型找，找不到返回 null（getTransition(Type) 找不到时会退回成「任意入口」，这里不能用它）
+	private LevelTransition transitionOfType(LevelTransition.Type type){
+		for (LevelTransition transition : transitions){
+			if (transition.type == type) return transition;
+		}
+		return null;
 	}
 
 	public LevelTransition getTransition(LevelTransition.Type type){
@@ -658,20 +717,20 @@ public abstract class Level implements Bundlable {
 		return -1;
 	}
 
+	/** 当前这一层是不是支线的最后一层（下面没有可以掉下去的层）。主线不算。 */
+	private static boolean isBranchEnd() {
+		if (Dungeon.branchId.equals(Branches.MAIN)) return false;
+		Branch branch = Branches.get(Dungeon.branchId);
+		return branch == null || !branch.hasMoreDepth(Dungeon.depth);
+	}
+
 	/**
 	 * 支线终点：将 Chasm 转换为普通地板
 	 * 如果当前分支没有下一层，玩家不应该掉落，所以移除 Chasm
 	 */
 	protected void convertChasmOnBranchEnd() {
-		// 主线不处理
-		if (Dungeon.branchId.equals(Branches.MAIN)) return;
-		
-		// 检查是否有下一层
-		Branch branch = Branches.get(Dungeon.branchId);
-		if (branch != null && branch.hasMoreDepth(Dungeon.depth)) {
-			// 有下一层，保留 Chasm
-			return;
-		}
+		// 主线不处理；支线里还有下一层的，保留 Chasm
+		if (!isBranchEnd()) return;
 		
 		// 没有下一层，将 Chasm 转换为 EMPTY
 		for (int i = 0; i < length(); i++) {
@@ -686,6 +745,19 @@ public abstract class Level implements Bundlable {
 //		if (locked){
 //			return false;
 //		}
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair stair =
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.of(this, transition);
+		com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent attempt =
+				new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent(hero, transition, stair);
+		com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
+		if (attempt.isCancelled()) {
+			return false;
+		}
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.onUsed(transition);
+		com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(
+				new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUsedEvent(hero, transition, stair));
 
 		beforeTransition();
 		InterlevelScene.curTransition = transition;
@@ -1063,14 +1135,22 @@ public abstract class Level implements Bundlable {
 
 		for (int i : PathFinder.NEIGHBOURS9){
 			i = cell + i;
+			//上游在这里有 insideMap 保护，本项目改没了：只要有一次 set() 落在边界格上，
+			//邻居索引就会越界（曾导致第十层典狱长关卡 ArrayIndexOutOfBoundsException: index=-4）。
+			//内层 CIRCLE8 同样要判，避免贴着边界时 i+offset 越界。
+			if (!level.insideMap(i)) continue;
 			if (level.solid[i]){
 				level.openSpace[i] = false;
 			} else {
 				for (int j = 1; j < PathFinder.CIRCLE8.length; j += 2){
-					if (level.solid[i+PathFinder.CIRCLE8[j]]) {
+					int a = i + PathFinder.CIRCLE8[j];
+					if (!level.insideMap(a)) continue;
+					int b = i + PathFinder.CIRCLE8[(j+1)%8];
+					int c = i + PathFinder.CIRCLE8[(j+2)%8];
+					if (level.solid[a]) {
 						level.openSpace[i] = false;
-					} else if (!level.solid[i+PathFinder.CIRCLE8[(j+1)%8]]
-							&& !level.solid[i+PathFinder.CIRCLE8[(j+2)%8]]){
+					} else if (level.insideMap(b) && level.insideMap(c)
+							&& !level.solid[b] && !level.solid[c]){
 						level.openSpace[i] = true;
 						break;
 					}
@@ -1278,12 +1358,14 @@ public abstract class Level implements Bundlable {
 			}
 
 			//characters which are not the hero or a sheep 'soft' press cells
-			pressCell( ch.pos, ch instanceof Hero || ch instanceof Sheep);
+			pressCell( ch.pos, ch instanceof Hero || ch instanceof Sheep, ch);
 		} else {
 			if (map[ch.pos] == Terrain.DOOR){
 				Door.enter( ch.pos );
 			}
 		}
+
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.onEntered(ch, ch.pos);
 
 		if (ch.isAlive() && ch instanceof Piranha && !water[ch.pos]){
 			((Piranha) ch).dieOnLand();
@@ -1292,12 +1374,31 @@ public abstract class Level implements Bundlable {
 
 	//public method for forcing the hard press of a cell. e.g. when an item lands on it
 	public void pressCell( int cell ){
-		pressCell( cell, true );
+		pressCell( cell, true, null );
 	}
 
 	//a 'soft' press ignores hidden traps
 	//a 'hard' press triggers all things
-	private void pressCell( int cell, boolean hard ) {
+	private void pressCell( int cell, boolean hard, Char ch ) {
+
+		if (Dungeon.hero != null && cell == Dungeon.hero.pos) {
+			if (com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.onStep(Dungeon.hero, cell)) {
+				return;
+			}
+		}
+
+		if (testPortalCell >= 0 && cell == testPortalCell && Dungeon.hero != null && cell == Dungeon.hero.pos) {
+			com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.pendingReturnDepth = Dungeon.depth;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.mode =
+					com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.Mode.RETURN;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnBranchId =
+					com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches.TEST;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnDepth = 1;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.returnPos =
+					com.shatteredpixel.shatteredpixeldungeon.levels.CycleTestLevel.ENTRANCE_CELL;
+			com.watabou.noosa.Game.switchScene(com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene.class);
+			return;
+		}
 
 		Trap trap = null;
 
@@ -1515,7 +1616,8 @@ public abstract class Level implements Bundlable {
 						heroMindFov[mob.pos + i] = true;
 					}
 				}
-			} else if(Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)){
+			}
+			if (Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)) {
 				switch (Dungeon.hero.pointsInTalent(Talent.SOUL_NOWIFI)) {
 					case 1:
 						for (Mob mob : mobs) {
@@ -1538,7 +1640,8 @@ public abstract class Level implements Bundlable {
 						}
 						break;
 				}
-			} else {
+			}
+			if (c.buff(MindVision.class) == null) {
 
 				int mindVisRange = 0;
 				if (((Hero) c).hasTalent(Talent.HEIGHTENED_SENSES)){
@@ -1561,6 +1664,8 @@ public abstract class Level implements Bundlable {
 				}
 			}
 
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Warden.addGrassVision(heroMindFov);
+
 			if (c.buff( Awareness.class ) != null) {
 				for (Heap heap : heaps.valueList()) {
 					int p = heap.pos;
@@ -1575,6 +1680,17 @@ public abstract class Level implements Bundlable {
 				}
 				int p = ch.pos;
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[p+i] = true;
+			}
+
+			// 狙击 4-3 通识射击 +4：通识射击把标记挂在怪身上，其它来源挂在英雄身上记着怪的 id，两种都算
+			if (((Hero) c).pointsInTalent(Talent.COMMON_SHOT) >= 4) {
+				SnipersMark mark = c.buff(SnipersMark.class);
+				for (Mob mob : mobs) {
+					if (mob.isAlive() && (mob.buff(SnipersMark.class) != null
+							|| mark != null && (mob.id() == mark.object || mob.id() == mark.secondObject))) {
+						for (int i : PathFinder.NEIGHBOURS9) heroMindFov[mob.pos+i] = true;
+					}
+				}
 			}
 
 			for (TalismanOfForesight.HeapAwareness h : c.buffs(TalismanOfForesight.HeapAwareness.class)){

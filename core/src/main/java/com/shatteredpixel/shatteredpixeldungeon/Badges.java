@@ -925,6 +925,9 @@ public class Badges {
 			badge = Badge.MASTERY_CARDTRICKSTER;
 		}
 
+		//没有对应精通徽章的职业（工程师）走到这里时 badge 是 null，unlock 会直接读 badge.type
+		if (badge == null) return;
+
 		unlock(badge);
 	}
 
@@ -1124,6 +1127,7 @@ public class Badges {
 	}
 
 	public static void unlock( Badge badge ){
+		if (Dungeon.hero != null && Dungeon.isChallenged(Challenges.TEST_MODE)) return;
 		if (!isUnlocked(badge) && (badge.type == BadgeType.JOURNAL || Dungeon.customSeedText.isEmpty())){
 			global.add( badge );
 			saveNeeded = true;

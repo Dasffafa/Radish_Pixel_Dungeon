@@ -498,14 +498,17 @@ public class SPDSettings extends GameSettings {
 	}
 
 
-	public static final String KEY_NORMAL = "window_maximized";
+	//不能和 KEY_WINDOW_MAXIMIZED 共用 "window_maximized"：共用时桌面版最大化窗口会顺带把界面换成原版主题，
+	//在设置里选界面风格又会改掉「窗口是否最大化」
+	public static final String KEY_NORMAL = "normal_skin";
 
 	public static void NORMAL_SKIN( boolean value ){
 		put( KEY_NORMAL, value );
 	}
 
 	public static boolean NORMAL_SKIN(){
-		return getBoolean( KEY_NORMAL, false );
+		//旧设置文件里没有这个键：按状态栏风格推断（设置窗口里这两项总是一起写入）
+		return getBoolean( KEY_NORMAL, statusStyle() == STYLE_SHATTERED );
 	}
 
 

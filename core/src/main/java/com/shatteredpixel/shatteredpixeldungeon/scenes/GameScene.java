@@ -301,6 +301,11 @@ public class GameScene extends PixelScene {
 		mobs = new Group();
 		add( mobs );
 
+		// 不占回合的阻塞动画（Hero.playAnimationNoTime）靠旧场景里的精灵回调 / VirtualTimer 清位；
+		// 场景重建后它们都随旧场景没了，这里直接收尾，否则英雄的 act() 会永远 return false。
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.JumbleChangeBuff.abortPendingVisual();
+		Dungeon.hero.animationBusy = false;
+
 		hero = Dungeon.hero.heroClass.createSkinSprite();
 		hero.place( Dungeon.hero.pos );
 		hero.updateArmor();
@@ -409,7 +414,11 @@ public class GameScene extends PixelScene {
 		if (uiSize == 2) {
 			inventory = new InventoryPane();
 			inventory.camera = uiCamera;
-			inventory.setPos(uiCamera.width - inventory.width(), uiCamera.height - inventory.height());
+			// 桌面端窗口可能被拉得很小/很扁，面板必须夹在可视区内，否则会超到窗口外面（只剩半块）
+			inventory.maxWidth  = Math.max( 90, (int)uiCamera.width );
+			inventory.maxHeight = Math.max( 60, (int)(uiCamera.height * 0.72f) );
+			inventory.setPos( Math.max(0, uiCamera.width - inventory.width()),
+					Math.max(0, uiCamera.height - inventory.height()) );
 			add(inventory);
 
 			toolbar.setRect( 0, uiCamera.height - toolbar.height() - inventory.height(), uiCamera.width, toolbar.height() );
@@ -447,6 +456,7 @@ public class GameScene extends PixelScene {
 				}
 				break;
 		}
+
 
 		ArrayList<Item> dropped = Dungeon.droppedItems.get( Dungeon.depth );
 		if (dropped != null) {
@@ -734,11 +744,36 @@ public class GameScene extends PixelScene {
 		}
 	}
 	
+	/**
+	 * 存档前等 Actor 线程跑到下一个等待点（等玩家输入 / 等动画回调 / 等精灵走完），不打断它。
+	 * 不能用 waitForActorThread( ms, true )：interrupt 会让 Actor.process() 把 Actor.current 清掉，
+	 * 回到前台后正在等动画回调的 actor 会被重新调一次 act()（远程怪一次施法结算两次、英雄投掷途中变成可操作）。
+	 */
+	private boolean waitForActorThreadIdle( int msToWait ){
+		Thread t = actorThread;
+		if (t == null || !t.isAlive()) {
+			return true;
+		}
+		long deadline = System.currentTimeMillis() + msToWait;
+		while (t.isAlive() && t.getState() != Thread.State.WAITING) {
+			if (System.currentTimeMillis() >= deadline) {
+				return false;
+			}
+			try {
+				Thread.sleep( 5 );
+			} catch (InterruptedException e) {
+				ShatteredPixelDungeon.reportException(e);
+				return false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public synchronized void onPause() {
 		try {
 			// 变身提交在 Actor 线程中执行；保存前等待当前动作完成，避免序列化到半变身状态。
-			if (!waitForActorThread( 4500, true )) {
+			if (!waitForActorThreadIdle( 4500 )) {
 				throw new IOException("timeout waiting for actor thread before save");
 			}
 			Dungeon.saveAll();
@@ -1324,6 +1359,16 @@ public class GameScene extends PixelScene {
 				}
 			}
 
+			// WndBag 用的是独立相机：把它的底边压在常驻背包面板之上，别被面板挡住。
+			if (wnd instanceof WndBag && scene.inventory != null && scene.inventory.visible) {
+				float zoom = wnd.camera().zoom;
+				float windowBottom = wnd.camera().y / zoom + wnd.camera().screenHeight() / zoom;
+				float paneTop = scene.inventory.top();
+				if (windowBottom > paneTop) {
+					wnd.offset(wnd.getOffset().x, wnd.getOffset().y - (int)Math.ceil(windowBottom - paneTop));
+				}
+			}
+
 			scene.addToFront(wnd);
 		}
 	}
@@ -1695,7 +1740,7 @@ public class GameScene extends PixelScene {
 				image = Icons.get(Icons.INFO);
 			} else if (objects.get(0) instanceof Hero) {
 				title = textLines.remove(0);
-				image = HeroSprite.avatar(((Hero) objects.get(0)).heroClass, ((Hero) objects.get(0)).tier());
+				image = HeroSprite.avatar( (Hero) objects.get(0) );
 			} else if (objects.get(0) instanceof Mob) {
 				title = textLines.remove(0);
 				image = ((Mob) objects.get(0)).sprite();
@@ -1729,7 +1774,10 @@ public class GameScene extends PixelScene {
 						textLines.add(0, Messages.get(GameScene.class, "pick_up"));
 						break;
 					case FOR_SALE:
-						textLines.add(0, Messages.get(GameScene.class, "purchase"));
+						//只剩商品一件时点这一格才是购买；商品上面还叠着别的东西时，
+						//点一下是先把上面的捡走（见 Hero.handle），菜单要写实际会发生的事
+						textLines.add(0, Messages.get(GameScene.class,
+								((Heap) objects.get(0)).size() == 1 ? "purchase" : "pick_up"));
 						break;
 					default:
 						textLines.add(0, Messages.get(GameScene.class, "interact"));

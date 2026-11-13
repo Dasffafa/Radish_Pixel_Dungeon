@@ -52,6 +52,8 @@ public class MagneticCrown extends Artifact {
     @Override
     public void execute(Hero hero, String action) {
         super.execute(hero, action);
+        // 反魔法期间神器一律不可用（原版各神器的 execute 都有这一句）
+        if (hero.buff(MagicImmune.class) != null) return;
         if (action.equals(AC_ACTIVATE)) {
             if (!isEquipped(hero)) {
                 GLog.w(Messages.get(this, "no_equip"));
@@ -165,9 +167,6 @@ public class MagneticCrown extends Artifact {
                 return;
             }
 
-            charge--;
-            updateQuickslot();
-
             // 计算实际拖拽位置
             Ballistica trajectory = new Ballistica(nearest.pos, targetPos, Ballistica.PROJECTILE);
             int newPos = trajectory.collisionPos;
@@ -191,13 +190,20 @@ public class MagneticCrown extends Artifact {
                 newPos = bestPos;
             }
 
-            if (newPos != nearest.pos) {
-                Actor.addDelayed(new Pushing(nearest, nearest.pos, newPos), -1);
-                nearest.pos = newPos;
-                Dungeon.level.occupyCell(nearest);
-                showRange(nearest.pos, range, nearest);
-                Dungeon.hero.spendAndNext(1f);
+            // 目标被围死、四周没有可落脚的格子时什么都拖不动：不扣充能、不揭示陷阱，按「没有目标」处理
+            if (newPos == nearest.pos) {
+                GLog.w(Messages.get(MagneticCrown.this, "no_target"));
+                return;
             }
+
+            charge--;
+            updateQuickslot();
+
+            Actor.addDelayed(new Pushing(nearest, nearest.pos, newPos), -1);
+            nearest.pos = newPos;
+            Dungeon.level.occupyCell(nearest);
+            showRange(nearest.pos, range, nearest);
+            Dungeon.hero.spendAndNext(1f);
 
             try {
                 Trap t = Dungeon.level.traps.get(target).reveal();
@@ -242,7 +248,8 @@ public class MagneticCrown extends Artifact {
     }
 
     public class Recharge extends ArtifactBuff {
-        private float partialCharge = 0f;
+        // 零头充能直接记在神器本身的 partialCharge 上（Artifact 负责存读档）。
+        // 这里不能再声明一个同名字段：它会遮住神器的那个，零头就只活在这个不进存档的状态对象里，读档、穿脱即丢。
 
         @Override
         public boolean act() {

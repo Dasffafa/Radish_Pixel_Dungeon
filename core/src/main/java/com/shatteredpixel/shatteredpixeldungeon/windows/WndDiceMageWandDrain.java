@@ -74,7 +74,7 @@ public class WndDiceMageWandDrain extends Window {
         RedButton confirm = new RedButton(Messages.get(this, "confirm")) {
             @Override
             protected void onClick() {
-                mp.drainWandsFor(cost);
+                // 这里只记下「玩家同意用法杖充能垫付」；充能在法术真正放出去、扣魔力点时才扣（DiceMageSpell.spendMagic）
                 hide();
                 spell.continueCast(hero);
             }

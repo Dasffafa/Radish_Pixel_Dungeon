@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Chains;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Effects;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EtherealChains;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
@@ -81,8 +82,19 @@ public class GrapplingHook extends MeleeWeapon {
 
 	private final CellSelector.Listener grappler = new CellSelector.Listener() {
 		@Override
-		public void onSelect(Integer target) {
-			if (target == null || curUser == null) return;
+		public void onSelect(Integer cell) {
+			if (cell == null || curUser == null) return;
+
+			// 拆箱成 int 再用：下面要和 Ballistica 的落点（也是 Integer）比较，
+			// 两个 Integer 对象用 != 比的是引用，格子编号超过 127 时永远「不相等」，几乎所有格子都会被判成被阻挡
+			final int target = cell;
+
+			// 被缠住、扎根时不能把自己拉走（与虚空锁链一致）
+			if (curUser.rooted) {
+				PixelScene.shake(1, 1f);
+				GLog.w(Messages.get(EtherealChains.class, "rooted"));
+				return;
+			}
 
 			// 视野外不可用
 			if (!Dungeon.level.heroFOV[target]) {
@@ -127,8 +139,14 @@ public class GrapplingHook extends MeleeWeapon {
 									hero.pos = target;
 									Dungeon.level.occupyCell(hero);
 									hero.spendAndNext(cost);
+									// 换了位置要重算视野，否则落点周围要等下一回合才亮
+									Dungeon.observe();
+									GameScene.updateFog();
 								}
 							}));
+							// 把回合交还给回合系统，刚加进去的 Pushing 才轮得到执行；
+							// 少了这句英雄会一直停在「忙碌」里，游戏卡死
+							hero.next();
 						}
 					}));
 		}

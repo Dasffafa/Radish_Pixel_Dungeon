@@ -9,11 +9,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpe
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingKnife;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 import java.util.HashMap;
@@ -55,6 +57,11 @@ public class BladeRainSpell extends DiceMageSpell {
             @Override
             public void onSelect(Integer cell) {
                 if (cell == null) return;
+                // 点自己脚下没有方向可言（实际会朝正东射出去），和法杖一样拒绝，不扣魔力点
+                if (cell == hero.pos) {
+                    GLog.i(Messages.get(Wand.class, "self_target"));
+                    return;
+                }
                 if (!spendMagic(hero)) return;
 
                 int width = Dungeon.level.width();

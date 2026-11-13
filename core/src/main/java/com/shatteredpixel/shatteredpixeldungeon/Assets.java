@@ -34,6 +34,7 @@ public class Assets {
 		public static final String SWORD_SLASH    = "effects/cc0/sword_slash.png";
 		public static final String PIXEL_EXPLOSION= "effects/cc0/pixel_explosion.png";
 		public static final String SIMPLE_FX      = "effects/cc0/simplefx.png";
+		public static final String CYCLONE        = "effects/cc0/cyclone.png";
 	}
 
 	public static class Environment {
@@ -67,6 +68,8 @@ public class Assets {
 
 		public static final String WATER_MOSS = "environment/water_moss.png";
 		public static final String MOSS_ENTER = "environment/custom_tiles/moss_enter.png";
+		public static final String SEALED_DOOR = "environment/custom_tiles/sealed_door.png";
+		public static final String CYCLE_STAIR = "environment/custom_tiles/cycle_stair.png";
 
 		public static final String TILES_CAVES_CRYSTAL  = "environment/tiles_caves_crystal.png";
 		public static final String TILES_CAVES_GNOLL    = "environment/tiles_caves_gnoll.png";
@@ -282,6 +285,9 @@ public class Assets {
 
 		public static final String JUTTE_BREAK = "sounds/weapon_break.ogg";
 
+		//圣宣的命中音效
+		public static final String HOLY_DECREE_HIT = "sounds/holy_decree_hit.mp3";
+
 		public static final String[] all = new String[]{
 				CLICK, BADGE, GOLD,
 
@@ -297,6 +303,9 @@ public class Assets {
 
 				//Added by TheCatist
 				LARGE_BELL,KILL_BOAT_SWORD_SLASH, KILL_BOAT_SWORD_SWING, MAN, JUTTE_BREAK,
+
+				//不在这个列表里的音效启动时不会加载，播放时没有任何声音
+				HOLY_DECREE_HIT,
 		};
 	}
 
@@ -394,6 +403,8 @@ public class Assets {
 		public static final String RIPPER   = "sprites/ripper.png";
 		public static final String SPAWNER  = "sprites/spawner.png";
 		public static final String DM100    = "sprites/dm100.png";
+		public static final String WARDEN   = "sprites/warden.png";
+		public static final String DM_PROTO = "sprites/dm_proto.png";
 		public static final String PYLON    = "sprites/pylon.png";
 		public static final String DM200    = "sprites/dm200.png";
 		public static final String LOTUS    = "sprites/lotus.png";
@@ -403,6 +414,7 @@ public class Assets {
 		public static final String CRYSTAL_WISP     = "sprites/crystal_wisp.png";
 		public static final String CRYSTAL_GUARDIAN = "sprites/crystal_guardian.png";
 		public static final String CRYSTAL_SPIRE    = "sprites/crystal_spire.png";
+		public static final String ICE_BLOCK        = "sprites/ice_block.png";
 		public static final String GNOLL_GUARD      = "sprites/gnoll_guard.png";
 		public static final String GNOLL_SAPPER     = "sprites/gnoll_sapper.png";
 		public static final String GNOLL_GEOMANCER  = "sprites/gnoll_geomancer.png";
@@ -420,10 +432,20 @@ public class Assets {
 
 		public static final String NEW_NPC="sprites/new_npc.png";
 
+		// 游商贴图（素材来自桌面 ai 文件夹的 NPC 图集，按行拆分，每张 176x16 = 11帧 x 16x16）
+		public static final String NPC_PEDDLER0 = "sprites/npc_peddler0.png";
+		public static final String NPC_PEDDLER1 = "sprites/npc_peddler1.png";
+		public static final String NPC_PEDDLER2 = "sprites/npc_peddler2.png";
+		public static final String NPC_PEDDLER3 = "sprites/npc_peddler3.png";
+		public static final String NPC_PEDDLER4 = "sprites/npc_peddler4.png";
+		public static final String NPC_PEDDLER5 = "sprites/npc_peddler5.png";
+		public static final String NPC_PEDDLER6 = "sprites/npc_peddler6.png";
+
 		// Radish new Enemy
 		// Zone 1
 		public static final String GIANT_WORM="sprites/RadishEnemySprite/ZoneOne/giant_worm.png";
 		public static final String GOBLIN="sprites/RadishEnemySprite/ZoneOne/goblin.png";
+		public static final String GOBLIN_RIDER="sprites/RadishEnemySprite/ZoneOne/goblin_rider.png";
 		public static final String DOG="sprites/RadishEnemySprite/ZoneOne/dog.png";
 		public static final String MAYFLY="sprites/RadishEnemySprite/ZoneOne/mayfly.png";
 

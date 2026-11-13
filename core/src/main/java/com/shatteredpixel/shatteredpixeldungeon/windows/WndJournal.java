@@ -36,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.CrystalSpire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Pylon;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.AlchemyApprenticeChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.BuffScanner;
 import com.shatteredpixel.shatteredpixeldungeon.items.EnergyCrystal;
 import com.shatteredpixel.shatteredpixeldungeon.items.Gold;
@@ -395,7 +396,13 @@ public class WndJournal extends WndTabbed {
 			content.add(title);
 
 			body.maxWidth((int)width());
-			body.text(Document.ALCHEMY_GUIDE.pageBody(currentPageIdx));
+			String bodyText = Document.ALCHEMY_GUIDE.pageBody(currentPageIdx);
+			//「炼金学徒」挑战开启时，指南原文里关于鉴定和产出的个别说法不再成立，在正文后面补一句说明
+			String challengeNote = AlchemyApprenticeChallenge.guideNote(currentPageIdx);
+			if (challengeNote != null){
+				bodyText += "\n\n" + challengeNote;
+			}
+			body.text(bodyText);
 			body.setPos(0, title.bottom());
 			content.add(body);
 

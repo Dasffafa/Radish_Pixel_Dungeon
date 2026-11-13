@@ -36,7 +36,9 @@ public class Engineer extends HeroDefinition {
 
 	@Override
 	public String splashArt() {
-		return Assets.Splashes.NEW_HERO;
+		//工程师还没有自己的立绘。原来指向的 newhero.jpg 是 reXun 作者给他自己的游戏征集立绘的启事（带他的邮箱），
+		//不能出现在萝卜的选人界面上：先用下水道的区域图顶替，有了立绘再换
+		return Assets.Splashes.SEWERS;
 	}
 
 	@Override

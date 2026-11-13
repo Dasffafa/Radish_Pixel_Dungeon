@@ -17,6 +17,6 @@ public class SpinMaster extends HeroSubClass {
 
 	@Override
 	public Talent[] subclassT4() {
-		return new Talent[]{ Talent.PLACEHOLDER_T4_1, Talent.PLACEHOLDER_T4_2 };
+		return new Talent[]{ Talent.MINIMALISM, Talent.FANCY_SHUFFLE };
 	}
 }

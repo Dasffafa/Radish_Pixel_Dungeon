@@ -71,6 +71,7 @@ public class MossEntranceRoom extends StandardRoom {
         LevelTransition transition = LevelTransition.branchUp(level, entranceCell,
                 "moss:main-2", Branches.MAIN, 2);
         level.transitions.add(transition);
+        com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.add(level, transition).oneWay();
         Painter.set(level, entranceCell, Terrain.ENTRANCE);
     }
 
@@ -82,6 +83,7 @@ public class MossEntranceRoom extends StandardRoom {
         for (LevelTransition transition : level.transitions) {
             if (inside(transition.center())) {
                 Level.set(transition.cell(), Terrain.ENTRANCE, level);
+                com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.add(level, transition).oneWay();
                 return;
             }
         }

@@ -33,7 +33,12 @@ public class HeldCardTracker extends Buff implements ActionIndicator.Action {
 	public static void clear(Hero hero) {
 		HeldCardTracker tracker = hero == null ? null : hero.buff(HeldCardTracker.class);
 		if (tracker != null) tracker.detach();
-		ActionIndicator.clearAction();
+		//动作按钮槽全局只有一个，狂战士、角斗士、德鲁伊等状态也在用。
+		//读档时每个英雄都会经过这里（Hero.restoreFromBundle 末尾的 sync），此时别的状态已经把自己的按钮放回去了，
+		//所以只能收走手持卡牌自己的按钮，不能把槽整个清空
+		if (ActionIndicator.action instanceof HeldCardTracker) {
+			ActionIndicator.clearAction();
+		}
 	}
 
 	private Card card() {

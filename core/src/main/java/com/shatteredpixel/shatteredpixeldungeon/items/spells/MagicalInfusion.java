@@ -57,6 +57,14 @@ public class MagicalInfusion extends InventorySpell {
 	}
 
 	public Item upgradeItem( Item item ){
+		// 精制附魔无法升级，法术与卷轴都不应被消耗
+		if (item instanceof Weapon
+				&& ((Weapon) item).enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined) {
+			GLog.w( Messages.get( com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined.class,
+					"cannot_upgrade" ) );
+			return item;
+		}
+
 		ScrollOfUpgrade.upgrade(curUser);
 
 		Degrade.detach( curUser, Degrade.class );
@@ -76,8 +84,8 @@ public class MagicalInfusion extends InventorySpell {
 		GLog.p( Messages.get(this, "infuse",item.name()) );
 		Badges.validateItemLevelAquired(item);
 
+		//法术自己的使用次数在 useAnimation 里记，这里再记一次就每用一个记两次
 		Catalog.countUse(item.getClass());
-		Catalog.countUse(getClass());
 
 		Statistics.upgradesUsed++;
 
@@ -96,6 +104,7 @@ public class MagicalInfusion extends InventorySpell {
 		if (Random.Float() < ((Spell) curItem).talentChance) {
 			Talent.onScrollUsed(curUser, curUser.pos, ((Spell) curItem).talentFactor);
 		}
+		Spell.onSpellUsed( curUser, this );
 	}
 
 	@Override

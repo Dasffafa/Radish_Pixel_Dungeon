@@ -143,6 +143,12 @@ public class Deminion extends Mob {
                 enemy.damage(firstAttackDamage);
             }
 
+            // 这一段伤害就打死英雄时，后面的提前返回会跳过末尾的死亡结算，这次死亡不会进排行榜，所以在这里结算
+            if (!enemy.isAlive() && enemy == Dungeon.hero && visibleFight) {
+                Dungeon.fail( getClass() );
+                GLog.n( heroKilledMessage() );
+            }
+
             if(enemy.buff(Sigil.class) != null){
                 Buff.prolong(enemy, Sigil.class, Sigil.DURATION);
                 effectiveDamage += 8;
@@ -211,7 +217,8 @@ public class Deminion extends Mob {
             }
             enemy.sprite.showStatus( CharSprite.NEUTRAL, enemy.defenseVerb() );
 
-            if(Dungeon.hero != null){
+            // 雾剑的隐身只给被打空的持剑者本人，目标是别的角色时不该落到英雄身上
+            if(enemy == Dungeon.hero){
                 if (Dungeon.hero.belongings.weapon() instanceof FogSword) {
                     Buff.affect(Dungeon.hero, Invisibility.class,1f);
                 }
@@ -260,12 +267,16 @@ public class Deminion extends Mob {
 
     @Override
     protected boolean canAttack( Char enemy ) {
-        return new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
+        // 相邻、挑战装备的武器距离、精英（索敌 / 巨型）的额外攻击距离都由父类判定
+        return super.canAttack( enemy )
+                || new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos == enemy.pos;
     }
 
     protected boolean doAttack(Char enemy ) {
 
-        if (Dungeon.level.adjacent( pos, enemy.pos )) {
+        // 弹道被挡住还能进到这里，说明是靠父类的攻击距离够到的，和相邻一样走普通攻击
+        if (Dungeon.level.adjacent( pos, enemy.pos )
+                || new Ballistica( pos, enemy.pos, Ballistica.MAGIC_BOLT).collisionPos != enemy.pos) {
 
             return super.doAttack( enemy );
 

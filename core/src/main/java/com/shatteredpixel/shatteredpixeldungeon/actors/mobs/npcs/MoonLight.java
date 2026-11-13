@@ -214,7 +214,11 @@ public class MoonLight extends NPC{
             oldWeapon.detach(hero.belongings.backpack);
             GLog.i(Messages.get(this, npc.getMessagePrefix() + "weapon_removed", oldWeapon.name()));
             Weapon newWeapon = generateRandomTier2Weapon(oldWeapon);
-            newWeapon.doPickUp(hero);
+            // 背包放不下（交出的是一叠投掷武器里的一件时格子并没有空出来）或暂时不能拾取时放在脚下，
+            // 否则换来的武器就凭空消失了
+            if (!newWeapon.doPickUp(hero)) {
+                Dungeon.level.drop(newWeapon, hero.pos).sprite.drop();
+            }
             GLog.p(Messages.get(this, npc.getMessagePrefix() + "new_weapon_gained", newWeapon.name()));
         }
 
@@ -247,7 +251,8 @@ public class MoonLight extends NPC{
 
             @Override
             public boolean itemSelectable(Item item) {
-                return item instanceof Weapon && item != hero.belongings.weapon() && !(item instanceof Pickaxe);
+                // 副手武器不在背包里，detach 收不走它；和主手一样不让选，否则不用交出武器也能换到新的
+                return item instanceof Weapon && item != hero.belongings.weapon() && item != hero.belongings.secondWep() && !(item instanceof Pickaxe);
             }
 
             @Override

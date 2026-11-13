@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.armor;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
@@ -30,11 +31,20 @@ public class AfterGlow extends Armor{
         @Override
         public boolean act(){
             if (storeHealth>=1){
-                int preHp=target.HP;
-                target.HP+=(int)storeHealth;
-                storeHealth-=(int)storeHealth;
-                if (target.HP>target.HT) target.HP=target.HT;
-                target.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", target.HP-preHp);
+                int amount=(int)storeHealth;
+                storeHealth-=amount;
+                if (target instanceof Hero){
+                    //英雄走统一治疗入口，「英雄回血」的各种联动才看得到这次回复；满血时也不会再飘一个 +0。
+                    //它对英雄不会反过来触发余晖，不会循环
+                    target.heal(amount);
+                } else {
+                    //其它穿戴者不能走 heal()：它会再给余晖攒一次回复，每回合都回个没完
+                    int preHp=target.HP;
+                    target.HP=Math.min(target.HT, target.HP+amount);
+                    if (target.HP>preHp && target.sprite!=null) {
+                        target.sprite.showStatus(CharSprite.POSITIVE, "+%dHP", target.HP-preHp);
+                    }
+                }
             }
             return super.act();
         }

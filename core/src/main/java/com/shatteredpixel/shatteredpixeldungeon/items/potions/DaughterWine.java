@@ -19,6 +19,7 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -55,7 +56,9 @@ public class DaughterWine extends Potion {
 		identify();
 
 		hero.HP = Math.min( hero.HT, hero.HP + HEAL );
-		hero.sprite.showStatus( CharSprite.POSITIVE, "+" + HEAL );
+		if (hero.sprite != null) {
+			hero.sprite.showStatus( CharSprite.POSITIVE, "+" + HEAL );
+		}
 		Buff.affect( hero, AdrenalineSurge.class ).reset( 2, 1000f );
 
 		GLog.p( Messages.get(this, "drink") );
@@ -63,12 +66,7 @@ public class DaughterWine extends Potion {
 
 	@Override
 	public void shatter( int cell ) {
-		splash( cell );
-		if (Dungeon.level.heroFOV[cell]) {
-			identify();
-			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
-		}
-
+		//先看有没有火再 splash：splash 会把落点这一格的火浇灭，正好砸在唯一着火的那一格上时就判成「没有火」了
 		Fire fire = (Fire) Dungeon.level.blobs.get( Fire.class );
 		boolean burning = false;
 		for (int i : PathFinder.NEIGHBOURS9) {
@@ -77,6 +75,12 @@ public class DaughterWine extends Potion {
 				burning = true;
 				break;
 			}
+		}
+
+		splash( cell );
+		if (Dungeon.level.heroFOV[cell]) {
+			identify();
+			Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 		}
 
 		if (!burning) {
@@ -106,6 +110,10 @@ public class DaughterWine extends Potion {
 				ch.damage( new DamageInfo( dmg, DamageType.FIRE, curUser, this, this ) );
 				if (ch.isAlive()) {
 					Buff.affect( ch, Burning.class ).reignite( ch );
+				} else if (ch == Dungeon.hero) {
+					//英雄被自己的爆炸炸死要自己做死亡结算（Hero.die 不会调 Dungeon.fail），否则没有死因、不进排行榜
+					Dungeon.fail( this );
+					GLog.n( Messages.get(Bomb.class, "ondeath") );
 				}
 			}
 		}

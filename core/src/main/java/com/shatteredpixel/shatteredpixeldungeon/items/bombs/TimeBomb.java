@@ -35,7 +35,7 @@ import com.watabou.utils.PathFinder;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Slow;
 public class TimeBomb extends Bomb {
-	
+
 	{
 		image = ItemSpriteSheet.SHOCK_BOMB;
 	}

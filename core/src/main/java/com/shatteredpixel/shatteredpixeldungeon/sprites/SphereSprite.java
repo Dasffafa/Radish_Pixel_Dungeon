@@ -20,8 +20,7 @@ import com.watabou.utils.RectF;
  * 第 3 行：死亡裂开 4 帧。
  * <p>
  * <b>特殊移动表现</b>：移动结束后不再回退到待机闪烁，而是冻结在当前滚动帧；
- * 再次移动时从该帧继续滚动，形成连贯的滚动效果。同时移动耗时放大一倍（减速 50%），
- * 让滚动动画有更充足的时间播放。
+ * 再次移动时从该帧继续滚动，形成连贯的滚动效果。滚动帧动画与基础移动时长同步。
  */
 public class SphereSprite extends HeroSprite {
 
@@ -54,7 +53,7 @@ public class SphereSprite extends HeroSprite {
 
 		// 跳跃（互动）：第 2 行帧 14-23
 		operate = new Animation( 30, false );
-		operate.frames( film, 14, 15, 16, 17, 17,18,18, 19, 20, 21, 22,0);
+		operate.frames( film, 14, 15, 16, 17, 17, 18, 18, 19, 20, 21, 22, 23 );
 
 		// 攻击：滚动跳跃，复用跳跃帧
 		attack = operate.clone();
@@ -80,11 +79,8 @@ public class SphereSprite extends HeroSprite {
 	public void move( int from, int to ) {
 		holdRun = false;
 		super.move( from, to );
-		// 移动耗时放大一倍：从一格移动到另一格的速度降低 50%，
-		// 以便滚动动画有更充足的时间播放。
+		// 使用基础移动 tween 时长，让滚动帧与视觉位移同步。
 		if (motion != null) {
-			motion.interval *= 1.5f;
-
 			// 移动只沿一个方向（顺时针）滚动：1 格恰好推进 4 个滚动帧 = 144°。
 			// 逻辑角度直接锁定为目标角，不依赖运行时帧时序，保证每次移动角度确定。
 			if (ch instanceof Hero && ((Hero) ch).isSphereSkin()){

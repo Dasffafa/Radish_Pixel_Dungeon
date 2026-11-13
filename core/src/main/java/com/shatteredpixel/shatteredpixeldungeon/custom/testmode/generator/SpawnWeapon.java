@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobPlacer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment;
@@ -238,6 +239,10 @@ public class SpawnWeapon extends TestItem {
             // 设置窗口尺寸
             resize(WIDTH, HEIGHT);
 
+            // 阶数和「第几把」会随物品存档，而武器表会随版本增减：先收回到现在的表里
+            tier = Math.max(1, Math.min(tier, 5));
+            weapon_id = Math.max(0, Math.min(weapon_id, maxSlots(tier) - 1));
+
             // 创建武器阶数选项滑块
             OptionSlider_Tier = new OptionSlider(Messages.get(this, "weapon_tier"), "1", "5", 1, 5) {
                 @Override
@@ -246,6 +251,10 @@ public class SpawnWeapon extends TestItem {
                     tier = getSelectedValue();
                     clearImage();
                     createWeaponImage(getWeapon(tier));
+                    // 各阶的武器数量不同：换阶后原来选的「第几把」可能已经超出这一阶，不收回来的话
+                    // 点「生成」只会得到一句「无法放置」，按钮上也还写着上一阶那把武器的名字
+                    weapon_id = Math.max(0, Math.min(weapon_id, maxSlots(tier) - 1));
+                    if (initialized) updateSelectedWeaponText();
                 }
             };
             OptionSlider_Tier.setSelectedValue(tier);
@@ -367,6 +376,9 @@ public class SpawnWeapon extends TestItem {
 
         private void updateEnchantIdSlider(){
             int maxId = getEnchantCount(enchant_rarity) - 1;
+            // 各类附魔的数量不同：换种类后记着的编号可能已经超出这一类。只挪滑块不收编号的话，
+            // 滑块指着这一类的最后一个，生成出来的武器却没有附魔
+            enchant_id = Math.max(0, Math.min(enchant_id, maxId));
             if (OptionSlider_EnchantId != null) {
                 remove(OptionSlider_EnchantId);
                 OptionSlider_EnchantId.destroy();
@@ -439,7 +451,19 @@ public class SpawnWeapon extends TestItem {
          * @param enchant 附魔类
          * @return 附魔信息文本 */
         private String getEnchantInfo(Class enchant) {
-            return enchant==null?Messages.get(this, "no_enchant"):Messages.get(enchant, "name", Messages.get(this, "enchant"));
+            if (enchant == null) {
+                return Messages.get(this, "no_enchant");
+            }
+            String suffix = Messages.get(this, "enchant");
+            try {
+                Enchantment e = (Enchantment) Reflection.newInstance(enchant);
+                if (e != null && e.curse()) {
+                    suffix = Messages.get(Item.class, "curse");
+                }
+            } catch (Exception ignored) {
+                // 取不到实例时按附魔显示
+            }
+            return Messages.get(enchant, "name", suffix);
         }
 
         private int maxSlots(int t) {

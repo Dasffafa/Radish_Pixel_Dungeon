@@ -43,6 +43,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRemoveCurse;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ArmorOutfit;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -84,6 +85,8 @@ public class Belongings implements Iterable<Item> {
 
 	public KindOfWeapon weapon = null;
 	public Armor armor = null;
+	/** 次要护甲：与主要护甲并列的附加装备槽 */
+	public com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor secondaryArmor = null;
 	public Artifact artifact = null;
 	public KindofMisc misc = null;
 	public Ring ring = null;
@@ -138,6 +141,14 @@ public class Belongings implements Iterable<Item> {
 		}
 	}
 
+	public com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor secondaryArmor(){
+		if (!lostInventory() || (secondaryArmor != null && secondaryArmor.keptThroughLostInventory())){
+			return secondaryArmor;
+		} else {
+			return null;
+		}
+	}
+
 	public Artifact artifact(){
 		if (!lostInventory() || (artifact != null && artifact.keptThroughLostInventory())){
 			return artifact;
@@ -179,6 +190,7 @@ public class Belongings implements Iterable<Item> {
 	private static final String RING       = "ring";
 
 	private static final String SECOND_WEP = "second_wep";
+	private static final String SECONDARY_ARMOR = "secondary_armor";
 
 	public void storeInBundle( Bundle bundle ) {
 		
@@ -190,6 +202,7 @@ public class Belongings implements Iterable<Item> {
 		bundle.put( MISC, misc );
 		bundle.put( RING, ring );
 		bundle.put( SECOND_WEP, secondWep );
+		bundle.put( SECONDARY_ARMOR, secondaryArmor );
 	}
 	
 	public void restoreFromBundle( Bundle bundle ) {
@@ -213,13 +226,22 @@ public class Belongings implements Iterable<Item> {
 		if (ring() != null)         ring().activate( owner );
 
 		secondWep = (KindOfWeapon) bundle.get(SECOND_WEP);
+
+		if (bundle.contains(SECONDARY_ARMOR)) {
+			secondaryArmor = (com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor) bundle.get(SECONDARY_ARMOR);
+		}
 		if (secondWep() != null)    secondWep().activate(owner);
 	}
 
 	public static void preview( GamesInProgress.Info info, Bundle bundle ) {
 		if (bundle.contains( ARMOR )){
 			Armor armor = ((Armor)bundle.get( ARMOR ));
-			if (armor instanceof ClassArmor){
+			// 取行规则要和 Hero.tier_for_image() 一致：本次运行里存档预览用的是那边的结果，
+			// 重启游戏后才走这里，两边不一致的话同一个存档重启前后预览的小人穿着不一样
+			int outfitRow = ArmorOutfit.rowFor( armor );
+			if (outfitRow >= 0 && ArmorOutfit.hasOutfit( info.heroClass )){
+				info.armorTier = outfitRow;
+			} else if (armor instanceof ClassArmor){
 				info.armorTier = 6;
 			} else {
 				if (armor instanceof PrisonArmor) info.armorTier=7;
@@ -228,7 +250,8 @@ public class Belongings implements Iterable<Item> {
 				else if (armor instanceof AfterGlow) info.armorTier=10;
 				else if (armor instanceof CloakofGreyFeather) info.armorTier=11;
 				else if (armor instanceof RatArmor) info.armorTier=12;
-				else if (armor instanceof EnergyArmor) ((EnergyArmor) armor).Energy();
+				//原先只调用不赋值，能量胸甲在重启后的预览里一直是没穿护甲的样子
+				else if (armor instanceof EnergyArmor) info.armorTier = ((EnergyArmor) armor).Energy();
 				else info.armorTier = armor.tier;
 			}
 		} else {
@@ -361,6 +384,11 @@ public class Belongings implements Iterable<Item> {
 			secondWep().identify();
 			Badges.validateItemLevelAquired(secondWep());
 		}
+		// 这里是逐栏写死的，后加的次要护甲栏漏了：觉察之泉鉴定全身装备时唯独不鉴定它
+		if (secondaryArmor() != null){
+			secondaryArmor().identify();
+			Badges.validateItemLevelAquired(secondaryArmor());
+		}
 		for (Item item : backpack) {
 			if (item instanceof EquipableItem || item instanceof Wand) {
 				item.cursedKnown = true;
@@ -402,7 +430,9 @@ public class Belongings implements Iterable<Item> {
 		
 		private Iterator<Item> backpackIterator = backpack.iterator();
 		
-		private Item[] equipped = {weapon, armor, artifact, misc, ring, secondWep};
+		// 次要护甲栏也要遍历到：捡回遗失的背包时靠这个遍历清掉「复活时保留」的标记，
+		// 漏掉它，被选中保留的次要护甲以后每次复活都会白白多保留一件。放在最后，不改动原有各栏的顺序
+		private Item[] equipped = {weapon, armor, artifact, misc, ring, secondWep, secondaryArmor};
 		private int backpackIndex = equipped.length;
 		
 		@Override

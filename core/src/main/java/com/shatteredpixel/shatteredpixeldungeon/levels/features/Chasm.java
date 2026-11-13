@@ -113,7 +113,10 @@ public class Chasm implements Hero.Doom {
 
 		if (Dungeon.hero.isAlive()) {
 			// 检查当前分支是否有下一层可掉落
-			boolean canFallToNextLevel = Branches.get(Dungeon.branchId).hasMoreDepth(Dungeon.depth + 1);
+			// hasMoreDepth 的参数是「当前层」（实现是 currentDepth < maxDepth），这里不能再 +1：
+			// 多加 1 会把「倒数第二层」也当成终点——苔藓洞窟第 1 层跳进深渊只会被传送回本层入口，掉不到第 2 层。
+			// Level.convertChasmOnBranchEnd 里同样的判断用的就是 Dungeon.depth（所以第 1 层才留着深渊）。
+			boolean canFallToNextLevel = Branches.get(Dungeon.branchId).hasMoreDepth(Dungeon.depth);
 			
 			if (Dungeon.branchId.equals(Branches.MAIN) || canFallToNextLevel) {
 				// 主线或有下一层的支线：正常掉落流程

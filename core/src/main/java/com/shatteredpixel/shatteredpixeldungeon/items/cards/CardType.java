@@ -5,7 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 
 public enum CardType {
 
-	BLANK       (ItemSpriteSheet.CARD_BLANK,        Target.ANY,   0f),
+	BLANK       (ItemSpriteSheet.CARD_BLANK,        Target.ANY,   1f),
 	SMALL_RATION(ItemSpriteSheet.CARD_SMALL_RATION, Target.NONE,  3f),
 	RATION      (ItemSpriteSheet.CARD_RATION,       Target.NONE,  3f),
 	IDENTIFY    (ItemSpriteSheet.CARD_IDENTIFY,     Target.NONE,  1f),
@@ -15,10 +15,16 @@ public enum CardType {
 	GRAND_FINALE(ItemSpriteSheet.CARD_FINALE,       Target.ENEMY, 1f),
 	PREPARED    (ItemSpriteSheet.CARD_PREPARED,     Target.NONE,  1f),
 	ATTACK      (ItemSpriteSheet.CARD_ATTACK,       Target.ENEMY, 1f),
-	DEFENSE     (ItemSpriteSheet.CARD_DEFENSE,      Target.SELF,  1f);
+	DEFENSE     (ItemSpriteSheet.CARD_DEFENSE,      Target.NONE,  1f),
+	// 恶魔之力：凝视卡
+	GAZE        (ItemSpriteSheet.CARD_IDENTIFY,     Target.NONE,  1f),
+	// 陷阱师：陷阱卡（记录一个陷阱，打出后释放并退回空白卡）
+	TRAP        (ItemSpriteSheet.CARD_RIGID,        Target.CELL,  1f),
+	// 护甲技能：临时传送卡
+	TELEPORT    (ItemSpriteSheet.CARD_PREPARED,     Target.CELL,  1f);
 
 	public enum Target {
-		NONE, ENEMY, SELF, ANY
+		NONE, ENEMY, SELF, ANY, CELL
 	}
 
 	public final String image;
@@ -40,6 +46,6 @@ public enum CardType {
 	}
 
 	public boolean needsTarget() {
-		return target != Target.NONE;
+		return target == Target.ENEMY || target == Target.ANY || target == Target.CELL;
 	}
 }

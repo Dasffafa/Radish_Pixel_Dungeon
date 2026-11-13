@@ -21,13 +21,16 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Random;
 
 public class DoubleEdged extends Weapon.Enchantment {
@@ -69,6 +72,11 @@ public class DoubleEdged extends Weapon.Enchantment {
 			int selfDamage = Math.round(boosted * backlash);
 			if (selfDamage > 0) {
 				attacker.damage(new DamageInfo(selfDamage, DamageType.PHYSICAL, attacker, weapon, this));
+				//英雄被反伤打死不走普通攻击的死亡结算，要在这里自己结算，否则不记排行榜、也没有死因提示
+				if (attacker == Dungeon.hero && !attacker.isAlive()) {
+					Dungeon.fail(getClass());
+					GLog.n(Messages.get(this, "ondeath"));
+				}
 			}
 		}
 

@@ -74,7 +74,10 @@ public class Rector extends HeroDefinition {
 	@Override public void onExpGain(Hero hero, int exp) {
 		Belief belief = hero.buff(Belief.class);
 		if (belief != null && hero.superstitionCounter != null){
-			belief.getBelief(hero.superstitionCounter.briefRet(exp));
+			// 经验没攒够时不调 getBelief(0)：它照样会弹一个「0」的信仰跳字，
+			// 点了「殉道之力」又穿着诅咒装备时还会按诅咒装备数白给信仰
+			float gained = hero.superstitionCounter.briefRet(exp);
+			if (gained > 0) belief.getBelief(gained);
 		}
 	}
 }

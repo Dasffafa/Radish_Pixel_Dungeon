@@ -14,6 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
@@ -37,6 +38,9 @@ public class Yamato extends MeleeWeapon {
 		hitSound = Assets.Sounds.HIT_SLASH;
 		hitSoundPitch = 1.2f;
 		tier = 5;
+		// 攻击间隔减半。写在 DLY 上而不是覆写 delayFactor()，数值完全一样，
+		// 区别是说明里的特性句读的是这个字段：以前这把刀出手快一倍，说明里却只字不提
+		DLY = 0.5f;
 	}
 
 	@Override
@@ -52,11 +56,6 @@ public class Yamato extends MeleeWeapon {
 	@Override
 	public int STRReq(int lvl) {
 		return 18;
-	}
-
-	@Override
-	public float delayFactor(Char owner) {
-		return super.delayFactor(owner) * 0.5f;
 	}
 
 	@Override
@@ -149,6 +148,13 @@ public class Yamato extends MeleeWeapon {
 	}
 
 	private void useRapidSlash(Hero hero, int selectedCell) {
+		// 被缠住、扎根时不能位移（与原版的突进类技能一致）；以前疾走居合可以直接冲出缠绕
+		if (hero.rooted) {
+			PixelScene.shake(1, 1f);
+			GLog.w(Messages.get(this, "rooted"));
+			return;
+		}
+
 		int heroX = hero.pos % Dungeon.level.width();
 		int heroY = hero.pos / Dungeon.level.width();
 		int targetX = selectedCell % Dungeon.level.width();
@@ -218,7 +224,8 @@ public class Yamato extends MeleeWeapon {
 		Invisibility.dispel();
 		Sample.INSTANCE.play(Assets.Sounds.HIT_STRONG);
 		updateQuickslot();
-		hero.ready();
+		//技能是一次出手：和原版武器技能一样花一次攻击的时间（原来只有 hero.ready()，不花任何时间）
+		hero.spendAndNext(hero.attackDelay());
 	}
 
 	@Override

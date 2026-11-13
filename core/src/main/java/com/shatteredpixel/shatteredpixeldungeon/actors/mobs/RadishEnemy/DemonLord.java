@@ -49,16 +49,9 @@ public class DemonLord extends Mob {
 
     @Override
     protected boolean canAttack( Char enemy ) {
-        // 相邻位置可以直接攻击
-        if (Dungeon.level.adjacent(pos, enemy.pos)) {
+        // 相邻、挑战装备的武器距离、精英的额外攻击距离都由父类判定
+        if (super.canAttack(enemy)) {
             return true;
-        }
-
-        // ChampionEnemy 的 extra reach 可能提供更远的攻击距离
-        for (ChampionEnemy buff : buffs(ChampionEnemy.class)) {
-            if (buff.canAttackWithExtraReach(enemy)) {
-                return true;
-            }
         }
 
         // 基础攻击距离 2 格，需要检查弹道联通
@@ -84,11 +77,15 @@ public class DemonLord extends Mob {
 
     public int damageRoll() {
         buffCnt = 0;
-        // accumulate without buff with no icon
-        for(Object i:enemy.buffs(Buff.class).toArray()){
-            if(!BuffIndicator.NONE.equals(((Buff) i).icon())) buffCnt+=1;
+        // 掷伤害不一定发生在自己的攻击里（鼠化术借用原型来掷、测试模式的属性查看器直接调用），
+        // 这时可能没有目标，按没有增幅算
+        if (enemy != null) {
+            // accumulate without buff with no icon
+            for(Object i:enemy.buffs(Buff.class).toArray()){
+                if(!BuffIndicator.NONE.equals(((Buff) i).icon())) buffCnt+=1;
+            }
+            if(enemy.buff(Light.class)!=null) buffCnt-=1;
         }
-        if(enemy.buff(Light.class)!=null) buffCnt-=1;
         buffCnt = Math.max(buffCnt, 0);
         return (int) (Random.NormalIntRange( 30, 35 ) * (1+damageBoost(buffCnt)));
     }

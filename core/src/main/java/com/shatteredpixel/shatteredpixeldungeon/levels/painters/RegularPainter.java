@@ -420,8 +420,13 @@ public abstract class RegularPainter extends Painter {
 			l.map[i] = (Random.Float() < count / 12f) ? Terrain.HIGH_GRASS : Terrain.GRASS;
 
 			// DoggingDog on 2024-01-18
-			if(Dungeon.isChallenged(Challenges.NO_HERBALISM) && Random.Float(0,100f) < 50f+Dungeon.depth*2f){
-				l.map[i] = Terrain.FURROWED_GRASS;
+			// 荒芜之地：每区（5 层）依次 50%/60%/70%/80%/90% 的草变为枯草
+			if(Dungeon.isChallenged(Challenges.NO_HERBALISM)){
+				int region = Math.min(4, Math.max(0, (Dungeon.depth - 1) / 5));
+				float chance = 50f + 10f * region;
+				if (Random.Float(0,100f) < chance){
+					l.map[i] = Terrain.FURROWED_GRASS;
+				}
 			}
 
 		}

@@ -46,7 +46,18 @@ import com.watabou.utils.Random;
  * 当学派投入 N 点天赋时，只允许使用该学派列表中的第 N 个法术（前序法术不可用）。
  * 被动技能(isPassive)不消耗魔力点、不可主动施放。
  */
-public abstract class DiceMageSpell {
+public abstract class DiceMageSpell implements Hero.Doom {
+
+    /**
+     * 英雄被自己的法术打死（燃烧 / 割破的自伤）时的结算。
+     * Hero.die 只对实现了 Doom 的死因调 onDeath，由死因自己负责 Dungeon.fail；
+     * 不实现的话这一局不会写进排行榜，存档却照样被删。
+     */
+    @Override
+    public void onDeath() {
+        Dungeon.fail(this);
+        GLog.n(Messages.get(DiceMageSpell.class, "ondeath"));
+    }
 
     public String name() {
         return Messages.get(getClass(), "name");
@@ -117,9 +128,15 @@ public abstract class DiceMageSpell {
         return mp.getIntPoints() >= mpCost() || mp.canAfford(mpCost());
     }
 
+    // 玩家已经在「消耗法杖充能」确认窗里点了确认。充能要等到真正扣魔力点（spendMagic）时才换成魔力点：
+    // 确认之后还有选格 / 目标校验，取消或目标无效时法术没放出去，不能白扣法杖充能
+    private boolean wandDrainConfirmed = false;
+
     public void cast() {
         Hero hero = Dungeon.hero;
         if (hero == null) return;
+
+        wandDrainConfirmed = false;
 
         if (!canCast()) {
             GLog.w(Messages.get(DiceMageSpell.class, "no_mp"));
@@ -136,24 +153,21 @@ public abstract class DiceMageSpell {
         onCast(hero);
     }
 
-    /** 法杖充能消耗确认后，继续本次施法（魔力已被补充到足够）。 */
+    /** 法杖充能消耗确认后，继续本次施法（法杖充能留到 spendMagic 时再换成魔力点）。 */
     public void continueCast(Hero hero) {
         if (hero == null) return;
-        if (!mpCheck()) return;
+        if (!canCast()) return;
+        wandDrainConfirmed = true;
         onCast(hero);
-    }
-
-    private boolean mpCheck() {
-        Hero hero = Dungeon.hero;
-        if (hero == null) return false;
-        MagicPoint mp = hero.buff(MagicPoint.class);
-        if (mp == null) return false;
-        if (!mp.offCooldown(getClass())) return false;
-        return mp.getIntPoints() >= mpCost();
     }
 
     protected boolean spendMagic(Hero hero) {
         MagicPoint mp = hero.buff(MagicPoint.class);
+        if (mp != null && wandDrainConfirmed && !mp.infiniteMana()
+                && mp.getIntPoints() < mpCost() && mp.canAfford(mpCost())) {
+            mp.drainWandsFor(mpCost());
+        }
+        wandDrainConfirmed = false;
         if (mp != null && mp.spendPoints(mpCost())) {
             return true;
         }
@@ -172,7 +186,25 @@ public abstract class DiceMageSpell {
     protected abstract void onCast(Hero hero);
 
     protected void getTarget(CellSelector.Listener listener) {
-        GameScene.selectCell(listener);
+        GameScene.selectCell(new CellSelector.Listener() {
+            @Override
+            public void onSelect(Integer target) {
+                if (target != null && !canTargetUnseenCell() && !Dungeon.level.heroFOV[target]) {
+                    GLog.w(Messages.get(DiceMageSpell.class, "target_not_visible"));
+                    return;
+                }
+                listener.onSelect(target);
+            }
+
+            @Override
+            public String prompt() {
+                return listener.prompt();
+            }
+        });
+    }
+
+    protected boolean canTargetUnseenCell() {
+        return false;
     }
 
     protected boolean isValidEnemy(Char target) {

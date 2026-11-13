@@ -49,9 +49,9 @@ public class Xxx extends Weapon.Enchantment {
 |---|---|
 | `Weapon.Enchantment.common/uncommon/rare` | 正面附魔加入对应稀有度数组 |
 | `Weapon.Enchantment.curses` | 诅咒加入数组 |
-| `ElementalStrike.effectTypes` | **必须**加一条映射，否则元素打击 NPE |
-| `CustomWeapon.enchPrio` | 测试自定义武器 |
-| `TestMelee.generateEnchant` | 测试生成器（可选） |
+| `ElementalStrike.effectTypes` | 仅当该附魔参与元素打击效果映射时添加；新增前检查未映射类型的处理路径 |
+| `CustomWeapon.enchPrio` | 测试自定义武器用，按测试需求维护 |
+| `TestMelee.generateEnchant` | 测试生成器，可选 |
 
 ### 4. 本地化
 
@@ -138,21 +138,21 @@ items.armor.glyphs.xxx.desc=...
 - [ ] `glowing()` 返回颜色（诅咒一般 `0x000000`）
 - [ ] 等级 + 奥术倍率都参与成长（本项目规范）
 - [ ] 加入对应随机池数组
-- [ ] `ElementalStrike` 映射（武器）
+- [ ] 如需参与 ElementalStrike 效果映射，再核对并更新 `ElementalStrike`
 - [ ] 中英文 key / desc 齐全
 - [ ] 触发概率用 `procChanceMultiplier`；`MagicImmune` 由 `hasEnchant` / `hasGlyph` 统一处理
-- [ ] 编译：`JAVA_HOME=/home/bouquet/.jdks/temurin-21.0.12.1 sh gradlew :core:compileJava --offline`
+- [ ] 按项目配置的 JDK 编译：`./gradlew :core:compileJava --offline`
 
 ---
 
 ## 四、易踩的坑
 
-1. **`ElementalStrike` NPE**：任何武器附魔 / 诅咒不在 `effectTypes` 里都会崩。
+1. **`ElementalStrike` 映射**：新增武器附魔时，检查 `effectTypes` 对该类型的处理；只有需要相应效果时才增加映射，不要假定所有未映射类型都会导致崩溃。
 2. **`delayFactor` 一次攻击被多次调用**（Strongman 伤害计算），随机 roll 会多次触发；攻击时间以最后一次为准。
 3. **`buffedLvl()` 分支多**：`MeleeWeapon` / `Armor` 有 GoldRadish、RiverCrystal、GIFT 等分支，改等级相关逻辑时要逐个覆盖。
 4. **内部类消息 key** 用 `$`：`items.armor.curses.swamp$waterlogged.name`。
 5. **力量需求修正**放在现有计算之后（`req += curseStrReqMod()`），避免打乱国王之戒等加成。
-6. **无需考虑存档兼容**（见 `AGENTS.md`）。
+6. **存档兼容需逐项判断**：新增持久化字段、改动 Bundle key 或旧状态含义时，应检查现有存档读取兼容性；不可由通用规则推断无需迁移。
 
 ---
 

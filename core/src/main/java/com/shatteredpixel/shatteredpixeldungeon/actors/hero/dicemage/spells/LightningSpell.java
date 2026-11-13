@@ -64,16 +64,19 @@ public class LightningSpell extends DiceMageSpell {
                 int mpBonus = mp != null ? mp.getIntPoints() : 0;
                 final int dmg = Random.IntRange(15, 25) + mpBonus * 2 + strBonusDamage(hero);
 
+                startCooldown(hero, COOLDOWN);
+                // 伤害在飞弹落地的回调里结算，回合也要等到那时才结束（同法杖的做法）：
+                // 先 spendAndNext 的话怪物会在 Actor 线程上行动，同时渲染线程在回调里改同一批角色
+                hero.busy();
                 MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.STAR, hero.sprite, target.pos, new Callback() {
                     @Override
                     public void call() {
                         target.damage(DamageInfo.lightning(dmg, LightningSpell.this));
                         CellEmitter.center(target.pos).burst(SparkParticle.FACTORY, 10);
                         Sample.INSTANCE.play(Assets.Sounds.ZAP);
+                        hero.spendAndNext(1f);
                     }
                 });
-                startCooldown(hero, COOLDOWN);
-                hero.spendAndNext(1f);
             }
 
             @Override

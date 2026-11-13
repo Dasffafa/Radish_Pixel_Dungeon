@@ -626,6 +626,13 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		if (burning != null) {
 			burning.visible = visible;
 		}
+		// 这两种燃烧的火焰同样要跟着贴图隐藏，否则视野外的角色身上会露出一团火
+		if (haloburning != null) {
+			haloburning.visible = visible;
+		}
+		if (ealoburning != null) {
+			ealoburning.visible = visible;
+		}
 		if (levitation != null) {
 			levitation.visible = visible;
 		}

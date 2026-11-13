@@ -54,6 +54,7 @@ public class HalomethaneBurning extends Buff implements Hero.Doom {
     private float left;
 
     private static final String LEFT	= "left";
+    private static final String BURN	= "burnIncrement";
 
     {
         type = buffType.NEGATIVE;
@@ -64,6 +65,7 @@ public class HalomethaneBurning extends Buff implements Hero.Doom {
     public void storeInBundle( Bundle bundle ) {
         super.storeInBundle( bundle );
         bundle.put( LEFT, left );
+        bundle.put( BURN, burnIncrement );
     }
 
     @Override
@@ -75,6 +77,8 @@ public class HalomethaneBurning extends Buff implements Hero.Doom {
     public void restoreFromBundle( Bundle bundle ) {
         super.restoreFromBundle(bundle);
         left = bundle.getFloat( LEFT );
+        //已经烧了几回合也要进存档（原版燃烧同样存了），否则读档会把「烧掉物品」的进度清零
+        if (bundle.contains( BURN )) burnIncrement = bundle.getInt( BURN );
     }
     private int burnIncrement = 0;
     @Override
@@ -101,9 +105,12 @@ public class HalomethaneBurning extends Buff implements Hero.Doom {
 
                     ArrayList<Item> burnable = new ArrayList<>();
                     //does not reach inside of containers
-                    for (Item i : hero.belongings.backpack.items){
-                        if (!i.unique && (i instanceof Scroll || i instanceof MysteryMeat || i instanceof FrozenCarpaccio)){
-                            burnable.add(i);
+                    //背包遗失期间物品不在身上，不能被烧掉（与原版燃烧、圣焰一致）
+                    if (!hero.belongings.lostInventory()) {
+                        for (Item i : hero.belongings.backpack.items){
+                            if (!i.unique && (i instanceof Scroll || i instanceof MysteryMeat || i instanceof FrozenCarpaccio)){
+                                burnable.add(i);
+                            }
                         }
                     }
 

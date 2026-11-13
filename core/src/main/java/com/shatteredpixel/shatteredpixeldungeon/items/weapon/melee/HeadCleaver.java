@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamagePipeline;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BloodParticle;
+import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -82,13 +83,23 @@ public class HeadCleaver extends MeleeWeapon{
         }
 
         if (defender.HP < defender.HT * 0.3f) {
-            // 处决：HP 归零，由伤害管线正常触发死亡
+            // 处决：HP 归零，由伤害管线正常触发死亡。
+            // 这里不能提交「本局失败」：此刻英雄还没走到死亡流程，十字架可能马上把人救活，
+            // 那条排行榜记录就成了假的；真死了的话，攻击流程在伤害结算后本来就会提交一次，这里再交就是两条
             defender.HP = 0;
             GLog.n(Messages.get(HeadCleaver.headCleaverTracker.class, "ondeath"));
-            Dungeon.fail(HeadCleaver.headCleaverTracker.class);
         } else {
             // 留 1 血
             defender.HP = 1;
+        }
+    }
+
+    // 斩首标记只对「触发它的那一击」有效。那一击没造成伤害时（被完全减免）上面的结算不会发生，
+    // 标记要在这一击结束时清掉，不然接下来一回合里任何一点别的伤害（中毒、别的怪）都会被当成斩首来结算
+    @SubscribeEvent(event = AttackHitEvent.class, priority = 0)
+    public static void onCleaveHitEnd(AttackHitEvent event) {
+        if (event.getDefender() == Dungeon.hero) {
+            Buff.detach(event.getDefender(), headCleaverTracker.class);
         }
     }
 

@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
@@ -66,7 +67,9 @@ public class RingOfDestruction extends Ring {
 			float enemyDmg = enemyDamagePercent(level);
 			return Messages.get(this, "stats", selfDmg, enemyDmg);
 		} else {
-			return Messages.get(this, "typical_stats");
+			// 未鉴定时按 +0 戒指（效果等级 1）给数值。必须带参数：不带参数的文本不会过 format，
+			// 里面的 %% 会原样显示成两个百分号
+			return Messages.get(this, "typical_stats", selfDamagePercent(1), enemyDamagePercent(1));
 		}
 	}
 
@@ -106,7 +109,10 @@ public class RingOfDestruction extends Ring {
 				return true;
 			}
 			for (Mob mob : Dungeon.level.mobs) {
-				if (mob != target && mob.alignment != target.alignment
+				if (mob instanceof WardenPrototype && ((WardenPrototype) mob).isInactive()) continue;
+				// 只算敌对单位，中立的 NPC 不算：店主被「伤害」一次就警告、第二次就带着全部商品消失；
+				// 而且视野里只有 NPC 时，佩戴者也会跟着白白掉血
+				if (mob != target && mob.alignment == Char.Alignment.ENEMY
 						&& target.fieldOfView != null && mob.pos >= 0 && mob.pos < target.fieldOfView.length
 						&& target.fieldOfView[mob.pos]
 						&& mob.isAlive()

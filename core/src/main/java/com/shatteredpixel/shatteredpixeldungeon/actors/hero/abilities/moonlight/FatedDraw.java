@@ -116,15 +116,35 @@ public class FatedDraw extends ArmorAbility {
 		 * @param type 消耗类型：attack_hit, attack_damage, defense_evasion, defense_block
 		 * @return 是否成功消耗（有剩余次数时返回 true）
 		 */
+		/** 下一次判定能否取最大值（还有层数，或时间暂留这一回合还有免费次数）。 */
+		public boolean ready() {
+			return remainingChecks > 0 || inPause();
+		}
+
+		// 时间暂留：一回合内的多次判定只扣 1 层，+1~+4 时这一回合至多 2~5 次判定
+		private boolean inPause() {
+			int pts = Dungeon.hero != null ? Dungeon.hero.pointsInTalent(Talent.TIME_PAUSE) : 0;
+			return pts > 0 && pauseUsed > 0 && pauseUsed < pts + 1 && now() < pauseStart + 1f;
+		}
+
 		public boolean consume(String type) {
+			if (inPause()) {
+				pauseUsed++;
+				return true;
+			}
 			if (remainingChecks > 0) {
 				remainingChecks--;
+				pauseStart = now();
+				pauseUsed = 1;
 				//TheCatist 2026/8/5 这个太吵了！不要
 //				GLog.i(Messages.get(this, "consume_" + type, remainingChecks));
 				return true;
 			}
 			return false;
 		}
+
+		private float pauseStart = -1f;
+		private int pauseUsed = 0;
 
 		public Item tryGenLootGroundDrop(Hero hero) {
 			if (remainingChecks > 0 && hero.hasTalent(Talent.LOOT_GROUND)) {
@@ -140,12 +160,18 @@ public class FatedDraw extends ArmorAbility {
 		public void storeInBundle(Bundle bundle) {
 			super.storeInBundle(bundle);
 			bundle.put("remainingChecks", remainingChecks);
+			bundle.put("pauseStart", pauseStart);
+			bundle.put("pauseUsed", pauseUsed);
 		}
 
 		@Override
 		public void restoreFromBundle(Bundle bundle) {
 			super.restoreFromBundle(bundle);
 			remainingChecks = bundle.getInt("remainingChecks");
+			if (bundle.contains("pauseUsed")) {
+				pauseStart = bundle.getFloat("pauseStart");
+				pauseUsed = bundle.getInt("pauseUsed");
+			}
 		}
 	}
 }

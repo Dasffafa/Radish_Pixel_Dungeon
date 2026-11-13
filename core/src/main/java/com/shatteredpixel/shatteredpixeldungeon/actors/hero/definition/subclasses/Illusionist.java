@@ -17,6 +17,6 @@ public class Illusionist extends HeroSubClass {
 
 	@Override
 	public Talent[] subclassT4() {
-		return new Talent[]{ Talent.PLACEHOLDER_T4_1, Talent.PLACEHOLDER_T4_2 };
+		return new Talent[]{ Talent.CT_VENDETTA, Talent.CT_LAST_STAND };
 	}
 }

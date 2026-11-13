@@ -24,6 +24,10 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterGlow;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.CountessDress;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.ColdIronCoat;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.PrismArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterImage;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CloakofGreyFeather;
@@ -209,6 +213,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Waterwheel;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WhiteKingGodSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WingSword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.HolyDecree;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.SilentPriceBlade;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.DimensionalRipper;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Bolas;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.FishingSpear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ForceCube;
@@ -216,6 +223,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.HeavyBoome
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Javelin;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Kunai;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Senbon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Shuriken;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingClub;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingHammer;
@@ -514,8 +522,9 @@ public class Generator {
 					PneumFistGloves.class,
 					GrapplingHook.class,
 					Belladonna.class,
+					DimensionalRipper.class,
 			};
-			WEP_T3.probs = new float[]{ 5, 5, 5, 5,5, 5, 6, 5, 5, 5, 5, 5 };
+			WEP_T3.probs = new float[]{ 5, 5, 5, 5,5, 5, 6, 5, 5, 5, 5, 5, 5 };
 
 			WEP_T3_NEW.classes = new Class<?>[]{
 					Beecomb.class,
@@ -541,11 +550,12 @@ public class Generator {
 					Darksword.class,
 					HeadCleaver.class,
 					Seekingspear.class,
-					Grimtooth.class,
 					ReplacePoint.class,
-					BoneSpear.class
+					BoneSpear.class,
+					HolyDecree.class,
+					SilentPriceBlade.class
 			};
-			WEP_T4.probs = new float[]{ 5, 5, 5, 5, 5, 5,5, 5, 5, 5, 5, 5,5, 1 };
+			WEP_T4.probs = new float[]{ 5, 5, 5, 5, 5, 5,5, 5, 5, 5, 5, 5, 1, 5, 5 };
 
 			WEP_T4_NEW.classes = new Class<?>[]{
 					Bloodblade.class,
@@ -595,23 +605,26 @@ public class Generator {
 			ARM_T2.classes = new Class<?>[]{
 					LeatherArmor.class,
 					RatArmor.class,
-					CrabArmor.class
+					CrabArmor.class,
+					CountessDress.class
 			};
-			ARM_T2.probs = new float[]{ 1, 1, 1 };
+			ARM_T2.probs = new float[]{ 1, 1, 1, 1 };
 
 			ARM_T3.classes = new Class<?>[]{
 					EnergyArmor.class,
 					SilverScaleArmor.class,
-					PrisonArmor.class
+					PrisonArmor.class,
+					ColdIronCoat.class
 			};
-			ARM_T3.probs = new float[]{ 1, 1, 1 };
+			ARM_T3.probs = new float[]{ 1, 1, 1, 1 };
 
 			ARM_T4.classes = new Class<?>[]{
 					ScaleArmor.class,
 					DarkCoat.class,
-					CloakofGreyFeather.class
+					CloakofGreyFeather.class,
+					PrismArmor.class
 			};
-			ARM_T4.probs = new float[]{ 1, 1, 1 };
+			ARM_T4.probs = new float[]{ 1, 1, 1, 1 };
 
 			ARM_T5.classes = new Class<?>[]{
 					PlateArmor.class,
@@ -620,15 +633,17 @@ public class Generator {
 					WarriorArmor.class,
 					MageArmor.class,
 					RogueArmor.class,
-					HuntressArmor.class
+					HuntressArmor.class,
+					SoulMix.class
 			};
-			ARM_T5.probs = new float[]{ 1, 1, 1, 0, 0, 0, 0 };
+			ARM_T5.probs = new float[]{ 1, 1, 1, 0, 0, 0, 0, 1 };
 			ARM_T5_NATURE.classes = new Class<?>[]{
 					PlateArmor.class,
 					AfterImage.class,
-					AfterGlow.class
+					AfterGlow.class,
+					SoulMix.class
 			};
-			ARM_T5_NATURE.probs = new float[]{ 1, 1, 1};
+			ARM_T5_NATURE.probs = new float[]{ 1, 1, 1, 1 };
 			
 			//see Generator.randomMissile
 			MISSILE.classes = new Class<?>[]{};
@@ -637,9 +652,10 @@ public class Generator {
 			MIS_T1.classes = new Class<?>[]{
 					ThrowingStone.class,
 					ThrowingKnife.class,
-					ThrowingSpike.class
+					ThrowingSpike.class,
+					Senbon.class
 			};
-			MIS_T1.defaultProbs = new float[]{ 3, 3, 3 };
+			MIS_T1.defaultProbs = new float[]{ 3, 3, 3, 3 };
 			MIS_T1.probs = MIS_T1.defaultProbs.clone();
 			
 			MIS_T2.classes = new Class<?>[]{
@@ -973,6 +989,8 @@ public class Generator {
 	public static Item random( Category cat ) {
 		switch (cat) {
 			case ARMOR:
+				// 次要护甲占用普通护甲的生成池：四分之一左右的护甲掉落会是一件次要护甲
+				if (Random.Float() < 0.25f) return randomSecondaryArmor();
 				return randomArmor();
 			case WEAPON:
 				return randomWeapon();
@@ -1018,6 +1036,8 @@ public class Generator {
 	public static Item random( Category cat, boolean requireNewWeapon ) {
 		switch (cat) {
 			case ARMOR:
+				// 次要护甲占用普通护甲的生成池：四分之一左右的护甲掉落会是一件次要护甲
+				if (Random.Float() < 0.25f) return randomSecondaryArmor();
 				return randomArmor();
 			case WEAPON:
 				if (!requireNewWeapon)
@@ -1088,6 +1108,32 @@ public class Generator {
 		Armor a = (Armor) Reflection.newInstance(c.classes[Random.chances(c.probs)]);
 		a.random();
 		return a;
+	}
+
+	/** 次要护甲的生成：按当前层数分段取对应阶，随机 0~2 级成长 */
+	private static final Class<?>[][] SECONDARY_BY_TIER = new Class<?>[][]{
+			{ com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.BlackBelt.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure.class },
+			{ com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ChampionBelt.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.InfusedArmband.class },
+			{ com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Shelter.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet.class },
+			{ com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves.class },
+			{ com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.GriffinEye.class,
+					com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Greaves.class },
+	};
+
+	public static com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor randomSecondaryArmor() {
+		int floorSet = (int)GameMath.gate(0, Dungeon.depth / 5, SECONDARY_BY_TIER.length - 1);
+		Class<?>[] pool = SECONDARY_BY_TIER[floorSet];
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa =
+				(com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor)
+						Reflection.newInstance(pool[Random.Int(pool.length)]);
+		sa.level = Random.Int(0, 2);
+		return sa;
 	}
 
 	public static final Category[] wepTiers = new Category[]{

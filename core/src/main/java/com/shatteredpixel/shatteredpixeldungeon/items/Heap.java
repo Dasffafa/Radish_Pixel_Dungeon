@@ -158,6 +158,15 @@ public class Heap implements Bundlable {
 		return items.peek();
 	}
 
+	/**
+	 * 商品堆里要花钱买的那一件；不是商品堆时返回 null。
+	 * 和原版一样不另设标记：商品生成时是堆里唯一的一件，之后掉进这一格的东西都叠在它上面（见 drop），
+	 * 所以压在最底下的就是商品，它上面的东西可以直接捡走。
+	 */
+	public Item forSaleItem() {
+		return type == Type.FOR_SALE ? items.peekLast() : null;
+	}
+
 	/** 取走堆中指定的物品（用于多物品堆中选取特定物品拾取）。 */
 	public Item pickUp( Item item ) {
 		if (item == null || !items.contains( item )) {
@@ -189,7 +198,12 @@ public class Heap implements Bundlable {
 
 		//lost backpack must always be on top of a heap
 		if ((item.dropsDownHeap && type != Type.FOR_SALE) || peek() instanceof LostBackpack) {
-			items.add( item );
+			if (type == Type.FOR_SALE) {
+				//商品堆最底下的位置只属于商品（见 forSaleItem），往下放也只能放到它上面
+				items.add( items.size()-1, item );
+			} else {
+				items.add( item );
+			}
 		} else {
 			items.addFirst( item );
 		}
@@ -453,6 +467,8 @@ public class Heap implements Bundlable {
 	private static final String HAUNTED	= "haunted";
 	private static final String AUTO_EXPLORED	= "auto_explored";
 	private static final String HIDDEN	= "hidden";
+	//有一版存档用这个键记过商品的件数，现在只读不写
+	private static final String LEGACY_SALE_COUNT	= "for_sale_count";
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -479,6 +495,18 @@ public class Heap implements Bundlable {
 		haunted = bundle.getBoolean( HAUNTED );
 		autoExplored = bundle.getBoolean( AUTO_EXPLORED );
 		hidden = bundle.getBoolean( HIDDEN );
+
+		// 带这个键的存档里，商品排在堆的最前面：挪回最底下，之后就和其它存档一样了
+		if (type == Type.FOR_SALE && bundle.contains( LEGACY_SALE_COUNT )) {
+			int goods = Math.min( bundle.getInt( LEGACY_SALE_COUNT ), items.size() );
+			if (goods <= 0) {
+				//商品已经不在了，剩下的都是后来掉进来的东西
+				type = Type.HEAP;
+			}
+			for (int i = 0; i < goods; i++) {
+				items.addLast( items.removeFirst() );
+			}
+		}
 	}
 
 	@Override

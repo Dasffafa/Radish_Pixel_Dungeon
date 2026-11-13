@@ -49,7 +49,8 @@ public class VineTrap extends Plant{
         }
         @Override
         public void restoreFromBundle(Bundle bundle){
-            super.storeInBundle(bundle);
+            //这里原来调成了 super.storeInBundle：读档时不恢复计时，反而往正在读的存档里写数据
+            super.restoreFromBundle(bundle);
             if (bundle.contains("plant_buff_pos")) pos=bundle.getInt("plant_buff_pos");
         }
     }

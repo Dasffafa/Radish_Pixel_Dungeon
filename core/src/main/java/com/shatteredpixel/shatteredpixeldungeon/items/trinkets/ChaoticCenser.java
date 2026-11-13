@@ -134,7 +134,9 @@ public class ChaoticCenser extends Trinket {
                 }
 
                 //if no target is present, quadratically scale back trigger chance again, strongly
-                if (TargetHealthIndicator.instance.target() != null){
+                // 这里原先的条件写反了（有目标时才压低概率），与上面这句注释、与物品说明里
+                // 「存在敌人时更可能释放气体」都相反
+                if (!enemyTargeted()){
                     triggerChance = (float)Math.pow(triggerChance, 3);
                 }
 
@@ -173,6 +175,15 @@ public class ChaoticCenser extends Trinket {
                 safeAreaDelay = bundle.getInt(SAFE_AREA_DELAY);
             }
         }
+    }
+
+    // 「有目标」的判断沿用上游后来版本的写法：血条指示器正显示着一个活着的敌人。
+    // 只看 target() != null 不行：目标死后指示器并不清空，整层余下的时间都会被当成「有目标」
+    private static boolean enemyTargeted(){
+        TargetHealthIndicator indicator = TargetHealthIndicator.instance;
+        if (indicator == null || !indicator.isVisible()) return false;
+        Char enemy = indicator.target();
+        return enemy != null && enemy.alignment == Char.Alignment.ENEMY && enemy.isAlive();
     }
 
     private static void produceGas(){
@@ -235,9 +246,13 @@ public class ChaoticCenser extends Trinket {
         }
 
         if (!candidateCells.isEmpty()) {
-            int targetCell = Random.chances(candidateCells);
-            GameScene.add(Blob.seed(targetCell, (int) gasQuantity, gasToSpawn));
-            MagicMissile.boltFromChar(Dungeon.hero.sprite.parent, MISSILE_VFX.get(gasToSpawn), Dungeon.hero.sprite, targetCell, null);
+            // 有目标时权重是「最远距离 - 本格距离」：候选格只有一个、或者都和目标一样远时权重全是 0，
+            // Random.chances 返回 null，直接拆箱成 int 会空指针（上游后来的版本也是这样判空的）
+            Integer targetCell = Random.chances(candidateCells);
+            if (targetCell != null) {
+                GameScene.add(Blob.seed(targetCell, (int) gasQuantity, gasToSpawn));
+                MagicMissile.boltFromChar(Dungeon.hero.sprite.parent, MISSILE_VFX.get(gasToSpawn), Dungeon.hero.sprite, targetCell, null);
+            }
         }
 
     }

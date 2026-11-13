@@ -81,6 +81,7 @@ public class Torturer extends Mob {
 //
 //        }
 //        return chain.collisionPos == enemy.pos && Dungeon.level.distance(pos,enemy.pos)<=2;
-        return Dungeon.level.distance(pos,enemy.pos)<=2;
+        // 2 格以外，挑战装备的武器距离和精英（索敌）的额外攻击距离仍由父类判定
+        return Dungeon.level.distance(pos,enemy.pos)<=2 || super.canAttack(enemy);
     }
 }

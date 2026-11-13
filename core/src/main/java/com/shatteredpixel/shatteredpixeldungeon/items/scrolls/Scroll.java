@@ -35,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Soulstaker;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.challenge.AlchemyApprenticeChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
 import com.shatteredpixel.shatteredpixeldungeon.events.ReadScrollEvent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MirrorImage;
@@ -184,9 +185,13 @@ public abstract class Scroll extends Item {
 	 */
 	public void MagicStone(boolean log,boolean original){
 		if(original) {
-			boolean isNotDouble = !(curItem instanceof ScrollOfRemoveCurse || curItem instanceof ScrollOfUpgrade || curItem instanceof ScrollOfIdentify || curItem instanceof ScrollOfTransmutation);
+			//用 this 而不是 curItem：结算挪到 readAnimation 之后，curItem 不一定还是这张卷轴（比如连续升级的窗口）
+			boolean isNotDouble = !(this instanceof ScrollOfRemoveCurse || this instanceof ScrollOfUpgrade || this instanceof ScrollOfIdentify || this instanceof ScrollOfTransmutation);
 			if (Dungeon.hero.pointsInTalent(Talent.MAGIC_REFINING) >= 1 && isNotDouble && Random.Int(0,100)>=50) {
-				Item MagicStone = Reflection.newInstance(stones.get(curItem.getClass()));
+				//赐福卷轴、图纸这类不在炼金表里的卷轴没有对应的符石
+				Class<? extends Runestone> stoneCls = stones.get(getClass());
+				if (stoneCls == null) return;
+				Item MagicStone = Reflection.newInstance(stoneCls);
 				if(log)GLog.p(Messages.get(Scroll.class,"scrollToStone",MagicStone.name()));
 				Dungeon.level.drop(MagicStone, curUser.pos);
 			}
@@ -243,10 +248,7 @@ public abstract class Scroll extends Item {
 					&& !(this instanceof ScrollOfRemoveCurse || this instanceof ScrollOfAntiMagic)){
 				GLog.n( Messages.get(this, "cursed") );
 			} else {
-				MagicStone(true,true);
-				ExoticScrollToScroll(true,true);
 				curUser = hero;
-				ShadowBooks(hero);
 				doRead();
 			}
 
@@ -256,21 +258,9 @@ public abstract class Scroll extends Item {
 	public abstract void doRead();
 
 	public void readAnimation() {
-		Invisibility.dispel();
-		curUser.spend( TIME_TO_READ );
-		curUser.busy();
-		((HeroSprite)curUser.sprite).read();
-
-		// TheCatist 2026/07/21 无序魔典的卷轴使用是anonymous不会触发天赋
-		if (!anonymous) {
-			// 发射阅读卷轴事件
-			EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
-			Catalog.countUse(getClass());
-			if (Random.Float() < talentChance) {
-				Talent.onScrollUsed(curUser, curUser.pos, talentFactor);
-			}
-		}
-
+		//两个重载必须走同一段结算：以前各写各的，普通卷轴拿不到充能强化 / 潜心苦读，
+		//秘卷不计使用次数、不触发卷轴类天赋。「秘卷翻倍」按卷轴自己的类型定。
+		readAnimation( this instanceof ExoticScroll );
 	}
 
 	protected void readAnimation( boolean toDouble) {
@@ -279,8 +269,22 @@ public abstract class Scroll extends Item {
 		curUser.busy();
 		((HeroSprite)curUser.sprite).read();
 
+		// TheCatist 2026/07/21 无序魔典的卷轴使用是anonymous不会触发天赋
+		if (anonymous) return;
+
+		//「读卷轴时」的这几样只在卷轴真的读出来之后结算。它们原先写在 execute 里、doRead 的前后，
+		//而需要选目标的卷轴 doRead 只是弹出窗口：点开再取消（卷轴不消耗、不花回合）也照算，可以无限刷
+		MagicStone(true,true);
+		ExoticScrollToScroll(true,true);
+		ShadowBooks((Hero)curUser);
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( (Hero)curUser );
+
 		// 发射阅读卷轴事件
 		EventManager.emit(new ReadScrollEvent((Hero)curUser, this));
+		Catalog.countUse(getClass());
+		if (Random.Float() < talentChance) {
+			Talent.onScrollUsed(curUser, curUser.pos, talentFactor);
+		}
 
 		/*if (curUser.hasTalent(Talent.SPELL_QUEUE)){
 			Buff.affect(curUser, ScrollEmpower.class).reset();
@@ -299,7 +303,7 @@ public abstract class Scroll extends Item {
 			// Strengthen if ExoticScroll used
 			ptSkill = (this instanceof ExoticScroll)?ptSkill*2:ptSkill;
 
-			Buff.affect(curUser, VitaeBuff.class).setVitae(ptSkill + 4);
+			Buff.affect(curUser, VitaeBuff.class).addVitae(ptSkill + 4);
 		}
 
 	}
@@ -446,9 +450,18 @@ public abstract class Scroll extends Item {
 			Scroll s = (Scroll) ingredients.get(0);
 
 			s.quantity(s.quantity() - 1);
+
+			Runestone result = Reflection.newInstance(stones.get(s.getClass()));
+			result.quantity(2);
+
+			//「炼金学徒」挑战下拆解不再鉴定卷轴，并且其中一颗符石会换成随机种类
+			if (AlchemyApprenticeChallenge.isActive()){
+				return AlchemyApprenticeChallenge.replaceOneStone(result);
+			}
+
 			s.identify();
 
-			return Reflection.newInstance(stones.get(s.getClass())).quantity(2);
+			return result;
 		}
 
 		@Override
@@ -457,11 +470,20 @@ public abstract class Scroll extends Item {
 
 			Scroll s = (Scroll) ingredients.get(0);
 
+			Runestone result;
 			if (!s.isKnown()){
-				return new Runestone.PlaceHolder().quantity(2);
+				result = new Runestone.PlaceHolder();
 			} else {
-				return Reflection.newInstance(stones.get(s.getClass())).quantity(2);
+				result = Reflection.newInstance(stones.get(s.getClass()));
 			}
+			result.quantity(2);
+
+			//「炼金学徒」挑战下有一颗符石是随机的，预览要如实体现这一点
+			if (AlchemyApprenticeChallenge.isActive()){
+				return new AlchemyApprenticeChallenge.StonePreview(result);
+			}
+
+			return result;
 		}
 	}
 }

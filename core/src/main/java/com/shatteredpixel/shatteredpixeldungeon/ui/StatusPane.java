@@ -129,7 +129,8 @@ public class StatusPane extends Component {
 		};
 		add(heroInfo);
 
-		avatar = HeroSprite.avatar( Dungeon.hero.heroClass, lastTier );
+		// 按英雄当前的样子画（伪装期间是伪装职业）；带着伪装读档时状态栏是重新建的
+		avatar = HeroSprite.avatar( Dungeon.hero );
 		add( avatar );
 
 		talentBlink = 0;
@@ -338,7 +339,8 @@ public class StatusPane extends Component {
 		for(VitaeBuff s:Dungeon.hero.buffs(VitaeBuff.class)){
 			vitaeSpan += (float) s.maxVitae;
 		}
-		vitae.scale.x = vitaeMax/vitaeSpan * Math.min(vitaeSpan,vt);
+		// 身上没有 VitaeBuff 时 vitaeSpan 是 0，直接除会得到 NaN 并一路传进这条血条的顶点数据
+		vitae.scale.x = vitaeSpan > 0 ? vitaeMax/vitaeSpan * Math.min(vitaeSpan,vt) : 0;
 
 		if (shield > health) {
 			rawShielding.scale.x = Math.min(1, shield / (float) max);
@@ -408,7 +410,8 @@ public class StatusPane extends Component {
 		int tier = Dungeon.hero.tier_for_image();
 		if (tier != lastTier) {
 			lastTier = tier;
-			avatar.copy( HeroSprite.avatar( Dungeon.hero.heroClass, tier ) );
+			// 与 updateAvatar() 用同一个取法：伪装期间换护甲，头像不能变回本职业
+			avatar.copy( HeroSprite.avatar( Dungeon.hero ) );
 		}
 
 		counter.setSweep((1f - Actor.now()%1f)%1f);

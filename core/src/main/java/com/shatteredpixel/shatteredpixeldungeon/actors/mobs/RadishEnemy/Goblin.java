@@ -64,28 +64,35 @@ public class Goblin extends Mob {
     }
 
     private int StoneRemain;
-    private boolean canZap = true;
+
     @Override
     protected boolean canAttack( Char enemy ) {
-        return new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos && (canZap || Dungeon.level.adjacent(pos,enemy.pos));
+        // 相邻、挑战装备的武器距离、精英（索敌 / 巨型）的额外攻击距离都由父类判定，
+        // 不调父类的话石头丢完后的索敌精英只能贴身打
+        return super.canAttack( enemy ) || canThrowAt( enemy );
     }
+
+    // 能否向目标投掷：直接由存档里的剩余数量推出，读档后不会凭空多丢一次
+    protected boolean canThrowAt( Char enemy ) {
+        return StoneRemain > 0
+                && new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos;
+    }
+
+    @Override
     protected boolean doAttack(Char enemy ) {
 
-        if (Dungeon.level.adjacent( pos, enemy.pos )) {
+        if (Dungeon.level.adjacent( pos, enemy.pos ) || !canThrowAt( enemy )) {
 
+            // 相邻，或没法投掷但仍在攻击距离内（精英的隔空攻击）：走父类近战流程
             return super.doAttack( enemy );
 
         } else{
             StoneRemain --;
-            StoneRemain = Math.max(StoneRemain, 0);
-            canZap = StoneRemain > 0;
             if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
+                // 回合由 GoblinSprite.zap 的投掷物落地回调 onZapComplete() 里的 next() 结束
                 sprite.zap( enemy.pos );
                 return false;
             } else {
-                StoneRemain --;
-                StoneRemain = Math.max(StoneRemain, 0);
-                canZap = StoneRemain > 0;
                 zap();
                 return true;
             }
@@ -98,8 +105,13 @@ public class Goblin extends Mob {
         if (hit(this, enemy, true)) {
             int dmg = Random.NormalIntRange(2, 4);
             dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
-            dmg = defenseProc(enemy,dmg);
-            dmg -= enemy.drRoll();
+            // 防御结算（护甲刻印等）属于被砸中的一方，不是哥布林自己
+            dmg = enemy.defenseProc(this, dmg);
+            // 与 Char.attack 一致：防御结算可能已让目标死亡，不再继续结算
+            if (!enemy.isAlive()) {
+                return;
+            }
+            dmg = Math.max(0, dmg - enemy.drRoll());
             enemy.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, this, new ThrowingStone()));
 
             if (!enemy.isAlive() && enemy == Dungeon.hero) {

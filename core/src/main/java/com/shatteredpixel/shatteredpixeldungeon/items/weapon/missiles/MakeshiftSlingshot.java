@@ -25,8 +25,6 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -91,8 +89,8 @@ public class MakeshiftSlingshot extends Item {
 	// 目标选择器
 	protected static CellSelector.Listener thrower = new CellSelector.Listener() {
 		@Override
-		public void onSelect(Integer cell) {
-			if (cell == null || curUser == null || curItem == null) return;
+		public void onSelect(Integer target) {
+			if (target == null || curUser == null || curItem == null) return;
 			
 			// 获取石头
 			ThrowingStone stone = curUser.belongings.getItem(ThrowingStone.class);
@@ -101,15 +99,23 @@ public class MakeshiftSlingshot extends Item {
 				return;
 			}
 
+			// 和普通投掷一样沿弹道飞到第一个挡住它的格子。直接拿玩家点的那一格当落点的话，
+			// 隔着墙、隔着别的怪都能打中
+			final int cell = stone.throwPos(curUser, target);
+			// 石头飞行期间英雄不能再行动，回合在落地回调里结算
+			curUser.busy();
+
 			// 消耗一颗石头和一个投石索
 			stone.detach(curUser.belongings.backpack);
 			curItem.detach(curUser.belongings.backpack);
 
-			curUser.spendAndNext(1f);
-			
+			// 石头飞行期间英雄不可行动；回合在 onThrowReached 里结束
+			curUser.busy();
+
 			Sample.INSTANCE.play(Assets.Sounds.HIT);
 			MissileSprite missile = (MissileSprite) curUser.sprite.parent.recycle(MissileSprite.class);
 			// The consumed stone supplies the projectile sprite.
+			// 结束回合放在回调里，保证动画走完一定解除忙碌状态
 			missile.reset(curUser.sprite, cell, stone, () -> onThrowReached(cell), 2f);
 		}
 
@@ -120,27 +126,29 @@ public class MakeshiftSlingshot extends Item {
 	};
 
 	protected static void onThrowReached(int cell) {
-		if (curUser == null) return;
+		final Hero user = curUser;
+		if (user == null) return;
 		
-		Char enemy = Actor.findChar(cell);
-		
-		// 计算基础伤害（石头的伤害）
-		ThrowingStone stone = new ThrowingStone();
-		int baseDamage = stone.damageRoll(curUser);
-		
-		// 4倍伤害
-		int slingshotDamage = baseDamage * 4;
+		try {
+			Char enemy = Actor.findChar(cell);
 
-		if (enemy != null && enemy != curUser) {
-			// 对敌人造成伤害
-			enemy.damage(DamageInfo.of(slingshotDamage, DamageType.PHYSICAL, curUser, curUser));
-			// 检查击杀
-			if (!enemy.isAlive()) {
-				if (enemy == Dungeon.hero) {
-					Dungeon.fail(MakeshiftSlingshot.class);
-					GLog.n(Messages.get(MakeshiftSlingshot.class, "kill_desc"));
+			if (enemy != null && enemy != user) {
+				// 走标准射击流程，命中率/强化/附魔/暴击都会正常计算
+				ThrowingStone shot = new ThrowingStone();
+				// 4倍伤害通过层数体现，保持与说明一致
+				shot.level(Math.max(0, shot.level() + 4));
+				user.shoot(enemy, shot);
+				// 检查击杀
+				if (!enemy.isAlive()) {
+					if (enemy == Dungeon.hero) {
+						Dungeon.fail(MakeshiftSlingshot.class);
+						GLog.n(Messages.get(MakeshiftSlingshot.class, "kill_desc"));
+					}
 				}
 			}
+		} finally {
+			// 无论如何都要结束回合，否则动画/异常会让英雄卡在忙碌状态
+			user.spendAndNext(1f);
 		}
 	}
 

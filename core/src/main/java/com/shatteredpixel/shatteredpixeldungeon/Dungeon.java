@@ -56,7 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.*;
-import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestArenaLevel;import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.FireHallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.OldSewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WarCityLevel;
@@ -70,6 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.VineTrap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
@@ -81,6 +82,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.FileUtils;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 import com.watabou.utils.SparseArray;
 
 import java.io.IOException;
@@ -219,9 +221,16 @@ public class Dungeon {
 	// 当前分支的字符串标识（如 "main", "moss", "mining"）
 	public static String branchId = Branches.MAIN;
 
+	/** 循环楼梯每一条链当前轮到第几个（0=A,1=B,2=C） */
+	public static final java.util.HashMap<String, Integer> gateChains = new java.util.HashMap<>();
+
 	//keeps track of what levels the game should try to load instead of creating fresh
 	public static HashSet<String> generatedLevels = new HashSet<>();
 	public static boolean levelJustGenerated;
+
+	// 测试工具（升降器）用：让下一次 newLevel() 直接使用指定的关卡类，
+	// 用于在同一层里指定要打哪个 Boss 变体（如第10层的典狱长 / 天狗）。用后自动清空。
+	public static Class<? extends Level> forcedLevelClass = null;
 
 	public static int gold;
 	public static int energy;
@@ -294,6 +303,7 @@ public class Dungeon {
 		
 		depth = 1;
 		branchId = Branches.MAIN;
+		gateChains.clear();
 		generatedLevels.clear();
 		levelJustGenerated = false;
 
@@ -365,16 +375,39 @@ public class Dungeon {
 				throw new IllegalStateException("Unknown branch: " + branchId);
 			}
 
+		// 测试场：测试模式专用空白地图（不参与正常楼层生成记录）
+		if (TestArenaLevel.requested) {
+			TestArenaLevel.requested = false;
+			level = new TestArenaLevel();
+		}
+
 			if (level == null) {
 				throw new IllegalStateException("Invalid floor: " + branchId + ":" + depth);
 		}
 		
+		// 第10层的 Boss 选择：典狱长与天狗随机替换出现
+		if (branchId.equals(Branches.MAIN) && depth == 10 && level instanceof PrisonBossLevel) {
+			Random.pushGenerator( Dungeon.seedCurDepth()+2 );
+			boolean warden = Random.Float() < 0.5f;
+			Random.popGenerator();
+			if (warden) {
+				level = new WardenBossLevel();
+			}
+		}
+
 		// 第15层的 Boss 选择
 		if (branchId.equals(Branches.MAIN) && depth == 15) {
 			// deterministic per (branch, depth), independent of prior branch exploration
 			Random.pushGenerator( Dungeon.seedCurDepth()+1 );
 			level = GenerateCaveBossLevel();
 			Random.popGenerator();
+		}
+
+		// 测试工具（升降器）可强制指定本层的关卡类，用于在同一层里选择要打哪个 Boss 变体。
+		// 只影响「这一次生成」，用完立刻清空，不影响正常流程。
+		if (forcedLevelClass != null) {
+			level = Reflection.newInstance(forcedLevelClass);
+			forcedLevelClass = null;
 		}
 
 		//dead end levels get cleared, don't count as generated
@@ -498,7 +531,13 @@ public class Dungeon {
 		return depth == 1 ||depth == 6 || depth == 11 || depth == 16 || depth == 21;
 	}
 	
+	//「当前所在的这一层是不是首领层」。支线的 depth 从 1 重新计数，不能套主线的 5/10/15…：
+	//传奇重犯副本整层就是首领战，其余支线层都不是。
+	//要问「主线第 N 层是不是首领层」的调用方用下面带参数的重载。
 	public static boolean bossLevel() {
+		if (!Branches.MAIN.equals( branchId )) {
+			return Branches.CONVICT.equals( branchId );
+		}
 		return bossLevel( depth );
 	}
 	
@@ -544,6 +583,8 @@ public class Dungeon {
 		PathFinder.setMapSize(level.width(), level.height());
 		
 		Dungeon.level = level;
+		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.applyLevelFlags(level);
+
 		hero.pos = pos;
 
 		if (hero.buff(AscensionChallenge.class) != null){
@@ -574,7 +615,11 @@ public class Dungeon {
 		hero.curAction = hero.lastAction = null;
 
 		// 术士4-4 腐化怨灵：进入新层时生成怨灵
-		Talent.onNewFloor(hero);
+		// switchLevel 在读档、回到去过的楼层、复活时也会走到；只有这一层是刚生成的才算「新的一层」，
+		// 否则每读一次档、每回一次旧楼层都会再生成一批怨灵
+		if (levelJustGenerated) {
+			Talent.onNewFloor(hero);
+		}
 
 		observe();
 		try {
@@ -692,6 +737,8 @@ public class Dungeon {
 	private static final String MOBS_TO_CHAMPION	= "mobs_to_champion";
 	private static final String HERO		= "hero";
 	private static final String DEPTH		= "depth";
+	private static final String GATE_CHAINS	= "gate_chains";
+	private static final String LEGACY_CYCLE_CHAINS	= "cycle_chains";
 		private static final String BRANCH_ID		= "branch_id";
 		private static final String GENERATED_LEVELS    = "generated_levels";
 		private static final String GOLD		= "gold";
@@ -725,6 +772,12 @@ public class Dungeon {
 				bundle.put( HERO, hero );
 				bundle.put( DEPTH, depth );
 				bundle.put( BRANCH_ID, branchId );
+				String[] chains = new String[gateChains.size()];
+				int ci = 0;
+				for (java.util.Map.Entry<String,Integer> e : gateChains.entrySet()) {
+					chains[ci++] = e.getKey() + "|" + e.getValue();
+				}
+				bundle.put( GATE_CHAINS, chains );
 
 				bundle.put( GOLD, gold );
 				bundle.put( ENERGY, energy );
@@ -897,11 +950,29 @@ public class Dungeon {
 		
 		Notes.restoreFromBundle( bundle );
 		
+		//动作按钮槽是全局的。槽里如果还留着上一个英雄对象的按钮（读档前那个状态实例），
+		//新读出来的状态看到「槽已被占」就不会再放自己的按钮，读档后按钮点了没反应或者不出现。
+		//所以恢复英雄之前先清空，由各状态在恢复时重新占位。
+		//（从存档界面「继续」时窗口那边已经清过一次；这里保证所有读档入口都一样）
+		ActionIndicator.clearAction();
+
 		hero = null;
 		hero = (Hero)bundle.get( HERO );
 		
 		depth = bundle.getInt( DEPTH );
 		branchId = bundle.getString(BRANCH_ID);
+
+		gateChains.clear();
+		String[] chains = bundle.getStringArray(GATE_CHAINS);
+		if (chains == null) {
+			chains = bundle.getStringArray(LEGACY_CYCLE_CHAINS);
+		}
+		if (chains != null) {
+			for (String s : chains) {
+				String[] parts = s.split("\\|");
+				if (parts.length == 2) gateChains.put(parts[0], Integer.parseInt(parts[1]));
+			}
+		}
 		if (!bundle.contains(BRANCH_ID) || !Branches.exists(branchId)) {
 			throw new IncompatibleSaveException("Invalid saved branch: " + branchId);
 		}

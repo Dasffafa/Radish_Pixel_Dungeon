@@ -463,10 +463,13 @@ abstract public class KindOfWeapon extends EquipableItem {
 			jutte.updateQuickslot();
 			converted = true;
 		} else {
-			detach(hero.belongings.backpack);
+			// 对一叠投掷武器，detach 返回的是拆出来的那一件，this 仍是留在背包里的那一叠。
+			// 背包满了放不进十手时要把「拆出来的那件」放回去；以前放回的是 this，
+			// 而它本来就在背包里，等于什么都没做，拆出来的那一件就凭空没了
+			Item taken = detach(hero.belongings.backpack);
 			converted = jutte.collect();
-			if (!converted) {
-				collect(hero.belongings.backpack);
+			if (!converted && taken != null) {
+				taken.collect(hero.belongings.backpack);
 			}
 		}
 

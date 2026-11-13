@@ -124,16 +124,6 @@ public class Statue extends Mob {
 	}
 
 	@Override
-	public int attackProc( Char enemy, int damage ) {
-		damage = super.attackProc( enemy, damage );
-		if (!enemy.isAlive() && enemy == Dungeon.hero){
-			Dungeon.fail(getClass());
-			GLog.n( Messages.capitalize(Messages.get(Char.class, "kill", name())) );
-		}
-		return damage;
-	}
-
-	@Override
 	public void beckon( int cell ) {
 		// Do nothing
 	}

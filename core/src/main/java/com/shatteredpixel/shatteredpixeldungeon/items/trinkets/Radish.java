@@ -53,7 +53,8 @@ public class Radish extends Trinket {
     }
 
     public void doDrop( Hero hero ) {
-       super.doThrow(hero);
+        // 这里原先调的是 super.doThrow：点「放下」弹出来的是投掷选格，东西并没有放到脚下
+        super.doDrop(hero);
         Buff.detach(hero, GlobalCritChance.class);
     }
 
@@ -71,9 +72,13 @@ public class Radish extends Trinket {
         @Override
         public boolean act() {
             Radish radish = Dungeon.hero.belongings.getItem(Radish.class);
-            if(radish != null){
-                critChance = radish.critChance(radish.buffedLvl());
+            if(radish == null){
+                // 萝卜不经过放下 / 投掷也会离开背包（被嬗变成别的饰物、在炼金釜里拆成能量……），
+                // 这时没有人来摘这个状态，暴击率加成会一直留到下次读档
+                detach();
+                return true;
             }
+            critChance = radish.critChance(radish.buffedLvl());
             spend(TICK);
             return true;
         }

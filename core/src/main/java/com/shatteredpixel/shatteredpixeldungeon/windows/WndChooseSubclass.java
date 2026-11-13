@@ -66,25 +66,15 @@ public class WndChooseSubclass extends Window {
 			RedButton btnCls = new RedButton( subCls.shortDesc(), 6 ) {
 				@Override
 				protected void onClick() {
-					final HeroSubClass previousSubClass = hero.subClass;
-					if (subCls == HeroSubClasses.DICE_MAGE) {
-						hero.subClass = subCls;
-						Game.platform.setTannFontMode(true);
-					}
+					//这里原先为了让确认框提前套上骰子法师的界面主题，在玩家确认之前就把 hero.subClass 写成了骰子法师，
+					//关窗时再改回去。但 hero.subClass 是进存档的：确认框开着时切到后台会存档，之后进程被回收的话，
+					//读档回来英雄已经是骰子法师而面具还在背包里；界面重建时窗口不经过 hide()，也改不回去。
+					//转职只在玩家确认之后由 tome.choose() 写入
 					GameScene.show(new WndOptions(new HeroIcon(subCls),
 							Messages.titleCase(subCls.title()),
 							Messages.get(WndChooseSubclass.this, "are_you_sure"),
 							Messages.get(WndChooseSubclass.this, "yes"),
 							Messages.get(WndChooseSubclass.this, "no")){
-						@Override
-						public void hide() {
-							super.hide();
-							if (subCls == HeroSubClasses.DICE_MAGE) {
-								hero.subClass = previousSubClass;
-								Game.platform.setTannFontMode(previousSubClass == HeroSubClasses.DICE_MAGE);
-							}
-						}
-
 						@Override
 						protected void onSelect(int index) {
 							if (index == 0 && WndChooseSubclass.this.parent != null){

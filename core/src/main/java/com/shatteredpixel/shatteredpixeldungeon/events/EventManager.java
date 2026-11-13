@@ -102,7 +102,17 @@ public class EventManager {
      * @param event Event to emit
      */
     public static void emit(GameEvent event) {
-        Class<? extends GameEvent> eventType = event.getClass();
+        if (event == null) {
+            return;
+        }
+        //先分发给具体事件类型，未取消时再交给 GameEvent 基类订阅者
+        emitTo(event.getClass(), event);
+        if (!event.isCancelled()) {
+            emitTo(GameEvent.class, event);
+        }
+    }
+
+    private static void emitTo(Class<? extends GameEvent> eventType, GameEvent event) {
         List<Subscriber> subscriberList = subscribers.get(eventType);
 
         if (subscriberList == null || subscriberList.isEmpty()) {
