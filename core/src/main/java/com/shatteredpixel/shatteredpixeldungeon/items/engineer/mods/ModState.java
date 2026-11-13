@@ -190,6 +190,9 @@ public class ModState {
 			e.type = type;
 			e.max = max != null && i < max.length ? max[i] : type.life;
 			e.left = left != null && i < left.length ? left[i] : e.max;
+			if (type.wears() && e.max == 0) {
+				e.left = e.max = type.life;
+			}
 			e.partsSpent = parts != null && i < parts.length ? parts[i] : type.parts;
 			e.usedEnergy = energy != null && i < energy.length ? energy[i] : type.energy > 0;
 			state.entries.add( e );

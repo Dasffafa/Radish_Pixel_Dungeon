@@ -62,7 +62,7 @@ public class ModHooks {
 
 	/** Weapon.reachFactor 的每一个返回值。 */
 	public static int weaponReach( Weapon weapon, Char owner, int reach ) {
-		return reach;
+		return has( weapon, ModType.LONG_HANDLE ) ? reach + 1 : reach;
 	}
 
 	/** Weapon.STRReq() 返回前。 */
@@ -150,7 +150,7 @@ public class ModHooks {
 
 	/** Wand.wandUsed 里的施法耗时。 */
 	public static float wandZapTime( Wand wand, float time ) {
-		return time;
+		return wear( wand, ModType.FINCH_THROAT ) ? time * 0.5f : time;
 	}
 
 	/**
@@ -190,11 +190,30 @@ public class ModHooks {
 	// ---- 事件 ----
 
 	public static void onAttackHit( AttackHitEvent event ) {
+		if (event.getAttacker() instanceof Hero) {
+			wear( event.getAttackerWeapon(), ModType.LONG_HANDLE );
+		}
 	}
 
 	public static void onAttackMiss( AttackMissEvent event ) {
+		if (event.getAttacker() instanceof Hero) {
+			wear( event.getAttackerWeapon(), ModType.LONG_HANDLE );
+		}
 	}
 
 	public static void onFinalDamage( CharFinalDamageEvent event ) {
+	}
+
+	private static boolean has( Item item, ModType type ) {
+		ModState state = ModState.of( item );
+		return state != null && state.has( type );
+	}
+
+	private static boolean wear( Item item, ModType type ) {
+		ModState state = ModState.of( item );
+		ModState.Entry entry = state == null ? null : state.find( type );
+		if (entry == null) return false;
+		if (--entry.left <= 0) state.remove( entry );
+		return true;
 	}
 }

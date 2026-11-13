@@ -43,8 +43,8 @@ public enum ModType {
 	//             装在哪     零件 能量 寿命 工匠专属
 	//锐化刀片：触发 10 次后失效
 	SHARP_BLADE      ( Slot.WEAPON,  2, 0, 10, false ),
-	//长柄改良：不会损耗
-	LONG_HANDLE      ( Slot.WEAPON,  3, 0,  0, false ),
+	//长柄改良：15 次攻击
+	LONG_HANDLE      ( Slot.WEAPON,  3, 0, 15, false ),
 	//导能回路（武器）：25 次攻击
 	WEAPON_CONDUIT   ( Slot.WEAPON,  5, 2, 25, false ),
 	//术战模块：25 次攻击
@@ -65,8 +65,8 @@ public enum ModType {
 
 	//「静电」：自然回复 15 点充能
 	STATIC           ( Slot.WAND,    5, 2, 15, false ),
-	//「雀喉」：不会损耗
-	FINCH_THROAT     ( Slot.WAND,    5, 2,  0, false ),
+	//「雀喉」：25 次施法
+	FINCH_THROAT     ( Slot.WAND,    5, 2, 25, false ),
 	//「双牙」：成功连发 15 次
 	TWIN_FANG        ( Slot.WAND,    5, 2, 15, true ),
 	//「棱镜」：施法 15 次
