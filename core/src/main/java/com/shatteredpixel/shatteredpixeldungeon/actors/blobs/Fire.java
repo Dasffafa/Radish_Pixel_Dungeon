@@ -36,6 +36,17 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 
 public class Fire extends Blob {
 
+	public static boolean extinguish( int cell ) {
+		boolean extinguished = false;
+		for (Blob blob : Dungeon.level.blobs.values()) {
+			if (blob instanceof Fire && blob.volume > 0 && blob.cur[cell] > 0) {
+				blob.clear( cell );
+				extinguished = true;
+			}
+		}
+		return extinguished;
+	}
+
 	@Override
 	protected void evolve() {
 

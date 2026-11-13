@@ -391,7 +391,14 @@ public class Druid extends HeroSubClass {
 		return true;
 	}
 
-	public static void onSpiritBowHit( Hero hero, Char defender ) {
+	@com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent(
+			event = com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent.class, priority = -500)
+	public static void onSpiritBowHit( com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent event ) {
+		if (!(event.getAttacker() instanceof Hero)
+				|| !(event.getAttackerWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow.SpiritArrow
+				|| event.getAttackerWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow.ALTSpiritArrow)) return;
+		Hero hero = (Hero) event.getAttacker();
+		Char defender = event.getDefender();
 		ThunderField field = hero.buff( ThunderField.class );
 		if (field != null && defender.isAlive() && defender.alignment == Char.Alignment.ENEMY
 				&& onCastFloor( field.depth, field.branch ) && field.inRange( defender )) {
@@ -430,7 +437,6 @@ public class Druid extends HeroSubClass {
 		}
 	}
 
-	/** 从 from 到 to 的直线格（Bresenham）。 */
 	private static final int FIRESTORM_SEGMENT = 3;
 	private static final int FIRESTORM_SPLITS = 3;
 	private static final double FIRESTORM_SPLIT_ANGLE = Math.toRadians( 30 );
@@ -833,6 +839,14 @@ public class Druid extends HeroSubClass {
 	}
 
 	public static class EnchantArrow extends com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff {
+		@Override
+		public void modifyOutgoingAttackDamage( Char attacker, Char defender, DamageInfo info ) {
+			if (attacker.attackingWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow.SpiritArrow
+					|| attacker.attackingWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow.ALTSpiritArrow) {
+				info.setType( DamageType.MAGICAL );
+			}
+		}
+
 
 		{
 			type = buffType.POSITIVE;

@@ -19,6 +19,7 @@ public class DruidOakSage extends Mob {
 
 	{
 		spriteClass = DruidOakSageSprite.class;
+		HP = HT = 1;
 		// 中立：敌人选目标时只在友方单位和英雄里挑，中立单位不会被当成攻击目标（原版的羊、莲花也是这样避开火力的）。
 		// 下面的光环按「目标是不是友方」发放，与它自己的阵营无关。
 		alignment = Alignment.NEUTRAL;
@@ -32,14 +33,6 @@ public class DruidOakSage extends Mob {
 	@Override
 	public boolean isInvulnerable( Class damageType ) {
 		return true;
-	}
-
-	// 橡木智者不受任何伤害，也从来没有设过生命值，HP 和 HT 都是 0；而底层用「HP 大于 0」判断一个单位是否还在场上。
-	// 用放大镜查看它时因此被当成已经死掉的单位，只提示「你不清楚那里有什么」，名字和说明都看不到。
-	// 是否在场由角色列表判断，点击交互由本类的跟随选择处理。
-	@Override
-	public boolean isActive() {
-		return Actor.chars().contains( this );
 	}
 
 	// 变成中立之后，英雄这边「对视野内所有非友方生效」的效果（恐惧、盛怒、魅惑之类）也会扫到它。
@@ -120,19 +113,24 @@ public class DruidOakSage extends Mob {
 	@Override
 	public boolean interact( Char ch ) {
 		if (ch != Dungeon.hero) return false;
-		GameScene.selectCell( new CellSelector.Listener() {
+		com.watabou.noosa.Game.runOnRenderThread( new com.watabou.utils.Callback() {
 			@Override
-			public void onSelect( Integer cell ) {
-				if (cell == null) return;
-				Char ally = Actor.findChar( cell );
-				if (ally != null && ally.isAlive() && ally.alignment == Alignment.ALLY) {
-					followId = ally.id();
-				}
-			}
+			public void call() {
+				GameScene.selectCell( new CellSelector.Listener() {
+					@Override
+					public void onSelect( Integer cell ) {
+						if (cell == null) return;
+						Char ally = Actor.findChar( cell );
+						if (ally != null && ally.isAlive() && ally.alignment == Alignment.ALLY) {
+							followId = ally.id();
+						}
+					}
 
-			@Override
-			public String prompt() {
-				return Messages.get( DruidOakSage.class, "follow_prompt" );
+					@Override
+					public String prompt() {
+						return Messages.get( DruidOakSage.class, "follow_prompt" );
+					}
+				} );
 			}
 		} );
 		return true;
@@ -170,6 +168,7 @@ public class DruidOakSage extends Mob {
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
+		HP = HT = 1;
 		lifespan = bundle.getInt( LIFESPAN );
 		if (bundle.contains( "follow_id" )) followId = bundle.getInt( "follow_id" );
 		auraDelay = bundle.getFloat( "aura_delay" );
