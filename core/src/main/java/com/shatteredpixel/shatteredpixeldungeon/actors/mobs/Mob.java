@@ -901,7 +901,8 @@ public abstract class Mob extends Char {
 
 		public boolean surprisedBy( Char enemy, boolean attacking ){
 			return enemy == Dungeon.hero
-					&& (enemy.invisible > 0 || !enemySeen || (fieldOfView != null && fieldOfView.length == Dungeon.level.length() && !fieldOfView[enemy.pos]))
+					&& (enemy.invisible > 0 || !enemySeen || (fieldOfView != null && fieldOfView.length == Dungeon.level.length() && !fieldOfView[enemy.pos])
+						|| (attacking && com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight.shieldPoke( enemy )))
 					&& (!attacking || enemy.canSurpriseAttack());
 		}
 

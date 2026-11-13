@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
@@ -878,14 +879,15 @@ public class Hero extends Char {
 			accuracy *= 0.9f;
 		}
 
+		int spirit = LittleKnight.spiritAccuracy( this );
 		if (hero.buff(RingOfForce.Force.class) == null) {
 			if(wep != null)
-				return (int)(attackSkill * accuracy * wep.accuracyFactor( this, target ));
+				return (int)(attackSkill * accuracy * wep.accuracyFactor( this, target )) + spirit;
 		} else {
-			return (int)(attackSkill * accuracy);
+			return (int)(attackSkill * accuracy) + spirit;
 		}
 
-		return (int)(attackSkill * accuracy);
+		return (int)(attackSkill * accuracy) + spirit;
 	}
 
 	@Override
@@ -926,7 +928,7 @@ public class Hero extends Char {
 			evasion = belongings.armor().evasionFactor(this, evasion);
 		}
 
-		return Math.round(evasion);
+		return Math.round(evasion) + LittleKnight.spiritEvasion( this );
 	}
 
 	@Override
@@ -1023,7 +1025,7 @@ public class Hero extends Char {
 			dr = InversionBeta.betaDR(this);
 		}
 
-		return dr;
+		return dr + LittleKnight.spiritArmor( this );
 	}
 
 	@Override
@@ -1062,6 +1064,10 @@ public class Hero extends Char {
 		} else {
 			dmg = RingOfForce.damageRoll(this);
 		}
+		if (LittleKnight.shieldPoke( this )) {
+			dmg = LittleKnight.pokeDamage( this );
+		}
+		dmg += LittleKnight.spiritDamage( this );
 
 
 		if(hero.pointsInTalent(Talent.IRON_SUN)>=1){
@@ -1237,6 +1243,10 @@ public class Hero extends Char {
 		if (buff(Talent.LethalMomentumTracker.class) != null){
 			buff(Talent.LethalMomentumTracker.class).detach();
 			return 0;
+		}
+
+		if (LittleKnight.pokeIsPlain( this )) {
+			return 1f;
 		}
 
 		float delay = 1f;

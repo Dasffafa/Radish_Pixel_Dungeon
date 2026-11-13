@@ -203,7 +203,8 @@ abstract public class Weapon extends KindOfWeapon {
 			}
 		}
 
-		if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
+		if (enchantment != null && attacker.buff(MagicImmune.class) == null
+				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight.pokeIsPlain( attacker )) {
 			damage = enchantment.proc( this, attacker, defender, damage );
 		}
 
