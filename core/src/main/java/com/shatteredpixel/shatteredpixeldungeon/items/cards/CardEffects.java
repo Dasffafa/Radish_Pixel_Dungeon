@@ -33,7 +33,18 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportat
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PaperCutter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.DisintegrationTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.FlockTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GatewayTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GrimTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GuardianTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.PoisonDartTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.SummoningTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.TeleportationTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WarpingTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WornDartTrap;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -365,7 +376,9 @@ public final class CardEffects {
 					GLog.w(Messages.get(CardEffects.class, "trap_cooling", (int) hero.buff(TrapCooldown.class).cooldown()));
 					return;
 				}
+				Class<?> trapCls = card.trapClass;
 				triggerTrap(card, pos);
+				trapMasteryAfterPlay(hero, trapCls);
 
 				// 卡组连携 +2：同时把牌堆顶的空白卡打到同一落点
 				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 2) {
@@ -400,7 +413,8 @@ public final class CardEffects {
 				Buff.affect(hero, TrapCooldown.class, trapCooldown(hero));
 				card.type = CardType.BLANK;
 				card.trapClass = null;
-				finish(hero, card, false, card.type.time);
+				boolean freeTrap = hero.pointsInTalent(Talent.TRAP_MASTERY) >= 2 && !isDirectionalTrap(trapCls);
+				finish(hero, card, false, freeTrap ? 0f : CardType.TRAP.time);
 				break;
 			}
 			case TELEPORT: {
@@ -514,10 +528,39 @@ public final class CardEffects {
 		try {
 			Trap trap = (Trap) card.trapClass.getDeclaredConstructor().newInstance();
 			trap.set(pos);
+			trap.fromJokerCard = true;
 			trap.activate();
 			GLog.i(Messages.get(CardEffects.class, "trap_released", trap.name()));
 		} catch (Exception e) {
 			GLog.w(Messages.get(CardEffects.class, "trap_failed"));
+		}
+	}
+
+	// 陷阱精通：会自己找目标打的陷阱算「指向性」，其余算「非指向性」
+	static boolean isDirectionalTrap(Class<?> cls) {
+		return cls != null && (PoisonDartTrap.class.isAssignableFrom(cls) || cls == WornDartTrap.class
+				|| cls == DisintegrationTrap.class || cls == GrimTrap.class);
+	}
+
+	static boolean isSummoningTrap(Class<?> cls) {
+		return cls == SummoningTrap.class || cls == FlockTrap.class || cls == GuardianTrap.class;
+	}
+
+	static boolean isTeleportTrap(Class<?> cls) {
+		return cls == TeleportationTrap.class || cls == WarpingTrap.class || cls == GatewayTrap.class;
+	}
+
+	private static void trapMasteryAfterPlay(Hero hero, Class<?> cls) {
+		int mastery = hero.pointsInTalent(Talent.TRAP_MASTERY);
+		if (mastery >= 3 && isSummoningTrap(cls)) {
+			for (Char ch : Actor.chars()) {
+				if (ch.alignment == Char.Alignment.ENEMY && ch.isAlive() && Dungeon.level.heroFOV[ch.pos]) {
+					Buff.prolong(ch, Blindness.class, 5f);
+				}
+			}
+		}
+		if (mastery >= 4 && isTeleportTrap(cls)) {
+			Buff.prolong(hero, MindVision.class, 5f);
 		}
 	}
 

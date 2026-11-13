@@ -70,6 +70,7 @@ public class PoisonDartTrap extends Trap {
 			protected boolean act() {
 				Actor.remove(this);
 				Char target = Actor.findChar(pos);
+				if (cardSparesHero(target)) target = null;
 
 				if (target != null && !canTarget(target)){
 					target = null;
@@ -79,7 +80,7 @@ public class PoisonDartTrap extends Trap {
 				if (target == null){
 					float closestDist = Float.MAX_VALUE;
 					for (Char ch : Actor.chars()){
-						if (!ch.isAlive()) continue;
+						if (!ch.isAlive() || cardSparesHero(ch)) continue;
 						float curDist = Dungeon.level.trueDistance(pos, ch.pos);
 						if (ch.invisible > 0) curDist += 1000;
 						Ballistica bolt = new Ballistica(pos, ch.pos, Ballistica.PROJECTILE);
