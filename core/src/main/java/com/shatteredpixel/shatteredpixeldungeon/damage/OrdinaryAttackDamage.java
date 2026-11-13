@@ -30,8 +30,11 @@ public class OrdinaryAttackDamage {
 
 	public static DamageInfo build(Char attacker, Char defender, int baseDamage, boolean critical,
 								   float criticalMultiplier, float damageMultiplier, float damageBonus) {
+		boolean enchantedArrow = (attacker.attackingWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow.SpiritArrow
+				|| attacker.attackingWeapon() instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow.ALTSpiritArrow)
+				&& attacker.buff(com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid.EnchantArrow.class) != null;
 		DamageInfo info = new DamageInfo(baseDamage,
-				ignoresArmor(attacker, defender) ? DamageType.PHYSICAL_NO_ARMOR : DamageType.PHYSICAL,
+				enchantedArrow ? DamageType.MAGICAL : ignoresArmor(attacker, defender) ? DamageType.PHYSICAL_NO_ARMOR : DamageType.PHYSICAL,
 				attacker, sourceItem(attacker), attacker);
 		info.setCritical(critical, criticalMultiplier);
 		info.addDirectMultModifier(damageMultiplier, "attack multiplier");
