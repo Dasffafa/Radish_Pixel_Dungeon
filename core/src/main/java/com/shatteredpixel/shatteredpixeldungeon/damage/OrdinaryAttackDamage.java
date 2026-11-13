@@ -66,6 +66,9 @@ public class OrdinaryAttackDamage {
 
 	public static int rollDefenseReduction(Char attacker, Char defender, boolean includeBarkskin) {
 		int dr = Math.round(defender.drRoll() * AscensionChallenge.statModifier(defender));
+		if (LittleKnight.isSpiritVictim(defender)) {
+			dr = Math.round(dr * (1f - LittleKnight.SPIRIT_SHARE));
+		}
 
 		if (defender instanceof Hero) {
 			FatedDraw.FatedDrawTracker trackerD = defender.buff(FatedDraw.FatedDrawTracker.class);
@@ -112,6 +115,9 @@ public class OrdinaryAttackDamage {
 				damage = ((KindOfWeapon) weapon).damageRoll(attacker);
 			} else {
 				damage = attacker.damageRoll();
+			}
+			if (LittleKnight.isSpiritVictim(attacker)) {
+				damage *= 1f - LittleKnight.SPIRIT_SHARE;
 			}
 			if (attacker instanceof Hero) {
 				FatedDraw.FatedDrawTracker trackerA = attacker.buff(FatedDraw.FatedDrawTracker.class);
