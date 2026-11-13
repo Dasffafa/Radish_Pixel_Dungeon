@@ -208,7 +208,10 @@ public class ConvictLevel extends Level {
 		felonSpawned = true;
 		LegendaryFelon felon = new LegendaryFelon();
 		felon.pos = cell;
+		felon.aggro( Dungeon.hero );
 		GameScene.add( felon );
+		seal();
+		sealBossDoor();
 	}
 
 	/**
