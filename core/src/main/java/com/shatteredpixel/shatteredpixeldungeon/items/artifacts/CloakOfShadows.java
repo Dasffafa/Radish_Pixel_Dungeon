@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.watabou.utils.Random;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
@@ -201,6 +202,18 @@ public class CloakOfShadows extends Artifact {
 	public void directCharge(int amount){
 		charge = Math.min(charge+amount, chargeCap);
 		updateQuickslot();
+	}
+
+	/** 盗贼 4-2 暗幕盔甲：装备着斗篷时，每 1 点空充能提供的额外护甲防御。 */
+	public static int darkArmorRoll(Hero hero){
+		int points = hero.pointsInTalent(Talent.DARK_ARMOR);
+		CloakOfShadows cloak = hero.belongings.getItem(CloakOfShadows.class);
+		if (points <= 0 || cloak == null || !cloak.isEquipped(hero)) return 0;
+		int empty = Math.max(0, cloak.chargeCap - cloak.charge);
+		// +1: 0~1, +2: 0.5~1, +3: 0.5~1.5, +4: 1~2（每点空充能）
+		float min = points >= 4 ? 1f : points >= 2 ? 0.5f : 0f;
+		float max = points >= 4 ? 2f : points >= 3 ? 1.5f : 1f;
+		return Random.NormalIntRange(Math.round(empty * min), Math.round(empty * max));
 	}
 	
 	@Override

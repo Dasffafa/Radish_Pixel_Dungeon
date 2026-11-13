@@ -996,6 +996,7 @@ public class Hero extends Char {
             if (com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Resonance.isResonanceActive(this)) {
                 dr += Math.round(armDr * 0.5f);
             }
+            dr += CloakOfShadows.darkArmorRoll(this);
         }
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
 		if (sa != null) {
