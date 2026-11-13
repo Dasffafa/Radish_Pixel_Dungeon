@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -159,7 +160,16 @@ public class Artificer extends HeroSubClass {
 		if (!canReadyModify( hero, ally, gear )) {
 			return false;
 		}
-		int tier = gear instanceof Armor ? ((Armor) gear).tier : Math.min( 5, Math.max( 1, gear.level() + 1 ) );
+		int tier;
+		if (gear instanceof Armor) {
+			tier = ((Armor) gear).tier;
+		} else if (gear instanceof MeleeWeapon) {
+			tier = ((MeleeWeapon) gear).tier;
+		} else if (gear instanceof MissileWeapon) {
+			tier = ((MissileWeapon) gear).tier;
+		} else {
+			tier = 1;
+		}
 		int quality = Math.max( 0, tier + gear.level() );
 		if (gear.isEquipped( hero )) {
 			if (!((EquipableItem) gear).doUnequip( hero, false, false )) {
@@ -186,7 +196,13 @@ public class Artificer extends HeroSubClass {
 		}
 		((EquipableItem) gear).activate( ally );
 		int points = hero.pointsInTalent( Talent.READY_MODIFICATION );
-		Buff.affect( ally, ReadyMod.class ).apply( quality * (2 + 2 * points), quality * 2 );
+		ReadyMod mod = Buff.affect( ally, ReadyMod.class );
+		mod.apply( quality * (2 + 2 * points), quality * 2 );
+		if (gear instanceof KindOfWeapon) {
+			mod.gaveWeapon = true;
+		} else {
+			mod.gaveArmor = true;
+		}
 		return true;
 	}
 
@@ -199,6 +215,8 @@ public class Artificer extends HeroSubClass {
 
 		public int bonusHp = 0;
 		public int bonusDef = 0;
+		private boolean gaveWeapon = false;
+		private boolean gaveArmor = false;
 
 		// 怪物的闪避值不进存档，读档后回到基础值，而这里记着的加成还在：
 		// 读档挂回怪物身上时要把加成补上，否则加成凭空消失，之后解除改装时还会从基础值里再扣一次
@@ -241,8 +259,25 @@ public class Artificer extends HeroSubClass {
 			}
 		}
 
+		// 友方死亡时 Mob.die 只给敌人掉装备；这里按说明让改装上去的每件有一半概率留在原地
 		@Override
 		public void detach() {
+			if (target instanceof Mob && !target.isAlive() && target.alignment == Char.Alignment.ALLY
+					&& com.shatteredpixel.shatteredpixeldungeon.Dungeon.level != null) {
+				Mob mob = (Mob) target;
+				if (gaveWeapon && mob.mobEquipment.weapon != null) {
+					if (Random.Int( 2 ) == 0) {
+						com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.drop( mob.mobEquipment.weapon, mob.pos ).sprite.drop();
+					}
+					mob.mobEquipment.weapon = null;
+				}
+				if (gaveArmor && mob.mobEquipment.armor != null) {
+					if (Random.Int( 2 ) == 0) {
+						com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.drop( mob.mobEquipment.armor, mob.pos ).sprite.drop();
+					}
+					mob.mobEquipment.armor = null;
+				}
+			}
 			unapply();
 			super.detach();
 		}
@@ -260,6 +295,8 @@ public class Artificer extends HeroSubClass {
 			super.storeInBundle( bundle );
 			bundle.put( HP, bonusHp );
 			bundle.put( DEF, bonusDef );
+			bundle.put( "gave_weapon", gaveWeapon );
+			bundle.put( "gave_armor", gaveArmor );
 		}
 
 		@Override
@@ -267,6 +304,8 @@ public class Artificer extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			bonusHp = bundle.getInt( HP );
 			bonusDef = bundle.getInt( DEF );
+			gaveWeapon = bundle.getBoolean( "gave_weapon" );
+			gaveArmor = bundle.getBoolean( "gave_armor" );
 			restored = true;
 		}
 	}
