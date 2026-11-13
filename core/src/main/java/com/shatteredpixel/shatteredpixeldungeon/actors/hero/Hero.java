@@ -1233,7 +1233,9 @@ public class Hero extends Char {
         //This is for that one guy, you shall get your fists of fury!
         float speed = RingOfFuror.attackSpeedMultiplier(this);
 
-        if (hero.buff(SnipersMark.class) != null && hero.hasTalent(Talent.BOW_DULES)) {
+        if (hasTalent(Talent.BOW_DULES) && (buff(SnipersMark.class) != null
+                || Dungeon.level != null && Dungeon.level.mobs.stream().anyMatch(
+                        mob -> mob.isAlive() && mob.buff(SnipersMark.class) != null))) {
             speed += 0.5f;
         }
 
