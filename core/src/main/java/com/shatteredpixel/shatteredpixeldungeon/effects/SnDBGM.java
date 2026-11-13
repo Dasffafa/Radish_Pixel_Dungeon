@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.SPDSettings;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.watabou.noosa.audio.Music;
@@ -135,7 +136,11 @@ public class SnDBGM {
      * @return true 如果 Dice Mage 激活并播放了音乐，否则false并且什么都不做
      */
     public static boolean playLevelMusic() {
-        if (!active()) return false;
+        if (!active()) {
+            // 音量是 Music 上的全局值：上一局是骰子法师的话它还停在抬高后的数上，这里还原成设置里的音量
+            Music.INSTANCE.volume(settingsVolume());
+            return false;
+        }
 
         int depth = Dungeon.depth;
         String[] tracks;
@@ -166,7 +171,16 @@ public class SnDBGM {
         }
 
         Music.INSTANCE.playTracks(tracks, chances, true);
-        Music.INSTANCE.volume(1.5f);
+        // 这批曲子偏轻，整体抬高一档；但要在设置里的音量基础上抬，写死成固定值会无视玩家调低 / 调到 0 的音量
+        Music.INSTANCE.volume(VOLUME_BOOST * settingsVolume());
         return true;
+    }
+
+    private static final float VOLUME_BOOST = 1.5f;
+
+    /** 设置里的音乐音量换算成引擎音量（与 SPDSettings.musicVol(int) 的换算一致）。 */
+    private static float settingsVolume() {
+        int v = SPDSettings.musicVol();
+        return v * v / 100f;
     }
 }

@@ -126,7 +126,10 @@ public class Statistics {
 		amuletObtained = false;
 		gameWon = false;
 		ascended = false;
-		
+
+		//自定义统计是静态字段，新开一局不清就会带着上一局的值
+		resetCustom();
+
 	}
 	
 	private static final String GOLD		= "score";
@@ -284,7 +287,8 @@ public class Statistics {
 
 		RectorGetHP	   = bundle.getBoolean(GETRECTOR_HP);
 
-		resetCustom();
+		//读档要读回 storeCustom 写下的值；这里若调 resetCustom 会把它们清零
+		restoreCustom(bundle);
 
 	}
 	

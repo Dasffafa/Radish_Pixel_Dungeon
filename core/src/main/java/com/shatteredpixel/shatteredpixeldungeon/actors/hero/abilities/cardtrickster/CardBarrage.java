@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeldCardTracker;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDeck;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory;
+import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardType;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
@@ -40,6 +41,11 @@ public class CardBarrage extends ArmorAbility {
 	protected void activate(ClassArmor armor, Hero hero, Integer target) {
 		CardDeck deck = hero.cardDeck;
 		if (deck == null || deck.held == null) {
+			GLog.w(Messages.get(this, "no_card"));
+			return;
+		}
+		//手里已经是上一次变出来的临时传送卡：再变一次会把这张传送卡当成「原卡」暂存，真正的原卡被覆盖后永久丢失
+		if (deck.held.type == CardType.TELEPORT) {
 			GLog.w(Messages.get(this, "no_card"));
 			return;
 		}

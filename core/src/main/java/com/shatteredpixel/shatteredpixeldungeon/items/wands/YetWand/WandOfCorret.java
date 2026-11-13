@@ -59,17 +59,28 @@ public class WandOfCorret extends DamageWand {
         if(hero.subClass == HeroSubClasses.REDCARDINAL){
             float timeToZap;
             timeToZap = -hero.cooldown();
-            curUser.spendAndNext(timeToZap);
+            //退回的是已经按减速/加速折算过的实际时间，不能再折算一次（spend 会再除一遍时间倍率）
+            curUser.spendAndNextConstant(timeToZap);
         }
     }
 
 
+    //惩戒之力（天赋说明里叫「惩击」）的固定伤害：12 + 层数。
+    //绝望祷言（生命低于四分之一时惩击效用 1.5 倍）在这里结算，生命条件和光能灌注那边用的是同一个写法
+    private static int smiteDamage(){
+        int damage = 12 + Dungeon.depth;
+        if (hero.hasTalent(Talent.NOHOPE_LANG) && hero.HP < hero.HT/4) {
+            damage = Math.round(damage * 1.5f);
+        }
+        return damage;
+    }
+
     public int min(int lvl){
-        return hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4 ? (int) (1.5f * 12 + Dungeon.depth) : 12 + Dungeon.depth;
+        return smiteDamage();
     }
 
     public int max(int lvl){
-        return hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4 ? (int) (1.5f * 12 + Dungeon.depth) : 12 + Dungeon.depth;
+        return smiteDamage();
     }
 
     @Override
@@ -99,7 +110,9 @@ public class WandOfCorret extends DamageWand {
             CellEmitter.center(c).burst(PurpleParticle.BURST, Random.IntRange(1, 2));
         }
 
-        int fixedDamage = 12 + Dungeon.depth;
+        //原先这里写死 12 + 层数，绝望祷言的加成只算在上面的 min/max 里，而 min/max 没有任何地方用，
+        //于是这个天赋对惩击完全不起作用
+        int fixedDamage = smiteDamage();
         int fixedDamagePlus = 0;
 
         boolean damageDealt = false;

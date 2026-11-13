@@ -22,8 +22,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamagePipeline;
 import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.HeroLevelUpEvent;
@@ -32,6 +36,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -131,18 +136,38 @@ public class Jealousy extends Weapon.Enchantment {
 	@SubscribeEvent(event = CharFinalDamageEvent.class, priority = 0)
 	public static void onMonsterKilled(CharFinalDamageEvent event) {
 		if (Dungeon.hero == null) return;
-		Char target = event.getTarget();
+		final Char target = event.getTarget();
 		if (target.isAlive() || target.alignment != Char.Alignment.ENEMY) return;
-		if (event.getAttacker() != Dungeon.hero) return;
 
-		Jealousy j = equipped(Dungeon.hero);
+		//事件自带的攻击者只有伤害来源对象本身是角色时才有值（法杖伤害的来源是法杖），
+		//只认它的话用法杖击杀永远不算数，凶手要从本次伤害的 DamageInfo 里取
+		DamageInfo info = DamagePipeline.activeInfo();
+		if (info == null || info.getAttacker() != Dungeon.hero) return;
+
+		final Jealousy j = equipped(Dungeon.hero);
 		if (j == null) return;
 
 		//本武器完成击杀则不加嫉妒
 		Item source = event.getSourceItem();
 		if (source instanceof Weapon && ((Weapon) source).enchantment == j) return;
+		//法师魔杖里灌注的法杖也算这把武器自己
+		KindOfWeapon self = heldWeapon(Dungeon.hero);
+		if (source != null && self instanceof MagesStaff && ((MagesStaff) self).wand == source) return;
 
-		j.addJealousy(Dungeon.hero, KILL_GAIN, "msg_kill");
+		//这个事件发出时 die() 还没执行，生命归零不等于真的死了：矮人尸群附近有同伴时会在 die() 里
+		//转入倒地待救的状态。挂一个一次性的 Actor，等这次行动结算完再确认
+		Actor.add(new Actor() {
+			{ actPriority = VFX_PRIO; }
+
+			@Override
+			protected boolean act() {
+				Actor.remove(this);
+				if (Dungeon.hero != null && !target.isAlive() && equipped(Dungeon.hero) == j) {
+					j.addJealousy(Dungeon.hero, KILL_GAIN, "msg_kill");
+				}
+				return true;
+			}
+		});
 	}
 
 	@SubscribeEvent(event = HeroActEvent.class, priority = 0)
@@ -219,7 +244,7 @@ public class Jealousy extends Weapon.Enchantment {
 	/** 当前装备的、带嫉妒附魔的武器附魔实例，没有则返回 null。 */
 	public static Jealousy equipped(Hero hero) {
 		if (hero == null || hero.belongings == null) return null;
-		KindOfWeapon w = hero.belongings.weapon();
+		KindOfWeapon w = heldWeapon(hero);
 		if (w instanceof Weapon && ((Weapon) w).enchantment instanceof Jealousy) {
 			return (Jealousy) ((Weapon) w).enchantment;
 		}
@@ -228,8 +253,20 @@ public class Jealousy extends Weapon.Enchantment {
 
 	private static Weapon weaponOf(Hero hero) {
 		if (hero == null || hero.belongings == null) return null;
-		KindOfWeapon w = hero.belongings.weapon();
+		KindOfWeapon w = heldWeapon(hero);
 		return w instanceof Weapon ? (Weapon) w : null;
+	}
+
+	/**
+	 * 主手栏位里的武器。不能用 belongings.weapon()：投掷、射击结算期间它返回的是飞出去的那件，
+	 * 用投掷武器击杀、或靠这一击升级时，就会被当成「没装备嫉妒武器」。
+	 */
+	private static KindOfWeapon heldWeapon(Hero hero) {
+		KindOfWeapon w = hero.belongings.weapon;
+		if (w != null && hero.buff(LostInventory.class) != null && !w.keptThoughLostInvent) {
+			return null;
+		}
+		return w;
 	}
 
 	private static int scrollCount(Hero hero) {

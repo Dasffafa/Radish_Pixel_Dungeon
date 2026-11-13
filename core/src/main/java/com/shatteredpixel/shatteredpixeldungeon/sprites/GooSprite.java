@@ -140,6 +140,17 @@ public class GooSprite extends MobSprite {
 		return 0xFF000000;
 	}
 
+	@Override
+	public void kill() {
+		super.kill();
+		// 着色器死亡动画不播放 die 序列帧，onComplete(die) 和 play() 里的清理都轮不到；
+		// 不在这里兜底，喷溅和蓄力警示的粒子会留在原地一直冒
+		if (spray != null) {
+			spray.killAndErase();
+		}
+		clearEmitters();
+	}
+
 	public void spray(boolean on){
 		spray.on = on;
 	}

@@ -114,7 +114,7 @@ public class TengusMask extends Item {
 		e.start(Speck.factory(Speck.MASK), 0.05f, 20);
 		GLog.p( Messages.get(this, "used"));
 		if (way == HeroSubClasses.DICE_MAGE) {
-			WndMessage msg = new WndMessage("世界变得大不相同了！"){
+			WndMessage msg = new WndMessage(Messages.get(this, "dice_mage_changed")){
 				@Override
 				public void hide() {
 					super.hide();

@@ -697,21 +697,7 @@ public class Armor extends EquipableItem {
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (super.doUnequip( hero, collect, single )) {
-			hero.belongings.armor = null;
-			wearer = null;
-			for (ItemArmorAttachable toy : attachedToys) {
-				ChallengeToyEffects.removePermanentEffect(hero, toy);
-			}
-
-			if (buff != null) {
-				buff.detach();
-				buff = null;
-			}
-			((HeroSprite)hero.sprite).updateArmor();
-
-			BrokenSeal.WarriorShield sealBuff = hero.buff(BrokenSeal.WarriorShield.class);
-			if (sealBuff != null) sealBuff.setArmor(null);
-
+			removeFromWearer( hero );
 			return true;
 
 		} else {
@@ -719,6 +705,28 @@ public class Armor extends EquipableItem {
 			return false;
 
 		}
+	}
+
+	/**
+	 * 把这件护甲从英雄身上摘下来：清空护甲栏，摘掉护甲自带的状态和玩具效果，刷新外观。
+	 * 正常脱下由 doUnequip() 调用。穿在身上被直接消耗掉（职业护甲的「转移」）时没有「脱下」这一步，
+	 * 要单独调用，否则护甲自带的状态会一直留在英雄身上，直到下次读档。
+	 */
+	public void removeFromWearer( Hero hero ) {
+		hero.belongings.armor = null;
+		wearer = null;
+		for (ItemArmorAttachable toy : attachedToys) {
+			ChallengeToyEffects.removePermanentEffect(hero, toy);
+		}
+
+		if (buff != null) {
+			buff.detach();
+			buff = null;
+		}
+		((HeroSprite)hero.sprite).updateArmor();
+
+		BrokenSeal.WarriorShield sealBuff = hero.buff(BrokenSeal.WarriorShield.class);
+		if (sealBuff != null) sealBuff.setArmor(null);
 	}
 
 	@Override
@@ -772,10 +780,14 @@ public class Armor extends EquipableItem {
 	public float evasionFactor( Char owner, float evasion ){
 
 		if (hasGlyph(Stone.class, owner) ){
+			//磐岩刻印把闪避清零，但它自己结算减伤时要读一次「本来的闪避」，那一刻不能清零。
+			//刻印可能在护甲上，也可能在纹章上（符文传递），两处是同一个对象或各自一个，哪一个正在结算都算。
+			//原先只要纹章带着磐岩就一律清零，结果减伤永远算出 0：闪避没了，伤害也一点没减
 			BrokenSeal s = checkSeal();
-			if((glyph instanceof Stone && !((Stone)glyph).testingEvasion())
-					|| (s != null && s.getGlyph() != null && s.getGlyph() instanceof Stone))
-				return 0;
+			Glyph sealGlyph = s != null ? s.getGlyph() : null;
+			boolean testing = (glyph instanceof Stone && ((Stone)glyph).testingEvasion())
+					|| (sealGlyph instanceof Stone && ((Stone)sealGlyph).testingEvasion());
+			if (!testing) return 0;
 		}
 
 		if (owner instanceof Hero){

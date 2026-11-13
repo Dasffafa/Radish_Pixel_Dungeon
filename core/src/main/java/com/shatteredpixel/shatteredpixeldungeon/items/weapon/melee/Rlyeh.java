@@ -15,6 +15,7 @@ import com.shatteredpixel.shatteredpixeldungeon.events.AttackEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
@@ -38,14 +39,22 @@ public class Rlyeh extends MeleeWeapon {
 
     @Override
     public boolean doEquip( Hero hero ) {
-        Buff.affect(hero,StateProject.class);
-        return super.doEquip(hero);
+        // 装备可能失败（手里是脱不下来的诅咒武器、村正狂热），确认装上了再挂 buff
+        if (super.doEquip(hero)) {
+            Buff.affect(hero,StateProject.class);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean doUnequip(Hero hero, boolean collect, boolean single) {
-        Buff.detach(hero,StateProject.class);
-        return super.doUnequip(hero, collect, single);
+        // 同理，被诅咒卸不下来时 buff 不能摘，否则反弹概率不再随等级更新
+        if (super.doUnequip(hero, collect, single)) {
+            Buff.detach(hero,StateProject.class);
+            return true;
+        }
+        return false;
     }
 
 
@@ -109,6 +118,13 @@ public class Rlyeh extends MeleeWeapon {
         }
         Sample.INSTANCE.play(Assets.Sounds.CURSED);
         attacker.damage(DamageInfo.physical(rlyeh.damageRoll(defender), attacker, rlyeh));
+
+        // 英雄自己的攻击被弹回来、把自己打死了：这次攻击随后被取消，攻击流程不会再做死亡结算，
+        // 不在这里补的话这次死亡不进排行榜，也没有任何死因提示
+        if (attacker == player && !player.isAlive()) {
+            Dungeon.fail(rlyeh);
+            GLog.n(Messages.capitalize(Messages.get(Char.class, "kill", rlyeh.name())));
+        }
 
         // 取消本次攻击：原伤害不再结算
         event.cancel();

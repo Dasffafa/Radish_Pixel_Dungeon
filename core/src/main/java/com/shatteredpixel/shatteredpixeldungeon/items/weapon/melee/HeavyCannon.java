@@ -23,12 +23,16 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -93,7 +97,9 @@ public class HeavyCannon extends MeleeWeapon {
 
 		@Override
 		public boolean itemSelectable(Item item) {
-			return item instanceof Bomb;
+			// 重炮打出去的是普通爆炸伤害。再生、破片、奥术、肾上腺素这几种「不炸人」的炸弹
+			// 走到爆炸结算时什么都不会发生，白白消耗一颗，所以不让选
+			return item instanceof Bomb && ((Bomb) item).explodesDestructively();
 		}
 
 		@Override
@@ -112,11 +118,18 @@ public class HeavyCannon extends MeleeWeapon {
 			Bomb bomb = pendingBomb;
 			pendingBomb = null;
 
+			// 炮弹和别的投射物一样沿直线飞，被墙挡住就落在墙前。
+			// 以前选哪格就炸哪格，隔着墙、没探索过的格子也能炸
+			final int target = new Ballistica(curUser.pos, cell,
+					Ballistica.STOP_TARGET | Ballistica.STOP_SOLID).collisionPos;
+
 			// 消耗炸弹
 			bomb.detach(curUser.belongings.backpack);
 
-			curUser.spendAndNext(1f);
-			curUser.sprite.zap(cell, new com.watabou.utils.Callback() {
+			// 先占住英雄，等爆炸结算完再花回合。
+			// 以前是先花回合再放动画，怪物已经开始行动，爆炸伤害却在之后某一帧才从渲染线程里结算
+			curUser.busy();
+			curUser.sprite.zap(target, new com.watabou.utils.Callback() {
 				@Override
 				public void call() {
 					// 1.5 + 武器等级*0.2 倍爆炸伤害
@@ -125,8 +138,20 @@ public class HeavyCannon extends MeleeWeapon {
 					int dmg = Math.round(baseDmg * mult);
 
 					Sample.INSTANCE.play(Assets.Sounds.BLAST);
+
+					// Bomb.explodeMobs 只结算落点周围 8 格（轮刃拿它做溅射，中心是已经挨了刀的目标），
+					// 落点上的那个要在这里按同样的规则补上，否则瞄准谁、谁反而毫发无伤
+					Char center = Actor.findChar(target);
+					if (center != null && center != curUser && center.isAlive()) {
+						int centerDmg = dmg - center.drRoll();
+						if (centerDmg > 0) {
+							center.damage(new DamageInfo(centerDmg, DamageType.PHYSICAL_NO_ARMOR, null, null, bomb));
+						}
+					}
 					// 对目标格周围的敌人造成加成爆炸伤害（炸弹立刻爆炸）
-					bomb.explodeMobs(cell, dmg);
+					bomb.explodeMobs(target, dmg);
+
+					curUser.spendAndNext(1f);
 				}
 			});
 		}

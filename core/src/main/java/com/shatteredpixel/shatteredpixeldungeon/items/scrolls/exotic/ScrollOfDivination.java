@@ -87,6 +87,11 @@ public class ScrollOfDivination extends ExoticScroll {
 					GameScene.show( new WndDivination(ided) );
 				}
 			}
+
+			@Override
+			public void onBackPressed() {
+				//秘卷在弹窗之前已经消耗，必须选一类；能直接关掉的话就白白少一张
+			}
 		});
 	}
 

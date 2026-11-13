@@ -35,8 +35,11 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.PixelExplosionEffect;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.BlastParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle;
+import com.shatteredpixel.shatteredpixeldungeon.items.bombs.Bomb;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 import com.watabou.utils.PathFinder;
 
@@ -90,6 +93,10 @@ public class PotionOfDragonsBreath extends ExoticPotion {
 					ch.damage(new DamageInfo(dmg, DamageType.FIRE, curUser, this, this));
 					if (ch.isAlive()) {
 						Buff.affect(ch, Burning.class).reignite(ch);
+					} else if (ch == Dungeon.hero) {
+						//英雄被自己的爆炸炸死要自己做死亡结算（Hero.die 不会调 Dungeon.fail），否则没有死因、不进排行榜
+						Dungeon.fail( this );
+						GLog.n( Messages.get(Bomb.class, "ondeath") );
 					}
 				}
 			}

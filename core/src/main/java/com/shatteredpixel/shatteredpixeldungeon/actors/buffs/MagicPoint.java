@@ -578,6 +578,15 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         updateAction();
     }
 
+    // 读档时 restoreFromBundle 里的 updateAction() 登记不上施法按钮：那一刻 buff 还没接到英雄身上，英雄的转职也还没读出来；
+    // 而且 Hero.restoreFromBundle 末尾的 HeldCardTracker.sync 会把此前登记的按钮一并清掉。
+    // 所以改在英雄整个读完、进入楼层、Actor 把 buff 加进行动队列的时候补登记，否则要等第一次 act()（玩家先花掉一回合）按钮才出现
+    @Override
+    protected void onAdd() {
+        super.onAdd();
+        updateAction();
+    }
+
     @Override
     public String actionName() {
         return Messages.get(this, "action_name");

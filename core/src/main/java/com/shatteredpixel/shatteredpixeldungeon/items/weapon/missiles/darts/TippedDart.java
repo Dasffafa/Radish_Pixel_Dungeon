@@ -111,6 +111,25 @@ public abstract class TippedDart extends Dart {
 	
 	//exact same damage as regular darts, despite being higher tier.
 
+	// 药水涂镖 +3/+4：涂药飞镖伤害 +50%/+100%，精准度 +100%/+150%
+	@Override
+	public int damageRoll(Char owner) {
+		int dmg = super.damageRoll(owner);
+		int pts = owner instanceof Hero ? ((Hero) owner).pointsInTalent(Talent.MORE_DARTS) : 0;
+		if (pts >= 4)      dmg = Math.round(dmg * 2f);
+		else if (pts >= 3) dmg = Math.round(dmg * 1.5f);
+		return dmg;
+	}
+
+	@Override
+	public float accuracyFactor(Char owner, Char target) {
+		float acc = super.accuracyFactor(owner, target);
+		int pts = owner instanceof Hero ? ((Hero) owner).pointsInTalent(Talent.MORE_DARTS) : 0;
+		if (pts >= 4)      acc *= 2.5f;
+		else if (pts >= 3) acc *= 2f;
+		return acc;
+	}
+
 	@Override
 	protected void rangedHit(Char enemy, int cell) {
 		targetPos = cell;

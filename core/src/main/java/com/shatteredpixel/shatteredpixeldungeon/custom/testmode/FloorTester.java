@@ -2,9 +2,11 @@ package com.shatteredpixel.shatteredpixeldungeon.custom.testmode;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Blacksmith;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branch;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Swiftthistle;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.InterlevelScene;
@@ -89,6 +91,9 @@ public class FloorTester extends TestItem {
 		} else if (action.equals( AC_ARENA )) {
 			// 生成一张空白测试场（Dungeon.newLevel 会读取该标记）
 			TestArenaLevel.requested = true;
+			// 测试场不算这一层的正式楼层：去掉「本层已生成」的记录，离开后再回到这一层会重新生成正常楼层。
+			// 否则测试场会永久顶替这一层，而它没有下楼的楼梯，从下一层走楼梯上来时找不到落点就闪退
+			Dungeon.generatedLevels.remove( Dungeon.levelKey( Dungeon.branchId, Dungeon.depth ) );
 			InterlevelScene.mode = InterlevelScene.Mode.RESET;
 			Game.switchScene( InterlevelScene.class );
 		}
@@ -130,6 +135,14 @@ public class FloorTester extends TestItem {
 		Branch branch = Branches.get( branchId );
 		if (depth < 1 || depth > branch.maxDepth) {
 			GLog.n( "层数超出范围（1~" + branch.maxDepth + "）：" + depth );
+			return;
+		}
+		// 矿洞回主线的楼梯通向「铁匠所在的那一层」。这一局还没出现过铁匠时那个层数是 -1，
+		// 矿洞入口房间建楼梯时会直接抛异常，整个加载过程闪退。已经生成过的矿洞直接读档，不受影响
+		if (Branches.MINING.equals( branchId )
+				&& Blacksmith.Quest.entranceDepth() < 1
+				&& !Dungeon.levelHasBeenGenerated( depth, branchId )) {
+			GLog.w( Messages.get( FloorTester.class, "mine_needs_blacksmith" ) );
 			return;
 		}
 

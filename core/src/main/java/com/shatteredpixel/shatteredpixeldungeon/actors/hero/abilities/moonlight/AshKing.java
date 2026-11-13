@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light;
@@ -32,6 +33,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -85,6 +88,13 @@ public class AshKing extends ArmorAbility {
 	@Override
 	public Talent[] talents() {
 		return new Talent[]{Talent.HOLY_LANCE, Talent.SOUL_STREAM, Talent.FATAL_BLADE, Talent.HEROIC_ENERGY};
+	}
+
+	//英雄每次行动前刷新索命弯刀形态的「附近有没有敌人」，移速在这之后才会被用到
+	@SubscribeEvent(event = HeroActEvent.class, priority = 0)
+	public static void onHeroAct(HeroActEvent event) {
+		FatalBladeForm form = event.getHero().buff(FatalBladeForm.class);
+		if (form != null) form.refreshEnemyNearby();
 	}
 
 	/**
@@ -148,11 +158,28 @@ public class AshKing extends ArmorAbility {
 		}
 	}
 
+	//三种形态共用：月华在形态期间换用专门的一行贴图，所以形态开始和结束时都要刷新英雄外观
 	private static class AshKingBaseBuff extends FlavourBuff {
+		@Override
+		public boolean attachTo(Char target) {
+			if (super.attachTo(target)) {
+				refreshSprite();
+				return true;
+			}
+			return false;
+		}
+
 		@Override
 		public void detach() {
 			super.detach();
-			((HeroSprite) Dungeon.hero.sprite).updateArmor();
+			refreshSprite();
+		}
+
+		//读档时 buff 先于英雄贴图恢复，这时还没有贴图可刷，贴图创建时会自己按当前 buff 取行
+		private void refreshSprite() {
+			if (target != null && target.sprite instanceof HeroSprite) {
+				((HeroSprite) target.sprite).updateArmor();
+			}
 		}
 	}
 
@@ -197,7 +224,9 @@ public class AshKing extends ArmorAbility {
 		public static void knockbackEnemies(Hero hero) {
 			ArrayList<Mob> enemies = new ArrayList<>();
 			for (Mob mob : Dungeon.level.mobs) {
-				if (Dungeon.level.distance(hero.pos, mob.pos) <= 3) {
+				//只推敌人：关卡里的怪还包括友军（召唤物、被腐化的怪）和中立单位，它们不该被推开、吃碰撞伤害
+				if (mob.alignment == Char.Alignment.ENEMY
+						&& Dungeon.level.distance(hero.pos, mob.pos) <= 3) {
 					enemies.add(mob);
 				}
 			}
@@ -234,7 +263,7 @@ public class AshKing extends ArmorAbility {
 	 * 使用法杖激活
 	 * 效果：5次免费法杖攻击，攻击穿透敌人
 	 */
-	public static class SoulStreamForm extends FlavourBuff {
+	public static class SoulStreamForm extends AshKingBaseBuff {
 
 		{
 			type = buffType.POSITIVE;
@@ -296,7 +325,7 @@ public class AshKing extends ArmorAbility {
 	 * 使用投武激活
 	 * 效果：投武产生毒雾，范围内有敌人时移速提升
 	 */
-	public static class FatalBladeForm extends FlavourBuff {
+	public static class FatalBladeForm extends AshKingBaseBuff {
 
 		{
 			type = buffType.POSITIVE;
@@ -331,17 +360,17 @@ public class AshKing extends ArmorAbility {
 			return Math.max(0, (DURATION - visualcooldown()) / DURATION);
 		}
 
-		@Override
-		public boolean act() {
+		//不能重写 act() 来做这件事：限时 buff 的 act() 只在持续时间走完的那一刻执行一次，而且那一次必须结束形态。
+		//放在 act() 里的话，持续期间一次也不会刷新，到点之后形态又永远不结束。所以由 AshKing.onHeroAct 每回合调用
+		private void refreshEnemyNearby() {
 			hasEnemyNearby = false;
 			for (Mob mob : Dungeon.level.mobs) {
-				if (Dungeon.level.distance(target.pos, mob.pos) <= 4) {
+				if (mob.alignment == Char.Alignment.ENEMY
+						&& Dungeon.level.distance(target.pos, mob.pos) <= 4) {
 					hasEnemyNearby = true;
 					break;
 				}
 			}
-			spend(TICK);
-			return true;
 		}
 
 		@Override

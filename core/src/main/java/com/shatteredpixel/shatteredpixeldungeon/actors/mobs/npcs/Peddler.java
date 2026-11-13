@@ -147,7 +147,7 @@ public class Peddler extends NPC {
 		// 换位＝把游商放到英雄原来的格子上。那格必须能站、没被别的单位占、也不能是陷阱格，
 		// 否则相当于借「换位」把 NPC 塞进墙里、或者白吃一次陷阱。
 		int target = hero.pos;
-		if (!Dungeon.level.passable[target]
+		if (hero.rooted || !Dungeon.level.passable[target]
 				|| Dungeon.level.traps.get( target ) != null
 				|| com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( target ) != hero) {
 			GLog.w( Messages.get( Peddler.class, "swap_blocked" ) );

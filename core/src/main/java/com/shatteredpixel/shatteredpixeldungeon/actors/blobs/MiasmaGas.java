@@ -5,16 +5,26 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 
 /**
  * 瘴气（自然学派 L3）：像毒气瓶一样造成毒素伤害，并每回合为目标叠加2层中毒。
  */
-public class MiasmaGas extends Blob {
+public class MiasmaGas extends Blob implements Hero.Doom {
+
+    // 瘴气对气体里的每个角色都生效，英雄站进去一样会被毒死。和原版毒气一样由气体自己结算英雄的死亡：
+    // Hero.die 只对实现了 Doom 的死因调 onDeath，不实现的话存档照删、这一局却不进排行榜
+    @Override
+    public void onDeath() {
+        Dungeon.fail(this);
+        GLog.n(Messages.get(this, "ondeath"));
+    }
 
     @Override
     protected void evolve() {

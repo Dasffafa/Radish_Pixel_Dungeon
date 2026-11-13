@@ -76,12 +76,28 @@ public class BoneSpear extends MeleeWeapon {
 	}
 
 	@Override
+	public void activate(Char ch) {
+		super.activate(ch);
+		// 技能读的是英雄身上的 Charger，但以前没有任何地方给英雄挂它，技能永远只回「尚未充能完毕」。
+		// 装备时（读档恢复装备时也会走这里）挂上；卸下时不摘，免得靠反复穿脱把充能刷满
+		if (ch instanceof Hero) {
+			Buff.affect(ch, Charger.class);
+		}
+	}
+
+	@Override
 	public void execute(Hero hero, String action) {
 		super.execute(hero, action);
 
 		if (action.equals(AC_SPEAR)) {
 			curUser = hero;
 			curItem = this;
+
+			// 充能只在装备着的时候显示和计算上限，技能同样要求装备着
+			if (!isEquipped(hero)) {
+				GLog.w(Messages.get(this, "not_equipped"));
+				return;
+			}
 
 			Charger charger = hero.buff(Charger.class);
 			if (charger == null || charger.charges < 1) {
@@ -114,7 +130,9 @@ public class BoneSpear extends MeleeWeapon {
 			charger.charges--;
 			Item.updateQuickslot();
 
-			curUser.spendAndNext(1f);
+			// 与法杖同样的顺序：先占住英雄，等骨矛飞到、伤害结算完再花回合。
+			// 以前是先花回合再放动画，怪物已经开始行动，伤害却在之后某一帧才从渲染线程里结算
+			curUser.busy();
 			curUser.sprite.zap(cell, new Callback() {
 				@Override
 				public void call() {
@@ -166,6 +184,8 @@ public class BoneSpear extends MeleeWeapon {
 						} else {
 							GLog.i(Messages.get(BoneSpear.class, "no_target"));
 						}
+
+						curUser.spendAndNext(1f);
 					}
 				});
 	}
@@ -192,7 +212,8 @@ public class BoneSpear extends MeleeWeapon {
 
 	@Override
 	public String statsInfo() {
-		return Messages.get(this, "stats_desc");
+		// 文本是「充能：%d」，不传参数会把 %d 原样显示出来
+		return Messages.get(this, "stats_desc", maxCharges());
 	}
 
 	@Override

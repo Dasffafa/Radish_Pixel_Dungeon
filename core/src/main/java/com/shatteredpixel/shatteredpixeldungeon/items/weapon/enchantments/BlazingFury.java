@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 
 /**
@@ -48,7 +49,9 @@ public class BlazingFury extends Weapon.Enchantment {
                 break;
             }
             if (!Dungeon.level.water[cell]) {
-                Blob.seed( cell, 1, Fire.class );
+                //必须交给 GameScene.add：Blob.seed 只把火放进关卡数据，本层此前没有过火焰时，
+                //新建的火既没进回合系统也没有贴图，看不见、不烧、也不熄灭，要等读档才突然烧起来
+                GameScene.add( Blob.seed( cell, 1, Fire.class ) );
                 CellEmitter.get( cell ).burst( Speck.factory( Speck.LIGHT ), 2 );
             }
 

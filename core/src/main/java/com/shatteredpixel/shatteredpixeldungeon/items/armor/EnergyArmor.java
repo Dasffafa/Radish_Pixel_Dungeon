@@ -20,19 +20,9 @@ public class EnergyArmor extends Armor{
         super( 3 );
     }
 
-    public boolean update = false;
-
+    /** 穿在身上时用英雄贴图表的第几行：有能量是 14，能量耗尽是 15。只取值，不改任何状态。 */
     public int Energy() {
-        int energy;
-
-        if (energyLeft<=0){
-            energy = 15;
-            update = true;
-        } else {
-            energy = 14;
-        }
-
-        return energy;
+        return energyLeft <= 0 ? 15 : 14;
     }
 
     @Override
@@ -74,8 +64,10 @@ public class EnergyArmor extends Armor{
         } else {
             image = ItemSpriteSheet.ARMOR_ENERGY1;
         }
-        updateQuickslot();
-        return image;
+        //这里只挑图标，不能要求界面刷新：界面每次重画物品都会来取图标，
+        //在这里要求刷新的话，只要背包面板开着，就会每一帧都把所有物品格子重建一遍。
+        //图标该换的时机（护盾出现、护盾消失）由下面的状态自己通知
+        return super.image();
     }
     private static final String ENERGY_LEFT       = "energy_left";
     private static final String CHARGE_COUNT       = "charge_count";
@@ -114,8 +106,8 @@ public class EnergyArmor extends Armor{
             if (chargeCount>=30){
                 Buff.affect(target, myShield.class).incShield(12+buffedLvl());
                 chargeCount-=30;
+                updateQuickslot();
             }
-            //GLog.h(String.valueOf(update));
             return true;
         }
         @Override
@@ -126,5 +118,11 @@ public class EnergyArmor extends Armor{
 
     }
     public static class myShield extends Barrier{
+        @Override
+        public void detach() {
+            super.detach();
+            //护盾没了，护甲图标要换回没有护盾的样子
+            Item.updateQuickslot();
+        }
     }
 }

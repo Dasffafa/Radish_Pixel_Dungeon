@@ -411,7 +411,9 @@ public class WndUpgrade extends Window {
                     com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( Messages.get(
                             com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined.class,
                             "cannot_upgrade" ) );
-                    hide();
+                    //回到选物窗让玩家改选别的装备，而不是只关窗：卷轴是「读了才认出来」的那种时（force），
+                    //它在打开这个窗口之前就已经从背包里扣掉了，直接关窗等于白白吞掉一张升级卷轴
+                    onBackPressed();
                     return;
                 }
 

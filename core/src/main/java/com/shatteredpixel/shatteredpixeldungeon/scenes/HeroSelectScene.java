@@ -87,8 +87,7 @@ public class HeroSelectScene extends PixelScene {
 			HeroClasses.HUNTRESS,
 			HeroClasses.RECTOR,
 			HeroClasses.MOONLIGHT,
-			HeroClasses.CARDTRICKSTER,
-			HeroClasses.ENGINEER
+			HeroClasses.CARDTRICKSTER
 	};
 	private static int heroClassIndex = 0;
 	private static void addHeroClassIndex(int add) {
@@ -230,6 +229,9 @@ public class HeroSelectScene extends PixelScene {
 		}
 
 		int nPatches = (int)(sky.width() / GrassPatch.WIDTH + 1);
+
+		//这个列表是静态的：不清的话每进一次选人界面就多留一批已经销毁的草丛，update() 每帧还要把它们全遍历一遍
+		grassPatches.clear();
 
 		for (int i=0; i < nPatches * 4; i++) {
 			GrassPatch patch = new GrassPatch( (i - 0.75f) * GrassPatch.WIDTH / 4, SKY_HEIGHT + 1, dayTime,heroClass() );
@@ -467,7 +469,9 @@ public class HeroSelectScene extends PixelScene {
 		skin.setPos(frame.x + frame.width * 0.618f - skin.width() / 2f, frame.y);
 		PixelScene.align(skin);
 
-		Image title = new Image(Assets.Interfaces.BANNERS, 0, 0, 126, TITLE_HEIGHT);
+		//图里的 Radish 字样左边留了 15 像素空白，裁 126 宽时右边只剩 11，字会偏右 2 像素；
+		//裁到 130 宽让两边空白一样多（多裁进来的 4 列是全透明的），字才落在正中
+		Image title = new Image(Assets.Interfaces.BANNERS, 0, 0, 130, TITLE_HEIGHT);
 		title.setPos(
 				frame.x + (frame.width - title.width()) / 2f,
 				titleY + (TITLE_HEIGHT - title.height()) / 2f);
@@ -492,7 +496,8 @@ public class HeroSelectScene extends PixelScene {
 		add(signs);
 
 		float torchY = title.y + title.height() / 2f;
-		placeTorch(title.x - 8, torchY);
+		//两支火把离标题一样远（原来左边远、右边近，左边那支还贴着屏幕边）
+		placeTorch(title.x - 4, torchY);
 		placeTorch(title.x + title.width() + 4, torchY);
 
 		fadeIn();

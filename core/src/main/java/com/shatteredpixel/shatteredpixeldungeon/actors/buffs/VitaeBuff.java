@@ -1,9 +1,12 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.watabou.utils.Bundle;
+
+import java.util.HashSet;
 
 public class VitaeBuff extends Buff{
     private int vitae;
@@ -13,19 +16,18 @@ public class VitaeBuff extends Buff{
         return vitae;
     }
 
-    public void setVitae(int vt){
-        this.vitae = vt;
-        this.maxVitae = vt;
+    public void addVitae(int amount){
+        int points = Dungeon.hero.pointsInTalent(Talent.VITAE_BOOST);
+        int bonus = points <= 2 ? points : 0;
+        vitae += amount + bonus;
+        maxVitae = vitae;
+    }
 
-        // DoggingDog on 20250818
-        if(Dungeon.hero.hasTalent(Talent.VITAE_BOOST)){
-            switch (Dungeon.hero.pointsInTalent(Talent.VITAE_BOOST)){
-                case 1:this.vitae+=1;break;
-                case 2:this.vitae+=2;break;
-                default:break;
-            }
-        }
-        //
+    /** Explicit assignment for tools and legacy callers. Gameplay grants use addVitae. */
+    @Deprecated
+    public void setVitae(int amount){
+        vitae = 0;
+        addVitae(amount);
     }
 
     /**
@@ -38,6 +40,7 @@ public class VitaeBuff extends Buff{
             vitae -= dmg;
             dmg = 0;
         } else {
+            dmg -= vitae;
             vitae = 0;
         }
         if (vitae == 0){
@@ -52,26 +55,37 @@ public class VitaeBuff extends Buff{
     }
 
     // DoggingDog on 20250818
-    {
-        if(Dungeon.hero.pointsInTalent(Talent.VITAE_BOOST)>=3){
-            immunities.add(Weakness.class);
-            immunities.add(Vulnerable.class);
-            immunities.add(Hex.class);
-            immunities.add(Degrade.class);
+    // 免疫在被查询时按持有者当前的天赋点数现算，不能放在初始化块里读 Dungeon.hero：
+    // 读档时本 buff 是在英雄还没读完（Dungeon.hero 为 null）的时候被构造的，
+    // 初始化块里一抛异常，整个 buff 就被存档读取丢掉了，临时生命读一次档就清零。
+    @Override
+    public HashSet<Class> immunities() {
+        HashSet<Class> result = super.immunities();
+        if (target instanceof Hero && ((Hero) target).pointsInTalent(Talent.VITAE_BOOST) >= 3){
+            result.add(Weakness.class);
+            result.add(Vulnerable.class);
+            result.add(Hex.class);
+            result.add(Degrade.class);
         }
+        return result;
     }
 
     private static final String VITAE = "vitae";
+    private static final String MAX_VITAE = "max_vitae";
 
     @Override
     public void storeInBundle( Bundle bundle ) {
         super.storeInBundle( bundle );
         bundle.put( VITAE, vitae);
+        bundle.put( MAX_VITAE, maxVitae);
     }
 
     @Override
     public void restoreFromBundle( Bundle bundle ) {
         super.restoreFromBundle( bundle );
         vitae = bundle.getInt( VITAE );
+        // 状态栏的黄色条按 maxVitae 算比例，不存的话读档后是 0，条画不出来。
+        // 这个键是后加的，之前的存档里没有，就拿当前剩余量当满值。
+        maxVitae = bundle.contains( MAX_VITAE ) ? bundle.getInt( MAX_VITAE ) : vitae;
     }
 }

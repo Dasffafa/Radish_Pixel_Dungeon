@@ -29,10 +29,22 @@ import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll;
+import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PaperCutter;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.DisintegrationTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.FlockTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GatewayTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GrimTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GuardianTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.PoisonDartTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.SummoningTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.TeleportationTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WarpingTrap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WornDartTrap;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -70,12 +82,9 @@ public final class CardEffects {
 			case BLANK: {
 				// 陷阱师：对未触发的陷阱使用空白卡 -> 记录该陷阱，卡片转为陷阱卡
 				Trap trap = Dungeon.level.traps.get(pos);
-				if (trap != null && hero.subClass == HeroSubClasses.JOKER) {
-					// 只能吸收尚未触发的陷阱（active == true 表示未触发）
-					if (!trap.active) {
-						GLog.w(Messages.get(CardEffects.class, "trap_already_used"));
-						return;
-					}
+				// 只吸收看得见、已发现、尚未触发的陷阱（与 CardTargeter 的判定一致）。
+				// 其余情况这一格按普通目标处理：敌人站在隐藏的或已触发的陷阱格上时照常打它
+				if (trap != null && hero.subClass == HeroSubClasses.JOKER && CardTargeter.absorbableTrap(pos)) {
 					card.type = CardType.TRAP;
 					card.trapClass = trap.getClass();
 					GLog.i(Messages.get(CardEffects.class, "trap_recorded", trap.name()));
@@ -133,7 +142,7 @@ public final class CardEffects {
 				finish(hero, card, false, card.type.time);
 				break;
 			case IDENTIFY: {
-				identifyRandom(hero, 1, false);
+				// [audit x-turns IM-4 trial fix] 鉴定挪到玩家选完之后：先鉴定再弹窗的话，窗口开着时存档读档可以白拿鉴定
 				if (card.power >= 2) {
 					GameScene.show(new WndOptions(
 							Messages.get(CardEffects.class, "destroy_title"),
@@ -142,16 +151,19 @@ public final class CardEffects {
 							Messages.get(CardEffects.class, "destroy_no")) {
 						@Override
 						protected void onSelect(int index) {
+							identifyRandom(hero, 1, false);
 							finish(hero, card, index == 0, card.type.time);
 						}
 
 						@Override
 						public void onBackPressed() {
 							hide();
+							identifyRandom(hero, 1, false);
 							finish(hero, card, false, card.type.time);
 						}
 					});
 				} else {
+					identifyRandom(hero, 1, false);
 					finish(hero, card, false, card.type.time);
 				}
 				break;
@@ -176,7 +188,8 @@ public final class CardEffects {
 			case SPIN: {
 				int amount = card.power >= 3 ? 5 : card.power == 2 ? 4 : 3;
 				int spun = hero.cardDeck.spinBlank(amount);
-				GLog.i(Messages.get(CardEffects.class, "spin_done", amount, spun));
+				// 文本只有一个 %d，说的是「移到牌堆底的张数」：要传实际空转掉的 spun，不是检视的 amount
+				GLog.i(Messages.get(CardEffects.class, "spin_done", spun));
 				if (hero.pointsInTalent(Talent.FANCY_SHUFFLE) >= 4) CardDrawer.cancelCooldown(hero);
 				fancySpin(hero, spun);
 				finish(hero, card, false, card.type.time);
@@ -218,7 +231,15 @@ public final class CardEffects {
 								}
 								if (hero.pointsInTalent(Talent.FANCY_SHUFFLE) >= 4) CardDrawer.cancelCooldown(hero);
 								finish(hero, card, false, card.type.time);
-							}));
+							}) {
+						// 牌堆顶已经给玩家看过了，取消也要算打出；否则可以不花卡、不花回合地反复偷看。
+						// 确认那条路在回调里已经结算过，finish 开头的「手牌还是不是这张」检查让这里变成空操作
+						@Override
+						public void hide() {
+							super.hide();
+							finish(hero, card, false, card.type.time);
+						}
+					});
 				}
 				break;
 			}
@@ -227,7 +248,10 @@ public final class CardEffects {
 					GLog.w(Messages.get(CardTargeter.class, "bad_target"));
 					return;
 				}
-				boolean free = Buff.affect(hero, NextAttackFree.class).consume();
+				// 只有身上已经有「下一张攻击卡不耗回合」时才免费。
+				// Buff.affect 在没有这个状态时会当场新建一个，新建的一定能 consume，等于所有攻击卡都不耗回合
+				NextAttackFree naf = hero.buff(NextAttackFree.class);
+				boolean free = naf != null && naf.consume();
 				// 基础伤害 1~5，再附加一份 1~5 的额外伤害
 				int dmg = Random.NormalIntRange(1, 5) + Random.NormalIntRange(1, 5);
 
@@ -352,7 +376,12 @@ public final class CardEffects {
 					GLog.w(Messages.get(CardEffects.class, "trap_cooling", (int) hero.buff(TrapCooldown.class).cooldown()));
 					return;
 				}
+				Class<?> trapCls = card.trapClass;
 				triggerTrap(card, pos);
+				trapMasteryAfterPlay(hero, trapCls);
+				if (hero.pointsInTalent(Talent.CAREFUL_SELECTION) >= 1) {
+					CardDrawer.reduceCooldown(hero, 5);
+				}
 
 				// 卡组连携 +2：同时把牌堆顶的空白卡打到同一落点
 				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 2) {
@@ -367,23 +396,41 @@ public final class CardEffects {
 					if (topBlank != null) {
 						hero.cardDeck.drawPile.remove(topBlank);
 						triggerTrap(topBlank, pos);
+						// 空白卡没有记录陷阱，上面那句对它什么都不做；打出去的卡要回到牌堆底，
+						// 否则每打一张陷阱卡牌组就永久少一张空白卡
+						hero.cardDeck.addToBottom(topBlank);
+					}
+				}
+
+				// 卡组连携 +1：要在这张卡退回空白卡之前结算。
+				// 原来写在 finish 里，那时 type 已经是 BLANK，对真正的陷阱卡永远不触发，
+				// 反而会被 +3「空白卡用后变成陷阱卡」触发
+				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 1) {
+					Card next = hero.cardDeck.drawPile.isEmpty() ? null
+							: hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
+					if (next == null || next.type != CardType.TRAP) {
+						rechargeWandsAndArtifacts(hero, 2f);
 					}
 				}
 
 				Buff.affect(hero, TrapCooldown.class, trapCooldown(hero));
 				card.type = CardType.BLANK;
 				card.trapClass = null;
-				finish(hero, card, false, card.type.time);
+				boolean freeTrap = hero.pointsInTalent(Talent.TRAP_MASTERY) >= 2 && !isDirectionalTrap(trapCls);
+				finish(hero, card, false, freeTrap ? 0f : CardType.TRAP.time);
 				break;
 			}
 			case TELEPORT: {
+				if (hero.rooted) return;
 				int cell = target == null ? hero.pos : target;
-				int old = hero.pos;
-				hero.pos = cell;
-				hero.sprite.place(cell);
-				Dungeon.level.pressCell(cell);
-				Dungeon.observe();
-				GameScene.updateFog();
+				// 走传送卷轴的定点传送，不手写位移：它负责连通性检查（不能传进隔开的区域）、
+				// 离开门格时关门、漂浮时不踩陷阱、解除缠绕、刷新视野。到不了时卡留在手上
+				if (cell != hero.pos
+						&& !ScrollOfTeleportation.teleportToLocation(hero, cell, false)) {
+					return;
+				}
+				// 落点上的陷阱可能把英雄杀死，死了就不再结算这张卡（否则施法动作会盖在死亡动画上）
+				if (!hero.isAlive()) return;
 				CardDrawer.cancelCooldown(hero);
 				int swift = hero.pointsInTalent(Talent.SWIFT_STEP);
 				if (swift > 0) {
@@ -429,7 +476,8 @@ public final class CardEffects {
 				if (hero.cardDeck == null || hero.cardDeck.held != card) return;
 
 				if (item.isEquipped(hero) && item instanceof EquipableItem) {
-					if (!((EquipableItem) item).doUnequip(hero, false, false)) return;
+					// [audit x-turns IM-5 trial fix] single = true：卸装备当场花掉这 1 回合（spendAndNext），而不是只记账、英雄还能接着行动
+					if (!((EquipableItem) item).doUnequip(hero, false, true)) return;
 				}
 				item.detachAll(hero.belongings.backpack);
 
@@ -483,10 +531,39 @@ public final class CardEffects {
 		try {
 			Trap trap = (Trap) card.trapClass.getDeclaredConstructor().newInstance();
 			trap.set(pos);
+			trap.fromJokerCard = true;
 			trap.activate();
 			GLog.i(Messages.get(CardEffects.class, "trap_released", trap.name()));
 		} catch (Exception e) {
 			GLog.w(Messages.get(CardEffects.class, "trap_failed"));
+		}
+	}
+
+	// 陷阱精通：会自己找目标打的陷阱算「指向性」，其余算「非指向性」
+	static boolean isDirectionalTrap(Class<?> cls) {
+		return cls != null && (PoisonDartTrap.class.isAssignableFrom(cls) || cls == WornDartTrap.class
+				|| cls == DisintegrationTrap.class || cls == GrimTrap.class);
+	}
+
+	static boolean isSummoningTrap(Class<?> cls) {
+		return cls == SummoningTrap.class || cls == FlockTrap.class || cls == GuardianTrap.class;
+	}
+
+	static boolean isTeleportTrap(Class<?> cls) {
+		return cls == TeleportationTrap.class || cls == WarpingTrap.class || cls == GatewayTrap.class;
+	}
+
+	private static void trapMasteryAfterPlay(Hero hero, Class<?> cls) {
+		int mastery = hero.pointsInTalent(Talent.TRAP_MASTERY);
+		if (mastery >= 3 && isSummoningTrap(cls)) {
+			for (Char ch : Actor.chars()) {
+				if (ch.alignment == Char.Alignment.ENEMY && ch.isAlive() && Dungeon.level.heroFOV[ch.pos]) {
+					Buff.prolong(ch, Blindness.class, 5f);
+				}
+			}
+		}
+		if (mastery >= 4 && isTeleportTrap(cls)) {
+			Buff.prolong(hero, MindVision.class, 5f);
 		}
 	}
 
@@ -556,16 +633,6 @@ public final class CardEffects {
 		// 僵化/激素强化：每打出一张卡，前置一格
 		if (card.type != CardType.RIGID && card.type != CardType.HORMONE) {
 			advanceEnhanced(hero);
-		}
-
-		// 卡组连携 +1：陷阱卡打出后，若牌堆顶不是陷阱卡，获得法杖/神器充能
-		int combo = hero.pointsInTalent(Talent.DECK_COMBO);
-		if (combo >= 1 && card.type == CardType.TRAP) {
-			Card next = hero.cardDeck.drawPile.isEmpty() ? null
-					: hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
-			if (next == null || next.type != CardType.TRAP) {
-				rechargeWandsAndArtifacts(hero, 2f);
-			}
 		}
 
 		hero.sprite.operate(hero.pos);
@@ -927,6 +994,11 @@ public final class CardEffects {
 		@Override
 		public String icon() {
 			return BuffIndicator.INVERT_MARK;
+		}
+
+		@Override
+		public String desc() {
+			return Messages.get(this, "desc", Math.round(ratio * 100), stored);
 		}
 
 		private static final String STORED = "stored";

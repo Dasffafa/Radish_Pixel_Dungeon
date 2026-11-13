@@ -384,6 +384,11 @@ public class Belongings implements Iterable<Item> {
 			secondWep().identify();
 			Badges.validateItemLevelAquired(secondWep());
 		}
+		// 这里是逐栏写死的，后加的次要护甲栏漏了：觉察之泉鉴定全身装备时唯独不鉴定它
+		if (secondaryArmor() != null){
+			secondaryArmor().identify();
+			Badges.validateItemLevelAquired(secondaryArmor());
+		}
 		for (Item item : backpack) {
 			if (item instanceof EquipableItem || item instanceof Wand) {
 				item.cursedKnown = true;
@@ -425,7 +430,9 @@ public class Belongings implements Iterable<Item> {
 		
 		private Iterator<Item> backpackIterator = backpack.iterator();
 		
-		private Item[] equipped = {weapon, armor, artifact, misc, ring, secondWep};
+		// 次要护甲栏也要遍历到：捡回遗失的背包时靠这个遍历清掉「复活时保留」的标记，
+		// 漏掉它，被选中保留的次要护甲以后每次复活都会白白多保留一件。放在最后，不改动原有各栏的顺序
+		private Item[] equipped = {weapon, armor, artifact, misc, ring, secondWep, secondaryArmor};
 		private int backpackIndex = equipped.length;
 		
 		@Override

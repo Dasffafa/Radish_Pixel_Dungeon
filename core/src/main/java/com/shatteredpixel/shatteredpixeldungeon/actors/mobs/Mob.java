@@ -891,7 +891,8 @@ public abstract class Mob extends Char {
 		public float speed() {
 			float speed = super.speed() * AscensionChallenge.enemySpeedModifier(this);
 			if (mobEquipment.armor != null) speed = mobEquipment.armor.speedFactor(this, speed);
-			return speed * RingOfHaste.speedMultiplier(this);
+			return speed * RingOfHaste.speedMultiplier(this)
+					* com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Warden.grassSpeedFactor(this);
 		}
 
 		public final boolean surprisedBy( Char enemy ){
@@ -900,7 +901,8 @@ public abstract class Mob extends Char {
 
 		public boolean surprisedBy( Char enemy, boolean attacking ){
 			return enemy == Dungeon.hero
-					&& (enemy.invisible > 0 || !enemySeen || (fieldOfView != null && fieldOfView.length == Dungeon.level.length() && !fieldOfView[enemy.pos]))
+					&& (enemy.invisible > 0 || !enemySeen || (fieldOfView != null && fieldOfView.length == Dungeon.level.length() && !fieldOfView[enemy.pos])
+						|| (attacking && com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight.shieldPoke( enemy )))
 					&& (!attacking || enemy.canSurpriseAttack());
 		}
 
@@ -1052,7 +1054,7 @@ public abstract class Mob extends Char {
 					}
 
 					int exExp = 10;
-					if(hero.subClass == HeroSubClasses.REDCARDINAL){
+					if(belief != null && hero.subClass == HeroSubClasses.REDCARDINAL){
 						if( exp >= exExp){
 							belief.getBelief(1f);
 						}
@@ -1092,14 +1094,19 @@ public abstract class Mob extends Char {
 			Buff.affect(hero, MagicPoint.class).gainKillPoint();
 		}
 
-		if(hero.subClass == HeroSubClasses.SNIPER){
-			next();
-		}
+		//怪正占着回合（比如攻击动画播到一半、在等动画回调）时被别的东西打死，死亡动画会顶掉原来的动画，
+		//那个回调永远不来，回合就永久卡在这只死怪身上。所以死的时候如果正轮到它，就把回合交出去。
+		//next() 只在「当前行动者就是自己」时才起作用，其它情况是空操作；怪在自己回合里正常死掉时多调一次也无害。
+		//这句原来只对狙击手生效（给疾风骤雨的追加箭兜底），其它在回合外结算伤害的效果照样会卡死。
+		next();
 
 
 		if(cause instanceof Wand && hero.pointsInTalent(Talent.SMART_BLESSING)>=2){
+			//信仰只挂在主教身上；别的职业靠蜕变卷轴拿到这个天赋时没有信仰可加
 			Belief creaditSkills = hero.buff(Belief.class);
-			creaditSkills.getBelief(0.33f);
+			if (creaditSkills != null) {
+				creaditSkills.getBelief(0.33f);
+			}
 		}
 
 		//执行模式
@@ -1108,9 +1115,10 @@ public abstract class Mob extends Char {
 				if (mob.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[mob.pos]) {
 					CellEmitter.center( mob.pos ).start( ShadowParticle.UP, 0.05f, 10 );
 					mob.damage(DamageInfo.of(mob.EXP, DamageType.LIGHTNING, this, new DM100.LightningBolt()));
-				}
-				if(hero.hasTalent(Talent.BLACK_LOVE)){
-					Buff.affect(mob, Bleeding.class).set(2 * hero.pointsInTalent(Talent.BLACK_LOVE));
+					//流血和闪电打的是同一批目标（视野内的敌人）；放在外面会连盟友、NPC 和看不见的怪一起流血
+					if(mob.isAlive() && hero.hasTalent(Talent.BLACK_LOVE)){
+						Buff.affect(mob, Bleeding.class).set(2 * hero.pointsInTalent(Talent.BLACK_LOVE));
+					}
 				}
 			}
 			int needTotal = Dungeon.depth;
@@ -1118,19 +1126,18 @@ public abstract class Mob extends Char {
 				switch (hero.pointsInTalent(Talent.EXP_IMPOTION)){
 					case 1:
 						Dungeon.hero.earnExp(6, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(2);
+						Buff.affect(hero, VitaeBuff.class).addVitae(2);
 						break;
 					case 2:
 						Dungeon.hero.earnExp(9, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(2);
+						Buff.affect(hero, VitaeBuff.class).addVitae(2);
 						break;
 					case 3:
 						Dungeon.hero.earnExp(12, getClass());
-						Buff.affect(hero, VitaeBuff.class).setVitae(2);
+						Buff.affect(hero, VitaeBuff.class).addVitae(2);
 						break;
 				}
 			}
-			GLog.w(String.valueOf(hero.lvl <= needTotal));
 		}
 
 
@@ -1149,9 +1156,13 @@ public abstract class Mob extends Char {
 			if(hero.buff(Talent.Rain_Grace_Cooldown.class) == null){
 				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
 					if (Dungeon.level.heroFOV[mob.pos] && mob != this){
-						mob.HP += Math.min( hero.pointsInTalent(Talent.RAIN_GRACE), HT );
-						mob.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
-						mob.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.pointsInTalent(Talent.RAIN_GRACE)), FloatingText.HEALING);
+						//按被治疗者自己的生命上限封顶（原来比的是死掉这只怪的 HT，满血的怪会被加到超过上限）
+						int heal = Math.min( hero.pointsInTalent(Talent.RAIN_GRACE), mob.HT - mob.HP );
+						if (heal > 0) {
+							mob.HP += heal;
+							mob.sprite.emitter().start( Speck.factory( Speck.HEALING ), 0.4f, 4 );
+							mob.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(heal), FloatingText.HEALING);
+						}
 					}
 				}
 				int effect = Math.min( hero.HT - hero.HP,hero.pointsInTalent(Talent.RAIN_GRACE));
@@ -1537,7 +1548,8 @@ public abstract class Mob extends Char {
 				spend( 1 / (speed() * speedAdj));
 				return moveSprite( oldPos, pos );
 			} else {
-				target = Dungeon.level.randomDestination( Mob.this );
+				//走子类可以覆写的 randomDestination()：任务怪朝英雄靠拢、豺狼守卫守在原地都靠它
+				target = randomDestination();
 				spend( TICK );
 			}
 
@@ -1576,7 +1588,7 @@ public abstract class Mob extends Char {
 				} else if (enemy == null) {
 					sprite.showLost();
 					state = WANDERING;
-					target = Dungeon.level.randomDestination( Mob.this );
+					target = ((Mob.Wandering)WANDERING).randomDestination();
 					spend( TICK );
 					return true;
 				}
@@ -1612,7 +1624,7 @@ public abstract class Mob extends Char {
 					if (!enemyInFOV) {
 						sprite.showLost();
 						state = WANDERING;
-						target = Dungeon.level.randomDestination( Mob.this );
+						target = ((Mob.Wandering)WANDERING).randomDestination();
 					}
 					return true;
 				}
@@ -1629,9 +1641,14 @@ public abstract class Mob extends Char {
 		@Override
 		public boolean act( boolean enemyInFOV, boolean justAlerted ) {
 			enemySeen = enemyInFOV;
-			//loses target when 0-dist rolls a 6 or greater.
+			//triggers escape logic when 0-dist rolls a 6 or greater.
 			if (enemy == null || !enemyInFOV && 1 + Random.Int(Dungeon.level.distance(pos, target)) >= 6){
-				target = -1;
+				//小偷带着赃物消失、水晶宝箱怪逃走都写在子类的 escaped() 里
+				escaped();
+				if (state != FLEEING){
+					spend( TICK );
+					return true;
+				}
 
 				//if enemy isn't in FOV, keep running from their previous position.
 			} else if (enemyInFOV) {
@@ -1790,7 +1807,14 @@ public abstract class Mob extends Char {
 		public int attackProc( final Char enemy, int damage ) {
 			damage = super.attackProc(enemy,damage);
 			if (mobEquipment.weapon instanceof Weapon) {
+				boolean wasAlive = enemy.isAlive();
 				damage = ((Weapon) mobEquipment.weapon).proc(this, enemy, damage);
+				//附魔在这里就把英雄打死时，Char.attack 会在「目标已死」处提前返回，走不到它自己的死亡结算，
+				//这一局既不进排行榜也没有击杀提示。原来只有石像和皇家守卫各自补了这一段，这里统一处理。
+				if (wasAlive && !enemy.isAlive() && enemy == Dungeon.hero) {
+					Dungeon.fail(getClass());
+					GLog.n(heroKilledMessage());
+				}
 			}
 
 			return damage;

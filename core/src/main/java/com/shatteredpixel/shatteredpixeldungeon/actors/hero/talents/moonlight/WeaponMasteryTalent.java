@@ -21,6 +21,7 @@ public class WeaponMasteryTalent {
 	public static class MasteryTracker extends Buff {
 		{
 			type = buffType.POSITIVE;
+			revivePersists = true;
 		}
 
 		public int turnCount;

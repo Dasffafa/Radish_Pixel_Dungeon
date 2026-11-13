@@ -298,6 +298,10 @@ public class Potion extends Item {
 		}
 	}
 
+	public boolean isThrowOnly() {
+		return mustThrowPots.contains(getClass());
+	}
+
 	protected void drink( Hero hero ) {
 
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( hero );
@@ -459,7 +463,8 @@ public class Potion extends Item {
 		}
 
 		if (Dungeon.level.heroFOV[cell]) {
-			if (ch != null) {
+			//角色没有贴图时（不在地牢画面里）按格子画，不去读它的贴图位置
+			if (ch != null && ch.sprite != null) {
 				Splash.at(ch.sprite.center(), splashColor(), 5);
 			} else {
 				Splash.at(cell, splashColor(), 5);

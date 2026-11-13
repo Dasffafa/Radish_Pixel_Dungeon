@@ -42,6 +42,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.SacrificialFire;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
@@ -387,8 +388,6 @@ public class Hero extends Char {
 	private int andromedaSeenFoes = 0;
 	private int andromedaCd = 0;
 	private int resistHealth = 0;
-	private int originalHT = 20;
-
 	public int HTBoost = 0;
 
 	/**
@@ -420,8 +419,11 @@ public class Hero extends Char {
 			int m = 24 - 4 * hero.pointsInTalent(Talent.SUPERSTITION);
 			cnt += exp;
 			if(cnt >= m){
-				cnt = m % cnt;
-				return 1f;
+				// 这里原来写的是 cnt = m % cnt（取余写反了）：超出阈值后 cnt 停在 m 上，之后每次获得经验都给 1 点信仰。
+				// 按描述「每获取 m 点经验 1 点信仰」：一次给够几个 m 就给几点，零头留到下次
+				int gained = cnt / m;
+				cnt = cnt % m;
+				return gained;
 			}
 			return 0;
 		}
@@ -479,17 +481,38 @@ public class Hero extends Char {
 			HT -= buff(Sprouted_Potato.Potato_Poison.class).level();
 		}
 
+		// DoggingDog on 20250914
+		// 用 misc() / ring() 而不是字段：丢失背包期间没被保留的装备不生效
+		if(belongings.misc() instanceof InversionBeta || belongings.ring() instanceof InversionBeta){
+			HT = InversionBeta.betaHP(this);
+		}
+		HT = TieredToyEffects.adjustMaxHealth(HT);
+		HT = Math.max(1, HT - resistHealth);
+
 		if (boostHP){
 			HP += Math.max(HT - curHT, 0);
 		}
 
-		// DoggingDog on 20250914
-		if(belongings.misc instanceof InversionBeta || belongings.ring instanceof InversionBeta){
-			HT = InversionBeta.betaHP(this);
-		}
-		HT = TieredToyEffects.adjustMaxHealth(HT);
-
 		HP = Math.min(HP, HT);
+	}
+
+	public boolean resistWithPainScar() {
+		int points = pointsInTalent(Talent.PAIN_SCAR);
+		if (points == 0) {
+			return false;
+		}
+		int healthCost = 25 - 5 * points;
+		float rageCost = healthCost / 100f;
+		Berserk rage = buff(Berserk.class);
+		if (rage == null || rage.getPower() < rageCost || HT <= healthCost) {
+			return false;
+		}
+		resistHealth += healthCost;
+		HT -= healthCost;
+		HP = Math.min(HP, HT);
+		rage.reducePower(rageCost);
+		GLog.n(Messages.get(Talent.PAIN_SCAR, "resistDeath"));
+		return true;
 	}
 
 
@@ -570,10 +593,12 @@ public class Hero extends Char {
 	private static final String STRENGTH	= "STR";
 	private static final String LEVEL		= "lvl";
 	private static final String EXPERIENCE	= "exp";
+	private static final String PAIN_SCAR_HEALTH = "pain_scar_health";
 	private static final String HTBOOST     = "htboost";
 
 	private static final String DEADKNGITH = "deadknight";
 	private static final String CARD_DECK = "card_deck";
+	private static final String SUPERSTITION_CNT = "superstition_cnt";
 
 	@Override
 	public void storeInBundle( Bundle bundle ) {
@@ -598,11 +623,13 @@ public class Hero extends Char {
 			bundle.put( "alchemy_energy", alchemyEnergy );
 
 			bundle.put( HTBOOST, HTBoost );
+			bundle.put( PAIN_SCAR_HEALTH, resistHealth );
 
 			bundle.put(DEADKNGITH, rectorDeadKngithDeadMode );
 
 			belongings.storeInBundle( bundle );
 			bundle.put( CARD_DECK, cardDeck );
+			if (superstitionCounter != null) bundle.put( SUPERSTITION_CNT, superstitionCounter.cnt );
 		}
 	}
 
@@ -614,6 +641,7 @@ public class Hero extends Char {
 		alchemyEnergy = bundle.getFloat( "alchemy_energy" );
 
 		HTBoost = bundle.getInt(HTBOOST);
+		resistHealth = bundle.getInt(PAIN_SCAR_HEALTH);
 
 		rectorDeadKngithDeadMode = bundle.getBoolean(DEADKNGITH);
 
@@ -625,6 +653,13 @@ public class Hero extends Char {
 		skin = bundle.getInt( SKIN );
 		powerOfImp = bundle.getBoolean(IMP_POWER);
 		Talent.restoreTalentsFromBundle( bundle, this );
+
+		// 星界沟通的计数器只在点天赋的那一刻创建，以前不进存档：读档后一直是 null，这一局剩下的时间里天赋不再给信仰。
+		// 读档时按「有没有这个天赋」重建；旧存档没有这个键，从 0 开始攒
+		if (hasTalent(Talent.SUPERSTITION)) {
+			superstitionCounter = new SuperstitionCounter();
+			if (bundle.contains(SUPERSTITION_CNT)) superstitionCounter.cnt = bundle.getInt(SUPERSTITION_CNT);
+		}
 
 		attackSkill = bundle.getInt( ATTACK );
 		defenseSkill = bundle.getInt( DEFENSE );
@@ -746,8 +781,8 @@ public class Hero extends Char {
 		} else if (RingOfForce.getBuffedBonus(this, RingOfForce.Force.class) > 0) {
 			//pitch deepens by 2.5% (additive) per point of strength, down to 75%
 			super.hitSound( pitch * GameMath.gate( 0.75f, 1.25f - 0.025f*STR(), 1f) );
-		} else if (hero.belongings.weapon != null) {
-			hero.belongings.weapon.hitSound(pitch);
+		} else if (belongings.weapon() != null) {
+			belongings.weapon().hitSound(pitch);
 		} else {
 			super.hitSound(pitch * 1.1f);
 		}
@@ -844,14 +879,15 @@ public class Hero extends Char {
 			accuracy *= 0.9f;
 		}
 
+		int spirit = LittleKnight.spiritAccuracy( this );
 		if (hero.buff(RingOfForce.Force.class) == null) {
 			if(wep != null)
-				return (int)(attackSkill * accuracy * wep.accuracyFactor( this, target ));
+				return (int)(attackSkill * accuracy * wep.accuracyFactor( this, target )) + spirit;
 		} else {
-			return (int)(attackSkill * accuracy);
+			return (int)(attackSkill * accuracy) + spirit;
 		}
 
-		return (int)(attackSkill * accuracy);
+		return (int)(attackSkill * accuracy) + spirit;
 	}
 
 	@Override
@@ -892,7 +928,7 @@ public class Hero extends Char {
 			evasion = belongings.armor().evasionFactor(this, evasion);
 		}
 
-		return Math.round(evasion);
+		return Math.round(evasion) + LittleKnight.spiritEvasion( this );
 	}
 
 	@Override
@@ -962,6 +998,7 @@ public class Hero extends Char {
             if (com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Resonance.isResonanceActive(this)) {
                 dr += Math.round(armDr * 0.5f);
             }
+            dr += CloakOfShadows.darkArmorRoll(this);
         }
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
 		if (sa != null) {
@@ -984,11 +1021,11 @@ public class Hero extends Char {
 		}
 
 		// DoggingDog on 20250914
-		if(belongings.ring instanceof InversionBeta || belongings.misc instanceof InversionBeta){
+		if(belongings.ring() instanceof InversionBeta || belongings.misc() instanceof InversionBeta){
 			dr = InversionBeta.betaDR(this);
 		}
 
-		return dr;
+		return dr + LittleKnight.spiritArmor( this );
 	}
 
 	@Override
@@ -1027,6 +1064,10 @@ public class Hero extends Char {
 		} else {
 			dmg = RingOfForce.damageRoll(this);
 		}
+		if (LittleKnight.shieldPoke( this )) {
+			dmg = LittleKnight.pokeDamage( this );
+		}
+		dmg += LittleKnight.spiritDamage( this );
 
 
 		if(hero.pointsInTalent(Talent.IRON_SUN)>=1){
@@ -1204,6 +1245,10 @@ public class Hero extends Char {
 			return 0;
 		}
 
+		if (LittleKnight.pokeIsPlain( this )) {
+			return 1f;
+		}
+
 		float delay = 1f;
 
 		if (buff(Talent.LethalMomentumTracker.class) != null){
@@ -1220,7 +1265,9 @@ public class Hero extends Char {
         //This is for that one guy, you shall get your fists of fury!
         float speed = RingOfFuror.attackSpeedMultiplier(this);
 
-        if (hero.buff(SnipersMark.class) != null && hero.hasTalent(Talent.BOW_DULES)) {
+        if (hasTalent(Talent.BOW_DULES) && (buff(SnipersMark.class) != null
+                || Dungeon.level != null && Dungeon.level.mobs.stream().anyMatch(
+                        mob -> mob.isAlive() && mob.buff(SnipersMark.class) != null))) {
             speed += 0.5f;
         }
 
@@ -1234,8 +1281,9 @@ public class Hero extends Char {
 			delay *= belongings.attackingWeapon().delayFactor( this );
 
 		// DoggingDog on 20250520
-		if(belongings.armor instanceof Showdarker){
-			delay /= (2f + 0.25f * ((Showdarker) belongings.armor).buffedLvl());
+		// 用 armor() 而不是字段：丢失背包期间没被保留的护甲不生效
+		if(belongings.armor() instanceof Showdarker){
+			delay /= (2f + 0.25f * ((Showdarker) belongings.armor()).buffedLvl());
 		}
 
 		if ( buff(Adrenaline.class) != null) delay /= 1.5f;
@@ -1278,6 +1326,9 @@ public class Hero extends Char {
 		next();
 	}
 
+	// 粘液倒计时用的时钟（上次扣到的绝对游戏时间）；不存档，读档 / 换层后重新对齐
+	private float slimeClock = -1f;
+
 	@Override
 	public boolean act() {
 
@@ -1293,11 +1344,17 @@ public class Hero extends Char {
 		fieldOfView = Dungeon.level.heroFOV;
 
 		//粘液逻辑
+		// 说明写的是「还有 N 回合」：按经过的游戏时间扣，而不是按 act() 被调用的次数扣
+		// （一次攻击 / 每走一步都会多调一次 act()）。Statistics.duration + Actor.now() 不受存档时 Actor.fixTime() 影响。
+		float slimeNow = Statistics.duration + Actor.now();
+		if (slimeClock < 0 || slimeNow < slimeClock) slimeClock = slimeNow;
+		int slimeTicks = (int)(slimeNow - slimeClock);
+		slimeClock += slimeTicks;
 		ArrayList<Frog.PoulWater> poulWaters = hero.belongings.getAllItems(Frog.PoulWater.class);
 		if(poulWaters != null){
 			for (Frog.PoulWater w : poulWaters.toArray(new Frog.PoulWater[0])) {
 				if(w.cooldown >0){
-					w.cooldown--;
+					w.cooldown -= slimeTicks;
 				}
 				if(w.cooldown <= 0){
 					w.detach(hero.belongings.backpack);
@@ -1312,6 +1369,16 @@ public class Hero extends Char {
 						GLog.w(Messages.get(w, "fade"));
 					}
 					hero.damage(DamageInfo.physicalNoArmor(1, w));
+					// 这 1 点伤害能杀死只剩 1 血的英雄。伤害来源自己负责死亡结算（其它自伤来源都是这么做的），
+					// 以前这里没有：这一局不进排行榜，也没有任何死亡提示。结算后不再处理剩下的粘液，免得重复结算
+					if (!isAlive()) {
+						Dungeon.fail(w);
+						GLog.n(Messages.get(this, "slime_death"));
+						// 英雄死在自己的 act() 中途：到此为止，不再往下走到 ready()。
+						// 否则死掉的英雄又回到「可操作」状态（地图还能点、只看 ready 的按钮还能按）
+						ready = false;
+						return false;
+					}
 				}
 			}
 		}
@@ -1320,7 +1387,7 @@ public class Hero extends Char {
 		SmallWoodenCross smallWoodenCross = hero.belongings.getItem(SmallWoodenCross.class);
 		if (smallWoodenCross != null && Dungeon.smwcLevel()) {
 			if(!Statistics.RectorGetHP){
-				Buff.affect(hero, VitaeBuff.class).setVitae(6);
+				Buff.affect(hero, VitaeBuff.class).addVitae(6);
 				Statistics.RectorGetHP = true;
 				GLog.p(Messages.get(smallWoodenCross, "bless"));
 			}
@@ -1556,8 +1623,6 @@ public class Hero extends Char {
 			}
 		}
 
-		// 影舞者：隐身结束后等英雄可操作时再弹出突袭选点
-		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
 		// 推进附魔：待处理的突进询问
 		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Propulsion.onHeroReady( this );
 		// 脉冲附魔：装备期间即开始计时
@@ -2111,14 +2176,23 @@ public class Hero extends Char {
 
 		enemy = action.target;
 
+		// 魅惑判定和原版一样放在最前面。以前它排在锁链分支后面的 else if 里，
+		// 拿着锁链时永远走不到：被魅惑也照样能攻击（或拉过来）魅惑自己的那只怪
+		if (isCharmedBy( enemy )){
+			GLog.w( Messages.get(Charm.class, "cant_attack"));
+			ready();
+			return false;
+		}
+
 		// 检查武器是否可以攻击（特殊武器如斩舰刀可能在此等待）
-		if (belongings.weapon != null && !belongings.weapon.actAttack(hero, enemy, action)) {
+		// 这个方法里都用 weapon() 而不是字段：丢失背包期间没被保留的武器不生效（空手不该还能等待蓄力、甩锁链）
+		if (belongings.weapon() != null && !belongings.weapon().actAttack(hero, enemy, action)) {
 			// 武器需要等待，已处理等待逻辑
 			return false;
 		}
 
-		if(belongings.weapon instanceof LockChain) {
-			LockChain lk = (LockChain) hero.belongings.weapon;
+		if(belongings.weapon() instanceof LockChain) {
+			LockChain lk = (LockChain) belongings.weapon();
 			if(Dungeon.level.distance( enemy.pos, pos ) <= 1){
 				sprite.attack(enemy.pos);
 			} else if(Dungeon.level.distance( enemy.pos,pos ) <= lk.RCH
@@ -2131,10 +2205,6 @@ public class Hero extends Char {
 				ready();
 				GLog.w( Messages.get(LockChain.class, "cant_attack"));
 			}
-			return false;
-		} else if (isCharmedBy( enemy )){
-			GLog.w( Messages.get(Charm.class, "cant_attack"));
-			ready();
 			return false;
 		} else if (fearBlocksMelee()){
 			// 恐惧期间双手发抖，无法使用近战攻击（远程、法杖、投掷仍可用）
@@ -2153,7 +2223,7 @@ public class Hero extends Char {
 			sprite.attack( enemy.pos );
 
 			// 攻击成功后，移除斩舰刀的等待 buff
-			if (belongings.weapon instanceof KillBoatSword) {
+			if (belongings.weapon() instanceof KillBoatSword) {
 				Buff buff = buff(KillBoatSwordWaitBuff.class);
 				if (buff != null) {
 					buff.detach();
@@ -2220,7 +2290,7 @@ public class Hero extends Char {
 			Buff.affect(Dungeon.hero, Talent.PatientStrikeTracker.class).pos = Dungeon.hero.pos;
 		}
 
-		if(hero.belongings.weapon instanceof KillBoatSword && hero.buff(KillBoatSwordWaitBuff.class) == null) {
+		if(hero.belongings.weapon() instanceof KillBoatSword && hero.buff(KillBoatSwordWaitBuff.class) == null) {
 			Buff.affect(this, KillBoatSwordWaitBuff.class);
 			hero.sprite.centerEmitter().burst(EnergyParticle.FACTORY, 15);
 			Sample.INSTANCE.play(Assets.Sounds.KILL_BOAT_SWORD_SWING);
@@ -2460,6 +2530,13 @@ public class Hero extends Char {
 			damage = rockArmor.absorb(damage);
 		}
 
+		// 战术投掷（老魔杖灌注灵壤法杖）给的是它自己的那个灵壤护甲 buff，以前这里没接上：
+		// 它的 absorb() 没有任何地方调用，既不挡伤害、护甲量也永远不减少
+		TacticalThrowTalen4Battlemage.RockArmor throwRockArmor = buff(TacticalThrowTalen4Battlemage.RockArmor.class);
+		if (throwRockArmor != null) {
+			damage = throwRockArmor.absorb(damage);
+		}
+
 		return super.defenseProc( enemy, damage );
 	}
 
@@ -2486,7 +2563,6 @@ public class Hero extends Char {
 		}
 	}
 
-	boolean isOnly = false;
 	@Override
 	public void damage( DamageInfo info ) {
 		int dmg = info.getDamage();
@@ -2572,126 +2648,6 @@ public class Hero extends Char {
 		}
 
 
-		if(hasTalent(Talent.PAIN_SCAR) && HP+ shielding() -dmg<=0){
-			int point = pointsInTalent(Talent.PAIN_SCAR);
-			float ber = 0;
-
-			if(buff(Berserk.class)!=null)
-				ber = buff(Berserk.class).getPower();
-
-			Ankh ankh = null;
-			for (Ankh i : belongings.getAllItems(Ankh.class)) {
-				if (ankh == null || i.isBlessed()) {
-					ankh = i;
-				}
-			}
-
-			boolean canResist = false;
-
-			switch (point){
-
-				case 1:
-					if(ber>=0.2f&&(originalHT-resistHealth)>20) {
-						canResist = true;
-					}
-					break;
-
-				case 2:
-
-					if(ber>=0.15f&&(originalHT-resistHealth)>15) {
-						canResist = true;
-					}
-					break;
-
-				case 3:
-
-					if(ber>=0.1f&&(originalHT-resistHealth)>10) {
-						canResist = true;
-					}
-					break;
-			}
-
-			int RH = resistHealth;
-
-			if(ankh != null && canResist && !isOnly){
-				Game.runOnRenderThread(new Callback() {
-					@Override
-					public void call() {
-						GameScene.show(new WndOptions(new ItemSprite(ItemSpriteSheet.ANKH),
-								Messages.get(Talent.PAIN_SCAR,"title"),
-								Messages.get(Talent.PAIN_SCAR,"desc"),
-								Messages.get(Talent.PAIN_SCAR,"prompt"),
-								Messages.get(Talent.PAIN_SCAR,"cancel")){
-							@Override
-							public void onBackPressed() {
-								//阻止玩家逃课
-							}
-							@Override
-							protected void onSelect(int index){
-								super.onSelect(index);
-								isOnly = true;
-								if( index == 0 ){
-									switch(pointsInTalent(Talent.PAIN_SCAR)){
-										case 1:
-											HT -= 20;
-											isOnly = false;
-											buff(Berserk.class).reducePower(0.2f);
-											GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-											resistHealth +=20;
-											return;
-										case 2:
-											HT -= 15;
-											isOnly = false;
-											buff(Berserk.class).reducePower(0.15f);
-											GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-											resistHealth += 15;
-											return;
-										case 3:
-											HT -= 10;
-											isOnly = false;
-											buff(Berserk.class).reducePower(0.1f);
-											GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-											resistHealth += 10;
-											return;
-									}
-								}else if(index == 1 ){
-									isOnly = false;
-									die(false);
-								}
-							}
-						});
-					}
-				});
-
-				return;
-			} else if (canResist) {
-				switch(pointsInTalent(Talent.PAIN_SCAR)){
-					case 1:
-						HT -= 20;
-						buff(Berserk.class).reducePower(0.2f);
-						GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-						resistHealth +=20;
-						return;
-					case 2:
-						HT -= 15;
-						buff(Berserk.class).reducePower(0.15f);
-						GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-						resistHealth += 15;
-						return;
-					case 3:
-						HT -= 10;
-						buff(Berserk.class).reducePower(0.1f);
-						GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-						resistHealth += 10;
-						return;
-				}
-			}
-			if(RH < resistHealth) return;
-
-		}
-
-
-
 		int preHP = HP + shielding();
 		int preTrueHP = HP;
 
@@ -2716,6 +2672,7 @@ public class Hero extends Char {
 		int effectiveDamage = preHP - postHP;
 		int trueDamage=preTrueHP-HP;
 		if (effectiveDamage <= 0) return;
+		if (trueDamage > 0) Talent.onLightEternityHit(this, info.getAttacker());
 		if (trueDamage>0){
 			if (this.hasTalent(Talent.EMERGENCY_PROTECTION) ){
 				Class<?> srcClass = src.getClass();
@@ -2745,6 +2702,11 @@ public class Hero extends Char {
 				} else {
 					Sample.INSTANCE.play(Assets.Sounds.HEALTH_WARN, 1/3f + flashIntensity * 4f);
 				}
+				//hero gets interrupted on taking serious damage, regardless of any other factor
+				// 原版的这两行在 2024-09 重写本方法后半段时丢了，这里补回：
+				// 点过「继续移动」后普通伤害不打断移动，但严重伤害必须打断，否则英雄会顶着重伤一路走到目的地
+				interrupt();
+				damageInterrupt = true;
 			}
 		}
 	}
@@ -2841,7 +2803,6 @@ public class Hero extends Char {
 		int step = -1;
 
 		if (Dungeon.level.adjacent( pos, target )) {
-			subClass.onMove(this);
 			path = null;
 
 			if (Actor.findChar( target ) == null) {
@@ -2936,7 +2897,6 @@ public class Hero extends Char {
 		if (step != -1) {
 
 			float delay = 1 / speed();
-			subClass.onMove(this);
 
 			if (Dungeon.level.pit[step] && !Dungeon.level.solid[step]
 					&& (!flying || buff(Levitation.class) != null && buff(Levitation.class).detachesWithinDelay(delay))){
@@ -2953,6 +2913,10 @@ public class Hero extends Char {
 				canSelfTrample = false;
 				return false;
 			}
+
+			// 和原版一样，只在确定要迈出这一步时记一次移动。以前「目标在隔壁」的分支开头还多调了一次，
+			// 而且两处都在判断能不能走之前：点隔壁的墙、点深渊弹出确认框（都不动也不花时间）也涨动量，走相邻格一步涨两层
+			subClass.onMove(this);
 
 			if (hasTalent(Talent.MOVING_DEFENSE)){
 				if (Random.Float()<0.33f*pointsInTalent(Talent.MOVING_DEFENSE)+0.01f){

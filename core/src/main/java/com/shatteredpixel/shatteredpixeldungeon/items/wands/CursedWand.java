@@ -489,9 +489,10 @@ public class CursedWand {
 					toHeal = target;
 					toDamage = user;
 				}
-				toHeal.HP = Math.min(toHeal.HT,(Dungeon.isChallenged(Challenges.DAMAGE_NO) ? 1 : toHeal.HP + damage/2));
+				//「伤痛难愈」挑战下只回 1 点。原先这一行在挑战开启时是把生命直接「设为」1，被治疗的一方反而只剩 1 点血。
+				//走统一治疗入口，绿字由它显示，数字是实际回复量（原先显示的是伤害值，比回复量多一倍）
+				toHeal.heal( Dungeon.isChallenged(Challenges.DAMAGE_NO) ? 1 : damage/2 );
 				toHeal.sprite.emitter().burst(Speck.factory(Speck.HEALING), 3);
-				toHeal.sprite.showStatusWithIcon( CharSprite.POSITIVE, Integer.toString(damage), FloatingText.HEALING );
 
 				toDamage.damage(new DamageInfo(damage, DamageType.MAGICAL, user, origin, new CursedWand()));
 				toDamage.sprite.emitter().start(ShadowParticle.UP, 0.05f, 10);
@@ -558,7 +559,7 @@ public class CursedWand {
 			}
 
 			int pos = bolt.collisionPos;
-			user.sprite.parent.add(new Lightning(pos - 1, user.pos + 1, null));
+			user.sprite.parent.add(new Lightning(pos - 1, pos + 1, null));
 			user.sprite.parent.add(new Lightning(pos - Dungeon.level.width(), pos + Dungeon.level.width(), null));
 			user.sprite.parent.add(new Lightning(pos - 1 - Dungeon.level.width(), pos + 1 + Dungeon.level.width(), null));
 			user.sprite.parent.add(new Lightning(pos - 1 + Dungeon.level.width(), pos + 1 - Dungeon.level.width(), null));
@@ -877,11 +878,16 @@ public class CursedWand {
 		public boolean effect(Item origin, Char user, Ballistica bolt, boolean positiveOnly) {
 
 			ArrayList<Char> affectedChars = new ArrayList<>();
-			if (cone == null && Actor.findChar(bolt.collisionPos) != null){
+			//范围只对紧跟在特效后面的这一次结算有效，取出来就清掉。这个效果对象全局只有一个：
+			//不清的话，之后不经过特效直接结算（混沌元素近战）时，拿到的是上一次施放留下的那片范围
+			ConeAOE area = cone;
+			cone = null;
+			if (area == null){
 				//cone may be null in cases like chaos elemental melee
-				affectedChars.add(Actor.findChar(bolt.collisionPos));
+				Char target = Actor.findChar(bolt.collisionPos);
+				if (target != null) affectedChars.add(target);
 			} else {
-				for (Integer cell : cone.cells){
+				for (Integer cell : area.cells){
 					if (cell == user.pos) {
 						continue;
 					}

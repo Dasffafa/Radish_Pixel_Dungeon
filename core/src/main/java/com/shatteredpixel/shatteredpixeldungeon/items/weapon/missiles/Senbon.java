@@ -65,6 +65,7 @@ public class Senbon extends MissileWeapon {
 	@Override
 	public void cast(final Hero user, final int dst) {
 		final int cell = throwPos(user, dst);
+		if (throwReadyModification(user, cell)) return;
 
 		user.sprite.zap(cell);
 		//整轮扇形打完前阻塞英雄，避免后半程针还在出手时玩家已经行动

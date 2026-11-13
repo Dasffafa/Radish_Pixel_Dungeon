@@ -118,7 +118,9 @@ public class ScrollOfEnchantment extends ExoticScroll {
 
 		@Override
 		public boolean itemSelectable(Item item) {
-			return enchantable(item);
+			//enchantable 对有精巧纹章天赋的战士也放行破损纹章（附魔符石用得上），
+			//但秘卷这边的 onSelect 只处理武器和护甲，选中纹章什么都不会发生
+			return enchantable(item) && !(item instanceof BrokenSeal);
 		}
 
 		@Override

@@ -59,6 +59,9 @@ public class MarkSpell extends DiceMageSpell {
                 }
                 int dmg = Random.IntRange(17, 31) + strBonusDamage(hero);
                 if (!spendMagic(hero)) return;
+                // 伤害在飞弹落地的回调里结算，回合也要等到那时才结束（同法杖的做法）：
+                // 先 spendAndNext 的话怪物会在 Actor 线程上行动，同时渲染线程在回调里改同一批角色
+                hero.busy();
                 MagicMissile.boltFromChar(hero.sprite.parent, MagicMissile.SHADOW, hero.sprite, target.pos, new Callback() {
                     @Override
                     public void call() {
@@ -68,9 +71,9 @@ public class MarkSpell extends DiceMageSpell {
                             CellEmitter.center(target.pos).burst(ShadowParticle.CURSE, 10);
                         }
                         Sample.INSTANCE.play(Assets.Sounds.CURSED);
+                        hero.spendAndNext(1f);
                     }
                 });
-                hero.spendAndNext(1f);
             }
 
             @Override

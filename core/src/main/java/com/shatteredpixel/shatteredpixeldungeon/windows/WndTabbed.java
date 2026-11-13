@@ -166,8 +166,6 @@ public class WndTabbed extends Window {
 	
 	protected class Tab extends Button {
 		
-		protected final int CUT = 5;
-		
 		protected boolean selected;
 		
 		protected NinePatch bg;
@@ -284,17 +282,9 @@ public class WndTabbed extends Window {
 			
 			icon.frame(defaultFrame);
 			icon.x = x + (width - icon.width) / 2;
+			//选中和没选中的页签现在用的是同一种圆角按钮底图、一样高，图标放在同一个位置。
+			//旧版页签没选中时上沿塞在窗口底下，所以要把图标上移再削掉顶部；现在再削只会让图标白白少一截
 			icon.y = y + (height - icon.height) / 2 - 1;
-			if (!selected) {
-				icon.y -= 2;
-				//if some of the icon is going into the window, cut it off
-				if (icon.y < y + CUT) {
-					RectF frame = icon.frame();
-					frame.top += (y + CUT - icon.y) / icon.texture.height;
-					icon.frame( frame );
-					icon.y = y + CUT;
-				}
-			}
 			PixelScene.align(icon);
 		}
 		

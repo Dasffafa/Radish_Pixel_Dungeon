@@ -46,7 +46,8 @@ import com.watabou.utils.Random;
 
 public class JutteChampionWeapon extends MeleeWeapon {
 
-    public int tier = 1;
+    // 阶数直接用 MeleeWeapon.tier。这里曾经另声明过一个同名字段，把父类的遮住了：
+    // 十手自己看到的是 1~5 阶，说明文字、嬗变卷轴、商店估价等按 MeleeWeapon 读到的却是 0 阶
 
     private static final int BASE_STR = 10;
     private static final float ATTACK_DELAY = 0.75f;
@@ -57,6 +58,9 @@ public class JutteChampionWeapon extends MeleeWeapon {
     
     // Store talent bonus for durability (to fix "one jutte talent only adds empty durability")
     private float talentBonus = 0f;
+
+    // 读档时背包里的十手先于 Dungeon.hero 恢复，那一刻问不到天赋；记下来，等英雄就位后再补同步
+    private boolean talentSyncPending = false;
 
     private static final int[][] TIER_DAMAGE = {
         {5, 20},   // tier 1
@@ -77,6 +81,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     {
         image = ItemSpriteSheet.JUTTE_CHAMPION_WEAPON;
         defaultAction = AC_THROW;
+        tier = 1;
     }
 
     public JutteChampionWeapon() {
@@ -184,7 +189,15 @@ public class JutteChampionWeapon extends MeleeWeapon {
         durability = Math.min(durability, getMaxDurability());
     }
 
+    private void syncTalentIfPending() {
+        if (talentSyncPending && Dungeon.hero != null) {
+            talentSyncPending = false;
+            updateDurabilityFromTalent();
+        }
+    }
+
     public float getDurability() {
+        syncTalentIfPending();
         return durability;
     }
 
@@ -193,6 +206,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     }
 
     public void consumeDurability(float amount) {
+        syncTalentIfPending();
         if (isBroken()) return;
 
         durability -= amount;
@@ -203,9 +217,32 @@ public class JutteChampionWeapon extends MeleeWeapon {
             Hero hero = Dungeon.hero;
             Sample.INSTANCE.play(Assets.Sounds.JUTTE_BREAK);
             if (isEquipped(hero)) {
-                doUnequip(hero, true, true);
+                //损坏不是「卸下」：不能在这里 doUnequip —— 那会多花一次卸装备的回合，
+                //还会在攻击结算的半路上 spendAndNext，并让这一击的攻击耗时按「空手」算。
+                //这一击（伤害、攻击耗时）结算完、英雄回合结束后，再让它从手上消失。
+                final JutteChampionWeapon self = this;
+                Actor.add(new Actor() {
+                    {
+                        actPriority = VFX_PRIO;
+                    }
+
+                    @Override
+                    protected boolean act() {
+                        Actor.remove(this);
+                        if (hero.belongings.secondWep == self) {
+                            hero.belongings.secondWep = null;
+                        } else if (hero.belongings.weapon == self) {
+                            hero.belongings.weapon = null;
+                        }
+                        self.onDetach();
+                        Dungeon.quickslot.clearItem(self);
+                        updateQuickslot();
+                        return true;
+                    }
+                });
+            } else {
+                detach(hero.belongings.backpack);
             }
-            detach(hero.belongings.backpack);
 
             if (level() > 0 && hero.hasTalent(Talent.IRON_QUENCH)) {
                 ScrollOfUpgrade scroll = new ScrollOfUpgrade();
@@ -256,6 +293,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
 
     @Override
     public String statsInfo() {
+        syncTalentIfPending();
         String info = Messages.get(this, "stats",
                 TIER_BLOCK[tier-1][0], TIER_BLOCK[tier-1][1],
                 (int)durability, (int)getMaxDurability());
@@ -297,7 +335,11 @@ public class JutteChampionWeapon extends MeleeWeapon {
             Buff.affect(hero, Combo.class).hit();
         }
 
-        Dungeon.level.drop(this, cell).sprite.drop(cell);
+        // 这一掷把耐久打光时十手已经报废（近战打坏时是直接消失的），
+        // 不能再落到地上变成一把捡得起来、伤害永远为 0、也没有办法修的废品
+        if (!isBroken()) {
+            Dungeon.level.drop(this, cell).sprite.drop(cell);
+        }
     }
     
     // Serialization: store and restore durability
@@ -317,10 +359,16 @@ public class JutteChampionWeapon extends MeleeWeapon {
     public void restoreFromBundle(Bundle bundle) {
         super.restoreFromBundle(bundle);
         durability = bundle.getFloat(DURABILITY);
-        tier = bundle.getInt(TIER_KEY);
+        // 阶数用来查伤害表和格挡表，落在 1~5 之外会越界
+        tier = Math.max(1, Math.min(5, bundle.getInt(TIER_KEY)));
         talentBonus = bundle.getFloat(TALENT_BONUS_KEY);
         
         // After restore, check if talent has been upgraded and update durability accordingly
-        updateDurabilityFromTalent();
+        if (Dungeon.hero != null) {
+            updateDurabilityFromTalent();
+        } else {
+            // 英雄还没就位时按「没有天赋」算上限，会把带天赋加成的耐久压回 50
+            talentSyncPending = true;
+        }
     }
 }

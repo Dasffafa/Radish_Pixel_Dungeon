@@ -13,7 +13,8 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 public class Mercury extends ItemArmorAttachable {
 
 	{
-		sndImageName = "mercury";
+		// 图集里这张图叫 quicksilver，没有叫 mercury 的；名字对不上时会退回成默认图标
+		sndImageName = "quicksilver";
 	}
 
 	public static boolean preventsNaturalDecay() {

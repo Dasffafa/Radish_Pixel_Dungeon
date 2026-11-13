@@ -224,7 +224,15 @@ public abstract class Char extends Actor {
             return true;
         }
 
-        int curPos = pos;
+        //we do a little raw position shuffling here so that the characters are never
+        // on the same cell when logic such as occupyCell() is triggered
+        int oldPos = pos;
+        int newPos = c.pos;
+
+        //can't swap or ally warp if either char is immovable
+        if (hasProp(this, Property.IMMOVABLE) || hasProp(c, Property.IMMOVABLE)) {
+            return true;
+        }
 
         //warp instantly with allies in this case
         if (c == hero && hero.hasTalent(Talent.ALLY_WARP)) {
@@ -232,8 +240,10 @@ public abstract class Char extends Actor {
             if (PathFinder.distance[pos] == Integer.MAX_VALUE) {
                 return true;
             }
-            ScrollOfTeleportation.appear(this, c.pos);
-            ScrollOfTeleportation.appear(c, curPos);
+            pos = newPos;
+            c.pos = oldPos;
+            ScrollOfTeleportation.appear(this, newPos);
+            ScrollOfTeleportation.appear(c, oldPos);
             Dungeon.observe();
             GameScene.updateFog();
             return true;
@@ -244,15 +254,20 @@ public abstract class Char extends Actor {
             return true;
         }
 
-        moveSprite(pos, c.pos);
-        move(c.pos);
+        //螃蟹甲：横向换位更快、纵向更慢（按换位前两者是否同一行判断）
         float speedAdj = 1f;
         if (c.buff(CrabArmor.likeCrab.class) != null) {
-            if (c.pos / Dungeon.level.width() == curPos / Dungeon.level.width()) speedAdj = 1.75f;
+            if (newPos / Dungeon.level.width() == oldPos / Dungeon.level.width()) speedAdj = 1.75f;
             else speedAdj = 5f / 6f;
         }
-        c.sprite.move(c.pos, curPos);
-        c.move(curPos);
+
+        c.pos = oldPos;
+        moveSprite(oldPos, newPos);
+        move(newPos);
+
+        c.pos = newPos;
+        c.sprite.move(newPos, oldPos);
+        c.move(oldPos);
 
         c.spend(1 / (c.speed() * speedAdj));
 
@@ -555,6 +570,11 @@ public abstract class Char extends Actor {
         if (attacker.invisible > 0 && attacker.canSurpriseAttack()) {
             acuStat = INFINITE_ACCURACY;
         }
+        if (attacker instanceof Hero
+                && ((Hero) attacker).subClass == HeroSubClasses.SHADOW_DANCER
+                && attacker.buff(Preparation.class) != null) {
+            acuStat = INFINITE_ACCURACY;
+        }
 
         // 怪物偷袭英雄：攻击者不在英雄当前视野内（如门后/黑暗中）时攻击必定命中。
         // 只必中，不改变防御/DR（与英雄偷袭怪物不同，没有防御归零逻辑）。
@@ -579,7 +599,7 @@ public abstract class Char extends Actor {
         float acuRoll;
         // 注定一抽：攻击者命中判定取最大值
         FatedDraw.FatedDrawTracker trackerA = attacker instanceof Hero ? ((Hero) attacker).buff(FatedDraw.FatedDrawTracker.class) : null;
-        if (trackerA != null && trackerA.remainingChecks > 0) {
+        if (trackerA != null && trackerA.ready()) {
             acuRoll = acuStat; // 取最大值
             trackerA.consume("attack_hit");
         } else {
@@ -592,12 +612,12 @@ public abstract class Char extends Actor {
             if (attacker == hero)
                 bless_adj_a *= RingOfBenediction.periodMultiplier(attacker);
             else if (defender == hero)
-                bless_adj_d *= RingOfBenediction.periodMultiplier(attacker);
+                bless_adj_d *= RingOfBenediction.periodMultiplier(defender);
         }
+        //祝福的命中加成只乘一次（原版那一行已经并进 bless_adj_a，不能再乘一遍 1.25）
         if (attacker.buff(Bless.class) != null) acuRoll *= bless_adj_a;
         //祝福之戒
 
-        if (attacker.buff(Bless.class) != null) acuRoll *= 1.25f;
         // 命中修正取"加法叠加"：各效果的增减百分比直接相加，而不是连乘，
         // 避免多个减益叠乘后命中率掉得过狠。怨魂缠身等通过 FlavourBuff 的钩子参与。
         float accMod = 1f;
@@ -615,13 +635,13 @@ public abstract class Char extends Actor {
         float defRoll;
         // 注定一抽：防御者闪避判定取最大值
         FatedDraw.FatedDrawTracker trackerD = defender instanceof Hero ? ((Hero) defender).buff(FatedDraw.FatedDrawTracker.class) : null;
-        if (trackerD != null && trackerD.remainingChecks > 0) {
+        if (trackerD != null && trackerD.ready()) {
             defRoll = defStat; // 取最大值
             trackerD.consume("defense_evasion");
         } else {
             defRoll = Random.Float(defStat);
         }
-        if (defender.buff(Bless.class) != null) defRoll *= 1.25f;
+        if (defender.buff(Bless.class) != null) defRoll *= bless_adj_d;
         // 闪避修正同样取加法叠加，规则见上。
         float defMod = 1f;
         if (defender.buff(Hex.class) != null) defMod -= 0.2f;
@@ -649,7 +669,7 @@ public abstract class Char extends Actor {
     public static int combatRoll(int min, int max) {
         // 注定一抽：伤害判定取最大值（需要在调用点处理）
         FatedDraw.FatedDrawTracker tracker = Dungeon.hero != null ? Dungeon.hero.buff(FatedDraw.FatedDrawTracker.class) : null;
-        if (tracker != null && tracker.remainingChecks > 0) {
+        if (tracker != null && tracker.ready()) {
             // 不在这里消耗，由调用点决定是否消耗
             return max;
         }
@@ -1038,6 +1058,9 @@ public abstract class Char extends Actor {
 
         int hpBefore = HP;
         if (this.buff(ImmortalShieldAffecter.ImmortalShield.class) == null) {
+            if (dmg > 0 && dmg >= HP && this instanceof Hero && ((Hero) this).resistWithPainScar()) {
+                dmg = 0;
+            }
             HP -= Math.max(dmg, 0);
         }
 

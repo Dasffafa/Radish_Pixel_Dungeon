@@ -68,19 +68,21 @@ public class MagicPotion extends Item {
     }
 
     private void drink(Hero hero) {
+        //别的职业喝了没有任何效果：只提示，不消耗药水也不花回合
+        if (hero.subClass != HeroSubClasses.DICE_MAGE) {
+            GLog.w(Messages.get(this, "only_dicemage"));
+            return;
+        }
+
         detach(hero.belongings.backpack);
         hero.spend(TIME_TO_DRINK);
         hero.busy();
 
-        if (hero.subClass != HeroSubClasses.DICE_MAGE) {
-            GLog.w(Messages.get(this, "only_dicemage"));
-        } else {
-            MagicPoint mp = Dungeon.hero.buff(MagicPoint.class);
-            if (mp != null) {
-                mp.addPoints(restoreAmount());
-            }
-            GLog.p(Messages.get(this, "restored", restoreAmount()));
+        MagicPoint mp = Dungeon.hero.buff(MagicPoint.class);
+        if (mp != null) {
+            mp.addPoints(restoreAmount());
         }
+        GLog.p(Messages.get(this, "restored", restoreAmount()));
 
         Sample.INSTANCE.play(Assets.Sounds.DRINK);
         if (hero.sprite != null) {
@@ -108,6 +110,12 @@ public class MagicPotion extends Item {
     @Override
     public boolean isIdentified() {
         return true;
+    }
+
+    //三种等级是同一个类，只靠 tier 区分：不同等级不能叠成一堆，否则后放进去的那瓶等级被吞掉
+    @Override
+    public boolean isSimilar(Item item) {
+        return super.isSimilar(item) && ((MagicPotion) item).tier == tier;
     }
 
     @Override
@@ -203,7 +211,22 @@ public class MagicPotion extends Item {
                 else if (i instanceof com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll
                         && mp.isCorrectScroll(((com.shatteredpixel.shatteredpixeldungeon.items.scrolls.Scroll) i).getClass())) matches++;
             }
-            if (matches == 0) return randomBrewOrElixir();
+            if (matches == 0) {
+                //预览不能掷随机：它每放一次材料就重算一次，而且和 brew 里那一次互不相干，
+                //玩家看到的成品和炼出来的不是同一个。和「种子炼药水」一样显示占位物
+                return new com.shatteredpixel.shatteredpixeldungeon.windows.WndBag.Placeholder(
+                        com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet.POTION_HOLDER) {
+                    @Override
+                    public String name() {
+                        return Messages.get(Potion.SeedToPotion.class, "name");
+                    }
+
+                    @Override
+                    public String info() {
+                        return "";
+                    }
+                };
+            }
             return new MagicPotion(matches);
         }
 

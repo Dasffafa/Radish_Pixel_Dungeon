@@ -238,7 +238,7 @@ public class MagesStaff extends MeleeWeapon {
 			com.shatteredpixel.shatteredpixeldungeon.actors.Char ally =
 					com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( target );
 			if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer
-					.readyModify( Dungeon.hero, pendingReadyGear, ally )) {
+					.readyModify( Dungeon.hero, ally, pendingReadyGear )) {
 				Dungeon.hero.spendAndNext( 1f );
 				Dungeon.hero.sprite.operate( Dungeon.hero.pos );
 			} else {

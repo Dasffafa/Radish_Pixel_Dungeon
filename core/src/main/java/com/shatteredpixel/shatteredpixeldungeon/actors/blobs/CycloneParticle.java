@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.watabou.noosa.MovieClip;
 import com.watabou.noosa.TextureFilm;
 
@@ -44,11 +45,33 @@ public class CycloneParticle extends MovieClip {
 		play( anim );
 	}
 
-	public void reset( float x, float y ) {
+	//这个旋风画的是哪个龙卷风的哪一格
+	private Tornado owner;
+	private int cell = -1;
+
+	public int cell() {
+		return cell;
+	}
+
+	public void reset( Tornado owner, int cell, float x, float y ) {
 		revive();
+		this.owner = owner;
+		this.cell = cell;
 		this.x = x - width / 2f;
 		this.y = y - height / 2f;
 		//强制重播，避免复用对象时动画已结束导致 frame 为空
 		play( anim, true );
+	}
+
+	@Override
+	public void update() {
+		super.update();
+		//动画是循环的，没有自然结束的时刻：这一格的风散了、或者离开了视野，就自己消失。
+		//还有风并且重新看得见时，Tornado 的发射器会再补画一个。
+		if (owner == null || owner.cur == null
+				|| cell < 0 || cell >= owner.cur.length || owner.cur[cell] <= 0
+				|| cell >= Dungeon.level.heroFOV.length || !Dungeon.level.heroFOV[cell]) {
+			kill();
+		}
 	}
 }

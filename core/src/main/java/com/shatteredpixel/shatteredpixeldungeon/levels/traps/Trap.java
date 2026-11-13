@@ -69,6 +69,15 @@ public abstract class Trap implements Bundlable {
 
 	public boolean avoidsHallways = false; //whether this trap should avoid being placed in hallways
 
+	//陷阱师打出的陷阱卡生成的陷阱，不存档
+	public boolean fromJokerCard = false;
+
+	//陷阱精通 +1：陷阱卡里会自己找目标的陷阱不选英雄
+	protected boolean cardSparesHero(com.shatteredpixel.shatteredpixeldungeon.actors.Char ch){
+		return fromJokerCard && ch != null && ch == Dungeon.hero
+				&& Dungeon.hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.TRAP_MASTERY) >= 1;
+	}
+
 	public Trap set(int pos){
 		this.pos = pos;
 		return this;

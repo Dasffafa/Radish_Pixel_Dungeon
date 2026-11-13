@@ -50,28 +50,16 @@ public class ShatteredPixelDungeon extends Game {
 		super( sceneClass == null ? WelcomeScene.class : sceneClass, platform );
 
 		//pre-v2.4.0
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.potions.brews.UnstableBrew.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.potions.AlchemicalCatalyst" );
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.spells.UnstableSpell.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.spells.ArcaneCatalyst" );
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfFeatherFall.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.spells.FeatherFall" );
+		//原版在这里还把 AlchemicalCatalyst / ArcaneCatalyst / FeatherFall / AquaBlast 四个旧类名
+		//指到了它们在 v2.4.0 的替代品上。本项目里这四个类一直都在，别名会抢在真实的类之前生效，
+		//背包里的这四种物品一读档就变成另一种物品，所以这四条不能要。
 		com.watabou.utils.Bundle.addAlias(
 				com.shatteredpixel.shatteredpixeldungeon.items.potions.elixirs.ElixirOfFeatherFall.FeatherBuff.class,
 				"com.shatteredpixel.shatteredpixeldungeon.items.spells.FeatherFall$FeatherBuff" );
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.items.potions.brews.AquaBrew.class,
-				"com.shatteredpixel.shatteredpixeldungeon.items.spells.AquaBlast" );
 
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.entrance.EntranceRoom.class,
-				"com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.EntranceRoom" );
-		com.watabou.utils.Bundle.addAlias(
-				com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.exit.ExitRoom.class,
-				"com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard.ExitRoom" );
+		//原版还把 levels.rooms.standard.EntranceRoom / ExitRoom 指到 v2.4.0 新的 entrance / exit 包里。
+		//本项目的 RegularLevel、SmallGrassMiniLevel 一直用的是旧包里的这两个类（多了 26 层以后的出现率），
+		//别名会让每一层的出入口房间一读档就换成另一个类，同上，不能要。
 
 		// SnDItemBox renamed to SnDFunctions (test tool)
 		com.watabou.utils.Bundle.addAlias(

@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CrossLevelChallenge
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
@@ -313,6 +314,14 @@ public abstract class Level implements Bundlable {
 						} else {
 							feeling = Feeling.NONE;
 						}
+				}
+
+				//支线最后一层不能是「深渊层」：深渊层整张图先填满深渊、房间画在中间，
+				//而这一层下面没有可掉的层，convertChasmOnBranchEnd 会把所有深渊改成地板——
+				//房间外的整片虚空就成了一直铺到地图最外圈的空地（连边界那一行也画成地板）。
+				//放在抽完之后再改：随机数的消耗不变，没抽到深渊层的种子生成结果和以前完全一样。
+				if (feeling == Feeling.CHASM && isBranchEnd()) {
+					feeling = Feeling.NONE;
 				}
 			}
 		}
@@ -615,8 +624,15 @@ public abstract class Level implements Bundlable {
 
 	abstract protected void createItems();
 
+	//有支线楼梯的层上，同一个方向有两个过渡点（主线第 3 层：正常入口 + 从苔藓洞窟回来的楼梯；
+	//主线第 2、8 层和有铁匠的那一层：正常出口 + 支线入口），谁排在前面取决于房间的绘制顺序。
+	//只按方向找的话，这些层的 entrance() / exit() 大约一半的种子会指到支线楼梯上，
+	//指南针、复活与重置的落点、「怪不刷在入口附近」的判断都跟着错。
+	//所以和原版一样先按类型找正常楼梯；找不到（支线层的入口 / 出口本身就是支线楼梯）再按方向找。
 	public int entrance(){
-		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.UP);
+		LevelTransition l = transitionOfType(LevelTransition.Type.REGULAR_ENTRANCE);
+		if (l == null) l = transitionOfType(LevelTransition.Type.SURFACE);
+		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.UP);
 		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.SURFACE);
 		if (l != null){
 			return l.cell();
@@ -625,11 +641,20 @@ public abstract class Level implements Bundlable {
 	}
 
 	public int exit(){
-		LevelTransition l = getTransitionByDirection(LevelTransition.Direction.DOWN);
+		LevelTransition l = transitionOfType(LevelTransition.Type.REGULAR_EXIT);
+		if (l == null) l = getTransitionByDirection(LevelTransition.Direction.DOWN);
 		if (l != null){
 			return l.cell();
 		}
 		return 0;
+	}
+
+	//严格按类型找，找不到返回 null（getTransition(Type) 找不到时会退回成「任意入口」，这里不能用它）
+	private LevelTransition transitionOfType(LevelTransition.Type type){
+		for (LevelTransition transition : transitions){
+			if (transition.type == type) return transition;
+		}
+		return null;
 	}
 
 	public LevelTransition getTransition(LevelTransition.Type type){
@@ -692,20 +717,20 @@ public abstract class Level implements Bundlable {
 		return -1;
 	}
 
+	/** 当前这一层是不是支线的最后一层（下面没有可以掉下去的层）。主线不算。 */
+	private static boolean isBranchEnd() {
+		if (Dungeon.branchId.equals(Branches.MAIN)) return false;
+		Branch branch = Branches.get(Dungeon.branchId);
+		return branch == null || !branch.hasMoreDepth(Dungeon.depth);
+	}
+
 	/**
 	 * 支线终点：将 Chasm 转换为普通地板
 	 * 如果当前分支没有下一层，玩家不应该掉落，所以移除 Chasm
 	 */
 	protected void convertChasmOnBranchEnd() {
-		// 主线不处理
-		if (Dungeon.branchId.equals(Branches.MAIN)) return;
-		
-		// 检查是否有下一层
-		Branch branch = Branches.get(Dungeon.branchId);
-		if (branch != null && branch.hasMoreDepth(Dungeon.depth)) {
-			// 有下一层，保留 Chasm
-			return;
-		}
+		// 主线不处理；支线里还有下一层的，保留 Chasm
+		if (!isBranchEnd()) return;
 		
 		// 没有下一层，将 Chasm 转换为 EMPTY
 		for (int i = 0; i < length(); i++) {
@@ -1591,7 +1616,8 @@ public abstract class Level implements Bundlable {
 						heroMindFov[mob.pos + i] = true;
 					}
 				}
-			} else if(Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)){
+			}
+			if (Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)) {
 				switch (Dungeon.hero.pointsInTalent(Talent.SOUL_NOWIFI)) {
 					case 1:
 						for (Mob mob : mobs) {
@@ -1614,7 +1640,8 @@ public abstract class Level implements Bundlable {
 						}
 						break;
 				}
-			} else {
+			}
+			if (c.buff(MindVision.class) == null) {
 
 				int mindVisRange = 0;
 				if (((Hero) c).hasTalent(Talent.HEIGHTENED_SENSES)){
@@ -1637,6 +1664,8 @@ public abstract class Level implements Bundlable {
 				}
 			}
 
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Warden.addGrassVision(heroMindFov);
+
 			if (c.buff( Awareness.class ) != null) {
 				for (Heap heap : heaps.valueList()) {
 					int p = heap.pos;
@@ -1651,6 +1680,17 @@ public abstract class Level implements Bundlable {
 				}
 				int p = ch.pos;
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[p+i] = true;
+			}
+
+			// 狙击 4-3 通识射击 +4：通识射击把标记挂在怪身上，其它来源挂在英雄身上记着怪的 id，两种都算
+			if (((Hero) c).pointsInTalent(Talent.COMMON_SHOT) >= 4) {
+				SnipersMark mark = c.buff(SnipersMark.class);
+				for (Mob mob : mobs) {
+					if (mob.isAlive() && (mob.buff(SnipersMark.class) != null
+							|| mark != null && (mob.id() == mark.object || mob.id() == mark.secondObject))) {
+						for (int i : PathFinder.NEIGHBOURS9) heroMindFov[mob.pos+i] = true;
+					}
+				}
 			}
 
 			for (TalismanOfForesight.HeapAwareness h : c.buffs(TalismanOfForesight.HeapAwareness.class)){

@@ -753,7 +753,11 @@ public class AlchemyScene extends PixelScene {
 		final java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> potions = new java.util.ArrayList<>();
 		for (Item it : ingredients) {
 			if (it instanceof com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion) {
-				potions.add( (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion) it );
+				com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion potion =
+						(com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion) it;
+				if (!potion.isThrowOnly()) {
+					potions.add( potion );
+				}
 			}
 		}
 		if (potions.isEmpty()) {

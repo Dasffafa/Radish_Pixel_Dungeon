@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
@@ -43,7 +44,9 @@ public class HeatSpell extends DiceMageSpell {
         int removed = 0;
         for (Buff b : hero.buffs().toArray(new Buff[0])) {
             if (removed >= limit) break;
-            if (b.type == Buff.buffType.NEGATIVE && !(b instanceof Hunger)) {
+            // 「失去背包」是未祝福十字架复活的代价，不是可以驱散的负面状态（净化药剂同样跳过它）；
+            // 摘掉它背包里的东西当场就全回来了
+            if (b.type == Buff.buffType.NEGATIVE && !(b instanceof Hunger) && !(b instanceof LostInventory)) {
                 b.detach();
                 removed++;
             }

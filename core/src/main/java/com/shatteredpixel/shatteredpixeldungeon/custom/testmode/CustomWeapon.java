@@ -57,7 +57,6 @@ public class CustomWeapon extends MeleeWeapon {
         image = ItemSpriteSheet.WEAPON_HOLDER;
         unique = true;
         bones = false;
-        adjustStatus();
         defaultAction = AC_SETTING;
     }
 
@@ -76,8 +75,17 @@ public class CustomWeapon extends MeleeWeapon {
     private boolean s_delay_swap = false;
     private int s_reach = 1;
 
+    // 必须写在上面这些默认值的后面：初始化按书写顺序执行，写在它们前面时读到的全是 0，
+    // 新武器的阶数、精度、攻击间隔、攻击距离都成了 0（距离 0 连相邻的敌人都够不着），
+    // 要等打开一次设置窗口或读一次档才恢复
+    {
+        adjustStatus();
+    }
+
     private long enchOn = 0L;
-    public static ArrayList<Enchantment> enchList = new ArrayList<>();
+    // 每把武器各有一份。以前这是所有自定义武器共用的一张表：同一次启动里再开一局，
+    // 新武器会带着上一局勾的附魔（它的勾选框却显示一个都没勾），读别的存档里的那把也会把这一把的附魔冲掉
+    private final ArrayList<Enchantment> enchList = new ArrayList<>();
     public static LinkedHashMap<Class<? extends Enchantment>, Integer> enchPrio = new LinkedHashMap<>();
     static{
         enchPrio.put(Blazing.class,1);
@@ -118,7 +126,9 @@ public class CustomWeapon extends MeleeWeapon {
                 // 虚空的位置固定在表尾，见循环后面的说明
                 if (e == VoidRift.class) continue;
                 if (!enchPrio.containsKey(e)) {
-                    enchPrio.put(e, e.getName().endsWith(".curses.") ? 2 : 1);
+                    // 诅咒排在最先结算的那一档。按「它是从哪个池里扫出来的」判断：
+                    // 以前这里拿类的全名去比是不是以 ".curses." 结尾，全名以类名结尾，永远比不上
+                    enchPrio.put(e, pool == Enchantment.curses ? 2 : 1);
                 }
             }
         }
@@ -225,6 +235,13 @@ public class CustomWeapon extends MeleeWeapon {
         bundle.put("s_delay_swap", s_delay_swap);
         bundle.put("s_reach", s_reach);
         bundle.put("ench_on", enchOn);
+        // ench_on 只记「表里的第几位」，而表里靠扫描附魔池补进来的条目和排在表尾的虚空，位置都会随着
+        // 往池里加新附魔而移动：旧存档读回来会整体错成别的附魔。所以另外按类名存一份，读档以它为准
+        Class[] classes = new Class[enchList.size()];
+        for (int i = 0; i < classes.length; i++) {
+            classes[i] = enchList.get(i).getClass();
+        }
+        bundle.put("ench_classes", classes);
     }
 
     @Override
@@ -243,9 +260,23 @@ public class CustomWeapon extends MeleeWeapon {
         s_delay = bundle.getFloat("s_delay");
         s_delay_swap = bundle.getBoolean("s_delay_swap");
         s_reach = bundle.getInt("s_reach");
-        enchOn = bundle.getLong("ench_on");
         adjustStatus();
-        setEnchant(enchOn);
+        if (bundle.contains("ench_classes")) {
+            dispelAllEnch();
+            Class[] classes = bundle.getClassArray("ench_classes");
+            if (classes != null) {
+                for (Class<?> c : classes) {
+                    // 已经从游戏里删掉的附魔读出来是 null；不在表里的也跳过，否则它没有对应的勾选框，取消不掉
+                    if (c != null && enchPrio.containsKey(c)) {
+                        enchant((Enchantment) Reflection.newInstance(c));
+                    }
+                }
+            }
+        } else {
+            // 这一版之前的存档只有位掩码，只能按现在的位序解读
+            enchOn = bundle.getLong("ench_on");
+            setEnchant(enchOn);
+        }
     }
 
     private static final String AC_SETTING = "setting";

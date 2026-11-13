@@ -82,6 +82,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.PitfallTrap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.WornDartTrap;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ShadowCaster;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.CustomTilemap;
 import com.watabou.utils.BArray;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
@@ -131,8 +132,13 @@ public abstract class RegularLevel extends Level {
 		
 	}
 
-	// 为所有副本（分支）上下楼梯加上带黄边的贴图覆盖
+	// 为所有副本（分支）上下楼梯加上带黄边的贴图覆盖。
+	// 建关时调一次，读档后再调一次：旧版本存下来的档里这块贴图读不回来（存读档一次就没了），
+	// 所以读档后一律按过渡点重建。先清掉已有的再加，重复调用不会越加越多。
 	private void addBranchStairsVisuals() {
+		for (Iterator<CustomTilemap> it = customTiles.iterator(); it.hasNext(); ) {
+			if (it.next() instanceof BranchStairsVisual) it.remove();
+		}
 		for (LevelTransition t : transitions) {
 			if (t.type == LevelTransition.Type.BRANCH_ENTRANCE
 					|| t.type == LevelTransition.Type.BRANCH_EXIT) {
@@ -990,6 +996,8 @@ public abstract class RegularLevel extends Level {
 				}
 			}
 		}
+
+		addBranchStairsVisuals();
 	}
 	
 }

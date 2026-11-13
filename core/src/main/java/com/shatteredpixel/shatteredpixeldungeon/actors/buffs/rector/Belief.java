@@ -121,7 +121,11 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     ArrayList<Mob> visibleTargets = new ArrayList<>();
 
                     for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
-                        if(Dungeon.level.visited[mob.pos] && !(mob instanceof NPC || mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL) && !(mob.properties().contains(Char.Property.IMMOVABLE ))){
+                        // 说明写的是「视野内的随机目标」：要看英雄此刻看不看得见（heroFOV），
+                        // 不是这一格有没有探索过（visited）——后者会隔着墙劈到地图另一头的怪。
+                        // 友方阵营（被腐化、魅惑过来的怪）不在候选里。
+                        if(Dungeon.level.heroFOV[mob.pos] && mob.alignment != Char.Alignment.ALLY
+                                && !(mob instanceof NPC || mob instanceof Mimic && mob.alignment == Char.Alignment.NEUTRAL) && !(mob.properties().contains(Char.Property.IMMOVABLE ))){
                             visibleTargets.add(mob);
                         } else {
                             visibleTargets.remove(mob);
@@ -179,25 +183,25 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 }
                 if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     int originStamina = 10 + Dungeon.depth/5 - 1;
-                    int originVitae = Dungeon.depth/5*8 + 8;
+                    int originVitae = RectorSkills.LIGHTIMUEE.baseVitae(false) + 8;
 
-                    int originVitaePlus = Dungeon.depth/5 * 12 + 8;
+                    int originVitaePlus = RectorSkills.LIGHTIMUEE.baseVitae(true) + 8;
                     int adrenaline =  Dungeon.depth/5 * 4 - 1 ;
 
                     if(hero.subClass == HeroSubClasses.BATTLEPREIST){
-                        Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitaePlus * 1.5f));
+                        Buff.affect(hero, VitaeBuff.class).addVitae((int) (originVitaePlus * 1.5f));
                         Buff.affect(target, Adrenaline.class,adrenaline);
                     } else {
-                        Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitae * 1.5f));
+                        Buff.affect(hero, VitaeBuff.class).addVitae((int) (originVitae * 1.5f));
                     }
 
                     Buff.affect(hero, Stamina.class,originStamina  * 1.5f);
                 } else {
                     if(hero.subClass == HeroSubClasses.BATTLEPREIST){
-                        Buff.affect(hero, VitaeBuff.class).setVitae(Dungeon.depth/5 * 12);
+                        Buff.affect(hero, VitaeBuff.class).addVitae(RectorSkills.LIGHTIMUEE.baseVitae(true));
                         Buff.affect(target, Adrenaline.class,Dungeon.depth/5 * 4-1);
                     } else {
-                        Buff.affect(hero, VitaeBuff.class).setVitae(Dungeon.depth/5*8);
+                        Buff.affect(hero, VitaeBuff.class).addVitae(RectorSkills.LIGHTIMUEE.baseVitae(false));
                     }
                     Buff.affect(hero, Stamina.class, Dungeon.depth+10-1);
                 }
@@ -208,7 +212,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     Buff.affect(hero, Barrier.class).setShield( hero.lvl );
                 }
                 curUser = hero;
-                if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
+                // 绝望祷言：+1 只强化惩戒和光能灌注，净化和祷告的强化是 +2 的内容。
+                // 这里和下面的祷告原来都只判断「有没有点」，点 1 级就全拿到了，第 2 级等于白点。
+                if (hero.pointsInTalent(Talent.NOHOPE_LANG) >= 2 && Dungeon.hero.HP < Dungeon.hero.HT/4){
                     ArrayList<Item> items = hero.belongings.getAllItems(Item.class);
                     for (Item w : items.toArray(new Item[0])){
                        w.cursed = false;
@@ -233,72 +239,10 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
                     Buff.affect(hero, Barrier.class).setShield( hero.lvl );
                 }
-                if (hero.hasTalent(Talent.NOHOPE_LANG) && Dungeon.hero.HP < Dungeon.hero.HT/4){
-                    switch (Random.Int(4)){
-                        //财富蓝色掉落
-                        case 0:
-                            Item i = genMidValueConsumable();
-                            Dungeon.level.drop(i,target.pos);
-                            new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
-                            break;
-                        case 1:
-                            hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
-                            hero.earnExp( hero.maxExp()/2, getClass() );
-                            new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "experience_success",hero.maxExp()/2));
-                            break;
-                        case 2:
-                            ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
-                            for (Item w : belongingsItems.toArray(new Item[0])){
-                                ScrollOfRemoveCurse.uncurse( hero, w );
-                                Sample.INSTANCE.play( Assets.Sounds.RAY );
-                            }
-                            new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "curse_remove_success"));
-                            break;
-                        case 3:
-                            hero.heal(hero.HT / 3);
-                            if (hero.HP > hero.HT) {
-                                hero.HP = hero.HT;
-                            }
-                            new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
-                            GLog.p(Messages.get(Belief.class, "heal_success"));
-                            break;
-                    }
+                if (hero.pointsInTalent(Talent.NOHOPE_LANG) >= 2 && Dungeon.hero.HP < Dungeon.hero.HT/4){
+                    grantPrayer();
                 }
-                switch (Random.Int(4)){
-                    //财富蓝色掉落
-                    case 0:
-                        Item i = genMidValueConsumable();
-                        Dungeon.level.drop(i,target.pos);
-                        new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
-                    break;
-                    case 1:
-                        hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(hero.maxExp()), FloatingText.EXPERIENCE);
-                        hero.earnExp( hero.maxExp()/2, getClass() );
-                        new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "experience_success",hero.maxExp()/2));
-                    break;
-                    case 2:
-                        ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
-                        for (Item w : belongingsItems.toArray(new Item[0])){
-                            ScrollOfRemoveCurse.uncurse( hero, w );
-                            Sample.INSTANCE.play( Assets.Sounds.RAY );
-                        }
-                        new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "curse_remove_success"));
-                    break;
-                    case 3:
-                        hero.heal(hero.HT / 3);
-                        if (hero.HP > hero.HT) {
-                            hero.HP = hero.HT;
-                        }
-                        new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
-                        GLog.p(Messages.get(Belief.class, "heal_success"));
-                    break;
-                }
+                grantPrayer();
                 switch (hero.pointsInTalent(Talent.LIGHT_WASH)){
                     case 1:
                         hero.HP = Math.min(hero.HP+3, hero.HT);
@@ -364,19 +308,73 @@ public class Belief extends Buff implements ActionIndicator.Action {
         }
     }
 
+    // 虔诚祷告的一次随机结果。绝望祷言会让祷告触发两次，所以单独成一个方法。
+    private void grantPrayer() {
+        switch (Random.Int(4)){
+            //财富蓝色掉落
+            case 0:
+                Item i = genMidValueConsumable();
+                Dungeon.level.drop(i,target.pos);
+                new Flare( 6, 32 ).color(0x00AAFF, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "prayers_success",i.name()));
+                break;
+            case 1:
+                // 先算好这次给多少，飘字、发放、日志用同一个数：
+                // 给完经验可能当场升级，那之后 maxExp() 已经是下一级的了
+                int expGain = hero.maxExp()/2;
+                hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(expGain), FloatingText.EXPERIENCE);
+                hero.earnExp( expGain, getClass() );
+                new Flare( 6, 32 ).color(0xFFFF00, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "experience_success",expGain));
+                break;
+            case 2:
+                ArrayList<Item> belongingsItems = hero.belongings.getAllItems(Item.class);
+                for (Item w : belongingsItems.toArray(new Item[0])){
+                    ScrollOfRemoveCurse.uncurse( hero, w );
+                    Sample.INSTANCE.play( Assets.Sounds.RAY );
+                }
+                new Flare( 6, 32 ).color(0x111111, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "curse_remove_success"));
+                break;
+            case 3:
+                // 说明是「回复 1/3 的最大血量，并获得与恢复血量数同等回合的祝福」
+                int healed = hero.heal(hero.HT / 3);
+                if (healed > 0) {
+                    Buff.prolong(hero, Bless.class, healed);
+                }
+                new Flare( 6, 32 ).color(0xFF1493, true).show( hero.sprite, 2f );
+                GLog.p(Messages.get(Belief.class, "heal_success"));
+                break;
+        }
+    }
+
     @Override
     public boolean act() {
         FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
-        if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
-            ActionIndicator.clearAction();
-        } else if (credibility >= 0f){
-            ActionIndicator.setAction(this);
+        // 动作按钮只有一个槽位。信仰之力是常驻按钮，每回合都会来这里刷新一次；
+        // 别的状态的按钮（比如次元撕裂者只开 3 回合的裂隙窗口）正占着槽位时让给它，
+        // 否则每回合都把人家顶掉。对方用完会清掉自己的按钮，下一回合这里再补回来。
+        // 同理，清按钮时只清自己的。
+        // 代行神权冷却期间按钮照常显示：信仰够就正常付费释放，不够时窗口里提示「还在冷却中」（用户定 D35-B）。
+        if (credibility >= 0f){
+            if (!slotHeldByOtherBuff()) {
+                ActionIndicator.setAction(this);
+            }
         } else {
-            ActionIndicator.clearAction();
+            ActionIndicator.clearAction(this);
         }
         not_link = failed != null;
         spend(TICK);
         return true;
+    }
+
+    // 槽位里是不是「这个英雄身上另一个还挂着的状态」的按钮。
+    // 只给这种让位：上一局遗留的、或者已经解除却没清掉的按钮不算，照常接管，
+    // 免得信仰之力的按钮被一个已经不存在的东西永久挡住。
+    private boolean slotHeldByOtherBuff() {
+        ActionIndicator.Action current = ActionIndicator.action;
+        return current != null && current != this
+                && current instanceof Buff && target.buff(((Buff) current).getClass()) == current;
     }
 
     /**
@@ -385,7 +383,9 @@ public class Belief extends Buff implements ActionIndicator.Action {
      */
     public void getBelief(float value) {
         boolean[] cursedItemsProcessed = new boolean[5];
-        float roundedValue = (float) (Math.round(value * 100) / 100);
+        // 保留两位小数。除数必须是浮点：两个整数相除会把小数整个丢掉，
+        // 0.33（灵活信仰）变成 0，1.8（深层的击杀）变成 1
+        float roundedValue = Math.round(value * 100) / 100f;
         credibility += roundedValue;
 
         int cursedItems = 0;
@@ -434,12 +434,21 @@ public class Belief extends Buff implements ActionIndicator.Action {
         }
         float exp = 0f;
         if (hero.hasTalent(Talent.DEAD_POWER)) {
-            exp = cursedItems * beliefExpert;
+            // 殉道之力是「获得的信仰值增加 16% / 32% / 50%」，加成要乘上这次的获得量。
+            // 不乘的话每次固定多给 0.16 / 0.32 / 0.5：获得量为 0 的时候（越级的怪、
+            // 星界沟通没攒够经验的那几次）也照给，获得 15 点的时候又只多给零点几。
+            exp = roundedValue * cursedItems * beliefExpert;
             credibility += exp;
         }
 
-        hero.sprite.showStatusWithIcon(Window.TITLE_COLOR,
-                Integer.toString((int) Math.floor(roundedValue + exp)), FloatingText.BELIEF);
+        // 这次什么都没得到（越级的怪、星界沟通没攒够经验的那几次）就不飘字，
+        // 否则每打死一只怪头顶都多飘一个「0」
+        float gained = roundedValue + exp;
+        if (gained > 0) {
+            // 飘字也带上小数，否则获得 0.33 时头顶飘的是「0」
+            hero.sprite.showStatusWithIcon(Window.TITLE_COLOR,
+                    Messages.decimalFormat("#.##", gained), FloatingText.BELIEF);
+        }
     }
 
 
@@ -503,10 +512,10 @@ public class Belief extends Buff implements ActionIndicator.Action {
         credibility = bundle.getFloat(CREDIBILITY);
         not_link    = bundle.getBoolean(NOT_LINK);
 
-        if (credibility>5){
+        // 和 act() 用同一个条件：读档后立刻就有按钮，不用等下一回合。
+        // 不再用无参的 clearAction()，那会把别的状态刚恢复的按钮一起清掉。
+        if (credibility >= 0f){
             ActionIndicator.setAction(this);
-        } else {
-            ActionIndicator.clearAction();
         }
     }
 

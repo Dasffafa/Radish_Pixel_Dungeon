@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.SphereSkin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -40,6 +41,9 @@ public class OrdinaryAttackDamage {
 		applyOutgoingModifiers(attacker, defender, info);
 		applyPreFinalModifiers(attacker, defender, info);
 		info.addPreFinalAddModifier(damageBonus, "attack bonus");
+		if (defender instanceof Mob && ((Mob) defender).surprisedBy(attacker)) {
+			info.addPreFinalAddModifier(LittleKnight.ambushBonus(attacker), "shield poke ambush");
+		}
 		applyFinalModifiers(attacker, defender, info);
 
 		// 圆球皮肤：仅普通近战武器或空手攻击最终伤害乘以 1.2。
@@ -65,7 +69,7 @@ public class OrdinaryAttackDamage {
 
 		if (defender instanceof Hero) {
 			FatedDraw.FatedDrawTracker trackerD = defender.buff(FatedDraw.FatedDrawTracker.class);
-			if (trackerD != null && trackerD.remainingChecks > 0) {
+			if (trackerD != null && trackerD.ready()) {
 				trackerD.consume("defense_block");
 			}
 		}
@@ -83,12 +87,8 @@ public class OrdinaryAttackDamage {
 			}
 		}
 
-		if (includeBarkskin) {
-			Barkskin bark = defender.buff(Barkskin.class);
-			if (bark != null) {
-				dr += Random.NormalIntRange(0, bark.level());
-			}
-		}
+		// 树肤已经在 Char.drRoll() 里算过一次（和原版一致）；这里不能再加，否则树肤减伤翻倍。
+		// includeBarkskin 参数保留只是为了不改调用点的签名。
 
 		return dr;
 	}
@@ -115,7 +115,7 @@ public class OrdinaryAttackDamage {
 			}
 			if (attacker instanceof Hero) {
 				FatedDraw.FatedDrawTracker trackerA = attacker.buff(FatedDraw.FatedDrawTracker.class);
-				if (trackerA != null && trackerA.remainingChecks > 0) {
+				if (trackerA != null && trackerA.ready()) {
 					trackerA.consume("attack_damage");
 				}
 			}

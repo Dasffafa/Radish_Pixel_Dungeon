@@ -75,10 +75,12 @@ public class ThrowingChain extends Item {
 		Hero hero = (Hero) curUser;
 		for (MissileWeapon m : missiles) {
 			if (m == null) continue;
-			m.cast( hero, cell );
 			if (m.durabilityLeft() > 0) {
 				m.repair( -Math.min( 1f, m.durabilityLeft() ) );
 			}
+			//链子已经飞到了：每件投掷武器直接在这里落地结算。
+			//再 cast 一次的话每件都要重新飞一遍、各自再花一回合，而且是在这一回合结束之后才结算
+			m.onThrow( cell );
 		}
 		missiles.clear();
 	}

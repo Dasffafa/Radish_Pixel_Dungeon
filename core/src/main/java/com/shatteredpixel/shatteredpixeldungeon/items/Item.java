@@ -757,6 +757,10 @@ public class Item implements Bundlable {
 	public void cast( final Hero user, final int dst ) {
 		
 		final int cell = throwPos( user, dst );
+		if (throwReadyModification( user, cell )) {
+			return;
+		}
+
 		user.sprite.zap( cell );
 		user.busy();
 
@@ -848,6 +852,21 @@ public class Item implements Bundlable {
 						}
 					});
 		}
+	}
+
+	protected boolean throwReadyModification( Hero user, int cell ) {
+		Char ally = Actor.findChar( cell );
+		if (!com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer
+				.canReadyModify( user, ally, this )) {
+			return false;
+		}
+		if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer
+				.readyModify( user, ally, this )) {
+			user.sprite.zap( cell );
+			throwSound();
+			user.spendAndNext( castDelay( user, cell ) );
+		}
+		return true;
 	}
 
 	public void castOnlyEnemy( final Hero user, final int dst ) {

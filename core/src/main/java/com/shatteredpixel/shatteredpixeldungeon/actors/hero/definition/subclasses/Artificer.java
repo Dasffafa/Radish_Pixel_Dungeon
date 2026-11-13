@@ -5,6 +5,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
@@ -142,42 +149,60 @@ public class Artificer extends HeroSubClass {
 
 	// ===== 即用改装：把武器/护甲改装给友方单位 =====
 
-	public static boolean readyModify( Hero hero, com.shatteredpixel.shatteredpixeldungeon.items.Item gear, Char ally ) {
-		if (hero == null || ally == null || ally == hero || gear == null
-				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
+	public static boolean canReadyModify( Hero hero, Char ally, Item gear ) {
+		return hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER
+				&& hero.pointsInTalent( Talent.READY_MODIFICATION ) > 0
+				&& ally instanceof Mob && ally.isAlive() && ally.alignment == Char.Alignment.ALLY
+				&& (gear instanceof Weapon || gear instanceof Armor);
+	}
+
+	public static boolean readyModify( Hero hero, Char ally, Item gear ) {
+		if (!canReadyModify( hero, ally, gear )) {
 			return false;
 		}
-		// 友方包括所有非敌对单位（召唤物、宠物、被安抚的中立单位）
-		if (ally.alignment == Char.Alignment.ENEMY) {
-			return false;
+		int tier;
+		if (gear instanceof Armor) {
+			tier = ((Armor) gear).tier;
+		} else if (gear instanceof MeleeWeapon) {
+			tier = ((MeleeWeapon) gear).tier;
+		} else if (gear instanceof MissileWeapon) {
+			tier = ((MissileWeapon) gear).tier;
+		} else {
+			tier = 1;
 		}
-		int pts = hero.pointsInTalent( Talent.READY_MODIFICATION );
-		if (pts <= 0) {
-			return false;
-		}
-		// 同一目标只能改装一次，避免重复叠加生命上限
-		if (ally.buff( ReadyMod.class ) != null) {
-			return false;
+		int quality = Math.max( 0, tier + gear.level() );
+		if (gear.isEquipped( hero )) {
+			if (!((EquipableItem) gear).doUnequip( hero, false, false )) {
+				return false;
+			}
+		} else {
+			gear = gear.detach( hero.belongings.backpack );
+			if (gear == null) {
+				return false;
+			}
 		}
 
-		boolean isWeapon = gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
-		boolean isArmor = gear instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
-		if (!isWeapon && !isArmor) {
-			return false;
+		Mob mob = (Mob) ally;
+		Item previous;
+		if (gear instanceof KindOfWeapon) {
+			previous = mob.mobEquipment.weapon;
+			mob.mobEquipment.weapon = (KindOfWeapon) gear;
+		} else {
+			previous = mob.mobEquipment.armor;
+			mob.mobEquipment.armor = (Armor) gear;
 		}
-		int tier = isWeapon
-				? Math.min(5, Math.max(1, gear.level() + 1))
-				: ((com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) gear).tier;
-		int level = gear.level();
-
-		int hp = (tier + level) * (pts >= 3 ? 8 : pts >= 2 ? 6 : 4);
-		int def = (tier + level) * 2;
-
-		// 只消耗玩家选中的那一件装备
-		ReadyMod rm = Buff.affect( ally, ReadyMod.class );
-		rm.gearClass = gear.getClass().getName();
-		rm.apply( hp, def );
-		gear.detach( hero.belongings.backpack );
+		if (previous != null) {
+			com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.drop( previous, ally.pos ).sprite.drop();
+		}
+		((EquipableItem) gear).activate( ally );
+		int points = hero.pointsInTalent( Talent.READY_MODIFICATION );
+		ReadyMod mod = Buff.affect( ally, ReadyMod.class );
+		mod.apply( quality * (2 + 2 * points), quality * 2 );
+		if (gear instanceof KindOfWeapon) {
+			mod.gaveWeapon = true;
+		} else {
+			mod.gaveArmor = true;
+		}
 		return true;
 	}
 
@@ -190,7 +215,26 @@ public class Artificer extends HeroSubClass {
 
 		public int bonusHp = 0;
 		public int bonusDef = 0;
-		public String gearClass = "";
+		private boolean gaveWeapon = false;
+		private boolean gaveArmor = false;
+
+		// 怪物的闪避值不进存档，读档后回到基础值，而这里记着的加成还在：
+		// 读档挂回怪物身上时要把加成补上，否则加成凭空消失，之后解除改装时还会从基础值里再扣一次
+		private boolean restored = false;
+
+		@Override
+		public boolean attachTo( Char target ) {
+			if (!super.attachTo( target )) {
+				return false;
+			}
+			if (restored) {
+				restored = false;
+				if (target instanceof com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) {
+					((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target).defenseSkill += bonusDef;
+				}
+			}
+			return true;
+		}
 
 		public void apply( int hp, int def ) {
 			unapply();
@@ -215,19 +259,26 @@ public class Artificer extends HeroSubClass {
 			}
 		}
 
+		// 友方死亡时 Mob.die 只给敌人掉装备；这里按说明让改装上去的每件有一半概率留在原地
 		@Override
 		public void detach() {
-			unapply();
-			// 友方死亡后，这件装备有 50% 概率掉回地上
-			if (target != null && !gearClass.isEmpty() && com.watabou.utils.Random.Float() < 0.5f) {
-				try {
-					com.shatteredpixel.shatteredpixeldungeon.items.Item gear =
-							(com.shatteredpixel.shatteredpixeldungeon.items.Item) Class
-									.forName( gearClass ).newInstance();
-					com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.drop( gear, target.pos );
-				} catch (Throwable ignored) {
+			if (target instanceof Mob && !target.isAlive() && target.alignment == Char.Alignment.ALLY
+					&& com.shatteredpixel.shatteredpixeldungeon.Dungeon.level != null) {
+				Mob mob = (Mob) target;
+				if (gaveWeapon && mob.mobEquipment.weapon != null) {
+					if (Random.Int( 2 ) == 0) {
+						com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.drop( mob.mobEquipment.weapon, mob.pos ).sprite.drop();
+					}
+					mob.mobEquipment.weapon = null;
+				}
+				if (gaveArmor && mob.mobEquipment.armor != null) {
+					if (Random.Int( 2 ) == 0) {
+						com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.drop( mob.mobEquipment.armor, mob.pos ).sprite.drop();
+					}
+					mob.mobEquipment.armor = null;
 				}
 			}
+			unapply();
 			super.detach();
 		}
 
@@ -238,14 +289,14 @@ public class Artificer extends HeroSubClass {
 
 		private static final String HP = "bonus_hp";
 		private static final String DEF = "bonus_def";
-		private static final String GEAR = "gear_class";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( HP, bonusHp );
 			bundle.put( DEF, bonusDef );
-			bundle.put( GEAR, gearClass );
+			bundle.put( "gave_weapon", gaveWeapon );
+			bundle.put( "gave_armor", gaveArmor );
 		}
 
 		@Override
@@ -253,7 +304,9 @@ public class Artificer extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			bonusHp = bundle.getInt( HP );
 			bonusDef = bundle.getInt( DEF );
-			gearClass = bundle.getString( GEAR );
+			gaveWeapon = bundle.getBoolean( "gave_weapon" );
+			gaveArmor = bundle.getBoolean( "gave_armor" );
+			restored = true;
 		}
 	}
 
@@ -277,6 +330,7 @@ public class Artificer extends HeroSubClass {
 		{
 			type = buffType.NEUTRAL;
 			announced = false;
+			revivePersists = true;
 		}
 
 		@Override

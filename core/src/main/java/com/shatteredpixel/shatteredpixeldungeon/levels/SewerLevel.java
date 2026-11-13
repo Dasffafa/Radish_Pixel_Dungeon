@@ -200,7 +200,7 @@ public class SewerLevel extends RegularLevel {
 		}
 		if(Dungeon.depth == 1 && Dungeon.branchId.equals(Branches.MAIN)){
 			MoonLight npc18 = new MoonLight();
-			npc18.pos = entrance()-1;
+			npc18.pos = moonLightCell();
 			mobs.add(npc18);
 		}
 
@@ -210,6 +210,31 @@ public class SewerLevel extends RegularLevel {
 		}
 
 		super.createMobs();
+	}
+
+	/**
+	 * 月华站的格子：入口左边一格。那一格上已经有物品时换到入口旁边别的空格：
+	 * 给新玩家的冒险者指南是随机丢在入口房间里的，可能正好落在这一格，而月华不可移动，被她压住的东西永远捡不到。
+	 * 新手引导期间入口房间的门是隐藏的，捡起并读完指南才显形（引导期间也搜不出来），
+	 * 所以指南被压住的那一局英雄出不了入口房间。
+	 */
+	private int moonLightCell() {
+		int preferred = entrance() - 1;
+		if (heaps.get( preferred ) == null && findMob( preferred ) == null) {
+			return preferred;
+		}
+		//先上下左右，再斜向；不用随机数，免得改变这一层其它内容的生成
+		int[][] order = { com.watabou.utils.PathFinder.NEIGHBOURS4, com.watabou.utils.PathFinder.NEIGHBOURS8 };
+		for (int[] dirs : order) {
+			for (int dir : dirs) {
+				int cell = entrance() + dir;
+				if (passable[cell] && !pit[cell] && heaps.get( cell ) == null && findMob( cell ) == null
+						&& traps.get( cell ) == null && plants.get( cell ) == null) {
+					return cell;
+				}
+			}
+		}
+		return preferred;
 	}
 
 	/** 游商之间至少隔开的格数（按真实地图距离，不是格子编号差）。 */
@@ -234,9 +259,7 @@ public class SewerLevel extends RegularLevel {
 			if (heaps.get(cell) != null) {
 				continue;
 			}
-			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(cell) != null) {
-				continue;
-			}
+			//「已有单位」不在这里排除，放到下面抽取的时候查（见那里的说明）
 			// 别刷在陷阱或植物上：游商是常驻 NPC，压住陷阱格会让人看不清那里有东西
 			if (traps.get(cell) != null || plants.get(cell) != null) {
 				continue;
@@ -283,6 +306,13 @@ public class SewerLevel extends RegularLevel {
 			for (int cell : pool) {
 				if (chosen.size() >= PeddlerCatalog.COUNT) {
 					break;
+				}
+				//已经站着别的单位（月华、房间里的食人鱼、水晶宝箱怪……）的格子不放。
+				//原来在收集候选格时用 Actor.findChar 查，但建关时角色表是空的，那个判断永远不成立，
+				//游商会和别的单位叠在同一格。要查这一层自己的怪物表；
+				//并且放在这里查而不是从候选格里剔掉：洗牌用掉的随机数个数不变，没有撞车的种子生成结果和以前一样。
+				if (findMob(cell) != null) {
+					continue;
 				}
 				boolean ok = true;
 				for (int other : chosen) {

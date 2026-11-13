@@ -168,6 +168,8 @@ public class WndBless extends Window {
                             cooldown = 350f;
                             break;
                     }
+                    // 代行神权：+1 只能免费放惩戒之力（下面的 S1），+2 起才是全部技能
+                    final boolean freeAllSkills = hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 2;
                     //惩戒
                     if(item == S1) {
                         if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1  && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null
@@ -184,7 +186,7 @@ public class WndBless extends Window {
                         }
                     //净化
                     } else if(item == S2){
-                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 &&
+                        if (freeAllSkills &&
                                 creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility< (isDead ? 4 : 12) ) {
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
                             if(isDead) {
@@ -215,7 +217,7 @@ public class WndBless extends Window {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     } else if(item == S3){
-                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null
+                        if (freeAllSkills && creaditSkills != null
                                 && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<(isDead ? 12 : 15)) {
 
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
@@ -250,15 +252,16 @@ public class WndBless extends Window {
                         }
                     //祷告
                     } else if(item == S4){
-                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null
+                        if (freeAllSkills && creaditSkills != null
                                 && hero.buff(Talent.NoBeliefUsedCooldown.class) == null  && creaditSkills.credibility<(isDead ? 20 : (hero.subClass == HeroSubClasses.BATTLEPREIST ? 15 : 20))) {
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
 
+                            // 这是代行神权的免费分支（信仰不够、用天赋冷却换一次释放），不扣信仰。
+                            // 原来这里照常扣 20 / 15，信仰本来就不够，结果是把手里剩下的全部清零。
                             if(isDead){
                                 creaditSkills.useSkills(Belief.SkillList.valueOf("ENDDEAD"));
                             } else {
                                 creaditSkills.useSkills(hero.subClass == HeroSubClasses.BATTLEPREIST ? Belief.SkillList.valueOf("BATTLE") : Belief.SkillList.valueOf("PRAYERS"));
-                                creaditSkills.DownBelief(hero.subClass == HeroSubClasses.BATTLEPREIST ? 15 : 20);
                             }
 
                             WndBless.this.hide();
@@ -283,7 +286,7 @@ public class WndBless extends Window {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     }  else if(item == S5) {
-                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<10) {
+                        if (freeAllSkills && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<10) {
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
                             creaditSkills.useSkills(Belief.SkillList.valueOf("HOLYFIRE"));
                             WndBless.this.hide();
@@ -296,7 +299,7 @@ public class WndBless extends Window {
                             GLog.n(Messages.get(WndBless.class,"not_enough_credibility"));
                         }
                     } else if(item == S6) {
-                        if (hero.pointsInTalent(Talent.ACT_GODPROGRESS) >= 1 && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<8) {
+                        if (freeAllSkills && creaditSkills != null && hero.buff(Talent.NoBeliefUsedCooldown.class) == null && creaditSkills.credibility<8) {
                             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class,  cooldown);
                             creaditSkills.useSkills(Belief.SkillList.valueOf("HOLYLAND"));
                             WndBless.this.hide();

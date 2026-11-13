@@ -215,6 +215,10 @@ public class MobPlacer extends TestItem{
         super.restoreFromBundle(b);
         mobTier = b.getInt("mobTier");
         mobIndex = b.getInt("mobIndex");
+        // 怪物表会随版本增减，存档里记着的「第几页 / 第几个」可能已经不在表里：
+        // 设置窗口一打开就按它取怪物，取不到直接闪退，所以读档时先收回到现在的表里
+        if (mobTier < 1 || mobTier > 6) mobTier = 1;
+        mobIndex = Math.max(0, Math.min(mobIndex, maxMobIndex(mobTier)));
         elite = b.getInt("eliteTags");
         elite_op = b.getInt("elite_ops");
     }

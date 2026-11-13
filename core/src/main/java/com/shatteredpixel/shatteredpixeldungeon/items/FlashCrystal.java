@@ -22,8 +22,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -108,7 +110,13 @@ public class FlashCrystal extends Item {
 
 		@Override
 		public boolean itemSelectable(Item item) {
+			//等级和诅咒都要是玩家已经知道的：按真实值变灰的话，打开这个窗口（不花回合、不耗闪晶）
+			//就能看出哪件未鉴定装备被诅咒或已经 +3 以上
+			//还要是能被升级的装备：灵能短弓、神器这类 isUpgradable() 为 false 的物品显示的等级不是 trueLevel()，
+			//灵能短弓的 trueLevel() 恒为 0，掷到「下降」那 33% 就直接被摧毁，哪怕它显示的是 +2
 			return item instanceof EquipableItem
+					&& item.isUpgradable()
+					&& item.levelKnown && item.cursedKnown
 					&& item.level() < 3
 					&& !item.cursed;
 		}
@@ -128,9 +136,10 @@ public class FlashCrystal extends Item {
 
 			if (roll < 0.33f) {
 				// 33% 上升一级
-				item.upgrade();
+				// 成叠的投掷武器 upgrade() 只分出一支去升级并返回它，提示要用返回的那一支
+				Item upgraded = item.upgrade();
 				Item.updateQuickslot();
-				GLog.p(Messages.get(FlashCrystal.class, "up", item.name(), item.level()));
+				GLog.p(Messages.get(FlashCrystal.class, "up", upgraded.name(), upgraded.level()));
 			} else if (roll < 0.66f) {
 				// 33% 下降一级
 				if (item.trueLevel() == 0) {
@@ -148,6 +157,16 @@ public class FlashCrystal extends Item {
 			// 0级装备降级失败时会被直接摧毁
 			if (destroyed) {
 				GLog.n(Messages.get(FlashCrystal.class, "destroyed", item.name()));
+				//护甲上贴着的破损纹章先拆下来还给玩家：它是战士唯一的职业物品，不能跟着护甲一起消失。
+				//必须在 doUnequip 之前拆，那之后护甲连同附着物就被丢弃了
+				if (item instanceof Armor && ((Armor) item).checkSeal() != null) {
+					Armor armor = (Armor) item;
+					BrokenSeal seal = armor.checkSeal();
+					armor.detachSeal(curUser);
+					if (!seal.collect()) {
+						Dungeon.level.drop(seal, curUser.pos).sprite.drop();
+					}
+				}
 				if (item.isEquipped(curUser)) {
 					// Use the normal unequip path so equipment buffs and slot references are cleared.
 					if (((EquipableItem) item).doUnequip(curUser, false, false)) {

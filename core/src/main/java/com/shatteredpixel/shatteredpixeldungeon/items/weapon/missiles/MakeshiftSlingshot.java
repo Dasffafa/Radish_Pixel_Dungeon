@@ -89,8 +89,8 @@ public class MakeshiftSlingshot extends Item {
 	// 目标选择器
 	protected static CellSelector.Listener thrower = new CellSelector.Listener() {
 		@Override
-		public void onSelect(Integer cell) {
-			if (cell == null || curUser == null || curItem == null) return;
+		public void onSelect(Integer target) {
+			if (target == null || curUser == null || curItem == null) return;
 			
 			// 获取石头
 			ThrowingStone stone = curUser.belongings.getItem(ThrowingStone.class);
@@ -99,9 +99,18 @@ public class MakeshiftSlingshot extends Item {
 				return;
 			}
 
+			// 和普通投掷一样沿弹道飞到第一个挡住它的格子。直接拿玩家点的那一格当落点的话，
+			// 隔着墙、隔着别的怪都能打中
+			final int cell = stone.throwPos(curUser, target);
+			// 石头飞行期间英雄不能再行动，回合在落地回调里结算
+			curUser.busy();
+
 			// 消耗一颗石头和一个投石索
 			stone.detach(curUser.belongings.backpack);
 			curItem.detach(curUser.belongings.backpack);
+
+			// 石头飞行期间英雄不可行动；回合在 onThrowReached 里结束
+			curUser.busy();
 
 			Sample.INSTANCE.play(Assets.Sounds.HIT);
 			MissileSprite missile = (MissileSprite) curUser.sprite.parent.recycle(MissileSprite.class);

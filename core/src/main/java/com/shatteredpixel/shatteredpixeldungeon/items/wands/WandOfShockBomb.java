@@ -49,7 +49,7 @@ public class WandOfShockBomb extends DamageWand {
     @Override
     public String statsDesc() {
         if (levelKnown)
-            return Messages.get(this, "stats_desc", min(),max());
+            return Messages.get(this, "stats_desc", rollMin(buffedLvl()),rollMax(buffedLvl()));
         else
             return Messages.get(this, "stats_desc", min(0),max(0));
     }
@@ -62,11 +62,14 @@ public class WandOfShockBomb extends DamageWand {
         ShockBombTracker tracker = Buff.append(Dungeon.hero, ShockBombTracker.class);
         tracker.damage = damageRoll();
         tracker.setPos(targetPos, buffedLvl());
+        tracker.fromZap = true;
     }
 
     @Override
     public void onHit(MagesStaff staff, Char attacker, Char defender, int damage) {
         float triggerChance = 15 + (float) buffedLvl() /4 + buffedLvl();
+        //蓄能打击天赋会放大法杖近战附带效果的触发率，其它法杖都乘了这个倍率
+        triggerChance *= procChanceMultiplier(attacker);
         triggerChance = Math.min(triggerChance, 100); // 限制最大概率为100%
 
         if (Random.Int(100) < triggerChance) {
@@ -121,6 +124,9 @@ public class WandOfShockBomb extends DamageWand {
         private int turnsLeft = 1;
         private boolean[] fieldOfView;
         private ShockBombVFX halo;
+        //是不是直接施放法杖放下的。只有这种爆炸算一次法杖命中（wandProc），
+        //战斗法师近战触发的不算，和其它法杖的近战附带效果一致
+        private boolean fromZap = false;
 
         @Override
         public boolean act() {
@@ -132,25 +138,10 @@ public class WandOfShockBomb extends DamageWand {
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
-                FloatingText.show(p.x, p.y, pos, "WARNING!!!", CharSprite.NEGATIVE);
+                FloatingText.show(p.x, p.y, pos, Messages.get(WandOfShockBomb.class, "warning"), CharSprite.NEGATIVE);
 
-                // 显示圆形范围标记
-                for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
-                    int cell = pos + PathFinder.CIRCLE5x[i];
-                    if (inBlastArea(pos, cell, 2)) {
-                        if (target != null && target.sprite != null) {
-                            target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
-                        }
-                    }
-                }
-
-                // 添加视觉效果
-                if (halo == null) {
-                    halo = new ShockBombVFX();
-                    halo.point(p.x, p.y);
-                    halo.hardlight(0.5f, 0.2f, 0f);
-                    GameScene.effect(halo);
-                }
+                // 显示圆形范围标记。光圈不在这里建：挂上 tracker 或进入场景时 fx() 已经建好了
+                markBlastArea(pos, PathFinder.CIRCLE5x, 2);
 
                 turnsLeft--;
             } else {
@@ -160,6 +151,16 @@ public class WandOfShockBomb extends DamageWand {
 
             spend(TICK);
             return true;
+        }
+
+        //在爆炸范围的每一格上画一个预警标记，大约两秒后自己淡出
+        private static void markBlastArea(int center, int[] offsets, int radius) {
+            for (int offset : offsets) {
+                int cell = center + offset;
+                if (inBlastArea(center, cell, radius)) {
+                    GameScene.effect(new TargetedCell(cell, Window.RADISH));
+                }
+            }
         }
 
         private void explode() {
@@ -174,12 +175,23 @@ public class WandOfShockBomb extends DamageWand {
             for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE5x[i];
                 if (inBlastArea(pos, cell, 2)) {
+                    if (fromZap) {
+                        //要赶在伤害之前：目标被炸死之后再挂灵魂标记就没有意义了
+                        Char ch = Actor.findChar(cell);
+                        if (ch != null && takesBlastDamage(ch)) {
+                            wandProc(ch, level, 1);
+                        }
+                    }
                     runExplode(damage, cell, pos);
                 }
             }
 
             Dungeon.observe();
             GameScene.updateFog();
+        }
+
+        private static boolean takesBlastDamage(Char ch) {
+            return ch.alignment == Char.Alignment.ENEMY || (ch instanceof Mimic && ch.alignment == Char.Alignment.NEUTRAL);
         }
 
         //CIRCLE5x / CIRCLE7x 是按格子下标算的偏移，爆心贴着地图左右边界时会绕到相邻行的另一头，
@@ -199,7 +211,7 @@ public class WandOfShockBomb extends DamageWand {
             if (Dungeon.level.insideMap(cell)) {
                 Char ch = Actor.findChar(cell);
                 if (ch != null) {
-                    if (ch.alignment == Char.Alignment.ENEMY || (ch instanceof Mimic && ch.alignment == Char.Alignment.NEUTRAL)) {
+                    if (takesBlastDamage(ch)) {
                         ch.damage(new DamageInfo(damage, DamageType.LIGHTNING, null, null, new DM100.LightningBolt()));
                     }
                     if (ch.alignment == Char.Alignment.ALLY) {
@@ -257,6 +269,9 @@ public class WandOfShockBomb extends DamageWand {
                 halo.point(p.x, p.y);
                 halo.hardlight(1, 0.2f, 0f);
                 GameScene.effect(halo);
+                //读档或重新进入这一层时场景是重建的，之前画的预警标记已经不在了。
+                //预警报过、只差引爆的话补画一次，否则只看得到光圈，看不出会炸到哪几格
+                if (turnsLeft <= 0) markBlastArea(pos, PathFinder.CIRCLE5x, 2);
             }
             super.fx(on);
         }
@@ -269,6 +284,7 @@ public class WandOfShockBomb extends DamageWand {
         private static final String LEFT = "left";
 
         private static final String DAMAGE = "damage";
+        private static final String FROM_ZAP = "from_zap";
 
         @Override
         public void storeInBundle(Bundle bundle) {
@@ -281,6 +297,7 @@ public class WandOfShockBomb extends DamageWand {
             bundle.put(LEVEL, level);
             bundle.put(LEFT, turnsLeft);
             bundle.put(DAMAGE, damage);
+            bundle.put(FROM_ZAP, fromZap);
         }
 
         @Override
@@ -294,6 +311,8 @@ public class WandOfShockBomb extends DamageWand {
             level = bundle.getInt(LEVEL);
             turnsLeft = bundle.getInt(LEFT);
             damage = bundle.getInt(DAMAGE);
+            //改动前的存档里没有这个键，按「不是施放放下的」处理
+            fromZap = bundle.contains(FROM_ZAP) && bundle.getBoolean(FROM_ZAP);
         }
 
     }
@@ -317,25 +336,10 @@ public class WandOfShockBomb extends DamageWand {
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
-                FloatingText.show(p.x, p.y, pos, "NUKE!!!", CharSprite.NEGATIVE);
+                FloatingText.show(p.x, p.y, pos, Messages.get(WandOfShockBomb.class, "nuke"), CharSprite.NEGATIVE);
 
-                // 显示圆形范围标记
-                for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
-                    int cell = pos + PathFinder.CIRCLE7x[i];
-                    if (ShockBombTracker.inBlastArea(pos, cell, 3)) {
-                        if (target != null && target.sprite != null) {
-                            target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
-                        }
-                    }
-                }
-
-                // 添加视觉效果
-                if (halo == null) {
-                    halo = new ShockBombVFX();
-                    halo.point(p.x, p.y);
-                    halo.hardlight(0.2f, 0.2f, 0f);
-                    GameScene.effect(halo);
-                }
+                // 显示圆形范围标记。光圈不在这里建：挂上 tracker 或进入场景时 fx() 已经建好了
+                ShockBombTracker.markBlastArea(pos, PathFinder.CIRCLE7x, 3);
 
                 turnsLeft--;
             } else {
@@ -406,6 +410,8 @@ public class WandOfShockBomb extends DamageWand {
                 halo.point(p.x, p.y);
                 halo.hardlight(0.2f, 1f, 1f);
                 GameScene.effect(halo);
+                //同上：读档后把预警标记补画一次
+                if (turnsLeft <= 0) ShockBombTracker.markBlastArea(pos, PathFinder.CIRCLE7x, 3);
             }
             super.fx(on);
         }

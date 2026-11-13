@@ -3,10 +3,12 @@ package com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LostInventory;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -67,10 +69,13 @@ public class Propulsion extends Weapon.Enchantment {
             return;
         }
 
-        if (!(hero.belongings.weapon() instanceof Weapon)) {
-            return;
+        //看主手栏位里的武器，不能用 belongings.weapon()：投掷、射击结算期间它返回的是飞出去的那一件，
+        //于是投掷武器和灵能弓的攻击永远不会触发，与说明里的「远程物理均可」不符
+        KindOfWeapon held = hero.belongings.weapon;
+        if (held != null && hero.buff( LostInventory.class ) != null && !held.keptThoughLostInvent) {
+            held = null;
         }
-        if (!(((Weapon) hero.belongings.weapon()).enchantment instanceof Propulsion)) {
+        if (!(held instanceof Weapon) || !(((Weapon) held).enchantment instanceof Propulsion)) {
             return;
         }
         if (!target.isAlive()) {
@@ -105,13 +110,16 @@ public class Propulsion extends Weapon.Enchantment {
 
         final Char target = pendingTarget;
         pendingTarget = null;
+        if (!onLevel( target )) {
+            return;
+        }
         prompting = true;
         Game.runOnRenderThread( new Callback() {
             @Override
             public void call() {
                 prompting = false;
                 if (Dungeon.hero == null || !Dungeon.hero.ready
-                        || !Dungeon.hero.isAlive() || !target.isAlive()) {
+                        || !Dungeon.hero.isAlive() || !onLevel( target )) {
                     return;
                 }
                 GameScene.show( new WndOptions(
@@ -130,9 +138,19 @@ public class Propulsion extends Weapon.Enchantment {
         } );
     }
 
+    /**
+     * 目标是否还活着并且还在当前这一层。
+     * 待询问的目标记在静态字段里，要等英雄下一次就绪才弹窗；英雄在那之前换了层、读了档或重开了一局
+     * （被远程攻击打死、边挨打边下楼）时，字段里留着的是上一层的怪物。不拦下的话会在新的一层弹出询问，
+     * 选「突进」就把英雄放到那只怪物旧坐标旁边的格子上。
+     */
+    private static boolean onLevel( Char target ) {
+        return target != null && target.isAlive() && Actor.chars().contains( target );
+    }
+
     /** 传送到目标相邻的空格。 */
     private static void dashAdjacent( Hero hero, Char target ) {
-        if (hero == null || target == null || !hero.isAlive() || !target.isAlive()
+        if (hero == null || !hero.isAlive() || !onLevel( target )
                 || Dungeon.level == null || hero.rooted) {
             return;
         }
@@ -154,10 +172,12 @@ public class Propulsion extends Weapon.Enchantment {
                 continue;
             }
 
-            hero.pos = cell;
-            hero.sprite.place( cell );
+            //走角色自己的瞬移流程，而不是直接改坐标再踩格子：离开门格要关门、漂浮时不该踩到陷阱和草、
+            //落点的蛛网要生效，英雄移动事件也要照常发出
+            hero.sprite.interruptMotion();
+            hero.move( cell, false );
+            hero.sprite.place( hero.pos );
             hero.sprite.visible = true;
-            Dungeon.level.pressCell( cell );
             Dungeon.observe();
             return;
         }

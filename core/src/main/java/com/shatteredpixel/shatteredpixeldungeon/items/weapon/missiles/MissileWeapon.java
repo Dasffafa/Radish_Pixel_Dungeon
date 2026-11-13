@@ -135,7 +135,10 @@ abstract public class MissileWeapon extends Weapon {
 	//use the parent item if this has been thrown from a parent
 	public int buffedLvl(){
 
-		if (Dungeon.hero != null && (hero.belongings.contains(this) || parent != null)) {
+		//一叠里的最后一枚（或单独的一枚）投出去时已经不在背包里、也没有 parent，
+		//但结算这一击时它是英雄的投出武器，同样要算，否则伤害按比背包里显示的低一档的等级结算
+		if (Dungeon.hero != null && (hero.belongings.contains(this) || parent != null
+				|| hero.belongings.thrownWeapon == this)) {
 			RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 			if(riverGlass != null){
 				return super.buffedLvl() + riverGlass.virtualLevel();
@@ -296,7 +299,8 @@ abstract public class MissileWeapon extends Weapon {
 			if(Dungeon.hero != null){
 				if(Dungeon.hero.hasTalent(Talent.STORM_ATTACK)){
 					StormAttackArrow arrow = new StormAttackArrow();
-					arrow.cast(Dungeon.hero,cell);
+					//这次投掷的回合结束之后再射，见 castAfterCurrentAction 的注释
+					arrow.castAfterCurrentAction(Dungeon.hero,cell);
 				}
 			}
 
@@ -337,8 +341,12 @@ abstract public class MissileWeapon extends Weapon {
 			int endY = Math.max(0, Math.min(height - 1, fromY + (int) Math.round(dy * reach)));
 			final int collision = new Ballistica(thrower.pos, endX + endY * width, Ballistica.MAGIC_BOLT).collisionPos;
 
+			//侧箭的命中统一在主投掷物结算时处理（resolveSplitProjectiles），这里的飞行只是表现。
+			//不能等侧箭自己落地再结算：它比主投掷物飞得远时，落地已经是英雄回合结束之后，
+			//那一下会在渲染线程上、回合之外打死正在出手的怪，那只怪的回合就再也结束不了（卡回合）
+			shot.pendingCells.add(collision);
 			((MissileSprite) thrower.sprite.parent.recycle(MissileSprite.class)).reset(
-					thrower.sprite, collision, this, () -> splitProjectileArrived(shot, collision));
+					thrower.sprite, collision, this, null);
 		}
 		return shot;
 	}
@@ -359,14 +367,6 @@ abstract public class MissileWeapon extends Weapon {
 		for (int cell : new ArrayList<>(splitShot.pendingCells)) resolveSplitProjectile(splitShot, cell);
 		splitShot.pendingCells.clear();
 		splitShot = null;
-	}
-
-	private static void splitProjectileArrived(SplitShot shot, int cell) {
-		if (!shot.primaryResolved || shot.weapon == null) {
-			shot.pendingCells.add(cell);
-		} else {
-			shot.weapon.resolveSplitProjectile(shot, cell);
-		}
 	}
 
 	private void resolveSplitProjectile(SplitShot shot, int cell) {

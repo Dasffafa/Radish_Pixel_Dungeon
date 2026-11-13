@@ -733,7 +733,8 @@ public class SpiritBow extends Weapon {
 				if(Dungeon.hero != null){
 					if(Dungeon.hero.hasTalent(Talent.STORM_ATTACK)){
 						StormAttackArrow arrow = new StormAttackArrow();
-						arrow.cast(Dungeon.hero,target);
+						//主箭落地、这一回合结束之后再射，见 castAfterCurrentAction 的注释
+						arrow.castAfterCurrentAction(Dungeon.hero,target);
 					}
 				}
 			}

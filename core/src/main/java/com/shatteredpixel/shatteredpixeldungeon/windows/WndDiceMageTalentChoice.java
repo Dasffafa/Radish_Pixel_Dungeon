@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchool;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSchools;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -59,11 +60,8 @@ public class WndDiceMageTalentChoice extends Window {
         // 窄屏适配：窗口宽度不能超出 UI 相机可用宽度
         int w = Math.min(WIDTH, PixelScene.uiCamera.width - chrome.marginHor());
 
-        DiceMageSchool first = weightedPick();
-        DiceMageSchool second = weightedPick();
-        if (second == first) {
-            second = weightedPick();
-        }
+        DiceMageSchool first = weightedPick(null);
+        DiceMageSchool second = weightedPick(first);
 
         float cardsBottom = PAD;
         if (first != null) {
@@ -79,7 +77,7 @@ public class WndDiceMageTalentChoice extends Window {
             cardsBottom = secondCard.bottom();
         }
 
-        DiceMageUI.DiceButton random = new DiceMageUI.DiceButton("随机提升某学派") {
+        DiceMageUI.DiceButton random = new DiceMageUI.DiceButton(Messages.get(this, "random")) {
             @Override
             protected void onClick() {
                 choose(randomAvailableSchool());
@@ -89,7 +87,7 @@ public class WndDiceMageTalentChoice extends Window {
         random.setRect(22, cardsBottom + PAD, w - 44, BUTTON_HEIGHT);
         add(random);
 
-        DiceMageUI.DiceButton skip = new DiceMageUI.DiceButton("跳过") {
+        DiceMageUI.DiceButton skip = new DiceMageUI.DiceButton(Messages.get(this, "skip")) {
             @Override
             protected void onClick() {
                 skip();
@@ -108,6 +106,15 @@ public class WndDiceMageTalentChoice extends Window {
     public void hide() {
         open.remove(this);
         super.hide();
+    }
+
+    @Override
+    public void destroy() {
+        //界面重建（改变窗口大小、分屏等）时窗口是被直接销毁的，不经过 hide()。
+        //不在这里注销的话，已销毁的窗口留在 open 里，之后在重开的窗口里选学派时
+        //refreshOpenWindows() 会去刷新它的卡片，往已销毁的控件里增删子节点 = 空指针闪退
+        open.remove(this);
+        super.destroy();
     }
 
     private static void refreshOpenWindows() {
@@ -136,10 +143,10 @@ public class WndDiceMageTalentChoice extends Window {
         return false;
     }
 
-    private static DiceMageSchool weightedPick() {
+    private static DiceMageSchool weightedPick(DiceMageSchool excluded) {
         ArrayList<DiceMageSchool> pool = new ArrayList<>();
         for (DiceMageSchool s : DiceMageSchool.values()) {
-            if (DiceMageSchools.canInvest(s)) pool.add(s);
+            if (s != excluded && DiceMageSchools.canInvest(s)) pool.add(s);
         }
         if (pool.isEmpty()) return null;
 

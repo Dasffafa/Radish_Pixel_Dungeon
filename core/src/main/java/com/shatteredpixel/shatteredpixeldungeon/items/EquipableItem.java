@@ -149,7 +149,7 @@ public abstract class EquipableItem extends Item {
 			com.shatteredpixel.shatteredpixeldungeon.actors.Char ally =
 					com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( target );
 			if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer
-					.readyModify( Dungeon.hero, EquipableItem.this, ally )) {
+					.readyModify( Dungeon.hero, ally, EquipableItem.this )) {
 				Dungeon.hero.spendAndNext( 1f );
 				Dungeon.hero.sprite.operate( Dungeon.hero.pos );
 			} else {

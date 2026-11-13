@@ -99,9 +99,17 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     }
 
     @Override
-    public void doAction() {
-        // 执行踹飞
-        Hero hero = (Hero) target;
+    public boolean act() {
+        if (nearbyEnemies((Hero) target).size() < 3) {
+            detach();
+            ActionIndicator.clearAction(this);
+        } else {
+            spend(TICK);
+        }
+        return true;
+    }
+
+    private ArrayList<Char> nearbyEnemies(Hero hero) {
         ArrayList<Char> enemies = new ArrayList<>();
 
         // 检测周围3格内的敌人
@@ -113,9 +121,16 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
                 enemies.add(ch);
             }
         }
+        return enemies;
+    }
 
-        // 需要至少3个敌人
+    @Override
+    public void doAction() {
+        Hero hero = (Hero) target;
+        ArrayList<Char> enemies = nearbyEnemies(hero);
         if (enemies.size() < 3) {
+            detach();
+            ActionIndicator.clearAction(this);
             GLog.w(Messages.get(this, "not_enough_enemies"));
             return;
         }

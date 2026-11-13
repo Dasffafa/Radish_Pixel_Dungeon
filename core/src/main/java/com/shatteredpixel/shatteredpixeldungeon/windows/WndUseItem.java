@@ -51,6 +51,7 @@ public class WndUseItem extends WndInfoItem {
 		if (Dungeon.hero.isAlive() && (Dungeon.hero.belongings.contains(item) || item == Dungeon.hero.belongings.secondaryArmor)) {
 			y += GAP;
 			ArrayList<RedButton> buttons = new ArrayList<>();
+			boolean renameAdded = false;
 			for (final String action : item.actions( Dungeon.hero )) {
 
 				RedButton btn = new RedButton( item.actionName(action, Dungeon.hero), 8 ) {
@@ -62,7 +63,8 @@ public class WndUseItem extends WndInfoItem {
 							item.execute( Dungeon.hero, action );
 						}
 						Item.updateQuickslot();
-						if (action == item.defaultAction && item.usesTargeting && owner == null){
+						//默认动作要问 defaultAction() 而不是读字段：有的物品的默认动作是按当前状态算出来的，字段里是空的
+						if (action.equals(item.defaultAction()) && item.usesTargeting && owner == null){
 							InventoryPane.useTargeting();
 						}
 					}
@@ -71,12 +73,14 @@ public class WndUseItem extends WndInfoItem {
 				buttons.add(btn);
 				add( btn );
 
-				if (action.equals(item.defaultAction)) {
+				if (action.equals(item.defaultAction())) {
 					btn.textColor( TITLE_COLOR );
 				}
 
-				boolean itemname = item instanceof EquipableItem || item instanceof Wand;
+				//这段在「每个动作一次」的循环里，重命名按钮只需要加一个：否则有几个动作就在同一个位置叠几个按钮
+				boolean itemname = (item instanceof EquipableItem || item instanceof Wand) && !renameAdded;
 				if (itemname){
+					renameAdded = true;
 					Image renamebutton = Icons.get(Icons.RENAME_OFF);
 					if (item instanceof EquipableItem) {
 						if (!((EquipableItem) item).customName.equals("")) {
@@ -85,7 +89,8 @@ public class WndUseItem extends WndInfoItem {
 					}
 					if (item instanceof Wand) {
 						if (!((Wand)item).customName.equals("")) {
-							Icons.get(Icons.RENAME_ON);
+							//这里原先取了图标却没有赋值，改过名的法杖仍然显示「未改名」的图标
+							renamebutton = Icons.get(Icons.RENAME_ON);
 						}
 					}
 

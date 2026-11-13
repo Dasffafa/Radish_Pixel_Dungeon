@@ -717,6 +717,10 @@ public class WndSettings extends WndTabbed {
 				case SPDSettings.STYLE_SHATTERED:
 					style = Messages.get(this, "status_style_shattered");
 					break;
+				//选项里有「老版萝卜」，这里原先没有对应的分支，落到 default 被写成了「萝卜园」
+				case SPDSettings.OLD_RADISH:
+					style = Messages.get(this, "status_style_old_radish");
+					break;
 				case SPDSettings.STYLE_WHITE_RADISH:
 					style = Messages.get(this, "status_style_white");
 					break;

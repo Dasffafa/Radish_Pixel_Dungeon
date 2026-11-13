@@ -37,7 +37,10 @@ public class ShaderEffect extends Gizmo {
     private float progress = 0;
     private final float random = (float) Math.random();
 
-    private final GlslShaderScript shader;
+    // 只记着色器的类，实例每次绘制时向 Script 要：应用切到后台时 Game.pause() 会调 Script.reset()
+    // 删掉全部着色器程序，事先存下来的实例从那以后就是一个已经删除的程序，什么都画不出来
+    private final Class<? extends GlslShaderScript> shaderClass;
+    private GlslShaderScript shader;
     private float[] combinedMatrix = new float[16];
 
     /** LIGHTEVAPORATE 的整体漂移速度（像素/秒），由死亡动画按方向设置。 */
@@ -50,7 +53,7 @@ public class ShaderEffect extends Gizmo {
         this.shaderType = type;
         this.duration = duration;
 
-        shader = getShader(type);
+        shaderClass = shaderClassFor(type);
     }
 
     /** 进度走完后的回调（如清理尸体），替代旧的死亡标记轮询。 */
@@ -68,19 +71,19 @@ public class ShaderEffect extends Gizmo {
         this.driftY = y;
     }
 
-    private GlslShaderScript getShader(ShaderType type) {
+    private static Class<? extends GlslShaderScript> shaderClassFor(ShaderType type) {
         switch (type) {
-            case CUT: return Shaders.cut;
-            case BURN: return Shaders.burn;
-            case ELLIPSE: return Shaders.ellipse;
-            case ACID: return Shaders.acid;
-            case WIPE: return Shaders.wipe;
-            case ALPHA: return Shaders.alpha;
-            case SINGULARITY: return Shaders.singularity;
-            case NOISE: return Shaders.noise;
-            case LIGHTDISSOLVE: return Shaders.lightDissolve;
-            case LIGHTEVAPORATE: return Shaders.lightEvaporate;
-            default: return Shaders.alpha;
+            case CUT: return CutShader.class;
+            case BURN: return BurnShader.class;
+            case ELLIPSE: return EllipseShader.class;
+            case ACID: return AcidShader.class;
+            case WIPE: return WipeShader.class;
+            case ALPHA: return AlphaShader.class;
+            case SINGULARITY: return SingularityShader.class;
+            case NOISE: return NoiseShader.class;
+            case LIGHTDISSOLVE: return LightDissolveShader.class;
+            case LIGHTEVAPORATE: return LightEvaporateShader.class;
+            default: return AlphaShader.class;
         }
     }
 
@@ -212,7 +215,7 @@ public class ShaderEffect extends Gizmo {
 
         Matrix.multiply(cam.matrix, spriteMatrix, combinedMatrix);
 
-        shader.use();
+        shader = com.watabou.glscripts.Script.use(shaderClass);
         shader.setCamera(combinedMatrix);
         shader.setFrame(frame.left, frame.top, frame.width(), frame.height());
 

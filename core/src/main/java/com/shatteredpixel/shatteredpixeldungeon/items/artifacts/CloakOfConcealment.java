@@ -86,7 +86,13 @@ public class CloakOfConcealment extends Artifact{
                     float toGain=RingOfEnergy.artifactChargeMultiplier(target);
                     if (target.buff(MoveCount.class)!=null)
                         toGain*=target.buff(MoveCount.class).chargeMultiplier(Dungeon.hero);
-                    charge += Math.round(toGain);
+                    // 小数部分攒起来而不是四舍五入：四舍五入时 1.5 倍以下的加成（+0、+1 的能量之戒、
+                    // 低层数的动能天赋）完全不起作用，到 1.5 倍又直接变成翻倍
+                    partialCharge += toGain;
+                    while (partialCharge >= 1f) {
+                        partialCharge--;
+                        charge++;
+                    }
                     if (charge >= chargeCap) {
                         giveInvisibility();
                     }
@@ -99,6 +105,9 @@ public class CloakOfConcealment extends Artifact{
         public void detach(){
             if (target.buff(Invisibility_neutral.class)!=null)
                 Buff.detach(target, Invisibility_neutral.class);
+            // 「暴露」只会在斗篷还穿着且诅咒已解除时被 act() 摘掉。斗篷带着诅咒离开身体
+            // （反魔法期间脱下、被嬗变成别的神器）之后再没有人管它，佩戴者会永久免疫隐形。
+            Buff.detach(target, Disposed.class);
             super.detach();
         }
     }

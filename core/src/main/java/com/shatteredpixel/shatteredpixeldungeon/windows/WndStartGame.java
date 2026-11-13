@@ -70,6 +70,7 @@ public class WndStartGame extends Window {
 		
 		float curX = heroBtnSpacing;
 		for (HeroClass cl : HeroClasses.ALL){
+			if (cl == HeroClasses.ENGINEER) continue;
 			HeroBtn button = new HeroBtn(cl);
 			button.setRect(curX, title.height() + 7, HeroBtn.WIDTH, HeroBtn.HEIGHT);
 			curX += HeroBtn.WIDTH + heroBtnSpacing;

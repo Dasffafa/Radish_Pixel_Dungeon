@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoMob;
 import com.watabou.noosa.BitmapText;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.ui.Component;
@@ -54,6 +55,8 @@ public class BossHealthBar extends Component {
 	// 静态变量改为数组
 	private static Mob[] bosses = new Mob[MAX_BOSSES];
 	private static boolean[] bleeding = new boolean[MAX_BOSSES];
+	// 这个槽位里的 Boss 是否已经在某个场景的血条上显示过（assignBoss 靠它认出上一个场景留下的 Boss）
+	private static boolean[] shown = new boolean[MAX_BOSSES];
 
 	private static String asset = Assets.Interfaces.BOSSHP;
 	private static BossHealthBar instance;
@@ -142,6 +145,7 @@ public class BossHealthBar extends Component {
 
 			// Buff指示器
 			if (bosses[i] != null) {
+				shown[i] = true;
 				buffs[i] = new BuffIndicator(bosses[i], false);
 				BuffIndicator.setBossInstance(index, buffs[i]);
 				add(buffs[i]);
@@ -302,12 +306,24 @@ public class BossHealthBar extends Component {
 		// 检查是否已存在
 		for (int i = 0; i < MAX_BOSSES; i++) {
 			if (bosses[i] == boss) {
-				// 如果已存在，强制刷新其Buff
+				// 如果已存在，强制刷新其Buff（只打标记：重排由渲染线程里的 update() 每帧做，这里可能是逻辑线程）
 				if (instance != null && instance.buffs[i] != null) {
 					instance.buffs[i].needsRefresh = true;
-					instance.buffs[i].layout();
 				}
 				return;
+			}
+		}
+
+		// 没有血条实例 = 正在读档或生成关卡。这时还占着槽位、并且在之前的场景里显示过的 Boss，
+		// 属于已经结束的那一局（槽位只在「返回主菜单」时清空）。不先清掉的话，读出来的 Boss 会被排到
+		// 后面的槽位，而 bleed(boolean) / isBleeding() 这些原版留下的接口只认第 0 号槽。
+		// 仍在当前关卡里的不动：同一次读档里先后登记的几个 Boss 也不会被清（它们还没显示过）。
+		if (instance == null) {
+			for (int i = 0; i < MAX_BOSSES; i++) {
+				if (bosses[i] != null && shown[i]
+						&& (Dungeon.level == null || !Dungeon.level.mobs.contains(bosses[i]))) {
+					removeBoss(i);
+				}
 			}
 		}
 
@@ -324,28 +340,37 @@ public class BossHealthBar extends Component {
 		if (emptyIndex != -1) {
 			bosses[emptyIndex] = boss;
 			bleeding[emptyIndex] = false;
+			shown[emptyIndex] = instance != null;
 
 			if (instance != null) {
-				instance.visible = instance.active = true;
+				// 登记 Boss 多半发生在逻辑线程（Mob.notice 等），而血条每帧都在渲染线程里重排这些 Buff 图标
+				// （BuffIndicator.layout 没有加锁）。界面这一段挪到渲染线程做，免得两个线程同时改同一个图标栏。
+				final int index = emptyIndex;
+				Game.runOnRenderThread(() -> {
+					// 排到渲染线程的这一会儿里，场景可能已经销毁，这个槽位也可能已经换了 Boss
+					if (instance == null || bosses[index] != boss) return;
 
-				// 更新BuffIndicator
-				if (instance.buffs[emptyIndex] != null) {
-					instance.remove(instance.buffs[emptyIndex]);
-					instance.buffs[emptyIndex].destroy();
-				}
-				instance.buffs[emptyIndex] = new BuffIndicator(boss, false);
-				BuffIndicator.setBossInstance(emptyIndex, instance.buffs[emptyIndex]);
-				instance.add(instance.buffs[emptyIndex]);
+					instance.visible = instance.active = true;
 
-				instance.buffs[emptyIndex].needsRefresh = true;
-				instance.buffs[emptyIndex].layout();  // 强制布局
-				instance.buffs[emptyIndex].update();  // 强制更新
-				instance.setComponentVisible(emptyIndex, true);
+					// 更新BuffIndicator
+					if (instance.buffs[index] != null) {
+						instance.remove(instance.buffs[index]);
+						instance.buffs[index].destroy();
+					}
+					instance.buffs[index] = new BuffIndicator(boss, false);
+					BuffIndicator.setBossInstance(index, instance.buffs[index]);
+					instance.add(instance.buffs[index]);
 
-				instance.layout();
+					instance.buffs[index].needsRefresh = true;
+					instance.buffs[index].layout();  // 强制布局
+					instance.buffs[index].update();  // 强制更新
+					instance.setComponentVisible(index, true);
 
-				// 全局刷新所有Boss Buff
-				BuffIndicator.refreshAllBosses();
+					instance.layout();
+
+					// 全局刷新所有Boss Buff
+					BuffIndicator.refreshAllBosses();
+				});
 			}
 		}
 	}
@@ -369,6 +394,7 @@ public class BossHealthBar extends Component {
 		if (index >= 0 && index < MAX_BOSSES) {
 			bosses[index] = null;
 			bleeding[index] = false;
+			shown[index] = false;
 
 			if (instance != null && instance.buffs[index] != null) {
 				BuffIndicator.setBossInstance(index, null);
@@ -464,6 +490,7 @@ public class BossHealthBar extends Component {
 		for (int i = 0; i < MAX_BOSSES; i++) {
 			bosses[i] = null;
 			bleeding[i] = false;
+			shown[i] = false;
 		}
 		if (instance != null) {
 			instance.destroy();

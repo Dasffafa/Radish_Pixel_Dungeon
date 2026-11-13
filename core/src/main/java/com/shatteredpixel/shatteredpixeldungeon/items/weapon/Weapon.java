@@ -203,7 +203,8 @@ abstract public class Weapon extends KindOfWeapon {
 			}
 		}
 
-		if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
+		if (enchantment != null && attacker.buff(MagicImmune.class) == null
+				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight.pokeIsPlain( attacker )) {
 			damage = enchantment.proc( this, attacker, defender, damage );
 		}
 
@@ -555,7 +556,8 @@ abstract public class Weapon extends KindOfWeapon {
 	 * 例：天球仪把来源改写成魔法来源（{@link com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100.LightningBolt}）。
 	 */
 	public void modifyDamageInfo(Char attacker, Char defender, DamageInfo info) {
-		if (enchantment != null) {
+		//与 proc() 一致：魔法免疫期间附魔不生效，否则精制、逆转这类改伤害数值的附魔会照常起作用
+		if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
 			enchantment.modifyDamageInfo(this, attacker, defender, info);
 		}
 	}

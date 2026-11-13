@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.MiasmaGas;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -11,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.particles.PoisonParticle
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
 
 /**
@@ -45,6 +47,11 @@ public class MiasmaSpell extends DiceMageSpell {
             @Override
             public void onSelect(Integer cell) {
                 if (cell == null) return;
+                // 气体在实心格（墙、关着的门……）里一结算就被清零，放上去等于白扣魔力点和回合
+                if (Dungeon.level.solid[cell]) {
+                    GLog.w(Messages.get(MiasmaSpell.this, "invalid_target"));
+                    return;
+                }
                 if (!spendMagic(hero)) return;
 
                 Blob gas = Blob.seed(cell, 80, MiasmaGas.class);

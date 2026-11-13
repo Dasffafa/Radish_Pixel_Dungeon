@@ -70,6 +70,7 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.VineTrap;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Toolbar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.DungeonSeed;
@@ -530,7 +531,13 @@ public class Dungeon {
 		return depth == 1 ||depth == 6 || depth == 11 || depth == 16 || depth == 21;
 	}
 	
+	//「当前所在的这一层是不是首领层」。支线的 depth 从 1 重新计数，不能套主线的 5/10/15…：
+	//传奇重犯副本整层就是首领战，其余支线层都不是。
+	//要问「主线第 N 层是不是首领层」的调用方用下面带参数的重载。
 	public static boolean bossLevel() {
+		if (!Branches.MAIN.equals( branchId )) {
+			return Branches.CONVICT.equals( branchId );
+		}
 		return bossLevel( depth );
 	}
 	
@@ -608,7 +615,11 @@ public class Dungeon {
 		hero.curAction = hero.lastAction = null;
 
 		// 术士4-4 腐化怨灵：进入新层时生成怨灵
-		Talent.onNewFloor(hero);
+		// switchLevel 在读档、回到去过的楼层、复活时也会走到；只有这一层是刚生成的才算「新的一层」，
+		// 否则每读一次档、每回一次旧楼层都会再生成一批怨灵
+		if (levelJustGenerated) {
+			Talent.onNewFloor(hero);
+		}
 
 		observe();
 		try {
@@ -939,6 +950,12 @@ public class Dungeon {
 		
 		Notes.restoreFromBundle( bundle );
 		
+		//动作按钮槽是全局的。槽里如果还留着上一个英雄对象的按钮（读档前那个状态实例），
+		//新读出来的状态看到「槽已被占」就不会再放自己的按钮，读档后按钮点了没反应或者不出现。
+		//所以恢复英雄之前先清空，由各状态在恢复时重新占位。
+		//（从存档界面「继续」时窗口那边已经清过一次；这里保证所有读档入口都一样）
+		ActionIndicator.clearAction();
+
 		hero = null;
 		hero = (Hero)bundle.get( HERO );
 		
