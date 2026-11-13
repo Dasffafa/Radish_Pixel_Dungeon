@@ -83,7 +83,6 @@ public class MagesStaff extends MeleeWeapon {
 	public static final String AC_IMBUE = "IMBUE";
 	public static final String AC_ZAP	= "ZAP";
 	public static final String AC_UPDATE = "UPDATE";
-	public static final String AC_READY_MOD = "READY_MOD";
 
 	private static final float STAFF_SCALE_FACTOR = 0.75f;
 
@@ -135,11 +134,6 @@ public class MagesStaff extends MeleeWeapon {
 		//魔杖匠人
 		if (Dungeon.hero.pointsInTalent(Talent.MAGIC_WORKMAN) > 0 ){
 			actions.add( AC_UPDATE );
-		}
-
-		// 奇械师：即用改装
-		if (Dungeon.hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
-			actions.add( AC_READY_MOD );
 		}
 
 		return actions;
@@ -197,35 +191,8 @@ public class MagesStaff extends MeleeWeapon {
 			wand.execute(hero, AC_ZAP);
 		} else if (action.equals(AC_UPDATE)) {
 			ArcaneResinUse();
-		} else if (action.equals(AC_READY_MOD)) {
-			curUser = hero;
-			GameScene.selectCell( readyModListener );
 		}
 	}
-
-	private com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener readyModListener =
-			new com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener() {
-		@Override
-		public void onSelect( Integer target ) {
-			if (target == null) {
-				return;
-			}
-			com.shatteredpixel.shatteredpixeldungeon.actors.Char ally =
-					com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( target );
-			if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer
-					.readyModify( Dungeon.hero, ally )) {
-				Dungeon.hero.spendAndNext( 1f );
-				Dungeon.hero.sprite.operate( Dungeon.hero.pos );
-			} else {
-				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( Messages.get( MagesStaff.class, "no_ally" ) );
-			}
-		}
-
-		@Override
-		public String prompt() {
-			return Messages.get( MagesStaff.class, "prompt_ready_mod" );
-		}
-	};
 
 	@SuppressWarnings("unchecked")
 	private void ArcaneResinUse() {
@@ -350,13 +317,6 @@ public class MagesStaff extends MeleeWeapon {
 			ArtifactRecharge.chargeArtifacts(hero, hero.pointsInTalent(Talent.MYSTICAL_CHARGE)/2f);
 		}
 
-		//短棍格斗-T1
-		if (wand != null && attacker instanceof Hero && ((Hero)attacker).subClass == HeroSubClasses.BATTLEMAGE || hero.pointsInTalent(Talent.MAGIC_STICK) >= 1) {
-			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.5f;
-			ScrollOfRecharging.charge(attacker);
-			wand.onHit(this, attacker, defender, damage, true);
-		}
-
 		//短棍格斗-T2
 		if (hero.pointsInTalent(Talent.MAGIC_STICK) >= 2){
 			if(Random.Int(100) <= 15 &&
@@ -403,11 +363,15 @@ public class MagesStaff extends MeleeWeapon {
 			damage = Math.round( damage * (1f + Dungeon.hero.pointsInTalent(Talent.EMPOWERED_STRIKE)/6f));
 		}
 
-		if (wand != null &&
-				attacker instanceof Hero && ((Hero)attacker).subClass == HeroSubClasses.BATTLEMAGE) {
-			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.5f;
-			ScrollOfRecharging.charge((Hero)attacker);
-			wand.onHit(this, attacker, defender, damage);
+		if (wand != null && attacker instanceof Hero) {
+			Hero wielder = (Hero) attacker;
+			boolean surpriseProc = wielder.hasTalent(Talent.MAGIC_STICK)
+					&& defender instanceof Mob && ((Mob) defender).surprisedBy(wielder);
+			if (wielder.subClass == HeroSubClasses.BATTLEMAGE || surpriseProc) {
+				if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.5f;
+				ScrollOfRecharging.charge(wielder);
+				wand.onHit(this, attacker, defender, damage, surpriseProc);
+			}
 		}
 
 		if (empoweredStrike != null){
