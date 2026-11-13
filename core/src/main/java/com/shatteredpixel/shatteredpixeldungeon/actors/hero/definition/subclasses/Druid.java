@@ -351,47 +351,24 @@ public class Druid extends HeroSubClass {
 			return false;
 		}
 		int dmg = 12 + hero.lvl;
+		// 被击退的敌人可能落到火束后面的格子上，每个敌人只结算一次
 		java.util.HashSet<Char> hit = new java.util.HashSet<>();
-		// 火焰实际烧到的最后一格，收尾的特效放在这里
-		int end = hero.pos;
-		for (int pos : lineCells( hero.pos, cell )) {
-			if (pos < 0 || pos >= Dungeon.level.length()) {
-				continue;
-			}
-			// 火焰不穿墙：直线遇到实心格（墙、雕像、关着的门等）就停在它前面，这一格和它后面的格子都不烧、不结算伤害。
-			// 与原版投射物的规则相同：实心格本身不算命中
-			if (pos != hero.pos && Dungeon.level.solid[pos]) {
-				break;
-			}
-			end = pos;
-			// 火焰沿路径扩散，命中路径两侧一格内的敌人
-			for (int off : com.watabou.utils.PathFinder.NEIGHBOURS9) {
-				int c = pos + off;
-				if (c < 0 || c >= Dungeon.level.length()) {
-					continue;
-				}
-				Char ch = com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c );
-				if (ch != null && ch.alignment == Char.Alignment.ENEMY && ch.isAlive()
-						&& hit.add( ch )) {
-					ch.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
-							dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-					ignite( ch );
-					if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1 && ch.isAlive()) {
-						knockBack( ch, hero.pos );
-					}
+		for (int pos : firestormCells( hero.pos, cell )) {
+			Char ch = Actor.findChar( pos );
+			if (ch != null && ch.alignment == Char.Alignment.ENEMY && ch.isAlive() && hit.add( ch )) {
+				ch.damage( new DamageInfo( dmg, DamageType.MAGICAL, hero, null, hero ) );
+				ignite( ch );
+				if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1 && ch.isAlive()) {
+					knockBack( ch, hero.pos );
 				}
 			}
 			// 火焰要交给 GameScene.add 登记才会进回合循环；只 seed 的话本层第一次起火时当回合不烧，
 			// 要等别处起火或读档才突然烧起来。地图最外圈不放火：Fire 在边界行上演算会数组越界。
-			if (pos != hero.pos && Dungeon.level.insideMap( pos )) {
+			if (Dungeon.level.insideMap( pos )) {
 				GameScene.add( Blob.seed( pos, 1, FirestormFire.class ) );
 			}
-			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( pos ).burst(
-					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 4 );
+			CellEmitter.get( pos ).burst( Speck.factory( Speck.INFERNO ), 4 );
 		}
-		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( end ).burst(
-				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 12 );
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( hero.pos ).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 6 );
 		com.watabou.noosa.audio.Sample.INSTANCE.play( com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.BURNING );
@@ -454,29 +431,52 @@ public class Druid extends HeroSubClass {
 	}
 
 	/** 从 from 到 to 的直线格（Bresenham）。 */
-	private static java.util.ArrayList<Integer> lineCells( int from, int to ) {
-		java.util.ArrayList<Integer> cells = new java.util.ArrayList<>();
-		int w = Dungeon.level.width();
-		int x0 = from % w, y0 = from / w, x1 = to % w, y1 = to / w;
-		int dx = Math.abs( x1 - x0 ), dy = Math.abs( y1 - y0 );
-		int sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
-		int err = dx - dy, x = x0, y = y0;
-		while (true) {
-			cells.add( y * w + x );
-			if (x == x1 && y == y1) {
-				break;
-			}
-			int e2 = 2 * err;
-			if (e2 > -dy) {
-				err -= dy;
-				x += sx;
-			}
-			if (e2 < dx) {
-				err += dx;
-				y += sy;
-			}
+	private static final int FIRESTORM_SEGMENT = 3;
+	private static final int FIRESTORM_SPLITS = 3;
+	private static final double FIRESTORM_SPLIT_ANGLE = Math.toRadians( 30 );
+
+	/** 火风暴烧到的格子：一格宽的火束，每走 3 格向左右 30° 各分出一支，最多分 3 次；遇实心格的那一支停下。 */
+	public static java.util.ArrayList<Integer> firestormCells( int from, int target ) {
+		java.util.LinkedHashSet<Integer> cells = new java.util.LinkedHashSet<>();
+		if (from != target) {
+			int w = Dungeon.level.width();
+			double angle = Math.atan2( target / w - from / w, target % w - from % w );
+			firestormBranch( from % w + 0.5, from / w + 0.5, angle, 0, cells );
 		}
-		return cells;
+		cells.remove( from );
+		return new java.util.ArrayList<>( cells );
+	}
+
+	private static void firestormBranch( double x, double y, double angle, int splits, java.util.Set<Integer> cells ) {
+		int w = Dungeon.level.width(), h = Dungeon.level.height();
+		double dx = Math.cos( angle ) * 0.25, dy = Math.sin( angle ) * 0.25;
+		int last = (int) y * w + (int) x;
+		int steps = 0;
+		while (steps < FIRESTORM_SEGMENT) {
+			x += dx;
+			y += dy;
+			if (x < 0 || y < 0 || x >= w || y >= h) {
+				return;
+			}
+			int c = (int) y * w + (int) x;
+			if (c == last) {
+				continue;
+			}
+			// 斜着穿过两堵墙的夹角也算被挡住
+			if (Dungeon.level.solid[c]
+					|| (c % w != last % w && c / w != last / w
+						&& Dungeon.level.solid[last / w * w + c % w] && Dungeon.level.solid[c / w * w + last % w])) {
+				return;
+			}
+			cells.add( c );
+			last = c;
+			steps++;
+		}
+		if (splits < FIRESTORM_SPLITS) {
+			double cx = last % w + 0.5, cy = last / w + 0.5;
+			firestormBranch( cx, cy, angle - FIRESTORM_SPLIT_ANGLE, splits + 1, cells );
+			firestormBranch( cx, cy, angle + FIRESTORM_SPLIT_ANGLE, splits + 1, cells );
+		}
 	}
 
 	// 击退统一走 WandOfBlastWave.throwChar：推动动画、落点压格（陷阱、门、草），以及首领减半、
