@@ -234,6 +234,7 @@ public class MagicWarrior extends HeroSubClass {
 		{
 			type = buffType.NEUTRAL;
 			announced = false;
+			revivePersists = true;
 		}
 
 		@Override
