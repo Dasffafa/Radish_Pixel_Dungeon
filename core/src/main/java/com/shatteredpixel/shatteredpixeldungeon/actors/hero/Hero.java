@@ -1610,8 +1610,6 @@ public class Hero extends Char {
 			}
 		}
 
-		// 影舞者：隐身结束后等英雄可操作时再弹出突袭选点
-		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
 		// 推进附魔：待处理的突进询问
 		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Propulsion.onHeroReady( this );
 		// 脉冲附魔：装备期间即开始计时
