@@ -1037,7 +1037,7 @@ public abstract class Wand extends Item {
 			}
 		}
 
-		private void setScaleFactor(float value){
+		void setScaleFactor(float value){
 			this.scalingFactor = value;
 		}
 	}

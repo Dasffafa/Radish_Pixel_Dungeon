@@ -26,6 +26,12 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Amok;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vertigo;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Vulnerable;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Weakness;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
@@ -133,6 +139,18 @@ public class EngineerRules {
 	 * wandLevel 是脉冲法杖当时的等级。
 	 */
 	public static void applyPulse( Hero src, Char target, int wandLevel ) {
+		float duration = 2f + 1.5f * wandLevel;
+		if (isMechanical( target )) {
+			Buff.prolong( target, Amok.class, duration );
+		} else if (target.properties().contains( Char.Property.INORGANIC )) {
+			Buff.prolong( target, Vertigo.class, duration );
+		} else {
+			if (src.hasTalent( Talent.STRONG_PULSE )) duration += 2f;
+			Buff.prolong( target, Paralysis.class, duration );
+		}
+		int engineering = src.pointsInTalent( Talent.WAND_ENGINEERING );
+		if (engineering >= 1) Buff.prolong( target, Weakness.class, duration );
+		if (engineering >= 2) Buff.prolong( target, Vulnerable.class, duration );
 	}
 
 	/** 蜕变秘卷与「混乱变化」各有一份「只能给某职业」的名单，两处都来这里登记工程师的。 */

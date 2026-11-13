@@ -3,7 +3,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Pulse;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
@@ -21,7 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfParalyticG
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSpike;
-import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand;
 
 /** 工程师 - 自 reXuns Pixel Dungeon (xun分支) 移植 */
 public class Engineer extends HeroDefinition {
@@ -38,8 +37,7 @@ public class Engineer extends HeroDefinition {
 
 	@Override
 	public String splashArt() {
-		//工程师还没有自己的开场图；原先指向的 newhero.jpg 是一张征稿启事，先用下水道区域图顶替
-		return Assets.Splashes.SEWERS;
+		return spritesheet();
 	}
 
 	@Override
@@ -79,7 +77,6 @@ public class Engineer extends HeroDefinition {
 		(hero.belongings.weapon = new MultiTool()).identify();
 		hero.belongings.weapon.activate(hero);
 		Dungeon.quickslot.setSlot(0, hero.belongings.weapon);
-		ActionIndicator.setAction(Buff.affect(hero, Pulse.class));
 
 		ThrowingSpike spikes = new ThrowingSpike();
 		spikes.quantity(2).collect();
@@ -87,6 +84,7 @@ public class Engineer extends HeroDefinition {
 
 		//常驻状态：对机械敌人的被动、每回合驱动已骇入陷阱等都挂在它上面
 		Buff.affect(hero, EngineerPassive.class);
+		PulseWand.ensureGranted(hero);
 
 		new PotionOfParalyticGas().identify();
 		new ScrollOfRecharging().identify();
