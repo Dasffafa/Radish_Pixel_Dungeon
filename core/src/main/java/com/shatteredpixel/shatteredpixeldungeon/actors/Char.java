@@ -570,6 +570,11 @@ public abstract class Char extends Actor {
         if (attacker.invisible > 0 && attacker.canSurpriseAttack()) {
             acuStat = INFINITE_ACCURACY;
         }
+        if (attacker instanceof Hero
+                && ((Hero) attacker).subClass == HeroSubClasses.SHADOW_DANCER
+                && attacker.buff(Preparation.class) != null) {
+            acuStat = INFINITE_ACCURACY;
+        }
 
         // 怪物偷袭英雄：攻击者不在英雄当前视野内（如门后/黑暗中）时攻击必定命中。
         // 只必中，不改变防御/DR（与英雄偷袭怪物不同，没有防御归零逻辑）。
