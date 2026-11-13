@@ -24,12 +24,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.levels.traps;
 
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 
 /**
  * 「骇入陷阱」的全部规则。
@@ -52,39 +47,5 @@ public class TrapHack {
 	 */
 	public static boolean offerRepair( Hero hero, Trap trap ) {
 		return false;
-	}
-
-	/**
-	 * 有东西压到陷阱格时问一次，返回 false 表示这次不触发。
-	 * presser 是踩上去的角色；物品落地、法术落点等没有踩踏者的情况为 null。
-	 * hard 为 false 表示「软踩」（英雄和羊以外的角色走上去）：软踩不会碰到隐藏陷阱，所以这里只会收到明面上的陷阱；
-	 * 英雄、羊、物品落地都是硬踩。
-	 */
-	public static boolean allowsPress( Trap trap, Char presser, boolean hard ) {
-		return true;
-	}
-
-	/**
-	 * 某一格的地形刚被重设之后调用：已骇入陷阱的「可通行、不避开」标记要重新盖上去。
-	 * 关卡生成和读档期间也会调到，只能用传进来的 level，不能碰 Dungeon.level / Dungeon.hero。
-	 */
-	public static void applyFlags( Level level, int cell ) {
-	}
-
-	/** 整张地图的标记重建之后调用（Level.buildFlagMaps）。限制同上。 */
-	public static void applyFlags( Level level ) {
-	}
-
-	/** 每回合一次（工程师的常驻状态调用）：骇客的主动触发、冷却递减。 */
-	public static void tick( Level level, Hero hero ) {
-	}
-
-	public static void onAttackHit( AttackHitEvent event ) {
-	}
-
-	public static void onAttackMiss( AttackMissEvent event ) {
-	}
-
-	public static void onFinalDamage( CharFinalDamageEvent event ) {
 	}
 }

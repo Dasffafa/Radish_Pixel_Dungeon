@@ -27,11 +27,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.MetalPart;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -86,22 +82,5 @@ public class EngineerLoot {
 			}
 			Item.updateQuickslot();
 		}
-	}
-
-	/**
-	 * 机械敌人结算掉落时调用（各机械怪的 rollToDropLoot；只有敌对阵营的怪死亡才会走到）。
-	 * 调用点在 super.rollToDropLoot() 之后：基类里「英雄等级超过怪物 maxLvl + 2 就不掉落」的判断拦不到这里，
-	 * 要按同样的规则拦，得在这里自己判断。
-	 */
-	public static void onMechanicalDeath( Mob mob ) {
-	}
-
-	public static void onAttackHit( AttackHitEvent event ) {
-	}
-
-	public static void onAttackMiss( AttackMissEvent event ) {
-	}
-
-	public static void onFinalDamage( CharFinalDamageEvent event ) {
 	}
 }

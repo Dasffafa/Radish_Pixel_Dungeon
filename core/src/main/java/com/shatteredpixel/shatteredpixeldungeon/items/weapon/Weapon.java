@@ -36,13 +36,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.engineer.ForceField;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.CustomWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.WeaponReachEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
-import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModHooks;
 import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModState;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfArcana;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfFuror;
@@ -290,8 +290,6 @@ abstract public class Weapon extends KindOfWeapon {
 			ACC *= Survival.accuracyMultiplier(owner, Math.max(0, buffedLvl()));
 		}
 
-		ACC = ModHooks.weaponAccuracy( this, owner, target, ACC );
-
 		return encumbrance > 0 ? (float)(ACC / Math.pow( 1.5, encumbrance )) : ACC;
 	}
 	
@@ -320,8 +318,6 @@ abstract public class Weapon extends KindOfWeapon {
 			}
 		}
 
-		delay = ModHooks.weaponDelay( this, owner, delay );
-
 		return delay;
 	}
 
@@ -337,11 +333,17 @@ abstract public class Weapon extends KindOfWeapon {
 
 	@Override
 	public int reachFactor(Char owner) {
+		WeaponReachEvent event = new WeaponReachEvent(this, owner, baseReach(owner));
+		EventManager.emit(event);
+		return event.getReach();
+	}
+
+	private int baseReach(Char owner) {
 		if (hasEnchant(Projecting.class, owner)){
 			if (this instanceof CustomWeapon) {
-				return ModHooks.weaponReach( this, owner, RCH + 1 );
+				return RCH + 1;
 			}
-			return ModHooks.weaponReach( this, owner, RCH + Math.round(RingOfArcana.enchantPowerMultiplier(owner)) );
+			return RCH + Math.round(RingOfArcana.enchantPowerMultiplier(owner));
 		} else {
 			//天球仪-距离
 			if (this instanceof CelestialSphere) {
@@ -350,9 +352,9 @@ abstract public class Weapon extends KindOfWeapon {
 				for (Wand w : wands.toArray(new Wand[0])){
 					wandTotalLevel += w.quantity();
 				}
-				return ModHooks.weaponReach( this, owner, RCH + wandTotalLevel/3 );
+				return RCH + wandTotalLevel/3;
 			} else {
-				return ModHooks.weaponReach( this, owner, RCH );
+				return RCH;
 			}
 		}
 	}
@@ -379,7 +381,6 @@ abstract public class Weapon extends KindOfWeapon {
 		}
 		//沉重/超轻诅咒：力量需求修正
 		req += curseStrReqMod();
-		req = ModHooks.weaponStrReq( this, req );
 		return req;
 	}
 
@@ -535,8 +536,6 @@ abstract public class Weapon extends KindOfWeapon {
 
 	/** 本武器是否会把已储存的恒动伤害释放到持有者的下一次普通攻击上。 */
 	public boolean releasesConservedDamage(Char owner) {
-		//工程师「动能转换」存下的恒动伤害，用什么武器都能打出去
-		if (ForceField.releasesKinetic( owner )) return true;
 		return enchantment != null && enchantment.releasesConservedDamage() && owner.buff(MagicImmune.class) == null;
 	}
 	
@@ -552,13 +551,6 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public ItemSprite.Glowing glowing() {
 		return enchantment != null && (cursedKnown || !enchantment.curse()) ? enchantment.glowing() : null;
-	}
-
-	//物品格左下角的小字：有改装时显示改装的剩余寿命
-	@Override
-	public String special() {
-		String slot = ModHooks.slotText( this );
-		return slot != null ? slot : super.special();
 	}
 
 	@Override
@@ -644,8 +636,6 @@ abstract public class Weapon extends KindOfWeapon {
 					&& ((Hero)attacker).pointsInTalent(Talent.STRIKING_WAVE) == 4){
 				multi += 0.2f;
 			}
-
-			multi = ModHooks.enchantProcMultiplier( attacker, multi );
 
 			return multi;
 		}

@@ -25,13 +25,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.HeroEatFoodEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.ReadScrollEvent;
-import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 
 /**
  * 不属于其它子系统的工程师天赋：进食、卷轴、协同行动、黑魔法学 +4。
@@ -40,28 +33,5 @@ public class EngineerTalents {
 
 	/** 「协同行动」：给触发过已骇入陷阱、或被脉冲法杖命中的敌人做标记。 */
 	public static void markCoordinated( Char enemy ) {
-	}
-
-	/**
-	 * 「卷藏警觉」+2：英雄踩中隐藏陷阱时问一次，返回 true 表示这次不触发。
-	 * 返回 true 时由这里负责消耗那一次机会、让陷阱显形。
-	 */
-	public static boolean absorbsHiddenTrap( Hero hero, Trap trap ) {
-		return false;
-	}
-
-	public static void onReadScroll( ReadScrollEvent event ) {
-	}
-
-	public static void onEatFood( HeroEatFoodEvent event ) {
-	}
-
-	public static void onAttackHit( AttackHitEvent event ) {
-	}
-
-	public static void onAttackMiss( AttackMissEvent event ) {
-	}
-
-	public static void onFinalDamage( CharFinalDamageEvent event ) {
 	}
 }

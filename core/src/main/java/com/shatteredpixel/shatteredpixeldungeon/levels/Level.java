@@ -49,7 +49,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerTalents;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bestiary;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.GnollGeomancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
@@ -90,7 +89,6 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.features.HighGrass;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
-import com.shatteredpixel.shatteredpixeldungeon.levels.traps.TrapHack;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.ShadowCaster;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.plants.Plant;
@@ -974,8 +972,6 @@ public abstract class Level implements Bundlable {
 			b.onBuildFlagMaps(this);
 		}
 
-		TrapHack.applyFlags( this );
-
 		int lastRow = length() - width();
 		for (int i=0; i < width(); i++) {
 			passable[i] = avoid[i] = false;
@@ -1081,8 +1077,6 @@ public abstract class Level implements Bundlable {
 				}
 			}
 		}
-
-		TrapHack.applyFlags( level, cell );
 	}
 
 	public Heap drop( Item item, int cell ) {
@@ -1284,7 +1278,7 @@ public abstract class Level implements Bundlable {
 			}
 
 			//characters which are not the hero or a sheep 'soft' press cells
-			pressCell( ch.pos, ch instanceof Hero || ch instanceof Sheep, ch );
+			pressCell( ch.pos, ch instanceof Hero || ch instanceof Sheep);
 		} else {
 			if (map[ch.pos] == Terrain.DOOR){
 				Door.enter( ch.pos );
@@ -1298,13 +1292,12 @@ public abstract class Level implements Bundlable {
 
 	//public method for forcing the hard press of a cell. e.g. when an item lands on it
 	public void pressCell( int cell ){
-		pressCell( cell, true, null );
+		pressCell( cell, true );
 	}
 
 	//a 'soft' press ignores hidden traps
 	//a 'hard' press triggers all things
-	//presser 是踩上来的角色，物品落地等没有踩踏者的情况为 null
-	private void pressCell( int cell, boolean hard, Char presser ) {
+	private void pressCell( int cell, boolean hard ) {
 
 		Trap trap = null;
 
@@ -1313,11 +1306,6 @@ public abstract class Level implements Bundlable {
 		case Terrain.SECRET_TRAP:
 			if (hard) {
 				trap = traps.get( cell );
-				//工程师「卷藏警觉」：读过卷轴后踩中的下一个隐藏陷阱不触发
-				if (presser instanceof Hero && EngineerTalents.absorbsHiddenTrap( (Hero)presser, trap )) {
-					trap = null;
-					break;
-				}
 				GLog.i(Messages.get(Level.class, "hidden_trap", trap.name()));
 			}
 			break;
@@ -1345,11 +1333,6 @@ public abstract class Level implements Bundlable {
 
 		Swiftthistle.TimeBubble bubble =
 				Dungeon.hero.buff(Swiftthistle.TimeBubble.class);
-
-		//已骇入的陷阱：谁踩上来会触发由骇入规则决定
-		if (trap != null && !TrapHack.allowsPress( trap, presser, hard )) {
-			trap = null;
-		}
 
 		if (trap != null) {
 			if (bubble != null){

@@ -35,9 +35,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerPassive;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerRules;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.RangeMap;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackHitEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.AttackMissEvent;
-import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.TrapHack;
@@ -135,14 +132,5 @@ public class PulseWand extends Wand {
 		}
 		passive.pulseWandGranted = true;
 		Buff.detach( hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Pulse.class );
-	}
-
-	public static void onAttackHit( AttackHitEvent event ) {
-	}
-
-	public static void onAttackMiss( AttackMissEvent event ) {
-	}
-
-	public static void onFinalDamage( CharFinalDamageEvent event ) {
 	}
 }

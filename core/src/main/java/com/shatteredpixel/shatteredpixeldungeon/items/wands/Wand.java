@@ -56,7 +56,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
-import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModHooks;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.WandZapTimeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModState;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
@@ -145,22 +146,7 @@ public abstract class Wand extends Item {
 			actions.add( AC_ZAP );
 		}
 
-		ModHooks.wandActions( this, hero, actions );
-
 		return actions;
-	}
-
-	//改装可以把法杖的默认动作换掉（「熔核」之后只能丢出去）
-	@Override
-	public String defaultAction() {
-		return ModHooks.wandDefaultAction( this, super.defaultAction() );
-	}
-
-	@Override
-	protected void onThrow( int cell ) {
-		if (!ModHooks.wandThrown( this, cell )) {
-			super.onThrow( cell );
-		}
 	}
 
 	@Override
@@ -204,10 +190,6 @@ public abstract class Wand extends Item {
 
 		if (owner.buff(MagicImmune.class) != null){
 			GLog.w( Messages.get(this, "no_magic") );
-			return false;
-		}
-
-		if (!ModHooks.wandCanZap( this, owner )) {
 			return false;
 		}
 
@@ -351,16 +333,7 @@ public abstract class Wand extends Item {
 			}
 		}
 
-		desc += ModHooks.infoText( this );
-
 		return desc;
-	}
-
-	//物品格左下角的小字：有改装时显示改装的剩余寿命
-	@Override
-	public String special() {
-		String slot = ModHooks.slotText( this );
-		return slot != null ? slot : super.special();
 	}
 
 	public String statsDesc(){
@@ -581,7 +554,7 @@ public abstract class Wand extends Item {
 		if (soulStream != null && soulStream.consumeFreeCast()) {
 			// 使用免费次数，不消耗充能
 		} else {
-			curCharges -= ModHooks.wandChargeCost( this, cursed ? 1 : chargesPerCast() );
+			curCharges -= cursed ? 1 : chargesPerCast();
 		}
 		// 魔武士：使用法杖后为下次攻击叠加附魔强化
 		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.gainCharge(Dungeon.hero);
@@ -667,7 +640,9 @@ public abstract class Wand extends Item {
 			}
 		}
 
-		float timeToZap = ModHooks.wandZapTime( this, TIME_TO_ZAP );
+		WandZapTimeEvent zapTime = new WandZapTimeEvent(this, hero, TIME_TO_ZAP);
+		EventManager.emit(zapTime);
+		float timeToZap = zapTime.getTime();
 
 		if (hero.hasTalent(Talent.DUEL_DANCE)) {
 			if (hero.buff(Talent.DuelDanceWandTracker.class) != null) {
@@ -927,13 +902,7 @@ public abstract class Wand extends Item {
 												}
 											});
 								} else {
-									//改装（「双牙」）可能要在这里再发一次，全部发完才结算这一次施法
-									ModHooks.afterZap( curWand, curUser, target, new Callback() {
-										@Override
-										public void call() {
-											curWand.wandUsed();
-										}
-									} );
+									curWand.wandUsed();
 								}
 							}
 						});
@@ -980,7 +949,6 @@ public abstract class Wand extends Item {
 				partialCharge--;
 				curCharges++;
 				updateQuickslot();
-				ModHooks.onNaturalCharge( Wand.this );
 			}
 
 			if (curCharges == maxCharges){
@@ -1005,8 +973,6 @@ public abstract class Wand extends Item {
 				turnsToCharge *= (1f-(0.15f*lv));
 			}
 			//
-
-			turnsToCharge = ModHooks.wandRechargeTurns( Wand.this, turnsToCharge );
 
 			float chargeMultiplier = MagicWandBuff.getChargeEfficiency();
 

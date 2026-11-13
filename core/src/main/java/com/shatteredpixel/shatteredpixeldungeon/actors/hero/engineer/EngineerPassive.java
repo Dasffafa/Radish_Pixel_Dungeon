@@ -24,25 +24,18 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer;
 
-import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
-import com.shatteredpixel.shatteredpixeldungeon.damage.IDamageModifier;
-import com.shatteredpixel.shatteredpixeldungeon.items.bombs.GrenadierBombs;
-import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModHooks;
+import com.shatteredpixel.shatteredpixeldungeon.events.HeroActEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand;
-import com.shatteredpixel.shatteredpixeldungeon.levels.traps.TrapHack;
 import com.watabou.utils.Bundle;
 
 /**
- * 工程师身上不显示的常驻状态。
- *
- * 它自己不写规则，只把「每回合一次」「我打人时」「我挨打时」这三个时机
- * 转给各子系统的静态方法，这样各子系统改自己的文件就行，不用都来改这里。
+ * 工程师身上不显示的常驻状态：补发脉冲法杖、提供对机械敌人的潜行加成。
+ * 其他规则各自订阅事件或实现伤害管线的修正接口，不经这里转发。
  */
-public class EngineerPassive extends Buff implements IDamageModifier {
+public class EngineerPassive extends Buff {
 
 	{
 		//复活类效果会清掉大部分状态，这个要留下
@@ -55,31 +48,24 @@ public class EngineerPassive extends Buff implements IDamageModifier {
 	@Override
 	public boolean act() {
 		if (target instanceof Hero && target.isAlive()) {
-			Hero hero = (Hero) target;
-			PulseWand.ensureGranted( hero );
-			if (Dungeon.level != null) {
-				TrapHack.tick( Dungeon.level, hero );
-			}
+			PulseWand.ensureGranted( (Hero) target );
 		}
 		spend( TICK );
 		return true;
 	}
 
 	@Override
-	public void modifyOutgoingAttackDamage( Char attacker, Char defender, DamageInfo info ) {
-		if (attacker instanceof Hero) {
-			ModHooks.confidentDamage( (Hero) attacker, defender, info );
+	public float stealthBonus() {
+		return target instanceof Hero ? EngineerRules.stealthBonus( (Hero) target ) : 0f;
+	}
+
+	//常驻状态的兜底：旧存档里的工程师、或者状态被意外清掉时，下一回合补上
+	@SubscribeEvent(event = HeroActEvent.class, priority = 0)
+	public static void onHeroAct( HeroActEvent event ) {
+		Hero hero = event.getHero();
+		if (EngineerRules.isEngineer( hero ) && hero.buff( EngineerPassive.class ) == null) {
+			Buff.affect( hero, EngineerPassive.class );
 		}
-	}
-
-	@Override
-	public float finalAddFlat( int dmg, DamageInfo info ) {
-		return target instanceof Hero ? GrenadierBombs.incomingFlat( (Hero) target, dmg, info ) : 0f;
-	}
-
-	@Override
-	public float finalMultiply( int dmg, DamageInfo info ) {
-		return target instanceof Hero ? GrenadierBombs.incomingMultiplier( (Hero) target, info ) : 1f;
 	}
 
 	private static final String WAND_GRANTED = "pulse_wand_granted";

@@ -28,7 +28,6 @@ import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerLoot;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.SparkParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -72,13 +71,6 @@ public class DM100 extends Mob implements Callback {
 	@Override
 	public int drRoll() {
 		return super.drRoll() + Char.combatRoll(0, 4);
-	}
-
-	@Override
-	public void rollToDropLoot() {
-		super.rollToDropLoot();
-		//工程师：机械敌人死亡时掉金属零件
-		EngineerLoot.onMechanicalDeath( this );
 	}
 
 	@Override

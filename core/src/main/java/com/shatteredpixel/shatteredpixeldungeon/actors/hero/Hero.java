@@ -46,7 +46,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.El
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Endure;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerRules;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
@@ -114,7 +113,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourg
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDeck;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer;
-import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModHooks;
 import com.shatteredpixel.shatteredpixeldungeon.items.journal.Guidebook;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.CrystalKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.toys.TieredToyEffects;
@@ -499,7 +497,7 @@ public class Hero extends Char {
 
 
 
-		return ModHooks.heroStr( this, STR + strBonus );
+		return STR + strBonus;
 	}
 
 	@Override
@@ -880,9 +878,6 @@ public class Hero extends Char {
 			evasion /= 2;
 		}
 
-		//要排在护甲之前：磐岩刻印会把闪避折成减伤，工程师的闪避加成也应当算进去
-		evasion = EngineerRules.heroEvasion( this, enemy, evasion );
-
 		if (belongings.armor() != null) {
 			evasion = belongings.armor().evasionFactor(this, evasion);
 		}
@@ -1087,8 +1082,6 @@ public class Hero extends Char {
 		if (belongings.armor() != null) {
 			speed = belongings.armor().speedFactor(this, speed);
 		}
-
-		speed = ModHooks.heroSpeed( this, speed );
 
 		speed *= ClumsyShoesBuff.getSpeedMultiplier();
 
@@ -1363,7 +1356,6 @@ public class Hero extends Char {
 				if (isSphereSkin()){
 					sphereRotateWhileWaiting( Math.min( sphereRotationTime( 0f ), TIME_TO_REST ) );
 				}
-				ModHooks.onHeroWait( this );
 				spendConstant( TIME_TO_REST );
 				next();
 			} else {
@@ -2057,7 +2049,6 @@ public class Hero extends Char {
 		if (isSphereSkin()){
 			sphereRotateWhileWaiting( Math.min( sphereRotationTime( 0f ), TIME_TO_REST ) );
 		}
-		ModHooks.onHeroWait( this );
 		spendAndNextConstant( TIME_TO_REST );
 		if (hasTalent(Talent.HOLD_FAST)){
 			Buff.affect(this, HoldFast.class);
@@ -3056,7 +3047,9 @@ public class Hero extends Char {
 		//匿踪斗篷方法
 		if (buff(CloakOfConcealment.Disposed.class)!=null)
 			stealth-=4f;
-		stealth = EngineerRules.heroStealth( this, stealth );
+		for (Buff b : buffs()) {
+			stealth += b.stealthBonus();
+		}
 		return stealth;
 	}
 

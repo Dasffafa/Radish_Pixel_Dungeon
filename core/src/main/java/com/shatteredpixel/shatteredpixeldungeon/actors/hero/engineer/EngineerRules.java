@@ -49,7 +49,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.DM175;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Slime;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Statue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.stats.DM100H;
-import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModHooks;
+import com.shatteredpixel.shatteredpixeldungeon.events.HitCheckEvent;
+import com.shatteredpixel.shatteredpixeldungeon.events.SubscribeEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfSirensSong;
 
 import java.util.HashMap;
@@ -114,24 +115,21 @@ public class EngineerRules {
 		return false;
 	}
 
-	/** 英雄闪避的接缝（Hero.defenseSkill，在护甲折算之前）。 */
-	public static float heroEvasion( Hero hero, Char enemy, float evasion ) {
-		if (isEngineer( hero ) && isMechanical( enemy )) {
-			evasion *= 1.25f;
+	/** 职业被动：工程师对机械敌人的闪避 ×1.25。 */
+	@SubscribeEvent(event = HitCheckEvent.class, priority = 0)
+	public static void onHitCheck( HitCheckEvent event ) {
+		if (event.getDefender() instanceof Hero && isEngineer( (Hero) event.getDefender() )
+				&& isMechanical( event.getAttacker() )) {
+			event.setEvasion( event.getEvasion() * 1.25f );
 		}
-		return ModHooks.heroEvasion( hero, evasion );
 	}
 
 	/**
-	 * 英雄潜行值的接缝（Hero.stealth）。
-	 * 怪物是在自己的回合里读英雄潜行值的，所以看「当前正在行动的是谁」就知道是不是机械怪在找人，
-	 * 不需要改 Mob.java。
+	 * 职业被动：机械敌人找工程师时，工程师潜行 +1（由常驻状态的 stealthBonus 提供）。
+	 * 怪物是在自己的回合里读英雄潜行值的，所以看「当前正在行动的是谁」就知道是不是机械怪在找人。
 	 */
-	public static float heroStealth( Hero hero, float stealth ) {
-		if (isEngineer( hero ) && isMechanicalClass( Actor.getCurrentActorClass() )) {
-			stealth += 1f;
-		}
-		return stealth;
+	public static float stealthBonus( Hero hero ) {
+		return isEngineer( hero ) && isMechanicalClass( Actor.getCurrentActorClass() ) ? 1f : 0f;
 	}
 
 	/**

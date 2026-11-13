@@ -39,7 +39,7 @@ import java.util.List;
  * 一件装备上的改装部件列表（0 到 2 项）。
  *
  * 挂在 Weapon / Armor / Wand 的 mods 字段上，没有改装时那个字段是 null。
- * 这里只管数据和存取，数值怎么变、什么时候扣耐久都在 ModHooks 里。
+ * 这里只管数据和存取，数值怎么变、什么时候扣耐久都在 ModEffects 里。
  */
 public class ModState {
 

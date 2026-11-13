@@ -8,7 +8,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AscensionChallenge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CounterBuff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerLoot;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualActor;
@@ -136,9 +135,6 @@ public class DM100H extends Mob implements Callback {
         }
 
         super.rollToDropLoot();
-
-        //工程师：机械敌人死亡时掉金属零件
-        EngineerLoot.onMechanicalDeath( this );
 
     }
 
