@@ -234,7 +234,8 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 		if (power > 1f){
 			shieldMultiplier *= power;
 			levelRecovery *= 2f - power;
-			turnRecovery *= (int) (2f - power);
+			//原版写法：按 (2 - 怒气) 的比例缩短冷却。把这个比例先截成整数的话，怒气一过 100% 它就恒为 0，冷却直接归零
+			turnRecovery *= 2f - power;
 		}
 
 		WarriorShield shield = target.buff(WarriorShield.class);
@@ -336,8 +337,9 @@ public class Berserk extends Buff implements ActionIndicator.Action {
 	public float iconFadePercent() {
 		switch (state){
 			case NORMAL: default:
-				float maxPower = 1f + 0.1667f*((Hero)target).pointsInTalent(Talent.ENDLESS_RAGE);
-				return (maxPower - power)/maxPower;
+				//怒气上限与 damage() 里的保持一致，否则怒气高过旧上限时这里会算出负数
+				float maxPower = ((Hero)target).hasTalent(Talent.ENDLESS_RAGE) ? 1.25f + 0.25f*((Hero)target).pointsInTalent(Talent.ENDLESS_RAGE) : 1f;
+				return Math.max(0, (maxPower - power)/maxPower);
 			case BERSERK:
 				return 0f;
 			case RECOVERING:

@@ -97,7 +97,9 @@ public class Healing extends Buff {
 		if (target == Dungeon.hero){
 			Buff ben=Dungeon.hero.buff(RingOfBenediction.Benediction.class);
 			if (ben!=null){
-				amount*= (int) RingOfBenediction.periodMultiplier(target);
+				//先乘再取整。把倍率先截成整数的话，1.2～1.99 倍都变成 1 倍（戒指对治疗量无效），
+				//诅咒戒指的 0.x 倍变成 0 倍，治疗量直接清零
+				amount = Math.round(amount * RingOfBenediction.periodMultiplier(target));
 			}
 		}
 		healingLeft = amount;

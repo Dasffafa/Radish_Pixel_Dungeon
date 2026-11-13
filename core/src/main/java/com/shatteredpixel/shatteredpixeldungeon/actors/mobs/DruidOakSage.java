@@ -50,6 +50,24 @@ public class DruidOakSage extends Mob {
 		return super.act();
 	}
 
+	// 说明文字写明橡木智者不会移动：追击、游荡、逃跑时都留在原地
+	@Override
+	protected boolean getCloser( int target ) {
+		return false;
+	}
+
+	@Override
+	protected boolean getFurther( int target ) {
+		return false;
+	}
+
+	// 它的伤害和命中都是 0，出手打不出伤害，却要等一整段攻击动画放完才轮到别人行动。
+	// 身边有敌人时每回合都会卡上一秒左右，所以干脆不让它出手。
+	@Override
+	protected boolean canAttack( Char enemy ) {
+		return false;
+	}
+
 	@Override
 	public int damageRoll() {
 		return 0;

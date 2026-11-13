@@ -132,16 +132,20 @@ public class GravityChaosTracker extends Buff {
     }
 
     private static final String LEFT = "left";
+    private static final String POSITIVE_ONLY = "positive_only";
 
     @Override
     public void storeInBundle(Bundle bundle) {
         super.storeInBundle(bundle);
         bundle.put(LEFT, left);
+        bundle.put(POSITIVE_ONLY, positiveOnly);
     }
 
     @Override
     public void restoreFromBundle(Bundle bundle) {
         super.restoreFromBundle(bundle);
         left = bundle.getInt(LEFT);
+        //不存的话读档后一律变成 false，「只有正面效果」的重力混乱读档后会开始乱扔英雄的盟友
+        if (bundle.contains(POSITIVE_ONLY)) positiveOnly = bundle.getBoolean(POSITIVE_ONLY);
     }
 }

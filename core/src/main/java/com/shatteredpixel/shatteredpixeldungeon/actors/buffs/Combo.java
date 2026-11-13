@@ -111,7 +111,14 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		return Integer.toString((int)comboTime);
 	}
 
+	//战技自己发起的攻击正在结算
+	private boolean moveAttacking = false;
+
 	public void hit() {
+		//角斗士「命中 +1 连击」的子职业钩子挂在 Hero.attackProc 里，战技自己的 hero.attack() 也会经过它。
+		//战技命中后加不加连击由 doAttack 自己决定，钩子的这一次必须忽略，否则战技每次命中都算两遍：
+		//终结技「连斩」每打一下扣 1 连击，命中又被钩子加回来，只有打空才会真的减少
+		if (moveAttacking) return;
 		count++;
 		if(count%2==1)couldUseTime++;
 		int point=Dungeon.hero.pointsInTalent(Talent.KEEP_VIGILANCE);
@@ -214,7 +221,9 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		cleaveUsed= bundle.getBoolean(CLEAVE_USED);
 		furyUsed = bundle.getBoolean(FURY_USED);
 		spurtUsed = bundle.getBoolean(SPURT_USED);
-		if (count >= 2) ActionIndicator.setAction(this);
+		//与 hit() 里按钮出现的条件保持一致：战技次数用完后按钮是收起来的，读档不能把它再放出来
+		//（战技窗口本身不检查剩余次数，按钮回来就等于白送战技）
+		if (count > 0 && couldUseTime > 0) ActionIndicator.setAction(this);
 	}
 
 	@Override
@@ -359,7 +368,12 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		}
 		@Override
 		public void detach() {
-			if (isFinish) target.buff(Combo.class).detach();
+			if (isFinish) {
+				//连击可能已经先一步没了：英雄在格挡的回合里死亡或复活时，身上的状态按挂上去的先后逐个移除，
+				//连击总是先于格挡被移除
+				Combo combo = target.buff(Combo.class);
+				if (combo != null) combo.detach();
+			}
 			super.detach();
 		}
 	}
@@ -386,6 +400,17 @@ public class Combo extends Buff implements ActionIndicator.Action {
 		}
 	}
 	private static ComboMove moveBeingUsed;
+
+	//战技自己的攻击：结算期间屏蔽子职业钩子的那一次 hit()
+	private boolean moveAttack(Hero hero, Char enemy, float dmgMulti, float dmgBonus, float accMulti) {
+		moveAttacking = true;
+		try {
+			return hero.attack(enemy, dmgMulti, dmgBonus, accMulti);
+		} finally {
+			moveAttacking = false;
+		}
+	}
+
 	private void doAttack(final Char enemy) {
 		AttackIndicator.target(enemy);
 
@@ -420,7 +445,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 
 				break;
 		}
-		if (hero.attack(enemy, dmgMulti, dmgBonus,accMulti)){
+		if (moveAttack(hero, enemy, dmgMulti, dmgBonus, accMulti)){
 			//special on-hit effects
 			switch (moveBeingUsed) {
 				case CRUSH:
@@ -516,7 +541,7 @@ public class Combo extends Buff implements ActionIndicator.Action {
 						target.sprite.attack(enemy.pos, new Callback() {
 							@Override
 							public void call() {
-								if (hero.attack(enemy, 0.75f, 0, 0.85f)){
+								if (moveAttack(hero, enemy, 0.75f, 0, 0.85f)){
 									hit();
 								}
 								hero.spendAndNext(hero.attackDelay());

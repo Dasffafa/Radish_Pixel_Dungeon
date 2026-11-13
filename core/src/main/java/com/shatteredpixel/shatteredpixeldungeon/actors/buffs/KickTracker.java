@@ -43,6 +43,7 @@ import com.watabou.noosa.BitmapText;
 import com.watabou.noosa.Image;
 import com.watabou.noosa.Visual;
 import com.watabou.noosa.audio.Sample;
+import com.watabou.utils.Bundle;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
 
@@ -170,7 +171,10 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
         }
 
         // 构建弹道轨迹（从敌人位置指向击退方向）
-        Ballistica trajectory = new Ballistica(enemy.pos, targetPos, Ballistica.PROJECTILE);
+        // 目标格只用来定方向，弹道不能在目标格停下：throwChar 把「弹道在击退距离之内结束」当成撞到了东西，
+        // 而紧挨英雄的敌人目标格离它正好 3 格，带着「到目标就停」会让它在空地上也结算撞墙伤害和麻痹。
+        // 与震爆法杖自己的写法一致，只在墙和角色前停下
+        Ballistica trajectory = new Ballistica(enemy.pos, targetPos, Ballistica.MAGIC_BOLT);
 
         // 使用BlastWand的throwChar方法，power=KICK_RANGE表示踹飞3格
         // collideDmg=true 造成碰撞伤害
@@ -206,6 +210,14 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
     public void detach() {
         super.detach();
         ActionIndicator.clearAction(this);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        //这个状态只有按下按钮用掉才会消失，读档后要把按钮放回去。
+        //不放的话状态还留在身上，checkKick 看到已有状态就不会再给，这次踹飞再也用不出来
+        ActionIndicator.setAction(this);
     }
 
     @Override

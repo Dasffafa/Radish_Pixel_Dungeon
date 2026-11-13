@@ -20,7 +20,8 @@ public class InfusedArmbandBuff extends FlavourBuff {
 	}
 
 	public static void apply( Hero hero, int bonus, float duration ) {
-		InfusedArmbandBuff b = Buff.affect( hero, InfusedArmbandBuff.class, duration );
+		//用 prolong 把剩余时间刷新到 duration；affect 是在剩余时间上累加，每次法杖伤害都会多出 10 回合
+		InfusedArmbandBuff b = Buff.prolong( hero, InfusedArmbandBuff.class, duration );
 		b.bonus = Math.max( b.bonus, bonus );
 	}
 

@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
@@ -12,10 +13,21 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidOakSage;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidSunflower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidVines;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidWolf;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfBlastWave;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.utils.Bundle;
+
+import java.util.ArrayList;
 
 /**
  * 德鲁伊：女猎手的第三转职。
@@ -112,7 +124,7 @@ public class Druid extends HeroSubClass {
 		return spawnAnimal( hero, boar, animalCost( hero, 12f ) );
 	}
 
-	private static float animalCost( Hero hero, float base ) {
+	public static float animalCost( Hero hero, float base ) {
 		int pts = hero.pointsInTalent( Talent.ANIMAL_COMPANION );
 		if (pts >= 3) {
 			return base + 6f;
@@ -124,20 +136,15 @@ public class Druid extends HeroSubClass {
 	}
 
 	public static boolean summonWolves( Hero hero ) {
-		int amount = 3;
-		float cost = animalCost( hero, 16f );
-		if (!spendEnergy( hero, cost )) {
-			return false;
-		}
-		enforceAnimalLimit( hero, DruidWolf.class );
-		for (int i = 0; i < amount; i++) {
+		DruidWolf[] pack = new DruidWolf[3];
+		for (int i = 0; i < pack.length; i++) {
 			DruidWolf wolf = new DruidWolf();
 			wolf.lvl = hero.lvl;
 			wolf.power = animalPower( hero );
 			wolf.HP = wolf.HT = Math.round( (22 + hero.lvl / 2f) * wolf.power );
-			place( wolf, hero );
+			pack[i] = wolf;
 		}
-		return true;
+		return summon( hero, animalCost( hero, 16f ), animalsToReplace( hero, DruidWolf.class ), pack );
 	}
 
 	public static boolean summonBear( Hero hero ) {
@@ -148,65 +155,78 @@ public class Druid extends HeroSubClass {
 		return spawnAnimal( hero, bear, animalCost( hero, 20f ) );
 	}
 
-	private static boolean spawnAnimal( Hero hero, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, float cost ) {
+	private static boolean spawnAnimal( Hero hero, Mob m, float cost ) {
+		return summon( hero, cost, animalsToReplace( hero, m.getClass() ), m );
+	}
+
+	// 这次召唤会顶替掉场上哪些动物：同种的全部；其它种类已经占满名额时，其它种类也全部顶替
+	private static ArrayList<Mob> animalsToReplace( Hero hero, Class<?> newType ) {
+		int allowed = hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 3 ? 3
+				: hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 2 ? 2 : 1;
+		ArrayList<Mob> animals = new ArrayList<>();
+		for (Char ch : Actor.chars()) {
+			if (ch instanceof DruidBoar || ch instanceof DruidWolf || ch instanceof DruidBear) {
+				animals.add( (Mob) ch );
+			}
+		}
+		java.util.HashSet<Class<?>> otherTypes = new java.util.HashSet<>();
+		for (Mob a : animals) {
+			if (a.getClass() != newType) {
+				otherTypes.add( a.getClass() );
+			}
+		}
+		ArrayList<Mob> replaced = new ArrayList<>();
+		for (Mob a : animals) {
+			if (a.getClass() == newType || otherTypes.size() >= allowed) {
+				replaced.add( a );
+			}
+		}
+		return replaced;
+	}
+
+	// 植物同一时间只留一株，新召唤的会顶替场上已有的任何一种
+	private static ArrayList<Mob> plantsToReplace() {
+		ArrayList<Mob> replaced = new ArrayList<>();
+		for (Char ch : Actor.chars()) {
+			if (ch instanceof DruidOakSage || ch instanceof DruidVines || ch instanceof DruidSunflower) {
+				replaced.add( (Mob) ch );
+			}
+		}
+		return replaced;
+	}
+
+	// 所有召唤共用的结算。顺序不能换：先确认能量够、周围有落点，然后才扣能量、顶替旧召唤物。
+	// 反过来做的话，周围没有空位时旧召唤物已经白白消失，狼群还会照扣能量却一只都不出来。
+	private static boolean summon( Hero hero, float cost, ArrayList<Mob> replaced, Mob... fresh ) {
+		if (energy( hero ) < cost) {
+			GLog.w( Messages.get( HeroSubClass.class, "druid_no_energy" ) );
+			return false;
+		}
+		ArrayList<Integer> spots = findSpots( hero, replaced, fresh.length );
+		if (spots.isEmpty()) {
+			GLog.w( Messages.get( HeroSubClass.class, "druid_no_space" ) );
+			return false;
+		}
 		if (!spendEnergy( hero, cost )) {
 			return false;
 		}
-		enforceAnimalLimit( hero, m.getClass() );
-		if (!place( m, hero )) {
-			gainEnergy( hero, cost );
-			return false;
+		for (Mob old : replaced) {
+			old.die( null );
+		}
+		// 落点比要召唤的数量少时，能放几个放几个（只有狼群会遇到）
+		for (int i = 0; i < fresh.length && i < spots.size(); i++) {
+			int c = spots.get( i );
+			fresh[i].pos = c;
+			GameScene.add( fresh[i] );
+			CellEmitter.get( c ).burst( Speck.factory( Speck.STAR ), 10 );
 		}
 		return true;
 	}
 
-	private static void enforceAnimalLimit( Hero hero, Class<?> newType ) {
-		int allowed = hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 3 ? 3
-				: hero.pointsInTalent( Talent.ANIMAL_COMPANION ) >= 2 ? 2 : 1;
-		java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob> animals = new java.util.ArrayList<>();
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.Char ch : com.shatteredpixel.shatteredpixeldungeon.actors.Actor.chars()) {
-			if (ch instanceof DruidBoar || ch instanceof DruidWolf || ch instanceof DruidBear) {
-				animals.add( (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) ch );
-			}
-		}
-		// 重新召唤同类时替换旧的同类召唤物
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob a : animals) {
-			if (a.getClass() == newType) {
-				a.die( null );
-			}
-		}
-		// 统计其它种类，若达到上限则清空
-		java.util.HashSet<Class<?>> types = new java.util.HashSet<>();
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob a : animals) {
-			if (a.getClass() != newType) {
-				types.add( a.getClass() );
-			}
-		}
-		if (types.size() >= allowed) {
-			for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob a : animals) {
-				if (a.getClass() != newType) {
-					a.die( null );
-				}
-			}
-		}
-	}
-
-	private static void enforcePlantLimit() {
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.Char ch : com.shatteredpixel.shatteredpixeldungeon.actors.Actor.chars()) {
-			if (ch instanceof DruidOakSage || ch instanceof DruidVines || ch instanceof DruidSunflower) {
-				((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) ch).die( null );
-			}
-		}
-	}
-
-	private static boolean mobAt( int cell ) {
-		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m : Dungeon.level.mobs) {
-			if (m.pos == cell) return true;
-		}
-		return false;
-	}
-
-	private static boolean place( com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, Hero hero ) {
+	// 在英雄周围两圈内由近到远找落点，最多找 amount 个。
+	// vacating 里的旧召唤物马上会被顶替，它们站着的格子也算空位。
+	private static ArrayList<Integer> findSpots( Hero hero, ArrayList<Mob> vacating, int amount ) {
+		ArrayList<Integer> spots = new ArrayList<>();
 		int w = Dungeon.level.width();
 		int hx = hero.pos % w, hy = hero.pos / w;
 		for (int radius = 1; radius <= 2; radius++) {
@@ -220,20 +240,29 @@ public class Druid extends HeroSubClass {
 						continue;
 					}
 					int c = ny * w + nx;
-					if (Dungeon.level.passable[c] && !Dungeon.level.solid[c]
-							&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null
-							&& !mobAt( c )) {
-						m.pos = c;
-						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( m );
-						com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( c ).burst(
-								com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-										com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STAR ), 10 );
-						return true;
+					if (spots.size() < amount
+							&& Dungeon.level.passable[c] && !Dungeon.level.solid[c]
+							&& isVacant( c, vacating )) {
+						spots.add( c );
 					}
 				}
 			}
 		}
-		return false;
+		return spots;
+	}
+
+	// 沿用原先的双重检查：既查回合循环里登记的角色，也查本层的怪物列表
+	private static boolean isVacant( int cell, ArrayList<Mob> vacating ) {
+		Char ch = Actor.findChar( cell );
+		if (ch != null && !vacating.contains( ch )) {
+			return false;
+		}
+		for (Mob m : Dungeon.level.mobs) {
+			if (m.pos == cell && !vacating.contains( m )) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	// ===== 召唤植物 =====
@@ -265,16 +294,8 @@ public class Druid extends HeroSubClass {
 		return spawnPlant( hero, flower, 30f );
 	}
 
-	private static boolean spawnPlant( Hero hero, com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, float cost ) {
-		if (!spendEnergy( hero, cost )) {
-			return false;
-		}
-		enforcePlantLimit();
-		if (!place( m, hero )) {
-			gainEnergy( hero, cost );
-			return false;
-		}
-		return true;
+	private static boolean spawnPlant( Hero hero, Mob m, float cost ) {
+		return summon( hero, cost, plantsToReplace(), m );
 	}
 
 	private static int countGrass( int center, int radius ) {
@@ -306,6 +327,7 @@ public class Druid extends HeroSubClass {
 
 	public static boolean castEnchantArrow( Hero hero ) {
 		if (!spendEnergy( hero, spellCost( hero, 5f ) )) {
+			GLog.w( Messages.get( HeroSubClass.class, "druid_no_energy" ) );
 			return false;
 		}
 		Buff.affect( hero, EnchantArrow.class, 20f );
@@ -333,15 +355,18 @@ public class Druid extends HeroSubClass {
 						&& hit.add( ch )) {
 					ch.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
 							dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-					Buff.affect( ch, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
-					if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1) {
+					ignite( ch );
+					if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1 && ch.isAlive()) {
 						knockBack( ch, hero.pos );
 					}
 				}
 			}
-			if (pos != hero.pos) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(
-						pos, 1, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class );
+			// 火焰要交给 GameScene.add 登记才会进回合循环；只 seed 的话本层第一次起火时当回合不烧，
+			// 要等别处起火或读档才突然烧起来。地图最外圈不放火：Fire 在边界行上演算会数组越界。
+			if (pos != hero.pos && Dungeon.level.insideMap( pos )) {
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add(
+						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(
+								pos, 1, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class ) );
 			}
 			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( pos ).burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
@@ -374,6 +399,8 @@ public class Druid extends HeroSubClass {
 		ThunderField f = Buff.affect( hero, ThunderField.class );
 		f.cell = cell;
 		f.turns = 10;
+		f.depth = Dungeon.depth;
+		f.branch = Dungeon.branchId;
 		return true;
 	}
 
@@ -386,7 +413,7 @@ public class Druid extends HeroSubClass {
 			if (mob.alignment == Char.Alignment.ENEMY && mob.isAlive()
 					&& Dungeon.level.distance( cell, mob.pos ) <= 3) {
 				mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo( dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-				Buff.affect( mob, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
+				ignite( mob );
 				com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( mob.pos ).burst(
 						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 6 );
 			}
@@ -397,7 +424,24 @@ public class Druid extends HeroSubClass {
 		VolcanoField v = Buff.affect( hero, VolcanoField.class );
 		v.cell = cell;
 		v.turns = 50 + (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 3 ? 25 : 0);
+		v.depth = Dungeon.depth;
+		v.branch = Dungeon.branchId;
 		return true;
+	}
+
+	// 雷场和火山是放在某一层地面上的，但它们的 buff 挂在英雄身上，会跟着英雄换层。
+	// 所以施放时记下楼层与分支，英雄不在那一层时让场地消散；
+	// 否则它会在新楼层的同一个格子编号上继续打怪，位置和原来毫无关系。
+	private static boolean onCastFloor( int depth, String branch ) {
+		return depth == Dungeon.depth && java.util.Objects.equals( branch, Dungeon.branchId );
+	}
+
+	// 只 Buff.affect 而不 reignite 的燃烧剩余时间是 0，烧一跳就熄灭；这里按原版火系效果的写法补上 reignite。
+	// 已被这次伤害打死的目标不再点燃，免得给尸体挂上燃烧特效。
+	private static void ignite( Char ch ) {
+		if (ch.isAlive()) {
+			Buff.affect( ch, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class ).reignite( ch );
+		}
 	}
 
 	/** 从 from 到 to 的直线格（Bresenham）。 */
@@ -426,21 +470,15 @@ public class Druid extends HeroSubClass {
 		return cells;
 	}
 
+	// 击退统一走 WandOfBlastWave.throwChar：推动动画、落点压格（陷阱、门、草），以及首领减半、
+	// 被定身或不可移动的单位不动、大体型不进窄道这些规则都在那里，不要在这里手写改坐标。
 	private static void knockBack( Char ch, int from ) {
-		int best = ch.pos;
-		for (int n : com.watabou.utils.PathFinder.NEIGHBOURS8) {
-			int c = ch.pos + n;
-			if (c >= 0 && c < Dungeon.level.length()
-					&& Dungeon.level.passable[c] && !Dungeon.level.solid[c]
-					&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null
-					&& Dungeon.level.distance( c, from ) > Dungeon.level.distance( best, from )) {
-				best = c;
-			}
-		}
-		if (best != ch.pos) {
-			ch.pos = best;
-			ch.sprite.place( best );
-		}
+		// 先画一条从施法者穿过目标的弹道，再截取目标身后的那一段作为击退路线
+		Ballistica trajectory = new Ballistica( from, ch.pos, Ballistica.STOP_TARGET );
+		trajectory = new Ballistica( trajectory.collisionPos,
+				trajectory.path.get( trajectory.path.size() - 1 ), Ballistica.PROJECTILE );
+		// 天赋文本写明击退 2 格；文本没有提撞墙伤害，所以不结算碰撞伤害与麻痹
+		WandOfBlastWave.throwChar( ch, trajectory, 2, true, false, Dungeon.hero );
 	}
 
 	/** 附魔箭：持续期间灵能弓附魔效率提升并转为法术伤害。 */
@@ -492,10 +530,22 @@ public class Druid extends HeroSubClass {
 
 		public int cell = -1;
 		public int turns = 0;
+		// 施放时所在的楼层与分支，-1 表示还没有记录（旧存档）
+		public int depth = -1;
+		public String branch = null;
 
 		@Override
 		public boolean act() {
 			if (cell < 0 || turns <= 0 || Dungeon.level == null) {
+				detach();
+				return true;
+			}
+			// 旧存档里没有记录楼层，按读档后第一次生效时所在的楼层算
+			if (depth == -1) {
+				depth = Dungeon.depth;
+				branch = Dungeon.branchId;
+			}
+			if (!onCastFloor( depth, branch )) {
 				detach();
 				return true;
 			}
@@ -528,12 +578,18 @@ public class Druid extends HeroSubClass {
 
 		private static final String CELL = "cell";
 		private static final String TURNS = "turns";
+		private static final String DEPTH = "depth";
+		private static final String BRANCH = "branch";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( CELL, cell );
 			bundle.put( TURNS, turns );
+			if (depth != -1) {
+				bundle.put( DEPTH, depth );
+				bundle.put( BRANCH, branch );
+			}
 		}
 
 		@Override
@@ -541,6 +597,11 @@ public class Druid extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			cell = bundle.getInt( CELL );
 			turns = bundle.getInt( TURNS );
+			// 旧存档没有这两个键：保持未记录的状态，等第一次生效时再绑定楼层
+			if (bundle.contains( DEPTH )) {
+				depth = bundle.getInt( DEPTH );
+				branch = bundle.getString( BRANCH );
+			}
 		}
 	}
 
@@ -554,10 +615,22 @@ public class Druid extends HeroSubClass {
 
 		public int cell = -1;
 		public int turns = 0;
+		// 施放时所在的楼层与分支，-1 表示还没有记录（旧存档）
+		public int depth = -1;
+		public String branch = null;
 
 		@Override
 		public boolean act() {
 			if (cell < 0 || turns <= 0 || Dungeon.level == null) {
+				detach();
+				return true;
+			}
+			// 旧存档里没有记录楼层，按读档后第一次生效时所在的楼层算
+			if (depth == -1) {
+				depth = Dungeon.depth;
+				branch = Dungeon.branchId;
+			}
+			if (!onCastFloor( depth, branch )) {
 				detach();
 				return true;
 			}
@@ -572,7 +645,7 @@ public class Druid extends HeroSubClass {
 							&& Dungeon.level.distance( cell, mob.pos ) <= 3) {
 						mob.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
 								dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, this ) );
-						Buff.affect( mob, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
+						ignite( mob );
 					}
 				}
 			}
@@ -587,12 +660,18 @@ public class Druid extends HeroSubClass {
 
 		private static final String CELL = "cell";
 		private static final String TURNS = "turns";
+		private static final String DEPTH = "depth";
+		private static final String BRANCH = "branch";
 
 		@Override
 		public void storeInBundle( Bundle bundle ) {
 			super.storeInBundle( bundle );
 			bundle.put( CELL, cell );
 			bundle.put( TURNS, turns );
+			if (depth != -1) {
+				bundle.put( DEPTH, depth );
+				bundle.put( BRANCH, branch );
+			}
 		}
 
 		@Override
@@ -600,6 +679,11 @@ public class Druid extends HeroSubClass {
 			super.restoreFromBundle( bundle );
 			cell = bundle.getInt( CELL );
 			turns = bundle.getInt( TURNS );
+			// 旧存档没有这两个键：保持未记录的状态，等第一次生效时再绑定楼层
+			if (bundle.contains( DEPTH )) {
+				depth = bundle.getInt( DEPTH );
+				branch = bundle.getString( BRANCH );
+			}
 		}
 	}
 
@@ -615,12 +699,14 @@ public class Druid extends HeroSubClass {
 		}
 	}
 
-	public static class DruidEnergy extends Buff
-			implements com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.Action {
+	public static class DruidEnergy extends Buff implements ActionIndicator.Action {
 
 		{
 			type = buffType.POSITIVE;
 			announced = false;
+			// 复活时会清掉所有不带这个标记的 buff；自然能量是转职资源，
+			// 和 MonkEnergy、MagicPoint 这些职业资源一样要留下，否则复活后能量归零、法术书按钮也跟着消失
+			revivePersists = true;
 		}
 
 		public float energy = 0f;
@@ -633,16 +719,40 @@ public class Druid extends HeroSubClass {
 
 		public void gain( float amount ) {
 			energy = Math.min( max(), energy + amount );
-			com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.setAction( this );
+			claimAction();
+		}
+
+		// 动作按钮只有一个槽位，而法术书只能从这个按钮打开，所以槽位一空出来就要补占。
+		// 只在槽位空着或本来就是自己时动手，不去抢别的按钮（例如次元撕裂者的三回合窗口）。
+		private void claimAction() {
+			if (ActionIndicator.action == null) {
+				ActionIndicator.setAction( this );
+			} else if (ActionIndicator.action == this) {
+				ActionIndicator.refresh();
+			}
+		}
+
+		// 读档时 Hero.restoreFromBundle 的末尾会把动作槽整个清空，在 restoreFromBundle 里占位留不住。
+		// 贴图挂接（进入场景、刚获得这个 buff）时每个 buff 都会收到一次 fx(true)，借这个时机占位。
+		@Override
+		public void fx( boolean on ) {
+			if (on) {
+				claimAction();
+			}
+		}
+
+		// 每回合检查一次：别的按钮用完把槽位清空后，下一回合法术书按钮自己回来
+		@Override
+		public boolean act() {
+			claimAction();
+			spend( TICK );
+			return true;
 		}
 
 		@Override
-		public boolean attachTo( Char target ) {
-			if (super.attachTo( target )) {
-				com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.setAction( this );
-				return true;
-			}
-			return false;
+		public void detach() {
+			ActionIndicator.clearAction( this );
+			super.detach();
 		}
 
 		public boolean useEnergy( float amount ) {
@@ -650,7 +760,7 @@ public class Druid extends HeroSubClass {
 				return false;
 			}
 			energy -= amount;
-			com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.refresh();
+			ActionIndicator.refresh();
 			return true;
 		}
 
@@ -702,7 +812,11 @@ public class Druid extends HeroSubClass {
 		public void restoreFromBundle( Bundle bundle ) {
 			super.restoreFromBundle( bundle );
 			energy = bundle.getFloat( ENERGY );
-			com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator.setAction( this );
+			// 旧版本里这个 buff 没有自己的 act，默认实现会把它的行动时间设成「永不行动」并存进存档。
+			// 这里清零让它重新进入回合循环，否则旧存档里每回合补占按钮的逻辑不会运行。
+			if (time >= Float.MAX_VALUE) {
+				clearTime();
+			}
 		}
 	}
 }
