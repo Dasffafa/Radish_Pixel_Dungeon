@@ -823,6 +823,33 @@ public class Talent {
 	public static class LethalMomentumTracker extends FlavourBuff{};
 	public static class StrikingWaveTracker extends FlavourBuff{};
 	public static class WandPreservationCounter extends CounterBuff{{revivePersists = true;}};
+
+	// 月华 4-2 月之辉煌：累计用掉的法杖充能，每满一档给身上的法杖随机回充能
+	public static class MoonGloryCounter extends CounterBuff{{revivePersists = true;}};
+
+	public static void onWandChargesSpent(Hero hero, int spent){
+		int points = hero.pointsInTalent(MOON_GLORY);
+		if (points <= 0 || spent <= 0) return;
+		int threshold = points >= 4 ? 10 : points == 3 ? 11 : 12;
+		int refund = points >= 2 ? 3 : 2;
+		MoonGloryCounter counter = Buff.affect(hero, MoonGloryCounter.class);
+		counter.countUp(spent);
+		while (counter.count() >= threshold) {
+			counter.countDown(threshold);
+			for (int i = 0; i < refund; i++) {
+				ArrayList<Wand> notFull = new ArrayList<>();
+				for (Wand w : hero.belongings.getAllItems(Wand.class)) {
+					if (w.curCharges < w.maxCharges) notFull.add(w);
+				}
+				if (notFull.isEmpty()) break;
+				Wand w = Random.element(notFull);
+				w.curCharges++;
+				w.updateQuickslot();
+			}
+		}
+	}
+
+	}
 	public static class EmpoweredStrikeTracker extends FlavourBuff{
 		//blast wave on-hit doesn't resolve instantly, so we delay detaching for it
 		public boolean delayedDetach = false;

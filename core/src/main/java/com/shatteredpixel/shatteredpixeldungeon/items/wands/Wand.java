@@ -562,6 +562,7 @@ public abstract class Wand extends Item {
 			// 使用免费次数，不消耗充能
 		} else {
 			curCharges -= cursed ? 1 : chargesPerCast();
+			Talent.onWandChargesSpent(hero, cursed ? 1 : chargesPerCast());
 		}
 		// 魔武士：使用法杖后为下次攻击叠加附魔强化
 		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.gainCharge(Dungeon.hero);
