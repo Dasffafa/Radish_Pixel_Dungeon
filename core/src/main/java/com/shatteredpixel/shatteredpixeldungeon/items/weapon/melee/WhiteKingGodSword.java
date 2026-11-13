@@ -5,7 +5,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Paralysis;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
@@ -15,7 +14,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.particles.Emitter;
-import com.watabou.utils.Callback;
+import com.watabou.utils.Bundle;
 
 public class WhiteKingGodSword extends MeleeWeapon {
 
@@ -67,36 +66,88 @@ public class WhiteKingGodSword extends MeleeWeapon {
 
         @Override
         public boolean act() {
+            Hero hero = (Hero) target;
+            if (!(hero.belongings.weapon instanceof WhiteKingGodSword)) {
+                detach();
+                return true;
+            }
+            WhiteKingGodSword weapon = (WhiteKingGodSword) hero.belongings.weapon;
             for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-                if (Dungeon.level.heroFOV[mob.pos] && mob.alignment == Char.Alignment.ENEMY && !mob.eyeAttack) {
-                    if (Dungeon.hero.belongings.weapon instanceof WhiteKingGodSword) {
-                    			WhiteKingGodSword weapon = (WhiteKingGodSword) Dungeon.hero.belongings.weapon;
-                    			int vault_damage = (int) (weapon.damageRoll(Dungeon.hero) * 0.6f);
-
-                    			int damage = Math.round(vault_damage * (weapon.augment == Augment.DAMAGE ? 1.5f : (weapon.augment == Augment.SPEED ? 0.7f : 1f)) + 0.1f * weapon.buffedLvl());
-
-                        Buff.affect(mob, Paralysis.class, 100f);
-                        ((MissileSprite)target.sprite.parent.recycle( MissileSprite.class )).resetFromAbove(mob,mob.pos, new WKNOR(), new Callback() {
-                            @Override
-                            public void call() {
-                                int enchantedDamage = weapon.proc(Dungeon.hero, mob, damage);
-                                // 说明写的是「真实伤害」，伤害系统重构之前这里也不吃护甲（直接 damage(数值, 来源)）。
-                                // 重构时写成了普通物理伤害，会被护甲减免，只有跳字图标还是「无视格挡」的那个
-                                mob.damage(DamageInfo.of(enchantedDamage, DamageType.PHYSICAL_NO_ARMOR, Dungeon.hero, this)
-										.setFloatingTextIcon(FloatingText.PHYS_DMG_NO_BLOCK));
-                                Buff.detach( mob, Paralysis.class);
-                            }
-                        });
-                    }
+                if (!mob.isAlive() || mob.alignment != Char.Alignment.ENEMY
+                        || mob.eyeAttack || !Dungeon.level.heroFOV[mob.pos]) {
+                    continue;
+                }
+                FallingSword strike = new FallingSword();
+                int baseDamage = (int) (weapon.damageRoll(hero) * 0.6f);
+                float augment = weapon.augment == Augment.DAMAGE ? 1.5f
+                        : weapon.augment == Augment.SPEED ? 0.7f : 1f;
+                strike.damage = Math.round(baseDamage * augment + 0.1f * weapon.buffedLvl());
+                strike.weapon = weapon;
+                if (strike.scheduleOn(mob)) {
                     mob.eyeAttack = true;
                 }
             }
             spend(TICK);
             return true;
         }
-
     }
 
+    public static class FallingSword extends Buff {
+        {
+            actPriority = VFX_PRIO;
+        }
+
+        private WhiteKingGodSword weapon;
+        private int damage;
+
+        private boolean scheduleOn(Char victim) {
+            if (!attachTo(victim)) {
+                return false;
+            }
+            postpone(TICK);
+            return true;
+        }
+
+        @Override
+        public boolean act() {
+            detach();
+            Hero hero = Dungeon.hero;
+            if (hero != null && hero.isAlive() && target.isAlive() && weapon != null) {
+                int enchantedDamage = weapon.proc(hero, target, damage);
+                if (target.isAlive()) {
+                    target.damage(new DamageInfo(enchantedDamage, DamageType.PHYSICAL_NO_ARMOR, hero, weapon, this)
+                            .setFloatingTextIcon(FloatingText.PHYS_DMG_NO_BLOCK));
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public void fx(boolean on) {
+            if (on && target.sprite.parent != null) {
+                ((MissileSprite) target.sprite.parent.recycle(MissileSprite.class))
+                        .resetFromAbove(target, target.pos, new WKNOR(), null);
+            }
+        }
+
+        @Override
+        public void storeInBundle(Bundle bundle) {
+            super.storeInBundle(bundle);
+            bundle.put("damage", damage);
+            Bundle weaponState = new Bundle();
+            weapon.storeInBundle(weaponState);
+            weaponState.remove("quickslotpos");
+            bundle.put("weapon", weaponState);
+        }
+
+        @Override
+        public void restoreFromBundle(Bundle bundle) {
+            super.restoreFromBundle(bundle);
+            damage = bundle.getInt("damage");
+            weapon = new WhiteKingGodSword();
+            weapon.restoreFromBundle(bundle.getBundle("weapon"));
+        }
+    }
 
     public String desc() {
     		String s;
