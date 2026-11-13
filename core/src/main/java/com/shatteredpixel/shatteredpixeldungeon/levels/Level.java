@@ -40,6 +40,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CrossLevelChallenge
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicalSight;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MindVision;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.SnipersMark;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PinCushion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Regeneration;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.RevealedArea;
@@ -1611,6 +1612,17 @@ public abstract class Level implements Bundlable {
 				}
 				int p = ch.pos;
 				for (int i : PathFinder.NEIGHBOURS9) heroMindFov[p+i] = true;
+			}
+
+			// 狙击 4-3 通识射击 +4：通识射击把标记挂在怪身上，其它来源挂在英雄身上记着怪的 id，两种都算
+			if (((Hero) c).pointsInTalent(Talent.COMMON_SHOT) >= 4) {
+				SnipersMark mark = c.buff(SnipersMark.class);
+				for (Mob mob : mobs) {
+					if (mob.isAlive() && (mob.buff(SnipersMark.class) != null
+							|| mark != null && (mob.id() == mark.object || mob.id() == mark.secondObject))) {
+						for (int i : PathFinder.NEIGHBOURS9) heroMindFov[mob.pos+i] = true;
+					}
+				}
 			}
 
 			for (TalismanOfForesight.HeapAwareness h : c.buffs(TalismanOfForesight.HeapAwareness.class)){
