@@ -387,8 +387,6 @@ public class Hero extends Char {
 	private int andromedaSeenFoes = 0;
 	private int andromedaCd = 0;
 	private int resistHealth = 0;
-	private int originalHT = 20;
-
 	public int HTBoost = 0;
 
 	/**
@@ -482,18 +480,38 @@ public class Hero extends Char {
 			HT -= buff(Sprouted_Potato.Potato_Poison.class).level();
 		}
 
-		if (boostHP){
-			HP += Math.max(HT - curHT, 0);
-		}
-
 		// DoggingDog on 20250914
 		// 用 misc() / ring() 而不是字段：丢失背包期间没被保留的装备不生效
 		if(belongings.misc() instanceof InversionBeta || belongings.ring() instanceof InversionBeta){
 			HT = InversionBeta.betaHP(this);
 		}
 		HT = TieredToyEffects.adjustMaxHealth(HT);
+		HT = Math.max(1, HT - resistHealth);
+
+		if (boostHP){
+			HP += Math.max(HT - curHT, 0);
+		}
 
 		HP = Math.min(HP, HT);
+	}
+
+	public boolean resistWithPainScar() {
+		int points = pointsInTalent(Talent.PAIN_SCAR);
+		if (points == 0) {
+			return false;
+		}
+		int healthCost = 25 - 5 * points;
+		float rageCost = healthCost / 100f;
+		Berserk rage = buff(Berserk.class);
+		if (rage == null || rage.getPower() < rageCost || HT <= healthCost) {
+			return false;
+		}
+		resistHealth += healthCost;
+		HT -= healthCost;
+		HP = Math.min(HP, HT);
+		rage.reducePower(rageCost);
+		GLog.n(Messages.get(Talent.PAIN_SCAR, "resistDeath"));
+		return true;
 	}
 
 
@@ -574,6 +592,7 @@ public class Hero extends Char {
 	private static final String STRENGTH	= "STR";
 	private static final String LEVEL		= "lvl";
 	private static final String EXPERIENCE	= "exp";
+	private static final String PAIN_SCAR_HEALTH = "pain_scar_health";
 	private static final String HTBOOST     = "htboost";
 
 	private static final String DEADKNGITH = "deadknight";
@@ -603,6 +622,7 @@ public class Hero extends Char {
 			bundle.put( "alchemy_energy", alchemyEnergy );
 
 			bundle.put( HTBOOST, HTBoost );
+			bundle.put( PAIN_SCAR_HEALTH, resistHealth );
 
 			bundle.put(DEADKNGITH, rectorDeadKngithDeadMode );
 
@@ -620,6 +640,7 @@ public class Hero extends Char {
 		alchemyEnergy = bundle.getFloat( "alchemy_energy" );
 
 		HTBoost = bundle.getInt(HTBOOST);
+		resistHealth = bundle.getInt(PAIN_SCAR_HEALTH);
 
 		rectorDeadKngithDeadMode = bundle.getBoolean(DEADKNGITH);
 
@@ -2475,7 +2496,6 @@ public class Hero extends Char {
 		}
 	}
 
-	boolean isOnly = false;
 	@Override
 	public void damage( DamageInfo info ) {
 		int dmg = info.getDamage();
@@ -2559,126 +2579,6 @@ public class Hero extends Char {
 		if (hasTalent(Talent.IRON_MUSCLE) && pointsInTalent(Talent.IRON_MUSCLE)>3){
 			if (HP*2<HT)  dmg = Math.round(dmg*0.75f);
 		}
-
-
-		if(hasTalent(Talent.PAIN_SCAR) && HP+ shielding() -dmg<=0){
-			int point = pointsInTalent(Talent.PAIN_SCAR);
-			float ber = 0;
-
-			if(buff(Berserk.class)!=null)
-				ber = buff(Berserk.class).getPower();
-
-			Ankh ankh = null;
-			for (Ankh i : belongings.getAllItems(Ankh.class)) {
-				if (ankh == null || i.isBlessed()) {
-					ankh = i;
-				}
-			}
-
-			boolean canResist = false;
-
-			switch (point){
-
-				case 1:
-					if(ber>=0.2f&&(originalHT-resistHealth)>20) {
-						canResist = true;
-					}
-					break;
-
-				case 2:
-
-					if(ber>=0.15f&&(originalHT-resistHealth)>15) {
-						canResist = true;
-					}
-					break;
-
-				case 3:
-
-					if(ber>=0.1f&&(originalHT-resistHealth)>10) {
-						canResist = true;
-					}
-					break;
-			}
-
-			int RH = resistHealth;
-
-			if(ankh != null && canResist && !isOnly){
-				Game.runOnRenderThread(new Callback() {
-					@Override
-					public void call() {
-						GameScene.show(new WndOptions(new ItemSprite(ItemSpriteSheet.ANKH),
-								Messages.get(Talent.PAIN_SCAR,"title"),
-								Messages.get(Talent.PAIN_SCAR,"desc"),
-								Messages.get(Talent.PAIN_SCAR,"prompt"),
-								Messages.get(Talent.PAIN_SCAR,"cancel")){
-							@Override
-							public void onBackPressed() {
-								//阻止玩家逃课
-							}
-							@Override
-							protected void onSelect(int index){
-								super.onSelect(index);
-								isOnly = true;
-								if( index == 0 ){
-									switch(pointsInTalent(Talent.PAIN_SCAR)){
-										case 1:
-											HT -= 20;
-											isOnly = false;
-											buff(Berserk.class).reducePower(0.2f);
-											GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-											resistHealth +=20;
-											return;
-										case 2:
-											HT -= 15;
-											isOnly = false;
-											buff(Berserk.class).reducePower(0.15f);
-											GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-											resistHealth += 15;
-											return;
-										case 3:
-											HT -= 10;
-											isOnly = false;
-											buff(Berserk.class).reducePower(0.1f);
-											GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-											resistHealth += 10;
-											return;
-									}
-								}else if(index == 1 ){
-									isOnly = false;
-									die(false);
-								}
-							}
-						});
-					}
-				});
-
-				return;
-			} else if (canResist) {
-				switch(pointsInTalent(Talent.PAIN_SCAR)){
-					case 1:
-						HT -= 20;
-						buff(Berserk.class).reducePower(0.2f);
-						GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-						resistHealth +=20;
-						return;
-					case 2:
-						HT -= 15;
-						buff(Berserk.class).reducePower(0.15f);
-						GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-						resistHealth += 15;
-						return;
-					case 3:
-						HT -= 10;
-						buff(Berserk.class).reducePower(0.1f);
-						GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-						resistHealth += 10;
-						return;
-				}
-			}
-			if(RH < resistHealth) return;
-
-		}
-
 
 
 		int preHP = HP + shielding();

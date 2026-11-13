@@ -1058,6 +1058,9 @@ public abstract class Char extends Actor {
 
         int hpBefore = HP;
         if (this.buff(ImmortalShieldAffecter.ImmortalShield.class) == null) {
+            if (dmg > 0 && dmg >= HP && this instanceof Hero && ((Hero) this).resistWithPainScar()) {
+                dmg = 0;
+            }
             HP -= Math.max(dmg, 0);
         }
 
