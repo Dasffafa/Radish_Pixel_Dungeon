@@ -958,7 +958,6 @@ public class Hero extends Char {
             }
             if (armDr > 0) dr += armDr;
 
-            // 次要护甲：力量够就按它的格挡值减伤；力量不够则效果失效并承受相当于主要护甲一半的超力惩罚
             // 共鸣刻印：同时装备共鸣附魔武器与共鸣刻印护甲时，护甲格挡提升50%
             if (com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Resonance.isResonanceActive(this)) {
                 dr += Math.round(armDr * 0.5f);
@@ -1067,8 +1066,8 @@ public class Hero extends Char {
 
 		if (dmg < 0) dmg = 0;
 
-		// 次要护甲「所有伤害」加成已统一移到 Mob.damage 的 DamageInfo 修改器；
-		// 这里不再重复结算（否则近战乘两次，而法杖/投掷物仍吃不到）。
+		// 次要护甲的增减伤在怪物受伤入口统一结算（SecondaryArmor.procMobDamage），
+		// 这里再算一遍会让近战重复吃加成。
 
 		return dmg;
 	}
@@ -1643,7 +1642,7 @@ public class Hero extends Char {
 			ready();
 
 			Heap heap = Dungeon.level.heaps.get( dst );
-			if (heap != null && heap.hasForSale()) {
+			if (heap != null && heap.type == Type.FOR_SALE && heap.size() == 1) {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
@@ -1708,9 +1707,11 @@ public class Hero extends Char {
 			if (heap != null) {
 				Item item = null;
 				boolean windowPick = false;
+				//商品堆最底下那件要花钱买，这里永远不捡它，只捡叠在它上面的东西
+				Item forSale = heap.forSaleItem();
 				if (pendingPickupItem != null) {
 					//从选择窗口记录中取出选中的物品（堆可能已变化，找不到则回退到堆顶）
-					if (heap.items.contains(pendingPickupItem)) {
+					if (pendingPickupItem != forSale && heap.items.contains(pendingPickupItem)) {
 						item = pendingPickupItem;
 						windowPick = true;
 					}
@@ -1718,7 +1719,8 @@ public class Hero extends Char {
 				}
 				if (item == null && !heap.isEmpty()) {
 					//多物品堆自动拾取：弹出选择窗口，选择要自动拾取哪个物品
-					if (heap.size() > 1) {
+					//商品堆不弹窗：窗口会把商品也列出来，改为从上往下一件件捡
+					if (heap.size() > 1 && forSale == null) {
 						pendingPickupItem = null;
 						pickupWindowCell = -1;
 						final Heap fHeap = heap;
@@ -1733,7 +1735,7 @@ public class Hero extends Char {
 					}
 					item = heap.peek();
 				}
-				if (heap.isEmpty()) {
+				if (heap.isEmpty() || item == forSale) {
 					ready();
 				} else if (item.doPickUp( this )) {
 					heap.pickUp(item);
@@ -2535,7 +2537,9 @@ public class Hero extends Char {
 					&& info.getType() == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL) {
 				dmg = Math.max(0, Math.round(dmg * (1f - (10 + 2 * secArmor.level) / 100f)));
 			}
-				if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
+			// 饥饿伤害每次只有 1 点，一并减掉的话没有状态时就永远饿不死，所以不减饥饿伤害
+			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
+					&& info.getType() != DamageType.HUNGER
 					&& buffs().stream().noneMatch(buff -> buff.type != com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.buffType.NEUTRAL)) {
 				dmg = Math.max(0, dmg - Math.round(2 + 0.2f * secArmor.level));
 			}
@@ -3074,9 +3078,9 @@ public class Hero extends Char {
 					curAction = new HeroAction.PickUp( cell );
 					break;
 				case FOR_SALE:
-					// 商品堆一律走购买流程，堆里有多件物品也不能变成免费拾取
-					// 只有真商品才需要购买；玩家放在商品格上的东西应该能直接捡起
-					if (heap.hasForSale()) {
+					// 只剩商品一件时才是购买；商品上面还叠着别的东西时先把它们捡走，
+					// 商品本身捡不走（见 actPickUp）
+					if (heap.size() == 1) {
 						curAction = new HeroAction.Buy( cell );
 					} else {
 						pendingPickupItem = null;

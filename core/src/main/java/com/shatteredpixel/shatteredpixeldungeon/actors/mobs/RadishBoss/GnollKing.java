@@ -118,7 +118,7 @@ public class GnollKing extends Mob {
 
         if(summonCooldown <= 0){
             summonCooldown = 25;
-            summonGnollShadow(pos);
+            summonGnollShadow(pos, result);
         } else {
             summonCooldown--;
         }
@@ -127,9 +127,11 @@ public class GnollKing extends Mob {
         return result;
     }
 
-    private void summonGnollShadow(int pos){
+    private void summonGnollShadow(int pos, boolean playAnim){
         if(summonCooldownLimit <= 0){
-            ((GnollKingSprite)sprite).shadow( pos );
+            //本回合的行动还在等精灵回调（普攻动画、突进）时不能换动画：
+            //攻击动画被顶掉后 onAttackComplete 不会再触发，这个回合永远结束不了
+            if (playAnim) ((GnollKingSprite)sprite).shadow( pos );
             Mob gs1 = new GnollGuardShadow();
             gs1.state = gs1.HUNTING;
             GameScene.add(gs1);
@@ -202,6 +204,9 @@ public class GnollKing extends Mob {
         protected boolean act() {
             if(Statistics.gnoll_boss >= 2){
                 damage(DamageInfo.of(1000, DamageType.LIGHTNING, this, new DM100.LightningBolt()));
+                //自毁后已被移出行动队列，不能再走 super.act()：
+                //死亡动画期间攻击动画不会播放，doAttack 返回 false 后没有人调用 next()
+                if (!isAlive()) return true;
             }
             return super.act();
         }
@@ -355,7 +360,9 @@ public class GnollKing extends Mob {
 
                 leapCooldown = 8;
 
-                if (rooted){
+                //蓄力期间被击退/拉拽后，可能已经站在落点上，或者朝落点的第一格就是墙：
+                //这时突进路径是空的，下面取路径最后一格会越界崩溃，按被定身处理直接取消
+                if (rooted || new Ballistica(pos, leapPos, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID).collisionPos == pos){
                     leapPos = -1;
                     charging = false;
                     leapTargets.clear();
@@ -396,6 +403,10 @@ public class GnollKing extends Mob {
 
                                 if (victim.isAlive()) {
                                     victim.sprite.showStatus(CharSprite.NEUTRAL, victim.defenseVerb());
+                                } else if (victim == Dungeon.hero) {
+                                    //突进伤害不经过 Char.attack，撞死英雄要自己记录死因，否则这局不会进排行榜
+                                    Dungeon.fail(GnollKing.this.getClass());
+                                    GLog.n(Messages.capitalize(Messages.get(Char.class, "kill", name())));
                                 }
                             }
                         }
@@ -478,7 +489,9 @@ public class GnollKing extends Mob {
                         targetPos = enemy.pos;
                         b = new Ballistica(pos, targetPos, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID);
                     }
-                    if (b.collisionPos == targetPos){
+                    //被魅惑时目标可以贴脸走过来，预判的落点会正好是自己脚下：
+                    //路径为空，下面取路径最后一格会越界崩溃，这回合不突进
+                    if (b.collisionPos == targetPos && targetPos != pos){
                         int distance = (int) Math.min(4, Dungeon.level.trueDistance(pos, targetPos));
                         List<Integer> path = new Ballistica(pos, targetPos, Ballistica.STOP_TARGET | Ballistica.STOP_SOLID).subPath(1, distance);
                         int actualEndPos = path.get(path.size() - 1);

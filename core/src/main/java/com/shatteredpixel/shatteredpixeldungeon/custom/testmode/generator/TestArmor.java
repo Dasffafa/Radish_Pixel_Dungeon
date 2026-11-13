@@ -68,7 +68,9 @@ public class TestArmor extends TestGenerator {
     }
 
     private void createArmor(){
-        Armor armor = Reflection.newInstance(armorList(tier)[armor_id]);
+        // 切换阶数后 armor_id 可能还停在上一阶更长的列表里，取用时和界面显示一样收到末项
+        Class<? extends Armor>[] list = armorList(tier);
+        Armor armor = Reflection.newInstance(list[Math.min(armor_id, list.length - 1)]);
         armor = modifyArmor(armor);
         armor.identify();
         if(armor.collect()){
@@ -123,7 +125,8 @@ public class TestArmor extends TestGenerator {
             case 4:
                 return (Class<? extends Armor>[]) Generator.Category.ARM_T4.classes.clone();
             case 5:
-                return (Class<? extends Armor>[]) Generator.Category.ARM_T5.classes.clone();
+                // ARM_T5 里还混着概率为 0 的职业护甲，生成器只列自然掉落的那几件
+                return (Class<? extends Armor>[]) Generator.Category.ARM_T5_NATURE.classes.clone();
         }
     }
 

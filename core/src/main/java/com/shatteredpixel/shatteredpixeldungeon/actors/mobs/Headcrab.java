@@ -23,7 +23,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
@@ -32,8 +31,8 @@ import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeadcrabSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.audio.Sample;
-import com.watabou.utils.Callback;
 
 /**
  * 猎头蟹：螃蟹的稀有变体。
@@ -77,6 +76,11 @@ public class Headcrab extends Crab {
 		if (enemy == null || !enemy.isAlive()) {
 			return false;
 		}
+		return canShootAt( enemy );
+	}
+
+	// 射程内且弹道直达目标所在格才射得到
+	private boolean canShootAt( Char enemy ) {
 		if (Dungeon.level.trueDistance( pos, enemy.pos ) <= BOW_RANGE) {
 			Ballistica arrow = new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE );
 			return arrow.collisionPos == enemy.pos;
@@ -86,7 +90,8 @@ public class Headcrab extends Crab {
 
 	@Override
 	public boolean attack( Char enemy, float dmgMulti, float dmgBonus, float accMulti ) {
-		if (enemy != null && !Dungeon.level.adjacent( pos, enemy.pos )) {
+		// 贴身，或射不到但仍在攻击距离内（精英的隔空攻击、挑战装备的长武器）：走父类的近战结算
+		if (enemy != null && !Dungeon.level.adjacent( pos, enemy.pos ) && canShootAt( enemy )) {
 			rangedAttack( enemy );
 			return true;
 		}
@@ -94,41 +99,34 @@ public class Headcrab extends Crab {
 	}
 
 	private void rangedAttack( Char enemy ) {
-		Ballistica arrow = new Ballistica( pos, enemy.pos, Ballistica.PROJECTILE );
-		int to = arrow.collisionPos;
+		// 先结算，箭只做表现。调用方紧接着就 spend + next() 结束回合，等箭落地再结算的话，
+		// 英雄能在箭还在飞的时候走开，箭落在空格上就什么判定都不做
+		hitWithArrow( enemy );
 
 		if (sprite == null || sprite.parent == null) {
-			hitWithArrow( to );
 			return;
 		}
 
 		Sample.INSTANCE.play( Assets.Sounds.MISS );
 		((MissileSprite)sprite.parent.recycle( MissileSprite.class )).reset(
-				pos, to, new SpiritBow().knockArrow(), new Callback() {
-					@Override
-					public void call() {
-						hitWithArrow( to );
-					}
-				} );
+				pos, enemy.pos, new SpiritBow().knockArrow(), null );
 	}
 
-	private void hitWithArrow( int cell ) {
-		if (!isAlive()) {
-			return;
-		}
-		Char ch = Actor.findChar( cell );
-		if (ch == null) {
-			Dungeon.level.pressCell( cell );
-			return;
-		}
-		if (ch == this || ch.alignment == alignment) {
+	private void hitWithArrow( Char target ) {
+		if (!isAlive() || !target.isAlive()) {
 			return;
 		}
 
-		if (Char.hit( this, ch, 1f, false )) {
-			ch.damage( new DamageInfo( damageRoll(), DamageType.PHYSICAL, this, null, this ) );
+		if (Char.hit( this, target, 1f, false )) {
+			target.damage( new DamageInfo( damageRoll(), DamageType.PHYSICAL, this, null, this ) );
+
+			// 这一箭不经过 Char.attack，射死英雄要自己记录死因，否则这局不会进排行榜
+			if (target == Dungeon.hero && !target.isAlive()) {
+				Dungeon.fail( getClass() );
+				GLog.n( heroKilledMessage() );
+			}
 		} else {
-			ch.sprite.showStatus( CharSprite.NEUTRAL, ch.defenseVerb() );
+			target.sprite.showStatus( CharSprite.NEUTRAL, target.defenseVerb() );
 		}
 	}
 }

@@ -641,9 +641,10 @@ public class Generator {
 			ARM_T5_NATURE.classes = new Class<?>[]{
 					PlateArmor.class,
 					AfterImage.class,
-					AfterGlow.class
+					AfterGlow.class,
+					SoulMix.class
 			};
-			ARM_T5_NATURE.probs = new float[]{ 1, 1, 1};
+			ARM_T5_NATURE.probs = new float[]{ 1, 1, 1, 1 };
 			
 			//see Generator.randomMissile
 			MISSILE.classes = new Class<?>[]{};

@@ -66,7 +66,8 @@ public class DimensionalRipper extends Scimitar {
 			if (warped != null){
 				// 原说明只把本武器登记为 CORROSION 换跳字色；统一到本项目已有的腐蚀类型。
 				defender.damage( new DamageInfo( 1, WeaponDamageTypes.CORROSION, attacker, this, this ) );
-				if (attacker == Dungeon.hero){
+				// 这 1 点腐蚀可能刚好把目标打死，那就没有可追击的对象了，不开窗也不提示
+				if (attacker == Dungeon.hero && defender.isAlive()){
 					Buff.affect( Dungeon.hero, RiftWindow.class ).open( defender );
 				}
 			}
@@ -81,15 +82,8 @@ public class DimensionalRipper extends Scimitar {
 			return false;
 		}
 		int oldPos = ch.pos;
+		// 落点、贴图可见性、英雄视野刷新都由 teleportChar 负责，这里不再另行修正贴图
 		if (!ScrollOfTeleportation.teleportChar( ch )) return false;
-		// 本仓库 teleportToLocation 在 Dungeon.observe() 之前用旧 FOV 设置 visible，
-		// 英雄被传走后会一直保持不可见；传送完成后按新状态纠正。
-		if (ch == Dungeon.hero){
-			ch.sprite.visible = true;
-			ch.sprite.alpha( 1f );
-		} else {
-			ch.sprite.visible = Dungeon.level.heroFOV[ch.pos];
-		}
 		teleportFx( oldPos, ch.pos );
 		if (ch instanceof Mob){
 			Mob mob = (Mob) ch;
@@ -137,7 +131,10 @@ public class DimensionalRipper extends Scimitar {
 
 	@Override
 	public String statsInfo() {
-		return Messages.get( this, "stats_desc", Math.round( procChance( buffedLvl() ) * 100 ) );
+		// 等级未知时按 +0 显示，和 MeleeWeapon.info() 对伤害数值的处理一致；
+		// 否则不用鉴定就能从这个百分比反推出强化等级
+		int lvl = levelKnown ? buffedLvl() : 0;
+		return Messages.get( this, "stats_desc", Math.round( procChance( lvl ) * 100 ) );
 	}
 
 	/** 本项目没有决斗家，不展示任何武技说明。 */

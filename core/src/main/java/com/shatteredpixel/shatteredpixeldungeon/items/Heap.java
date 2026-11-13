@@ -88,11 +88,6 @@ public class Heap implements Bundlable {
 	public boolean hidden = false; //sets alpha to 15%
 	
 	public LinkedList<Item> items = new LinkedList<>();
-
-	/** 只有这些 Item 实例是商店商品；玩家自己放下的物品不在此列，不需要购买。 */
-	private final ArrayList<Item> forSaleItems = new ArrayList<>();
-	/** 仅供存档：读档后把 items 的前 N 个重新标记为商品。 */
-	private int forSaleCount = 0;
 	
 	public void open( Hero hero ) {
 		switch (type) {
@@ -150,7 +145,6 @@ public class Heap implements Bundlable {
 			return null;
 		}
 		Item item = items.removeFirst();
-		refreshSaleState();
 		if (items.isEmpty()) {
 			destroy();
 		} else if (sprite != null) {
@@ -164,37 +158,13 @@ public class Heap implements Bundlable {
 		return items.peek();
 	}
 
-	public void markForSale( Item item ){
-		if (item != null && !identityContains(forSaleItems, item)) forSaleItems.add( item );
-		forSaleCount = forSaleItems.size();
-	}
-
-	/** 清掉已不在堆里的标记；商品全没了就把堆降级成普通堆。 */
-	private void refreshSaleState(){
-		for (int i = forSaleItems.size()-1; i >= 0; i--){
-			if (!identityContains(items, forSaleItems.get(i))) forSaleItems.remove(i);
-		}
-		forSaleCount = forSaleItems.size();
-		if (type == Type.FOR_SALE && forSaleItems.isEmpty()) type = Type.HEAP;
-	}
-
-	public boolean hasForSale(){
-		refreshSaleState();
-		return type == Type.FOR_SALE && !forSaleItems.isEmpty();
-	}
-
-	public Item forSaleItem(){
-		refreshSaleState();
-		return forSaleItems.isEmpty() ? null : forSaleItems.get(0);
-	}
-
-	public boolean isForSale( Item item ){
-		return hasForSale() && identityContains(forSaleItems, item);
-	}
-
-	private static boolean identityContains( Collection<?> c, Object o ){
-		for (Object e : c) if (e == o) return true;
-		return false;
+	/**
+	 * 商品堆里要花钱买的那一件；不是商品堆时返回 null。
+	 * 和原版一样不另设标记：商品生成时是堆里唯一的一件，之后掉进这一格的东西都叠在它上面（见 drop），
+	 * 所以压在最底下的就是商品，它上面的东西可以直接捡走。
+	 */
+	public Item forSaleItem() {
+		return type == Type.FOR_SALE ? items.peekLast() : null;
 	}
 
 	/** 取走堆中指定的物品（用于多物品堆中选取特定物品拾取）。 */
@@ -203,7 +173,6 @@ public class Heap implements Bundlable {
 			return null;
 		}
 		items.remove( item );
-		refreshSaleState();
 		if (items.isEmpty()) {
 			destroy();
 		} else if (sprite != null) {
@@ -228,8 +197,13 @@ public class Heap implements Bundlable {
 		}
 
 		//lost backpack must always be on top of a heap
-		if (type == Type.FOR_SALE || (item.dropsDownHeap && type != Type.FOR_SALE) || peek() instanceof LostBackpack) {
-			items.add( item );
+		if ((item.dropsDownHeap && type != Type.FOR_SALE) || peek() instanceof LostBackpack) {
+			if (type == Type.FOR_SALE) {
+				//商品堆最底下的位置只属于商品（见 forSaleItem），往下放也只能放到它上面
+				items.add( items.size()-1, item );
+			} else {
+				items.add( item );
+			}
 		} else {
 			items.addFirst( item );
 		}
@@ -431,9 +405,8 @@ public class Heap implements Bundlable {
 	public String title(){
 		switch(type){
 			case FOR_SALE:
-				Item i = forSaleItem();
-				if (i == null) i = peek();
-				if (size() == 1 && i != null) {
+				Item i = peek();
+				if (size() == 1) {
 					return Messages.get(this, "for_sale", Shopkeeper.sellPrice(i), i.title());
 				} else {
 					return i.title();
@@ -494,6 +467,8 @@ public class Heap implements Bundlable {
 	private static final String HAUNTED	= "haunted";
 	private static final String AUTO_EXPLORED	= "auto_explored";
 	private static final String HIDDEN	= "hidden";
+	//有一版存档用这个键记过商品的件数，现在只读不写
+	private static final String LEGACY_SALE_COUNT	= "for_sale_count";
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -520,10 +495,18 @@ public class Heap implements Bundlable {
 		haunted = bundle.getBoolean( HAUNTED );
 		autoExplored = bundle.getBoolean( AUTO_EXPLORED );
 		hidden = bundle.getBoolean( HIDDEN );
-		// 老存档没有该键：整堆都视为商品，保持原行为
-		int n = bundle.contains( "for_sale_count" ) ? bundle.getInt( "for_sale_count" ) : items.size();
-		for (int i = 0; i < Math.min(n, items.size()); i++) forSaleItems.add( items.get(i) );
-		forSaleCount = forSaleItems.size();
+
+		// 带这个键的存档里，商品排在堆的最前面：挪回最底下，之后就和其它存档一样了
+		if (type == Type.FOR_SALE && bundle.contains( LEGACY_SALE_COUNT )) {
+			int goods = Math.min( bundle.getInt( LEGACY_SALE_COUNT ), items.size() );
+			if (goods <= 0) {
+				//商品已经不在了，剩下的都是后来掉进来的东西
+				type = Type.HEAP;
+			}
+			for (int i = 0; i < goods; i++) {
+				items.addLast( items.removeFirst() );
+			}
+		}
 	}
 
 	@Override
@@ -535,7 +518,6 @@ public class Heap implements Bundlable {
 		bundle.put( HAUNTED, haunted );
 		bundle.put( AUTO_EXPLORED, autoExplored );
 		bundle.put( HIDDEN, hidden );
-		bundle.put( "for_sale_count", forSaleItems.size() );
 	}
 	
 }

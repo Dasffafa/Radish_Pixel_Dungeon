@@ -92,6 +92,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterGlow;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.LeatherArmor;
+import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.EliteBadge;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.MasterThievesArmband;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TimekeepersHourglass;
@@ -995,66 +996,8 @@ public abstract class Mob extends Char {
 			}
 		}
 
-		// 次要护甲：格里芬之眼（受闪电伤害增加）、蛛网腰带（受毒素伤害增加）
-		// 与三叉护手（火焰/冰霜/闪电伤害增加）
-		if (Dungeon.hero != null) {
-			com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sbArmor =
-					Dungeon.hero.belongings.secondaryArmor();
-			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.GriffinEye
-					&& Dungeon.hero.STR() >= sbArmor.STRReq()
-					&& info.getType() == DamageType.LIGHTNING) {
-				info.addFinalMultModifier(1f + (25 + 15 * sbArmor.level()) / 100f, "griffin eye");
-			}
-			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt
-					&& Dungeon.hero.STR() >= sbArmor.STRReq()
-					&& info.getType() == DamageType.POISON) {
-				info.addFinalMultModifier(1f + (15 + 10 * sbArmor.level()) / 100f, "web belt");
-			}
-			if (sbArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
-					&& Dungeon.hero.STR() >= sbArmor.STRReq()
-					&& (info.getType() == DamageType.FIRE || info.getType() == DamageType.FROST
-							|| info.getType() == DamageType.LIGHTNING)
-					&& info.getAttacker() == Dungeon.hero) {
-				info.addFinalMultModifier(1f + (20 + 10 * sbArmor.level()) / 100f, "trident gauntlet");
-			}
-		}
-
-		// 次要护甲「所有伤害」加成：统一在伤害管线上结算，覆盖近战、法杖与投掷物。
-		// Hero.damageRoll() / attackProc() 里不再重复计算。
-		if (Dungeon.hero != null && info.getAttacker() == Dungeon.hero) {
-			com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor allDmg = Dungeon.hero.belongings.secondaryArmor();
-			if (allDmg != null && Dungeon.hero.STR() >= allDmg.STRReq()) {
-				if (allDmg instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ShiningGloves) {
-					float mult = 1f + (25 + 5 * allDmg.level()) / 100f;
-					if (Dungeon.hero.HP >= Dungeon.hero.HT)
-						info.addFinalMultModifier(mult, "shining gloves full hp hero");
-					if (HP >= HT)
-						info.addFinalMultModifier(mult, "shining gloves full hp enemy");
-				}
-				if (allDmg instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.TridentGauntlet
-						&& info.getType() == DamageType.PHYSICAL) {
-					info.addFinalMultModifier(0.7f, "trident gauntlet phys");
-				}
-			}
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff inf =
-					Dungeon.hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.class);
-			if (inf != null) info.addPreFinalAddModifier(inf.bonus(), "infused armband bonus");
-		}
-
-		// 灌能臂缠：英雄用法杖造成伤害后，10 回合内增伤并获得护盾
-		if (Dungeon.hero != null && info.getAttacker() == Dungeon.hero) {
-			com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor infArmor =
-					Dungeon.hero.belongings.secondaryArmor();
-			if (infArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.InfusedArmband
-					&& Dungeon.hero.STR() >= infArmor.STRReq()
-					// 解离/新星等法杖用 DamageInfo.of(...,this) 四参重载，法杖落在 source 而非 sourceItem。
-				&& (info.getSourceItem() instanceof Wand || info.getSource() instanceof Wand)) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InfusedArmbandBuff.apply(
-						Dungeon.hero, 1 + infArmor.level() / 2, 10f);
-				Buff.affect(Dungeon.hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class)
-						.setShield(2 + infArmor.level());
-			}
-		}
+		// 次要护甲对这次伤害的修正与触发，各件的规则在 SecondaryArmor 及其子类里
+		SecondaryArmor.procMobDamage(this, info);
 
 		if(buff(HolyLowBurinng.class) !=null || buff(HalomethaneBurning.class)!=null){
 			info.addFinalMultModifier(1.3f, "holy burn");

@@ -10,7 +10,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
-import com.shatteredpixel.shatteredpixeldungeon.effects.Pushing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.TargetedCell;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
@@ -39,12 +38,12 @@ public class WandOfShockBomb extends DamageWand {
 
     @Override
     public int min(int lvl) {
-        return 3+buffedLvl();
+        return 3+lvl;
     }
 
     @Override
     public int max(int lvl) {
-        return 10+buffedLvl()*4;
+        return 10+lvl*4;
     }
 
     @Override
@@ -115,6 +114,9 @@ public class WandOfShockBomb extends DamageWand {
 
     public static class ShockBombTracker extends Buff {
         public int pos;
+        //放置时所在的楼层，由 setPos 记录。旧存档里的 tracker 没有这两项，branchId 保持 null
+        private int depth = -1;
+        private String branchId = null;
         private int level;
         private int turnsLeft = 1;
         private boolean[] fieldOfView;
@@ -122,6 +124,11 @@ public class WandOfShockBomb extends DamageWand {
 
         @Override
         public boolean act() {
+            if (!onFloor(depth, branchId)) {
+                detach();
+                return true;
+            }
+
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
@@ -130,7 +137,7 @@ public class WandOfShockBomb extends DamageWand {
                 // 显示圆形范围标记
                 for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
                     int cell = pos + PathFinder.CIRCLE5x[i];
-                    if (Dungeon.level.insideMap(cell)) {
+                    if (inBlastArea(pos, cell, 2)) {
                         if (target != null && target.sprite != null) {
                             target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
                         }
@@ -166,14 +173,29 @@ public class WandOfShockBomb extends DamageWand {
             // 使用相同的圆形范围
             for (int i = 0; i < PathFinder.CIRCLE5x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE5x[i];
-                runExplode(damage, cell);
+                if (inBlastArea(pos, cell, 2)) {
+                    runExplode(damage, cell, pos);
+                }
             }
 
             Dungeon.observe();
             GameScene.updateFog();
         }
 
-        private static void runExplode(int damage, int cell) {
+        //CIRCLE5x / CIRCLE7x 是按格子下标算的偏移，爆心贴着地图左右边界时会绕到相邻行的另一头，
+        //所以除了要在地图内，还得按坐标确认这一格真的在爆心周围
+        private static boolean inBlastArea(int center, int cell, int radius) {
+            return Dungeon.level.insideMap(cell) && Dungeon.level.distance(center, cell) <= radius;
+        }
+
+        //tracker 挂在英雄身上，会跟着英雄换层，而 pos 只是放置时那一层的格子下标，
+        //到了别的楼层指向的是一个不相干的位置，不能在那里显示预警或结算爆炸。
+        //branchId 为 null 说明是旧存档里没有记录楼层的 tracker，只能当作还在原来那一层
+        private static boolean onFloor(int depth, String branchId) {
+            return branchId == null || (depth == Dungeon.depth && branchId.equals(Dungeon.branchId));
+        }
+
+        private static void runExplode(int damage, int cell, int center) {
             if (Dungeon.level.insideMap(cell)) {
                 Char ch = Actor.findChar(cell);
                 if (ch != null) {
@@ -181,16 +203,14 @@ public class WandOfShockBomb extends DamageWand {
                         ch.damage(new DamageInfo(damage, DamageType.LIGHTNING, null, null, new DM100.LightningBolt()));
                     }
                     if (ch.alignment == Char.Alignment.ALLY) {
-                        int pushTarget = cell;
-                        for (int j = 0; j < 2; j++) {
-                            int nextCell = cell + PathFinder.CIRCLE5x[Random.Int(8)];
-                            if (Dungeon.level.passable[nextCell] && Actor.findChar(nextCell) == null) {
-                                pushTarget = nextCell;
-                            }
-                        }
-                        if (pushTarget != cell) {
-                            Actor.addDelayed(new Pushing(ch, cell, pushTarget), -1);
-                            ch.pos = pushTarget;
+                        //正好站在爆心上的友军没有「向外」的方向，原地不动。
+                        //这个判断不能省：起点和终点相同的弹道会退化成一条指向左上的斜线
+                        if (cell != center) {
+                            //和激流陷阱推开周围目标的写法相同：先从爆心穿过友军拉一条线定出方向，再从友军脚下沿这条线走弹道。
+                            //落点交给 throwChar 判定，不会越界也不会穿墙，落地后照常触发地格效果；友军不结算撞墙伤害
+                            Ballistica trajectory = new Ballistica(center, cell, Ballistica.STOP_TARGET);
+                            trajectory = new Ballistica(trajectory.collisionPos, trajectory.path.get(trajectory.path.size() - 1), Ballistica.PROJECTILE);
+                            WandOfBlastWave.throwChar(ch, trajectory, 2, true, false, WandOfShockBomb.class);
                         }
                         WandOfBlastWave.BlastWave.blast(cell,2);
                     }
@@ -225,11 +245,13 @@ public class WandOfShockBomb extends DamageWand {
         public void setPos(int pos, int level) {
             this.pos = pos;
             this.level = level;
+            this.depth = Dungeon.depth;
+            this.branchId = Dungeon.branchId;
         }
 
         @Override
         public void fx(boolean on) {
-            if (on && (halo == null || halo.parent == null)) {
+            if (on && onFloor(depth, branchId) && (halo == null || halo.parent == null)) {
                 halo = new ShockBombVFX();
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 halo.point(p.x, p.y);
@@ -241,6 +263,8 @@ public class WandOfShockBomb extends DamageWand {
 
         // 序列化相关
         private static final String POS = "pos";
+        private static final String DEPTH = "depth";
+        private static final String BRANCH_ID = "branch_id";
         private static final String LEVEL = "level";
         private static final String LEFT = "left";
 
@@ -250,6 +274,10 @@ public class WandOfShockBomb extends DamageWand {
         public void storeInBundle(Bundle bundle) {
             super.storeInBundle(bundle);
             bundle.put(POS, pos);
+            if (branchId != null) {
+                bundle.put(DEPTH, depth);
+                bundle.put(BRANCH_ID, branchId);
+            }
             bundle.put(LEVEL, level);
             bundle.put(LEFT, turnsLeft);
             bundle.put(DAMAGE, damage);
@@ -259,6 +287,10 @@ public class WandOfShockBomb extends DamageWand {
         public void restoreFromBundle(Bundle bundle) {
             super.restoreFromBundle(bundle);
             pos = bundle.getInt(POS);
+            if (bundle.contains(BRANCH_ID)) {
+                depth = bundle.getInt(DEPTH);
+                branchId = bundle.getString(BRANCH_ID);
+            }
             level = bundle.getInt(LEVEL);
             turnsLeft = bundle.getInt(LEFT);
             damage = bundle.getInt(DAMAGE);
@@ -268,6 +300,8 @@ public class WandOfShockBomb extends DamageWand {
 
     public static class ShockMageBombTracker extends Buff {
         public int pos;
+        private int depth = -1;
+        private String branchId = null;
         private int level;
         private int turnsLeft = 1;
         private boolean[] fieldOfView;
@@ -275,6 +309,11 @@ public class WandOfShockBomb extends DamageWand {
 
         @Override
         public boolean act() {
+            if (!ShockBombTracker.onFloor(depth, branchId)) {
+                detach();
+                return true;
+            }
+
             if (turnsLeft > 0) {
                 // 显示倒计时
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
@@ -283,7 +322,7 @@ public class WandOfShockBomb extends DamageWand {
                 // 显示圆形范围标记
                 for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
                     int cell = pos + PathFinder.CIRCLE7x[i];
-                    if (Dungeon.level.insideMap(cell)) {
+                    if (ShockBombTracker.inBlastArea(pos, cell, 3)) {
                         if (target != null && target.sprite != null) {
                             target.sprite.parent.add(new TargetedCell(cell, Window.RADISH));
                         }
@@ -319,7 +358,9 @@ public class WandOfShockBomb extends DamageWand {
             // 使用相同的圆形范围
             for (int i = 0; i < PathFinder.CIRCLE7x.length; i++) {
                 int cell = pos + PathFinder.CIRCLE7x[i];
-                ShockBombTracker.runExplode(damage, cell);
+                if (ShockBombTracker.inBlastArea(pos, cell, 3)) {
+                    ShockBombTracker.runExplode(damage, cell, pos);
+                }
             }
 
             Dungeon.observe();
@@ -353,11 +394,13 @@ public class WandOfShockBomb extends DamageWand {
         public void setPos(int pos, int level) {
             this.pos = pos;
             this.level = level;
+            this.depth = Dungeon.depth;
+            this.branchId = Dungeon.branchId;
         }
 
         @Override
         public void fx(boolean on) {
-            if (on && (halo == null || halo.parent == null)) {
+            if (on && ShockBombTracker.onFloor(depth, branchId) && (halo == null || halo.parent == null)) {
                 halo = new ShockBombVFX();
                 PointF p = DungeonTilemap.raisedTileCenterToWorld(pos);
                 halo.point(p.x, p.y);
@@ -369,6 +412,8 @@ public class WandOfShockBomb extends DamageWand {
 
         // 序列化相关
         private static final String POS = "pos";
+        private static final String DEPTH = "depth";
+        private static final String BRANCH_ID = "branch_id";
         private static final String LEVEL = "level";
         private static final String LEFT = "left";
 
@@ -378,6 +423,10 @@ public class WandOfShockBomb extends DamageWand {
         public void storeInBundle(Bundle bundle) {
             super.storeInBundle(bundle);
             bundle.put(POS, pos);
+            if (branchId != null) {
+                bundle.put(DEPTH, depth);
+                bundle.put(BRANCH_ID, branchId);
+            }
             bundle.put(LEVEL, level);
             bundle.put(LEFT, turnsLeft);
             bundle.put(DAMAGE, damage);
@@ -387,6 +436,10 @@ public class WandOfShockBomb extends DamageWand {
         public void restoreFromBundle(Bundle bundle) {
             super.restoreFromBundle(bundle);
             pos = bundle.getInt(POS);
+            if (bundle.contains(BRANCH_ID)) {
+                depth = bundle.getInt(DEPTH);
+                branchId = bundle.getString(BRANCH_ID);
+            }
             level = bundle.getInt(LEVEL);
             turnsLeft = bundle.getInt(LEFT);
             damage = bundle.getInt(DAMAGE);

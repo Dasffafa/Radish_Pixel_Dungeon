@@ -3,13 +3,11 @@
  *
  * 典狱长（Warden）精灵
  *
- * 贴图 warden.png 的结构（256 色检查过列投影）：
- *   帧宽 12、帧高 16；每行手绘内容为 10 帧，但贴图宽 200px，
- *   按 12px 切成 TextureFilm 后每行是 16 格（第 10..15 格为空，行 3 整行空）。
+ * 贴图 warden.png 是 120x45：每帧 12x15，10 列 x 3 行，正好整除，
+ * 帧索引 = 行号 * 10 + 帧序号。
  *   行 0 = 红眼形态（带红色拖尾）—— 用作死亡/解体
  *   行 1 = 红眼形态（带橙色拖尾）—— 半血后的形态
  *   行 2 = 常态（黑眼）
- * 因此索引必须按「行号 * 16 + 帧序号」来算，不能按每行 10 帧直接累加。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.sprites;
@@ -66,13 +64,13 @@ public class WardenSprite extends MobSprite {
 		play( idle );
 	}
 
+	//红眼形态按 Boss 的真实状态补上。放在 linkVisuals() 而不是 link()：
+	//读档后新建的精灵会经由 link() 走到这里，查看窗口、攻击指示器用的精灵则只走这里
 	@Override
-	public void link( Char ch ) {
-		super.link( ch );
-		//读档时精灵是后建的，restoreFromBundle 里拿不到 sprite，
-		//所以红眼形态必须在 link 时按 Boss 的真实状态补上
-		if (ch instanceof Warden && ((Warden) ch).isEnraged()) {
-			setEnraged( true );
+	public void linkVisuals( Char ch ) {
+		super.linkVisuals( ch );
+		if (ch instanceof Warden) {
+			setEnraged( ((Warden) ch).isEnraged() );
 		}
 	}
 

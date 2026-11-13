@@ -20,6 +20,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.TengusMask;
 import com.shatteredpixel.shatteredpixeldungeon.levels.WardenBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.WardenSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -54,12 +55,16 @@ public class Warden extends Mob {
 	private int     nextSpawnHp  = 30;   // 下一次补生成原型机的生命阈值
 	private int     speedBonus   = 0;    // 失去 60 生命后 +1
 
-	//玩家进入视野前，典狱长保持静止（不激活原型机、不移动）
-	private boolean awake = false;
+	//旧版本的典狱长在关卡生成时就摆在场上，靠这个标记区分开没开战。
+	//现在开战时才生成，一出场就是 true；只剩 WardenBossLevel 读旧版本存档时还要用它
+	private boolean awake = true;
 
 	//当前正在激活的原型机
 	private WardenPrototype activating = null;
 	private int activatingTurnsLeft = 0;
+	//读档时只能先记下目标所在的格子：那时关卡还没装好，Dungeon.level 是 null，
+	//要等到第一次行动才能按格子把机体找回来
+	private int pendingActivatingCell = -1;
 
 	@Override
 	public int attackSkill( Char target ) {
@@ -86,6 +91,14 @@ public class Warden extends Mob {
 		return Messages.get( this, "desc" );
 	}
 
+	//查看窗口、格子内容窗口拿到的是没有 link() 的精灵，是不是红眼形态要在这里交给它
+	@Override
+	public CharSprite sprite() {
+		CharSprite sprite = super.sprite();
+		sprite.linkVisuals( this );
+		return sprite;
+	}
+
 	@Override
 	public void notice() {
 		super.notice();
@@ -108,25 +121,14 @@ public class Warden extends Mob {
 		}
 		Dungeon.level.updateFieldOfView( this, fieldOfView );
 
-		boolean heroEnteredArena = Dungeon.level instanceof WardenBossLevel
-				&& Dungeon.hero != null
-				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos );
-		if (!awake && heroEnteredArena) {
-			awake = true;
-			//玩家真正踏进战斗区才把 11 台原型机一次性刷出来
-			((WardenBossLevel) Dungeon.level).spawnInitialPrototypes();
-			notice();
-		}
-		if (awake && Dungeon.level instanceof WardenBossLevel
-				&& !((WardenBossLevel) Dungeon.level).bossDead() && !Dungeon.level.locked) {
-			Dungeon.level.seal();
-		}
-
-		// 玩家还没进门看到它：保持静止，既不移动也不激活原型机
-		if (!awake) {
-			state = PASSIVE;
-			spend(Actor.TICK);
-			return true;
+		if (pendingActivatingCell != -1) {
+			Char target = Actor.findChar( pendingActivatingCell );
+			if (target instanceof WardenPrototype) {
+				activating = (WardenPrototype) target;
+			} else {
+				activatingTurnsLeft = 0;
+			}
+			pendingActivatingCell = -1;
 		}
 
 		//通用AI处理麻痹、恐惧及Amok目标切换，不能让开机策略抢占这些状态。
@@ -154,6 +156,12 @@ public class Warden extends Mob {
 			activatingTurnsLeft = 0;
 		}
 
+		//旧版本在开战前把典狱长设成 PASSIVE，开战后也只有凑够 3 台友军才改回来，
+		//于是没有机体可唤醒时它会一直站着挨打。现在出场就是 HUNTING，这里只为纠正旧存档
+		if (state == PASSIVE) {
+			state = HUNTING;
+		}
+
 		//拥有 3 个以上友军后才主动追击玩家
 		if (activatedAllies() >= 3 && state != HUNTING && state != FLEEING) {
 			state = HUNTING;
@@ -174,8 +182,8 @@ public class Warden extends Mob {
 					spend( 1 / speed() );
 					return moveSprite( oldPos, pos );
 				}
-				spend( TICK );
-				return true;
+				//走不过去（去路被别的角色堵住、或者自己被定身）：这一回合交给通用 AI，
+				//否则它会一直原地空等，连贴在身边的敌人都不打
 			}
 		}
 
@@ -216,19 +224,6 @@ public class Warden extends Mob {
 	@Override
 	public void damage( DamageInfo info ) {
 
-		if (info != null && info.getDamage() > 0 && isAlive()
-				&& Dungeon.level instanceof WardenBossLevel
-				&& Dungeon.hero != null
-				//只有英雄真的踏进战斗区才算开战：远程从门外/门外通道偷袭不该封锁整层
-				&& ((WardenBossLevel) Dungeon.level).heroInBossArena( Dungeon.hero.pos )
-				&& !((WardenBossLevel) Dungeon.level).bossDead()) {
-			awake = true;
-			notice();
-			if (!Dungeon.level.locked) {
-				Dungeon.level.seal();
-			}
-		}
-
 		int preHP = HP;
 		super.damage( info );
 		int lost = preHP - HP;
@@ -237,8 +232,8 @@ public class Warden extends Mob {
 		//这一击已经把自己打死了：尸体不该再补生成原型机、也不再播形态切换的台词
 		if (!isAlive()) return;
 
-		//每失去 30 生命补生成一台 DM-100 原型机；玩家还站门口没开战时不补，避免门外凭空刷人
-		while ( awake && lostTotal() >= nextSpawnHp ) {
+		//每失去 30 生命补生成一台 DM-100 原型机
+		while ( lostTotal() >= nextSpawnHp ) {
 			nextSpawnHp += 30;
 			if (Dungeon.level instanceof WardenBossLevel) {
 				((WardenBossLevel) Dungeon.level).spawnPrototype( 100 );
@@ -288,6 +283,11 @@ public class Warden extends Mob {
 		return enraged;
 	}
 
+	/** 只给 WardenBossLevel 读旧版本存档用，含义见 awake 字段。 */
+	public boolean awake() {
+		return awake;
+	}
+
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
@@ -297,6 +297,10 @@ public class Warden extends Mob {
 		bundle.put( AWAKE, awake );
 		if (activating != null && activating.isAlive()) {
 			bundle.put( ACTIVATING, activating.pos );
+			bundle.put( ACTIVATING_TURNS, activatingTurnsLeft );
+		} else if (pendingActivatingCell != -1) {
+			//读档后还没轮到自己行动就又存档：目标还没找回来，原样写回去
+			bundle.put( ACTIVATING, pendingActivatingCell );
 			bundle.put( ACTIVATING_TURNS, activatingTurnsLeft );
 		}
 	}
@@ -309,18 +313,18 @@ public class Warden extends Mob {
 		nextSpawnHp = bundle.contains( NEXT_SPAWN ) ? bundle.getInt( NEXT_SPAWN ) : 30;
 		speedBonus = bundle.getInt( SPEED_BONUS );
 		awake = bundle.getBoolean( AWAKE );
-		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.link()
+		//读档出来的是个新对象，血条要重新登记，否则要等它下一次 notice() 才出现，追击途中一般等不到。
+		//旧版本存档里还没开战的典狱长会被关卡清掉，不登记
+		if (awake) {
+			BossHealthBar.assignBoss( this );
+		}
+		//红眼形态不在这里切：读档阶段 sprite 还没创建，交给 WardenSprite.linkVisuals()
 		activating = null;
 		activatingTurnsLeft = 0;
+		pendingActivatingCell = -1;
 		if (bundle.contains( ACTIVATING )) {
-			int cell = bundle.getInt( ACTIVATING );
-			for (Mob m : Dungeon.level.mobs) {
-				if (m instanceof WardenPrototype && m.pos == cell) {
-					activating = (WardenPrototype) m;
-					activatingTurnsLeft = bundle.getInt( ACTIVATING_TURNS );
-					break;
-				}
-			}
+			pendingActivatingCell = bundle.getInt( ACTIVATING );
+			activatingTurnsLeft = bundle.getInt( ACTIVATING_TURNS );
 		}
 	}
 }

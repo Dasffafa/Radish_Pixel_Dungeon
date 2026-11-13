@@ -12,6 +12,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.actors.mobs;
 
+import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -37,6 +38,7 @@ public class WardenPrototype extends Mob implements Callback {
 	private static final String MODEL      = "model";
 	private static final String STATE      = "proto_state";
 	private static final String PROGRESS   = "proto_progress";
+	private static final String SHIELD_GRANTED = "shield_granted";
 
 	//INACTIVE：未激活；W_ALLY：已归典狱长；H_ALLY：已归玩家
 	public static final int INACTIVE = 0;
@@ -45,6 +47,10 @@ public class WardenPrototype extends Mob implements Callback {
 
 	private int protoState = INACTIVE;
 	private int progress   = 0;   // 玩家侧激活还剩的回合
+
+	//DM-175 的护盾一台机体只给一次，和普通 DM-175 的做法一致；
+	//不记下来的话护盾被打掉或自然衰减完之后，下一回合又会补满
+	private boolean shieldGranted = false;
 
 	{
 		spriteClass = DMPrototypeSprite.class;
@@ -101,8 +107,22 @@ public class WardenPrototype extends Mob implements Callback {
 		return Messages.get( this, heavy() ? "name_175" : "name_100" );
 	}
 
+	//查看窗口、格子内容窗口拿到的是没有 link() 的精灵，机型和是否激活要在这里交给它，
+	//否则一律显示成构造时的默认贴图
+	@Override
+	public CharSprite sprite() {
+		CharSprite sprite = super.sprite();
+		sprite.linkVisuals( this );
+		return sprite;
+	}
+
 	public boolean isInactive() {
 		return protoState == INACTIVE && isAlive();
+	}
+
+	/** 是否已经被某一方激活；和 isInactive() 不同，机体被打坏之后这里的结果不变。 */
+	public boolean isActivated() {
+		return protoState != INACTIVE;
 	}
 
 	public boolean isWardenAlly() {
@@ -131,7 +151,7 @@ public class WardenPrototype extends Mob implements Callback {
 		alignment = Alignment.ENEMY;
 		if (sprite != null) {
 			sprite.showStatus( 0xFFCC22, Messages.get( this, "activated_warden" ) );
-			((DMPrototypeSprite) sprite).activate();
+			activateSprite();
 		}
 	}
 
@@ -144,6 +164,13 @@ public class WardenPrototype extends Mob implements Callback {
 		alignment = Alignment.ALLY;
 		if (sprite != null) {
 			sprite.showStatus( 0x22CCFF, Messages.get( this, "activated_hero" ) );
+			activateSprite();
+		}
+	}
+
+	//蛇咬挑战会把怪物精灵整个换成蛇，那时 sprite 不是 DMPrototypeSprite，不能直接强转
+	private void activateSprite() {
+		if (sprite instanceof DMPrototypeSprite) {
 			((DMPrototypeSprite) sprite).activate();
 		}
 	}
@@ -184,8 +211,20 @@ public class WardenPrototype extends Mob implements Callback {
 				enemy.sprite.centerEmitter().burst(SparkParticle.FACTORY, 3);
 				enemy.sprite.flash();
 			}
+			//远程闪电不走 Char.attack()，打死英雄时的结算要自己补，和 DM-100 一样；
+			//否则这一局不会进排行榜，日志里也没有死因
+			if (enemy == Dungeon.hero && !enemy.isAlive()) {
+				Badges.validateDeathFromEnemyMagic();
+				Dungeon.fail( this );
+				GLog.n( Messages.get( DM100.class, "zap_kill" ) );
+			}
 		} else {
 			enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
+		}
+		//这一击打死典狱长时，清场会把自己也一并销毁：不能再去播放电动画等回调，
+		//正在死亡的精灵不保证会把动画播完，next() 就没人叫了
+		if (!isAlive()) {
+			return true;
 		}
 		if (sprite != null && (sprite.visible || enemy.sprite.visible)) {
 			sprite.zap(enemy.pos);
@@ -200,9 +239,10 @@ public class WardenPrototype extends Mob implements Callback {
 
 	@Override
 	protected boolean act() {
-		if (model == 175 && protoState != INACTIVE && buff(Barrier.class) == null
+		if (model == 175 && protoState != INACTIVE && !shieldGranted
 				&& Dungeon.level.heroFOV[pos]) {
 			Buff.affect(this, Barrier.class).setShield(60);
+			shieldGranted = true;
 		}
 
 		if (protoState == INACTIVE) {
@@ -232,6 +272,7 @@ public class WardenPrototype extends Mob implements Callback {
 		bundle.put( MODEL, model );
 		bundle.put( STATE, protoState );
 		bundle.put( PROGRESS, progress );
+		bundle.put( SHIELD_GRANTED, shieldGranted );
 	}
 
 	@Override
@@ -240,6 +281,11 @@ public class WardenPrototype extends Mob implements Callback {
 		model = bundle.getInt( MODEL );
 		protoState = bundle.getInt( STATE );
 		progress = bundle.getInt( PROGRESS );
+		//旧档没有这个键：已经激活的机体在旧版本里早就拿过护盾，按已给过处理，
+		//否则更新后每台都会再白拿一次
+		shieldGranted = bundle.contains( SHIELD_GRANTED )
+				? bundle.getBoolean( SHIELD_GRANTED )
+				: protoState != INACTIVE;
 		if (protoState == W_ALLY) alignment = Alignment.ENEMY;
 		else if (protoState == H_ALLY) alignment = Alignment.ALLY;
 		else alignment = Alignment.NEUTRAL;

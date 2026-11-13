@@ -170,15 +170,11 @@ public class Shopkeeper extends NPC {
 				if (ShatteredPixelDungeon.scene() instanceof GameScene) {
 					CellEmitter.get(heap.pos).burst(ElmoParticle.FACTORY, 4);
 				}
-				// 只清掉真正的商品；玩家放在同一格的东西必须保留且能直接捡起
-				ArrayList<Item> goods = new ArrayList<>();
-				for (Item it : heap.items) if (heap.isForSale(it)) goods.add(it);
-				for (Item it : goods) heap.items.remove(it);
-				heap.hasForSale(); // 触发降级为普通堆
-				if (heap.isEmpty()) {
+				if (heap.size() == 1) {
 					heap.destroy();
-				} else if (heap.sprite != null) {
-					heap.sprite.view(heap).place( heap.pos );
+				} else {
+					heap.items.remove(heap.size()-1);
+					heap.type = Heap.Type.HEAP;
 				}
 			}
 		}

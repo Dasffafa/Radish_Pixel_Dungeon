@@ -18,6 +18,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warden;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.WardenPrototype;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SnDBGM;
 import com.shatteredpixel.shatteredpixeldungeon.items.SimpleController;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
@@ -29,8 +30,11 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BossHealthBar;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
+import com.watabou.utils.PathFinder;
 import com.watabou.utils.Point;
 import com.watabou.utils.Random;
 import com.watabou.utils.Rect;
@@ -61,8 +65,10 @@ public class WardenBossLevel extends Level {
 	private boolean variantB = false;
 
 	private static final String BOSS_DEAD = "boss_dead";
-	private static final String PROTOTYPES_SPAWNED = "prototypes_spawned";
+	private static final String FIGHT_STARTED = "fight_started";
 
+	//开战之前层里既没有典狱长也没有原型机：英雄第一次踏进战斗区才开战，见 occupyCell()
+	private boolean fightStarted = false;
 	private boolean bossDead = false;
 	private int exitCell = -1;
 
@@ -71,8 +77,10 @@ public class WardenBossLevel extends Level {
 		if (SnDBGM.playLevelMusic()) return;
 		if (bossDead) {
 			Music.INSTANCE.playTracks( PrisonLevel.PRISON_TRACK_LIST, PrisonLevel.PRISON_TRACK_CHANCES, false );
-		} else {
+		} else if (fightStarted) {
 			Music.INSTANCE.play( Assets.Music.PRISON_BOSS, true );
+		} else {
+			Music.INSTANCE.end();
 		}
 	}
 
@@ -151,12 +159,7 @@ public class WardenBossLevel extends Level {
 		return true;
 	}
 
-	//关卡构建中：此时只能登记到 mobs，精灵与 Actor 都交给 GameScene.create() 统一挂，
-	//否则会和 GameScene.create() 的遍历重复挂精灵（旧精灵滞留在已清空的层里，表现为怪物整个消失）
-	private boolean building = false;
-
-	/** 与其它 Boss 层一致：关闭通用周期刷怪。
-	 * 站门口等待不该刷杂兵；战斗只由玩家踏进竞技场唤醒典狱长与已放好的原型机。 */
+	/** 与其它 Boss 层一致：关闭通用周期刷怪，站门口等待不该刷杂兵。 */
 	@Override
 	public Actor addRespawner() {
 		return null;
@@ -164,26 +167,57 @@ public class WardenBossLevel extends Level {
 
 	@Override
 	protected void createMobs() {
-		building = true;
-		Warden warden = new Warden();
-		//Boss 待在战斗区靠中间的位置，不会一进关就贴脸
-		//站在门内侧不远处：玩家一开门就能看见 Boss（放在房间正中会被 8 格视野挡住）
-		warden.pos = pointToCell( new Point( WIDTH / 2, arena.bottom - 2 ) );
-		mobs.add( warden );
-		//成阶段 Boss 也还没进 Actor，这里占位，避免原型机刷到 Boss 身上
-		spawnTaken.add( warden.pos );
-
-		// 原型机不再在关卡加载时就铺满场地：站门口点/等不该看到或刷出任何人。
-		// 由 Warden.act() 在玩家真正踏进竞技场时调用 spawnInitialPrototypes() 立刻生成。
-		building = false;
+		//典狱长和原型机都不在这里放：一开始就摆在场上的话，站在门外就能隔着门打它，而那时并没有开战。
+		//它们在英雄第一次踏进战斗区时才由 startFight() 生成
 	}
 
-	/** 玩家踏进战斗区的那一刻一次性生成 11 台原型机；只执行一次。 */
-	public void spawnInitialPrototypes(){
-		if (prototypesSpawned || bossDead) return;
-		prototypesSpawned = true;
+	@Override
+	public void occupyCell( Char ch ) {
+		if (ch == Dungeon.hero && !bossDead && heroInBossArena( ch.pos )) {
+			if (!fightStarted) {
+				startFight();
+			} else if (!locked) {
+				//旧版本的存档可能停在「已经开战、但还没封层」
+				seal();
+			}
+		}
+		updateDoor();
+		super.occupyCell( ch );
+	}
+
+	//和天狗一样：英雄踏进战斗区的那一刻才封层、锁门，典狱长和原型机这时才出场
+	private void startFight() {
+		int wardenCell = wardenSpawnCell();
+		if (wardenCell == -1) {
+			//整个战斗区都站满了：先不开战（也不封层），英雄再走一步时重试
+			return;
+		}
+
+		fightStarted = true;
+		seal();
+
+		evictSheep( wardenCell );
+		Warden warden = new Warden();
+		warden.state = warden.HUNTING;
+		warden.pos = wardenCell;
+		GameScene.add( warden );
+		warden.notice();
+
+		//把跟在英雄身边的友军一起带进来，否则门一锁它们就被关在外面。
+		//放在典狱长出场之后，友军的落点才会避开它那一格
+		int door = pointToCell( doorCell );
+		Mob.holdAllies( this, door );
+		Mob.restoreAllies( this, Dungeon.hero.pos, door );
+
 		for (int i = 0; i < 8; i++) spawnPrototype( 100 );
 		for (int i = 0; i < 3; i++) spawnPrototype( 175 );
+
+		Game.runOnRenderThread( new Callback() {
+			@Override
+			public void call() {
+				playLevelMusic();
+			}
+		} );
 	}
 
 	@Override
@@ -202,84 +236,125 @@ public class WardenBossLevel extends Level {
 		drop( new StoneOfShock(), shock );
 	}
 
-	//本轮生成里已经占掉的格子：createMobs 阶段怪物还没进 Actor，Actor.findChar 查不到，
-	//不自己记一份的话 11 台原型机会互相重叠在同一格上
-	private final ArrayList<Integer> spawnTaken = new ArrayList<>();
-	private boolean prototypesSpawned = false;
+	//典狱长出场的位置：战斗区正中，离门口那一排 5 格，进门就看得见又不会贴脸。
+	//正中站着别的角色时改用离正中最近的可用格
+	private int wardenSpawnCell() {
+		int center = pointToCell( new Point( WIDTH / 2, arena.top + arena.height() / 2 ) );
+		int best = -1;
+		for (int y = arena.top; y < arena.bottom; y++) {
+			for (int x = arena.left; x < arena.right; x++) {
+				int cell = x + y * width();
+				if (canSpawnAt( cell ) && (best == -1 || distance( center, cell ) < distance( center, best ))) {
+					best = cell;
+				}
+			}
+		}
+		return best;
+	}
 
-	/** 生成一台原型机（100 或 175），只落在战斗区里 */
+	//原型机的落点：战斗区里随机一格。门前三行平时留空，免得一进门机体就贴在脸上，
+	//别处实在没有位置了才用
+	private int prototypeSpawnCell() {
+		ArrayList<Integer> candidates = new ArrayList<>();
+		ArrayList<Integer> nearDoor = new ArrayList<>();
+		for (int y = arena.top; y < arena.bottom; y++) {
+			for (int x = arena.left; x < arena.right; x++) {
+				int cell = x + y * width();
+				if (canSpawnAt( cell )) {
+					if (doorCell.y - y <= 3) {
+						nearDoor.add( cell );
+					} else {
+						candidates.add( cell );
+					}
+				}
+			}
+		}
+		if (candidates.isEmpty()) {
+			candidates = nearDoor;
+		}
+		return candidates.isEmpty() ? -1 : Random.element( candidates );
+	}
+
+	//魔法羊占着的格子照样能用，生成前把羊顶掉（见 evictSheep）；其它角色占着的格子不能用
+	private boolean canSpawnAt( int cell ) {
+		if (!passable[cell]) {
+			return false;
+		}
+		Char ch = Actor.findChar( cell );
+		return ch == null || ch instanceof Sheep;
+	}
+
+	//和矮人国王召唤随从时一样，落点上的羊直接弄死，否则放一群羊就能把 Boss 和原型机堵在场外
+	private void evictSheep( int cell ) {
+		Char ch = Actor.findChar( cell );
+		if (ch instanceof Sheep) {
+			ch.die( null );
+		}
+	}
+
+	/** 生成一台原型机（100 或 175），只落在战斗区里；战斗区站满时不生成，返回 null */
 	public WardenPrototype spawnPrototype( int model ) {
-		WardenPrototype p = new WardenPrototype( model );
-		int cell = randomRespawnCell( null );
+		int cell = prototypeSpawnCell();
 		if (cell == -1) {
-			//极端情况：找不到空位就放到战斗区中心
-			cell = pointToCell( new Point( WIDTH / 2, arena.top + (arena.height() / 2) ) );
+			return null;
 		}
+		evictSheep( cell );
+		WardenPrototype p = new WardenPrototype( model );
 		p.pos = cell;
-		spawnTaken.add( cell );
-		if (building) {
-			//关卡构建阶段：只登记，精灵由 GameScene.create() 统一挂
-			mobs.add( p );
-		} else if (Dungeon.level == this) {
-			//Boss 战中途补生成：场景已就绪，直接挂上去
-			GameScene.add( p );
-		} else {
-			mobs.add( p );
-		}
+		GameScene.add( p );
 		return p;
 	}
 
 	@Override
 	public void seal() {
 		super.seal();
-		int door = sealDoorCell();
-		//英雄可能正站在门格上追击：此时把脚下改成实心格会让人嵌在墙里，
-		//而整层已 locked（LockedFloor）又封掉了所有 transition，等于永久卡关。
-		//封锁本身由 Level.seal() 的 locked + LockedFloor 负责，门格只是视觉/寻路补充，可跳过。
-		if ( Actor.findChar( door ) == null ) {
-			Level.set( door, Terrain.LOCKED_DOOR, this );
-			GameScene.updateMap( door );
-		}
+		updateDoor();
 	}
 
 	@Override
 	public void unseal() {
 		super.unseal();
-		int door = sealDoorCell();
-		if ( map[door] == Terrain.LOCKED_DOOR ) {
+		updateDoor();
+	}
+
+	//门只在「开战期间、英雄和典狱长都在战斗区里」时锁着。
+	//人在门外门却锁着（旧版本存档、测试传送）就进不去了，封层又让楼梯用不了，等于卡死；
+	//典狱长追到门外时也不能锁，否则英雄先回到战斗区就把它关在了外面，同样卡死。
+	//门格上站着角色时先不锁，免得把它嵌进实心格里，等它走开再补上
+	private void updateDoor() {
+		int door = pointToCell( doorCell );
+		if (fightStarted && !bossDead && heroInBossArena( Dungeon.hero.pos ) && wardenInArena()) {
+			if (map[door] != Terrain.LOCKED_DOOR && Actor.findChar( door ) == null) {
+				Level.set( door, Terrain.LOCKED_DOOR, this );
+				GameScene.updateMap( door );
+			}
+		} else if (map[door] == Terrain.LOCKED_DOOR) {
 			Level.set( door, Terrain.DOOR, this );
 			GameScene.updateMap( door );
 		}
 	}
 
-	/** 战斗区与初始房间之间的那扇门（构建期与运行期都用它，避免魔法数 162 漂移）。 */
-	private int sealDoorCell() {
-		return doorCell.x + doorCell.y * width();
+	//开战的那一刻典狱长还没放进场，这时按在场内算，门照常锁上
+	private boolean wardenInArena() {
+		for (Mob mob : mobs) {
+			if (mob instanceof Warden) {
+				return heroInBossArena( mob.pos );
+			}
+		}
+		return true;
 	}
 
+	//和天狗层一样只给入口旁边的格子：从上一层掉下来的英雄和物品、封层后复活的英雄
+	//都落在初始房间里，而不是直接出现在战斗区
 	@Override
 	public int randomRespawnCell( Char ch ) {
 		ArrayList<Integer> candidates = new ArrayList<>();
-
-		//只在战斗区里随机：不能刷到下方初始房间，否则玩家一落地就撞上一排原型机
-		//结束行是 arena.bottom-2：最下面那一行是隔开初始房间的墙+门，机体站上去会和门重叠
-		for (int y = arena.top; y < arena.bottom - 1; y++) {
-			for (int x = arena.left; x < arena.right; x++) {
-				int i = y * WIDTH + x;
-				if (!passable[i] || map[i] == Terrain.ENTRANCE || map[i] == Terrain.EXIT || map[i] == Terrain.LOCKED_EXIT){
-					continue;
-				}
-				//门前三行都不生成：玩家站在门上时视野里不该有机体贴着门出现
-				if (doorCell.y - y <= 3){
-					continue;
-				}
-				if (Actor.findChar( i ) != null || spawnTaken.contains( i )){
-					continue;
-				}
-				if (Char.hasProp( ch, Char.Property.LARGE ) && !openSpace[i]){
-					continue;
-				}
-				candidates.add( i );
+		for (int i : PathFinder.NEIGHBOURS8) {
+			int cell = entrance() + i;
+			if (passable[cell]
+					&& Actor.findChar( cell ) == null
+					&& (!Char.hasProp( ch, Char.Property.LARGE ) || openSpace[cell])) {
+				candidates.add( cell );
 			}
 		}
 		if (candidates.isEmpty()) {
@@ -294,8 +369,10 @@ public class WardenBossLevel extends Level {
 			if (mob instanceof WardenPrototype) {
 				mob.alignment = Char.Alignment.NEUTRAL;
 				mob.destroy();
+				//精灵要走正常的死亡流程：直接 killAndErase() 会让它脱离场景却仍挂在角色身上，
+				//范围效果里排在后面的结算、或者正是这台机体放电打死了典狱长时，再用到它就会空指针
 				if (mob.sprite != null) {
-					mob.sprite.killAndErase();
+					mob.sprite.die();
 				}
 			}
 		}
@@ -305,6 +382,18 @@ public class WardenBossLevel extends Level {
 			GameScene.updateMap( exitCell );
 		}
 		GLog.w( Messages.get( this, "boss_dead" ) );
+
+		Game.runOnRenderThread( new Callback() {
+			@Override
+			public void call() {
+				Music.INSTANCE.fadeOut( 5f, new Callback() {
+					@Override
+					public void call() {
+						Music.INSTANCE.end();
+					}
+				} );
+			}
+		} );
 	}
 
 	public boolean heroInBossArena(int cell) {
@@ -320,15 +409,13 @@ public class WardenBossLevel extends Level {
 		super.storeInBundle( bundle );
 		bundle.put( BOSS_DEAD, bossDead );
 		bundle.put( "exit_cell", exitCell );
-		bundle.put( PROTOTYPES_SPAWNED, prototypesSpawned );
+		bundle.put( FIGHT_STARTED, fightStarted );
 	}
 
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
 		bossDead = bundle.getBoolean( BOSS_DEAD );
-		// 老存档里原型机已在场，默认 false 也不影响：Warden.awake 已存档，不会再次触发生成
-		prototypesSpawned = bundle.getBoolean( PROTOTYPES_SPAWNED );
 		//旧档/异常档里可能没有 exit_cell：Bundle.getInt 缺键会返回 0，直接用会把地图左上角挖成 EXIT。
 		//只在键存在且落在合法范围时才采用，否则标记为 -1（onBossDeath 里有 -1 守卫）。
 		if ( bundle.contains( "exit_cell" ) ) {
@@ -340,6 +427,41 @@ public class WardenBossLevel extends Level {
 		//Boss 已死却没有出口记录（异常档）：按 build() 的规则补算，避免打完却无路可走
 		if ( bossDead && exitCell == -1 ) {
 			exitCell = pointToCell( new Point( WIDTH / 2, arena.top + 1 ) );
+		}
+
+		boolean wardenPresent = false;
+		boolean wardenAwake = false;
+		for (Mob mob : mobs) {
+			if (mob instanceof Warden) {
+				wardenPresent = true;
+				wardenAwake |= ((Warden) mob).awake();
+			}
+		}
+
+		//旧版本没有这个键：那时典狱长在关卡生成时就摆在场上，开没开战记在它自己身上
+		boolean oldSave = !bundle.contains( FIGHT_STARTED );
+		fightStarted = oldSave ? bossDead || wardenAwake : bundle.getBoolean( FIGHT_STARTED );
+
+		//开战之前层里不该有典狱长和没激活的原型机，层也不该封着。有两种存档不满足：
+		//旧版本在关卡生成时就把它们摆好了，不清掉的话进门时会再生成一套，场上出现两个典狱长；
+		//以及已经开战、典狱长却没走死亡流程就不在场上了，不退回开战前的话层会一直封着、出口一直锁着。
+		//已经被激活的原型机留着不动
+		if (!bossDead && !(fightStarted && wardenPresent)) {
+			fightStarted = false;
+			locked = false;
+			for (Mob mob : mobs.toArray( new Mob[0] )) {
+				if (mob instanceof Warden
+						|| (mob instanceof WardenPrototype && !((WardenPrototype) mob).isActivated())) {
+					mobs.remove( mob );
+				}
+			}
+		}
+
+		//门只在开战期间锁着。旧版本可能把英雄关在了门外，这里又不能读英雄的位置来判断，
+		//所以旧档一律先把门打开，英雄走第一步时 updateDoor() 会按实际位置重新锁上
+		int door = pointToCell( doorCell );
+		if (map[door] == Terrain.LOCKED_DOOR && (oldSave || !fightStarted || bossDead)) {
+			Level.set( door, Terrain.DOOR, this );
 		}
 	}
 }

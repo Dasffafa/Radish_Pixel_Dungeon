@@ -79,15 +79,12 @@ public class GoblinRider extends Goblin {
         return Random.NormalIntRange(1, 4) + Char.combatRoll(0, 2);
     }
 
+    // 骑手投的是长矛而不是石头。canAttack 沿用 Goblin 的写法（父类判定 || canThrowAt），
+    // 这样相邻、挑战装备的武器距离、精英的额外攻击距离都不会被覆写丢掉
     @Override
-    protected boolean canAttack(Char enemy) {
-        if (Dungeon.level.adjacent(pos, enemy.pos)) {
-            return true;
-        }
-        if (spearRemain <= 0) {
-            return false;
-        }
-        return new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos;
+    protected boolean canThrowAt(Char enemy) {
+        return spearRemain > 0
+                && new Ballistica(pos, enemy.pos, Ballistica.PROJECTILE).collisionPos == enemy.pos;
     }
 
     /**
@@ -99,7 +96,8 @@ public class GoblinRider extends Goblin {
     protected boolean doAttack(Char enemy) {
         boolean visible = sprite != null && (sprite.visible || enemy.sprite.visible);
 
-        if (Dungeon.level.adjacent(pos, enemy.pos)) {
+        // 相邻，或矛已投完 / 弹道被挡但仍在攻击距离内（精英的隔空攻击）：近战
+        if (Dungeon.level.adjacent(pos, enemy.pos) || !canThrowAt(enemy)) {
             rangedAttack = false;
             if (visible) {
                 sprite.attack(enemy.pos);
@@ -192,7 +190,7 @@ public class GoblinRider extends Goblin {
             int dmg = Random.NormalIntRange(3, 6);
             dmg = Math.round(dmg * AscensionChallenge.statModifier(this));
             dmg = target.defenseProc(this, dmg);
-            dmg -= target.drRoll();
+            dmg = Math.max(0, dmg - target.drRoll());
             target.damage(DamageInfo.of(dmg, DamageType.PHYSICAL, this, new ThrowingStone()));
 
             if (!target.isAlive() && target == Dungeon.hero) {

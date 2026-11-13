@@ -285,6 +285,9 @@ public class Assets {
 
 		public static final String JUTTE_BREAK = "sounds/weapon_break.ogg";
 
+		//圣宣的命中音效
+		public static final String HOLY_DECREE_HIT = "sounds/holy_decree_hit.mp3";
+
 		public static final String[] all = new String[]{
 				CLICK, BADGE, GOLD,
 
@@ -300,6 +303,9 @@ public class Assets {
 
 				//Added by TheCatist
 				LARGE_BELL,KILL_BOAT_SWORD_SLASH, KILL_BOAT_SWORD_SWING, MAN, JUTTE_BREAK,
+
+				//不在这个列表里的音效启动时不会加载，播放时没有任何声音
+				HOLY_DECREE_HIT,
 		};
 	}
 
@@ -333,8 +339,6 @@ public class Assets {
 		public static final String WARRIOR  = "sprites/warrior.png";
 		public static final String MAGE     = "sprites/mage.png";
 		public static final String ROGUE    = "sprites/rogue.png";
-
-		// 六个角色各自的四套护甲动画（素材 16x16 帧已重排为 12x15 / 21 帧）
 		public static final String HUNTRESS = "sprites/huntress.png";
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String MOONLIGHT = "sprites/moonlight.png";

@@ -125,14 +125,12 @@ public class WandOfBlastWave extends DamageWand {
 			wandProc(ch, chargesPerCast());
 			ch.damage(new DamageInfo(damageRoll(), DamageType.MAGICAL, curUser, this, this));
 
-			if (ch.pos == bolt.collisionPos) {
-				//中心怪的方向取弹道方向（上一个格子 -> 中心），再往外推一格
-				int from = bolt.dist > 0 ? bolt.path.get(bolt.dist - 1) : ch.pos;
-				int dx = Integer.compare(ch.pos % w, from % w);
-				int dy = Integer.compare(ch.pos / w, from / w);
-				if (dx != 0 || dy != 0) {
-					pushOutward(ch, ch.pos + dx + dy * w, buffedLvl() + 3);
-				}
+			//方向取弹道越过爆心后的下一格（原版写法），目标顺着弹道的延伸方向飞出去。
+			//弹道路径只收地图内的格子且逐格相邻，这一格不会越界也不会绕行，不用再按坐标推算
+			if (bolt.path.size() > bolt.dist+1 && ch.pos == bolt.collisionPos) {
+				Ballistica trajectory = new Ballistica(ch.pos, bolt.path.get(bolt.dist + 1), Ballistica.MAGIC_BOLT);
+				int strength = buffedLvl() + 3;
+				throwChar(ch, trajectory, strength, false, true, this);
 			}
 		}
 
@@ -174,10 +172,16 @@ public class WandOfBlastWave extends DamageWand {
 
 		boolean collided = dist == trajectory.dist;
 
-		//绝不能把人停在墙里/墙外：从落点往回退到第一个能站住的格子
-		while (dist > 0 && !Dungeon.level.passable[trajectory.path.get(dist)]){
-			dist--;
-			collided = true;
+		//途经和落点都必须能站人，否则停在它前一格并算撞墙。
+		//「能站人」要和 Ballistica 一样按 passable 或 avoid 算：深渊、可见陷阱、水井都是 avoid 而不是 passable，
+		//只按 passable 判的话任何击退都落不到深渊格上，谁也推不下去
+		for (int i = 1; i <= dist; i++) {
+			int cell = trajectory.path.get(i);
+			if (!Dungeon.level.passable[cell] && !Dungeon.level.avoid[cell]){
+				dist = i-1;
+				collided = true;
+				break;
+			}
 		}
 
 		if (dist <= 0

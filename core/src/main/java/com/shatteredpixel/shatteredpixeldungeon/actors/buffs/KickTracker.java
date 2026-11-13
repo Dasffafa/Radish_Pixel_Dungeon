@@ -156,7 +156,18 @@ public class KickTracker extends Buff implements ActionIndicator.Action {
         int dy = enemy.pos / Dungeon.level.width() - hero.pos / Dungeon.level.width();
 
         // 目标位置：从敌人位置沿击退方向延伸
-        int targetPos = enemy.pos + dx * KICK_RANGE + dy * KICK_RANGE * Dungeon.level.width();
+        int targetX = enemy.pos % Dungeon.level.width() + dx * KICK_RANGE;
+        int targetY = enemy.pos / Dungeon.level.width() + dy * KICK_RANGE;
+        int targetPos;
+        if (targetX >= 0 && targetX < Dungeon.level.width() && targetY >= 0) {
+            //超出地图下沿不用另外处理：弹道只把目标下标换算回坐标来定方向，这时换算结果仍然正确
+            targetPos = targetX + targetY * Dungeon.level.width();
+        } else {
+            //横向出界的下标会绕到相邻的行，向上出界会变成负数，换算回坐标后方向是错的，敌人会被踹向不相干的方向。
+            //这时改用「英雄 -> 敌人」连线的延长线，取它在地图内的最后一格当目标
+            Ballistica toEnemy = new Ballistica(hero.pos, enemy.pos, Ballistica.STOP_TARGET);
+            targetPos = toEnemy.path.get(toEnemy.path.size() - 1);
+        }
 
         // 构建弹道轨迹（从敌人位置指向击退方向）
         Ballistica trajectory = new Ballistica(enemy.pos, targetPos, Ballistica.PROJECTILE);

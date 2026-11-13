@@ -21,7 +21,6 @@ import com.shatteredpixel.shatteredpixeldungeon.levels.PrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerBossLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.SmallGrassMiniLevel;
-import com.shatteredpixel.shatteredpixeldungeon.levels.ZeroLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.traps.GnollKingBossLevel;
 
 import java.util.HashMap;
@@ -109,7 +108,7 @@ public class Branches {
         @SuppressWarnings("unchecked")
         Class<? extends Level>[] levels = new Class[27];  // 索引 0-26，但 0 不用
         
-        levels[0] = ZeroLevel.class;
+        levels[0] = DeadEndLevel.class;
         levels[1] = SewerLevel.class;
         levels[2] = SewerLevel.class;
         levels[3] = SewerLevel.class;

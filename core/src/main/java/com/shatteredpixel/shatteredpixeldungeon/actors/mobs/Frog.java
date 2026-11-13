@@ -69,7 +69,8 @@ public class Frog extends Mob {
         attackwater = bundle.getBoolean(ATTACK);
     }
 
-    public class PoulWater extends Item {
+    // 必须是静态嵌套类：Bundle 存背包时会跳过非静态内部类，粘液存档再读档就凭空消失了
+    public static class PoulWater extends Item {
 
         public int cooldown = 50;
 

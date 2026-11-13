@@ -11,12 +11,17 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.LegendaryFelon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Sheep;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.PathFinder;
+import com.watabou.utils.Random;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -33,6 +38,8 @@ public class ConvictLevel extends Level {
 	private static final int ENTRANCE_X = 6, ENTRANCE_Y = 16;
 	//上锁的门
 	private static final int DOOR_X = 6, DOOR_Y = 12;
+	//传奇重犯的出生点：竞技场正中
+	private static final int FELON_X = 6, FELON_Y = 6;
 
 	private static final String FELON_SPAWNED = "felon_spawned";
 	private boolean felonSpawned = false;
@@ -98,26 +105,55 @@ public class ConvictLevel extends Level {
 		return true;
 	}
 
-	/** Boss 发现玩家后把门锁上（玩家进来后被困住，直到击败他） */
+	/**
+	 * 传奇重犯醒着的每个回合都会来调一次。门只在英雄和他都在门里面时锁着（玩家被困住，直到击败他）：
+	 * 只要有一方在门外，锁着的门就会让两边再也碰不到面，而这一层在打败他之前是出不去的，
+	 * 所以那种时候不锁，已经锁上的也要重新打开。
+	 */
 	public void sealBossDoor() {
-		//玩家还在门下方的走廊里时不能锁，否则会被关在竞技场外、又没有钥匙，直接卡死
-		if (Dungeon.hero != null && Dungeon.hero.pos / width() > DOOR_Y) {
+		if (!inArena( Dungeon.hero.pos ) || felonOutsideArena()) {
+			openBossDoor();
 			return;
 		}
 		int door = pointToCell( DOOR_X, DOOR_Y );
+		//门上站着角色或压着物品时地形是 OPEN_DOOR，要等门合上才锁，不会把谁封在门里
 		if (map[door] == Terrain.DOOR) {
+			//还有同伴落在门外时，和原版矮人王层锁门时一样把同伴带到英雄身边，免得整场战斗被关在外面。
+			//同伴都已经进来了就不动他们
+			if (allyOutsideArena()) {
+				Mob.holdAllies( this, door );
+				Mob.restoreAllies( this, Dungeon.hero.pos, door );
+			}
 			Level.set( door, Terrain.LOCKED_DOOR, this );
 			//Level.set 只改数据不改贴图，必须通知场景重画这一格，否则看着还是普通门
-			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
+			GameScene.updateMap( door );
 		}
 	}
 
-	/** 击败传奇重犯后把上锁的门打开 */
+	private boolean felonOutsideArena() {
+		for (Mob m : mobs) {
+			if (m instanceof LegendaryFelon && !inArena( m.pos )) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean allyOutsideArena() {
+		for (Mob m : mobs) {
+			if (m.alignment == Char.Alignment.ALLY && !inArena( m.pos )) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** 把上锁的门重新打开：击败传奇重犯时，以及有一方到了门外时 */
 	public void openBossDoor() {
 		int door = pointToCell( DOOR_X, DOOR_Y );
 		if (map[door] == Terrain.LOCKED_DOOR) {
 			Level.set( door, Terrain.DOOR, this );
-			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
+			GameScene.updateMap( door );
 		}
 	}
 
@@ -132,28 +168,75 @@ public class ConvictLevel extends Level {
 
 	@Override
 	protected void createMobs() {
-		// Boss 不在关卡加载时铺好：玩家踩到门口就看见人是不对的。
-		// 真正踏进竞技场那一刻由 occupyCell -> spawnFelon() 一次性生成。
-	}
-
-	/** 玩家踏进竞技场（门上方）时一次性生成传奇重犯；老存档里已在场的不再重复生成。 */
-	public void spawnFelon(){
-		if (felonSpawned) return;
-		for (Mob m : mobs){
-			if (m instanceof LegendaryFelon){ felonSpawned = true; return; }
-		}
-		felonSpawned = true;
-		LegendaryFelon felon = new LegendaryFelon();
-		felon.pos = pointToCell( 6, 6 );
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( felon );
+		//不在建关时放 Boss：站在门口就能看见他是不对的，要等英雄踏进竞技场才生成（见 occupyCell）
 	}
 
 	@Override
-	public void occupyCell( Char ch ){
+	public void occupyCell( Char ch ) {
 		super.occupyCell( ch );
-		if (ch == Dungeon.hero && ch.pos >= 0 && ch.pos / width() < DOOR_Y){
+		if (ch == Dungeon.hero && !felonSpawned && inArena( ch.pos )) {
 			spawnFelon();
 		}
+	}
+
+	/** 门上方算竞技场里面，门格本身不算。 */
+	private boolean inArena( int cell ) {
+		return cell / width() < DOOR_Y;
+	}
+
+	private void spawnFelon() {
+		for (Mob m : mobs) {
+			//更早的存档里他在建关时就放好了，不再多生成一个
+			if (m instanceof LegendaryFelon) {
+				felonSpawned = true;
+				return;
+			}
+		}
+
+		int cell = felonSpawnCell();
+		if (cell == -1) {
+			//竞技场里一个能站的格子都没有：这次先不生成，英雄下一次挪动时再试
+			return;
+		}
+
+		//出生格上的绵羊直接顶掉，和原版矮人王召唤随从时一样，不能因为一只羊就不出来
+		Char sheep = Actor.findChar( cell );
+		if (sheep != null) {
+			sheep.die( null );
+		}
+
+		felonSpawned = true;
+		LegendaryFelon felon = new LegendaryFelon();
+		felon.pos = cell;
+		GameScene.add( felon );
+	}
+
+	/**
+	 * 传奇重犯该站的格子：离出生点最近、上面没有别的角色的那一格（绵羊不算，会被顶掉）。
+	 * 出生点上只有一只羊时还是出生点；被别的角色占着时（比如英雄直接传送到了正中间）让到旁边。
+	 * 只在竞技场里、从出生点走得到的格子里找，找不到返回 -1。
+	 */
+	private int felonSpawnCell() {
+		PathFinder.buildDistanceMap( pointToCell( FELON_X, FELON_Y ), passable );
+		int best = -1;
+		for (int cell = 0; cell < length(); cell++) {
+			if (!inArena( cell ) || PathFinder.distance[cell] == Integer.MAX_VALUE) {
+				continue;
+			}
+			Char ch = Actor.findChar( cell );
+			if (ch != null && !(ch instanceof Sheep)) {
+				continue;
+			}
+			if (best == -1 || spawnCost( cell ) < spawnCost( best )) {
+				best = cell;
+			}
+		}
+		return best;
+	}
+
+	//离出生点越近越好；一样近时，空格优先于要顶掉一只绵羊的格子
+	private int spawnCost( int cell ) {
+		return 2 * PathFinder.distance[cell] + (Actor.findChar( cell ) == null ? 0 : 1);
 	}
 
 	@Override
@@ -165,7 +248,30 @@ public class ConvictLevel extends Level {
 	@Override
 	public void restoreFromBundle( Bundle bundle ){
 		super.restoreFromBundle( bundle );
-		felonSpawned = bundle.getBoolean( FELON_SPAWNED );
+		//没有这个键的存档来自建关时就把他放好的版本：不管他现在是死是活，都算已经生成过。
+		//缺省成 false 的话，在早就打败他的存档里再走进竞技场，他会重新出现一次
+		felonSpawned = !bundle.contains( FELON_SPAWNED ) || bundle.getBoolean( FELON_SPAWNED );
+	}
+
+	//和原版的 Boss 层一样只给入口旁边的空位。基类会在全图随便挑一个能走的格子，
+	//而这张图的围墙外面有几块封死的空腔：未祝福的十字架复活时，英雄或遗失的背包会被放进去，再也出不来
+	@Override
+	public int randomRespawnCell( Char ch ) {
+		ArrayList<Integer> candidates = new ArrayList<>();
+		for (int i : PathFinder.NEIGHBOURS8) {
+			int cell = entrance() + i;
+			if (passable[cell]
+					&& Actor.findChar( cell ) == null
+					&& (!Char.hasProp( ch, Char.Property.LARGE ) || openSpace[cell])) {
+				candidates.add( cell );
+			}
+		}
+
+		if (candidates.isEmpty()) {
+			return -1;
+		} else {
+			return Random.element( candidates );
+		}
 	}
 
 	@Override
