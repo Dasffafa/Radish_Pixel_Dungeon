@@ -72,6 +72,9 @@ public class InventoryPane extends Component {
 
 	private ArrayList<InventorySlot> equipped;
 	private ArrayList<InventorySlot> bagItems;
+	/** 背包物品的可滚动容器（带上下滚动条）。 */
+	private Component bagContent;
+	private ScrollPane bagScroll;
 
 	private Image gold;
 	private BitmapText goldTxt;
@@ -91,6 +94,8 @@ public class InventoryPane extends Component {
 	private WndBag.ItemSelector selector;
 
 	public static Bag lastBag;
+	/** 当前展示的背包，用于切换背包时把滚动条归位。 */
+	private Bag shownBag;
 
 	private boolean lastEnabled = true;
 
@@ -165,7 +170,7 @@ public class InventoryPane extends Component {
 		};
 
 		equipped = new ArrayList<>();
-		for (int i = 0; i < 5; i++){
+		for (int i = 0; i < 6; i++){
 			InventorySlot btn = new InventoryPaneSlot(null);
 			equipped.add(btn);
 			add(btn);
@@ -188,10 +193,14 @@ public class InventoryPane extends Component {
 		add(promptTxt);
 
 		bagItems = new ArrayList<>();
-		for (int i = 0; i < 25; i++){
+		bagContent = new Component();
+		bagScroll = new ScrollPane( bagContent );
+		add( bagScroll );
+		// 最大容量（测试背包 60）也放得下，超出的部分靠滚动查看
+		for (int i = 0; i < 60; i++){
 			InventorySlot btn = new InventoryPaneSlot(null);
 			bagItems.add(btn);
-			add(btn);
+			bagContent.add(btn);
 		}
 
 		bags = new ArrayList<>();
@@ -218,10 +227,15 @@ public class InventoryPane extends Component {
 		height = HEIGHT;
 	}
 
+	/** 外部（GameScene）根据窗口大小给的可用上限，保证面板不会超出屏幕。 */
+	public int maxWidth = Integer.MAX_VALUE;
+	public int maxHeight = Integer.MAX_VALUE;
+
 	@Override
 	protected void layout() {
-		width = WIDTH;
-		height = HEIGHT;
+		width = Math.min( WIDTH, maxWidth );
+		height = Math.min( HEIGHT, maxHeight );
+
 
 		bg.x = bg2.x = x;
 		bg.y = bg2.y = y;
@@ -289,17 +303,31 @@ public class InventoryPane extends Component {
 			}
 		}
 
-		// 更新 bagItems 的起始位置
-		left = x+4;
-		float top = y + 14 + 14 + 1;
-		for (InventorySlot b : bagItems){
-			b.setRect(left, top, SLOT_WIDTH, SLOT_HEIGHT);
-			left = b.right()+1;
-			if (left - x > width - 17){
-				left = x+4;
-				top += SLOT_HEIGHT+1;
-			}
+		// 背包物品：按可用宽度自动分列（最多 10 列）
+		// 列数必须由「滚动区实际看得见的宽度」反推，并且滚动区宽度要正好等于网格宽度：
+		// ScrollPane 只在高度不够时画滚动条、没有横向滚动，内容一旦比它宽就会被它的相机
+		// 直接裁掉（症状就是背包右边少一列、缺一块）。
+		// 口径（与上游 SPD 的原版 10 列布局对齐）：左右各留 4，且「最后一列后面不需要
+		// 1px 间隙」⇒ 能放下的列数 = floor((可用宽 + 1) / 步距)，网格宽 = 列数*SLOT_WIDTH
+		// + (列数-1)*间隙。187 宽 ⇒ 可用 179、列数 10、网格宽 179，正好铺满整行；
+		// 原先用 width-10 再按整步距算，187 只算出 9 列、网格仅 162 宽，右侧空出 18px，
+		// 看上去就是一整列缺失（截图里的「缺一块」）。
+		float availW = width - 8;
+		int cols = (int)((availW + 1) / (SLOT_WIDTH + 1));
+		cols = Math.max( 5, Math.min( cols, 10 ) );
+		float gridW = cols * SLOT_WIDTH + (cols - 1);
+
+		for (int i = 0; i < bagItems.size(); i++){
+			InventorySlot b = bagItems.get(i);
+			b.setRect((i % cols) * (SLOT_WIDTH + 1), (i / cols) * (SLOT_HEIGHT + 1),
+					SLOT_WIDTH, SLOT_HEIGHT);
 		}
+		int rows = (bagItems.size() + cols - 1) / cols;
+		bagContent.setSize(gridW, rows * (SLOT_HEIGHT + 1));
+
+		float bagTop = y + 14 + 14 + 1;
+		float viewportH = height - (bagTop - y) - 2;
+		bagScroll.setRect(x + 4, bagTop, gridW, Math.max(1, viewportH));
 
 		super.layout();
 	}
@@ -346,6 +374,7 @@ public class InventoryPane extends Component {
 
 		equipped.get(0).item(stuff.weapon == null ? new WndBag.Placeholder( ItemSpriteSheet.WEAPON_HOLDER ) : stuff.weapon);
 		equipped.get(1).item(stuff.armor == null ? new WndBag.Placeholder( ItemSpriteSheet.ARMOR_HOLDER ) : stuff.armor);
+		equipped.get(5).item(stuff.secondaryArmor() == null ? new WndBag.Placeholder( "secondary_slot" ) : stuff.secondaryArmor());
 		equipped.get(2).item(stuff.artifact == null ? new WndBag.Placeholder( ItemSpriteSheet.ARTIFACT_HOLDER ) : stuff.artifact);
 		equipped.get(3).item(stuff.misc == null ? new WndBag.Placeholder( ItemSpriteSheet.SOMETHING ) : stuff.misc);
 		equipped.get(4).item(stuff.ring == null ? new WndBag.Placeholder( ItemSpriteSheet.RING_HOLDER ) : stuff.ring);
@@ -357,7 +386,7 @@ public class InventoryPane extends Component {
 		}
 
 		int j = 0;
-		for (int i = 0; i < 25; i++){
+		for (int i = 0; i < bagItems.size(); i++){
 			if (i == 0 && lastBag != stuff.backpack){
 				bagItems.get(i).item(lastBag);
 				continue;
@@ -424,7 +453,12 @@ public class InventoryPane extends Component {
 		energyTxt.alpha( lastEnabled ? 1f : 0.3f );
 		energy.alpha( lastEnabled ? 1f : 0.3f );
 
+		boolean resetScroll = lastBag != shownBag;
+		shownBag = lastBag;
 		layout();
+		if (resetScroll){
+			bagScroll.scrollTo(0, 0);
+		}
 	}
 
 	public void setSelector(WndBag.ItemSelector selector){
@@ -478,11 +512,9 @@ public class InventoryPane extends Component {
 	}
 
 	public static void cancelTargeting(){
-		if (targeting){
-			crossB.visible = false;
-			crossM.remove();
-			targeting = false;
-		}
+		if (crossB != null) crossB.visible = false;
+		if (crossM != null) crossM.remove();
+		targeting = false;
 	}
 
 	@Override

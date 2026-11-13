@@ -57,6 +57,14 @@ public class MagicalInfusion extends InventorySpell {
 	}
 
 	public Item upgradeItem( Item item ){
+		// 精制附魔无法升级，法术与卷轴都不应被消耗
+		if (item instanceof Weapon
+				&& ((Weapon) item).enchantment instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined) {
+			GLog.w( Messages.get( com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Refined.class,
+					"cannot_upgrade" ) );
+			return item;
+		}
+
 		ScrollOfUpgrade.upgrade(curUser);
 
 		Degrade.detach( curUser, Degrade.class );

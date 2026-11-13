@@ -65,3 +65,31 @@ request.txt
 /core/src/main/assets/interfaces/talents/manifest.txt
 /core/src/main/assets/interfaces/buffs/small/manifest.txt
 /core/src/main/assets/interfaces/buffs/large/manifest.txt
+
+# 本地上游参考仓库（只读，勿提交）
+_upstream/
+
+# Local TDR fix tooling (not part of the game)
+_tdr_backup/
+fix-tdr-delay.ps1
+
+
+# 会话产物 / 表格工具的临时图
+.dsh-vision-router/
+docs/萝卜地牢开发文档/_npc_pics/
+~$*.xlsx
+
+# 本机打包/清理脚本产物（2026-11-03 清理后加）
+*.bak
+*.new.*
+/启动游戏.bat
+
+# 可由 tools/npc_table.py 重新生成的表格与构建残留（2026-11-03 清理）
+/docs/萝卜地牢开发文档/NPC总表.xlsx
+replay_pid*.log
+/desktop/replay_pid*.log
+/core/bin/*.txt
+/core/bin/**/*.txt
+
+# 构建产物
+/event-processor/bin/

@@ -31,6 +31,5 @@ public final class ChordHelper {
 
     public static void main(String[] args) {
         float[] c = generateMajor7();
-        System.out.printf("%.4f %.4f %.4f %.4f%n", c[0], c[1], c[2], c[3]);
     }
 }

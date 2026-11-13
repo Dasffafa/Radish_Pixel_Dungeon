@@ -154,6 +154,12 @@ public class ItemSpriteSheet {
 	public static final String SAI = "sai";
 	public static final String WHIP = "whip";
 
+	// 圣宣 / 沉默的代价 / 次元撕裂者（2026-11-11 移植，图标为独立 PNG）
+	public static final String HOLY_DECREE = "holy_decree";
+	public static final String SILENT_PRICE_BLADE = "silent_price_blade";
+	public static final String SILENT_PRICE_BLADE_CHARGED = "silent_price_blade_charged";
+	public static final String DIMENSIONAL_RIPPER = "dimensional_ripper";
+
 	public static final String LONGSWORD = "longsword";
 	public static final String BATTLE_AXE = "battle_axe";
 	public static final String FLAIL = "flail";
@@ -224,6 +230,8 @@ public class ItemSpriteSheet {
 	public static final String THROWING_SPEAR = "throwing_spear";
 	public static final String BOLAS = "bolas";
 	public static final String KUNAI = "kunai";
+	public static final String THROWING_CHAIN = "throwing_chain";
+	public static final String POTION_PACK = "potion_pack";
 	
 	public static final String JAVELIN = "javelin";
 	public static final String TOMAHAWK = "tomahawk";
@@ -302,6 +310,16 @@ public class ItemSpriteSheet {
 	public static final String ARMOR_BLACKCOAT = "armor_blackcoat";
 	public static final String ARMOR_MOONLIGHT = "armor_moonlight";
 	public static final String ARMOR_CARDTRICKSTER = "armor_cardtrickster";
+	public static final String ARMOR_ENGINEER = "engineer_armor";
+	// 四件新护甲图标取自 48x48 素材的 2x2 格（每格 24x24）：
+	// 左上=伯爵礼服，右上=寒铁大衣，左下=棱镜护铠，右下=混灵。
+	public static final String ARMOR_COUNTESS = "armor_countess";
+	public static final String ARMOR_COLDIRON = "armor_coldiron";
+	public static final String ARMOR_PRISM = "armor_prism";
+	public static final String ARMOR_SOULMIX = "armor_soulmix";
+	public static final String MULTITOOL = "multitool";
+	public static final String BLUEPRINT = "blueprint";
+	public static final String PULSE = "adrenaline_dart";
 
 	public static final String PAPER_CUTTER = "paper_cutter";
 	public static final String CARD_DRAWER = "card_drawer";
@@ -473,6 +491,7 @@ public class ItemSpriteSheet {
 	public static final String STONE_FLOCK = "stone_flock";
 	public static final String STONE_INTUITION = "stone_intuition";
 	public static final String STONE_SHOCK = "stone_shock";
+	public static final String CONTROLLER = "controller";
 
 	public static final String POTION_CRIMSON = "potion_crimson";
 	public static final String POTION_AMBER = "potion_amber";

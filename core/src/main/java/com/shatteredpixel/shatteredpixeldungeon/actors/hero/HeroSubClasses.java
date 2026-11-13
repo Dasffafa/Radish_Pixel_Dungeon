@@ -1,26 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Assassin;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Battlemage;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Battlepreist;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Berserker;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.DeadKnight;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.DiceMage;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Freerunner;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Gladiator;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.JutteChampion;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Illusionist;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Joker;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.SpinMaster;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.RedCardinal;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Sniper;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Warden;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Warlock;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.*;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 
 import java.util.Arrays;
@@ -32,6 +12,9 @@ import java.util.Collection;
  * <p>本类只是各 {@link HeroSubClass} 定义类的<b>持有者/管理器</b>，并非其父类型，
  * 因此可在静态初始化中安全地 {@code new} 各定义类，不存在"超类实例化子类"的类加载循环。</p>
  */
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Craftsman;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Hacker;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Grenadier;
 public final class HeroSubClasses {
 
 	private HeroSubClasses(){ /* 工具类，禁止实例化 */ }
@@ -62,6 +45,9 @@ public final class HeroSubClasses {
 	public static final HeroSubClass ILLUSIONIST    = new Illusionist();
 	public static final HeroSubClass SPIN_MASTER   = new SpinMaster();
 	public static final HeroSubClass JOKER         = new Joker();
+	public static final HeroSubClass CRAFTSMAN     = new Craftsman();
+	public static final HeroSubClass HACKER        = new Hacker();
+	public static final HeroSubClass GRENADIER     = new Grenadier();
 	public static final HeroSubClass CHAMPION      = new HeroSubClass("CHAMPION", HeroIcon.CHAMPION){
 		@Override public Talent[] subclassT3() { return new Talent[0]; }
 		@Override public Talent[] subclassT4() { return new Talent[0]; }
@@ -80,7 +66,8 @@ public final class HeroSubClasses {
 			SNIPER, WARDEN, DRUID,
 			BATTLEPREIST, REDCARDINAL, DEAD_KNIGHT,
 			LITTLE_KNIGHT, DICE_MAGE, JUTTE_CHAMPION,
-			CHAMPION, MONK, ILLUSIONIST, SPIN_MASTER, JOKER
+			CHAMPION, MONK, ILLUSIONIST, SPIN_MASTER, JOKER,
+			CRAFTSMAN, HACKER, GRENADIER
 	);
 
 	//存档反序列化

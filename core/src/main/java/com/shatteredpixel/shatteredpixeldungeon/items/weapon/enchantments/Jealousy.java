@@ -50,6 +50,12 @@ import com.watabou.utils.Random;
  */
 public class Jealousy extends Weapon.Enchantment {
 
+    //暂不进灵能弓的附魔池
+    @Override
+    public boolean canEnchant( Weapon weapon ){
+        return !isRangedWeapon( weapon );
+    }
+
 	private static ItemSprite.Glowing PURPLE = new ItemSprite.Glowing( 0xAA44CC );
 
 	//性能加成
@@ -89,6 +95,11 @@ public class Jealousy extends Weapon.Enchantment {
 	@Override
 	public int proc(Weapon weapon, Char attacker, Char defender, int damage) {
 		return Math.max(1, Math.round(damage * performanceMultiplier(weapon.buffedLvl(), jealousy)));
+	}
+
+	@Override
+	public float panelDamageMultiplier(Weapon weapon, Char owner, boolean max) {
+		return performanceMultiplier(weapon.buffedLvl(), jealousy);
 	}
 
 	@Override

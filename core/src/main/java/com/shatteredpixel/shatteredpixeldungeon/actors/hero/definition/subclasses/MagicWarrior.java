@@ -73,14 +73,18 @@ public class MagicWarrior extends HeroSubClass {
 			enemy.damage( new DamageInfo( bonus, DamageType.MAGICAL, hero, (Item) w, this ) );
 		}
 
-		// 幻灵护身 +3：击杀敌人获得 2 点破损纹章护盾
-		if (enemy != null && !enemy.isAlive() && hero.pointsInTalent( Talent.SPECTRAL_WARD ) >= 3) {
-			Buff.affect( hero, Barrier.class ).incShield( 2 );
-		}
-
 		// 消耗叠加
 		if (charge != null) {
 			charge.detach();
+		}
+	}
+
+	@Override
+	public void onAttackComplete( Hero hero, Char enemy, boolean hit, boolean wasEnemy ) {
+		// 幻灵护身 +3：击杀敌人获得 2 点破损纹章护盾
+		if (hit && wasEnemy && enemy != null && !enemy.isAlive()
+				&& hero.pointsInTalent( Talent.SPECTRAL_WARD ) >= 3) {
+			Buff.affect( hero, Barrier.class ).incShield( 2 );
 		}
 	}
 

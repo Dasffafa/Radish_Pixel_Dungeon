@@ -26,6 +26,7 @@ import static com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Badges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
@@ -82,10 +83,6 @@ public class MagesStaff extends MeleeWeapon {
 	public static final String AC_IMBUE = "IMBUE";
 	public static final String AC_ZAP	= "ZAP";
 	public static final String AC_UPDATE = "UPDATE";
-	public static final String AC_CRAFT_CHAIN = "CRAFT_CHAIN";
-	public static final String AC_CRAFT_PACK = "CRAFT_PACK";
-	public static final String AC_CHAIN = "THROW_CHAIN";
-	public static final String AC_PACK = "THROW_PACK";
 	public static final String AC_READY_MOD = "READY_MOD";
 
 	private static final float STAFF_SCALE_FACTOR = 0.75f;
@@ -140,16 +137,9 @@ public class MagesStaff extends MeleeWeapon {
 			actions.add( AC_UPDATE );
 		}
 
-		// 奇械师：制作 / 投掷 武器链与药水包
+		// 奇械师：即用改装
 		if (Dungeon.hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
-			actions.add( AC_CRAFT_CHAIN );
-			actions.add( AC_CRAFT_PACK );
-			if (hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.ChainReady.class ) != null) {
-				actions.add( AC_CHAIN );
-			}
-			if (hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.PackReady.class ) != null) {
-				actions.add( AC_PACK );
-			}
+			actions.add( AC_READY_MOD );
 		}
 
 		return actions;
@@ -207,24 +197,6 @@ public class MagesStaff extends MeleeWeapon {
 			wand.execute(hero, AC_ZAP);
 		} else if (action.equals(AC_UPDATE)) {
 			ArcaneResinUse();
-		} else if (action.equals(AC_CRAFT_CHAIN)) {
-			if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.craftChain( hero )) {
-				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.p( Messages.get( MagesStaff.class, "crafted_chain" ) );
-			} else {
-				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( Messages.get( MagesStaff.class, "no_missiles" ) );
-			}
-		} else if (action.equals(AC_CRAFT_PACK)) {
-			if (com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.craftPack( hero )) {
-				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.p( Messages.get( MagesStaff.class, "crafted_pack" ) );
-			} else {
-				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( Messages.get( MagesStaff.class, "no_potions" ) );
-			}
-		} else if (action.equals(AC_CHAIN)) {
-			curUser = hero;
-			GameScene.selectCell( chainListener );
-		} else if (action.equals(AC_PACK)) {
-			curUser = hero;
-			GameScene.selectCell( packListener );
 		} else if (action.equals(AC_READY_MOD)) {
 			curUser = hero;
 			GameScene.selectItem( readyModItemSelector );
@@ -281,44 +253,6 @@ public class MagesStaff extends MeleeWeapon {
 		}
 	};
 
-	private com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener chainListener =
-			new com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener() {
-		@Override
-		public void onSelect( Integer target ) {
-			if (target != null) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.throwChain( Dungeon.hero, target );
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.detach( Dungeon.hero,
-						com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.ChainReady.class );
-				Dungeon.hero.spendAndNext( 1f );
-				Dungeon.hero.sprite.operate( Dungeon.hero.pos );
-			}
-		}
-
-		@Override
-		public String prompt() {
-			return Messages.get( MagesStaff.class, "prompt_chain" );
-		}
-	};
-
-	private com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener packListener =
-			new com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener() {
-		@Override
-		public void onSelect( Integer target ) {
-			if (target != null) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.throwPotionPack( Dungeon.hero, target );
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.detach( Dungeon.hero,
-						com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.PackReady.class );
-				Dungeon.hero.spendAndNext( 1f );
-				Dungeon.hero.sprite.operate( Dungeon.hero.pos );
-			}
-		}
-
-		@Override
-		public String prompt() {
-			return Messages.get( MagesStaff.class, "prompt_pack" );
-		}
-	};
-
 	@SuppressWarnings("unchecked")
 	private void ArcaneResinUse() {
 
@@ -344,9 +278,13 @@ public class MagesStaff extends MeleeWeapon {
 					Weapon item2 = this;
 					final Weapon.Enchantment[] enchants = new Weapon.Enchantment[3];
 					Class<? extends Weapon.Enchantment> existing = item2.enchantment != null ? item2.enchantment.getClass() : null;
-					enchants[0] = Weapon.Enchantment.randomCommon( existing );
-					enchants[1] = Weapon.Enchantment.randomUncommon( existing );
-					enchants[2] = Weapon.Enchantment.random( existing, enchants[0].getClass(), enchants[1].getClass());
+					enchants[0] = Weapon.Enchantment.randomCommon( item2, existing );
+					enchants[1] = Weapon.Enchantment.randomUncommon( item2, existing );
+					//池子被过滤空时 pick() 会返回 null，这里兜底成不带武器过滤的抽取
+					if (enchants[0] == null) enchants[0] = Weapon.Enchantment.randomCommon( existing );
+					if (enchants[1] == null) enchants[1] = Weapon.Enchantment.randomUncommon( existing );
+					enchants[2] = Weapon.Enchantment.random( item2, existing, enchants[0].getClass(), enchants[1].getClass());
+					if (enchants[2] == null) enchants[2] = enchants[0];
 					GameScene.show(new WndEnchantSelect(item2, enchants[0], enchants[1], enchants[2]));
 					break;
 			}
@@ -427,6 +365,12 @@ public class MagesStaff extends MeleeWeapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
+		// 线路串联：手持老魔杖时近战伤害翻倍
+		if (attacker instanceof Hero
+				&& ((Hero) attacker).subClass == HeroSubClasses.ARTIFICER
+				&& ((Hero) attacker).pointsInTalent(Talent.CIRCUIT_CHAIN) > 0) {
+			damage *= 2;
+		}
 		if (attacker instanceof Hero && ((Hero) attacker).hasTalent(Talent.MYSTICAL_CHARGE)){
 			Hero hero = (Hero) attacker;
 			ArtifactRecharge.chargeArtifacts(hero, hero.pointsInTalent(Talent.MYSTICAL_CHARGE)/2f);
@@ -665,7 +609,12 @@ public class MagesStaff extends MeleeWeapon {
 	public Emitter emitter() {
 		if (wand == null) return null;
 		Emitter emitter = new Emitter();
-		emitter.pos(12.5f, 3);
+		// 各职业角色贴图的杖头位置不同，光效需按职业对齐
+		if (Dungeon.hero != null && Dungeon.hero.heroClass == HeroClasses.CARDTRICKSTER) {
+			emitter.pos(12.5f, 5);
+		} else {
+			emitter.pos(12.5f, 3);
+		}
 		emitter.fillTarget = false;
 		emitter.pour(StaffParticleFactory, 0.1f);
 		return emitter;

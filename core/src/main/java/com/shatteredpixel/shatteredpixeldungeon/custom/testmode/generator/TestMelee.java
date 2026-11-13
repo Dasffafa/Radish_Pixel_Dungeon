@@ -115,13 +115,16 @@ public class TestMelee extends TestGenerator {
 
     // 池数组驱动(与TestArmor的GLYPH_LISTS同思路)：直接引用四个附魔池，新增附魔入池后自动可选。
     // 超出列表长度时取最后一项(与TestArmor的越界钳制一致)。
+    @SuppressWarnings("unchecked")
     private Class<? extends Weapon.Enchantment> generateEnchant(int category, int id) {
-        Class<?>[] enchs = ENCH_LISTS[category];
-        if (enchs == null) {
+        if (category <= 0 || category >= ENCH_LISTS.length) {
             return null;
         }
-        int idx = Math.min(id, enchs.length - 1);
-        return (Class<? extends Weapon.Enchantment>) enchs[idx];
+        Class<?>[] enchs = ENCH_LISTS[category];
+        if (enchs == null || enchs.length == 0) {
+            return null;
+        }
+        return (Class<? extends Weapon.Enchantment>) enchs[Math.min(id, enchs.length - 1)];
     }
 
     private Class<? extends Weapon>[] weaponList(int t) {
@@ -232,7 +235,13 @@ public class TestMelee extends TestGenerator {
             o_enchant_rarity.setSelectedValue(enchant_rarity);
             add(o_enchant_rarity);
 
-            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", "12", 0, 12) {
+            int maxEnchantId = 0;
+            for (int i = 1; i < ENCH_LISTS.length; i++) {
+                if (ENCH_LISTS[i] != null) {
+                    maxEnchantId = Math.max(maxEnchantId, ENCH_LISTS[i].length - 1);
+                }
+            }
+            o_enchant_id = new OptionSlider(Messages.get(this, "enchant_id"), "0", Integer.toString(maxEnchantId), 0, maxEnchantId) {
                 @Override
                 protected void onChange() {
                     enchant_id = getSelectedValue();

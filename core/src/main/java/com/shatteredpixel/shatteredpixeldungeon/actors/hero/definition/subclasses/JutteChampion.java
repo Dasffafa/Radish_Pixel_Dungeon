@@ -17,7 +17,7 @@ public class JutteChampion extends HeroSubClass {
 		return new Talent[]{ Talent.ONE_JUTTE, Talent.IRON_QUENCH, Talent.SURPRISE_JUTTE };
 	}
 	@Override public Talent[] subclassT4() {
-		return new Talent[]{ Talent.ERROR };
+		return new Talent[0];
 	}
 
 	@Override public float attackDelayMultiplier(Hero hero, Char enemy, boolean surpriseAttack) {

@@ -133,9 +133,13 @@ public class ScrollOfEnchantment extends ExoticScroll {
 				final Weapon.Enchantment enchants[] = new Weapon.Enchantment[3];
 				
 				Class<? extends Weapon.Enchantment> existing = ((Weapon) item).enchantment != null ? ((Weapon) item).enchantment.getClass() : null;
-				enchants[0] = Weapon.Enchantment.randomCommon( existing );
-				enchants[1] = Weapon.Enchantment.randomUncommon( existing );
-				enchants[2] = Weapon.Enchantment.random( existing, enchants[0].getClass(), enchants[1].getClass());
+				enchants[0] = Weapon.Enchantment.randomCommon( (Weapon) item, existing );
+				enchants[1] = Weapon.Enchantment.randomUncommon( (Weapon) item, existing );
+				//池子被过滤空时 pick() 会返回 null，这里兜底成不带武器过滤的抽取，避免下面 getClass() 空指针
+				if (enchants[0] == null) enchants[0] = Weapon.Enchantment.randomCommon( existing );
+				if (enchants[1] == null) enchants[1] = Weapon.Enchantment.randomUncommon( existing );
+				enchants[2] = Weapon.Enchantment.random( (Weapon) item, existing, enchants[0].getClass(), enchants[1].getClass());
+				if (enchants[2] == null) enchants[2] = enchants[0];
 
 				GameScene.show(new WndEnchantSelect((Weapon) item, enchants[0], enchants[1], enchants[2]));
 			

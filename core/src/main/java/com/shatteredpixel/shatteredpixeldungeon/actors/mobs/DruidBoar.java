@@ -5,7 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidBoarSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -13,7 +13,7 @@ import com.watabou.utils.Random;
 public class DruidBoar extends Mob {
 
 	{
-		spriteClass = RatSprite.class;
+		spriteClass = DruidBoarSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}
@@ -24,7 +24,7 @@ public class DruidBoar extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Math.round( (Char.combatRoll( 8, 16 ) + lvl / 2f) * power );
+		return Math.round( (Char.combatRoll( 6, 12 ) + lvl / 2f) * power );
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class DruidBoar extends Mob {
 
 	@Override
 	public float speed() {
-		return 1.5f;
+		return 1.2f;
 	}
 
 	@Override

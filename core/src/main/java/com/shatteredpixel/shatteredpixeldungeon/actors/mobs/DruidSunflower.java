@@ -4,14 +4,14 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.RatSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidSunflowerSprite;
 import com.watabou.utils.Bundle;
 
 /** 德鲁伊召唤物：太阳花（远程吸血）。 */
 public class DruidSunflower extends Mob {
 
 	{
-		spriteClass = RatSprite.class;
+		spriteClass = DruidSunflowerSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}
@@ -22,7 +22,7 @@ public class DruidSunflower extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Math.round( (Char.combatRoll( 15, 25 ) + 5 * grassTiles) * power );
+		return Math.round( (Char.combatRoll( 12, 20 ) + grassTiles) * power );
 	}
 
 	@Override
@@ -38,7 +38,7 @@ public class DruidSunflower extends Mob {
 
 	@Override
 	public int drRoll() {
-		return super.drRoll() + Char.combatRoll( 8, 12 ) + 5 * grassTiles;
+		return super.drRoll() + Char.combatRoll( 8, 12 ) + grassTiles;
 	}
 
 	@Override
@@ -50,9 +50,8 @@ public class DruidSunflower extends Mob {
 	public int attackProc( Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
 		// 吸取等量生命；自身满血则分给盟友
-		int heal = damage;
-		if (HP < HT) {
-			heal = Math.min( heal, HT - HP );
+		int heal = Math.min( damage, Math.max( 0, HT - HP ) );
+		if (heal > 0) {
 			HP += heal;
 		}
 		int left = damage - heal;

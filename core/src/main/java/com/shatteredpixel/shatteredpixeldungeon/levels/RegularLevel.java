@@ -264,6 +264,13 @@ public abstract class RegularLevel extends Level {
 
 		return mobs;
 	}
+
+	/** 是否是苔藓分支（跆拳洞穴）第 2 层。 */
+	protected boolean isMossFloor2() {
+		return Dungeon.depth == 2
+				&& Branches.MOSS.equals(Dungeon.branchId)
+				&& Dungeon.level instanceof SmallGrassMiniLevel;
+	}
 	
 	@Override
 	protected void createMobs() {
@@ -475,7 +482,10 @@ public abstract class RegularLevel extends Level {
 					Heap dropped = drop(toDrop, cell);
 					if (heaps.get(cell) == dropped) {
 						dropped.type = Heap.Type.LOCKED_CHEST;
-						addItemToSpawn(new GoldenKey(Dungeon.depth));
+						// 跆拳洞穴第2层的金钥匙改由哥布林骑手掉落，不在此随机生成
+						if (!isMossFloor2()) {
+							addItemToSpawn(new GoldenKey(Dungeon.depth));
+						}
 					}
 				}
 			} else {
@@ -492,11 +502,14 @@ public abstract class RegularLevel extends Level {
 			int cell = randomDropCell();
 			if (item instanceof TrinketCatalyst){
 				drop( item, cell ).type = Heap.Type.LOCKED_CHEST;
-				int keyCell = randomDropCell();
-				drop( new GoldenKey(Dungeon.depth), keyCell ).type = Heap.Type.HEAP;
-				if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
-					map[keyCell] = Terrain.GRASS;
-					losBlocking[keyCell] = false;
+				// 跆拳洞穴第2层的金钥匙改由哥布林骑手掉落，这里不再随机生成
+				if (!isMossFloor2()) {
+					int keyCell = randomDropCell();
+					drop( new GoldenKey(Dungeon.depth), keyCell ).type = Heap.Type.HEAP;
+					if (map[keyCell] == Terrain.HIGH_GRASS || map[keyCell] == Terrain.FURROWED_GRASS) {
+						map[keyCell] = Terrain.GRASS;
+						losBlocking[keyCell] = false;
+					}
 				}
 			} else {
 				drop( item, cell ).type = Heap.Type.HEAP;

@@ -56,7 +56,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfRegrowth;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfWarding;
 import com.shatteredpixel.shatteredpixeldungeon.journal.Notes;
 import com.shatteredpixel.shatteredpixeldungeon.levels.*;
-import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
+import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestArenaLevel;import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.BloodPrisonLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.FireHallsLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.OldSewerLevel;
 import com.shatteredpixel.shatteredpixeldungeon.levels.alterLevel.WarCityLevel;
@@ -81,6 +81,7 @@ import com.watabou.utils.Bundle;
 import com.watabou.utils.FileUtils;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Random;
+import com.watabou.utils.Reflection;
 import com.watabou.utils.SparseArray;
 
 import java.io.IOException;
@@ -226,6 +227,10 @@ public class Dungeon {
 	public static HashSet<String> generatedLevels = new HashSet<>();
 	public static boolean levelJustGenerated;
 
+	// 测试工具（升降器）用：让下一次 newLevel() 直接使用指定的关卡类，
+	// 用于在同一层里指定要打哪个 Boss 变体（如第10层的典狱长 / 天狗）。用后自动清空。
+	public static Class<? extends Level> forcedLevelClass = null;
+
 	public static int gold;
 	public static int energy;
 	
@@ -369,16 +374,39 @@ public class Dungeon {
 				throw new IllegalStateException("Unknown branch: " + branchId);
 			}
 
+		// 测试场：测试模式专用空白地图（不参与正常楼层生成记录）
+		if (TestArenaLevel.requested) {
+			TestArenaLevel.requested = false;
+			level = new TestArenaLevel();
+		}
+
 			if (level == null) {
 				throw new IllegalStateException("Invalid floor: " + branchId + ":" + depth);
 		}
 		
+		// 第10层的 Boss 选择：典狱长与天狗随机替换出现
+		if (branchId.equals(Branches.MAIN) && depth == 10 && level instanceof PrisonBossLevel) {
+			Random.pushGenerator( Dungeon.seedCurDepth()+2 );
+			boolean warden = Random.Float() < 0.5f;
+			Random.popGenerator();
+			if (warden) {
+				level = new WardenBossLevel();
+			}
+		}
+
 		// 第15层的 Boss 选择
 		if (branchId.equals(Branches.MAIN) && depth == 15) {
 			// deterministic per (branch, depth), independent of prior branch exploration
 			Random.pushGenerator( Dungeon.seedCurDepth()+1 );
 			level = GenerateCaveBossLevel();
 			Random.popGenerator();
+		}
+
+		// 测试工具（升降器）可强制指定本层的关卡类，用于在同一层里选择要打哪个 Boss 变体。
+		// 只影响「这一次生成」，用完立刻清空，不影响正常流程。
+		if (forcedLevelClass != null) {
+			level = Reflection.newInstance(forcedLevelClass);
+			forcedLevelClass = null;
 		}
 
 		//dead end levels get cleared, don't count as generated

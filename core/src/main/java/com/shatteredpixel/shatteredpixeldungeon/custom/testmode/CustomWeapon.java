@@ -4,6 +4,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.VoidRift;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Annoying;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Dazzling;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.curses.Displacing;
@@ -86,6 +87,7 @@ public class CustomWeapon extends MeleeWeapon {
         enchPrio.put(Corrupting.class, 0);
         enchPrio.put(Elastic.class, 1);
         enchPrio.put(Grim.class, 0);
+        enchPrio.put(VoidRift.class, 0);
         enchPrio.put(Jealousy.class, 1);
         enchPrio.put(Kinetic.class, 0);
         enchPrio.put(Lucky.class, 0);
@@ -129,7 +131,7 @@ public class CustomWeapon extends MeleeWeapon {
                 int i = 0;
                 for(Class<? extends Enchantment> e: enchPrio.keySet()){
                     if (ench.getClass() == e){
-                        enchOn += 1L<<i;
+                        enchOn |= 1L << i;
                         break;
                     }
                     ++i;
@@ -155,7 +157,8 @@ public class CustomWeapon extends MeleeWeapon {
             //so scan 3 times instead.
             for(int i=2;i>=0;--i){
                 for(Enchantment e: enchList){
-                    if(enchPrio.get(e.getClass())==i) damage = e.proc(this, attacker, defender, damage);
+                    Integer prio = enchPrio.get(e.getClass());
+                    if (prio != null && prio == i) damage = e.proc(this, attacker, defender, damage);
                 }
             }
 
@@ -166,14 +169,17 @@ public class CustomWeapon extends MeleeWeapon {
 
     public boolean dispelEnchant(Class<? extends Enchantment> ench){
         if(ench!=null){
-            int id = 0;
-            for(Enchantment e: enchList){
+            for (Enchantment e : enchList){
                 if (e.getClass() == ench){
                     enchList.remove(e);
-                    enchOn -= 1<<id;
+                    int id = 0;
+                    for (Class<? extends Enchantment> c : enchPrio.keySet()){
+                        if (c == ench) break;
+                        ++id;
+                    }
+                    enchOn &= ~(1L << id);
                     return true;
                 }
-                ++id;
             }
         }
         return false;
@@ -897,11 +903,15 @@ public class CustomWeapon extends MeleeWeapon {
         }
 
         private class EnchantWindow extends Window{
+            private static final int WIDTH = 200;
+            private static final int COLS = 2;
+            private static final int ROW_H = 18;
+            private static final int COL_W = 98;
             private ArrayList<canScrollCheckBox> checkBoxes = new ArrayList<>();
             public EnchantWindow(){
 
                 super();
-                resize(120, 108 + 36);
+                resize(WIDTH, 108 + 36);
                 int placed = 0;
                 ScrollPane list = new ScrollPane(new Component()) {
 
@@ -939,15 +949,16 @@ public class CustomWeapon extends MeleeWeapon {
                         }
                     };
                     cb.checked((enchOn&(1L<<placed)) > 0 );
-                    cb.setRect(0, 18*placed, 120, 16);
+                    // 双列排布，避免几十个附魔挤成一条很长的单列
+                    cb.setRect((placed % COLS) * COL_W, (placed / COLS) * ROW_H, COL_W - 2, 16);
                     PixelScene.align(cb);
                     placed ++;
                     content.add(cb);
                     checkBoxes.add(cb);
                 }
-                content.setSize(120, checkBoxes.get(checkBoxes.size()-1).bottom());
+                content.setSize(WIDTH, checkBoxes.get(checkBoxes.size()-1).bottom());
                 list.setSize( list.width(), list.height() );
-                list.setRect(0, 0, 120, 108);
+                list.setRect(0, 0, WIDTH, 108);
                 list.scrollTo(0,0);
 
                 RedButton allOn = new RedButton(Messages.get(this, "all_on")) {
@@ -956,7 +967,7 @@ public class CustomWeapon extends MeleeWeapon {
                         allEnchOn();
                     }
                 };
-                allOn.setRect(0, 110, 59, 16);
+                allOn.setRect(0, 110, WIDTH/2 - 1, 16);
                 add(allOn);
 
                 RedButton allOff = new RedButton(Messages.get(this, "all_off")) {
@@ -965,7 +976,7 @@ public class CustomWeapon extends MeleeWeapon {
                         allEnchOff();
                     }
                 };
-                allOff.setRect(61, 110, 59, 16);
+                allOff.setRect(WIDTH/2 + 1, 110, WIDTH/2 - 1, 16);
                 add(allOff);
 
                 RedButton posOn = new RedButton(Messages.get(this, "positive_on")) {
@@ -974,7 +985,7 @@ public class CustomWeapon extends MeleeWeapon {
                         kindEnchOn(false);
                     }
                 };
-                posOn.setRect(0, 128, 59, 16);
+                posOn.setRect(0, 128, WIDTH/2 - 1, 16);
                 add(posOn);
 
                 RedButton negOn = new RedButton(Messages.get(this, "negative_on")) {
@@ -983,7 +994,7 @@ public class CustomWeapon extends MeleeWeapon {
                         kindEnchOn(true);
                     }
                 };
-                negOn.setRect(61, 128, 59, 16);
+                negOn.setRect(WIDTH/2 + 1, 128, WIDTH/2 - 1, 16);
                 add(negOn);
             }
 

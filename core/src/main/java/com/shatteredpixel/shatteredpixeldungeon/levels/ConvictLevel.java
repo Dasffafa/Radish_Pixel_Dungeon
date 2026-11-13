@@ -6,22 +6,36 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.LegendaryFelon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Bundle;
 
 import java.util.Arrays;
 
 /**
- * 传奇重犯副本：单层开阔椭圆形竞技场，从主线第 8 层进入。
- * 入口位于竞技场下方，中心放置传奇重犯（独立血条）。
+ * 传奇重犯副本：单层竞技场，从主线第 8 层进入。
+ * 地形按用户给定的墙线片段生成：上方大竞技场，下方窄走廊（入口在走廊底部正中），
+ * 中间那扇上锁的门在击败传奇重犯后打开。
  */
 public class ConvictLevel extends Level {
 
-	private static final int LEFT = 3, TOP = 3, RIGHT = 16, BOTTOM = 16;
+	//用户给定片段：13 宽 × 18 高，left/top 取 0
+	private static final int WIDTH = 13, HEIGHT = 18;
+
+	//入口在走廊底部正中
+	private static final int ENTRANCE_X = 6, ENTRANCE_Y = 16;
+	//上锁的门
+	private static final int DOOR_X = 6, DOOR_Y = 12;
+
+	private static final String FELON_SPAWNED = "felon_spawned";
+	private boolean felonSpawned = false;
 
 	{
 		color1 = 0x6a723d;
@@ -41,30 +55,74 @@ public class ConvictLevel extends Level {
 	@Override
 	protected boolean build() {
 
-		setSize( 20, 20 );
+		setSize( WIDTH, HEIGHT );
 		Arrays.fill( map, Terrain.WALL );
 
-		int cx2 = LEFT + RIGHT;
-		int cy2 = TOP + BOTTOM;
-		double rx = RIGHT - LEFT;
-		double ry = BOTTOM - TOP;
+		//先铺内部空地（外圈留一圈墙）
+		Painter.fill( this, 1, 1, WIDTH - 2, HEIGHT - 2, Terrain.EMPTY );
 
-		for (int x = LEFT; x <= RIGHT; x++) {
-			for (int y = TOP; y <= BOTTOM; y++) {
-				double dx = (2.0 * x - cx2) / rx;
-				double dy = (2.0 * y - cy2) / ry;
-				if (dx * dx + dy * dy <= 1.0) {
-					map[x + y * width()] = Terrain.EMPTY;
-				}
-			}
-		}
+		//墙（照抄用户给的片段，left=0 / top=0）
+		Painter.fill( this, 3, 1, 7, 1, Terrain.WALL );
+		Painter.fill( this, 2, 2, 2, 1, Terrain.WALL );
+		Painter.fill( this, 9, 2, 2, 1, Terrain.WALL );
+		Painter.fill( this, 1, 3, 2, 1, Terrain.WALL );
+		Painter.fill( this, 10, 3, 2, 1, Terrain.WALL );
+		Painter.fill( this, 1, 4, 1, 6, Terrain.WALL );
+		Painter.fill( this, 11, 4, 1, 6, Terrain.WALL );
+		Painter.fill( this, 2, 9, 1, 2, Terrain.WALL );
+		Painter.fill( this, 10, 9, 1, 2, Terrain.WALL );
+		Painter.fill( this, 3, 10, 1, 7, Terrain.WALL );
+		Painter.fill( this, 9, 10, 1, 7, Terrain.WALL );
+		Painter.fill( this, 4, 11, 5, 1, Terrain.WALL );
+		Painter.fill( this, 1, 12, 2, 1, Terrain.WALL );
+		Painter.fill( this, 4, 12, 2, 1, Terrain.WALL );
+		Painter.fill( this, 7, 12, 2, 1, Terrain.WALL );
+		Painter.fill( this, 10, 12, 2, 1, Terrain.WALL );
+		Painter.fill( this, 4, 13, 1, 2, Terrain.WALL );
+		Painter.fill( this, 8, 13, 1, 2, Terrain.WALL );
 
-		int entrance = ((LEFT + RIGHT) / 2) + (BOTTOM - 2) * width();
-		map[entrance] = Terrain.ENTRANCE;
+		//门正上方（片段里的 top+11 那堵墙）开一格通道：
+		//按片段原样画的话门后面是实心墙，玩家永远进不去竞技场，这里只补这一格。
+		Level.set( pointToCell( DOOR_X, DOOR_Y - 1 ), Terrain.EMPTY, this );
+
+		//门：一开始是能推开的普通门（否则玩家进不去），
+		//Boss 发现玩家后会上锁（见 sealBossDoor），击败后重新打开。
+		Level.set( pointToCell( DOOR_X, DOOR_Y ), Terrain.DOOR, this );
+
+		//入口
+		int entrance = pointToCell( ENTRANCE_X, ENTRANCE_Y );
+		Level.set( entrance, Terrain.ENTRANCE, this );
 		transitions.add( LevelTransition.branchUp( this, entrance,
 				"convict:main-8", Branches.MAIN, 8 ) );
 
 		return true;
+	}
+
+	/** Boss 发现玩家后把门锁上（玩家进来后被困住，直到击败他） */
+	public void sealBossDoor() {
+		//玩家还在门下方的走廊里时不能锁，否则会被关在竞技场外、又没有钥匙，直接卡死
+		if (Dungeon.hero != null && Dungeon.hero.pos / width() > DOOR_Y) {
+			return;
+		}
+		int door = pointToCell( DOOR_X, DOOR_Y );
+		if (map[door] == Terrain.DOOR) {
+			Level.set( door, Terrain.LOCKED_DOOR, this );
+			//Level.set 只改数据不改贴图，必须通知场景重画这一格，否则看着还是普通门
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
+		}
+	}
+
+	/** 击败传奇重犯后把上锁的门打开 */
+	public void openBossDoor() {
+		int door = pointToCell( DOOR_X, DOOR_Y );
+		if (map[door] == Terrain.LOCKED_DOOR) {
+			Level.set( door, Terrain.DOOR, this );
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap( door );
+		}
+	}
+
+	private int pointToCell( int x, int y ) {
+		return x + y * width();
 	}
 
 	@Override
@@ -74,9 +132,40 @@ public class ConvictLevel extends Level {
 
 	@Override
 	protected void createMobs() {
+		// Boss 不在关卡加载时铺好：玩家踩到门口就看见人是不对的。
+		// 真正踏进竞技场那一刻由 occupyCell -> spawnFelon() 一次性生成。
+	}
+
+	/** 玩家踏进竞技场（门上方）时一次性生成传奇重犯；老存档里已在场的不再重复生成。 */
+	public void spawnFelon(){
+		if (felonSpawned) return;
+		for (Mob m : mobs){
+			if (m instanceof LegendaryFelon){ felonSpawned = true; return; }
+		}
+		felonSpawned = true;
 		LegendaryFelon felon = new LegendaryFelon();
-		felon.pos = ((LEFT + RIGHT) / 2) + ((TOP + BOTTOM) / 2) * width();
-		mobs.add( felon );
+		felon.pos = pointToCell( 6, 6 );
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( felon );
+	}
+
+	@Override
+	public void occupyCell( Char ch ){
+		super.occupyCell( ch );
+		if (ch == Dungeon.hero && ch.pos >= 0 && ch.pos / width() < DOOR_Y){
+			spawnFelon();
+		}
+	}
+
+	@Override
+	public void storeInBundle( Bundle bundle ){
+		super.storeInBundle( bundle );
+		bundle.put( FELON_SPAWNED, felonSpawned );
+	}
+
+	@Override
+	public void restoreFromBundle( Bundle bundle ){
+		super.restoreFromBundle( bundle );
+		felonSpawned = bundle.getBoolean( FELON_SPAWNED );
 	}
 
 	@Override

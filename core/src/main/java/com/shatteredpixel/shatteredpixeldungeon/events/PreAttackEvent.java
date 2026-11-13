@@ -4,7 +4,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * attack() 开头（FOV/无敌判定前）发布；cancel() 则本次攻击作废（attack 返回 true，如影舞者破隐换突袭）。
+ * attack() 开头（FOV/无敌判定前）发布；cancel() 则本次攻击作废（attack 返回 true）。
+ * 影舞者只在此标记「攻击破隐」，攻击本身仍照常结算。
  * dmgMulti/dmgBonus/accMulti 分发后写回攻击流程；优先级：替换/取消 +1000，伤害乘区 +500。
  */
 public class PreAttackEvent extends GameEvent {

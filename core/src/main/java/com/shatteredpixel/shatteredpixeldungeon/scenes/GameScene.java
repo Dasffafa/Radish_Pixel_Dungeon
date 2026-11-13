@@ -409,7 +409,11 @@ public class GameScene extends PixelScene {
 		if (uiSize == 2) {
 			inventory = new InventoryPane();
 			inventory.camera = uiCamera;
-			inventory.setPos(uiCamera.width - inventory.width(), uiCamera.height - inventory.height());
+			// 桌面端窗口可能被拉得很小/很扁，面板必须夹在可视区内，否则会超到窗口外面（只剩半块）
+			inventory.maxWidth  = Math.max( 90, (int)uiCamera.width );
+			inventory.maxHeight = Math.max( 60, (int)(uiCamera.height * 0.72f) );
+			inventory.setPos( Math.max(0, uiCamera.width - inventory.width()),
+					Math.max(0, uiCamera.height - inventory.height()) );
 			add(inventory);
 
 			toolbar.setRect( 0, uiCamera.height - toolbar.height() - inventory.height(), uiCamera.width, toolbar.height() );
@@ -447,6 +451,7 @@ public class GameScene extends PixelScene {
 				}
 				break;
 		}
+
 
 		ArrayList<Item> dropped = Dungeon.droppedItems.get( Dungeon.depth );
 		if (dropped != null) {
@@ -1324,6 +1329,16 @@ public class GameScene extends PixelScene {
 				}
 			}
 
+			// WndBag 用的是独立相机：把它的底边压在常驻背包面板之上，别被面板挡住。
+			if (wnd instanceof WndBag && scene.inventory != null && scene.inventory.visible) {
+				float zoom = wnd.camera().zoom;
+				float windowBottom = wnd.camera().y / zoom + wnd.camera().screenHeight() / zoom;
+				float paneTop = scene.inventory.top();
+				if (windowBottom > paneTop) {
+					wnd.offset(wnd.getOffset().x, wnd.getOffset().y - (int)Math.ceil(windowBottom - paneTop));
+				}
+			}
+
 			scene.addToFront(wnd);
 		}
 	}
@@ -1695,7 +1710,7 @@ public class GameScene extends PixelScene {
 				image = Icons.get(Icons.INFO);
 			} else if (objects.get(0) instanceof Hero) {
 				title = textLines.remove(0);
-				image = HeroSprite.avatar(((Hero) objects.get(0)).heroClass, ((Hero) objects.get(0)).tier());
+				image = HeroSprite.avatar( (Hero) objects.get(0) );
 			} else if (objects.get(0) instanceof Mob) {
 				title = textLines.remove(0);
 				image = ((Mob) objects.get(0)).sprite();

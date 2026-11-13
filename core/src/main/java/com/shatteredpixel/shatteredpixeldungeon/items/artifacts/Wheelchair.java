@@ -9,6 +9,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Roots;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairRush;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CatapultStartBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.CatapultStartCooldown;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Frost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairCrashBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Haste;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Speed;
@@ -72,6 +75,9 @@ public class Wheelchair extends Artifact {
         if (hero.buff(MagicImmune.class) != null) {
             return actions;
         }
+        // 兜底：残废/冻伤可能早于天赋获得（此时不会重新 attach），
+        // 也可能读档回来时状态与天赋并存，所以每次打开轮椅菜单都补判一次
+        tryTriggerCatapultStart(hero);
         if (isEquipped(hero) && (charge > 0 || canRideWithoutCharge(hero)) && !cursed) {
             actions.add(AC_RIDE);
         }
@@ -102,6 +108,9 @@ public class Wheelchair extends Artifact {
         if (action.equals(AC_RIDE)) {
             curUser = hero;
 
+            // 同上兜底：快捷键/快捷栏直接触发 AC_RIDE 时不会走 actions()
+            tryTriggerCatapultStart(hero);
+
             if (!isEquipped(hero)) {
                 GLog.i(Messages.get(Artifact.class, "need_to_equip"));
                 usesTargeting = false;
@@ -127,6 +136,27 @@ public class Wheelchair extends Artifact {
 
     private boolean canRideWithoutCharge(Hero hero) {
         return hero.buff(CatapultStartBuff.class) != null;
+    }
+
+    /**
+     * 弹射起步（Talent.CATAPULT_START）触发的唯一入口。
+     * 条件：天赋已点、身上背着轮椅、未在冷却、且当前有残废或冻伤。
+     * 触发后给一个限时的免费乘车窗口 + 进入 50 回合冷却。
+     * 单独抽成静态方法是因为触发点有多处：Cripple/Frost 首次附加、点出天赋的那一刻、
+     * 以及打开/使用轮椅时的兜底（状态先于天赋获得、或读档后两者并存）。
+     */
+    public static boolean tryTriggerCatapultStart(Hero hero) {
+        if (hero == null) return false;
+        if (hero.pointsInTalent(Talent.CATAPULT_START) < 1) return false;
+        if (!(hero.belongings.artifact instanceof Wheelchair)) return false;
+        if (hero.buff(CatapultStartCooldown.class) != null) return false;
+        if (hero.buff(Cripple.class) == null && hero.buff(Frost.class) == null) return false;
+
+        // 用 prolong：若窗口仍在（例如刚吃过残废又吃冻伤）则把它重新顶到满
+        Buff.prolong(hero, CatapultStartBuff.class, CatapultStartBuff.DURATION);
+        Buff.affect(hero, CatapultStartCooldown.class, CatapultStartCooldown.DURATION);
+        GLog.p(Messages.get(Wheelchair.class, "catapult_triggered"));
+        return true;
     }
 
     // 执行轮椅翻车

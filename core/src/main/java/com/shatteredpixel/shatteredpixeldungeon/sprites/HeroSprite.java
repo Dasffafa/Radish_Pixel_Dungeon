@@ -66,15 +66,20 @@ public class HeroSprite extends CharSprite {
 	/** 标准英雄小人待机帧序（TextureFilm 索引）。 */
 	public static final int[] IDLE_FRAMES = { 0, 0, 0, 1, 0, 0, 1, 1 };
 	
-	private static TextureFilm tiers;
-	
+	/** 每个英雄贴图各自缓存的「护甲行」胶片（不同高度的贴图不能共用 UV）。 */
+	private static final java.util.HashMap<String, TextureFilm> tierFilms = new java.util.HashMap<>();
+
+	/** 当前精灵使用的贴图资源路径，用于取对应高度的行胶片。 */
+	private String sheetAsset = Assets.Sprites.ROGUE;
+
 	protected Animation fly;
 	protected Animation read;
 
 	public HeroSprite() {
 		super();
 		
-		texture( hero.heroClass.spritesheet() );
+		sheetAsset = hero.heroClass.spritesheet();
+		texture( sheetAsset );
 		updateArmor();
 		
 		link( hero );
@@ -86,7 +91,8 @@ public class HeroSprite extends CharSprite {
 	}
 
 	public void disguise(HeroClass cls){
-		texture( cls.spritesheet() );
+		sheetAsset = cls.spritesheet();
+		texture( sheetAsset );
 		updateArmor();
 	}
 
@@ -150,7 +156,11 @@ public class HeroSprite extends CharSprite {
 			}
 		}
 
-		TextureFilm film = new TextureFilm( tiers(), t, FRAME_WIDTH, FRAME_HEIGHT );
+		// 四件新护甲：与既有护甲一样只切换到角色贴图的对应行，不更换贴图。
+		int outfitRow = ArmorOutfit.rowFor( armor );
+		if (outfitRow >= 0 && ArmorOutfit.hasOutfit( hero.heroClass )) t = outfitRow;
+
+		TextureFilm film = new TextureFilm( tiers(sheetAsset), t, FRAME_WIDTH, FRAME_HEIGHT );
 
 		idle = new Animation( 1, true );
 		idle.frames( film, 0, 0, 0, 1, 0, 0, 1, 1 );
@@ -159,7 +169,8 @@ public class HeroSprite extends CharSprite {
 		run.frames( film, 2, 3, 4, 5, 6, 7 );
 
 		die = new Animation( 20, false );
-		die.frames( film, 8, 9, 10, 11, 12, 11 );
+		// 死亡动画只有 5 帧素材，第 6 帧沿用第 5 帧收尾，避免最后倒回第 4 帧看起来缺一帧
+		die.frames( film, 8, 9, 10, 11, 12, 12 );
 
 		attack = new Animation( 15, false );
 		attack.frames( film, 13, 14, 15, 0 );
@@ -246,20 +257,37 @@ public class HeroSprite extends CharSprite {
 	}
 	
 	public static TextureFilm tiers() {
-		if (tiers == null) {
-			SmartTexture texture = TextureCache.get( Assets.Sprites.ROGUE );
-			tiers = new TextureFilm( texture, texture.width, FRAME_HEIGHT );
+		return tiers( Assets.Sprites.ROGUE );
+	}
+
+	/**
+	 * 取指定英雄贴图的「护甲行」胶片。
+	 *
+	 * <p>行胶片把整张图按 15px 高切成若干行；UV 归一化依赖贴图自身高度，
+	 * 因此不同高度的图（如月华 256×256）必须各建一份，不能共用 ROGUE 的。</p>
+	 */
+	public static TextureFilm tiers( String asset ) {
+		TextureFilm film = tierFilms.get( asset );
+		if ( film == null ) {
+			SmartTexture texture = TextureCache.get( asset );
+			film = new TextureFilm( texture, texture.width, FRAME_HEIGHT );
+			tierFilms.put( asset, film );
 		}
-		
-		return tiers;
+		return film;
 	}
 
 	public static Image avatar( Hero hero ){
+		int row = avatarRow( hero );
 		if (hero.buff(HeroDisguise.class) != null){
-			return avatar(hero.buff(HeroDisguise.class).getDisguise(), hero.tier());
+			return avatar(hero.buff(HeroDisguise.class).getDisguise(), row);
 		} else {
-			return avatar(hero.heroClass, hero.tier());
+			return avatar(hero.heroClass, row);
 		}
+	}
+
+	/** HUD / 信息窗口头像要与游戏内角色一致：四件新护甲在 18~21 行，其余沿用 armor.tier。 */
+	private static int avatarRow( Hero hero ){
+		return hero == null ? 0 : hero.tier_for_image();
 	}
 	
 	public static Image avatar( HeroClass cl, int armorTier ) {
@@ -278,7 +306,7 @@ public class HeroSprite extends CharSprite {
 			return avatar;
 		}
 
-		RectF patch = tiers().get( armorTier );
+		RectF patch = tiers( cl.spritesheet() ).get( armorTier );
 		Image avatar = new Image( cl.spritesheet() );
 		RectF frame = avatar.texture.uvRect( 1, 0, FRAME_WIDTH, FRAME_HEIGHT );
 		frame.shift( patch.left, patch.top );

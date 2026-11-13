@@ -28,6 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Statistics;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Ghost;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.MoonLight;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.Peddler;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.PeddlerCatalog;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.items.Amulet;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
@@ -202,8 +204,106 @@ public class SewerLevel extends RegularLevel {
 			mobs.add(npc18);
 		}
 
+		//一楼游商（仿暗黑地牢 BarterMan）：名字/台词/货单全在 PeddlerCatalog 里
+		if(Dungeon.depth == 1 && Dungeon.branchId.equals(Branches.MAIN)){
+			spawnPeddlers();
+		}
+
 		super.createMobs();
 	}
+
+	/** 游商之间至少隔开的格数（按真实地图距离，不是格子编号差）。 */
+	private static final int PEDDLER_SPACING = 5;
+
+	/**
+	 * 把 7 位游商分散撒到一楼各处。
+	 *
+	 * 做法：先收集全图所有可以站人的空格（排除不可站立、坑洞、已有物品、已有单位、以及紧贴入口的格子），
+	 * 打乱顺序后按 {@link #PEDDLER_SPACING} 格的最小真实距离贪心抽取；
+	 * 一次没抽够就把最小距离放宽一格重来，直到放下足够人数。
+	 * 这样他们散布在整个楼层，而不是在入口排成一队；实在放不下就少放几位，绝不覆盖已有单位或物品。
+	 */
+	private void spawnPeddlers() {
+		int total = length();
+		int start = entrance();
+		ArrayList<Integer> candidates = new ArrayList<>();
+		for (int cell = 0; cell < total; cell++) {
+			if (!passable[cell] || pit[cell]) {
+				continue;
+			}
+			if (heaps.get(cell) != null) {
+				continue;
+			}
+			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(cell) != null) {
+				continue;
+			}
+			// 别刷在陷阱或植物上：游商是常驻 NPC，压住陷阱格会让人看不清那里有东西
+			if (traps.get(cell) != null || plants.get(cell) != null) {
+				continue;
+			}
+			// 别堵在入口格上
+			if (cell == start) {
+				continue;
+			}
+			// 只放在房间内部：room(cell) 为 null ⇒ 这格在走廊、门洞或通道上。
+			// Room.inside() 已经把紧贴墙的那一圈排除了，所以不会贴着门站。
+			if (room(cell) == null) {
+				continue;
+			}
+			// 还要求上下左右四格都能走：避免站在一格宽的窄道/门口，被玩家堵住过不去。
+			boolean open = true;
+			for (int dir : com.watabou.utils.PathFinder.NEIGHBOURS4) {
+				int n = cell + dir;
+				if (n < 0 || n >= total || !passable[n] || pit[n]) {
+					open = false;
+					break;
+				}
+			}
+			if (!open) {
+				continue;
+			}
+			candidates.add(cell);
+		}
+		if (candidates.isEmpty()) {
+			return;
+		}
+
+		ArrayList<Integer> chosen = new ArrayList<>();
+		// 从宽到窄逐步放宽间距，保证尽可能放下全部游商
+		for (int spacing = PEDDLER_SPACING; spacing >= 2 && chosen.size() < PeddlerCatalog.COUNT; spacing--) {
+			chosen.clear();
+			ArrayList<Integer> pool = new ArrayList<>(candidates);
+			// 用 SPD 自带随机源做 Fisher-Yates 洗牌，保证每次开局的散布位置都不同
+			for (int i = pool.size() - 1; i > 0; i--) {
+				int j = com.watabou.utils.Random.Int(i + 1);
+				int tmp = pool.get(i);
+				pool.set(i, pool.get(j));
+				pool.set(j, tmp);
+			}
+			for (int cell : pool) {
+				if (chosen.size() >= PeddlerCatalog.COUNT) {
+					break;
+				}
+				boolean ok = true;
+				for (int other : chosen) {
+					if (distance(cell, other) < spacing) {
+						ok = false;
+						break;
+					}
+				}
+				if (ok) {
+					chosen.add(cell);
+				}
+			}
+		}
+
+		for (int i = 0; i < chosen.size() && i < PeddlerCatalog.COUNT; i++) {
+			Peddler p = new Peddler(i);
+			p.pos = chosen.get(i);
+			mobs.add(p);
+		}
+	}
+
 	
 	@Override
 	public boolean activateTransition(Hero hero, LevelTransition transition) {

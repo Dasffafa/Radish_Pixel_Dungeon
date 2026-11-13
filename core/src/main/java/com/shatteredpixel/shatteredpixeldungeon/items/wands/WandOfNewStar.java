@@ -36,7 +36,7 @@ public class WandOfNewStar extends DamageWand {
     }
 
     private void executeStarEffect(Char centerChar) {
-        int radius = 1 + (buffedLvl() / 4);
+        int radius = 2 + (buffedLvl() / 3);
 
         int x = centerChar.pos % Dungeon.level.width();
         int y = centerChar.pos / Dungeon.level.width();
@@ -58,35 +58,52 @@ public class WandOfNewStar extends DamageWand {
 
         ConeAOE aoe = new ConeAOE(bolt, radius, 360, Ballistica.STOP_TARGET);
 
-        for (Ballistica ray : aoe.outerRays) {
-            ((MagicMissile) centerChar.sprite.parent.recycle(MagicMissile.class)).reset(
-                    MagicMissile.STAR,
-                    centerChar.sprite,
-                    ray.path.get(Math.min(radius / 2, ray.path.size() - 1)),
-                    null
-            );
+        //施法中心的精灵可能不在场景里（例如刚生成/刚死亡的盟友），这种情况下只结算效果、不放特效
+        com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite origin =
+                (centerChar != null && centerChar.sprite != null && centerChar.sprite.parent != null)
+                        ? centerChar.sprite : null;
+
+        if (origin != null) {
+            for (Ballistica ray : aoe.outerRays) {
+                if (ray.path.isEmpty()) continue;
+                ((MagicMissile) origin.parent.recycle(MagicMissile.class)).reset(
+                        MagicMissile.STAR,
+                        origin,
+                        ray.path.get(Math.min(radius / 2, ray.path.size() - 1)),
+                        null
+                );
+            }
         }
 
-        ((MagicMissile) centerChar.sprite.parent.recycle(MagicMissile.class)).reset(
-                MagicMissile.STAR,
-                centerChar.sprite,
-                bolt.path.get(Math.min(radius / 2, bolt.path.size() - 1)),
-                () -> {
-                    for (int pos : aoe.cells) {
-                        Char target = Actor.findChar(pos);
-                        if (target != null) {
-                            int shield = buffedLvl() + 2;
-                            boolean isHiddenMimic = target instanceof Mimic
-                                    && target.alignment == Char.Alignment.NEUTRAL;
-                            if (isHiddenMimic || target.alignment == Char.Alignment.ENEMY) {
-                                target.damage(DamageInfo.of(damageRoll() == 0 ? 1 : damageRoll(), DamageType.HOLY, curUser, this));
-                                target.sprite.burst(0xFFFFFFFF, buffedLvl() / 2 + 2);
-                            } else if (target.alignment == Char.Alignment.ALLY || target instanceof Hero) {
-                                Buff.affect(target, Barrier.class).setShield(shield);
-                            }
+        Callback onHit = () -> {
+            for (int pos : aoe.cells) {
+                Char target = Actor.findChar(pos);
+                if (target != null) {
+                    int shield = buffedLvl() + 2;
+                    boolean isHiddenMimic = target instanceof Mimic
+                            && target.alignment == Char.Alignment.NEUTRAL;
+                    if (isHiddenMimic || target.alignment == Char.Alignment.ENEMY) {
+                        target.damage(DamageInfo.of(damageRoll() == 0 ? 1 : damageRoll(), DamageType.HOLY, curUser, this));
+                        if (target.sprite != null) {
+                            target.sprite.burst(0xFFFFFFFF, buffedLvl() / 2 + 2);
                         }
+                    } else if (target.alignment == Char.Alignment.ALLY || target instanceof Hero) {
+                        Buff.affect(target, Barrier.class).setShield(shield);
                     }
-                });
+                }
+            }
+        };
+
+        if (origin != null && !bolt.path.isEmpty()) {
+            ((MagicMissile) origin.parent.recycle(MagicMissile.class)).reset(
+                    MagicMissile.STAR,
+                    origin,
+                    bolt.path.get(Math.min(radius / 2, bolt.path.size() - 1)),
+                    onHit
+            );
+        } else {
+            onHit.call();
+        }
     }
 
     @Override
@@ -107,16 +124,16 @@ public class WandOfNewStar extends DamageWand {
             centerChar = curUser;
         }
 
-        executeStarEffect(centerChar);
+        try {
+            executeStarEffect(centerChar);
+        } catch (Exception e) {
+            //特效里任何一步抛异常都不能把回合卡住：Wand.zap() 里 onZap 抛异常就不会再调 wandUsed()
+            com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("新星法杖特效异常: " + e);
+        }
         Sample.INSTANCE.play(Assets.Sounds.ZAP);
 
-        // WondrousResin 额外效果
-        if (Random.Float() < WondrousResin.extraCurseEffectChance()) {
-            WondrousResin.forcePositive = true;
-            CursedWand.cursedZap(this, curUser, bolt, () -> {
-                WondrousResin.forcePositive = false;
-            });
-        }
+        // WondrousResin 的额外效果由 Wand.zap() 统一处理（那里会在回调里调 wandUsed()）。
+        // 这里再调一次 cursedZap 会重复施法，并且它的回调不释放 busy，导致施法后卡住。
     }
 
     @Override
@@ -156,16 +173,16 @@ public class WandOfNewStar extends DamageWand {
 
     @Override
     public String statsDesc() {
-        int radius = 3 + (buffedLvl() / 4) * 2;
+        int radius = 5 + (buffedLvl() / 3) * 2;
         if (levelKnown)
             return Messages.get(this, "stats_desc", radius, radius, min(), max(), buffedLvl() + 2);
         else
-            return Messages.get(this, "stats_desc", 3, 3, min(0), max(0), 2);
+            return Messages.get(this, "stats_desc", 5, 5, min(0), max(0), 2);
     }
 
     @Override
     public String upgradeStat1(int level) {
-        int radius = 3 + (level / 4) * 2;
+        int radius = 5 + (level / 3) * 2;
         return Integer.toString(radius);
     }
 

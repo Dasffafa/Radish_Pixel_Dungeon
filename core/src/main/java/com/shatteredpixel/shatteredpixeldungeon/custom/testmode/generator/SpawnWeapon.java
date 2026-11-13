@@ -10,6 +10,7 @@ import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.MobPlacer;
 import com.shatteredpixel.shatteredpixeldungeon.custom.testmode.TestItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment;
@@ -439,7 +440,19 @@ public class SpawnWeapon extends TestItem {
          * @param enchant 附魔类
          * @return 附魔信息文本 */
         private String getEnchantInfo(Class enchant) {
-            return enchant==null?Messages.get(this, "no_enchant"):Messages.get(enchant, "name", Messages.get(this, "enchant"));
+            if (enchant == null) {
+                return Messages.get(this, "no_enchant");
+            }
+            String suffix = Messages.get(this, "enchant");
+            try {
+                Enchantment e = (Enchantment) Reflection.newInstance(enchant);
+                if (e != null && e.curse()) {
+                    suffix = Messages.get(Item.class, "curse");
+                }
+            } catch (Exception ignored) {
+                // 取不到实例时按附魔显示
+            }
+            return Messages.get(enchant, "name", suffix);
         }
 
         private int maxSlots(int t) {

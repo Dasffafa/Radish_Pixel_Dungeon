@@ -89,6 +89,8 @@ public class ShieldMage extends Mob {
                     Set<Mob> mobs = Collections.synchronizedSet(Dungeon.level.mobs);
                     Mob weakestMob = this;
                     for(Mob mob:mobs){
+                        // 只给友方（同为敌人阵营）套盾，避免治疗玩家或其他敌对生物
+                        if (mob.alignment != alignment) continue;
                         if(mob.HP < weakestMob.HP && fieldOfView[mob.pos]){
                             weakestMob = mob;
                             zapPos = mob.pos;
@@ -115,7 +117,8 @@ public class ShieldMage extends Mob {
 
         Char mob = Actor.findChar(cell);
 
-        if (mob != null)
+        // 只给友方套盾，绝不治疗敌对目标
+        if (mob != null && mob.alignment == alignment)
             Buff.affect(mob, Barrier.class).setShield(15);
 
         Invisibility.dispel(this);

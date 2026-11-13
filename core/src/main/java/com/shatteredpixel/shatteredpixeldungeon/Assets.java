@@ -34,6 +34,7 @@ public class Assets {
 		public static final String SWORD_SLASH    = "effects/cc0/sword_slash.png";
 		public static final String PIXEL_EXPLOSION= "effects/cc0/pixel_explosion.png";
 		public static final String SIMPLE_FX      = "effects/cc0/simplefx.png";
+		public static final String CYCLONE        = "effects/cc0/cyclone.png";
 	}
 
 	public static class Environment {
@@ -310,6 +311,7 @@ public class Assets {
 		public static final String RECTOR  = "splashes/rector.jpg";
 		public static final String MOONLIGHT = "splashes/moonlight.jpg";
 		public static final String CARDTRICKSTER = "splashes/cardtrickster.jpg";
+		public static final String NEW_HERO = "splashes/newhero.jpg";
 
 		public static final String SEWERS   = "splashes/sewers.jpg";
 		public static final String PRISON   = "splashes/prison.jpg";
@@ -326,14 +328,20 @@ public class Assets {
 		public static final String AVATARS_RECTOR	= "sprites/avatars_rector.png";
 		public static final String AVATARS_MOONLIGHT	= "sprites/avatars_moonlight.png";
 		public static final String AVATARS_CARDTRICKSTER	= "sprites/avatars_cardtrickster.png";
+		public static final String AVATARS_ENGINEER = "sprites/avatars_engineer.png";
 
 		public static final String WARRIOR  = "sprites/warrior.png";
 		public static final String MAGE     = "sprites/mage.png";
 		public static final String ROGUE    = "sprites/rogue.png";
+
+		// 六个角色各自的四套护甲动画（素材 16x16 帧已重排为 12x15 / 21 帧）
 		public static final String HUNTRESS = "sprites/huntress.png";
 		public static final String RECTOR  = "sprites/rector.png";
 		public static final String MOONLIGHT = "sprites/moonlight.png";
 		public static final String CARDTRICKSTER = "sprites/cardtrickster.png";
+		public static final String H_ENGINEER = "sprites/heroengineer.png";
+		public static final String ENGINEER = "sprites/engineer.png";
+		public static final String DETONATOR = "sprites/detonator.png";
 		public static final String THE_CATIST = "sprites/the_catist.png";
 		public static final String AVATARS  = "sprites/avatars.png";
 		public static final String FROG      = "sprites/frog.png";
@@ -391,6 +399,8 @@ public class Assets {
 		public static final String RIPPER   = "sprites/ripper.png";
 		public static final String SPAWNER  = "sprites/spawner.png";
 		public static final String DM100    = "sprites/dm100.png";
+		public static final String WARDEN   = "sprites/warden.png";
+		public static final String DM_PROTO = "sprites/dm_proto.png";
 		public static final String PYLON    = "sprites/pylon.png";
 		public static final String DM200    = "sprites/dm200.png";
 		public static final String LOTUS    = "sprites/lotus.png";
@@ -400,6 +410,7 @@ public class Assets {
 		public static final String CRYSTAL_WISP     = "sprites/crystal_wisp.png";
 		public static final String CRYSTAL_GUARDIAN = "sprites/crystal_guardian.png";
 		public static final String CRYSTAL_SPIRE    = "sprites/crystal_spire.png";
+		public static final String ICE_BLOCK        = "sprites/ice_block.png";
 		public static final String GNOLL_GUARD      = "sprites/gnoll_guard.png";
 		public static final String GNOLL_SAPPER     = "sprites/gnoll_sapper.png";
 		public static final String GNOLL_GEOMANCER  = "sprites/gnoll_geomancer.png";
@@ -407,12 +418,30 @@ public class Assets {
 		public static final String FUNGAL_SENTRY    = "sprites/fungal_sentry.png";
 		public static final String FUNGAL_CORE      = "sprites/fungal_core.png";
 
+		// 德鲁伊召唤物（素材来自 德鲁伊召唤物.zip）
+		public static final String DRUID_BEAR       = "sprites/bear.png";
+		public static final String DRUID_BOAR       = "sprites/boar.png";
+		public static final String DRUID_WOLF       = "sprites/wolf.png";
+		public static final String DRUID_SUNFLOWER  = "sprites/sunflower.png";
+		public static final String DRUID_VINES      = "sprites/thorn_creeper.png";
+		public static final String DRUID_OAK_SAGE   = "sprites/oak_sage.png";
+
 		public static final String NEW_NPC="sprites/new_npc.png";
+
+		// 游商贴图（素材来自桌面 ai 文件夹的 NPC 图集，按行拆分，每张 176x16 = 11帧 x 16x16）
+		public static final String NPC_PEDDLER0 = "sprites/npc_peddler0.png";
+		public static final String NPC_PEDDLER1 = "sprites/npc_peddler1.png";
+		public static final String NPC_PEDDLER2 = "sprites/npc_peddler2.png";
+		public static final String NPC_PEDDLER3 = "sprites/npc_peddler3.png";
+		public static final String NPC_PEDDLER4 = "sprites/npc_peddler4.png";
+		public static final String NPC_PEDDLER5 = "sprites/npc_peddler5.png";
+		public static final String NPC_PEDDLER6 = "sprites/npc_peddler6.png";
 
 		// Radish new Enemy
 		// Zone 1
 		public static final String GIANT_WORM="sprites/RadishEnemySprite/ZoneOne/giant_worm.png";
 		public static final String GOBLIN="sprites/RadishEnemySprite/ZoneOne/goblin.png";
+		public static final String GOBLIN_RIDER="sprites/RadishEnemySprite/ZoneOne/goblin_rider.png";
 		public static final String DOG="sprites/RadishEnemySprite/ZoneOne/dog.png";
 		public static final String MAYFLY="sprites/RadishEnemySprite/ZoneOne/mayfly.png";
 

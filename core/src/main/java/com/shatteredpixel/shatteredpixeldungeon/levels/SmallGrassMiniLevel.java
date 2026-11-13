@@ -2,6 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.levels;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GoblinRider;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.BlessScrollRoom;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special.MossEntranceRoom;
@@ -79,4 +80,29 @@ public class SmallGrassMiniLevel extends SewerLevel {
 
             return initRooms;
         }
+
+    @Override
+    protected void createMobs() {
+        super.createMobs();
+
+        // 苔藓分支第2层（跆拳洞穴）的小 Boss：哥布林骑手
+        if (Dungeon.depth == 2) {
+            GoblinRider rider = new GoblinRider();
+            int cell = randomRespawnCell(rider);
+
+            if (cell == -1) {
+                // 兜底：随便找一个可站立且没人占的格子
+                int guard = 0;
+                do {
+                    cell = Random.Int(length());
+                    guard++;
+                } while ((solid[cell] || cell == entrance() || findMob(cell) != null) && guard < 2000);
+            }
+
+            if (cell != -1) {
+                rider.pos = cell;
+                mobs.add(rider);
+            }
+        }
+    }
 }

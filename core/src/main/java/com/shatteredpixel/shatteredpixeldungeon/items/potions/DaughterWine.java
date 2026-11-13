@@ -55,7 +55,9 @@ public class DaughterWine extends Potion {
 		identify();
 
 		hero.HP = Math.min( hero.HT, hero.HP + HEAL );
-		hero.sprite.showStatus( CharSprite.POSITIVE, "+" + HEAL );
+		if (hero.sprite != null) {
+			hero.sprite.showStatus( CharSprite.POSITIVE, "+" + HEAL );
+		}
 		Buff.affect( hero, AdrenalineSurge.class ).reset( 2, 1000f );
 
 		GLog.p( Messages.get(this, "drink") );

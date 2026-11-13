@@ -300,6 +300,8 @@ public class Potion extends Item {
 
 	protected void drink( Hero hero ) {
 
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( hero );
+
 		detach( hero.belongings.backpack );
 
 		hero.spend( TIME_TO_DRINK );
@@ -314,7 +316,9 @@ public class Potion extends Item {
 
 		Sample.INSTANCE.play( Assets.Sounds.DRINK );
 
-		hero.sprite.operate( hero.pos );
+		if (hero.sprite != null) {
+			hero.sprite.operate( hero.pos );
+		}
 
 		if (!anonymous) {
 			Catalog.countUse(getClass());

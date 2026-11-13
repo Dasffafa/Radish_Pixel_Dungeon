@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClothArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.HornOfPlenty;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
@@ -90,6 +91,11 @@ import java.util.Locale;
 
 public class Talent {
 
+	/**
+	 * 蜕变/重塑等非“花费天赋点”来源不应重复触发获得型天赋（原案注）。
+	 */
+	public static boolean suppressGain = false;
+
 	protected final String name;
 	protected final int maxPoints;
 
@@ -106,6 +112,49 @@ public class Talent {
 	public int maxPoints(){ return maxPoints; }
 
 	public static final Talent HEARTY_MEAL = new Talent("HEARTY_MEAL");
+
+	//工程师天赋（自reXuns xun分支移植）
+	public static final Talent KEEN_MEAL = new Talent("KEEN_MEAL");
+	public static final Talent FINE_INTUITION = new Talent("FINE_INTUITION");
+	public static final Talent TESTED_MAINTENANCE = new Talent("TESTED_MAINTENANCE");
+	public static final Talent GENERAL_DISARM = new Talent("GENERAL_DISARM");
+	public static final Talent PULSE_ENERGY = new Talent("PULSE_ENERGY");
+	public static final Talent TOILSOME_MEAL = new Talent("TOILSOME_MEAL");
+	public static final Talent IONIC_LIQUID = new Talent("IONIC_LIQUID");
+	public static final Talent STRONG_PULSE = new Talent("STRONG_PULSE");
+	public static final Talent RESONANT_SENSING = new Talent("RESONANT_SENSING");
+	public static final Talent APART_ANYTHING = new Talent("APART_ANYTHING");
+	public static final Talent REMOTE_DESTRUCTION = new Talent("REMOTE_DESTRUCTION");
+	public static final Talent DURABLE_MODIFIES = new Talent("DURABLE_MODIFIES");
+	public static final Talent ELECTRONIC_REPAIR = new Talent("ELECTRONIC_REPAIR");
+	public static final Talent IONIZING_RADIATION = new Talent("IONIZING_RADIATION");
+	public static final Talent ACTIVE_REPAIR = new Talent("ACTIVE_REPAIR");
+	public static final Talent MULTI_MODIFY = new Talent("MULTI_MODIFY");
+	public static final Talent PART_RECYCLING = new Talent("PART_RECYCLING");
+	public static final Talent FAVORITE_WORK = new Talent("FAVORITE_WORK");
+	public static final Talent KINETIC_FRAGMENT = new Talent("KINETIC_FRAGMENT");
+	public static final Talent BACKFIRE = new Talent("BACKFIRE");
+	public static final Talent DIFFRACTION = new Talent("DIFFRACTION");
+	public static final Talent ELECTRIC_CHARGE = new Talent("ELECTRIC_CHARGE");
+	public static final Talent DARK_MAGIC = new Talent("DARK_MAGIC");
+	public static final Talent CHARISMA = new Talent("CHARISMA");
+	public static final Talent EXPLOSION_PROOF = new Talent("EXPLOSION_PROOF");
+	public static final Talent SHOCKWAVE = new Talent("SHOCKWAVE");
+	public static final Talent ADDED_POWDER = new Talent("ADDED_POWDER");
+	public static final Talent MAGICAL_EXPLOSION = new Talent("MAGICAL_EXPLOSION");
+	public static final Talent BALLISTICA_CALC = new Talent("BALLISTICA_CALC");
+	public static final Talent MECHANICAL_REFINEMENT = new Talent("MECHANICAL_REFINEMENT");
+	public static final Talent MOMENTUM_TRANSFORM = new Talent("MOMENTUM_TRANSFORM");
+	public static final Talent ACTIVE_DEFENSE = new Talent("ACTIVE_DEFENSE");
+	public static final Talent REPAIR_ABILITY = new Talent("REPAIR_ABILITY");
+	public static final Talent POWERED_DEVICE = new Talent("POWERED_DEVICE");
+	public static final Talent SKYNET = new Talent("SKYNET");
+	public static final Talent VIOLENT_LEAP = new Talent("VIOLENT_LEAP");
+	public static final Talent ASSAULT = new Talent("ASSAULT");
+	public static final Talent STACKED_CHARGE = new Talent("STACKED_CHARGE");
+	public static final Talent ALCHEMY_CRAFT = new Talent("ALCHEMY_CRAFT");
+	public static final Talent DECOY = new Talent("DECOY");
+	public static final Talent PORTABLE_DETONATOR = new Talent("PORTABLE_DETONATOR");
 
 	public static final Talent ARMSMASTERS_INTUITION = new Talent("ARMSMASTERS_INTUITION");
 
@@ -695,6 +744,40 @@ public class Talent {
 	public static final Talent GRAND_FINALE = new Talent("GRAND_FINALE", 3);
 	public static final Talent PREPARED = new Talent("PREPARED", 3);
 
+	// 恶魔之力（职业通用 T4）
+	public static final Talent GAZE_CARD = new Talent("GAZE_CARD", 4);
+	public static final Talent DATA_CLEANSE = new Talent("DATA_CLEANSE", 4);
+
+	// 收藏家 T4
+	public static final Talent CT_VENDETTA = new Talent("CT_VENDETTA", 4);
+	public static final Talent CT_LAST_STAND = new Talent("CT_LAST_STAND", 4);
+
+	// 空转大师 T4
+	public static final Talent MINIMALISM = new Talent("MINIMALISM", 4);
+	public static final Talent FANCY_SHUFFLE = new Talent("FANCY_SHUFFLE", 4);
+
+	// 陷阱师 T3
+	public static final Talent TRAP_CRAFT = new Talent("TRAP_CRAFT", 3);
+	public static final Talent SPIRIT_COORDINATION = new Talent("SPIRIT_COORDINATION", 3);
+	public static final Talent DECK_COMBO = new Talent("DECK_COMBO", 3);
+
+	// 陷阱师 T4
+	public static final Talent TRAP_MASTERY = new Talent("TRAP_MASTERY", 4);
+	public static final Talent CAREFUL_SELECTION = new Talent("CAREFUL_SELECTION", 4);
+
+	// 护甲技能天赋
+	public static final Talent SWIFT_STEP = new Talent("SWIFT_STEP", 4);
+	public static final Talent EMERGENCY_REPEAT = new Talent("EMERGENCY_REPEAT", 4);
+	public static final Talent MOMENTUM_TP = new Talent("MOMENTUM_TP", 4);
+
+	public static final Talent LONG_STORAGE = new Talent("LONG_STORAGE", 4);
+	public static final Talent BAG_EXPANSION = new Talent("BAG_EXPANSION", 4);
+	public static final Talent EFFECTIVE_USE = new Talent("EFFECTIVE_USE", 4);
+
+	public static final Talent HEAVY_REWARD = new Talent("HEAVY_REWARD", 4);
+	public static final Talent LINGERING = new Talent("LINGERING", 4);
+	public static final Talent EXTRA_BLESSING = new Talent("EXTRA_BLESSING", 4);
+
 	public static final Talent PLACEHOLDER_T3_1 = new Talent("PLACEHOLDER_T3_1", 3);
 	public static final Talent PLACEHOLDER_T3_2 = new Talent("PLACEHOLDER_T3_2", 3);
 	public static final Talent PLACEHOLDER_T3_3 = new Talent("PLACEHOLDER_T3_3", 3);
@@ -958,6 +1041,12 @@ public class Talent {
 
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
 
+		// 天赋：弹射起步 —— 残废/冻伤可能在这之前就已经挂在身上了，
+		// 那种情况下不会重新 attach，所以点出天赋的当口补判一次
+		if (talent == CATAPULT_START) {
+			Wheelchair.tryTriggerCatapultStart(hero);
+		}
+
 		// Superstition by DoggingDog on 20250817
 		// 天赋：星界沟通
 		if(talent == SUPERSTITION){
@@ -1044,6 +1133,7 @@ public class Talent {
 	}
 
 	private static void handleCardTricksterTalent(Hero hero, Talent talent) {
+		if (suppressGain) return;
 		int points = hero.pointsInTalent(talent);
 		boolean cardHero = hero.heroClass == HeroClasses.CARDTRICKSTER;
 		com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDeck deck =
@@ -1051,11 +1141,7 @@ public class Talent {
 
 		if (cardHero) {
 			if (talent == FOOD_CARD) {
-				deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.smallRation());
-			} else if (talent == ADVANCED_FOOD) {
-				if (points == 1) {
-					deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.ration());
-				}
+				deck.addToTop(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.smallRation());
 			} else if (talent == IDENTIFY_CARD) {
 				if (points == 1) {
 					deck.addToDiscard(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.identify());
@@ -1114,6 +1200,14 @@ public class Talent {
 						}
 					}
 				}
+			} else if (talent == GAZE_CARD) {
+				if (points == 1) {
+					deck.addToTop(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardFactory.gaze());
+				}
+			} else if (talent == MINIMALISM) {
+				deck.deletesLeft++;
+			} else if (talent == DATA_CLEANSE) {
+				deck.cleansesLeft++;
 			}
 			return;
 		}

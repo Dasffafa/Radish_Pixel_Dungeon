@@ -182,6 +182,7 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.AlchemyScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ArmorOutfit;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.HeroSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
@@ -378,6 +379,13 @@ public class Hero extends Char {
 
 	public int lvl = 1;
 	public int exp = 0;
+
+	// 催化手环积累的炼金能量（暂时只做累积与提示）
+	public float alchemyEnergy = 0f;
+
+	// 仙女座：上一次视野内的敌人数与预警冷却
+	private int andromedaSeenFoes = 0;
+	private int andromedaCd = 0;
 	private int resistHealth = 0;
 	private int originalHT = 20;
 
@@ -587,6 +595,7 @@ public class Hero extends Char {
 
 			bundle.put( LEVEL, lvl );
 			bundle.put( EXPERIENCE, exp );
+			bundle.put( "alchemy_energy", alchemyEnergy );
 
 			bundle.put( HTBOOST, HTBoost );
 
@@ -602,6 +611,7 @@ public class Hero extends Char {
 
 		lvl = bundle.getInt( LEVEL );
 		exp = bundle.getInt( EXPERIENCE );
+		alchemyEnergy = bundle.getFloat( "alchemy_energy" );
 
 		HTBoost = bundle.getInt(HTBOOST);
 
@@ -948,11 +958,22 @@ public class Hero extends Char {
             }
             if (armDr > 0) dr += armDr;
 
+            // 次要护甲：力量够就按它的格挡值减伤；力量不够则效果失效并承受相当于主要护甲一半的超力惩罚
             // 共鸣刻印：同时装备共鸣附魔武器与共鸣刻印护甲时，护甲格挡提升50%
             if (com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Resonance.isResonanceActive(this)) {
                 dr += Math.round(armDr * 0.5f);
             }
         }
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor sa = belongings.secondaryArmor();
+		if (sa != null) {
+			if (STR() >= sa.STRReq()) {
+				dr += Char.combatRoll(sa.DRMin(), sa.DRMax());
+			} else {
+				// 文本承诺「相当于主要护甲 50% 的超力惩罚」：主护甲为 2*(差值)，这里取 1*(差值)。
+				dr -= Math.max(1, sa.STRReq() - STR());
+			}
+		}
+
 		dr += ShieldToyBuff.getDRBonus();
 
 		if (belongings.weapon() != null)  {
@@ -1045,6 +1066,9 @@ public class Hero extends Char {
 				* WhetstoneBuff.getDamageMultiplier());
 
 		if (dmg < 0) dmg = 0;
+
+		// 次要护甲「所有伤害」加成已统一移到 Mob.damage 的 DamageInfo 修改器；
+		// 这里不再重复结算（否则近战乘两次，而法杖/投掷物仍吃不到）。
 
 		return dmg;
 	}
@@ -1278,6 +1302,17 @@ public class Hero extends Char {
 				}
 				if(w.cooldown <= 0){
 					w.detach(hero.belongings.backpack);
+					// 粘液干涸脱落：连带着把身上的护盾清空，并留下 1 点伤害。
+					// 只清数值、不强制 detach，护盾类 buff 各自的生命周期保持原样。
+					int shieldLost = 0;
+					for (ShieldBuff s : new ArrayList<>(hero.buffs(ShieldBuff.class))) {
+						shieldLost += s.shielding();
+						s.decShield(s.shielding());
+					}
+					if (shieldLost > 0) {
+						GLog.w(Messages.get(w, "fade"));
+					}
+					hero.damage(DamageInfo.physicalNoArmor(1, w));
 				}
 			}
 		}
@@ -1291,6 +1326,21 @@ public class Hero extends Char {
 				GLog.p(Messages.get(smallWoodenCross, "bless"));
 			}
 		}
+
+		// 仙女座：视野内敌人从少于 3 个变成 3 个或以上时，预警一次
+		if (belongings.secondaryArmor() instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda
+				&& STR() >= belongings.secondaryArmor().STRReq()) {
+			int androFoes = 0;
+			for (Mob am : Dungeon.level.mobs.toArray(new Mob[0])) {
+				if (am.alignment == Alignment.ENEMY && Dungeon.level.heroFOV[am.pos]) androFoes++;
+			}
+			if (androFoes >= 3 && andromedaSeenFoes < 3 && andromedaCd <= 0) {
+				GLog.w( Messages.get( com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda.class, "warning" ) );
+				andromedaCd = 30;
+			}
+			andromedaSeenFoes = androFoes;
+		}
+		if (andromedaCd > 0) andromedaCd--;
 
 		int mobcount = 0;
 		if (hero.hasTalent(Talent.HIDE_IN_CROWD)){
@@ -1474,7 +1524,7 @@ public class Hero extends Char {
 			pickupWindowCell = -1;
 			if (Dungeon.level != null) {
 				Heap heap = Dungeon.level.heaps.get( cell );
-				if (heap != null && !heap.isEmpty()) {
+				if (heap != null && !heap.isEmpty() && heap.type == Heap.Type.HEAP) {
 					//窗口会测量文字并加载物品贴图，必须在渲染线程创建
 					Game.runOnRenderThread(new Callback() {
 						@Override
@@ -1487,6 +1537,32 @@ public class Hero extends Char {
 		}
 
 		GameScene.ready();
+
+		// 明灯附魔：未失明时至少拥有 3+等级 格视野；放下武器后恢复基础视野
+		if (Dungeon.level != null && buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness.class ) == null) {
+			int baseView = buff( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light.class ) != null
+					? Math.max( com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Light.DISTANCE,
+							Dungeon.level.viewDistance )
+					: Dungeon.level.viewDistance;
+			com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon w = belongings.weapon();
+			if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
+					&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).enchantment
+					instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Lamp) {
+				baseView = baseView + 3 + Math.max( 0,
+						((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) w).buffedLvl() );
+			}
+			if (viewDistance != baseView) {
+				viewDistance = baseView;
+				Dungeon.observe();
+			}
+		}
+
+		// 影舞者：隐身结束后等英雄可操作时再弹出突袭选点
+		com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onHeroReady( this );
+		// 推进附魔：待处理的突进询问
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Propulsion.onHeroReady( this );
+		// 脉冲附魔：装备期间即开始计时
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Pulse.onHeroReady( this );
 	}
 
 	public void interrupt() {
@@ -1567,7 +1643,7 @@ public class Hero extends Char {
 			ready();
 
 			Heap heap = Dungeon.level.heaps.get( dst );
-			if (heap != null && heap.type == Type.FOR_SALE && heap.size() == 1) {
+			if (heap != null && heap.hasForSale()) {
 				Game.runOnRenderThread(new Callback() {
 					@Override
 					public void call() {
@@ -2058,6 +2134,11 @@ public class Hero extends Char {
 			GLog.w( Messages.get(Charm.class, "cant_attack"));
 			ready();
 			return false;
+		} else if (fearBlocksMelee()){
+			// 恐惧期间双手发抖，无法使用近战攻击（远程、法杖、投掷仍可用）
+			GLog.w( Messages.get(Hero.class, "fear_no_melee"));
+			ready();
+			return false;
 		}
 
 		if (enemy.isAlive() && canAttack( enemy ) && enemy.invisible == 0) {
@@ -2097,7 +2178,26 @@ public class Hero extends Char {
 		return enemy;
 	}
 
+	//恐惧（Terror）期间只能远程/投掷/施法，贴身近战会被打断
+	private boolean fearBlocksMelee(){
+		if (buff(Terror.class) == null) return false;
+		if (enemy == null) return false;
+		if (!Dungeon.level.adjacent(pos, enemy.pos)) return false;
+		KindOfWeapon w = belongings.attackingWeapon();
+		//空手也算近战；法杖、锁链之外的近战武器一律禁
+		return w == null || w instanceof MeleeWeapon;
+	}
+
  	public void rest( boolean fullRest ) {
+
+		// 庇护：原地等待时获得（3+等级）点护盾（覆盖式，不叠加）
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor shelterArmor = belongings.secondaryArmor();
+		if (shelterArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Shelter
+				&& STR() >= shelterArmor.STRReq()) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(
+					this, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier.class)
+					.setShield(3 + shelterArmor.level());
+		}
 		// 圆球皮肤：等待时若角度不正确，用至多 1 回合的等待时间旋转回正确方向
 		if (isSphereSkin()){
 			sphereRotateWhileWaiting( Math.min( sphereRotationTime( 0f ), TIME_TO_REST ) );
@@ -2149,6 +2249,26 @@ public class Hero extends Char {
 	@Override
 	public int attackProc( final Char enemy, int damage ) {
 		damage = super.attackProc( enemy, damage );
+
+		// 黑带：空手攻击使敌人虚弱（2+等级）回合，空手伤害 +（2+等级）
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor blackBelt = belongings.secondaryArmor();
+		if (blackBelt instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.BlackBelt
+				&& STR() >= blackBelt.STRReq()
+				&& belongings.weapon() == null && enemy != null) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.affect(
+					enemy, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple.class, 2 + blackBelt.level());
+			damage += 2 + blackBelt.level();
+		}
+
+		// 冠军腰带：对精英与 Boss 的伤害 +（10+5*等级）%
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor champBelt = belongings.secondaryArmor();
+		if (champBelt instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ChampionBelt
+				&& STR() >= champBelt.STRReq() && enemy != null
+				&& (enemy.properties.contains(Char.Property.BOSS)
+					|| enemy.properties.contains(Char.Property.MINIBOSS)
+					|| !enemy.buffs(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy.class).isEmpty())) {
+			damage = Math.round(damage * (1f + (10 + 5 * champBelt.level()) / 100f));
+		}
 
 		if (buff(Talent.SpiritBladesTracker.class) != null
 				&& Random.Int(10) < 3*pointsInTalent(Talent.SPIRIT_BLADES)){
@@ -2302,6 +2422,11 @@ public class Hero extends Char {
 
 		damage = TieredToyEffects.attackProc(this, enemy, damage);
 
+		// 子职业命中钩子：必须传入真实伤害（魔武士附加魔法伤害、影舞者双重打击等）
+		if (subClass != null && enemy != null) {
+			subClass.onAttackProc(this, enemy, damage, true, enemy.alignment == Char.Alignment.ENEMY);
+		}
+
 		return damage;
 	}
 
@@ -2401,6 +2526,25 @@ public class Hero extends Char {
 		if (this.buff(Drowsy.class) != null){
 			Buff.detach(this, Drowsy.class);
 			GLog.w( Messages.get(this, "pain_resist") );
+		}
+
+		// 次要护甲：护胫甲的物理伤害减免 / 纯洁者的无状态减伤（力量不足时效果失效）
+		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor secArmor = belongings.secondaryArmor();
+		if (secArmor != null && STR() >= secArmor.STRReq()) {
+			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Greaves
+					&& info.getType() == com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.PHYSICAL) {
+				dmg = Math.max(0, Math.round(dmg * (1f - (10 + 2 * secArmor.level) / 100f)));
+			}
+				if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.ThePure
+					&& buffs().stream().noneMatch(buff -> buff.type != com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.buffType.NEUTRAL)) {
+				dmg = Math.max(0, dmg - Math.round(2 + 0.2f * secArmor.level));
+			}
+			if (secArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.WebBelt
+					&& info.getType() == DamageType.PHYSICAL && dmg > 0
+					&& com.watabou.utils.Random.Int(5) == 0) {
+				GameScene.add(com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(pos, 20,
+						com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Web.class));
+			}
 		}
 
 		if (!(src instanceof Char)){
@@ -2930,9 +3074,15 @@ public class Hero extends Char {
 					curAction = new HeroAction.PickUp( cell );
 					break;
 				case FOR_SALE:
-					curAction = heap.size() == 1 && heap.peek().value() > 0 ?
-							new HeroAction.Buy( cell ) :
-							new HeroAction.PickUp( cell );
+					// 商品堆一律走购买流程，堆里有多件物品也不能变成免费拾取
+					// 只有真商品才需要购买；玩家放在商品格上的东西应该能直接捡起
+					if (heap.hasForSale()) {
+						curAction = new HeroAction.Buy( cell );
+					} else {
+						pendingPickupItem = null;
+						pickupWindowCell = -1;
+						curAction = new HeroAction.PickUp( cell );
+					}
 					break;
 				default:
 					curAction = new HeroAction.OpenChest( cell );
@@ -2941,6 +3091,34 @@ public class Hero extends Char {
 		} else if (Dungeon.level.map[cell] == Terrain.LOCKED_DOOR || Dungeon.level.map[cell] == Terrain.CRYSTAL_DOOR || Dungeon.level.map[cell] == Terrain.LOCKED_EXIT) {
 
 			curAction = new HeroAction.Unlock( cell );
+
+		} else if (Dungeon.level.map[cell] == Terrain.DOOR && andromedaSeenFoes >= 3
+				&& belongings.secondaryArmor() instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda
+				&& STR() >= belongings.secondaryArmor().STRReq()) {
+
+			final int doorCell = cell;
+			Game.runOnRenderThread(new Callback() {
+				@Override
+				public void call() {
+					GameScene.show(new WndOptions(
+							Messages.get(com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda.class, "name"),
+							Messages.get(com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Andromeda.class, "warning"),
+							Messages.get(Hero.class, "detour_yes"),
+							Messages.get(Hero.class, "detour_no")) {
+						@Override
+						protected void onSelect(int index) {
+							if (index == 0) {
+								curAction = new HeroAction.Move(doorCell);
+								lastAction = null;
+								ready = false;
+								next();
+							} else {
+								interrupt();
+							}
+						}
+					});
+				}
+			});
 
 		} else if (Dungeon.level.getTransition(cell) != null) {
 			LevelTransition transition = Dungeon.level.getTransition(cell);
@@ -3393,7 +3571,7 @@ public class Hero extends Char {
 			spend(delay);
 		}
 
-		// 子职业命中钩子已移到 Hero.attackProc（带真实伤害），此处不再重复调用
+		subClass.onAttackComplete(this, enemy, hit, wasEnemy);
 
 		// DoggingDog on 20250818
 		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){
@@ -3706,6 +3884,9 @@ public class Hero extends Char {
 		Armor armor = belongings.armor();
 		if (armor == null ){
 			return 0;
+		// 四件新护甲的外观在第 18~21 行：StatusPane 的左上角头像就是靠这个返回值取行的
+		} else if (ArmorOutfit.rowFor( armor ) >= 0 && ArmorOutfit.hasOutfit( heroClass )){
+			return ArmorOutfit.rowFor( armor );
 		} else if (armor instanceof ClassArmor){
 			return 6;
 		} else if (armor instanceof PrisonArmor){

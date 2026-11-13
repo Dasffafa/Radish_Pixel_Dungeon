@@ -1,11 +1,13 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.special;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Pasty;
 import com.shatteredpixel.shatteredpixeldungeon.items.keys.GoldenKey;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfBlessGoTend;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Level;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.levels.branches.Branches;
 import com.shatteredpixel.shatteredpixeldungeon.levels.painters.Painter;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.Room;
 import com.shatteredpixel.shatteredpixeldungeon.levels.rooms.connection.ConnectionRoom;
@@ -51,7 +53,10 @@ public class BlessScrollRoom extends ConnectionRoom {
             door.set( Door.Type.REGULAR );
         }
 
-        level.addItemToSpawn(new GoldenKey(2));
+        // 苔藓分支第2层（跆拳洞穴）的金钥匙改由哥布林骑手掉落，这里不再随机生成
+        if (!(Dungeon.depth == 2 && Branches.MOSS.equals(Dungeon.branchId))) {
+            level.addItemToSpawn(new GoldenKey(2));
+        }
     }
 
     @Override

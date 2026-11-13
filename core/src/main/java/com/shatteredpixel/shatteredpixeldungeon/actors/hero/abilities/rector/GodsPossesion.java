@@ -46,6 +46,10 @@ public class GodsPossesion extends ArmorAbility {
         if(hero.buff(GodsPossessionBuff.class) != null)
             hero.buff(GodsPossessionBuff.class).detach();
         Buff.affect(hero, GodsPossessionBuff.class,GodsPossessionBuff.DURATION);
+
+        // 技能本身要吃掉一回合，并且立刻刷新一次视野/界面，否则玩家会觉得“点了没反应”
+        Dungeon.observe();
+        hero.spendAndNext( 1f );
     }
 
     void holyBlastWave(Hero hero,int strength){

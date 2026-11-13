@@ -5,7 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Bleeding;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.SnakeSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.DruidWolfSprite;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -13,7 +13,7 @@ import com.watabou.utils.Random;
 public class DruidWolf extends Mob {
 
 	{
-		spriteClass = SnakeSprite.class;
+		spriteClass = DruidWolfSprite.class;
 		alignment = Alignment.ALLY;
 		state = WANDERING;
 	}
@@ -24,7 +24,7 @@ public class DruidWolf extends Mob {
 
 	@Override
 	public int damageRoll() {
-		return Math.round( (Char.combatRoll( 5, 10 ) + lvl / 3f) * power );
+		return Math.round( (Char.combatRoll( 4, 8 ) + lvl / 3f) * power );
 	}
 
 	@Override
@@ -41,12 +41,12 @@ public class DruidWolf extends Mob {
 
 	@Override
 	public float speed() {
-		return 2f;
+		return 1.6f;
 	}
 
 	@Override
 	public float attackDelay() {
-		return 0.75f;
+		return 1f;
 	}
 
 	@Override

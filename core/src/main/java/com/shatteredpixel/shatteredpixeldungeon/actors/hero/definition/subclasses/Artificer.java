@@ -140,105 +140,6 @@ public class Artificer extends HeroSubClass {
 		}
 	}
 
-	// ===== 投掷武器链 / 药水包：先制作（5 回合），再投掷 =====
-
-	public static boolean hasMissiles( Hero hero ) {
-		return hero != null && !hero.belongings.getAllItems( MissileWeapon.class ).isEmpty();
-	}
-
-	public static boolean hasPotions( Hero hero ) {
-		return hero != null && !hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class ).isEmpty();
-	}
-
-	public static boolean craftChain( Hero hero ) {
-		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER
-				|| !hasMissiles( hero )) {
-			return false;
-		}
-		Buff.affect( hero, ChainReady.class );
-		hero.spendAndNext( 5f );
-		return true;
-	}
-
-	public static boolean craftPack( Hero hero ) {
-		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER
-				|| !hasPotions( hero )) {
-			return false;
-		}
-		Buff.affect( hero, PackReady.class );
-		hero.spendAndNext( 5f );
-		return true;
-	}
-
-	public static class ChainReady extends Buff {
-
-		{
-			type = buffType.POSITIVE;
-			announced = false;
-		}
-
-		@Override
-		public String icon() {
-			return BuffIndicator.NONE;
-		}
-	}
-
-	public static class PackReady extends Buff {
-
-		{
-			type = buffType.POSITIVE;
-			announced = false;
-		}
-
-		@Override
-		public String icon() {
-			return BuffIndicator.NONE;
-		}
-	}
-
-	// ===== 投掷武器链：一次性投出背包内所有投掷武器 =====
-
-	public static boolean throwChain( Hero hero, int cell ) {
-		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
-			return false;
-		}
-		ArrayList<MissileWeapon> missiles = new ArrayList<>( hero.belongings.getAllItems( MissileWeapon.class ) );
-		boolean any = false;
-		for (MissileWeapon m : missiles) {
-			if (m != null && m.durabilityLeft() > 0) {
-				m.cast( hero, cell );
-				if (m.durabilityLeft() > 0) {
-					m.repair( -Math.min( 1f, m.durabilityLeft() ) );
-				}
-				any = true;
-			}
-		}
-		return any;
-	}
-
-	// ===== 投掷药水包：一次性掷出背包内所有药水 =====
-
-	public static boolean throwPotionPack( Hero hero, int cell ) {
-		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
-			return false;
-		}
-		ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> potions =
-				new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class ) );
-		boolean any = false;
-		for (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion p : potions) {
-			if (p != null && p.quantity() > 0) {
-				p.shatter( cell );
-				if (p.quantity() > 1) {
-					p.quantity( p.quantity() - 1 );
-				} else {
-					p.detach( hero.belongings.backpack );
-				}
-				any = true;
-			}
-		}
-		return any;
-	}
-
 	// ===== 即用改装：把武器/护甲改装给友方单位 =====
 
 	public static boolean readyModify( Hero hero, com.shatteredpixel.shatteredpixeldungeon.items.Item gear, Char ally ) {
@@ -246,7 +147,8 @@ public class Artificer extends HeroSubClass {
 				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
 			return false;
 		}
-		if (ally.alignment != Char.Alignment.ALLY) {
+		// 友方包括所有非敌对单位（召唤物、宠物、被安抚的中立单位）
+		if (ally.alignment == Char.Alignment.ENEMY) {
 			return false;
 		}
 		int pts = hero.pointsInTalent( Talent.READY_MODIFICATION );
@@ -281,7 +183,7 @@ public class Artificer extends HeroSubClass {
 
 	public static class ReadyMod extends Buff {
 
-		{
+		public ReadyMod() {
 			type = buffType.POSITIVE;
 			announced = false;
 		}
@@ -331,7 +233,7 @@ public class Artificer extends HeroSubClass {
 
 		@Override
 		public String icon() {
-			return BuffIndicator.NONE;
+			return BuffIndicator.UPGRADE;
 		}
 
 		private static final String HP = "bonus_hp";

@@ -50,6 +50,11 @@ public abstract class HeroSubClass {
 	public void onAttackProc(Hero hero, Char enemy, int damage, boolean hit, boolean wasEnemy) { }
 
 	/**
+	 * 攻击结算完成后的子职业钩子（伤害已结算，可安全判断击杀）。
+	 */
+	public void onAttackComplete(Hero hero, Char enemy, boolean hit, boolean wasEnemy) { }
+
+	/**
 	 * 受到伤害时的子职业钩子（护甲 proc 之后调用）。
 	 */
 	public void onDefenseProc(Hero hero, Char enemy, int damage) { }

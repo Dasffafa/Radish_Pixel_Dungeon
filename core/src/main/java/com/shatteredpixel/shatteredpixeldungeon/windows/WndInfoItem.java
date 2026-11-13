@@ -21,11 +21,19 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemSlot;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RoundedFrame;
 import com.shatteredpixel.shatteredpixeldungeon.ui.UITheme;
@@ -97,6 +105,7 @@ public class WndInfoItem extends Window {
 	private void fillFields( Item item ) {
 		if (UITheme.isDiceMage()) {
 			layoutDiceItem(item);
+			maybeAddCurseButton(item);
 			return;
 		}
 		
@@ -113,10 +122,36 @@ public class WndInfoItem extends Window {
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.displayInfo(), 6 );
 		
 		layoutFields(titlebar, txtInfo);
+		maybeAddCurseButton( item );
 	}
 
-	private void layoutFields(IconTitle title, RenderedTextBlock info){
-		int width = WIDTH_MIN;
+	/** 魔武士：在物品详情下方提供手动转化诅咒按钮。 */
+	private void maybeAddCurseButton( Item item ) {
+		if (!(item instanceof EquipableItem) || Dungeon.hero == null) {
+			return;
+		}
+		EquipableItem eq = (EquipableItem) item;
+		if (Dungeon.hero.subClass != HeroSubClasses.MAGIC_WARRIOR) {
+			return;
+		}
+		if (!eq.cursed || Dungeon.hero.buff( MagicWarrior.CursePurgeCooldown.class ) != null) {
+			return;
+		}
+
+		RedButton btn = new RedButton( Messages.get( HeroSubClass.class, "magicwarrior_curse_convert" ) ) {
+			@Override
+			protected void onClick() {
+				MagicWarrior.purgeCurseOnEquip( Dungeon.hero, item );
+				hide();
+				GameScene.show( new WndInfoItem( item ) );
+			}
+		};
+		btn.setRect( 0, height + GAP, width, 16 );
+		add( btn );
+		resize( (int) width, (int) (btn.bottom() + 2) );
+	}
+
+	private void layoutFields(IconTitle title, RenderedTextBlock info){		int width = WIDTH_MIN;
 
 		info.maxWidth(width);
 
@@ -149,7 +184,6 @@ public class WndInfoItem extends Window {
 	private void layoutDiceItem(Item item) {
 		int width = PixelScene.landscape() ? 150 : 132;
 		chrome.hardlight(DiceMageUI.DARK);
-
 		int lineColor = DiceMageUI.itemLineColor(item, item.isEquipped(com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero));
 		ItemSlot icon = new ItemSlot(item);
 		icon.setRect(DICE_PAD, DICE_PAD, DICE_ICON, DICE_ICON);

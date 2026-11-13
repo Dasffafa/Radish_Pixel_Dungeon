@@ -200,6 +200,7 @@ public class Item implements Bundlable {
 	}
 
 	public void doThrow( Hero hero ) {
+		QuickSlotButton.cancel();
 		GameScene.selectCell(thrower);
 	}
 	
@@ -215,7 +216,10 @@ public class Item implements Bundlable {
 
 		// 薪王化身触发检测
 		AshKing.IncarnationReady incarnationReady = hero.buff(AshKing.IncarnationReady.class);
-		if (incarnationReady != null && !action.equals(AC_DROP) && !action.equals(AC_THROW)) {
+		// 投掷类武器（索命弯刀等）的正常用法就是投掷，所以 AC_THROW 对它也要放行，
+		// 否则这三个形态里只有靠神器/法杖的两个能触发。
+		if (incarnationReady != null && !action.equals(AC_DROP)
+				&& (!action.equals(AC_THROW) || this instanceof MissileWeapon)) {
 			String itemType = null;
 			if (this instanceof Artifact) itemType = "Artifact";
 			else if (this instanceof Wand) itemType = "Wand";
@@ -583,7 +587,7 @@ public class Item implements Bundlable {
 		return trueName();
 	}
 	
-	public final String trueName() {
+	public String trueName() {
 		return Messages.get(this, "name");
 	}
 	
@@ -765,7 +769,9 @@ public class Item implements Bundlable {
 		
 		final float delay = castDelay(user, dst);
 
-		if (enemy != null) {
+		//目标必须是“看得见的敌人”才让飞弹追着它的精灵走；
+		//否则（没有精灵 / 精灵不可见）走按格子落点的分支，避免飞弹与卡回合
+		if (enemy != null && enemy.sprite != null && enemy.sprite.visible) {
 			((MissileSprite) user.sprite.parent.recycle(MissileSprite.class)).
 					reset(user.sprite,
 							enemy.sprite,

@@ -79,7 +79,13 @@ public class ScrollOfMetamorphosis extends ExoticScroll {
 		Transmuting.show(curUser, oldTalent, newTalent);
 
 		if (Dungeon.hero.hasTalent(newTalent)) {
-			Talent.onTalentUpgraded(Dungeon.hero, newTalent);
+			// 蜕变不是“花费天赋点”，不得重复触发获得型天赋
+			Talent.suppressGain = true;
+			try {
+				Talent.onTalentUpgraded(Dungeon.hero, newTalent);
+			} finally {
+				Talent.suppressGain = false;
+			}
 		}
 	}
 

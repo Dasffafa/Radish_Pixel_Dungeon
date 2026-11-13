@@ -386,6 +386,13 @@ public class CloakOfShadows extends Artifact {
 
 			updateQuickslot();
 			super.detach();
+
+			// 影舞者：任意来源的隐身结束时触发破隐突袭，斗篷隐身同样适用
+			if (target.invisible == 0 && target instanceof Hero
+					&& ((Hero) target).subClass == HeroSubClasses.SHADOW_DANCER
+					&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.rushing) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.ShadowDancer.onVeilEnd((Hero) target);
+			}
 		}
 		
 		private static final String TURNSTOCOST = "turnsToCost";

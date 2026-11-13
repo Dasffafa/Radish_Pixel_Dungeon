@@ -328,7 +328,16 @@ public class MeleeWeapon extends Weapon {
 
 		// 数值
 		if (levelKnown) {
-			info += "\n\n" + Messages.get(MeleeWeapon.class, "stats_known", tier, augment.damageFactor(min()), augment.damageFactor(max()), STRReq());
+			float panelMin = 1f, panelMax = 1f;
+			int panelFlat = 0;
+			if (enchantment != null) {
+				panelMin = enchantment.panelDamageMultiplier( this, Dungeon.hero, false );
+				panelMax = enchantment.panelDamageMultiplier( this, Dungeon.hero, true );
+				panelFlat = enchantment.panelFlatBonus( this, Dungeon.hero );
+			}
+			int shownMin = Math.max(0, Math.round( augment.damageFactor(min()) * panelMin ) + panelFlat);
+			int shownMax = Math.max(0, Math.round( augment.damageFactor(max()) * panelMax ) + panelFlat);
+			info += "\n\n" + Messages.get(MeleeWeapon.class, "stats_known", tier, shownMin, shownMax, STRReq());
 			if (Dungeon.hero != null) {
 				if (STRReq() > Dungeon.hero.STR()) {
 					info += " " + Messages.get(Weapon.class, "too_heavy");

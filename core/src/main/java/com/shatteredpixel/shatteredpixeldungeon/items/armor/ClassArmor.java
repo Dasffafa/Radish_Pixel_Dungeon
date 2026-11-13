@@ -117,6 +117,8 @@ abstract public class ClassArmor extends Armor {
 			classArmor = new MoonlightArmor();
 		} else if (owner.heroClass == HeroClasses.CARDTRICKSTER) {
 			classArmor = new CardTricksterArmor();
+		} else if (owner.heroClass == HeroClasses.ENGINEER) {
+			classArmor = new EngineerArmor();
 		}
 
 		classArmor.level(armor.trueLevel());
@@ -301,7 +303,11 @@ abstract public class ClassArmor extends Armor {
 		public boolean act() {
 			LockedFloor lock = target.buff(LockedFloor.class);
 			if (lock == null || lock.regenOn()) {
-				charge += 100 / 500f; //500 turns to full charge
+				float chargeGain = 100 / 500f; //500 turns to full charge
+				// 能量戒加速护甲技能充能
+				chargeGain *= com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy
+						.armorChargeMultiplier(target);
+				charge += chargeGain;
 				updateQuickslot();
 				if (charge > 100) {
 					charge = 100;

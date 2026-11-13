@@ -222,10 +222,13 @@ public class MobPlacer extends TestItem{
 
     private class WndSetMob extends Window{
 
-        private static final int WIDTH = 120;
+        private static final int WIDTH = 150;
         private static final int HEIGHT = 118;
         private static final int BTN_SIZE = 18;
         private static final int GAP = 2;
+        private static final float GRID_TOP = 30f;
+
+        private int gridRows = 1;
 
         private RenderedTextBlock selectedPage;
         private ArrayList<IconButton> mobButtons = new ArrayList<>();
@@ -336,17 +339,28 @@ public class MobPlacer extends TestItem{
         private void layout(){
             selectedPage.maxWidth(WIDTH / 2);
             selectedPage.setPos((WIDTH - selectedPage.width())/2, 5);
+            float nameY = GRID_TOP + gridRows * (BTN_SIZE + GAP);
             selectedMob.maxWidth(WIDTH);
-            selectedMob.setPos((WIDTH - selectedMob.width())/2, 80);
-            resize(WIDTH, (int)eliteOptions.get(5).bottom() + 1);
+            selectedMob.setPos((WIDTH - selectedMob.width())/2, nameY);
+            float pos = selectedMob.bottom() + 2;
+            for (int i = 0; i < eliteOptions.size(); ++i) {
+                CheckBox cb = eliteOptions.get(i);
+                if ((i & 1) == 0) {
+                    cb.setRect(0, pos, WIDTH / 2f - GAP / 2f, 16);
+                } else {
+                    cb.setRect(WIDTH / 2f + GAP / 2f, pos, WIDTH / 2f - GAP / 2f, 16);
+                    pos += 16 + GAP;
+                }
+            }
+            resize(WIDTH, (int)pos + 1);
         }
 
         private void createMobImage() {
             int maxNum = maxMobIndex(mobTier) + 1;
-            //(N+1)/2
-            int firstLine = (maxNum >> 1) + (maxNum & 1);
-            float left1 = (WIDTH - (GAP + BTN_SIZE) * firstLine + GAP)/2f;
-            float left2 = (WIDTH - (GAP + BTN_SIZE) * (maxNum - firstLine) + GAP)/2f;
+            // 按网格排列：先算一行最多放几个，放不下就换行，避免图标跑到窗口外面
+            int cols = Math.max(1, (int)((WIDTH - GAP) / (BTN_SIZE + GAP)));
+            gridRows = (maxNum + cols - 1) / cols;
+            float startX = (WIDTH - (cols * BTN_SIZE + (cols - 1) * GAP)) / 2f;
             for (int i = 0; i < maxNum; ++i) {
                 final int j = i;
                 IconButton btn = new IconButton() {
@@ -361,16 +375,13 @@ public class MobPlacer extends TestItem{
                 btn.icon(Reflection.newInstance(allData.get(dataThreshold(mobTier) + i).getMobClass()).sprite());
                 float max = Math.max(btn.icon().width(), btn.icon().height());
                 btn.icon().scale = new PointF(BTN_SIZE/max, BTN_SIZE/max);
-                if(i<firstLine){
-                    btn.setRect(left1, 30f, BTN_SIZE, BTN_SIZE );
-                    left1 += GAP + BTN_SIZE;
-                }else{
-                    btn.setRect(left2, 56f, BTN_SIZE, BTN_SIZE);
-                    left2 += GAP + BTN_SIZE;
-                }
+                int c = i % cols;
+                int r = i / cols;
+                btn.setRect(startX + c * (BTN_SIZE + GAP), GRID_TOP + r * (BTN_SIZE + GAP), BTN_SIZE, BTN_SIZE);
                 add(btn);
                 mobButtons.add(btn);
             }
+            layout();
         }
 
         private void clearImage(){

@@ -27,15 +27,18 @@ public class CardDrawer extends Item {
 
 	public static final String AC_OPEN = "OPEN";
 	public static final String AC_DRAW = "DRAW";
-	public static final String AC_TRANSFORM = "TRANSFORM";
 	public static final String AC_COMPRESS = "COMPRESS";
 
 	{
 		image = ItemSpriteSheet.CARD_DRAWER;
 		unique = true;
 		keptThoughLostInvent = true;
-		defaultAction = AC_OPEN;
+		// 快捷栏点击直接抽卡；查看牌堆请在背包中打开
+		defaultAction = AC_DRAW;
 		bones = false;
+		// 抽卡器是固定独特物品，无需鉴定
+		levelKnown = true;
+		cursedKnown = true;
 	}
 
 	@Override
@@ -44,7 +47,6 @@ public class CardDrawer extends Item {
 		actions.add(AC_OPEN);
 		actions.add(AC_DRAW);
 		if (hero.subClass == HeroSubClasses.ILLUSIONIST) {
-			actions.add(AC_TRANSFORM);
 			actions.add(AC_COMPRESS);
 		}
 		return actions;
@@ -55,7 +57,6 @@ public class CardDrawer extends Item {
 		switch (action) {
 			case AC_OPEN:
 			case AC_DRAW:
-			case AC_TRANSFORM:
 			case AC_COMPRESS:
 				return Messages.get(this, "ac_" + action.toLowerCase());
 			default:
@@ -74,9 +75,6 @@ public class CardDrawer extends Item {
 			if (drawCard(hero)) {
 				hero.spendAndNext(1f);
 			}
-		} else if (AC_TRANSFORM.equals(action)) {
-			if (hero.subClass != HeroSubClasses.ILLUSIONIST) return;
-			beginTransform(hero);
 		} else if (AC_COMPRESS.equals(action)) {
 			if (hero.subClass != HeroSubClasses.ILLUSIONIST) return;
 			if (compress(hero)) {
@@ -121,6 +119,28 @@ public class CardDrawer extends Item {
 		return true;
 	}
 
+	/** 自动抽卡：冷却结束且没有手牌时触发，不消耗回合。 */
+	public static boolean autoDraw(Hero hero) {
+		if (hero == null || !hero.isAlive() || !hero.ready) return false;
+		CardDeck deck = CardDeck.getOrCreate(hero);
+		if (deck.held != null || deck.totalSize() == 0) return false;
+		DrawCooldown cd = hero.buff(DrawCooldown.class);
+		if (cd != null && cd.cooldown() > 0) return false;
+		if (deck.freeDraws > 0) {
+			deck.freeDraws--;
+			if (cd != null) cd.detach();
+		} else {
+			if (cd != null) cd.detach();
+			Buff.affect(hero, DrawCooldown.class, 10f);
+		}
+		Card card = deck.draw();
+		if (card == null) return false;
+		HeldCardTracker.sync(hero);
+		ActionIndicator.refresh();
+		GLog.i(Messages.get(CardDrawer.class, "drew", card.name()));
+		return true;
+	}
+
 	public static void reduceCooldown(Hero hero, float amount) {
 		DrawCooldown cd = hero.buff(DrawCooldown.class);
 		if (cd != null) {
@@ -128,51 +148,18 @@ public class CardDrawer extends Item {
 		}
 	}
 
+	/** 直接取消抽卡冷却。 */
+	public static void cancelCooldown(Hero hero) {
+		DrawCooldown cd = hero.buff(DrawCooldown.class);
+		if (cd != null) cd.detach();
+	}
+
 	public static void beginTransform(Hero hero) {
-		GameScene.selectItem(new WndBag.ItemSelector() {
-			@Override
-			public String textPrompt() {
-				return Messages.get(CardDrawer.class, "transform_prompt");
-			}
-
-			@Override
-			public boolean itemSelectable(Item item) {
-				return item.isIdentified() && !item.cursed
-						&& (item instanceof MeleeWeapon || item instanceof Armor);
-			}
-
-			@Override
-			public void onSelect(Item item) {
-				if (item == null) return;
-				transform(hero, item);
-			}
-		});
+		// 已移除：变换改为消耗手牌中的空白卡进行，不再直接从背包选装备
 	}
 
 	private static void transform(Hero hero, Item item) {
-		CardDeck deck = CardDeck.getOrCreate(hero);
-		if (item.isEquipped(hero)) {
-			if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) {
-				if (!((com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem) item).doUnequip(hero, false, false)) {
-					return;
-				}
-			}
-		}
-		item.detachAll(hero.belongings.backpack);
-
-		Card card;
-		if (item instanceof MeleeWeapon) {
-			card = CardFactory.attack();
-			card.gearTier = ((MeleeWeapon) item).tier;
-			card.gearLevel = item.buffedLvl();
-			card.enchantment = ((Weapon) item).enchantment;
-		} else {
-			card = CardFactory.defense();
-			card.gearTier = ((Armor) item).tier;
-			card.gearLevel = item.buffedLvl();
-		}
-		deck.addToDiscard(card);
-		GLog.i(Messages.get(CardDrawer.class, "transformed", item.name(), card.name()));
+		// 保留空实现占位，实际变换由空白卡流程处理
 	}
 
 	public static boolean compress(Hero hero) {

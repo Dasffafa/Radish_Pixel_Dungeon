@@ -46,7 +46,8 @@ public class Druid extends HeroSubClass {
 	}
 
 	public static float maxEnergy( Hero hero ) {
-		return (hero.lvl + Dungeon.depth) * 10f;
+		// 设计稿：上限 = 当前等级 + 当前楼层 + 10
+		return hero.lvl + Dungeon.depth + 10;
 	}
 
 	public static void gainEnergy( Hero hero, float amount ) {
@@ -56,7 +57,6 @@ public class Druid extends HeroSubClass {
 			}
 			Buff.affect( hero, DruidEnergy.class ).gain( amount );
 		} catch (Throwable t) {
-			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( "Druid energy gain error: " + t );
 		}
 	}
 
@@ -68,7 +68,6 @@ public class Druid extends HeroSubClass {
 			DruidEnergy e = hero.buff( DruidEnergy.class );
 			return e != null && e.useEnergy( amount );
 		} catch (Throwable t) {
-			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( "Druid energy spend error: " + t );
 			return false;
 		}
 	}
@@ -84,6 +83,11 @@ public class Druid extends HeroSubClass {
 		Hero hero = event.getHero();
 		if (hero == null
 				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID) {
+			return;
+		}
+		// 只有踩到真正的绿草（高草）才获得能量，枯草不计
+		int terr = event.getLevel().map[event.getCell()];
+		if (terr != com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.HIGH_GRASS) {
 			return;
 		}
 		gainEnergy( hero, 0.5f );
@@ -104,7 +108,7 @@ public class Druid extends HeroSubClass {
 		DruidBoar boar = new DruidBoar();
 		boar.lvl = hero.lvl;
 		boar.power = animalPower( hero );
-		boar.HP = boar.HT = Math.round( (40 + hero.lvl * 2) * boar.power );
+		boar.HP = boar.HT = Math.round( (30 + hero.lvl * 1.5f) * boar.power );
 		return spawnAnimal( hero, boar, animalCost( hero, 12f ) );
 	}
 
@@ -130,7 +134,7 @@ public class Druid extends HeroSubClass {
 			DruidWolf wolf = new DruidWolf();
 			wolf.lvl = hero.lvl;
 			wolf.power = animalPower( hero );
-			wolf.HP = wolf.HT = Math.round( (30 + hero.lvl / 2f) * wolf.power );
+			wolf.HP = wolf.HT = Math.round( (22 + hero.lvl / 2f) * wolf.power );
 			place( wolf, hero );
 		}
 		return true;
@@ -140,7 +144,7 @@ public class Druid extends HeroSubClass {
 		DruidBear bear = new DruidBear();
 		bear.lvl = hero.lvl;
 		bear.power = animalPower( hero );
-		bear.HP = bear.HT = Math.round( (80 + hero.lvl * 3) * bear.power );
+		bear.HP = bear.HT = Math.round( (60 + hero.lvl * 2.2f) * bear.power );
 		return spawnAnimal( hero, bear, animalCost( hero, 20f ) );
 	}
 
@@ -195,25 +199,41 @@ public class Druid extends HeroSubClass {
 		}
 	}
 
+	private static boolean mobAt( int cell ) {
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m : Dungeon.level.mobs) {
+			if (m.pos == cell) return true;
+		}
+		return false;
+	}
+
 	private static boolean place( com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m, Hero hero ) {
-		int cell = -1;
-		for (int n : com.watabou.utils.PathFinder.NEIGHBOURS8) {
-			int c = hero.pos + n;
-			if (c >= 0 && c < Dungeon.level.length()
-					&& Dungeon.level.passable[c] && !Dungeon.level.solid[c]
-					&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null) {
-				cell = c;
-				break;
+		int w = Dungeon.level.width();
+		int hx = hero.pos % w, hy = hero.pos / w;
+		for (int radius = 1; radius <= 2; radius++) {
+			for (int dy = -radius; dy <= radius; dy++) {
+				for (int dx = -radius; dx <= radius; dx++) {
+					if (Math.max( Math.abs( dx ), Math.abs( dy ) ) != radius) {
+						continue;
+					}
+					int nx = hx + dx, ny = hy + dy;
+					if (nx < 0 || ny < 0 || nx >= w || ny >= Dungeon.level.height()) {
+						continue;
+					}
+					int c = ny * w + nx;
+					if (Dungeon.level.passable[c] && !Dungeon.level.solid[c]
+							&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c ) == null
+							&& !mobAt( c )) {
+						m.pos = c;
+						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( m );
+						com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( c ).burst(
+								com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+										com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STAR ), 10 );
+						return true;
+					}
+				}
 			}
 		}
-		if (cell == -1) {
-			return false;
-		}
-		m.pos = cell;
-		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add( m );
-		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( cell ).burst(
-				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STAR ), 10 );
-		return true;
+		return false;
 	}
 
 	// ===== 召唤植物 =====
@@ -228,9 +248,10 @@ public class Druid extends HeroSubClass {
 	public static boolean summonVines( Hero hero ) {
 		DruidVines vines = new DruidVines();
 		vines.grassTiles = countGrass( hero.pos, 1 );
+		vines.lvl = hero.lvl;
 		int pts = hero.pointsInTalent( Talent.NATURE_BOND );
 		float hpMul = pts >= 1 ? 1.5f : 1f;
-		vines.HP = vines.HT = Math.max( 1, Math.round( (20 + 4 * vines.grassTiles) * hpMul ) );
+		vines.HP = vines.HT = Math.max( 1, Math.round( (30 + hero.lvl * 2.2f) * hpMul ) );
 		return spawnPlant( hero, vines, 10f );
 	}
 
@@ -239,7 +260,7 @@ public class Druid extends HeroSubClass {
 		flower.grassTiles = countGrass( hero.pos, 2 );
 		int pts = hero.pointsInTalent( Talent.NATURE_BOND );
 		float hpMul = pts >= 2 ? 1.5f : 1f;
-		flower.HP = flower.HT = Math.round( (100 + Dungeon.depth * 2) * hpMul );
+		flower.HP = flower.HT = Math.round( (80 + Dungeon.depth * 1.5f) * hpMul );
 		flower.power = pts >= 2 ? 1.5f : 1f;
 		return spawnPlant( hero, flower, 30f );
 	}
@@ -296,27 +317,40 @@ public class Druid extends HeroSubClass {
 			return false;
 		}
 		int dmg = 12 + hero.lvl;
+		java.util.HashSet<Char> hit = new java.util.HashSet<>();
 		for (int pos : lineCells( hero.pos, cell )) {
-			if (Dungeon.level.heroFOV == null || pos >= Dungeon.level.heroFOV.length) {
+			if (pos < 0 || pos >= Dungeon.level.length()) {
 				continue;
 			}
-			Char ch = com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( pos );
-			if (ch != null && ch.alignment == Char.Alignment.ENEMY && ch.isAlive()) {
-				ch.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo( dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
-				Buff.affect( ch, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
-				if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1) {
-					knockBack( ch, hero.pos );
+			// 火焰沿路径扩散，命中路径两侧一格内的敌人
+			for (int off : com.watabou.utils.PathFinder.NEIGHBOURS9) {
+				int c = pos + off;
+				if (c < 0 || c >= Dungeon.level.length()) {
+					continue;
+				}
+				Char ch = com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar( c );
+				if (ch != null && ch.alignment == Char.Alignment.ENEMY && ch.isAlive()
+						&& hit.add( ch )) {
+					ch.damage( new com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo(
+							dmg, com.shatteredpixel.shatteredpixeldungeon.damage.DamageType.MAGICAL, hero, null, hero ) );
+					Buff.affect( ch, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class );
+					if (hero.pointsInTalent( Talent.ELEMENTAL_MASTERY ) >= 1) {
+						knockBack( ch, hero.pos );
+					}
 				}
 			}
-			int t = Dungeon.level.map[pos];
-			if (t == Terrain.GRASS || t == Terrain.HIGH_GRASS) {
-				Dungeon.level.set( pos, Terrain.EMBERS );
+			if (pos != hero.pos) {
+				com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(
+						pos, 1, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire.class );
 			}
 			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( pos ).burst(
-					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 4 );
+					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 4 );
 		}
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( cell ).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 12 );
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( hero.pos ).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.INFERNO ), 6 );
 		com.watabou.noosa.audio.Sample.INSTANCE.play( com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.BURNING );
 		return true;
 	}
@@ -593,7 +627,8 @@ public class Druid extends HeroSubClass {
 
 		public float max() {
 			Hero hero = Dungeon.hero;
-			return ((hero == null ? 1 : hero.lvl) + Dungeon.depth) * 10f;
+			// 设计稿：上限 = 当前等级 + 当前楼层 + 10
+			return (hero == null ? 1 : hero.lvl) + Dungeon.depth + 10;
 		}
 
 		public void gain( float amount ) {
@@ -652,7 +687,7 @@ public class Druid extends HeroSubClass {
 		@Override
 		public void doAction() {
 			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-					new com.shatteredpixel.shatteredpixeldungeon.windows.WndDruidSkills( this ) );
+					new com.shatteredpixel.shatteredpixeldungeon.windows.WndDruidSkills( this, false ) );
 		}
 
 		private static final String ENERGY = "energy";
