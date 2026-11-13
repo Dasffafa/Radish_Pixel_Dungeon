@@ -1547,7 +1547,8 @@ public abstract class Level implements Bundlable {
 						heroMindFov[mob.pos + i] = true;
 					}
 				}
-			} else if(Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)){
+			}
+			if (Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)) {
 				switch (Dungeon.hero.pointsInTalent(Talent.SOUL_NOWIFI)) {
 					case 1:
 						for (Mob mob : mobs) {
@@ -1570,7 +1571,8 @@ public abstract class Level implements Bundlable {
 						}
 						break;
 				}
-			} else {
+			}
+			if (c.buff(MindVision.class) == null) {
 
 				int mindVisRange = 0;
 				if (((Hero) c).hasTalent(Talent.HEIGHTENED_SENSES)){
