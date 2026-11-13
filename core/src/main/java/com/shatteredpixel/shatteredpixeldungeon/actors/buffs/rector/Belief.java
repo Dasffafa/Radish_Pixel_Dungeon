@@ -355,9 +355,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
         // 别的状态的按钮（比如次元撕裂者只开 3 回合的裂隙窗口）正占着槽位时让给它，
         // 否则每回合都把人家顶掉。对方用完会清掉自己的按钮，下一回合这里再补回来。
         // 同理，清按钮时只清自己的。
-        if(hero.buff(Talent.NoBeliefUsedCooldown.class) != null){
-            ActionIndicator.clearAction(this);
-        } else if (credibility >= 0f){
+        // 代行神权冷却期间按钮照常显示：信仰够就正常付费释放，不够时窗口里提示「还在冷却中」（用户定 D35-B）。
+        if (credibility >= 0f){
             if (!slotHeldByOtherBuff()) {
                 ActionIndicator.setAction(this);
             }
@@ -513,10 +512,10 @@ public class Belief extends Buff implements ActionIndicator.Action {
         credibility = bundle.getFloat(CREDIBILITY);
         not_link    = bundle.getBoolean(NOT_LINK);
 
-        if (credibility>5){
+        // 和 act() 用同一个条件：读档后立刻就有按钮，不用等下一回合。
+        // 不再用无参的 clearAction()，那会把别的状态刚恢复的按钮一起清掉。
+        if (credibility >= 0f){
             ActionIndicator.setAction(this);
-        } else {
-            ActionIndicator.clearAction();
         }
     }
 
