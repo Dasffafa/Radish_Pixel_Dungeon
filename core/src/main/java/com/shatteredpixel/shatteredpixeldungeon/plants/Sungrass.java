@@ -53,7 +53,7 @@ public class Sungrass extends Plant {
 			if(Dungeon.isChallenged(Challenges.DAMAGE_NO)){
 				Buff.affect(ch, Health.class).boost(ch.HT/5);
 			} else {
-				if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClasses.WARDEN) {
+                if (ch instanceof Hero && ((Hero) ch).hasSubClass(HeroSubClasses.WARDEN)) {
 					Buff.affect(ch, Healing.class).setHeal(ch.HT, 0, 1);
 				} else {
 					Buff.affect(ch, Health.class).boost(ch.HT);

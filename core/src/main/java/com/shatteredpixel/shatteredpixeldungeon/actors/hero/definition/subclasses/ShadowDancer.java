@@ -92,13 +92,13 @@ public class ShadowDancer extends HeroSubClass {
 			return 1f;
 		}
 		Hero hero = (Hero) ch;
-		if (hero.subClass != HeroSubClasses.SHADOW_DANCER) {
-			return 1f;
-		}
-		int pts = hero.pointsInTalent( Talent.SHADOWS_GIFT );
-		if (pts < 2) {
-			return 1f;
-		}
+        if (!hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER)) {
+            return 1f;
+        }
+        int pts = hero.pointsInTalent( Talent.SHADOWS_GIFT );
+        if (pts < 2) {
+            return 1f;
+        }
 		com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows cloak =
 				hero.belongings.getItem( com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows.class );
 		if (cloak == null) {
@@ -114,9 +114,9 @@ public class ShadowDancer extends HeroSubClass {
 
 	/** 闪避一次敌人攻击时由 Char 调用。 */
 	public static void onDodged( Hero hero ) {
-		if (hero == null || hero.subClass != HeroSubClasses.SHADOW_DANCER) {
-			return;
-		}
+        if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.SHADOW_DANCER)) {
+            return;
+        }
 		ShadowDodgeCounter c = Buff.affect( hero, ShadowDodgeCounter.class );
 		c.count++;
 
@@ -134,7 +134,7 @@ public class ShadowDancer extends HeroSubClass {
 
 	/** 破隐突袭的唯一入口：隐身时主动点击暗影斗篷、解除斗篷隐身之后由斗篷调用（渲染线程）。 */
 	public static void onCloakBroken( Hero hero ) {
-		if (hero == null || hero.subClass != HeroSubClasses.SHADOW_DANCER || !hero.isAlive() || hero.rooted
+        if (hero == null || !hero.hasSubClass(HeroSubClasses.SHADOW_DANCER) || !hero.isAlive() || hero.rooted
 				|| Dungeon.level == null || Dungeon.level.heroFOV == null) {
 			return;
 		}

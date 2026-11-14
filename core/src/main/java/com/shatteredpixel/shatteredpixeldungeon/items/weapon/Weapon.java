@@ -192,7 +192,7 @@ abstract public class Weapon extends KindOfWeapon {
 		// 小骑士濡湿附魔天赋逻辑
 		if (attacker instanceof Hero && this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) {
 			Hero hero = (Hero) attacker;
-			if (hero.subClass == HeroSubClasses.LITTLE_KNIGHT && hero.buff(MagicImmune.class) == null) {
+            if (hero.hasSubClass(HeroSubClasses.LITTLE_KNIGHT) && hero.buff(MagicImmune.class) == null) {
 				int wetTalent = hero.pointsInTalent(Talent.WET_ENCHANT);
 				
 				// +1天赋：无附魔武器视为拥有濡湿
@@ -459,7 +459,7 @@ abstract public class Weapon extends KindOfWeapon {
 			} else if (enchantment != null) {
 				// 小骑士濡湿附魔+3天赋：升级不移除附魔
 				boolean wontLose = false;
-				if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.LITTLE_KNIGHT) {
+                if (Dungeon.hero != null && Dungeon.hero.hasSubClass(HeroSubClasses.LITTLE_KNIGHT)) {
 					wontLose = Dungeon.hero.pointsInTalent(Talent.WET_ENCHANT) >= 3;
 				}
 			

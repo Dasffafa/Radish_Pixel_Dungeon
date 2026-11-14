@@ -7,7 +7,7 @@ import com.watabou.noosa.TextureFilm;
 import com.watabou.utils.Callback;
 
 /**
- * 杂散皮肤精灵（所有职业共享的可选皮肤）。
+ * 杂散职业精灵，所有动画均使用 jumble.png 的独立帧组。
  * <p>
  * 采用怪物的贴图模板：这是一个自足完整的精灵类，所有动画都在本类内定义，
  * 不依赖英雄的盔甲分层逻辑，可直接替换角色的原版动作。

@@ -28,6 +28,7 @@ public class CardDrawer extends Item {
 	public static final String AC_OPEN = "OPEN";
 	public static final String AC_DRAW = "DRAW";
 	public static final String AC_COMPRESS = "COMPRESS";
+	public static final String AC_TRANSFORM = "TRANSFORM";
 
 	{
 		image = ItemSpriteSheet.CARD_DRAWER;
@@ -52,7 +53,8 @@ public class CardDrawer extends Item {
 		ArrayList<String> actions = super.actions(hero);
 		actions.add(AC_OPEN);
 		actions.add(AC_DRAW);
-		if (hero.subClass == HeroSubClasses.ILLUSIONIST) {
+		if (hero.hasSubClass(HeroSubClasses.ILLUSIONIST)) {
+			actions.add(AC_TRANSFORM);
 			actions.add(AC_COMPRESS);
 		}
 		return actions;
@@ -63,6 +65,7 @@ public class CardDrawer extends Item {
 		switch (action) {
 			case AC_OPEN:
 			case AC_DRAW:
+			case AC_TRANSFORM:
 			case AC_COMPRESS:
 				return Messages.get(this, "ac_" + action.toLowerCase());
 			default:
@@ -81,8 +84,11 @@ public class CardDrawer extends Item {
 			if (drawCard(hero)) {
 				hero.spendAndNext(1f);
 			}
+		} else if (AC_TRANSFORM.equals(action)) {
+			if (!hero.hasSubClass(HeroSubClasses.ILLUSIONIST)) return;
+			beginTransform(hero);
 		} else if (AC_COMPRESS.equals(action)) {
-			if (hero.subClass != HeroSubClasses.ILLUSIONIST) return;
+            if (!hero.hasSubClass(HeroSubClasses.ILLUSIONIST)) return;
 			if (compress(hero)) {
 				hero.spendAndNext(1f);
 			}

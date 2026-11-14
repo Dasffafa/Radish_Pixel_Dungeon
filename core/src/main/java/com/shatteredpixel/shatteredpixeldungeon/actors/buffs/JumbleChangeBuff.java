@@ -2,11 +2,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.JumbleTalents;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -30,11 +27,8 @@ import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+
 
 public class JumbleChangeBuff extends Buff {
 
@@ -46,7 +40,6 @@ public class JumbleChangeBuff extends Buff {
 	// 距下次变身的剩余回合数
 	private float turnsRemaining;
 
-	// 是否正在变身中（防止重入）
 	private volatile boolean changing = false;
 
 	// 当前外观组是变身结果的一部分，必须独立于精灵动画持久化。
@@ -86,10 +79,10 @@ public class JumbleChangeBuff extends Buff {
 		return true;
 	}
 
-	/** 当前英雄是否为杂散皮肤。 */
+	/** 当前英雄是否为杂散。 */
 	public static boolean isJumbleActive() {
 		return Dungeon.hero != null
-				&& Dungeon.hero.heroClass.activeSkin() instanceof JumbleSkin;
+				&& Dungeon.hero.heroClass == HeroClasses.JUMBLE;
 	}
 
 	/** 附加或重置变身倒计时（持久化 buff，恒存在）。 */
@@ -114,8 +107,6 @@ public class JumbleChangeBuff extends Buff {
 
 	@Override
 	public void detach() {
-		//不可被驱散或移除：变身倒计时 buff 全程持续
-		//do nothing
 	}
 
 	@Override
@@ -159,12 +150,8 @@ public class JumbleChangeBuff extends Buff {
 			visualChangeToken++;
 		}
 	}
-
-	// ---- 变身流程 ----
-
 	private void startChange() {
 		Hero hero = (Hero) target;
-		// 变身提示
 		GLog.w(Messages.get(JumbleChangeBuff.class, "transform"));
 
 		// 先提交全部逻辑结果。动画只展示这次已经确定的变身，不再决定变身是否成功。
@@ -272,107 +259,9 @@ public class JumbleChangeBuff extends Buff {
 		}
 	}
 
-	// ---- 天赋替换：逐天赋换成随机角色的随机天赋 ----
-
 	private void doTalentMetamorph(Hero hero) {
-		// Only regular talent tiers metamorph. Armor ability talents (tier 4) stay unchanged.
-		for (int tier = 0; tier < Math.min(3, hero.talents.size()); tier++) {
-			LinkedHashMap<Talent, Integer> oldTier = hero.talents.get(tier);
-			if (oldTier == null || oldTier.isEmpty()) continue;
-
-			LinkedHashMap<Talent, Integer> newTier = new LinkedHashMap<>();
-			List<Talent> upgradedTalents = new ArrayList<>();
-
-			for (Talent oldTalent : oldTier.keySet()) {
-				int points = oldTier.get(oldTalent);
-				try {
-					//所有普通层天赋都参与蜕变；点数仅随天赋槽位保留，不影响替换流程。
-					Talent replacement = randomTalent(hero, oldTalent, tier);
-					if (replacement != oldTalent) {
-						recordMetamorph(hero, oldTalent, replacement);
-						upgradedTalents.add(replacement);
-					}
-					newTier.put(replacement, points);
-				} catch (Throwable t) {
-					// 单个槽位失败时保留原天赋；本次变身仍视为已消耗，绝不重试。
-					newTier.put(oldTalent, points);
-					logMetamorphError(t);
-				}
-			}
-			hero.talents.set(tier, newTier);
-			// 回调必须在新层写回后执行，否则 pointsInTalent(replacement) 会错误地返回 0。
-			// 重塑/洗牌不是“花费天赋点”，不得重复触发获得型天赋。
-			for (Talent talent : upgradedTalents) {
-				try {
-					Talent.suppressGain = true;
-					try {
-						Talent.onTalentUpgraded(hero, talent);
-					} finally {
-						Talent.suppressGain = false;
-					}
-				} catch (Throwable t) {
-					logMetamorphError(t);
-				}
-			}
-		}
+		JumbleTalents.metamorph(hero);
 	}
-
-	/** 与蜕变秘卷一致，只从其他职业的同阶天赋中选择替代项。 */
-	private Talent randomTalent(Hero hero, Talent oldTalent, int tierIndex) {
-		List<Talent> pool = new ArrayList<>();
-		Set<Talent> alreadyUsed = new LinkedHashSet<>(hero.metamorphedTalents.values());
-		Set<Talent> currentTier = hero.talents.get(tierIndex).keySet();
-		HashMap<Talent, HeroClass> restricted = new HashMap<>();
-		restricted.put(Talent.RUNIC_TRANSFERENCE, HeroClasses.WARRIOR);
-		restricted.put(Talent.WAND_PRESERVATION, HeroClasses.MAGE);
-
-		for (HeroClass cls : HeroClasses.ALL) {
-			Talent[] tierTalents = classTalentsAtTier(cls, tierIndex);
-			if (tierTalents == null) continue;
-			for (Talent talent : tierTalents) {
-				if (talent != oldTalent
-						&& !currentTier.contains(talent)
-						&& (!restricted.containsKey(talent) || restricted.get(talent) == hero.heroClass)) {
-					pool.add(talent);
-				}
-			}
-		}
-
-		//去除已作为替换目标的天赋，避免重复
-		pool.removeIf(alreadyUsed::contains);
-
-		if (pool.isEmpty()) return oldTalent;
-
-		return Random.element(pool);
-	}
-
-	/** 使用职业基础定义，避免其他职业当前选择的皮肤改变候选池层级。 */
-	private Talent[] classTalentsAtTier(HeroClass heroClass, int tierIndex) {
-		TalentSet talents = heroClass.talentSet();
-		if (talents == null) return null;
-		switch (tierIndex) {
-			case 0: return talents.getTier1();
-			case 1: return talents.getTier2();
-			case 2: return talents.getTier3();
-			default: return null;
-		}
-	}
-
-	private void recordMetamorph(Hero hero, Talent oldTalent, Talent newTalent) {
-		//复用蜕变密卷的数据结构简化逻辑（与 TalentButton 中 METAMORPH_REPLACE 一致）
-		if (!hero.metamorphedTalents.containsValue(oldTalent)) {
-			hero.metamorphedTalents.put(oldTalent, newTalent);
-		} else {
-			//oldTalent 已被作为目标，需简化 a->b->c 链
-			for (Talent t2 : hero.metamorphedTalents.keySet()) {
-				if (hero.metamorphedTalents.get(t2) == oldTalent) {
-					hero.metamorphedTalents.put(t2, newTalent);
-				}
-			}
-		}
-	}
-
-	// ---- 装备变换：神器/戒指/武器/护甲 → 随机同类 ----
 
 	private void doEquipmentTransmute(Hero hero) {
 		//神器：允许重复（直接从未使用过的全神器池随机，忽略唯一性）
@@ -467,11 +356,11 @@ public class JumbleChangeBuff extends Buff {
 		Artifact old = hero.belongings.artifact();
 		if (old == null) return;
 
-		if (hero.heroClass == HeroClasses.MOONLIGHT && old instanceof Wheelchair) {
+		if (hero.jumbleLoadout == HeroClasses.MOONLIGHT && old instanceof Wheelchair) {
 			return;
 		}
 
-		if (hero.heroClass == HeroClasses.ROGUE && old instanceof CloakOfConcealment) {
+		if (hero.jumbleLoadout == HeroClasses.ROGUE && old instanceof CloakOfConcealment) {
 			return;
 		}
 

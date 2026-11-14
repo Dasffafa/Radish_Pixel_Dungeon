@@ -14,6 +14,7 @@ AI Agent 应先读项目根目录的 `AGENTS.md`，再按任务查阅本目录�
 | `runtime-atlas-resource-guide.md` | Item、Talent、Buff 与英雄图标资源 |
 | `snd_items.md` | Slice&Dice 图集区域加载 |
 | `hero-skin-system.md` | 英雄皮肤定义与持久化 |
+| `jumble-skin-and-shift-system.md` | 杂散职业、随机天赋与周期变身机制 |
 | `animation-no-time-block.md` | 不耗时动画阻塞机制 |
 | `门系统与CombatRoom使用指南.md` | 特殊门、特殊楼梯与战斗房 |
 | `enchantment-curse-sop.md` | 附魔与诅咒开发检查项 |

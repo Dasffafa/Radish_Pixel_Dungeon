@@ -388,7 +388,7 @@ abstract public class MissileWeapon extends Weapon {
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
 		// 小骑士：投掷武器命中附加2+区域层中毒
-		if (attacker == Dungeon.hero && Dungeon.hero.subClass == HeroSubClasses.LITTLE_KNIGHT) {
+        if (attacker == Dungeon.hero && Dungeon.hero.hasSubClass(HeroSubClasses.LITTLE_KNIGHT)) {
 			int poisonDuration = 2 + Dungeon.depth;
 			Buff.affect(defender, Poison.class).set(poisonDuration);
 		}

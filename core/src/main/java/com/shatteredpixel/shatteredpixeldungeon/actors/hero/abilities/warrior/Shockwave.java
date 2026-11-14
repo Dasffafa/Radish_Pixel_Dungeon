@@ -130,9 +130,9 @@ public class Shockwave extends ArmorAbility {
 											|| (ch instanceof Mimic && ch.alignment == Char.Alignment.NEUTRAL);
 									damage = hero.attackProc(ch, damage);
 									ch.damage(DamageInfo.of(damage, DamageType.PHYSICAL, hero, hero));
-									if (hero.subClass == HeroSubClasses.GLADIATOR && wasEnemy){
-										Buff.affect( hero, Combo.class ).hit();
-									}
+                                    if (hero.hasSubClass(HeroSubClasses.GLADIATOR) && wasEnemy){
+                                        Buff.affect( hero, Combo.class ).hit();
+                                    }
 								} else {
 									ch.damage(DamageInfo.of(damage, DamageType.PHYSICAL, hero, hero));
 								}

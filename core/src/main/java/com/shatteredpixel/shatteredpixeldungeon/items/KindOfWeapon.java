@@ -72,7 +72,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 			actions.add(AC_SHARPENING_EDGE);
 		}
 		// 十手冠军：所有武器都可以转换为十手（但十手本身不能再转化）
-		if (hero.subClass == HeroSubClasses.JUTTE_CHAMPION && !(this instanceof JutteChampionWeapon)) {
+        if (hero.hasSubClass(HeroSubClasses.JUTTE_CHAMPION) && !(this instanceof JutteChampionWeapon)) {
 			actions.add(AC_CONVERT_TO_JUTTE);
 		}
 		return actions;
@@ -97,7 +97,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 			SharpeningEdgeTalent.showTargetSelectionWindow(hero, this);
 		} else if (action.equals(AC_CONVERT_TO_JUTTE)) {
 			convertToJutte(hero);
-		} else if (hero.subClass == HeroSubClasses.CHAMPION && action.equals(AC_EQUIP)){
+        } else if (hero.hasSubClass(HeroSubClasses.CHAMPION) && action.equals(AC_EQUIP)){
 			usesTargeting = false;
 			String primaryName = Messages.titleCase(hero.belongings.weapon != null ? hero.belongings.weapon.trueName() : Messages.get(KindOfWeapon.class, "empty"));
 			String secondaryName = Messages.titleCase(hero.belongings.secondWep != null ? hero.belongings.secondWep.trueName() : Messages.get(KindOfWeapon.class, "empty"));
@@ -188,7 +188,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 			updateQuickslot();
 
 			// 小骑士切换武器：给予取消攻击buff
-			if (hero.subClass == HeroSubClasses.LITTLE_KNIGHT) {
+            if (hero.hasSubClass(HeroSubClasses.LITTLE_KNIGHT)) {
 				// 检查冷却是否结束
 				if (hero.buff(CancelAttackCooldown.class) == null) {
 					Buff.affect(hero, CancelAttackBuff.class, 2f);
@@ -200,7 +200,7 @@ abstract public class KindOfWeapon extends EquipableItem {
 			}
 
 			// 角斗士4-4 武器大师：切换武器后连击数和攻速加成
-			if (hero.subClass == HeroSubClasses.GLADIATOR && hero.hasTalent(Talent.WEAPON_MASTER)) {
+            if (hero.hasSubClass(HeroSubClasses.GLADIATOR) && hero.hasTalent(Talent.WEAPON_MASTER)) {
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo combo = hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Combo.class);
 				if (combo != null) {
 					int points = hero.pointsInTalent(Talent.WEAPON_MASTER);

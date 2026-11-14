@@ -48,7 +48,7 @@ public class Starflower extends Plant {
 			if (Dungeon.level.heroFOV[ch.pos]){
 				new Flare(6, 32).color(0xFFFF00, true).show(ch.sprite, 2f);
 			}
-			if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClasses.WARDEN){
+            if (ch instanceof Hero && ((Hero) ch).hasSubClass(HeroSubClasses.WARDEN)){
 				Buff.prolong(ch, Recharging.class, Recharging.DURATION);
 				SpellSprite.show( ch, SpellSprite.CHARGE );
 			}

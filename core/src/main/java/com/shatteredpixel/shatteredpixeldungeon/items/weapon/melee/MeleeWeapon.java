@@ -465,7 +465,7 @@ public class MeleeWeapon extends Weapon {
 					float chargeToGain = 1/(60f-1.5f*(chargeCap()-charges));
 
 					//40 to 30 turns per charge for champion
-					if (Dungeon.hero.subClass == HeroSubClasses.CHAMPION){
+                    if (Dungeon.hero.hasSubClass(HeroSubClasses.CHAMPION)){
 						chargeToGain *= 1.5f;
 					}
 
@@ -487,7 +487,7 @@ public class MeleeWeapon extends Weapon {
 				partialCharge = 0;
 			}
 
-			if (ActionIndicator.action != this && Dungeon.hero.subClass == HeroSubClasses.CHAMPION) {
+            if (ActionIndicator.action != this && Dungeon.hero.hasSubClass(HeroSubClasses.CHAMPION)) {
 				ActionIndicator.setAction(this);
 			}
 
@@ -497,7 +497,7 @@ public class MeleeWeapon extends Weapon {
 
 		@Override
 		public void fx(boolean on) {
-			if (on && Dungeon.hero.subClass == HeroSubClasses.CHAMPION) {
+            if (on && Dungeon.hero.hasSubClass(HeroSubClasses.CHAMPION)) {
 				ActionIndicator.setAction(this);
 			}
 		}
@@ -510,7 +510,7 @@ public class MeleeWeapon extends Weapon {
 
 		public int chargeCap(){
 			//caps at level 19 with 8 or 10 charges
-			if (Dungeon.hero.subClass == HeroSubClasses.CHAMPION){
+            if (Dungeon.hero.hasSubClass(HeroSubClasses.CHAMPION)){
 				return Math.min(10, 4 + (Dungeon.hero.lvl - 1) / 3);
 			} else {
 				return Math.min(8, 2 + (Dungeon.hero.lvl - 1) / 3);
@@ -591,7 +591,7 @@ public class MeleeWeapon extends Weapon {
 
 		@Override
 		public void doAction() {
-			if (Dungeon.hero.subClass != HeroSubClasses.CHAMPION){
+            if (!Dungeon.hero.hasSubClass(HeroSubClasses.CHAMPION)){
 				return;
 			}
 

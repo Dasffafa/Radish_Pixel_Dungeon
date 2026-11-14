@@ -109,7 +109,7 @@ public class SpiritBow extends Weapon {
 
 		// 自然连结 +3：灵能弓命中时有 16% 概率触发随机负面植物
 		if (Dungeon.hero != null
-				&& Dungeon.hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID
+                && Dungeon.hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID)
 				&& Dungeon.hero.pointsInTalent(Talent.NATURE_BOND) >= 3
 				&& defender.isAlive() && Random.Float() < 0.16f) {
 			Plant plant = (Plant) Reflection.newInstance(Random.element(harmfulPlants));
@@ -244,7 +244,7 @@ public class SpiritBow extends Weapon {
 				damage += Char.combatRoll( 0, exStr );
 			}
 			// 自然连结 +3：灵能弓攻击上升 25%
-			if (((Hero)owner).subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID
+            if (((Hero)owner).hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID)
 					&& ((Hero)owner).pointsInTalent(Talent.NATURE_BOND) >= 3) {
 				damage = Math.round( damage * 1.25f );
 			}

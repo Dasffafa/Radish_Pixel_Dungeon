@@ -22,6 +22,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.TalentRequirement;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mimic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.NPC;
@@ -106,6 +107,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
     }
 
     public void useSkills(Belief.SkillList skillList){
+        if (!TalentRequirement.isActive(hero, Belief.class)) return;
         switch (skillList){
             case CORRECT:
                 if(hero.pointsInTalent(Talent.IRON_SUN)>=2){
@@ -117,7 +119,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
                 int altFixedDamage = 12 + Dungeon.depth;
                 int altFixedDamagePlus;
 
-                if(hero.subClass == HeroSubClasses.BATTLEPREIST){
+                if(hero.hasSubClass(HeroSubClasses.BATTLEPREIST)){
                     ArrayList<Mob> visibleTargets = new ArrayList<>();
 
                     for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
@@ -188,8 +190,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
                     int originVitaePlus = RectorSkills.LIGHTIMUEE.baseVitae(true) + 8;
                     int adrenaline =  Dungeon.depth/5 * 4 - 1 ;
 
-                    if(hero.subClass == HeroSubClasses.BATTLEPREIST){
-                        Buff.affect(hero, VitaeBuff.class).addVitae((int) (originVitaePlus * 1.5f));
+                    if(hero.hasSubClass(HeroSubClasses.BATTLEPREIST)){
+                        Buff.affect(hero, VitaeBuff.class).setVitae((int) (originVitaePlus * 1.5f));
                         Buff.affect(target, Adrenaline.class,adrenaline);
                     } else {
                         Buff.affect(hero, VitaeBuff.class).addVitae((int) (originVitae * 1.5f));
@@ -197,8 +199,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
                     Buff.affect(hero, Stamina.class,originStamina  * 1.5f);
                 } else {
-                    if(hero.subClass == HeroSubClasses.BATTLEPREIST){
-                        Buff.affect(hero, VitaeBuff.class).addVitae(RectorSkills.LIGHTIMUEE.baseVitae(true));
+                    if(hero.hasSubClass(HeroSubClasses.BATTLEPREIST)){
+                        Buff.affect(hero, VitaeBuff.class).setVitae(RectorSkills.LIGHTIMUEE.baseVitae(true));
                         Buff.affect(target, Adrenaline.class,Dungeon.depth/5 * 4-1);
                     } else {
                         Buff.affect(hero, VitaeBuff.class).addVitae(RectorSkills.LIGHTIMUEE.baseVitae(false));
@@ -350,12 +352,13 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
     @Override
     public boolean act() {
+        if (!TalentRequirement.isActive(hero, Belief.class)) {
+            ActionIndicator.clearAction(this);
+            spend(TICK);
+            return true;
+        }
         FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
-        // 动作按钮只有一个槽位。信仰之力是常驻按钮，每回合都会来这里刷新一次；
-        // 别的状态的按钮（比如次元撕裂者只开 3 回合的裂隙窗口）正占着槽位时让给它，
-        // 否则每回合都把人家顶掉。对方用完会清掉自己的按钮，下一回合这里再补回来。
-        // 同理，清按钮时只清自己的。
-        // 代行神权冷却期间按钮照常显示：信仰够就正常付费释放，不够时窗口里提示「还在冷却中」（用户定 D35-B）。
+        // 动作按钮只有一个槽位；有其他状态按钮时让位，并且只清理自己的按钮。
         if (credibility >= 0f){
             if (!slotHeldByOtherBuff()) {
                 ActionIndicator.setAction(this);
@@ -382,6 +385,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
      * @param value 信仰值
      */
     public void getBelief(float value) {
+        if (!TalentRequirement.isActive(hero, Belief.class)) return;
         boolean[] cursedItemsProcessed = new boolean[5];
         // 保留两位小数。除数必须是浮点：两个整数相除会把小数整个丢掉，
         // 0.33（灵活信仰）变成 0，1.8（深层的击杀）变成 1
@@ -457,6 +461,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
      * @param value 信仰值
      */
     public void DownBelief(float value) {
+        if (!TalentRequirement.isActive(hero, Belief.class)) return;
         float actualValue = (float) (Math.floor(value * 100) / 100);
         credibility = Math.max(0, credibility - actualValue);
         hero.sprite.showStatus(Window.RADISH, "-" + (int) Math.floor(actualValue));
@@ -512,9 +517,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
         credibility = bundle.getFloat(CREDIBILITY);
         not_link    = bundle.getBoolean(NOT_LINK);
 
-        // 和 act() 用同一个条件：读档后立刻就有按钮，不用等下一回合。
-        // 不再用无参的 clearAction()，那会把别的状态刚恢复的按钮一起清掉。
-        if (credibility >= 0f){
+        // 读档后立即恢复信仰按钮，不清除其他状态的按钮。
+        if (credibility >= 0f && !slotHeldByOtherBuff()) {
             ActionIndicator.setAction(this);
         }
     }
@@ -535,7 +539,8 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
     @Override
     public String icon() {
-        return not_link ? BuffIndicator.NONE : BuffIndicator.BELIEF_LINK;
+        return !TalentRequirement.isActive(hero, Belief.class) || not_link
+                ? BuffIndicator.NONE : BuffIndicator.BELIEF_LINK;
     }
 
     @Override
@@ -563,6 +568,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
     @Override
     public void doAction() {
+        if (!TalentRequirement.isActive(hero, Belief.class)) return;
         if(not_link){
             GLog.w(Messages.get(this, "not_link_error"));
         } else {
@@ -576,6 +582,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
 
         @Override
         public void onSelect( Integer target ) {
+            if (!TalentRequirement.isActive(hero, Belief.class)) return;
 
             if (target != null) {
 
@@ -683,6 +690,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
     protected static CellSelector.Listener deadkillTargeter = new CellSelector.Listener() {
         @Override
         public void onSelect(Integer target) {
+            if (!TalentRequirement.isActive(hero, Belief.class)) return;
             if (target == null) return;
 
             Char ch = Actor.findChar(target);

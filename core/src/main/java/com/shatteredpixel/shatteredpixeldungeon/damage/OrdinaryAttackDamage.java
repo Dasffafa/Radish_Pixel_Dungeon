@@ -77,7 +77,7 @@ public class OrdinaryAttackDamage {
 		if (attacker instanceof Hero) {
 			Hero h = (Hero) attacker;
 			if (h.belongings.weapon() instanceof MissileWeapon
-					&& h.subClass == HeroSubClasses.SNIPER
+                    && h.hasSubClass(HeroSubClasses.SNIPER)
 					&& !Dungeon.level.adjacent(h.pos, defender.pos)) {
 				dr = 0;
 			}
@@ -278,7 +278,7 @@ public class OrdinaryAttackDamage {
 
 	private static boolean ignoresArmor(Char attacker, Char defender) {
 		return attacker == Dungeon.hero
-				&& Dungeon.hero.subClass == HeroSubClasses.SNIPER
+                && Dungeon.hero.hasSubClass(HeroSubClasses.SNIPER)
 				&& !Dungeon.level.adjacent(Dungeon.hero.pos, defender.pos)
 				&& Dungeon.hero.belongings.attackingWeapon() instanceof MissileWeapon;
 	}

@@ -13,9 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.N
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpectralBlades;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.SpiritHawk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfMindVision;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfLullaby;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
@@ -45,9 +43,6 @@ public class Huntress extends HeroDefinition {
 		return set;
 	}
 
-	@Override public SkinDefinition[] skins() {
-		return new SkinDefinition[]{ new JumbleSkin(this) };
-	}
 
 	@Override protected void initClassLoadout(Hero hero) {
 		(hero.belongings.weapon = new Gloves()).identify();

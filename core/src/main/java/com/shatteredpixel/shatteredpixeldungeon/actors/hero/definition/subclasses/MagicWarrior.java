@@ -99,9 +99,9 @@ public class MagicWarrior extends HeroSubClass {
 			return 1f;
 		}
 		Hero hero = (Hero) ch;
-		if (hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR) {
-			return 1f;
-		}
+        if (!hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR)) {
+            return 1f;
+        }
 		int pts = hero.pointsInTalent( Talent.STORM_ASSAULT );
 		if (pts <= 0) {
 			return 1f;
@@ -160,10 +160,10 @@ public class MagicWarrior extends HeroSubClass {
 
 	// 幻灵护身：破损纹章护盾上限/回复速度的提升倍率
 	public static float spectralWardMultiplier( Hero hero ) {
-		if (hero == null
-				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR) {
-			return 1f;
-		}
+        if (hero == null
+                || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR)) {
+            return 1f;
+        }
 		int pts = hero.pointsInTalent( Talent.SPECTRAL_WARD );
 		if (pts <= 0) {
 			return 1f;
@@ -189,26 +189,22 @@ public class MagicWarrior extends HeroSubClass {
 		}
 	}
 
-	// 使用法杖/法力结晶时调用，为下一次攻击叠加一层附魔强化
-	public static void gainCharge( Hero hero ) {
-		if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR) {
-			return;
-		}
-		Buff.affect( hero, MagicWarriorCharge.class ).addStack();
-	}
+    public static void gainCharge( Hero hero ) {
+        if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR)) {
+            return;
+        }
+        Buff.affect( hero, MagicWarriorCharge.class ).addStack();
+    }
 
 	// 使用法力结晶时：叠加附魔强化（伤害由 Talent.onScrollUsed 触发，避免重复结算）
 	public static void onMagicCrystalUsed( Hero hero ) {
 		gainCharge( hero );
 	}
 
-	// 魔武士可自由穿脱被诅咒的装备
-	public static boolean canHandleCursed( Hero hero ) {
-		return hero != null
-				&& hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR;
-	}
-
-	// 装备被诅咒的物品时，把诅咒转化为随机附魔（1000 回合冷却）
+    public static boolean canHandleCursed( Hero hero ) {
+        return hero != null
+                && hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR);
+    }
 	public static void purgeCurseOnEquip( Hero hero, Item item ) {
 		if (!canHandleCursed( hero ) || !(item instanceof EquipableItem)) {
 			return;

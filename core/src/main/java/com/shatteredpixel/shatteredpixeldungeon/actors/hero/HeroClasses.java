@@ -23,10 +23,11 @@ public final class HeroClasses {
 	public static final HeroClass MOONLIGHT = new HeroClass("MOONLIGHT");
 	public static final HeroClass CARDTRICKSTER = new HeroClass("CARDTRICKSTER");
 	public static final HeroClass ENGINEER = new HeroClass("ENGINEER");
+	public static final HeroClass JUMBLE = new HeroClass("JUMBLE");
 
 	//所有职业集合
 	public static final Collection<HeroClass> ALL = Arrays.asList(
-			WARRIOR, MAGE, ROGUE, HUNTRESS, RECTOR, MOONLIGHT, CARDTRICKSTER, ENGINEER
+			WARRIOR, MAGE, ROGUE, HUNTRESS, RECTOR, MOONLIGHT, CARDTRICKSTER, ENGINEER, JUMBLE
 	);
 
 	/** 盗贼的可选皮肤：赌徒。数值需大于普通头像皮肤索引。 */
@@ -39,8 +40,6 @@ public final class HeroClasses {
 	/** 月华的可选皮肤：圆球。数值需大于普通头像皮肤索引。 */
 	public static final int MOONLIGHT_SKIN_SPHERE = 5;
 
-	/** 全职业共享皮肤：杂散。数值需大于普通头像皮肤索引。 */
-	public static final int JUMBLE = 6;
 
 	//存档反序列化
 	public static HeroClass fromSaveName(String name){

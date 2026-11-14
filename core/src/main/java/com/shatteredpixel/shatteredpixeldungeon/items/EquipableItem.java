@@ -83,7 +83,7 @@ public abstract class EquipableItem extends Item {
 		ArrayList<String> actions = super.actions( hero );
 		actions.add( isEquipped( hero ) ? AC_UNEQUIP : AC_EQUIP );
 		// 奇械师·即用改装：把背包里的武器/护甲扔给友方单位
-		if (hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER
+        if (hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)
 				&& hero.pointsInTalent( com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.READY_MODIFICATION ) > 0
 				&& !isEquipped( hero )
 				&& (this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon

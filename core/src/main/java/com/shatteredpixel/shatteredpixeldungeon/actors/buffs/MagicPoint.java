@@ -23,8 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.TalentRequirement;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
@@ -102,6 +101,10 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
         return Dungeon.hero != null ? Dungeon.hero.buff(MagicPoint.class) : null;
     }
 
+    private boolean isActive() {
+        return target instanceof Hero && TalentRequirement.isActive((Hero) target, MagicPoint.class);
+    }
+
     public float getPoints() {
         return currentPoints;
     }
@@ -127,7 +130,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     /** 背包中所有法杖当前充能可转化的最大魔力点数。 */
     public float wandMpTotal() {
-        if (Dungeon.hero == null) return 0f;
+        if (!isActive()) return 0f;
         float total = 0f;
         for (Item item : Dungeon.hero.belongings) {
             if (item instanceof Wand) {
@@ -140,7 +143,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     /** 当前魔力点 + 法杖充能可转化魔力是否足够支付 cost。 */
     public boolean canAfford(int cost) {
-        return infiniteMana || currentPoints + wandMpTotal() >= cost;
+        return isActive() && (infiniteMana || currentPoints + wandMpTotal() >= cost);
     }
 
     /** 背包中所有法杖（每把按顺序），用于弹窗列出将被消耗充能的法杖。 */
@@ -160,7 +163,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
      * 消耗时按背包顺序逐点扣减充能。
      */
     public void drainWandsFor(int target) {
-        if (Dungeon.hero == null) return;
+        if (!isActive()) return;
         for (Item item : Dungeon.hero.belongings) {
             if (currentPoints >= target) break;
             if (item instanceof Wand) {
@@ -178,6 +181,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     public void addPoints(float amount) {
+        if (!isActive()) return;
         currentPoints += amount;
         updateAction();
         BuffIndicator.refreshHero();
@@ -228,6 +232,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     public boolean spendPoints(int amount) {
+        if (!isActive()) return false;
         if (infiniteMana) return true;
         if (currentPoints >= amount) {
             currentPoints -= amount;
@@ -267,6 +272,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     public void recordKill(Class<? extends Mob> mobClass) {
+        if (!isActive()) return;
         lastKilledMob = mobClass;
     }
 
@@ -319,6 +325,11 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     @Override
     public boolean act() {
+        if (!isActive()) {
+            updateAction();
+            spend(TICK);
+            return true;
+        }
         if (!cooldowns.isEmpty()) {
             cooldowns.entrySet().removeIf(e -> {
                 float v = e.getValue() - 1f;
@@ -406,7 +417,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
     }
 
     private void updateAction() {
-        if (target instanceof Hero && ((Hero) target).subClass == HeroSubClasses.DICE_MAGE) {
+        if (isActive()) {
             if (ActionIndicator.action == null || ActionIndicator.action == this) {
                 ActionIndicator.setAction(this);
             }
@@ -423,7 +434,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     @Override
     public String icon() {
-        return BuffIndicator.MAGIC_POINT;
+        return isActive() ? BuffIndicator.MAGIC_POINT : BuffIndicator.NONE;
     }
 
     @Override
@@ -604,7 +615,7 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     @Override
     public void doAction() {
-        if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.DICE_MAGE) {
+        if (isActive()) {
             GameScene.show(new WndDiceMageSpells());
         }
     }

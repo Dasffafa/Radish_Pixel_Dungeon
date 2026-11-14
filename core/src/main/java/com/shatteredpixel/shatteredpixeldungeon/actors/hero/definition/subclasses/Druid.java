@@ -64,9 +64,9 @@ public class Druid extends HeroSubClass {
 
 	public static void gainEnergy( Hero hero, float amount ) {
 		try {
-			if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID) {
-				return;
-			}
+            if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID)) {
+                return;
+            }
 			Buff.affect( hero, DruidEnergy.class ).gain( amount );
 		} catch (Throwable t) {
 		}
@@ -74,9 +74,9 @@ public class Druid extends HeroSubClass {
 
 	public static boolean spendEnergy( Hero hero, float amount ) {
 		try {
-			if (hero == null || hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID) {
-				return false;
-			}
+            if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID)) {
+                return false;
+            }
 			DruidEnergy e = hero.buff( DruidEnergy.class );
 			return e != null && e.useEnergy( amount );
 		} catch (Throwable t) {
@@ -93,15 +93,10 @@ public class Druid extends HeroSubClass {
 			event = com.shatteredpixel.shatteredpixeldungeon.events.HeroTrampleGrassEvent.class, priority = 0)
 	public static void onTrampleGrass( com.shatteredpixel.shatteredpixeldungeon.events.HeroTrampleGrassEvent event ) {
 		Hero hero = event.getHero();
-		if (hero == null
-				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID) {
-			return;
-		}
-		// 只有踩到真正的绿草（高草）才获得能量，枯草不计
-		int terr = event.getLevel().map[event.getCell()];
-		if (terr != com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.HIGH_GRASS) {
-			return;
-		}
+        if (hero == null
+                || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID)) {
+            return;
+        }
 		gainEnergy( hero, 0.5f );
 	}
 

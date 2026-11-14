@@ -18,9 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
-
 package com.shatteredpixel.shatteredpixeldungeon.windows;
-
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
@@ -39,7 +38,28 @@ public class WndInfoSubclass extends WndTitledMessage {
 
 	public WndInfoSubclass(HeroClass cls, HeroSubClass subCls){
 		super( new HeroIcon(subCls), Messages.titleCase(subCls.title()), subCls.desc());
-
+		if (cls == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.JUMBLE) {
+			if (Dungeon.hero != null && Dungeon.hero.heroClass == cls && Dungeon.hero.subClass == subCls) {
+				RenderedTextBlock identities = PixelScene.renderTextBlock(
+						Messages.get(this, "jumble_identities", Dungeon.hero.jumbleFirst.title(), Dungeon.hero.jumbleSecond.title()), 6);
+				identities.maxWidth(width);
+				identities.setPos(0, height + 5);
+				add(identities);
+				resize(width, (int) Math.ceil(identities.bottom()));
+				TalentsPane.TalentTierPane pane = new TalentsPane.TalentTierPane(
+						new LinkedHashMap<>(Dungeon.hero.talents.get(2)), 3, TalentButton.Mode.INFO);
+				pane.setRect(0, height + 5, width, pane.height());
+				add(pane);
+				resize(width, (int) pane.bottom());
+			} else {
+				RenderedTextBlock explanation = PixelScene.renderTextBlock(Messages.get(this, "jumble_rule"), 6);
+				explanation.maxWidth(width);
+				explanation.setPos(0, height + 5);
+				add(explanation);
+				resize(width, (int) explanation.bottom());
+			}
+			return;
+		}
 		ArrayList<LinkedHashMap<Talent, Integer>> talentList = new ArrayList<>();
 		Talent.initClassTalents(cls, talentList);
 		Talent.initSubclassTalents(subCls, talentList);

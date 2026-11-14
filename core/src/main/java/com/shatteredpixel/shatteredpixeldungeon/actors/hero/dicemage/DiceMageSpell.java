@@ -28,6 +28,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.TalentRequirement;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DwarfKing;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Tengu;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
@@ -106,7 +107,7 @@ public abstract class DiceMageSpell implements Hero.Doom {
 
     public boolean canCast() {
         Hero hero = Dungeon.hero;
-        if (hero == null) return false;
+        if (hero == null || !TalentRequirement.isActive(hero, MagicPoint.class)) return false;
 
         if (isPassive()) return false;
 
@@ -161,6 +162,14 @@ public abstract class DiceMageSpell implements Hero.Doom {
         onCast(hero);
     }
 
+    private boolean mpCheck() {
+        Hero hero = Dungeon.hero;
+        if (hero == null || !TalentRequirement.isActive(hero, MagicPoint.class)) return false;
+        MagicPoint mp = hero.buff(MagicPoint.class);
+        if (mp == null) return false;
+        if (!mp.offCooldown(getClass())) return false;
+        return mp.getIntPoints() >= mpCost();
+    }
     protected boolean spendMagic(Hero hero) {
         MagicPoint mp = hero.buff(MagicPoint.class);
         if (mp != null && wandDrainConfirmed && !mp.infiniteMana()

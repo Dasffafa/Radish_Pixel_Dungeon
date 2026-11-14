@@ -10,14 +10,13 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.TalentRequirement;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.GodsPossesion;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.LastPrayer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.rector.ShadowHymn;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.ScrollHolder;
 import com.shatteredpixel.shatteredpixeldungeon.items.food.Food;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfExperience;
@@ -52,9 +51,6 @@ public class Rector extends HeroDefinition {
 		return set;
 	}
 
-	@Override public SkinDefinition[] skins() {
-		return new SkinDefinition[]{ new JumbleSkin(this) };
-	}
 
 	@Override protected void initClassLoadout(Hero hero) {
 		(hero.belongings.weapon = new MetalCross()).identify();
@@ -72,6 +68,12 @@ public class Rector extends HeroDefinition {
 	}
 
 	@Override public void onExpGain(Hero hero, int exp) {
+        gainSuperstitionBelief(hero, exp);
+    }
+
+    public static void gainSuperstitionBelief(Hero hero, int exp) {
+        if (hero == null || !hero.hasTalent(Talent.SUPERSTITION)
+                || !TalentRequirement.isActive(hero, Belief.class)) return;
 		Belief belief = hero.buff(Belief.class);
 		if (belief != null && hero.superstitionCounter != null){
 			// 经验没攒够时不调 getBelief(0)：它照样会弹一个「0」的信仰跳字，

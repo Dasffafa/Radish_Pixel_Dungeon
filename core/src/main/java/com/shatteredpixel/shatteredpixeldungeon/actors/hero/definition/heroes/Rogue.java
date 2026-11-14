@@ -16,7 +16,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefin
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.GamblerSkin;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfInvisibility;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfMagicMapping;
@@ -50,7 +49,7 @@ public class Rogue extends HeroDefinition {
 	@Override public int sneakRadius() { return 2; }
 
 	@Override public SkinDefinition[] skins() {
-		return new SkinDefinition[]{ new GamblerSkin(this), new JumbleSkin(this) };
+		return new SkinDefinition[]{ new GamblerSkin(this) };
 	}
 
 	@Override protected void initClassLoadout(Hero hero) {

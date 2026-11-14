@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Re
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Rogue;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Warrior;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Jumble;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,5 +48,6 @@ public class HeroRegistry {
 		register(new Moonlight());
 		register(new CardTrickster());
 		register(new Engineer());
+		register(new Jumble());
 	}
 }

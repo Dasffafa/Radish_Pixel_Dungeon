@@ -84,6 +84,10 @@ public class MagesStaff extends MeleeWeapon {
 	public static final String AC_ZAP	= "ZAP";
 	public static final String AC_UPDATE = "UPDATE";
 	public static final String AC_READY_MOD = "READY_MOD";
+	public static final String AC_CRAFT_CHAIN = "CRAFT_CHAIN";
+	public static final String AC_CRAFT_PACK = "CRAFT_PACK";
+	public static final String AC_CHAIN = "CHAIN";
+	public static final String AC_PACK = "PACK";
 
 	private static final float STAFF_SCALE_FACTOR = 0.75f;
 
@@ -137,9 +141,17 @@ public class MagesStaff extends MeleeWeapon {
 			actions.add( AC_UPDATE );
 		}
 
-		// 奇械师：即用改装
-		if (Dungeon.hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
+		// 奇械师：即用改装、制作 / 投掷 武器链与药水包
+		if (Dungeon.hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)) {
 			actions.add( AC_READY_MOD );
+			actions.add( AC_CRAFT_CHAIN );
+			actions.add( AC_CRAFT_PACK );
+			if (hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.ChainReady.class ) != null) {
+				actions.add( AC_CHAIN );
+			}
+			if (hero.buff( com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.PackReady.class ) != null) {
+				actions.add( AC_PACK );
+			}
 		}
 
 		return actions;
@@ -195,11 +207,32 @@ public class MagesStaff extends MeleeWeapon {
 			}
 			wand.cursed = (cursed || hasCurseEnchant()) && Dungeon.hero.pointsInTalent(Talent.MAGIC_WORKMAN) < 3;
 			wand.execute(hero, AC_ZAP);
-		} else if (action.equals(AC_UPDATE)) {
-			ArcaneResinUse();
-		} else if (action.equals(AC_READY_MOD)) {
+		} else if (action.equals(AC_CRAFT_CHAIN)) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.craftChain(hero);
+		} else if (action.equals(AC_CRAFT_PACK)) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.craftPack(hero);
+		} else if (action.equals(AC_CHAIN) || action.equals(AC_PACK)) {
 			curUser = hero;
-			GameScene.selectItem( readyModItemSelector );
+			GameScene.selectCell( new com.shatteredpixel.shatteredpixeldungeon.scenes.CellSelector.Listener() {
+				@Override
+				public void onSelect( Integer target ) {
+					if (target == null) return;
+					boolean thrown = action.equals(AC_CHAIN)
+							? com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.throwChain(hero, target)
+							: com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.throwPotionPack(hero, target);
+					if (thrown) {
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.ChainReady readyChain = hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.ChainReady.class);
+						com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.PackReady readyPack = hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Artificer.PackReady.class);
+						if (action.equals(AC_CHAIN) && readyChain != null) readyChain.detach();
+						if (action.equals(AC_PACK) && readyPack != null) readyPack.detach();
+						hero.spendAndNext( Actor.TICK );
+					}
+				}
+				@Override
+				public String prompt() {
+					return Messages.get( MagesStaff.class, action.equals(AC_CHAIN) ? "prompt_chain" : "prompt_pack" );
+				}
+			} );
 		}
 	}
 
@@ -377,7 +410,8 @@ public class MagesStaff extends MeleeWeapon {
 		}
 
 		//短棍格斗-T1
-		if (wand != null && attacker instanceof Hero && ((Hero)attacker).subClass == HeroSubClasses.BATTLEMAGE || hero.pointsInTalent(Talent.MAGIC_STICK) >= 1) {
+        if ((wand != null && attacker instanceof Hero && ((Hero)attacker).hasSubClass(HeroSubClasses.BATTLEMAGE))
+                || hero.pointsInTalent(Talent.MAGIC_STICK) >= 1) {
 			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.5f;
 			ScrollOfRecharging.charge(attacker);
 			wand.onHit(this, attacker, defender, damage, true);
@@ -430,7 +464,7 @@ public class MagesStaff extends MeleeWeapon {
 		}
 
 		if (wand != null &&
-				attacker instanceof Hero && ((Hero)attacker).subClass == HeroSubClasses.BATTLEMAGE) {
+                attacker instanceof Hero && ((Hero)attacker).hasSubClass(HeroSubClasses.BATTLEMAGE)) {
 			if (wand.curCharges < wand.maxCharges) wand.partialCharge += 0.5f;
 			ScrollOfRecharging.charge((Hero)attacker);
 			wand.onHit(this, attacker, defender, damage);
@@ -450,7 +484,7 @@ public class MagesStaff extends MeleeWeapon {
 		int reach = super.reachFactor(owner);
 		if (owner instanceof Hero
 				&& wand instanceof WandOfDisintegration
-				&& ((Hero)owner).subClass == HeroSubClasses.BATTLEMAGE){
+                && ((Hero)owner).hasSubClass(HeroSubClasses.BATTLEMAGE)){
 			reach += Math.round(Wand.procChanceMultiplier(owner));
 		}
 		return reach;
@@ -597,7 +631,7 @@ public class MagesStaff extends MeleeWeapon {
 			if ((!cursed && !hasCurseEnchant()) || !cursedKnown)    info += " " + wand.statsDesc();
 			else                                                    info += " " + Messages.get(this, "cursed_wand");
 
-			if (Dungeon.hero.subClass == HeroSubClasses.BATTLEMAGE){
+            if (Dungeon.hero.hasSubClass(HeroSubClasses.BATTLEMAGE)){
 				info += "\n\n" + Messages.get(wand, "bmage_desc");
 			}
 		}

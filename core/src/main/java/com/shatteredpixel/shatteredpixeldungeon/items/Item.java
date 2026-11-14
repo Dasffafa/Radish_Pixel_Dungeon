@@ -808,7 +808,7 @@ public class Item implements Bundlable {
 							}
 							// 左弓连射天赋：投掷武器不消耗回合（如果目标有足够中矢层数）
 							if (user.heroClass == HeroClasses.MOONLIGHT
-									&& user.subClass == HeroSubClasses.LITTLE_KNIGHT
+                                    && user.hasSubClass(HeroSubClasses.LITTLE_KNIGHT)
 									&& user.hasTalent(Talent.LEFT_BOW_RAPID)
 									&& enemy != null
 									&& Item.this instanceof MissileWeapon) {

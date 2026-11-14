@@ -238,23 +238,43 @@ public class Hero extends Char {
 	public ArmorAbility armorAbility = null;
 	public ArrayList<LinkedHashMap<Talent, Integer>> talents = new ArrayList<>();
 	public LinkedHashMap<Talent, Talent> metamorphedTalents = new LinkedHashMap<>();
+	public HeroClass jumbleLoadout;
+	public HeroSubClass jumbleFirst = HeroSubClasses.NONE;
+	public HeroSubClass jumbleSecond = HeroSubClasses.NONE;
+	public final HashSet<String> talentRequirementItems = new HashSet<>();
+	public final HashSet<String> talentRequirementBuffs = new HashSet<>();
+	public boolean pendingTalentRequirements;
 
-	/** 本局所选皮肤索引（0 = 基础职业），随存档持久化。 */
+	public boolean hasSubClass(HeroSubClass cls) {
+		return subClass == cls || (heroClass == HeroClasses.JUMBLE && subClass == HeroSubClasses.JUMBLE
+				&& cls != HeroSubClasses.NONE && (jumbleFirst == cls || jumbleSecond == cls));
+	}
+
+	private void subclassMove() {
+		subClass.onMove(this);
+		if (heroClass == HeroClasses.JUMBLE && subClass == HeroSubClasses.JUMBLE) {
+			jumbleFirst.onMove(this);
+	/** 设置圆球朝向角度（0-360，自动归一化）。 */
+			jumbleSecond.onMove(this);
+		}
+	}
+
+	// 皮肤选择随本局存档保存，不能由全局选择覆盖。
 	public int skin = 0;
 
-	/** 圆球皮肤（SPHERE）专属：满周（360°）旋转所需的回合数。 */
 	private static final float SPHERE_ROTATE_FULL_TIME = 2.5f;
 
-	/** 圆球皮肤（SPHERE）专属：当前朝向角度（0-360）。0 = 滚动动画第 0 帧（正确角度）。 */
+	/** 是否为月华的圆球皮肤。 */
 	public float sphereAngle(){
+		// 精灵构造期间会读取角度，此时不能挂载 Buff；首次设置角度时再创建。
 		SphereOrientation o = buff( SphereOrientation.class );
 		if (o == null){
+	/** 是否为盗贼的赌徒皮肤。 */
 			o = Buff.affect( this, SphereOrientation.class );
 		}
 		return o.angle;
 	}
 
-	/** 设置圆球朝向角度（0-360，自动归一化）。 */
 	public void sphereAngle( float v ){
 		if (!isSphereSkin()) return;
 		SphereOrientation o = buff( SphereOrientation.class );
@@ -264,41 +284,21 @@ public class Hero extends Char {
 		o.angle = ((v % 360f) + 360f) % 360f;
 	}
 
-	/** 是否为月华的圆球皮肤。 */
 	public boolean isSphereSkin(){
 		return heroClass == HeroClasses.MOONLIGHT && skin == HeroClasses.MOONLIGHT_SKIN_SPHERE;
+	/** 旋转到 targetAngle 所需时间；角度已对准时返回 0。旋转一周（360°）耗 2.5 回合。 */
 	}
 
-	/** 是否为盗贼的赌徒皮肤。 */
 	public boolean isGamblerSkin(){
 		return heroClass == HeroClasses.ROGUE && skin == HeroClasses.ROGUE_SKIN_GAMBLER;
 	}
 
 	/**
+	/** 旋转回正确角度（0）所需的回合数（供 Buff 描述显示）。 */
 	 * 从当前朝向转到 targetAngle 的<em>有符号</em>最短旋转（-180 ~ 180）。
 	 * 正值为顺时针，负值为逆时针；圆球可从两个方向旋转，这里取耗时更短的一侧。
 	 */
 	private float sphereSignedRotation( float targetAngle ){
-		float target = ((targetAngle % 360f) + 360f) % 360f;
-		float diff = target - sphereAngle();
-		if (diff > 180f)      diff -= 360f;
-		else if (diff < -180f) diff += 360f;
-		return diff;
-	}
-
-	/** 旋转到 targetAngle 所需时间；角度已对准时返回 0。旋转一周（360°）耗 2.5 回合。 */
-	private float sphereRotationTime( float targetAngle ){
-		if (!isSphereSkin()) return 0f;
-		float diff = Math.abs( sphereSignedRotation( targetAngle ) );
-		if (diff < 1f) return 0f;
-		return (diff / 360f) * SPHERE_ROTATE_FULL_TIME;
-	}
-
-	/** 旋转回正确角度（0）所需的回合数（供 Buff 描述显示）。 */
-	public float sphereTurnsToCorrect(){
-		return sphereRotationTime( 0f );
-	}
-
 	/**
 	 * 由滚动帧索引（0-9，第 0 帧 = 正确角度）设置圆球朝向角度（帧 × 36°）。
 	 * 圆球滚动停止时，让逻辑角度始终跟随视觉帧，从而保证"角度为 0 一定显示第 0 帧"。
@@ -313,6 +313,25 @@ public class Hero extends Char {
 	 *
 	 * @param targetAngle 目标角度（0-360）；正确角度为 0（滚动动画第 0 帧）
 	 */
+		float target = ((targetAngle % 360f) + 360f) % 360f;
+		float diff = target - sphereAngle();
+		if (diff > 180f)      diff -= 360f;
+		else if (diff < -180f) diff += 360f;
+		return diff;
+	}
+
+		// 可视旋转：从当前角度沿正确方向旋转到目标角度（含滚动动画）
+	private float sphereRotationTime( float targetAngle ){
+		if (!isSphereSkin()) return 0f;
+		float diff = Math.abs( sphereSignedRotation( targetAngle ) );
+		if (diff < 1f) return 0f;
+		return (diff / 360f) * SPHERE_ROTATE_FULL_TIME;
+	}
+
+	public float sphereTurnsToCorrect(){
+		return sphereRotationTime( 0f );
+	}
+
 	public boolean sphereRotateTo( float targetAngle ){
 		float time = sphereRotationTime( targetAngle );
 		if (time <= 0f) return false;
@@ -320,7 +339,6 @@ public class Hero extends Char {
 		float from = sphereAngle();
 		sphereAngle( targetAngle );
 
-		// 可视旋转：从当前角度沿正确方向旋转到目标角度（含滚动动画）
 		if (sprite instanceof SphereSprite){
 			((SphereSprite) sprite).spin( from, targetAngle );
 		}
@@ -356,7 +374,7 @@ public class Hero extends Char {
 
 	public boolean ready = false;
 
-	// 是否正在播放"不消耗时间的阻塞动画"（变身等）。期间 Hero.act() 被拦截且不 spend。
+	// 演出期间阻塞行动，但不消耗回合。
 	public boolean animationBusy = false;
 
 	public boolean rectorDeadKngithDeadMode = false;
@@ -371,7 +389,7 @@ public class Hero extends Char {
 
 	public Belongings belongings;
 
-	/** Card Trickster deck; null for other heroes and for old saves until needed. */
+	// 旧存档及其他职业不创建牌堆，首次需要时再初始化。
 	public CardDeck cardDeck;
 
 	public int STR;
@@ -390,24 +408,15 @@ public class Hero extends Char {
 	private int resistHealth = 0;
 	public int HTBoost = 0;
 
-	/**
-	 * [CRIT BR POWER]
-	 */
 	public float csBoost=0;
 	public boolean sniperSpecial = false;
 
-	/**
-	 * [IMP POWER]
-	 */
 	public boolean powerOfImp = false;
 
 	private ArrayList<Mob> visibleEnemies;
 
-	//This list is maintained so that some logic checks can be skipped
-	// for enemies we know we aren't seeing normally, resulting in better performance
 	public ArrayList<Mob> mindVisionEnemies = new ArrayList<>();
 
-	// Talent: Superstition by DoggingDog on 20250817
 	public static class SuperstitionCounter{
 		int cnt;
 
@@ -429,7 +438,6 @@ public class Hero extends Char {
 		}
 	}
 	public SuperstitionCounter superstitionCounter = null;
-	//
 
 	public Hero() {
 		super();
@@ -447,18 +455,16 @@ public class Hero extends Char {
 	public void updateHT( boolean boostHP ){
 		int curHT = HT;
 
-		// 基础成长系数
 		int growthFactor = 5;
 		int initialHP = 20;
-		// 职业专属成长（月华：强壮肉体天赋）
 		int[] growth = heroClass.activeDefinition() == null ? null : heroClass.activeDefinition().baseHPGrowth();
 		if (growth != null) {
 			initialHP = growth[0];
-			growthFactor = growth[1]; // 基础成长
+			growthFactor = growth[1];
 			int strongBody = pointsInTalent(Talent.STRONG_BODY);
 			if (strongBody != 0) initialHP = 20;
-			if (strongBody >= 1) growthFactor = 5; // +1恢复至正常
-			if (strongBody >= 2) growthFactor = 6; // +2额外成长
+			if (strongBody >= 1) growthFactor = 5;
+			if (strongBody >= 2) growthFactor = 6;
 		}
 
 
@@ -551,7 +557,6 @@ public class Hero extends Char {
 			critbonus += Boost;
 		}
 
-		// Radish 饰品提供的暴击率
 		Radish.GlobalCritChance globalCritChance = buff(Radish.GlobalCritChance.class);
 		if(globalCritChance != null){
 			critbonus += globalCritChance.critChance;
@@ -628,6 +633,7 @@ public class Hero extends Char {
 			bundle.put(DEADKNGITH, rectorDeadKngithDeadMode );
 
 			belongings.storeInBundle( bundle );
+			TalentRequirement.store(bundle, this);
 			bundle.put( CARD_DECK, cardDeck );
 			if (superstitionCounter != null) bundle.put( SUPERSTITION_CNT, superstitionCounter.cnt );
 		}
@@ -668,6 +674,8 @@ public class Hero extends Char {
 
 		belongings.restoreFromBundle( bundle );
 		cardDeck = (CardDeck) bundle.get( CARD_DECK );
+		TalentRequirement.restore(bundle, this);
+		if (skin == 6 && heroClass != HeroClasses.JUMBLE) JumbleTalents.migrate(this);
 		if (heroClass == HeroClasses.CARDTRICKSTER) {
 			if (cardDeck == null) {
 				cardDeck = CardDeck.starterDeck();
@@ -676,6 +684,7 @@ public class Hero extends Char {
 				new CardDrawer().collect(belongings.backpack);
 			}
 		}
+		TalentRequirement.sync(this);
 		HeldCardTracker.sync(this);
 	}
 
@@ -689,6 +698,11 @@ public class Hero extends Char {
 		info.heroClass = HeroClasses.fromSaveName(bundle.getString( CLASS ));
 		info.subClass = HeroSubClasses.fromSaveName(bundle.getString( SUBCLASS ));
 		info.skin = bundle.getInt( SKIN );
+		if (info.skin == 6 && info.heroClass != HeroClasses.JUMBLE) {
+			info.heroClass = HeroClasses.JUMBLE;
+			info.skin = 0;
+			if (info.subClass != HeroSubClasses.NONE) info.subClass = HeroSubClasses.JUMBLE;
+		}
 		Belongings.preview( info, bundle );
 	}
 
@@ -765,7 +779,6 @@ public class Hero extends Char {
 
 	public String className() {
 		if (subClass != null && subClass != HeroSubClasses.NONE) return subClass.title();
-		// 皮肤变体拥有独立名称时使用之，否则回退到基础职业名
 		return heroClass.activeDefinition().heroName();
 	}
 
@@ -779,7 +792,6 @@ public class Hero extends Char {
 		if (belongings.thrownWeapon != null) {
 			belongings.thrownWeapon.hitSound(pitch);
 		} else if (RingOfForce.getBuffedBonus(this, RingOfForce.Force.class) > 0) {
-			//pitch deepens by 2.5% (additive) per point of strength, down to 75%
 			super.hitSound( pitch * GameMath.gate( 0.75f, 1.25f - 0.025f*STR(), 1f) );
 		} else if (belongings.weapon() != null) {
 			belongings.weapon().hitSound(pitch);
@@ -827,8 +839,7 @@ public class Hero extends Char {
 		boolean wasEnemy = enemy.alignment == Alignment.ENEMY
 				|| (enemy instanceof Mimic && enemy.alignment == Alignment.NEUTRAL);
 
-		//temporarily set the hero's weapon to the missile weapon being used
-		//TODO improve this!
+		// 攻击结算期间临时使用投掷武器，结算后恢复装备。
 		belongings.thrownWeapon = wep;
 		boolean hit = attack( enemy );
 		Invisibility.dispel();
@@ -859,19 +870,11 @@ public class Hero extends Char {
 			accuracy += accuracy * (attackDelay() + killBoatSwordBonus - 1) * talentPointBonus;
 		}
 
-//		if (wep instanceof MissileWeapon){
-//			if (Dungeon.level.adjacent( pos, target.pos )) {
-//				accuracy *= (0.5f + 0.2f*pointsInTalent(Talent.POINT_BLANK));
-//			} else {
-//				accuracy *= 1.5f;
-//			}
-//		}
 
 		if (buff(Scimitar.SwordDance.class) != null){
 			accuracy *= 1.50f;
 		}
 
-		// 圆球皮肤：精准（命中）为 1.2 倍
 		if (isSphereSkin()){
 			accuracy *= 1.2f;
 		}
@@ -994,7 +997,6 @@ public class Hero extends Char {
             }
             if (armDr > 0) dr += armDr;
 
-            // 共鸣刻印：同时装备共鸣附魔武器与共鸣刻印护甲时，护甲格挡提升50%
             if (com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Resonance.isResonanceActive(this)) {
                 dr += Math.round(armDr * 0.5f);
             }
@@ -1030,7 +1032,6 @@ public class Hero extends Char {
 
 	@Override
 	public int shielding() {
-		// 树肤玩具：不再能获得护盾
 		if (buff(BarkskinToyBuff.class) != null) {
 			return 0;
 		}
@@ -1038,11 +1039,10 @@ public class Hero extends Char {
 	}
 
 	@Override
-	public int damageRoll() {  //TODO FIX
+	public int damageRoll() {
 		KindOfWeapon wep = isGamblerSkin() ? belongings.attackingWeapon() : belongings.weapon();
 		int dmg;
-		if (subClass == HeroSubClasses.ILLUSIONIST) {
-			// Illusionist weapons (and the Ring of Force) do not contribute to damage.
+		if (hasSubClass(HeroSubClasses.ILLUSIONIST)) {
 			dmg = Random.NormalIntRange(1, Math.max(STR() - 8, 1));
 		} else if (wep!=null){
 			if (isGamblerSkin()) {
@@ -1087,7 +1087,6 @@ public class Hero extends Char {
 			dmg += (int) (dmg * (attackDelay() + killBoatSwordBonus - 1) * pointBonus);
 		}
 
-		// Cross-class effects of Card Trickster talents.
 		if (heroClass != HeroClasses.CARDTRICKSTER) {
 			int empowerment = pointsInTalent(Talent.BLANK_EMPOWERMENT);
 			if (empowerment == 1) dmg += Random.NormalIntRange(0, 1);
@@ -1118,7 +1117,6 @@ public class Hero extends Char {
 
 		float speed = super.speed();
 
-		// 圆球皮肤：移动速度为 1.2 倍
 		if (isSphereSkin()) speed *= 1.2f;
 
 		speed *= RingOfHaste.speedMultiplier(this);
@@ -1127,7 +1125,6 @@ public class Hero extends Char {
 			speed *= buff.speedFactor();
 		}
 
-		//索命弯刀：范围内有敌人时移速翻倍
 		AshKing.FatalBladeForm fatalBlade = buff(AshKing.FatalBladeForm.class);
 		if (fatalBlade != null && fatalBlade.hasEnemyNearby) {
 			speed *= 2f;
@@ -1168,7 +1165,6 @@ public class Hero extends Char {
 
 		speed = AscensionChallenge.modifyHeroSpeed(speed);
 
-		//TS
 		if (buff(DarkCoat.myPace.class)!=null) speed=Math.max(1f,speed);
 
 		return speed;
@@ -1207,13 +1203,11 @@ public class Hero extends Char {
 			}
 		}
 
-		//神佑长枪形态：攻击距离+1
 		AshKing.HolyLanceForm holyLance = buff(AshKing.HolyLanceForm.class);
 		if (holyLance != null && Dungeon.level.distance(pos, enemy.pos) <= 2) {
 			return true;
 		}
 
-		//can always attack adjacent enemies
 		if (Dungeon.level.adjacent(pos, enemy.pos)) {
 			return true;
 		}
@@ -1226,13 +1220,11 @@ public class Hero extends Char {
 		KindOfWeapon wep = Dungeon.hero.belongings.attackingWeapon();
 
 		if (wep != null){
-			// mod by DoggingDog on 2024-11-13, 4 Seeking enchantment
 			// 追寻附魔：只有当前武器就是施加标记的那把武器时，才能无视距离追击
 			Seeking.SeekingBuff seeking = enemy.buff(Seeking.SeekingBuff.class);
 			if(seeking != null && seeking.isBoundWeapon(wep)){
 				return true;
 			}
-			//
 			return wep.canReach(this, enemy.pos);
 		} else {
 			return false;
@@ -1260,9 +1252,6 @@ public class Hero extends Char {
 			}
 		}
 
-        //Normally putting furor speed on unarmed attacks would be unnecessary
-        //But there's going to be that one guy who gets a furor+force ring combo
-        //This is for that one guy, you shall get your fists of fury!
         float speed = RingOfFuror.attackSpeedMultiplier(this);
 
         if (hasTalent(Talent.BOW_DULES) && (buff(SnipersMark.class) != null
@@ -1271,12 +1260,10 @@ public class Hero extends Char {
             speed += 0.5f;
         }
 
-        //ditto for furor + sword dance!
         if (buff(Scimitar.SwordDance.class) != null){
             speed += 0.6f;
         }
 
-		// DoggingDog on 20250205
 		if(belongings.attackingWeapon() != null)
 			delay *= belongings.attackingWeapon().delayFactor( this );
 
@@ -1291,8 +1278,6 @@ public class Hero extends Char {
 		delay *= PolearmBuff.getAttackDelayMultiplier();
 		speed *= IronHeartBuff.getAttackSpeedMultiplier();
 
-		// rector skill : gods possession with talent avatar
-		// DoggingDog on 20260119
 		if(hero != null){
 			int t_lvl = hero.pointsInTalent(Talent.AVATAR);
 			t_lvl = Math.max(0,t_lvl-1);
@@ -1332,15 +1317,15 @@ public class Hero extends Char {
 	@Override
 	public boolean act() {
 
-		// 发布英雄回合事件
 		EventManager.emit(new HeroActEvent(this));
+		if (pendingTalentRequirements) TalentRequirement.sync(this);
 
 		Radish radish = hero.belongings.getItem(Radish.class);
 		Radish.GlobalCritChance globalCritChance = hero.buff(Radish.GlobalCritChance.class);
 		if(radish != null && globalCritChance == null){
 			Buff.affect(hero, Radish.GlobalCritChance.class);
 		}
-		//calls to dungeon.observe will also update hero's local FOV.
+		// 完整视野观察也会更新英雄自己的视野引用。
 		fieldOfView = Dungeon.level.heroFOV;
 
 		//粘液逻辑
@@ -1425,9 +1410,9 @@ public class Hero extends Char {
 
 		if (hero.hasTalent(Talent.GOD_BODY)){
 			for (Buff buff : hero.buffs()) {
-				if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(-1f) && buff instanceof Corrosion) { // 使用阈值检测方法
+				if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(-1f) && buff instanceof Corrosion) {
 					buff.detach();
-				} else if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(Dungeon.hero.pointsInTalent(Talent.GOD_BODY) == 2 ? 1f : 0f)) { // 使用阈值检测方法
+				} else if (buff.type == Buff.buffType.NEGATIVE && buff.isAboutToEnd(Dungeon.hero.pointsInTalent(Talent.GOD_BODY) == 2 ? 1f : 0f)) {
 					buff.detach();
 				}
 			}
@@ -1438,11 +1423,9 @@ public class Hero extends Char {
 		}
 
 		if (!ready) {
-			//do a full observe (including fog update) if not resting.
 			if (!resting || buff(MindVision.class) != null || buff(Awareness.class) != null || Dungeon.hero.hasTalent(Talent.SOUL_NOWIFI)) {
 				Dungeon.observe();
 			} else {
-				//otherwise just directly re-calculate FOV
 				Dungeon.level.updateFieldOfView(this, fieldOfView);
 			}
 		}
@@ -1451,7 +1434,6 @@ public class Hero extends Char {
 		BuffIndicator.refreshHero();
 		BuffIndicator.refreshAllBosses();
 
-		// 不消耗时间的阻塞动画播放中（如杂散变身）：真正阻塞英雄行动，让动画一口气播完，不被移动/攻击/ready 打断，也不消耗回合
 		if (animationBusy) {
 			return false;
 		}
@@ -1468,7 +1450,6 @@ public class Hero extends Char {
 		if (curAction == null) {
 
 			if (resting) {
-				// 圆球皮肤：等待时若角度不正确，用至多 1 回合的等待时间旋转回正确方向
 				if (isSphereSkin()){
 					sphereRotateWhileWaiting( Math.min( sphereRotationTime( 0f ), TIME_TO_REST ) );
 				}
@@ -1478,7 +1459,6 @@ public class Hero extends Char {
 				ready();
 			}
 
-			//if we just loaded into a level and have a search buff, make sure to process them
 			if(Actor.now() == 0){
 				if (buff(Foresight.class) != null){
 					search(false);
@@ -1544,31 +1524,13 @@ public class Hero extends Char {
 		ready = false;
 	}
 
-	/**
-	 * 开始一段"不消耗时间"的阻塞动画（如变身、特殊演出）。
-	 * <p>
-	 * 原理：置 {@link #animationBusy}=true，使 {@link #act()} 在动画播放期间被拦截
-	 * （不行动、不 spend、不推进回合）；调用 {@code startAnim.call()} 播放动画。
-	 * <p>
-	 * 动画播放完成后，必须在动画回调里调用 {@link #finishAnimationNoTime()} 恢复英雄行动。
-	 * 示例：
-	 * <pre>
-	 * hero.playAnimationNoTime( () -&gt; sprite.playXxx( () -&gt; hero.finishAnimationNoTime() ) );
-	 * </pre>
-	 *
-	 * @param startAnim 触发动画播放的动作（回调内调用 sprite.playXxx(...)，并在其完成回调里调用 {@link #finishAnimationNoTime()})
-	 */
+	// 不推进回合；演出完成回调必须调用 finishAnimationNoTime，解除行动阻塞。
 	public void playAnimationNoTime( Callback startAnim ) {
 		ready = false;
 		animationBusy = true;
 		if (startAnim != null) startAnim.call();
 	}
 
-	/**
-	 * 结束一段"不消耗时间"的阻塞动画，恢复英雄行动。
-	 * <p>
-	 * 通常在动画完成回调里调用；调用后英雄可在同一回合继续操作（未 spend，未消耗时间）。
-	 */
 	public void finishAnimationNoTime() {
 		animationBusy = false;
 		ready();
@@ -1650,11 +1612,8 @@ public class Hero extends Char {
 	private boolean canSelfTrample = false;
 	public boolean canSelfTrample(){
 		return canSelfTrample && !rooted && !flying &&
-				//standing in high grass
 				(Dungeon.level.map[pos] == Terrain.HIGH_GRASS ||
-						//standing in furrowed grass and not huntress
 						(heroClass != HeroClasses.HUNTRESS && Dungeon.level.map[pos] == Terrain.FURROWED_GRASS) ||
-						//standing on a plant
 						Dungeon.level.plants.get(pos) != null);
 	}
 
@@ -1664,7 +1623,6 @@ public class Hero extends Char {
 			canSelfTrample = false;
 			return true;
 
-			//Hero moves in place if there is grass to trample
 		} else if (pos == action.dst && canSelfTrample()){
 			canSelfTrample = false;
 			Dungeon.level.pressCell(pos);
@@ -1754,8 +1712,7 @@ public class Hero extends Char {
 		}
 	}
 
-	//used to keep track if the wait/pickup action was used
-	// so that the hero spends a turn even if the fail to pick up an item
+	// 即使等待或拾取失败，也要消耗一次行动时间。
 	public boolean waitOrPickup = false;
 
 	//多物品堆拾取：弹出选择窗口后记录玩家选中的物品，抵达后拾取该物品
@@ -1805,7 +1762,6 @@ public class Hero extends Char {
 				} else if (item.doPickUp( this )) {
 					heap.pickUp(item);
 
-					//多物品堆连续拾取：本次来自选择窗口且堆中仍有物品时，记录格子，下回合英雄就绪后重新打开选择窗口
 					if (windowPick && !heap.isEmpty()) {
 						pickupWindowCell = pos;
 					} else {
@@ -1817,7 +1773,6 @@ public class Hero extends Char {
 							|| item instanceof DriedRose.Petal
 							|| item instanceof Key
 							|| item instanceof Guidebook) {
-						//Do Nothing
 					} else if (item instanceof DarkGold) {
 						DarkGold existing = belongings.getItem(DarkGold.class);
 						if (existing != null){
@@ -1829,7 +1784,6 @@ public class Hero extends Char {
 						}
 					} else {
 
-						//TODO make all unique items important? or just POS / SOU?
 						boolean important = item.unique && item.isIdentified() &&
 								(item instanceof Scroll || item instanceof Potion);
 						if (important) {
@@ -1846,7 +1800,7 @@ public class Hero extends Char {
 						spendAndNextConstant(TIME_TO_REST);
 					}
 
-					//allow the hero to move between levels even if they can't collect the item
+					// 拾取失败仍允许通过脚下的楼梯。
 					if (Dungeon.level.getTransition(pos) != null){
 						throwItems();
 					} else {
@@ -1857,7 +1811,6 @@ public class Hero extends Char {
 							|| item instanceof TimekeepersHourglass.sandBag
 							|| item instanceof DriedRose.Petal
 							|| item instanceof Key) {
-						//Do Nothing
 					} else {
 						GLog.newLine();
 						GLog.n(Messages.capitalize(Messages.get(this, "you_cant_have", item.name())));
@@ -1996,7 +1949,6 @@ public class Hero extends Char {
 							}
 						}
 
-						//1 hunger spent total
 						if (Dungeon.level.map[action.dst] == Terrain.WALL_DECO){
 							DarkGold gold = new DarkGold();
 							if (gold.doPickUp( Dungeon.hero )) {
@@ -2008,7 +1960,7 @@ public class Hero extends Char {
 										GLog.i(Messages.get(DarkGold.class, "you_now_have", existing.quantity()));
 									}
 								}
-								spend(-Actor.TICK); //picking up the gold doesn't spend a turn here
+								spend(-Actor.TICK);
 							} else {
 								Dungeon.level.drop( gold, pos ).sprite.drop();
 							}
@@ -2017,10 +1969,8 @@ public class Hero extends Char {
 							Sample.INSTANCE.play( Assets.Sounds.EVOKE );
 							Level.set( action.dst, Terrain.EMPTY_DECO );
 
-							//mining gold doesn't break crystals
 							crystalAdjacent = false;
 
-							//4 hunger spent total
 						} else if (Dungeon.level.map[action.dst] == Terrain.WALL){
 							buff(Hunger.class).affectHunger(-3);
 							PixelScene.shake(0.5f, 0.5f);
@@ -2028,13 +1978,11 @@ public class Hero extends Char {
 							Sample.INSTANCE.play( Assets.Sounds.MINE );
 							Level.set( action.dst, Terrain.EMPTY_DECO );
 
-							//1 hunger spent total
 						} else if (Dungeon.level.map[action.dst] == Terrain.MINE_CRYSTAL){
 							Splash.at(action.dst, 0xFFFFFF, 5);
 							Sample.INSTANCE.play( Assets.Sounds.SHATTER );
 							Level.set( action.dst, Terrain.EMPTY );
 
-							//1 hunger spent total
 						} else if (Dungeon.level.map[action.dst] == Terrain.MINE_BOULDER){
 							Splash.at(action.dst, 0x555555, 5);
 							Sample.INSTANCE.play( Assets.Sounds.MINE, 0.6f );
@@ -2215,7 +2163,6 @@ public class Hero extends Char {
 
 		if (enemy.isAlive() && canAttack( enemy ) && enemy.invisible == 0) {
 
-			// 圆球皮肤：需先旋转到正确角度（滚动动画第 0 帧）才能发起攻击
 			if (isSphereSkin() && sphereRotateTo( 0f )){
 				return false;
 			}
@@ -2279,12 +2226,9 @@ public class Hero extends Char {
 			Buff.affect(this, HoldFast.class);
 		}
 
-		// Talent : BraceYourSelf
-		// by DoggingDog on 2024-09-21
 		if(hasTalent(Talent.BRACE_YOURSELF) && buff(Preparation.class)!=null){
 			Buff.affect(this, BraceYourself.class);
 		}
-		// end
 
 		if (hasTalent(Talent.PATIENT_STRIKE)){
 			Buff.affect(Dungeon.hero, Talent.PatientStrikeTracker.class).pos = Dungeon.hero.pos;
@@ -2349,13 +2293,6 @@ public class Hero extends Char {
 			buff(Talent.SpiritBladesTracker.class).detach();
 		}
 
-//		KindOfWeapon wept = belongings.weapon();
-//		if (wept instanceof CelestialSphere) {
-//			int magicDamage;
-//			magicDamage = Random.NormalIntRange(wept.min(wept.level()),wept.max(wept.level()));
-//			enemy.damage(magicDamage, new DM100.LightningBolt());
-//			damage = wept.proc( this, enemy,0 );
-//		}
 
 		KindOfWeapon wep;
 		wep = belongings.attackingWeapon();
@@ -2388,8 +2325,11 @@ public class Hero extends Char {
 		boolean subWasEnemy = enemy.alignment == Alignment.ENEMY
 				|| (enemy instanceof Mimic && enemy.alignment == Alignment.NEUTRAL);
 		subClass.onAttackProc( this, enemy, damage, true, subWasEnemy );
+		if (heroClass == HeroClasses.JUMBLE && subClass == HeroSubClasses.JUMBLE) {
+			jumbleFirst.onAttackProc(this, enemy, damage, true, subWasEnemy);
+			jumbleSecond.onAttackProc(this, enemy, damage, true, subWasEnemy);
+		}
 
-		//Roll 2 次 投掷武器等相关惩罚
 		RiverCrystal riverGlass = hero.belongings.getItem(RiverCrystal.class);
 		if(riverGlass != null){
 			if(wep != null){
@@ -2432,7 +2372,7 @@ public class Hero extends Char {
 		}
 
 
-		if (subClass == HeroSubClasses.SNIPER) {
+		if (hasSubClass(HeroSubClasses.SNIPER)) {
 
 			if (!(sniperSpecial) && wep instanceof MissileWeapon && !(wep instanceof SpiritBow.SpiritArrow ||wep instanceof SpiritBow.ALTSpiritArrow) && enemy != this) {
 
@@ -2449,7 +2389,6 @@ public class Hero extends Char {
 								if( !hero.hasTalent(Talent.BOW_DULES) ){
 									Buff.prolong(Hero.this, SnipersMark.class, SnipersMark.DURATION + bonusTurns).set(enemy.id(), bonusTurns);
 								} else if(hero.buff(SnipersMark.class)!=null){
-									//hero.buff(SnipersMark.class).setSec(enemy.id(), bonusTurns);
 									Buff.prolong(Hero.this, SnipersMark.class, SnipersMark.DURATION + bonusTurns).setSec(enemy.id(), bonusTurns);
 								}else{
 									Buff.prolong(Hero.this, SnipersMark.class, SnipersMark.DURATION + bonusTurns).set(enemy.id(), bonusTurns);
@@ -2462,8 +2401,6 @@ public class Hero extends Char {
 				}else if(!(sniperSpecial) && (wep instanceof SpiritBow.SpiritArrow ||wep instanceof SpiritBow.ALTSpiritArrow)  && enemy != this){
 					if(hasTalent(Talent.BOW_DULES) && pointsInTalent(Talent.BOW_DULES)>=2) {
 						boolean ranged = enemy instanceof Tengu || enemy instanceof YogDzewa || enemy instanceof Mayfly || enemy instanceof DM100 || enemy instanceof Shaman || enemy instanceof GnollZealot || enemy instanceof Warlock || enemy instanceof Elemental.FireElemental || enemy instanceof Elemental.ChaosElemental || enemy instanceof Elemental.FrostElemental || enemy instanceof Elemental.ShockElemental || enemy instanceof Artillerist || enemy instanceof Scorpio || enemy instanceof Eye;
-						//Mayfly, DM100, Shaman, GnollZealot, Warlock, Elemental.FireElemental , Elemental.NewbornFireElemental , Elemental.ChaosElemental, Elemental.FrostElemental, Elemental.ShockElemental, Artillerist, Acidic, Scorpio ,eye
-						//Tengu, YogDzewa
 
                         if (enemy instanceof Mob && (((Mob) enemy).surprisedBy(this)) ||(pointsInTalent(Talent.BOW_DULES)>=3 && ranged)){
 
@@ -2512,9 +2449,7 @@ public class Hero extends Char {
 	@Override
 	public int defenseProc( Char enemy, int damage ) {
 
-		// 拉莱耶反弹已迁移至 Rlyeh 订阅 AttackEvent 处理
 
-		// 怪物偷袭英雄：视野外攻击弹感叹号（只特效，不改变伤害/防御）
 		if (surprisedBy(enemy)) {
 			Surprise.hit(this);
 		}
@@ -2524,6 +2459,10 @@ public class Hero extends Char {
 		}
 
 		subClass.onDefenseProc(this, enemy, damage);
+		if (heroClass == HeroClasses.JUMBLE && subClass == HeroSubClasses.JUMBLE) {
+			jumbleFirst.onDefenseProc(this, enemy, damage);
+			jumbleSecond.onDefenseProc(this, enemy, damage);
+		}
 
 		WandOfLivingEarth.RockArmor rockArmor = buff(WandOfLivingEarth.RockArmor.class);
 		if (rockArmor != null) {
@@ -2628,7 +2567,6 @@ public class Hero extends Char {
 		}
 
 		if (!(src instanceof Char)){
-			//the same also applies to challenge scroll damage reduction
 			if (buff(ScrollOfChallenge.ChallengeArena.class) != null){
 				dmg *= 0.67f;
 			}
@@ -2648,10 +2586,10 @@ public class Hero extends Char {
 		}
 
 
+
 		int preHP = HP + shielding();
 		int preTrueHP = HP;
 
-		// DoggingDog
 		int minDmg = Dungeon.depth > 20 ? 15 :
 				Dungeon.depth > 15 ? 10 :
 						Dungeon.depth > 10 ? 6 :
@@ -2687,14 +2625,12 @@ public class Hero extends Char {
 				if (flag) Buff.append(this, DeferredShield.class,1f).inc(2*pointsInTalent(Talent.EMERGENCY_PROTECTION));
 			}
 		}
-		//flash red when hit for serious damage.
-		float percentDMG = effectiveDamage / (float)preHP; //percent of current HP that was taken
-		float percentHP = 1 - ((HT - postHP) / (float)HT); //percent health after damage was taken
-		// The flash intensity increases primarily based on damage taken and secondarily on missing HP.
+		float percentDMG = effectiveDamage / (float)preHP;
+		float percentHP = 1 - ((HT - postHP) / (float)HT);
+		// 闪光强度主要随受伤比例增长，残血时进一步增强。
 		float flashIntensity = 0.25f * (percentDMG * percentDMG) / percentHP;
-		//if the intensity is very low don't flash at all
 		if (flashIntensity >= 0.05f){
-			flashIntensity = Math.min(1/3f, flashIntensity); //cap intensity at 1/3
+			flashIntensity = Math.min(1/3f, flashIntensity);
 			GameScene.flash( (int)(0xFF*flashIntensity) << 16 );
 			if (isAlive()) {
 				if (flashIntensity >= 1/6f) {
@@ -2724,7 +2660,6 @@ public class Hero extends Char {
 					newMob = true;
 				}
 
-				//only do a simple check for mind visioned enemies, better performance
 				if ((!mindVisionEnemies.contains(m) && QuickSlotButton.autoAim(m) != -1)
 						|| (mindVisionEnemies.contains(m) && new Ballistica( pos, m.pos, Ballistica.PROJECTILE ).collisionPos == m.pos)) {
 					if (target == null) {
@@ -2736,7 +2671,7 @@ public class Hero extends Char {
 							&& !Document.ADVENTURERS_GUIDE.isPageRead(Document.GUIDE_EXAMINING)){
 						GLog.p(Messages.get(Guidebook.class, "hint"));
 						GameScene.flashForDocument(Document.ADVENTURERS_GUIDE, Document.GUIDE_EXAMINING);
-						//we set to read here to prevent this message popping up a bunch
+						// 先标记已读，避免重复弹出同一提示。
 						Document.ADVENTURERS_GUIDE.readPage(Document.GUIDE_EXAMINING);
 					}
 				}
@@ -2775,12 +2710,9 @@ public class Hero extends Char {
 
 	private boolean walkingToVisibleTrapInFog = false;
 	
-	// 用于记录绕路确认状态
 	private boolean detourConfirmed = false;
 	private int detourTarget = -1;
 
-	//FIXME this is a fairly crude way to track this, really it would be nice to have a short
-	//history of hero actions
 	public boolean justMoved = false;
 
 	private boolean getCloser( final int target ) {
@@ -2793,7 +2725,6 @@ public class Hero extends Char {
 			return false;
 		}
 
-		// 发布移动前事件，允许订阅者取消移动
 		BeforeHeroMoveEvent beforeMoveEvent = new BeforeHeroMoveEvent(this, pos, target);
 		EventManager.emit(beforeMoveEvent);
 		if (beforeMoveEvent.isCancelled()) {
@@ -2803,6 +2734,7 @@ public class Hero extends Char {
 		int step = -1;
 
 		if (Dungeon.level.adjacent( pos, target )) {
+
 			path = null;
 
 			if (Actor.findChar( target ) == null) {
@@ -2842,10 +2774,8 @@ public class Hero extends Char {
 
 				PathFinder.Path newpath = Dungeon.findPath(this, target, passable, fieldOfView, true);
 				
-				// 检测绕路穿过迷雾的情况
 				int directDist = Dungeon.level.distance(pos, target);
 				if (newpath != null && directDist <= 8 && newpath.size() > directDist * 3 && SPDSettings.detourPrompt()) {
-					// 存在绕远路，需要询问玩家
 					if (!detourConfirmed || detourTarget != target) {
 						final int finalTarget = target;
 						final PathFinder.Path finalNewpath = newpath;
@@ -2860,7 +2790,6 @@ public class Hero extends Char {
 									@Override
 									protected void onSelect(int index) {
 										if (index == 0) {
-											// 玩家选择绕远路
 											detourConfirmed = true;
 											detourTarget = finalTarget;
 											path = finalNewpath;
@@ -2869,7 +2798,6 @@ public class Hero extends Char {
 											ready = false;
 											Hero.this.next();
 										} else {
-											// 玩家取消，中断移动
 											detourConfirmed = false;
 											detourTarget = -1;
 											interrupt();
@@ -2880,7 +2808,6 @@ public class Hero extends Char {
 						});
 						return false;
 					}
-					// 已确认绕路
 					path = newpath;
 				} else if (newpath != null && path != null && newpath.size() > 2*path.size()){
 					path = null;
@@ -2896,7 +2823,7 @@ public class Hero extends Char {
 
 		if (step != -1) {
 
-			float delay = 1 / speed();
+            float delay = 1 / speed();
 
 			if (Dungeon.level.pit[step] && !Dungeon.level.solid[step]
 					&& (!flying || buff(Levitation.class) != null && buff(Levitation.class).detachesWithinDelay(delay))){
@@ -2905,7 +2832,7 @@ public class Hero extends Char {
 					interrupt();
 				} else {
 					flying = false;
-					remove(buff(Levitation.class)); //directly remove to prevent cell pressing
+					remove(buff(Levitation.class));
 					if (!SpaceFragment.tryAbyssTeleport(this)) {
 						Chasm.heroFall(target);
 					}
@@ -2914,10 +2841,8 @@ public class Hero extends Char {
 				return false;
 			}
 
-			// 和原版一样，只在确定要迈出这一步时记一次移动。以前「目标在隔壁」的分支开头还多调了一次，
-			// 而且两处都在判断能不能走之前：点隔壁的墙、点深渊弹出确认框（都不动也不花时间）也涨动量，走相邻格一步涨两层
-			subClass.onMove(this);
-
+            // 仅在确认实际迈步后触发移动钩子，避免障碍或深渊确认重复触发。
+            subclassMove();
 			if (hasTalent(Talent.MOVING_DEFENSE)){
 				if (Random.Float()<0.33f*pointsInTalent(Talent.MOVING_DEFENSE)+0.01f){
 					if (buff(Barrier.class)==null || buff(Barrier.class).shielding()<lvl)
@@ -3019,7 +2944,6 @@ public class Hero extends Char {
 				curAction = new HeroAction.Attack( ch );
 			}
 
-			//TODO perhaps only trigger this if hero is already adjacent? reducing mistaps
 		} else if (Dungeon.level instanceof MiningLevel &&
 				belongings.getItem(Pickaxe.class) != null &&
 				(Dungeon.level.map[cell] == Terrain.WALL
@@ -3030,9 +2954,8 @@ public class Hero extends Char {
 			curAction = new HeroAction.Mine( cell );
 
 		} else if (heap != null
-				//moving to an item doesn't auto-pickup when enemies are near...
+				// 敌人在场时只限制普通物品堆的自动拾取，不限制开箱。
 				&& (visibleEnemies.size() == 0 || cell == pos ||
-				//...but only for standard heaps. Chests and similar open as normal.
 				(heap.type != Type.HEAP && heap.type != Type.FOR_SALE))) {
 
 			switch (heap.type) {
@@ -3132,24 +3055,18 @@ public class Hero extends Char {
 
 	public void earnExp( int exp, Class source ) {
 
-		//xp granted by ascension challenge is only for on-exp gain effects
+		// 扬升挑战的经验只触发获取经验效果，不计入升级进度。
 		if (source != AscensionChallenge.class) {
 			this.exp += exp;
-			// 德鲁伊：击杀敌人收集自然能量
 			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.Druid.onKill(this);
 		}
 
 		EventManager.emit(new HeroGainExperienceEvent(this, exp, source));
 
 
-		// Superstition by DoggingDog on 20250817
-		// 天赋：星界沟通
-		if(superstitionCounter != null){
-			if(heroClass.activeDefinition() != null){
-				heroClass.activeDefinition().onExpGain(this, exp);
-			}
+		if (superstitionCounter != null) {
+			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes.Rector.gainSuperstitionBelief(this, exp);
 		}
-
 
 		float percent = exp/(float)maxExp();
 
@@ -3210,7 +3127,7 @@ public class Hero extends Char {
 
 				GLog.newLine();
 				GLog.p( Messages.get(this, "level_cap"));
-				// 这是为了防止30级点强壮肉体无法升级更新血上限的bug，但是真的会有这种情况吗...
+				// 满级后仍需重算生命上限，以应用强壮肉体的成长。
 				updateHT(false);
 				Sample.INSTANCE.play( Assets.Sounds.LEVELUP );
 			}
@@ -3232,7 +3149,6 @@ public class Hero extends Char {
 				}
 			}
 
-			// 发布英雄升级事件
 			EventManager.emit(new HeroLevelUpEvent(this, lvl - 1, lvl));
 
 			Item.updateQuickslot();
@@ -3300,7 +3216,6 @@ public class Hero extends Char {
 			stealth = belongings.armor().stealthFactor(this, stealth);
 		}
 
-		//匿踪斗篷方法
 		if (buff(CloakOfConcealment.Disposed.class)!=null)
 			stealth-=4f;
 		return stealth;
@@ -3313,7 +3228,6 @@ public class Hero extends Char {
 
 		Ankh ankh = null;
 
-		//look for ankhs in player inventory, prioritize ones which are blessed.
 		for (Ankh i : belongings.getAllItems(Ankh.class)){
 			if (ankh == null || i.isBlessed()) {
 				ankh = i;
@@ -3345,10 +3259,7 @@ public class Hero extends Char {
 				}
 			} else {
 
-				//this is hacky, basically we want to declare that a wndResurrect exists before
-				//it actually gets created. This is important so that the game knows to not
-				//delete the run or submit it to rankings, because a WndResurrect is about to exist
-				//this is needed because the actual creation of the window is delayed here
+				// 窗口延迟创建，先放置标记，防止死亡流程删除存档或提交排名。
 				WndResurrect.instance = new Object();
 				Ankh finalAnkh = ankh;
 				Game.runOnRenderThread(new Callback() {
@@ -3456,9 +3367,7 @@ public class Hero extends Char {
 		Dungeon.deleteGame( GamesInProgress.curSlot, true );
 	}
 
-	//effectively cache this buff to prevent having to call buff(...) a bunch.
-	//This is relevant because we call isAlive during drawing, which has both performance
-	//and thread coordination implications if that method calls buff(...) frequently
+	// 绘制时也会检查存活状态；缓存狂战 Buff，避免频繁查询及线程同步。
 	private Berserk berserk;
 
 	@Override
@@ -3475,7 +3384,7 @@ public class Hero extends Char {
 
 	@Override
 	public void move(int step, boolean travelling) {
-		int fromPos = pos; // 记录移动前的位置
+		int fromPos = pos;
 		boolean wasHighGrass = Dungeon.level.map[step] == Terrain.HIGH_GRASS;
 
 		super.move( step, travelling);
@@ -3521,14 +3430,16 @@ public class Hero extends Char {
 
 		Invisibility.dispel();
 
-		// CancelAttackBuff：攻击不消耗回合
 		CancelAttackBuff cancelBuff = buff(CancelAttackBuff.class);
 		if (cancelBuff != null) {
 			Buff.detach(this, CancelAttackBuff.class);
 		} else {
-			// 出其不意天赋：十手伏击减少回合消耗
 			boolean surpriseAttack = enemy instanceof Mob && ((Mob) enemy).surprisedBy(this);
 			float multiplier = subClass.attackDelayMultiplier(this, enemy, surpriseAttack);
+			if (heroClass == HeroClasses.JUMBLE && subClass == HeroSubClasses.JUMBLE) {
+				multiplier *= jumbleFirst.attackDelayMultiplier(this, enemy, surpriseAttack);
+				multiplier *= jumbleSecond.attackDelayMultiplier(this, enemy, surpriseAttack);
+			}
 			float delay = attackDelay() * multiplier;
 			Talent.CardScrollConditioningTracker conditioning = buff(Talent.CardScrollConditioningTracker.class);
 			if (conditioning != null) {
@@ -3540,15 +3451,17 @@ public class Hero extends Char {
 		}
 
 		subClass.onAttackComplete(this, enemy, hit, wasEnemy);
+		if (heroClass == HeroClasses.JUMBLE && subClass == HeroSubClasses.JUMBLE) {
+			jumbleFirst.onAttackComplete(this, enemy, hit, wasEnemy);
+			jumbleSecond.onAttackComplete(this, enemy, hit, wasEnemy);
+		}
 
-		// DoggingDog on 20250818
 		if(!enemy.isAlive() && hero.hasTalent(Talent.ADRENAL_COMBAT) && hero != null){
 			Buff.affect(hero, Adrenaline.class,2f+hero.pointsInTalent(Talent.ADRENAL_COMBAT));
 		}
 		if (!enemy.isAlive() && wasEnemy) {
 			TieredToyEffects.onKill(this);
 		}
-		//
 
 		curAction = null;
 
@@ -3705,32 +3618,25 @@ public class Hero extends Char {
 						Trap trap = Dungeon.level.traps.get( curr );
 						float chance;
 
-						//searches aided by foresight always succeed, even if trap isn't searchable
 						if (foresight){
 							chance = 1f;
 
-							//otherwise if the trap isn't searchable, searching always fails
 						} else if (trap != null && !trap.canBeSearched){
 							chance = 0f;
 
-							//intentional searches always succeed against regular traps and doors
 						} else if (intentional){
 							chance = 1f;
 
-							//unintentional searches always fail with a cursed talisman
 						} else if (cursed) {
 							chance = 0f;
 
-							//unintentional trap detection scales from 40% at floor 0 to 30% at floor 25
 						} else if (Dungeon.level.map[curr] == Terrain.SECRET_TRAP) {
 							chance = 0.4f - (Dungeon.depth / 250f);
 
-							//unintentional door detection scales from 20% at floor 0 to 0% at floor 20
 						} else {
 							chance = 0.2f - (Dungeon.depth / 100f);
 						}
 
-						//don't want to let the player search though hidden doors in tutorial
 						if (SPDSettings.intro()){
 							chance = 0;
 						}
@@ -3800,7 +3706,6 @@ public class Hero extends Char {
 
 		Buff.affect(this, LostInventory.class);
 
-		//重生后验证 拉莱耶 合理性
 		Weapon w2 = (Weapon) hero.belongings.weapon;
 		if(w2 instanceof Rlyeh){
 			if(w2.keptThoughLostInvent && hero.buff(LostInventory.class) != null){
@@ -3809,11 +3714,6 @@ public class Hero extends Char {
 		}
 
 		Buff.affect(this, Invisibility.class, 3f);
-		//lost inventory is dropped in interlevelscene
-
-		//activate items that persist after lost inventory
-		//FIXME this is very messy, maybe it would be better to just have one buff that
-		// handled all items that recharge over time?
 		for (Item i : belongings){
 			if (i instanceof EquipableItem && i.isEquipped(this)){
 				((EquipableItem) i).activate(this);

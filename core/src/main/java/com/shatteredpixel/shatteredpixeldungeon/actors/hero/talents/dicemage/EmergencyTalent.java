@@ -17,7 +17,7 @@ public class EmergencyTalent {
         if (event.getTransitionType() != LevelChangeEvent.TransitionType.DESCEND
                 && event.getTransitionType() != LevelChangeEvent.TransitionType.FALL) return;
         Hero hero = Dungeon.hero;
-        if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE) return;
+        if (hero == null || !hero.hasSubClass(HeroSubClasses.DICE_MAGE)) return;
         MagicPoint mp = hero.buff(MagicPoint.class);
         if (mp == null) return;
         if (hero.pointsInTalent(com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent.SCHOOL_EMERGENCY) >= 1) {

@@ -13,9 +13,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.Eleme
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WarpBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.mage.WildMagic;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLiquidFlame;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
@@ -45,9 +43,6 @@ public class Mage extends HeroDefinition {
 		return set;
 	}
 
-	@Override public SkinDefinition[] skins() {
-		return new SkinDefinition[]{ new JumbleSkin(this) };
-	}
 
 	@Override protected void initClassLoadout(Hero hero) {
 		MagesStaff staff = new MagesStaff(new WandOfMagicMissile());

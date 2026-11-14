@@ -246,7 +246,7 @@ public abstract class Wand extends Item {
 		}
 
 		if (target != hero &&
-				hero.subClass == HeroSubClasses.WARLOCK &&
+                hero.hasSubClass(HeroSubClasses.WARLOCK) &&
 				//standard 1 - 0.92^x chance, plus 7%. Starts at 15%
 				Random.Float() > (Math.pow(0.92f, (wandLevel*chargesUsed)+1) - 0.07f)){
 			SoulMark.prolong(target, SoulMark.class, SoulMark.DURATION + wandLevel);
@@ -322,7 +322,7 @@ public abstract class Wand extends Item {
 		}
 
 		if(hero != null){
-			if (hero.subClass == HeroSubClasses.BATTLEMAGE){
+            if(hero.hasSubClass(HeroSubClasses.BATTLEMAGE)){
 				desc += "\n\n" + Messages.get(this, "bmage_desc");
 			}
 		}
@@ -516,11 +516,11 @@ public abstract class Wand extends Item {
 		TieredToyEffects.onAbilityUsed(hero);
 
 
-		if (hero.subClass == HeroSubClasses.JOKER) {
+		if (hero.hasSubClass(HeroSubClasses.JOKER)) {
 			com.shatteredpixel.shatteredpixeldungeon.items.cards.CardEffects.onWandUsed(hero);
 		}
 
-		if (hero.subClass == HeroSubClasses.DICE_MAGE){
+		if (hero.hasSubClass(HeroSubClasses.DICE_MAGE)){
 			Buff.affect(hero, MagicPoint.class).addPoints(0.2f + buffedLvl() * 0.2f);
 		}
 

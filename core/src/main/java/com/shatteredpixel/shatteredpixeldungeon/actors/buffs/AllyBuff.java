@@ -70,9 +70,9 @@ public abstract class AllyBuff extends Buff{
 			}
 			hero.earnExp(exp, enemy.getClass());
 
-			if (hero.subClass == HeroSubClasses.MONK){
-				Buff.affect(hero, MonkEnergy.class).gainEnergy(enemy);
-			}
+            if (hero.hasSubClass(HeroSubClasses.MONK)){
+                Buff.affect(hero, MonkEnergy.class).gainEnergy(enemy);
+            }
 		}
 	}
 

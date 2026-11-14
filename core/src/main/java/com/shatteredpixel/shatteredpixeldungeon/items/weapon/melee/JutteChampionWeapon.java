@@ -104,7 +104,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
         int levelBonus = lvl * (tier + 1);
         
         // Iron Quench talent: extra bonus based on upgrade level
-        if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.JUTTE_CHAMPION) {
+        if (Dungeon.hero != null && Dungeon.hero.hasSubClass(HeroSubClasses.JUTTE_CHAMPION)) {
             int points = Dungeon.hero.pointsInTalent(Talent.IRON_QUENCH);
             if (points > 0 && lvl > 0) {
                 float extraBonus = lvl * 0.1f * points;
@@ -131,7 +131,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
         // One Jutte talent: throw speed bonus
         if (owner instanceof Hero) {
             Hero hero = (Hero) owner;
-            if (hero.subClass == HeroSubClasses.JUTTE_CHAMPION && hero.hasTalent(Talent.ONE_JUTTE)) {
+            if (hero.hasSubClass(HeroSubClasses.JUTTE_CHAMPION) && hero.hasTalent(Talent.ONE_JUTTE)) {
                 int points = hero.pointsInTalent(Talent.ONE_JUTTE);
                 // Throw speed bonus: +1: 20%, +2: 35%, +3: 50%
                 // Note: this affects overall attack speed, not just throw
@@ -155,7 +155,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
      * Get talent bonus for durability from One Jutte talent
      */
     public float getTalentBonus() {
-        if (Dungeon.hero != null && Dungeon.hero.subClass == HeroSubClasses.JUTTE_CHAMPION) {
+        if (Dungeon.hero != null && Dungeon.hero.hasSubClass(HeroSubClasses.JUTTE_CHAMPION)) {
             int points = Dungeon.hero.pointsInTalent(Talent.ONE_JUTTE);
             switch (points) {
                 case 1: return 10f;
@@ -268,7 +268,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
     public void onSuccessfulHit(Hero hero, Char defender) {
         boolean surpriseAttack = defender instanceof Mob && ((Mob) defender).surprisedBy(hero);
         boolean freeSurpriseAttack = surpriseAttack
-                && hero.subClass == HeroSubClasses.JUTTE_CHAMPION
+                && hero.hasSubClass(HeroSubClasses.JUTTE_CHAMPION)
                 && hero.hasTalent(Talent.SURPRISE_JUTTE);
 
         if (!freeSurpriseAttack) {
@@ -319,7 +319,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
         Hero hero = (Hero) curUser;
         
         // Bug1 fix: Check ONE_JUTTE talent - without it, jutte should drop like normal item
-        if (hero.subClass != HeroSubClasses.JUTTE_CHAMPION || !hero.hasTalent(Talent.ONE_JUTTE)) {
+        if (!hero.hasSubClass(HeroSubClasses.JUTTE_CHAMPION) || !hero.hasTalent(Talent.ONE_JUTTE)) {
             super.onThrow(cell);
             return;
         }
@@ -331,7 +331,7 @@ public class JutteChampionWeapon extends MeleeWeapon {
         Invisibility.dispel();
         hero.belongings.thrownWeapon = null;
 
-        if (hit && hero.subClass == HeroSubClasses.GLADIATOR && wasEnemy) {
+        if (hit && hero.hasSubClass(HeroSubClasses.GLADIATOR) && wasEnemy) {
             Buff.affect(hero, Combo.class).hit();
         }
 

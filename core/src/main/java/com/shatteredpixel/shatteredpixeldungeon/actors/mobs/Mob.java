@@ -71,6 +71,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.TalentRequirement;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.FatedDraw;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Drake;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.npcs.DirectableAlly;
@@ -1047,17 +1048,11 @@ public abstract class Mob extends Char {
 				}
 
 				float Rbelief = Dungeon.hero.lvl <= maxLvl ? 1f+0.2f*Dungeon.depth/5f : 0f;
-				if(hero.heroClass == HeroClasses.RECTOR){
-					Belief belief = Dungeon.hero.buff(Belief.class);
-					if(belief != null){
-						belief.getBelief(Rbelief);
-					}
-
-					int exExp = 10;
-					if(belief != null && hero.subClass == HeroSubClasses.REDCARDINAL){
-						if( exp >= exExp){
-							belief.getBelief(1f);
-						}
+				Belief belief = hero.buff(Belief.class);
+				if (belief != null && TalentRequirement.isActive(hero, Belief.class)) {
+					belief.getBelief(Rbelief);
+					if (hero.hasSubClass(HeroSubClasses.REDCARDINAL) && exp >= 10) {
+						belief.getBelief(1f);
 					}
 				}
 
@@ -1071,7 +1066,7 @@ public abstract class Mob extends Char {
 
 				Dungeon.hero.earnExp(hero.rectorDeadKngithDeadMode ? 0 : exp, getClass());
 
-				if (Dungeon.hero.subClass == HeroSubClasses.MONK){
+				if (Dungeon.hero.hasSubClass(HeroSubClasses.MONK)){
 					Buff.affect(Dungeon.hero, MonkEnergy.class).gainEnergy(this);
 				}
 			}
@@ -1081,17 +1076,19 @@ public abstract class Mob extends Char {
 	@Override
 	public void die( Object cause ) {
 
-		if (alignment == Alignment.ENEMY
-				&& hero.subClass == HeroSubClasses.DICE_MAGE
-				&& (cause == hero || cause instanceof Weapon || cause instanceof Wand || cause instanceof DiceMageSpell)){
-			Buff.affect(hero, MagicPoint.class).recordKill(getClass());
-		}
-
-		// 骰子法师：视野内的怪物死亡时获得 1 魔力点
-		if (hero.subClass == HeroSubClasses.DICE_MAGE
+		MagicPoint magicPoint = hero == null ? null : hero.buff(MagicPoint.class);
+		if (hero != null && hero.hasSubClass(HeroSubClasses.DICE_MAGE) && magicPoint == null
 				&& alignment == Alignment.ENEMY
-				&& Dungeon.level.heroFOV[pos]){
-			Buff.affect(hero, MagicPoint.class).gainKillPoint();
+				&& (Dungeon.level.heroFOV[pos] || cause == hero || cause instanceof Weapon
+					|| cause instanceof Wand || cause instanceof DiceMageSpell)) {
+			magicPoint = Buff.affect(hero, MagicPoint.class);
+		}
+		if (magicPoint != null && TalentRequirement.isActive(hero, MagicPoint.class)
+				&& alignment == Alignment.ENEMY) {
+			if (cause == hero || cause instanceof Weapon || cause instanceof Wand || cause instanceof DiceMageSpell) {
+				magicPoint.recordKill(getClass());
+			}
+			if (Dungeon.level.heroFOV[pos]) magicPoint.gainKillPoint();
 		}
 
 		//怪正占着回合（比如攻击动画播到一半、在等动画回调）时被别的东西打死，死亡动画会顶掉原来的动画，
@@ -1102,7 +1099,6 @@ public abstract class Mob extends Char {
 
 
 		if(cause instanceof Wand && hero.pointsInTalent(Talent.SMART_BLESSING)>=2){
-			//信仰只挂在主教身上；别的职业靠蜕变卷轴拿到这个天赋时没有信仰可加
 			Belief creaditSkills = hero.buff(Belief.class);
 			if (creaditSkills != null) {
 				creaditSkills.getBelief(0.33f);
@@ -1142,13 +1138,10 @@ public abstract class Mob extends Char {
 
 
 		//击杀boss会直接获取15点信仰值
-		if(hero.heroClass == HeroClasses.RECTOR){
-			Belief belief = Dungeon.hero.buff(Belief.class);
-			if(belief != null){
-				if(properties.contains(Property.BOSS)){
-					belief.getBelief(15f);
-				}
-			}
+		Belief belief = hero.buff(Belief.class);
+		if (belief != null && TalentRequirement.isActive(hero, Belief.class)
+				&& properties.contains(Property.BOSS)) {
+			belief.getBelief(15f);
 		}
 
 		//恩惠之雨 牧师

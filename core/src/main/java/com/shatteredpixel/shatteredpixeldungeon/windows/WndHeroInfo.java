@@ -270,7 +270,8 @@ public class WndHeroInfo extends WndTabbed {
 			title.hardlight(TITLE_COLOR);
 			add(title);
 
-			message = PixelScene.renderTextBlock(Messages.get(WndHeroInfo.class, "talents_msg"), 6);
+			message = PixelScene.renderTextBlock(Messages.get(WndHeroInfo.class,
+					cls == HeroClasses.JUMBLE ? "jumble_talents_msg" : "talents_msg"), 6);
 			add(message);
 
 			ArrayList<LinkedHashMap<Talent, Integer>> talents = new ArrayList<>();

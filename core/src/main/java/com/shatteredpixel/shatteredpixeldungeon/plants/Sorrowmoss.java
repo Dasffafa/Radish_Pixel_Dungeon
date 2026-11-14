@@ -42,7 +42,7 @@ public class Sorrowmoss extends Plant {
 	
 	@Override
 	public void activate( Char ch ) {
-		if (ch instanceof Hero && ((Hero) ch).subClass == HeroSubClasses.WARDEN){
+        if (ch instanceof Hero && ((Hero) ch).hasSubClass(HeroSubClasses.WARDEN)){
 			Buff.affect(ch, ToxicImbue.class).set(ToxicImbue.DURATION*0.3f);
 		}
 		

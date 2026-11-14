@@ -39,7 +39,7 @@ public class StarfireBuff extends FlavourBuff {
     @SubscribeEvent(event = CharFinalDamageEvent.class, priority = 0)
     public static void onCharDamaged(CharFinalDamageEvent event) {
         Hero hero = Dungeon.hero;
-        if (hero == null || hero.subClass != HeroSubClasses.DICE_MAGE) return;
+        if (hero == null || !hero.hasSubClass(HeroSubClasses.DICE_MAGE)) return;
         StarfireBuff sf = hero.buff(StarfireBuff.class);
         if (sf == null) return;
 

@@ -110,6 +110,15 @@ public class Talent {
 
 	public String name(){ return name; }
 	public int maxPoints(){ return maxPoints; }
+	public Class<? extends com.watabou.utils.Bundlable> requirement(){ return null; }
+	public boolean removeRequirementOnLoss(){ return false; }
+
+	private static final Class<? extends com.watabou.utils.Bundlable> BELIEF = Belief.class;
+	private static final Class<? extends com.watabou.utils.Bundlable> MAGES_STAFF = com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff.class;
+	private static final Class<? extends com.watabou.utils.Bundlable> SPIRIT_BOW = SpiritBow.class;
+	private static final Class<? extends com.watabou.utils.Bundlable> WHEELCHAIR = com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair.class;
+	private static final Class<? extends com.watabou.utils.Bundlable> HERB_MAKER = HerbMaker.class;
+	private static final Class<? extends com.watabou.utils.Bundlable> SPELL_QUEUE_ITEM = SpellQueue.class;
 
 	public static final Talent HEARTY_MEAL = new Talent("HEARTY_MEAL");
 
@@ -189,15 +198,21 @@ public class Talent {
 	public static final Talent FANATICISM_MAGIC = new Talent("FANATICISM_MAGIC", 3);
 
 	// 魔武士 T3 天赋
-	public static final Talent SPECTRAL_WARD = new Talent("SPECTRAL_WARD", 3);
+	public static final Talent SPECTRAL_WARD = new Talent("SPECTRAL_WARD", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
 	public static final Talent MAGIC_INGENUITY = new Talent("MAGIC_INGENUITY", 3);
-	public static final Talent STORM_ASSAULT = new Talent("STORM_ASSAULT", 3);
+	public static final Talent STORM_ASSAULT = new Talent("STORM_ASSAULT", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
 
 	// 影舞者 T3 天赋
 	public static final Talent DOUBLE_STRIKE = new Talent("DOUBLE_STRIKE", 3);
-	public static final Talent SHADOWS_GIFT = new Talent("SHADOWS_GIFT", 3);
-	public static final Talent SHADOW_RUSH = new Talent("SHADOW_RUSH", 3);
+ public static final Talent SHADOWS_GIFT = new Talent("SHADOWS_GIFT", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows.class; }
+	};
 
+	public static final Talent SHADOW_RUSH = new Talent("SHADOW_RUSH", 3);
 	// 奇械师 T3 天赋
 	public static final Talent POTION_DISTILLATION = new Talent("POTION_DISTILLATION", 3);
 	public static final Talent CIRCUIT_CHAIN = new Talent("CIRCUIT_CHAIN", 3);
@@ -260,8 +275,10 @@ public class Talent {
 
 	public static final Talent SHIELD_BATTERY = new Talent("SHIELD_BATTERY");
 
-	public static final Talent SPELL_QUEUE = new Talent("SPELL_QUEUE", 3);
-
+ public static final Talent SPELL_QUEUE = new Talent("SPELL_QUEUE", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return SPELL_QUEUE_ITEM; }
+		@Override public boolean removeRequirementOnLoss() { return true; }
+	};
 	public static final Talent ALLY_WARP = new Talent("ALLY_WARP", 3);
 
 	public static final Talent MAGIC_REFINING = new Talent("MAGIC_REFINING", 4);
@@ -270,21 +287,28 @@ public class Talent {
 
 	public static final Talent MAGIC_STICK = new Talent("MAGIC_STICK", 4);
 
-	public static final Talent MAGIC_WORKMAN = new Talent("MAGIC_WORKMAN", 4);
+ public static final Talent MAGIC_WORKMAN = new Talent("MAGIC_WORKMAN", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
 
-	public static final Talent WAND_DODGE = new Talent("WAND_DODGE", 4);
-
+	public static final Talent WAND_DODGE = new Talent("WAND_DODGE", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
 	public static final Talent DESPERATE_POWER = new Talent("DESPERATE_POWER", 4);
 
 	public static final Talent GHOST_ROOT = new Talent("GHOST_ROOT", 4);
 
 	public static final Talent CORRUPT_SPIRIT = new Talent("CORRUPT_SPIRIT", 4);
 
-	public static final Talent EMPOWERED_STRIKE = new Talent("EMPOWERED_STRIKE", 3);
-
-	public static final Talent MYSTICAL_CHARGE = new Talent("MYSTICAL_CHARGE", 3);
-
-	public static final Talent WAR_THROW = new Talent("WAR_THROW", 3);
+ public static final Talent EMPOWERED_STRIKE = new Talent("EMPOWERED_STRIKE", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
+	public static final Talent MYSTICAL_CHARGE = new Talent("MYSTICAL_CHARGE", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
+	public static final Talent WAR_THROW = new Talent("WAR_THROW", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
 
 	public static final Talent SOUL_EATER = new Talent("SOUL_EATER", 3);
 
@@ -292,17 +316,24 @@ public class Talent {
 
 	public static final Talent NECROMANCERS_MINIONS = new Talent("NECROMANCERS_MINIONS", 3);
 
-	public static final Talent BLAST_RADIUS = new Talent("BLAST_RADIUS", 4);
-
-	public static final Talent ELEMENTAL_POWER = new Talent("ELEMENTAL_POWER", 4);
-
-	public static final Talent REACTIVE_BARRIER = new Talent("REACTIVE_BARRIER", 4);
+ public static final Talent BLAST_RADIUS = new Talent("BLAST_RADIUS", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
+	public static final Talent ELEMENTAL_POWER = new Talent("ELEMENTAL_POWER", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
+	public static final Talent REACTIVE_BARRIER = new Talent("REACTIVE_BARRIER", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
 
 	public static final Talent WILD_POWER = new Talent("WILD_POWER", 4);
 
-	public static final Talent FIRE_EVERYTHING = new Talent("FIRE_EVERYTHING", 4);
-
-	public static final Talent CONSERVED_MAGIC = new Talent("CONSERVED_MAGIC", 4);
+	public static final Talent FIRE_EVERYTHING = new Talent("FIRE_EVERYTHING", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
+	public static final Talent CONSERVED_MAGIC = new Talent("CONSERVED_MAGIC", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return MAGES_STAFF; }
+	};
 
 	public static final Talent TELEFRAG = new Talent("TELEFRAG", 4);
 
@@ -384,8 +415,10 @@ public class Talent {
 
 	public static final Talent INVIGORATING_MEAL = new Talent("INVIGORATING_MEAL");
 
-	public static final Talent HERB_MIXTURE = new Talent("HERB_MIXTURE");
-
+ public static final Talent HERB_MIXTURE = new Talent("HERB_MIXTURE") {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return HERB_MAKER; }
+		@Override public boolean removeRequirementOnLoss() { return true; }
+	};
 	public static final Talent REJUVENATING_STEPS = new Talent("REJUVENATING_STEPS");
 
 	public static final Talent HEIGHTENED_SENSES = new Talent("HEIGHTENED_SENSES");
@@ -402,23 +435,28 @@ public class Talent {
 
 	public static final Talent BOW_DULES = new Talent("BOW_DULES", 4);
 
-	public static final Talent STORM_ATTACK = new Talent("STORM_ATTACK", 4);
-
+ public static final Talent STORM_ATTACK = new Talent("STORM_ATTACK", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return SPIRIT_BOW; }
+	};
 	public static final Talent MEDART_SPECIALIST = new Talent("MEDART_SPECIALIST", 4);
 
 	public static final Talent LAND_HEART = new Talent("LAND_HEART", 4);
 
-	public static final Talent COMMON_SHOT = new Talent("COMMON_SHOT", 4);
-
+ public static final Talent COMMON_SHOT = new Talent("COMMON_SHOT", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return SPIRIT_BOW; }
+	};
 	public static final Talent MORE_DARTS = new Talent("MORE_DARTS", 4);
 
 	public static final Talent GRASS_VISION = new Talent("GRASS_VISION", 4);
 
 	public static final Talent FARSIGHT = new Talent("FARSIGHT", 3);
 
-	public static final Talent SHARED_ENCHANTMENT = new Talent("SHARED_ENCHANTMENT", 3);
-
-	public static final Talent SHARED_UPGRADES = new Talent("SHARED_UPGRADES", 3);
+ public static final Talent SHARED_ENCHANTMENT = new Talent("SHARED_ENCHANTMENT", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return SPIRIT_BOW; }
+	};
+	public static final Talent SHARED_UPGRADES = new Talent("SHARED_UPGRADES", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return SPIRIT_BOW; }
+	};
 
 	public static final Talent DURABLE_TIPS = new Talent("DURABLE_TIPS", 3);
 
@@ -430,8 +468,9 @@ public class Talent {
 
 	public static final Talent PROJECTING_BLADES = new Talent("PROJECTING_BLADES", 4);
 
-	public static final Talent SPIRIT_BLADES = new Talent("SPIRIT_BLADES", 4);
-
+ public static final Talent SPIRIT_BLADES = new Talent("SPIRIT_BLADES", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return SPIRIT_BOW; }
+	};
 	public static final Talent GROWING_POWER = new Talent("GROWING_POWER", 4);
 
 	public static final Talent NATURES_WRATH = new Talent("NATURES_WRATH", 4);
@@ -504,14 +543,16 @@ public class Talent {
 
 	public static final Talent COUNTER_ABILITY = new Talent("COUNTER_ABILITY", 4);
 
-	public static final Talent PRAYER_BEFORE_MEALS = new Talent("PRAYER_BEFORE_MEALS");
-
+ public static final Talent PRAYER_BEFORE_MEALS = new Talent("PRAYER_BEFORE_MEALS") {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
 	public static final Talent MENTAL_TELEPATHY = new Talent("MENTAL_TELEPATHY");
 
 	public static final Talent RAIN_GRACE = new Talent("RAIN_GRACE");
 
-	public static final Talent DEVOTIONAL = new Talent("DEVOTIONAL");
-
+ public static final Talent DEVOTIONAL = new Talent("DEVOTIONAL") {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
 	public static final Talent BLESS_FOOD = new Talent("BLESS_FOOD");
 
 	public static final Talent SOUL_NOWIFI = new Talent("SOUL_NOWIFI");
@@ -520,32 +561,41 @@ public class Talent {
 
 	public static final Talent GOD_BODY = new Talent("GOD_BODY");
 
-	public static final Talent NOHOPE_LANG = new Talent("NOHOPE_LANG");
-
-	public static final Talent ACT_GODPROGRESS = new Talent("ACT_GODPROGRESS", 3);
-
-	public static final Talent SMART_BLESSING = new Talent("SMART_BLESSING", 3);
-
-	public static final Talent IRON_SUN = new Talent("IRON_SUN", 3);
-
+ public static final Talent NOHOPE_LANG = new Talent("NOHOPE_LANG") {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
+ public static final Talent ACT_GODPROGRESS = new Talent("ACT_GODPROGRESS", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
+	public static final Talent SMART_BLESSING = new Talent("SMART_BLESSING", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
+	public static final Talent IRON_SUN = new Talent("IRON_SUN", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
 	public static final Talent PHARCIS_BLESS = new Talent("PHARCIS_BLESS", 3);
 
 	public static final Talent BEN_WORK = new Talent("BEN_WORK", 3);
 
-	public static final Talent FIRE_GLASS = new Talent("FIRE_GLASS", 3);
-
-	public static final Talent LIGHT_WASH = new Talent("LIGHT_WASH", 3);
-
-	public static final Talent SKY_TOWER = new Talent("SKY_TOWER", 3);
-
+ public static final Talent FIRE_GLASS = new Talent("FIRE_GLASS", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
+ public static final Talent LIGHT_WASH = new Talent("LIGHT_WASH", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
+ public static final Talent SKY_TOWER = new Talent("SKY_TOWER", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
 	public static final Talent BLACK_LOVE = new Talent("BLACK_LOVE", 3);
 
-	public static final Talent DEAD_POWER = new Talent("DEAD_POWER", 3);
-
+ public static final Talent DEAD_POWER = new Talent("DEAD_POWER", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
 	public static final Talent EXP_IMPOTION = new Talent("EXP_IMPOTION", 3);
 
-	public static final Talent SUPERSTITION = new Talent("SUPERSTITION", 4);
-
+ public static final Talent SUPERSTITION = new Talent("SUPERSTITION", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return BELIEF; }
+	};
 	public static final Talent VITAE_BOOST = new Talent("VITAE_BOOST", 4);
 
 	public static final Talent ADRENAL_COMBAT = new Talent("ADRENAL_COMBAT", 4);
@@ -594,12 +644,14 @@ public class Talent {
 
 	public static final Talent TRIPLE_INSURANCE = new Talent("TRIPLE_INSURANCE");
 
-	public static final Talent CATAPULT_START = new Talent("CATAPULT_START");
-
+ public static final Talent CATAPULT_START = new Talent("CATAPULT_START") {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return WHEELCHAIR; }
+	};
 	public static final Talent SWORD_SHIELD_KNIGHT = new Talent("SWORD_SHIELD_KNIGHT", 3);
 
-	public static final Talent WHEELCHAIR_CRASH = new Talent("WHEELCHAIR_CRASH", 3);
-
+ public static final Talent WHEELCHAIR_CRASH = new Talent("WHEELCHAIR_CRASH", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return WHEELCHAIR; }
+	};
 	public static final Talent HEROIC_ENERGY_MOONLIGHT = new Talent("HEROIC_ENERGY_MOONLIGHT", 4);
 
 	public static final Talent LIGHT_ETERNITY = new Talent("LIGHT_ETERNITY", 4);
@@ -736,13 +788,24 @@ public class Talent {
 	public static final Talent STREAMLINE = new Talent("STREAMLINE", 3);
 	public static final Talent BLANK_FILL = new Talent("BLANK_FILL", 3);
 
-	public static final Talent CARD_ENCHANT = new Talent("CARD_ENCHANT", 3);
-	public static final Talent REFINED_ATTACK_DEFENSE = new Talent("REFINED_ATTACK_DEFENSE", 3);
-	public static final Talent CARD_ASSIST = new Talent("CARD_ASSIST", 3);
-
-	public static final Talent SPIN_CARD = new Talent("SPIN_CARD", 3);
-	public static final Talent GRAND_FINALE = new Talent("GRAND_FINALE", 3);
-	public static final Talent PREPARED = new Talent("PREPARED", 3);
+	public static final Talent CARD_ENCHANT = new Talent("CARD_ENCHANT", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.class; }
+	};
+	public static final Talent REFINED_ATTACK_DEFENSE = new Talent("REFINED_ATTACK_DEFENSE", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.class; }
+	};
+	public static final Talent CARD_ASSIST = new Talent("CARD_ASSIST", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.class; }
+	};
+	public static final Talent SPIN_CARD = new Talent("SPIN_CARD", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.class; }
+	};
+	public static final Talent GRAND_FINALE = new Talent("GRAND_FINALE", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.class; }
+	};
+	public static final Talent PREPARED = new Talent("PREPARED", 3) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.class; }
+	};
 
 	// 恶魔之力（职业通用 T4）
 	public static final Talent GAZE_CARD = new Talent("GAZE_CARD", 4);
@@ -1119,6 +1182,7 @@ public class Talent {
 
 	public static void onTalentUpgraded( Hero hero, Talent talent ){
 
+		TalentRequirement.sync(hero);
 		// 天赋：弹射起步 —— 残废/冻伤可能在这之前就已经挂在身上了，
 		// 那种情况下不会重新 attach，所以点出天赋的当口补判一次
 		if (talent == CATAPULT_START) {
@@ -1132,18 +1196,11 @@ public class Talent {
 		}
 		//
 
-		if (talent == HERB_MIXTURE  &&hero.belongings.getItem(HerbMaker.class)==null){
-			Dungeon.level.drop(new HerbMaker(),Dungeon.hero.pos);
-		}
 
 		if (talent == HOLD_BREATH){
 			Buff.affect(hero, HoldBreathTracker.class);
 		}
 		if (talent == SPELL_QUEUE){
-			if (hero.belongings.getItem(SpellQueue.class)==null && hero.buff(SpellQueue.imageListner.class)==null){
-				Dungeon.level.drop(new SpellQueue(),Dungeon.hero.pos);
-				Buff.affect(hero, SpellQueue.imageListner.class);
-			}
 			SpellQueue mySq= hero.belongings.getItem(SpellQueue.class);
 			if (mySq!=null){
 				mySq.updateImage();
@@ -1486,7 +1543,7 @@ public class Talent {
 			tracker.charges += hero.pointsInTalent(SCROLL_CONDITIONING);
 		}
 
-		if (hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.MAGIC_WARRIOR){
+		if (hero.hasSubClass(HeroSubClasses.MAGIC_WARRIOR)){
 			com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.MagicWarrior.magicIngenuityDamage(hero);
 		}
 	}
@@ -1701,7 +1758,7 @@ public class Talent {
 		}
 
 		// 狙击4-3 通识射击：近战攻击有概率给予狙击标记
-		if (hero.hasTalent(COMMON_SHOT) && hero.subClass == HeroSubClasses.SNIPER) {
+		if (hero.hasTalent(COMMON_SHOT) && hero.hasSubClass(HeroSubClasses.SNIPER)) {
 			if (!(hero.belongings.attackingWeapon() instanceof MissileWeapon)) {
 				int points = hero.pointsInTalent(COMMON_SHOT);
 				// +1: 33%, +2: 66%, +3: 100%（points * 33 在 +3 时是 99，不是说明写的「必定」）
@@ -1776,7 +1833,12 @@ public class Talent {
 	public static final int MAX_TALENT_TIERS = 4;
 
 	public static void initClassTalents( Hero hero ){
-		initClassTalents( hero.heroClass, hero.talents, hero.metamorphedTalents );
+		if (hero.heroClass == HeroClasses.JUMBLE) {
+			JumbleTalents.initClass(hero);
+		} else {
+			initClassTalents( hero.heroClass, hero.talents, hero.metamorphedTalents );
+		}
+		TalentRequirement.sync(hero);
 	}
 
 	public static void initClassTalents( HeroClass cls, ArrayList<LinkedHashMap<Talent, Integer>> talents){
@@ -1810,7 +1872,12 @@ public class Talent {
 
 
 	public static void initSubclassTalents( Hero hero ){
-		initSubclassTalents( hero.subClass, hero.talents );
+		if (hero.heroClass == HeroClasses.JUMBLE && hero.subClass == HeroSubClasses.JUMBLE) {
+			JumbleTalents.initSubclass(hero);
+		} else {
+			initSubclassTalents( hero.subClass, hero.talents );
+		}
+		TalentRequirement.sync(hero);
 	}
 
 	public static void initSubclassTalents( HeroSubClass cls, ArrayList<LinkedHashMap<Talent, Integer>> talents ){
@@ -1853,9 +1920,13 @@ public class Talent {
 	 * @param hero
 	 */
 	public static void initT4Talents(Hero hero){
-		initT4Talents(hero.heroClass,hero.subClass,hero.talents);
+		if (hero.heroClass == HeroClasses.JUMBLE) {
+			JumbleTalents.initImp(hero);
+		} else {
+			initT4Talents(hero.heroClass,hero.subClass,hero.talents);
+		}
+		TalentRequirement.sync(hero);
 	}
-
 	public static void initT4Talents(HeroClass cls,HeroSubClass subcls, ArrayList<LinkedHashMap<Talent, Integer>> talents ){
 		if (subcls == HeroSubClasses.NONE) return;
 		while (talents.size() < MAX_TALENT_TIERS){
@@ -1875,6 +1946,7 @@ public class Talent {
 	private static final String TALENT_TIER = "talents_tier_";
 
 	public static void storeTalentsInBundle( Bundle bundle, Hero hero ){
+		if (hero.heroClass == HeroClasses.JUMBLE) JumbleTalents.store(bundle, hero);
 		for (int i = 0; i < MAX_TALENT_TIERS; i++){
 			LinkedHashMap<Talent, Integer> tier = hero.talents.get(i);
 			Bundle tierBundle = new Bundle();
@@ -1908,10 +1980,13 @@ public class Talent {
 			}
 		}
 
-		if (hero.heroClass != null)     initClassTalents(hero);
-		if (hero.subClass != null)      initSubclassTalents(hero);
-		if (hero.armorAbility != null)  initArmorTalents(hero);
-		if (hero.powerOfImp) initT4Talents(hero);
+		boolean jumbleRestored = hero.heroClass == HeroClasses.JUMBLE && JumbleTalents.restore(bundle, hero);
+		if (!jumbleRestored) {
+			if (hero.heroClass != null) initClassTalents(hero);
+			if (hero.subClass != null) initSubclassTalents(hero);
+			if (hero.armorAbility != null) initArmorTalents(hero);
+			if (hero.powerOfImp) initT4Talents(hero);
+		}
 
 		for (int i = 0; i < MAX_TALENT_TIERS; i++){
 			LinkedHashMap<Talent, Integer> tier = hero.talents.get(i);
@@ -1945,12 +2020,14 @@ public class Talent {
 	}
 
 	private static final HashMap<String, Talent> nameToTalent = new HashMap<>();
+	static final ArrayList<Talent> removableRequirements = new ArrayList<>();
 	static{
 		for (Field f : Talent.class.getFields()){
 			if (Modifier.isStatic(f.getModifiers()) && Talent.class.isAssignableFrom(f.getType())){
 				try {
 					Talent t = (Talent) f.get(null);
 					nameToTalent.put(t.name(), t);
+					if (t.removeRequirementOnLoss()) removableRequirements.add(t);
 				} catch (Exception ignored){ }
 			}
 		}

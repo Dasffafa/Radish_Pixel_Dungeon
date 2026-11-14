@@ -15,7 +15,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.warrior.Sh
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.WandererSkin;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfHealing;
@@ -48,7 +47,7 @@ public class Warrior extends HeroDefinition {
 	}
 
 	@Override public SkinDefinition[] skins() {
-		return new SkinDefinition[]{ new WandererSkin(this), new JumbleSkin(this) };
+		return new SkinDefinition[]{ new WandererSkin(this) };
 	}
 
 	@Override protected void initClassLoadout(Hero hero) {		(hero.belongings.weapon = new WornShortsword()).identify();

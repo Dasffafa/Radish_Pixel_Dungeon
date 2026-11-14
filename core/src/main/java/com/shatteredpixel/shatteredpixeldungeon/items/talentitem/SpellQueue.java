@@ -314,7 +314,12 @@ public class SpellQueue extends Item {
             actPriority=-99;
         }
         @Override
-        public boolean act(){
+	public boolean act(){
+		Hero hero = (Hero) target;
+		if (!hero.hasTalent(Talent.SPELL_QUEUE)) {
+			detach();
+			return true;
+		}
             SpellQueue sq=((Hero)target).belongings.getItem(SpellQueue.class);
             if (sq!=null) {
                 sq.updateImage();

@@ -56,6 +56,7 @@ public final class HeroSubClasses {
 		@Override public Talent[] subclassT3() { return new Talent[0]; }
 		@Override public Talent[] subclassT4() { return new Talent[0]; }
 	};
+	public static final HeroSubClass JUMBLE = new Jumble();
 
 	//所有子职业集合
 	public static final Collection<HeroSubClass> ALL = Arrays.asList(
@@ -67,7 +68,7 @@ public final class HeroSubClasses {
 			BATTLEPREIST, REDCARDINAL, DEAD_KNIGHT,
 			LITTLE_KNIGHT, DICE_MAGE, JUTTE_CHAMPION,
 			CHAMPION, MONK, ILLUSIONIST, SPIN_MASTER, JOKER,
-			CRAFTSMAN, HACKER, GRENADIER
+			CRAFTSMAN, HACKER, GRENADIER, JUMBLE
 	);
 
 	//存档反序列化

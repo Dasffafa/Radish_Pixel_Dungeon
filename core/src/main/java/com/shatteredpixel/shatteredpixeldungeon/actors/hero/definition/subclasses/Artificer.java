@@ -48,9 +48,9 @@ public class Artificer extends HeroSubClass {
 			return 0;
 		}
 		Hero hero = (Hero) owner;
-		if (hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
-			return 0;
-		}
+        if (!hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)) {
+            return 0;
+        }
 		int pts = hero.pointsInTalent( Talent.CIRCUIT_CHAIN );
 		if (pts <= 0) {
 			return 0;
@@ -98,17 +98,17 @@ public class Artificer extends HeroSubClass {
 	// ===== 投掷武器继承上一次法杖的特性 =====
 
 	public static int alchemyDiscount( Hero hero, int cost ) {
-		if (hero != null && hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
-			return Math.max( 0, cost - 2 );
-		}
-		return cost;
+        if (hero != null && hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)) {
+            return Math.max( 0, cost - 2 );
+        }
+        return cost;
 	}
 
 	public static void recordWand( Hero hero, com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand wand ) {
-		if (hero == null || wand == null
-				|| hero.subClass != com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER) {
-			return;
-		}
+        if (hero == null || wand == null
+                || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)) {
+            return;
+        }
 		LastWand lw = Buff.affect( hero, LastWand.class );
 		lw.wandClass = wand.getClass().getName();
 		lw.wandLevel = wand.level();
@@ -147,10 +147,104 @@ public class Artificer extends HeroSubClass {
 		}
 	}
 
-	// ===== 即用改装：把武器/护甲改装给友方单位 =====
+ // ===== 即用改装：把武器/护甲改装给友方单位 =====
+ // ===== 投掷武器链 / 药水包：先制作（5 回合），再投掷 =====
+
+	public static boolean hasMissiles( Hero hero ) {
+		return hero != null && !hero.belongings.getAllItems( MissileWeapon.class ).isEmpty();
+	}
+
+	public static boolean hasPotions( Hero hero ) {
+		return hero != null && !hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class ).isEmpty();
+	}
+
+    public static boolean craftChain( Hero hero ) {
+        if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)
+                || !hasMissiles( hero )) {
+            return false;
+        }
+		Buff.affect( hero, ChainReady.class );
+		hero.spendAndNext( 5f );
+		return true;
+	}
+
+    public static boolean craftPack( Hero hero ) {
+        if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)
+                || !hasPotions( hero )) {
+            return false;
+        }
+		Buff.affect( hero, PackReady.class );
+		hero.spendAndNext( 5f );
+		return true;
+	}
+
+	public static class ChainReady extends Buff {
+
+		{
+			type = buffType.POSITIVE;
+			announced = false;
+		}
+
+		@Override
+		public String icon() {
+			return BuffIndicator.NONE;
+		}
+	}
+
+	public static class PackReady extends Buff {
+
+		{
+			type = buffType.POSITIVE;
+			announced = false;
+		}
+
+        @Override
+        public String icon() {
+            return BuffIndicator.NONE;
+        }
+    }
+
+    public static boolean throwChain( Hero hero, int cell ) {
+        if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)) {
+            return false;
+        }
+        ArrayList<MissileWeapon> missiles = new ArrayList<>( hero.belongings.getAllItems( MissileWeapon.class ) );
+        boolean any = false;
+        for (MissileWeapon m : missiles) {
+            if (m != null && m.durabilityLeft() > 0) {
+                m.cast( hero, cell );
+                if (m.durabilityLeft() > 0) {
+                    m.repair( -Math.min( 1f, m.durabilityLeft() ) );
+                }
+                any = true;
+            }
+        }
+        return any;
+    }
+
+    public static boolean throwPotionPack( Hero hero, int cell ) {
+        if (hero == null || !hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)) {
+            return false;
+        }
+        ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion> potions =
+                new ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion.class ) );
+        boolean any = false;
+        for (com.shatteredpixel.shatteredpixeldungeon.items.potions.Potion p : potions) {
+            if (p != null && p.quantity() > 0) {
+                p.shatter( cell );
+                if (p.quantity() > 1) {
+                    p.quantity( p.quantity() - 1 );
+                } else {
+                    p.detach( hero.belongings.backpack );
+                }
+                any = true;
+            }
+        }
+        return any;
+    }
 
 	public static boolean canReadyModify( Hero hero, Char ally, Item gear ) {
-		return hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER
+        return hero != null && hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)
 				&& hero.pointsInTalent( Talent.READY_MODIFICATION ) > 0
 				&& ally instanceof Mob && ally.isAlive() && ally.alignment == Char.Alignment.ALLY
 				&& (gear instanceof Weapon || gear instanceof Armor);
@@ -313,10 +407,10 @@ public class Artificer extends HeroSubClass {
 	// ===== 药剂蒸馏冷却 =====
 
 	public static boolean canDistill( Hero hero ) {
-		return hero != null
-				&& hero.subClass == com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER
-				&& hero.pointsInTalent( Talent.POTION_DISTILLATION ) > 0
-				&& hero.buff( DistillCooldown.class ) == null;
+        return hero != null
+                && hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.ARTIFICER)
+                && hero.pointsInTalent( Talent.POTION_DISTILLATION ) > 0
+                && hero.buff( DistillCooldown.class ) == null;
 	}
 
 	public static void startDistillCooldown( Hero hero ) {

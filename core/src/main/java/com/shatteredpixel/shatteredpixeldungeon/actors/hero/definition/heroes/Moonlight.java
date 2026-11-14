@@ -15,7 +15,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.JumbleSkin;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.skins.SphereSkin;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
@@ -63,7 +62,7 @@ public class Moonlight extends HeroDefinition {
 	@Override public int[] baseHPGrowth() { return new int[]{ 18, 4 }; }
 
 	@Override public SkinDefinition[] skins() {
-		return new SkinDefinition[]{ new SphereSkin(this), new JumbleSkin(this) };
+		return new SkinDefinition[]{ new SphereSkin(this) };
 	}
 
 	@Override protected void initClassLoadout(Hero hero) {

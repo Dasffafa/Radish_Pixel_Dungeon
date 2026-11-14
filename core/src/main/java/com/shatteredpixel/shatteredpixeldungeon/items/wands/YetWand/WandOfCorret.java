@@ -56,7 +56,7 @@ public class WandOfCorret extends DamageWand {
     @Override
     public void wandUsed() {
         super.wandUsed();
-        if(hero.subClass == HeroSubClasses.REDCARDINAL){
+        if(hero.hasSubClass(HeroSubClasses.REDCARDINAL)){
             float timeToZap;
             timeToZap = -hero.cooldown();
             //退回的是已经按减速/加速折算过的实际时间，不能再折算一次（spend 会再除一遍时间倍率）
@@ -154,7 +154,7 @@ public class WandOfCorret extends DamageWand {
                     break;
             }
             Buff.affect(hero, Talent.NoBeliefUsedCooldown.class, cooldown);
-        } else if(creaditSkills!= null && !(hero.subClass == HeroSubClasses.BATTLEPREIST)) {
+        } else if(creaditSkills!= null && !hero.hasSubClass(HeroSubClasses.BATTLEPREIST)) {
             creaditSkills.DownBelief(5);
         }
 

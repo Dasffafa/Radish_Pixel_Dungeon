@@ -46,13 +46,13 @@ public class Overgrowth extends Armor.Glyph {
 			Plant p = ((Plant.Seed) Generator.randomUsingDefaults(Generator.Category.SEED)).couch(defender.pos, null);
 			
 			//momentarily revoke warden benefits, otherwise this curse would be incredibly powerful
-			if (defender instanceof Hero && ((Hero) defender).subClass == HeroSubClasses.WARDEN){
-				((Hero) defender).subClass = HeroSubClasses.NONE;
-				p.activate( defender );
-				((Hero) defender).subClass = HeroSubClasses.WARDEN;
-			} else {
-				p.activate( defender );
-			}
+            if (defender instanceof Hero && ((Hero) defender).hasSubClass(HeroSubClasses.WARDEN)){
+                ((Hero) defender).subClass = HeroSubClasses.NONE;
+                p.activate( defender );
+                ((Hero) defender).subClass = HeroSubClasses.WARDEN;
+            } else {
+                p.activate( defender );
+            }
 			
 			
 			CellEmitter.get( defender.pos ).burst( LeafParticle.LEVEL_SPECIFIC, 10 );

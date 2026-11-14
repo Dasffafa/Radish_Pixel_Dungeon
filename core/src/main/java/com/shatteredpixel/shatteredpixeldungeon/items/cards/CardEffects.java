@@ -756,8 +756,9 @@ public final class CardEffects {
 		}
 	}
 
-	public static void onDeckCycled(Hero hero) {		if (hero.subClass != HeroSubClasses.SPIN_MASTER || hero.cardDeck == null) return;
-		int dmg = Math.max(1, hero.lvl);
+	public static void onDeckCycled(Hero hero) {
+		if (!hero.hasSubClass(HeroSubClasses.SPIN_MASTER) || hero.cardDeck == null) return;
+		int dmg = Math.max(1, hero.cardDeck.totalSize() / 2);
 		for (Char ch : Actor.chars()) {
 			if (ch.alignment == Char.Alignment.ENEMY && Dungeon.level.heroFOV[ch.pos]) {
 				ch.damage(new DamageInfo(dmg, DamageType.PHYSICAL_NO_ARMOR, hero, null, hero.cardDeck));

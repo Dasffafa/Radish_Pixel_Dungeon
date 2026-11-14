@@ -37,12 +37,7 @@ import com.watabou.noosa.Image;
 
 
 
-/**
- * 职业类 - 通过注册中心获取具体定义。
- */
 public class HeroClass {
-
-	//职业实例与全量集合见 {@link HeroClasses}（Manager）
 
 	private final String name;
 	private HeroDefinition definition;
@@ -71,7 +66,6 @@ public class HeroClass {
 		return 0;
 	}
 
-	//代理方法
 	public String spritesheet() { return definition().spritesheet(); }
 	public String splashArt() { return definition().splashArt(); }
 	public String GetSkinAssest() { return definition().avatarSkin(); }
@@ -85,29 +79,23 @@ public class HeroClass {
 	public ArmorAbility[] armorAbilities() { return definition().armorAbilities(); }
 
 	public void initHero( Hero hero ) {
-		// A newly-created Hero defaults to rogue/skin 0, so activeDefinition()
-		// would ignore the skin selected for a new rogue before initialization.
+		// 新建英雄默认使用盗贼和皮肤 0；初始化需读取全局选择，避免所选盗贼皮肤被默认值覆盖。
 		SkinDefinition selectedSkin = skin(getGlobalSkin());
 		(selectedSkin != null ? selectedSkin : definition()).initHero(hero);
 	}
 
 	public TalentSet talentSet() { return definition == null ? null : definition.talents(); }
 
-	/** 当前有效定义：若选中了皮肤变体则返回该皮肤，否则为基础职业。 */
 	public HeroDefinition activeDefinition() {
 		SkinDefinition skin = skin(GetSkin());
 		return skin != null ? skin : definition();
 	}
 
-	/** 当前选中的皮肤变体（无皮肤时返回 null）。 */
 	public SkinDefinition activeSkin() {
 		return skin(GetSkin());
 	}
 
-	/**
-	 * 根据皮肤索引返回对应的皮肤变体定义。
-	 * @return 皮肤变体；若该索引不属于任何皮肤（如基础职业或纯外观头像皮肤），返回 null。
-	 */
+	// 基础职业和纯头像皮肤没有皮肤变体定义，索引有效也可能返回 null。
 	public SkinDefinition skin(int index) {
 		if (index <= 0) return null;
 		for (SkinDefinition s : definition().skins()){
@@ -132,25 +120,22 @@ public class HeroClass {
 		return activeDefinition().heroUnlockMsg();
 	}
 
-	/** 按指定皮肤索引取显示名称（无皮肤时为基础职业名），用于存档列表等无英雄上下文的界面。 */
+	// 存档列表等界面没有当前英雄上下文，需显式传入存档中的皮肤索引。
 	public String title(int skinIndex) {
 		SkinDefinition s = skin(skinIndex);
 		return s != null ? s.heroName() : definition().heroName();
 	}
 
-	/** 按指定皮肤索引取长描述。 */
 	public String desc(int skinIndex) {
 		SkinDefinition s = skin(skinIndex);
 		return s != null ? s.heroDesc() : definition().heroDesc();
 	}
 
-	/** 按指定皮肤索引取短描述。 */
 	public String shortDesc(int skinIndex) {
 		SkinDefinition s = skin(skinIndex);
 		return s != null ? s.heroShortDesc() : definition().heroShortDesc();
 	}
 
-	/** 按指定皮肤索引取解锁提示。 */
 	public String unlockMsg(int skinIndex) {
 		SkinDefinition s = skin(skinIndex);
 		return s != null ? s.heroUnlockMsg() : definition().heroUnlockMsg();
@@ -158,25 +143,22 @@ public class HeroClass {
 
 	private static boolean onlyMode = false;
 
-	/** 创建当前皮肤/职业的精灵实例（游戏内使用，需已存在 {@link Dungeon#hero}）。 */
+	// 仅供游戏内使用，调用前需已设置 Dungeon.hero。
 	public HeroSprite createSkinSprite() {
 		try {
 			return activeDefinition().spriteClass().getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
-			return new HeroSprite();
+			throw new IllegalStateException( "Failed to create hero sprite", e );
 		}
 	}
 
-	/** 当前是否启用独立贴图皮肤（如盗贼的赌徒）。 */
 	public boolean isGamblerSkin() {
 		return activeDefinition().customSprite();
 	}
 
-	/**
-	 *
-	 * @param skinIndex 注意皮肤iNDEX与PNG索引有关
-	 */
+	// 普通头像皮肤索引对应头像贴图中的位置。
 	public void SetSkin(int skinIndex){
+		if (this == HeroClasses.JUMBLE) skinIndex = 0;
 		boolean isSkinUnlock = false;
 		Image img = new Image(this.GetSkinAssest());
 		int skinCount = img.texture.width/64;
@@ -193,7 +175,7 @@ public class HeroClass {
 				}
 			}
 
-			// 普通头像皮肤遍历完毕后，继续寻找更高索引的独立贴图皮肤变体（如杂散/赌徒/流浪者/圆球）
+			// 独立贴图皮肤的索引可能超出头像贴图范围，仍需参与皮肤切换。
 			if (skinIndex >= skinCount) {
 				isSkinUnlock = false;
 				for (SkinDefinition s : definition().skins()){
@@ -206,7 +188,7 @@ public class HeroClass {
 			}
 		}
 
-		// 独立贴图皮肤变体（如盗贼的赌徒）恒解锁
+		// 独立贴图皮肤不受头像皮肤的解锁状态限制。
 		SkinDefinition skin = skin(skinIndex);
 		if (skin != null && skin.customSprite()) {
 			isSkinUnlock = true;
@@ -220,27 +202,27 @@ public class HeroClass {
 			}
 		}
 
-		// 游戏内修改时写入当前英雄（随存档持久化）；未开局（角色选择界面）时写入全局暂存
+		// 游戏内同时写入英雄以随存档持久化；全局设置保留角色选择界面的默认值。
 		if (Dungeon.hero != null && Dungeon.hero.heroClass == this){
 			Dungeon.hero.skin = skinIndex;
 		}
 		SPDSettings.setHeroSkin(this.ordinal(),skinIndex);
 	}
 
-	/** 获取当前有效皮肤索引。游戏内返回本局英雄的皮肤，否则返回全局暂存值。 */
+	// 本局皮肤以存档中的英雄为准，避免被全局选择覆盖。
 	public int GetSkin(){
+		if (this == HeroClasses.JUMBLE) return 0;
 		if (Dungeon.hero != null && Dungeon.hero.heroClass == this){
 			return Dungeon.hero.skin;
 		}
 		return SPDSettings.getHeroSkin(this.ordinal());
 	}
 
-	/** 直接读取全局暂存的皮肤索引（不涉及当前英雄），用于新建角色时回填。 */
 	public int getGlobalSkin() {
+		if (this == HeroClasses.JUMBLE) return 0;
 		return SPDSettings.getHeroSkin(this.ordinal());
 	}
 
-	//存档序列化（实例名）
 	public String saveName(){ return name; }
 
 }
