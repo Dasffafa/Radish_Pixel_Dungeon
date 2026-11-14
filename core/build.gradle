@@ -4,6 +4,7 @@ apply plugin: 'java-library'
 sourceCompatibility = targetCompatibility = appJavaCompatibility
 
 dependencies {
+    testImplementation 'junit:junit:4.13.2'
     api project(':SPD-classes')
     implementation project(':services')
 

@@ -125,7 +125,7 @@ public final class SuiteRunner {
         command.add("-Duser.home=" + home);
         command.add("-Djava.io.tmpdir=" + temporary);
         command.add("-Drpd.scenario=" + name);
-        command.add("-Drpd.rundir=" + directory);
+        command.add("-Drpd.rundir=" + directory.toAbsolutePath());
         command.add("-Drpd.timeout=" + timeout);
         command.add("-Drpd.parentPid=" + ProcessHandle.current().pid());
         for (String key : Arrays.asList("versionName", "versionCode")) {

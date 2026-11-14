@@ -32,6 +32,18 @@ boolean passed = results.stream().allMatch(result -> result.passed);
 
 全部场景源码均纳入版本控制；仅忽略构建与运行产物。
 
+## 特殊门回归
+
+`GateVisuals` 验证特殊门着色、信号解锁后的通行与普通门推开行为，并保存地图和检查图标截图。门贴图在着色器内灰度化：单向门为蓝色，一次性门为黄色，爆炸锁为橙色，战斗锁为红色，其他条件锁为紫色，条件解除后为绿色。组合规则优先显示封死、条件锁、单向、一次性状态。
+
+`CombatRoomChallengeGate` 验证无挑战开局不生成战斗测试房间、不注册特殊门，开启 `TEST_MODE` 后房间池保留战斗测试房间。普通房间绘制及特殊门规则不会影响其他普通门的单元测试位于 `core/src/test/java/.../levels/features/SpecialDoorsTest.java`。
+
+```bash
+gradlew.bat :core:test --tests com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoorsTest
+gradlew.bat :e2e-tests:e2eTest -Pscenario=GateVisuals,CombatRoomChallengeGate
+```
+
+
 ## 旧 PowerShell 工具入口
 
 以下保留原工具的跨 worktree 构建、overlay、并行和重复运行等用法；它是 Windows 专用入口，其参数与标准 Java 入口独立。
