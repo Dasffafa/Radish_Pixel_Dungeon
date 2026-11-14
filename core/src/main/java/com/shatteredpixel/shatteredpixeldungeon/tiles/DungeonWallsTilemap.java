@@ -23,6 +23,8 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.effects.shaders.SpecialDoorShader;
+import com.watabou.noosa.NoosaScript;
 
 import java.util.HashSet;
 
@@ -107,6 +109,13 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 		}
 
 		return -1;
+	}
+
+	@Override
+	protected NoosaScript script() {
+		SpecialDoorShader shader = SpecialDoorShader.get();
+		shader.walls(true);
+		return shader;
 	}
 
 	@Override

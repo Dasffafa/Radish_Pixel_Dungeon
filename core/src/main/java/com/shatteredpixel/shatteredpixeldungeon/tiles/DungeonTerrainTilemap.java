@@ -22,6 +22,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.effects.shaders.SpecialDoorShader;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors;
+import com.watabou.noosa.NoosaScript;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.noosa.Image;
 import com.watabou.utils.PathFinder;
@@ -101,8 +104,23 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 
 	}
 
+	@Override
+	protected NoosaScript script() {
+		SpecialDoorShader shader = SpecialDoorShader.get();
+		shader.walls(false);
+		return shader;
+	}
+
+
 	public static Image tile(int pos, int tile ) {
-		Image img = new Image( instance.texture );
+		Image img = new Image( instance.texture ) {
+			@Override
+			protected NoosaScript script() {
+				SpecialDoorShader shader = SpecialDoorShader.get();
+				shader.mark(DungeonTileSheet.doorTile(tile) ? SpecialDoors.get(Dungeon.level, pos) : null);
+				return shader;
+			}
+		};
 		img.frame( instance.tileset.get( instance.getTileVisual( pos, tile, true ) ) );
 		return img;
 	}

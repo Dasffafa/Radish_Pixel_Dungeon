@@ -25,8 +25,6 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor;
-import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -127,12 +125,6 @@ public class WndInfoCell extends Window {
 		IconTitle titlebar = new IconTitle();
 		titlebar.icon(cellImage(cell));
 		String cellLabel = cellName(cell);
-		int cellTerrain = Dungeon.level.map[cell];
-		SpecialDoor specialDoor = (cellTerrain == Terrain.DOOR || cellTerrain == Terrain.OPEN_DOOR)
-				? SpecialDoors.get(Dungeon.level, cell) : null;
-		if (specialDoor != null) {
-			cellLabel += Messages.get(SpecialDoors.class, "short");
-		}
 
 		LevelTransition trans = Dungeon.level.getTransition(cell);
 		SpecialStair stair = SpecialStairs.of(Dungeon.level, trans);
@@ -152,12 +144,6 @@ public class WndInfoCell extends Window {
 		} else {
 
 			desc += Dungeon.level.tileDesc(Dungeon.level.map[cell]);
-		}
-		if (specialDoor != null) {
-			String blocked = SpecialDoors.blockMessage(specialDoor);
-			if (blocked != null) {
-				desc += "\n\n" + blocked;
-			}
 		}
 		if (stair != null) {
 			String blocked = SpecialStairs.blockMessage(stair);
