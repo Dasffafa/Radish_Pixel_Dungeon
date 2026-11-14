@@ -208,3 +208,11 @@ if (info.skin > 0 && info.heroClass.skin(info.skin) != null){
 | `HeroSprite` | 皮肤头像/小人生成（`avatar/body` 三参数重载） |
 | `Messages.isAvailable` | 文本键存在性判断 |
 | `assets/messages/actors/actors[ _zh].properties` | 皮肤文字键所在文件 |
+
+## 5. 圆球皮肤的位移与滚动
+
+`SphereSprite` 按周长 2.5 格同步滚动：每格推进 144°，十个滚动帧组成一圈，连续五格推进二十帧。移动帧由实际位移进度决定，不另建计时动画；移动结束先显示终点角度，再执行父类完成回调。原地旋转仍使用最短弧动画。
+
+设置定格角度时必须同时更新帧索引和实际贴图；仅修改 `curFrame` 后暂停不会刷新画面。
+
+`Hero.handle` 不为移动预先设置圆球朝向。实际换格时推进滚动角度，攻击、互动和等待仍按对应动作处理朝向。

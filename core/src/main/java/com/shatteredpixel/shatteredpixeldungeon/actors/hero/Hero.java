@@ -254,7 +254,6 @@ public class Hero extends Char {
 		subClass.onMove(this);
 		if (heroClass == HeroClasses.JUMBLE && subClass == HeroSubClasses.JUMBLE) {
 			jumbleFirst.onMove(this);
-	/** 设置圆球朝向角度（0-360，自动归一化）。 */
 			jumbleSecond.onMove(this);
 		}
 	}
@@ -264,15 +263,10 @@ public class Hero extends Char {
 
 	private static final float SPHERE_ROTATE_FULL_TIME = 2.5f;
 
-	/** 是否为月华的圆球皮肤。 */
 	public float sphereAngle(){
 		// 精灵构造期间会读取角度，此时不能挂载 Buff；首次设置角度时再创建。
 		SphereOrientation o = buff( SphereOrientation.class );
-		if (o == null){
-	/** 是否为盗贼的赌徒皮肤。 */
-			o = Buff.affect( this, SphereOrientation.class );
-		}
-		return o.angle;
+		return o == null ? 0f : o.angle;
 	}
 
 	public void sphereAngle( float v ){
@@ -286,41 +280,21 @@ public class Hero extends Char {
 
 	public boolean isSphereSkin(){
 		return heroClass == HeroClasses.MOONLIGHT && skin == HeroClasses.MOONLIGHT_SKIN_SPHERE;
-	/** 旋转到 targetAngle 所需时间；角度已对准时返回 0。旋转一周（360°）耗 2.5 回合。 */
 	}
 
 	public boolean isGamblerSkin(){
 		return heroClass == HeroClasses.ROGUE && skin == HeroClasses.ROGUE_SKIN_GAMBLER;
 	}
 
-	/**
-	/** 旋转回正确角度（0）所需的回合数（供 Buff 描述显示）。 */
-	 * 从当前朝向转到 targetAngle 的<em>有符号</em>最短旋转（-180 ~ 180）。
-	 * 正值为顺时针，负值为逆时针；圆球可从两个方向旋转，这里取耗时更短的一侧。
-	 */
+	// 取有符号最短弧，避免跨过零度时绕行一整圈。
 	private float sphereSignedRotation( float targetAngle ){
-	/**
-	 * 由滚动帧索引（0-9，第 0 帧 = 正确角度）设置圆球朝向角度（帧 × 36°）。
-	 * 圆球滚动停止时，让逻辑角度始终跟随视觉帧，从而保证"角度为 0 一定显示第 0 帧"。
-	 */
-	public void sphereAngleFromFrame( int frame ){
-		sphereAngle( frame * 36f );
-	}
-
-	/**
-	 * 圆球旋转到目标朝向。若无需旋转返回 false；否则朝更短的一侧旋转（含可视滚动动画）、
-	 * 消耗对应时间并返回 true，表示本回合已被旋转消耗，动作需下一回合重新执行。
-	 *
-	 * @param targetAngle 目标角度（0-360）；正确角度为 0（滚动动画第 0 帧）
-	 */
 		float target = ((targetAngle % 360f) + 360f) % 360f;
 		float diff = target - sphereAngle();
-		if (diff > 180f)      diff -= 360f;
+		if (diff > 180f) diff -= 360f;
 		else if (diff < -180f) diff += 360f;
 		return diff;
 	}
 
-		// 可视旋转：从当前角度沿正确方向旋转到目标角度（含滚动动画）
 	private float sphereRotationTime( float targetAngle ){
 		if (!isSphereSkin()) return 0f;
 		float diff = Math.abs( sphereSignedRotation( targetAngle ) );
@@ -347,10 +321,7 @@ public class Hero extends Char {
 		return true;
 	}
 
-	/**
-	 * 圆球皮肤等待时：用至多 {@code time} 的时间朝正确角度（0，滚动动画第 0 帧）旋转。
-	 * 不额外消耗回合时间（由调用方的等待动作统一支付），仅推进朝向角并播放旋转表现。
-	 */
+	// 等待动作统一支付回合时间，这里只推进朝向，不能重复扣时。
 	private void sphereRotateWhileWaiting( float time ){
 		if (!isSphereSkin() || time <= 0f) return;
 
