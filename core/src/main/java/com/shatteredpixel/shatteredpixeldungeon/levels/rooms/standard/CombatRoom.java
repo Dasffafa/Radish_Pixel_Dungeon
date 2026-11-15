@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.levels.rooms.standard;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.events.CharFinalDamageEvent;
@@ -96,10 +97,21 @@ public class CombatRoom extends EmptyRoom {
 			return;
 		}
 		for (int cell : doorCells) {
+			if (!locked) {
+				SpecialDoor door = SpecialDoors.get(level, cell);
+				if (door != null && triggerId().equals(door.triggerId)) {
+					SpecialDoors.remove(level, cell);
+				}
+				continue;
+			}
 			SpecialDoor door = SpecialDoors.get(level, cell);
 			if (door == null) {
 				door = SpecialDoors.add(level, cell);
 				door.triggerId = triggerId();
+			}
+			//有单位正站在门格上时先不锁这扇门，否则会把角色困在关死的门格里
+			if (Actor.findChar(cell) != null) {
+				continue;
 			}
 			if (locked && level.map[cell] == Terrain.OPEN_DOOR) {
 				Level.set(cell, Terrain.DOOR, level);
@@ -143,8 +155,18 @@ public class CombatRoom extends EmptyRoom {
 		return p.x >= left && p.x <= right && p.y >= top && p.y <= bottom;
 	}
 
+	private boolean containsInterior(Point p) {
+		return p.x > left && p.x < right && p.y > top && p.y < bottom;
+	}
+
 	private void startCombat() {
 		if (started || cleared || Dungeon.level == null) {
+			return;
+		}
+		//房里已无活守卫（被提前清掉或游荡在外），直接转为普通房间，绝不锁门
+		if (!hasLivingGuard(Dungeon.level)) {
+			cleared = true;
+			setDoorState(Dungeon.level, false);
 			return;
 		}
 		started = true;
@@ -178,6 +200,7 @@ public class CombatRoom extends EmptyRoom {
 	@SubscribeEvent(event = HeroMoveEvent.class)
 	public static void onHeroMove(HeroMoveEvent event) {
 		CombatRoom room = roomAt(Dungeon.level, event.getToCell());
+		if (room != null && !room.containsInterior(Dungeon.level.cellToPoint(event.getToCell()))) return;
 		if (room != null) {
 			room.startCombat();
 			room.checkCleared(Dungeon.level);
@@ -187,6 +210,7 @@ public class CombatRoom extends EmptyRoom {
 	@SubscribeEvent(event = HeroActEvent.class)
 	public static void onHeroAct(HeroActEvent event) {
 		CombatRoom room = roomAt(Dungeon.level, event.getHero().pos);
+		if (room != null && !room.containsInterior(Dungeon.level.cellToPoint(event.getHero().pos))) return;
 		if (room != null) {
 			room.startCombat();
 			room.checkCleared(Dungeon.level);
@@ -231,6 +255,10 @@ public class CombatRoom extends EmptyRoom {
 	@Override
 	public void onLevelLoad(Level level) {
 		super.onLevelLoad(level);
+		if (cleared) {
+			setDoorState(level, false);
+			return;
+		}
 		for (int cell : doorCells) {
 			SpecialDoor door = SpecialDoors.get(level, cell);
 			if (door == null) {

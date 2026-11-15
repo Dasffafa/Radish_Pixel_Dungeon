@@ -34,13 +34,15 @@ boolean passed = results.stream().allMatch(result -> result.passed);
 
 ## 特殊门回归
 
-`GateVisuals` 验证特殊门锁头、条件解锁后及单向门允许侧的开门通行、普通门通行，并保存连续缩放和检查图标截图。门本体与门框保持原色，仅叠加独立的像素锁头：单向条件为蓝色，一次性条件为黄色，爆炸条件为橙色，战斗条件为红色，其他条件为紫色，条件解除后为绿色。锁梁闭合表示当前无法开启，锁梁打开表示当前可以开启；单向门按英雄所在方向判断。单向门手动开启复用普通门的地形更新、视野刷新和开门音效。
+`GateVisuals` 验证特殊门锁头、条件解锁后及单向门允许侧的开门通行、普通门通行，并保存连续缩放和检查图标截图。门本体与门框保持原色，独立叠加锁头素材：`interfaces/special_door_locked.png` 用于当前不可开启的门，`interfaces/special_door_lock.png` 用于可开启的门；锁头颜色按门条件区分。单向门手动开启复用普通门的地形更新、视野刷新和开门音效。
 
 `CombatRoomChallengeGate` 验证无挑战开局不生成战斗测试房间、不注册特殊门，开启 `TEST_MODE` 后房间池保留战斗测试房间。普通房间绘制及特殊门规则不会影响其他普通门的单元测试位于 `core/src/test/java/.../levels/features/SpecialDoorsTest.java`。
 
+`CombatRoomDoors` 验证踩门退回不锁门、进入房间后锁门、清怪后恢复普通门及重新加载后的状态。
+
 ```bash
 gradlew.bat :core:test --tests com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoorsTest
-gradlew.bat :e2e-tests:e2eTest -Pscenario=GateVisuals,CombatRoomChallengeGate
+gradlew.bat :e2e-tests:e2eTest -Pscenario=GateVisuals,CombatRoomChallengeGate,CombatRoomDoors
 ```
 
 

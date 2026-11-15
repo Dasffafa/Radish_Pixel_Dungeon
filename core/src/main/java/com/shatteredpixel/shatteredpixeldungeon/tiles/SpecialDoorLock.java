@@ -8,12 +8,12 @@ import com.watabou.noosa.Image;
 
 final class SpecialDoorLock extends Image {
 
-	private final Image locked = new Image("interfaces/special_door_locked.png", 1, 1, 8, 8);
+	private final Image locked = new Image("interfaces/special_door_locked.png");
 
 	SpecialDoorLock() {
 		super("interfaces/special_door_lock.png");
-		width = 8;
-		height = 8;
+		width = 10;
+		height = 10;
 		updateVertices();
 		locked.scale.set(1f, 1f);
 	}
@@ -33,7 +33,7 @@ final class SpecialDoorLock extends Image {
 		boolean horizontal = Dungeon.level.solid[door.cell - 1] && Dungeon.level.solid[door.cell + 1];
 		Image sprite = blocked ? locked : this;
 		sprite.x = x;
-		sprite.y = y + (horizontal ? -1 : 3) * scale.y;
+		sprite.y = y + (horizontal ? 5 : -3) * scale.y;
 		sprite.scale.set(scale);
 		sprite.camera = camera;
 		sprite.hardlight(color);
