@@ -114,6 +114,10 @@ public final class SpecialDoors {
 		if (door.toggle && !door.appeared) {
 			return Messages.get(SpecialDoors.class, "state_toggle_wall");
 		}
+		//战斗房间门：无论当前开还是关，只要还在伏击状态就说明它的机制
+		if (door.triggerId != null && door.triggerId.startsWith("signal:combat:")) {
+			return Messages.get(SpecialDoors.class, "desc_signal_combat");
+		}
 		if (door.sealed) {
 			return Messages.get(SpecialDoors.class, "state_sealed");
 		}

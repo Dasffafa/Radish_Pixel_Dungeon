@@ -109,11 +109,46 @@ public class H2_SpecialDoorExamineAndInteract implements Scenario {
 			return "";
 		} );
 		h.note( "examine desc=" + desc );
-		h.check( desc.contains( "机关锁" ) && desc.contains( "击败战斗房间" ),
-				"检视特殊门应显示锁定状态与真实解锁条件（实际：" + desc + "）" );
+		h.check( desc.contains( "阴险" ) && desc.contains( "一决生死" ),
+				"检视战斗房间特殊门应显示埋伏机制说明（实际：" + desc + "）" );
+		h.closeWindows();
+
+		//1b) 未进入房间时门是打开状态（unlocked）：检视同样应说明机制，而不是"已经解锁"
+		h.world( "mark door unlocked as combat rooms do before entry", () -> {
+			SpecialDoor d = SpecialDoors.get( Dungeon.level, doorCell[0] );
+			if (d != null) {
+				d.unlocked = true;
+			}
+		} );
+		h.examine( cell );
+		h.frames( 5 );
+		WndInfoCell wnd2 = h.findWindow( WndInfoCell.class );
+		String desc2 = h.get( () -> {
+			if (wnd2 == null) {
+				return "";
+			}
+			java.util.List<?> wndMembers = Reflect.get( wnd2, "members" );
+			for (Object g : wndMembers) {
+				if (g instanceof com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock) {
+					return ((com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock) g).text();
+				}
+			}
+			return "";
+		} );
+		h.note( "examine desc(unlocked)=" + desc2 );
+		h.check( desc2.contains( "阴险" ) && !desc2.contains( "已经解锁" ),
+				"未进入时打开的战斗房间门检视应显示埋伏机制说明而非\"已经解锁\"（实际：" + desc2 + "）" );
 		h.closeWindows();
 
 		//2) 走开几步后点击锁住的门：英雄先走到门前，到位后提示真实解锁条件
+		//先把门重新锁上（1b 里为模拟未进入状态把它解锁了）
+		h.world( "re-lock the door", () -> {
+			SpecialDoor d = SpecialDoors.get( Dungeon.level, doorCell[0] );
+			if (d != null) {
+				d.unlocked = false;
+			}
+			Dungeon.level.passable[doorCell[0]] = false;
+		} );
 		int awayCell = h.get( () -> {
 			for (int i = 0; i < Dungeon.level.length(); i++) {
 				int dist = Dungeon.level.distance( Dungeon.hero.pos, i );
