@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WheelchairRush;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.SkinDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.moonlight.AshKing;
@@ -302,11 +303,13 @@ public class HeroSprite extends CharSprite {
 	public static Image avatar( HeroClass cl, int armorTier, int skinIndex ) {
 		
 		SkinDefinition skin = cl.skin( skinIndex );
-		// 自定义贴图皮肤：直接使用皮肤贴图的待机帧作为头像，不套用原版护甲行
-		if (skin != null && skin.customSprite()){
-			Image avatar = new Image( skin.asset() );
-			TextureFilm film = new TextureFilm( avatar.texture, skin.frameW(), skin.frameH() );
-			RectF frame = film.get( skin.idleFrames()[0] );
+		HeroDefinition appearance =
+				skin != null ? skin : cl.definition();
+		// 独立职业和皮肤都使用自身帧尺寸，避免套用标准护甲行导致裁切偏移。
+		if (appearance.customSprite()){
+			Image avatar = new Image( appearance.asset() );
+			TextureFilm film = new TextureFilm( avatar.texture, appearance.frameW(), appearance.frameH() );
+			RectF frame = film.get( appearance.idleFrames()[0] );
 			avatar.frame( frame );
 			return avatar;
 		}
@@ -334,10 +337,12 @@ public class HeroSprite extends CharSprite {
 
 	public static Image body( HeroClass cl, int armorTier, int skinIndex ) {
 		SkinDefinition skin = cl.skin( skinIndex );
-		if (skin != null && skin.customSprite()){
-			Image body = new Image( skin.asset() );
-			TextureFilm film = new TextureFilm( body.texture, skin.frameW(), skin.frameH() );
-			RectF frame = film.get( skin.idleFrames()[0] );
+		HeroDefinition appearance =
+				skin != null ? skin : cl.definition();
+		if (appearance.customSprite()){
+			Image body = new Image( appearance.asset() );
+			TextureFilm film = new TextureFilm( body.texture, appearance.frameW(), appearance.frameH() );
+			RectF frame = film.get( appearance.idleFrames()[0] );
 			body.frame( frame );
 			return body;
 		}
