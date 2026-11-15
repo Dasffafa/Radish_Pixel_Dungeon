@@ -102,8 +102,8 @@ public class RA_v0_8_X_Changes {
                         "_-_ 也接入了仙女座的房间敌人预警。")));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.DISPLAY), "游商与 NPC 系统",
-                ("_-_ 地牢第 1 层新增流动商人「游商」，参考暗黑地牢的 BarterMan，以物换物：把你的东西摆上货架，换他的货。\n\n" +
-                        "_-_ 游商只生成在房间内部，不会站到走廊上；货架内容会写进存档，读档后不会被清空。\n\n" +
+                ("_-_ 暂时停用所有游商的自然生成，已有存档中的游商保留。\n\n" +
+                        "_-_ 游商货架内容会写进存档，读档后不会被清空。\n\n" +
                         "_-_ 灰羽的治疗服务改为先确认金币再收费，金币不足时会明确提示。")));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.DATA), "德鲁伊与召唤物",

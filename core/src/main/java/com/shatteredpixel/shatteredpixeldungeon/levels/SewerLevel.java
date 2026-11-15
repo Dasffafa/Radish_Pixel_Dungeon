@@ -72,6 +72,9 @@ import java.util.ArrayList;
 
 public class SewerLevel extends RegularLevel {
 
+	// 游商系统暂时停用；恢复生成时只需打开此开关。
+	private static final boolean PEDDLERS_ENABLED = false;
+
 	@Override
 	public void create() {
 		super.create();
@@ -207,7 +210,7 @@ public class SewerLevel extends RegularLevel {
 		}
 
 		//一楼游商（仿暗黑地牢 BarterMan）：名字/台词/货单全在 PeddlerCatalog 里
-		if(Dungeon.depth == 1 && Dungeon.branchId.equals(Branches.MAIN)){
+		if(PEDDLERS_ENABLED && Dungeon.depth == 1 && Dungeon.branchId.equals(Branches.MAIN)){
 			spawnPeddlers();
 		}
 
