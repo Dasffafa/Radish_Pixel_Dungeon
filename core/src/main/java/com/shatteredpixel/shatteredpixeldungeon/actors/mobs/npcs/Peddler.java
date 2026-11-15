@@ -31,28 +31,74 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.PeddlerSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.PeddlerActionIcon;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndDialogue;
-import com.shatteredpixel.shatteredpixeldungeon.windows.WndPeddlerShop;
 import com.watabou.noosa.Game;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
+import com.shatteredpixel.shatteredpixeldungeon.ui.PeddlerMenu;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndPeddlerShop;
+import com.watabou.noosa.Camera;
+import com.watabou.noosa.Image;
 import com.watabou.utils.Bundlable;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Callback;
+import com.watabou.utils.Point;
+import com.watabou.utils.PointF;
 
 import java.util.ArrayList;
-
 /**
  * 一楼游商。
  *
- * 参考上游 _upstream/darkest .../actors/mobs/npcs/BarterMan.kt：
- * - interact() 用 WndDialogue 弹对话（问候语 + 动作按钮），不是 WndOptions 三个按钮；
- * - 每个游商按 variant 绑定一种 TradeMode，各干各的活，不共用一个万能交易逻辑；
- * - 被攻击 / 加负面 buff 时 flee()。
- *
- * 与上游的差别：本仓库没有 WndShop 基类，所以货架窗口自己写了一份 WndPeddlerShop；
- * 视觉结构（标题栏 + 5 列商品格 + 黄色价签）保持一致。
+ * 每个游商按 variant 绑定一种交易模式；货架窗口由 WndPeddlerShop 实现。
  */
 public class Peddler extends NPC {
+
+	/** 按 TradeMode 组装游商头顶的图标气泡。 */
+	private void openDialogue(final Peddler self) {
+		if (Dungeon.hero == null || self.sprite == null) return;
+		final PeddlerCatalog.TradeMode mode = PeddlerCatalog.mode(variant);
+		ArrayList<Image> icons = new ArrayList<>();
+		ArrayList<Runnable> actions = new ArrayList<>();
+		icons.add(Icons.get(Icons.GOLD));
+		actions.add(new Runnable() {
+			@Override
+			public void run() {
+				if (mode == PeddlerCatalog.TradeMode.SERVICE) {
+					buyService(variant);
+				} else if (mode == PeddlerCatalog.TradeMode.BUY || !PeddlerCatalog.goods(variant).isEmpty()) {
+					GameScene.show(new WndPeddlerShop(self));
+				}
+			}
+		});
+		icons.add(new PeddlerActionIcon(PeddlerActionIcon.TALK));
+		actions.add(new Runnable() {
+			@Override
+			public void run() {
+				GLog.i(Messages.get(Peddler.class, "talk_more_" + variant));
+			}
+		});
+		icons.add(new PeddlerActionIcon(PeddlerActionIcon.SWAP));
+		actions.add(new Runnable() {
+			@Override
+			public void run() {
+				self.swapWithHero();
+			}
+		});
+		icons.add(Icons.get(Icons.CLOSE));
+		actions.add(new Runnable() {
+			@Override
+			public void run() {}
+		});
+		PeddlerMenu menu = new PeddlerMenu(icons.toArray(new Image[0]), actions.toArray(new Runnable[0]));
+		menu.camera = PixelScene.uiCamera;
+		PointF spritePos = self.sprite.worldToCamera(self.pos);
+		Point screenPos = Camera.main.cameraToScreen(spritePos.x + self.sprite.width() / 2, spritePos.y);
+		PointF uiPos = PixelScene.uiCamera.screenToCamera(screenPos.x, screenPos.y);
+		menu.placeAbove(uiPos.x, uiPos.y);
+		Game.scene().addToFront(menu);
+	}
+
 
 	private static final String VARIANT = "variant";
 	private static final String STOCKED = "stocked";
@@ -186,95 +232,6 @@ public class Peddler extends NPC {
 		return true;
 	}
 
-	/** 按 TradeMode 组装对话窗口。这是"有的干这个有的干那个"的落地点。 */
-	private void openDialogue( final Peddler self ) {
-
-		final Hero hero = Dungeon.hero;
-		if (hero == null) return;
-
-		PeddlerCatalog.TradeMode mode = PeddlerCatalog.mode( variant );
-
-		ArrayList<String> labels = new ArrayList<>();
-		final ArrayList<Callback> cbs = new ArrayList<>();
-
-		switch (mode) {
-
-			case BUY:
-				labels.add( Messages.get( Peddler.class, "opt_buy" ) );
-				cbs.add( new Callback() {
-					@Override
-					public void call() {
-						GameScene.show( new WndPeddlerShop( self ) );
-					}
-				} );
-				labels.add( Messages.get( Peddler.class, "opt_talk" ) );
-				cbs.add( new Callback() {
-					@Override
-					public void call() {
-						GLog.i( Messages.get( Peddler.class, "talk_more_" + variant ) );
-					}
-				} );
-				break;
-
-			case SERVICE:
-				labels.add( Messages.get( Peddler.class, "opt_service",
-						PeddlerCatalog.profile( variant ).servicePrice ) );
-				cbs.add( new Callback() {
-					@Override
-					public void call() {
-						buyService( variant );
-					}
-				} );
-				labels.add( Messages.get( Peddler.class, "opt_talk" ) );
-				cbs.add( new Callback() {
-					@Override
-					public void call() {
-						GLog.i( Messages.get( Peddler.class, "talk_more_" + variant ) );
-					}
-				} );
-				break;
-
-			case TALK:
-			default:
-				labels.add( Messages.get( Peddler.class, "opt_talk" ) );
-				cbs.add( new Callback() {
-					@Override
-					public void call() {
-						GLog.i( Messages.get( Peddler.class, "talk_more_" + variant ) );
-					}
-				} );
-				// 书页虽然只聊天，但会顺手给一张卷轴，所以也给个"讨点东西"
-				if (!PeddlerCatalog.goods( variant ).isEmpty()) {
-					labels.add( Messages.get( Peddler.class, "opt_buy" ) );
-					cbs.add( new Callback() {
-						@Override
-						public void call() {
-							GameScene.show( new WndPeddlerShop( self ) );
-						}
-					} );
-				}
-				break;
-		}
-
-		// 换位：测试时常用，把玩家和游商的位置对调，方便让开通道或凑近货架
-		labels.add( Messages.get( Peddler.class, "opt_swap" ) );
-		cbs.add( new Callback() {
-			@Override
-			public void call() {
-				self.swapWithHero();
-			}
-		} );
-
-		labels.add( Messages.get( Peddler.class, "opt_leave" ) );
-		cbs.add( null );
-
-		GameScene.show( new WndDialogue(
-				new PeddlerSprite( variant ),
-				Messages.titleCase( name() ),
-				greeting(),
-				labels.toArray( new String[0] ),
-				cbs.toArray( new Callback[0] ) ) );
-	}
 
 	@Override
 	public boolean reset() {
