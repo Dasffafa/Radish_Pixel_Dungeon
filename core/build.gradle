@@ -5,6 +5,7 @@ sourceCompatibility = targetCompatibility = appJavaCompatibility
 
 dependencies {
     testImplementation 'junit:junit:4.13.2'
+    testRuntimeOnly "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
     api project(':SPD-classes')
     implementation project(':services')
 
