@@ -4,6 +4,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MetalCross;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PaperCutter;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Random;
@@ -19,15 +21,22 @@ public class ClassSpecificItemsTest {
     }
 
     @Test
-    public void priestCrossAndEngineerToolAreExclusiveButOrdinaryItemsAreNot() {
+    public void classSpecificStartingItemsExcludeOrdinaryStartingWeapons() {
         assertEquals(HeroClasses.RECTOR, ClassSpecificItems.ownerOf(new SmallWoodenCross()));
+        assertEquals(HeroClasses.MAGE, ClassSpecificItems.ownerOf(new MagesStaff()));
         assertEquals(HeroClasses.ENGINEER, ClassSpecificItems.ownerOf(new MultiTool()));
+        assertTrue(new MultiTool().isClassSpecific());
+        assertNotNull(ClassSpecificItems.replacementFor(new MultiTool()));
+        for (Item weapon : new Item[]{new MetalCross(), new PaperCutter()}) {
+            assertNull(ClassSpecificItems.ownerOf(weapon));
+            assertNull(ClassSpecificItems.replacementFor(weapon));
+        }
         assertNull(ClassSpecificItems.ownerOf(new Item()));
     }
 
     @Test
     public void replacementsChangeOwnerAndPreserveCurseAndKnowledge() {
-        MagesStaff original = new MagesStaff(new WandOfMagicMissile());
+        BrokenSeal original = new BrokenSeal();
         original.cursed = true;
         original.cursedKnown = true;
         original.levelKnown = true;
@@ -36,10 +45,8 @@ public class ClassSpecificItemsTest {
             for (int index = 0; index < 64; index++) {
                 Item replacement = ClassSpecificItems.replacementFor(original);
                 assertNotNull(replacement);
-                assertNotEquals(HeroClasses.MAGE, ClassSpecificItems.ownerOf(replacement));
-                assertTrue(replacement.cursed);
-                assertTrue(replacement.cursedKnown);
-                assertTrue(replacement.levelKnown);
+                assertNotEquals(HeroClasses.WARRIOR, ClassSpecificItems.ownerOf(replacement));
+                assertFalse("New items do not inherit the previous item's curse", replacement.cursed);
             }
         } finally {
             Random.popGenerator();
@@ -62,4 +69,5 @@ public class ClassSpecificItemsTest {
             Random.popGenerator();
         }
     }
+
 }

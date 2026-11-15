@@ -7,13 +7,10 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MetalCross;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PaperCutter;
-import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
-import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
+import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer;
+import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
 
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
@@ -31,9 +28,9 @@ public final class ClassSpecificItems {
 			new Entry(HeroClasses.MAGE, MagesStaff.class),
 			new Entry(HeroClasses.ROGUE, CloakOfShadows.class),
 			new Entry(HeroClasses.HUNTRESS, SpiritBow.class),
-			new Entry(HeroClasses.RECTOR, MetalCross.class, SmallWoodenCross.class),
+			new Entry(HeroClasses.RECTOR, SmallWoodenCross.class),
 			new Entry(HeroClasses.MOONLIGHT, Wheelchair.class),
-			new Entry(HeroClasses.CARDTRICKSTER, PaperCutter.class, CardDrawer.class),
+			new Entry(HeroClasses.CARDTRICKSTER, CardDrawer.class),
 			new Entry(HeroClasses.ENGINEER, MultiTool.class)
 	));
 
@@ -54,7 +51,7 @@ public final class ClassSpecificItems {
 		return Collections.emptyList();
 	}
 
-	/** 创建其他职业的专属物品，并继承强化、诅咒与收藏状态。 */
+	/** 创建其他职业的专属物品，首次出现时使用自身初始状态。 */
 	public static Item replacementFor(Item oldItem) {
 		return replacementFor(oldItem, null);
 	}
@@ -81,18 +78,6 @@ public final class ClassSpecificItems {
 				: Reflection.newInstance(chosen);
 		if (replacement == null) return null;
 
-		if (oldItem instanceof Artifact && replacement instanceof Artifact) {
-			((Artifact) replacement).transferUpgrade(((Artifact) oldItem).visiblyUpgraded());
-		} else {
-			replacement.level(0);
-			if (oldItem.trueLevel() > 0) replacement.upgrade(oldItem.trueLevel());
-			else if (oldItem.trueLevel() < 0) replacement.degrade(-oldItem.trueLevel());
-		}
-		replacement.levelKnown = oldItem.levelKnown;
-		replacement.cursed = oldItem.cursed;
-		replacement.cursedKnown = oldItem.cursedKnown;
-		replacement.curseInfusionBonus = oldItem.curseInfusionBonus;
-		replacement.keptThoughLostInvent = oldItem.keptThoughLostInvent;
 		return replacement;
 	}
 

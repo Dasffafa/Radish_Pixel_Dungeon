@@ -25,7 +25,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfIdentify;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfUpgrade;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Dagger;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Gloves;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MetalCross;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.PaperCutter;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.WornShortsword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.darts.Dart;
 import com.watabou.utils.Random;
@@ -69,13 +71,14 @@ public class Moonlight extends HeroDefinition {
 		Wheelchair wheelchair = new Wheelchair();
 		(hero.belongings.artifact = wheelchair).identify();
 		hero.belongings.artifact.activate( hero );
-		// 初始武器：所有角色的初始武器
 		(hero.belongings.weapon = new WornShortsword()).identify();
 		new Dagger().identify().collect();
 		new Gloves().identify().collect();
+		new MetalCross().identify().collect();
+		new PaperCutter().identify().collect();
+		new MultiTool().identify().collect();
 		new MagicalHolster().collect();
 		Dungeon.LimitedDrops.MAGICAL_HOLSTER.drop();
-		new MagesStaff().identify().collect();
 		Dart knives = new Dart();
 		knives.quantity(3).collect();
 

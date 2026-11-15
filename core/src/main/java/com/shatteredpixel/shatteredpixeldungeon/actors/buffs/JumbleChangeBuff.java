@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.custom.utils.timing.VirtualTimer;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Bundlable;
 import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 import com.watabou.utils.Reflection;
@@ -43,6 +44,7 @@ public class JumbleChangeBuff extends Buff {
 
 	// 距下次变身的剩余回合数
 	private float turnsRemaining;
+	private final ArrayList<Item> storedEquipment = new ArrayList<>();
 
 	private volatile boolean changing = false;
 
@@ -60,6 +62,7 @@ public class JumbleChangeBuff extends Buff {
 
 	private static final String TURNS = "turns";
 	private static final String GROUP = "group";
+	private static final String STORED_EQUIPMENT = "stored_equipment";
 
 	public int currentGroup() {
 		return currentGroup;
@@ -140,6 +143,7 @@ public class JumbleChangeBuff extends Buff {
 			super.storeInBundle(bundle);
 			bundle.put(TURNS, turnsRemaining);
 			bundle.put(GROUP, currentGroup);
+			bundle.put(STORED_EQUIPMENT, storedEquipment);
 		}
 	}
 
@@ -149,6 +153,10 @@ public class JumbleChangeBuff extends Buff {
 			super.restoreFromBundle(bundle);
 			turnsRemaining = bundle.getFloat(TURNS);
 			currentGroup = ((bundle.getInt(GROUP) % 6) + 6) % 6;
+			storedEquipment.clear();
+			for (Bundlable stored : bundle.getCollection(STORED_EQUIPMENT)) {
+				if (stored instanceof Item) storedEquipment.add((Item) stored);
+			}
 			// 动画和回调不属于存档协议。读档后直接显示已提交的变身结果。
 			changing = false;
 			visualChangeToken++;
@@ -287,17 +295,15 @@ public class JumbleChangeBuff extends Buff {
 		if (ring != null) {
 			try {
 				boolean ringTypeKnown = ring.isKnown();
-				Item result = ScrollOfTransmutation.changeItem(ring);
-				if (result instanceof Ring) {
-					if (ringTypeKnown) {
-						// Ring type knowledge is stored separately from level/curse knowledge.
-						((Ring) result).setKnown();
-					}
+				Item generated = ScrollOfTransmutation.changeItem(ring);
+				Item result = storedEquipmentFor(generated);
+				if (generated == result && result instanceof Ring) {
+					if (ringTypeKnown) ((Ring) result).setKnown();
 					result.cursed = ring.cursed;
 					result.cursedKnown = ring.cursedKnown;
 					result.levelKnown = ring.levelKnown;
 				}
-				replaceEquipped(hero, ring, result);
+				switchStoredEquipment(hero, ring, result);
 			} catch (Throwable t) {
 				logMetamorphError(t);
 			}
@@ -306,8 +312,9 @@ public class JumbleChangeBuff extends Buff {
 		KindOfWeapon weapon = hero.belongings.weapon();
 		if (weapon != null && !weapon.isClassSpecific()) {
 			try {
-				Item result = ScrollOfTransmutation.changeItem(weapon);
-				replaceEquipped(hero, weapon, result);
+				Item generated = ScrollOfTransmutation.changeItem(weapon);
+				Item result = storedEquipmentFor(generated);
+				switchStoredEquipment(hero, weapon, result);
 			} catch (Throwable t) {
 				logMetamorphError(t);
 			}
@@ -328,74 +335,43 @@ public class JumbleChangeBuff extends Buff {
 		for (Item item : hero.belongings) {
 			if (item.isClassSpecific()) items.add(item);
 		}
-		Armor armor = hero.belongings.armor();
-		if (armor != null) {
-			for (ItemArmorAttachable attachment : armor.getToys()) {
-				if (attachment.isClassSpecific() && !items.contains(attachment)) items.add(attachment);
-			}
-		}
-
 		for (Item oldItem : items) {
 			try {
-				Item replacement = ClassSpecificItems.replacementFor(oldItem, hero);
-				if (replacement == null) continue;
-				if (oldItem instanceof ItemArmorAttachable
-						&& ((ItemArmorAttachable) oldItem).attachedTo != null) {
-					ItemArmorAttachable attachment = (ItemArmorAttachable) oldItem;
-					Armor attachedArmor = attachment.attachedTo;
-					int index = attachedArmor.getToys().indexOf(attachment);
-					if (attachment instanceof BrokenSeal) attachedArmor.detachSeal(hero);
-					else attachedArmor.detachToy(index);
-					if (!attachment.collect()) {
-						attachedArmor.attachToy(attachment);
-						continue;
-					}
-				}
-				replaceEquipped(hero, oldItem, replacement);
+				Item generated = ClassSpecificItems.replacementFor(oldItem, hero);
+				Item replacement = storedEquipmentFor(generated);
+				if (replacement != null) switchStoredEquipment(hero, oldItem, replacement);
 			} catch (Throwable t) {
 				logMetamorphError(t);
 			}
 		}
+
 	}
 	/** 护甲变身为同 tier 的随机护甲（原版嬗变卷轴不处理护甲，故单独实现）。 */
 	private void transmuteArmor(Hero hero, Armor old) {
 		int tier = old.tier;
 		if (tier < 1 || tier > 5) return;
 
-		BrokenSeal seal = old.checkSeal();
-		if (seal != null) {
-			old.detachSeal(hero);
-		}
-
 		Generator.Category cat = Generator.armTiers[tier - 1];
-		Armor replacement;
+		Armor generated;
 		do {
-			replacement = (Armor) Generator.randomUsingDefaults(cat);
-		} while (replacement.getClass() == old.getClass() && Generator.armTiers[tier - 1].classes.length > 1);
-
-		//保留强化等级、诅咒与辨识状态
-		replacement.level(0);
-		int level = old.trueLevel();
-		if (level > 0) replacement.upgrade(level);
-		else if (level < 0) replacement.degrade(-level);
-
-		replacement.levelKnown = old.levelKnown;
-		replacement.cursedKnown = old.cursedKnown;
-		replacement.cursed = old.cursed;
-		replacement.inscribe(old.glyph);
-		replacement.curseInfusionBonus = old.curseInfusionBonus;
-		replacement.glyphHardened = old.glyphHardened;
-		replacement.masteryPotionBonus = old.masteryPotionBonus;
-		replacement.augment = old.augment;
-		if (seal != null) {
-			replacement.affixSeal(seal);
+			generated = (Armor) Generator.randomUsingDefaults(cat);
+		} while (generated.getClass() == old.getClass() && cat.classes.length > 1);
+		Armor replacement = (Armor) storedEquipmentFor(generated);
+		if (replacement == generated) {
+			replacement.level(0);
+			int level = old.trueLevel();
+			if (level > 0) replacement.upgrade(level);
+			else if (level < 0) replacement.degrade(-level);
+			replacement.levelKnown = old.levelKnown;
+			replacement.cursedKnown = old.cursedKnown;
+			replacement.cursed = old.cursed;
+			replacement.inscribe(old.glyph);
+			replacement.curseInfusionBonus = old.curseInfusionBonus;
+			replacement.glyphHardened = old.glyphHardened;
+			replacement.masteryPotionBonus = old.masteryPotionBonus;
+			replacement.augment = old.augment;
 		}
-
-		if (!replaceEquipped(hero, old, replacement) && seal != null) {
-			// 替换失败时，撤销前面的纹章转移并恢复到已经重新装备的旧护甲。
-			replacement.detachSeal(hero);
-			old.affixSeal(seal);
-		}
+		switchStoredEquipment(hero, old, replacement);
 	}
 
 	private void transmuteArtifact(Hero hero) {
@@ -423,15 +399,33 @@ public class JumbleChangeBuff extends Buff {
 			replacement = (Artifact) Reflection.newInstance(Random.element(candidates));
 		} while (replacement.getClass() == old.getClass() && candidates.size() > 1);
 
-		replacement.levelKnown = old.levelKnown;
-		replacement.transferUpgrade(old.visiblyUpgraded());
-		// 生成器可能默认生成诅咒神器；蜕变后必须严格继承原神器状态。
-		replacement.cursed = old.cursed;
-		replacement.cursedKnown = old.cursedKnown;
-
-		replaceEquipped(hero, old, replacement);
+		Artifact stored = (Artifact) storedEquipmentFor(replacement);
+		if (stored == replacement) {
+			stored.levelKnown = old.levelKnown;
+			stored.transferUpgrade(old.visiblyUpgraded());
+			stored.cursed = old.cursed;
+			stored.cursedKnown = old.cursedKnown;
+		}
+		switchStoredEquipment(hero, old, stored);
 	}
 
+	private Item storedEquipmentFor(Item generated) {
+		if (generated == null) return null;
+		for (Item stored : storedEquipment) {
+			if (stored.getClass() == generated.getClass()) return stored;
+		}
+		return generated;
+	}
+
+	private boolean switchStoredEquipment(Hero hero, Item oldItem, Item replacement) {
+		boolean oldCursed = oldItem.cursed;
+		if (!replaceEquipped(hero, oldItem, replacement)) return false;
+		oldItem.cursed = oldCursed;
+		storedEquipment.remove(replacement);
+		storedEquipment.remove(oldItem);
+		storedEquipment.add(oldItem);
+		return true;
+	}
 	private boolean replaceEquipped(Hero hero, Item oldItem, Item result) {
 		if (result == null || result == oldItem) return false;
 

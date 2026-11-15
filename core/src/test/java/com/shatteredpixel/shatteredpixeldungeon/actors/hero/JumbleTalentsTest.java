@@ -18,6 +18,8 @@ import com.watabou.utils.Random;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.JumbleChangeBuff;
+import com.watabou.utils.Bundle;
 import java.util.LinkedHashMap;
 
 import static org.junit.Assert.*;
@@ -99,4 +101,22 @@ public class JumbleTalentsTest {
         assertTrue(JumbleTalents.canRollWithReplacement(hero, bow, SpiritBow.class));
         assertTrue(JumbleTalents.canRollWithReplacement(hero, new CloakOfShadows(), MagesStaff.class));
     }
+
+	@Test
+	public void equipmentCacheRoundTripsIndependentItemState() {
+		Item stored = new MagesStaff();
+		stored.upgrade(4);
+		Bundle bundle = new Bundle();
+		bundle.put("stored_equipment", java.util.Collections.singletonList(stored));
+		JumbleChangeBuff restored = new JumbleChangeBuff();
+		restored.restoreFromBundle(bundle);
+		Bundle roundTrip = new Bundle();
+		restored.storeInBundle(roundTrip);
+		java.util.Collection<com.watabou.utils.Bundlable> items = roundTrip.getCollection("stored_equipment");
+		assertEquals(1, items.size());
+		Item restoredStaff = (Item) items.iterator().next();
+		assertTrue(restoredStaff instanceof MagesStaff);
+		assertEquals(4, restoredStaff.trueLevel());
+	}
+	
 }
