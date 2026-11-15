@@ -7,6 +7,11 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.rector.Belief;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDeck;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.items.ItemArmorAttachable;
+import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
+import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
+import com.shatteredpixel.shatteredpixeldungeon.items.ClassSpecificItems;
 import com.watabou.utils.Bundle;
 import com.watabou.utils.Random;
 
@@ -42,7 +47,16 @@ public final class JumbleTalents {
 					LinkedHashSet<Talent> tier4 = new LinkedHashSet<>();
 					addTalents(tier4, pool.get(first).subclassT4());
 					addTalents(tier4, pool.get(second).subclassT4());
-					if (tier4.size() >= 2) {
+					LinkedHashSet<Talent> tier3 = new LinkedHashSet<>();
+					addTalents(tier3, pool.get(first).subclassT3());
+					addTalents(tier3, pool.get(second).subclassT3());
+					int existingMissing = 0;
+					for (Talent talent : hero.talents.get(2).keySet()) {
+						if (missingClassItem(hero, talent, null, null)) existingMissing++;
+					}
+					tier3.removeAll(hero.talents.get(2).keySet());
+					if (tier4.size() >= 2 && minimumMissing(hero, new ArrayList<>(tier4), 2, null, null) <= 1
+							&& minimumMissing(hero, new ArrayList<>(tier3), 3, null, null) <= 1 - existingMissing) {
 						pairs.add(pool.get(first));
 						pairs.add(pool.get(second));
 					}
@@ -61,7 +75,7 @@ public final class JumbleTalents {
 		ArrayList<Talent> special = specialPool(hero, 3);
 		ArrayList<Talent> common = commonPool(3);
 		common.removeAll(special);
-		fill(hero, 3, common, 2);
+		fill(hero, 3, common, 2, minimumMissing(hero, special, 2, null, null));
 		fill(hero, 3, special, 4);
 	}
 
@@ -104,12 +118,73 @@ public final class JumbleTalents {
 	}
 
 	private static void fill(Hero hero, int tier, ArrayList<Talent> pool, int size) {
+		fill(hero, tier, pool, size, 0);
+	}
+
+	private static void fill(Hero hero, int tier, ArrayList<Talent> pool, int size, int reservedMissing) {
 		LinkedHashMap<Talent, Integer> talents = hero.talents.get(tier);
+		int budget = 1 - reservedMissing;
+		for (Talent talent : talents.keySet()) if (missingClassItem(hero, talent, null, null)) budget--;
 		pool.removeAll(talents.keySet());
 		while (talents.size() < size && !pool.isEmpty()) {
-			talents.put(pool.remove(Random.Int(pool.size())), 0);
+			Talent candidate = pool.remove(Random.Int(pool.size()));
+			boolean missing = missingClassItem(hero, candidate, null, null);
+			if (missing && budget <= 0) continue;
+			talents.put(candidate, 0);
+			if (missing) budget--;
 		}
-		if (talents.size() < size) throw new IllegalStateException("Insufficient Jumble talent pool for tier " + tier);
+		if (talents.size() < size) throw new IllegalStateException("Insufficient usable Jumble talent pool for tier " + tier);
+	}
+
+	private static Class<? extends Item> classItem(Talent talent) {
+		if (talent == Talent.IRON_WILL || talent == Talent.RUNIC_TRANSFERENCE) return BrokenSeal.class;
+		if (talent == Talent.LIGHT_CLOAK) return CloakOfShadows.class;
+		Class<? extends com.watabou.utils.Bundlable> requirement = talent.requirement();
+		if (requirement == null || !Item.class.isAssignableFrom(requirement)) return null;
+		boolean exclusive = false;
+		for (HeroClass owner : HeroClasses.ALL) {
+			for (Class<? extends Item> type : ClassSpecificItems.itemsFor(owner)) {
+				if (type == requirement) exclusive = true;
+			}
+		}
+		if (!exclusive) return null;
+		return requirement != null && Item.class.isAssignableFrom(requirement)
+				? requirement.asSubclass(Item.class) : null;
+	}
+
+	private static boolean missingClassItem(Hero hero, Talent talent, Item removed, Class<? extends Item> replacement) {
+		Class<? extends Item> type = classItem(talent);
+		if (type == null) return false;
+		if (replacement != null && type.isAssignableFrom(replacement)) return false;
+		for (Item item : hero.belongings) {
+			if (item != removed && type.isInstance(item)) return false;
+			if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) {
+				for (ItemArmorAttachable attachment : ((com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) item).getToys()) {
+					if (attachment != removed && type.isInstance(attachment)) return false;
+				}
+			}
+		}
+		// 尚未发放的依赖会在首次加点时提供，不能当成永久不可用。
+		return talent.requirement() != type || hero.talentRequirementItems.contains(type.getName());
+	}
+
+	private static int minimumMissing(Hero hero, ArrayList<Talent> pool, int count, Item removed, Class<? extends Item> replacement) {
+		if (pool.size() < count) return Integer.MAX_VALUE;
+		int available = 0;
+		for (Talent talent : pool) if (!missingClassItem(hero, talent, removed, replacement)) available++;
+		return Math.max(0, count - available);
+	}
+
+	public static boolean canRollWithReplacement(Hero hero, Item removed, Class<? extends Item> replacement) {
+		if (hero.jumbleFirst == HeroSubClasses.NONE || hero.jumbleSecond == HeroSubClasses.NONE) return true;
+		for (int tier = 2; tier < 4; tier++) {
+			ArrayList<Talent> special = specialPool(hero, tier);
+			ArrayList<Talent> common = commonPool(tier);
+			common.removeAll(special);
+			int specialMissing = minimumMissing(hero, special, tier == 2 ? 3 : 2, removed, replacement);
+			if (specialMissing > 1 || minimumMissing(hero, common, 2, removed, replacement) > 1 - specialMissing) return false;
+		}
+		return true;
 	}
 
 	public static void metamorph(Hero hero) {
@@ -121,11 +196,19 @@ public final class JumbleTalents {
 			ArrayList<Talent> special = tier >= 2 ? specialPool(hero, tier) : common;
 			if (tier >= 2) common.removeAll(special);
 			int index = 0;
+			int missingBudget = 1;
 			for (Talent old : previous.keySet()) {
 				ArrayList<Talent> pool = tier >= 2 && index >= 2 ? special : common;
 				pool.removeAll(next.keySet());
-				if (pool.isEmpty()) throw new IllegalStateException("Insufficient Jumble metamorph pool");
-				Talent replacement = pool.get(Random.Int(pool.size()));
+				int reserve = tier >= 2 && index < 2
+						? minimumMissing(hero, special, Math.max(0, previous.size() - 2), null, null) : 0;
+				ArrayList<Talent> eligible = new ArrayList<>();
+				for (Talent candidate : pool) {
+					if (!missingClassItem(hero, candidate, null, null) || missingBudget > reserve) eligible.add(candidate);
+				}
+				if (eligible.isEmpty()) throw new IllegalStateException("Insufficient usable Jumble metamorph pool");
+				Talent replacement = eligible.get(Random.Int(eligible.size()));
+				if (missingClassItem(hero, replacement, null, null)) missingBudget--;
 				next.put(replacement, Math.min(previous.get(old), replacement.maxPoints()));
 				index++;
 			}

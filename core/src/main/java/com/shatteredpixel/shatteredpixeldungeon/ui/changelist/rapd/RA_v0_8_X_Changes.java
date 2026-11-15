@@ -68,8 +68,12 @@ public class RA_v0_8_X_Changes {
                         "_-_ 盗贼：赌徒\n\n" +
                         "_-_ 战士：流浪者\n\n" +
                         "_-_ 月华：圆球\n\n" +
-                        "_-_ 全职业共享：杂散（Jumble）\n\n" +
                         "_-_ 这些皮肤都有独立的特殊效果，选择前请仔细查看英雄选择界面。")));
+
+        changes.addButton(new ChangeButton(HeroSprite.avatar(HeroClasses.JUMBLE, 0, 0), "独立英雄：杂散",
+                ("_-_ 随机使用一个基础职业的初始装备，开局天赋随机。\n\n" +
+                        "_-_ 唯一转职融合两个随机转职的被动，特有天赋取自这两个转职；恶魔之力遵循相同规则。\n\n" +
+                        "_-_ 周期变化先跨职业替换专属物品，再变换普通装备，最后重抽天赋；每层最多一个天赋因缺少职业专属物品而不可用。")));
 
         changes.addButton(new ChangeButton(Icons.get(Icons.DATA), "职业系统重构",
                 ("职业与子职业由枚举重构为定义式框架，为后续新英雄、新子职业与新皮肤提供统一的扩展入口。\n\n" +

@@ -5,6 +5,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.JumbleTalents;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
+import com.shatteredpixel.shatteredpixeldungeon.items.ClassSpecificItems;
+import com.shatteredpixel.shatteredpixeldungeon.items.ItemArmorAttachable;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
@@ -15,6 +17,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfConcealme
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Pulse;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.JumbleSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -158,7 +162,7 @@ public class JumbleChangeBuff extends Buff {
 		final int token;
 		synchronized (STATE_LOCK) {
 			try {
-				doTalentMetamorph(hero);
+				transmuteClassSpecificItems(hero);
 			} catch (Throwable t) {
 				logMetamorphError(t);
 			}
@@ -167,6 +171,12 @@ public class JumbleChangeBuff extends Buff {
 			} catch (Throwable t) {
 				logMetamorphError(t);
 			}
+			try {
+				doTalentMetamorph(hero);
+			} catch (Throwable t) {
+				logMetamorphError(t);
+			}
+
 			currentGroup = Random.Int(6);
 			resetCountdown();
 			token = ++visualChangeToken;
@@ -264,11 +274,13 @@ public class JumbleChangeBuff extends Buff {
 	}
 
 	private void doEquipmentTransmute(Hero hero) {
-		//神器：允许重复（直接从未使用过的全神器池随机，忽略唯一性）
-		try {
-			transmuteArtifact(hero);
-		} catch (Throwable t) {
-			logMetamorphError(t);
+		Artifact artifact = hero.belongings.artifact();
+		if (artifact != null && !artifact.isClassSpecific()) {
+			try {
+				transmuteArtifact(hero);
+			} catch (Throwable t) {
+				logMetamorphError(t);
+			}
 		}
 
 		Ring ring = hero.belongings.ring();
@@ -292,7 +304,7 @@ public class JumbleChangeBuff extends Buff {
 		}
 
 		KindOfWeapon weapon = hero.belongings.weapon();
-		if (weapon != null) {
+		if (weapon != null && !weapon.isClassSpecific()) {
 			try {
 				Item result = ScrollOfTransmutation.changeItem(weapon);
 				replaceEquipped(hero, weapon, result);
@@ -311,6 +323,40 @@ public class JumbleChangeBuff extends Buff {
 		}
 	}
 
+	private void transmuteClassSpecificItems(Hero hero) {
+		List<Item> items = new ArrayList<>();
+		for (Item item : hero.belongings) {
+			if (item.isClassSpecific()) items.add(item);
+		}
+		Armor armor = hero.belongings.armor();
+		if (armor != null) {
+			for (ItemArmorAttachable attachment : armor.getToys()) {
+				if (attachment.isClassSpecific() && !items.contains(attachment)) items.add(attachment);
+			}
+		}
+
+		for (Item oldItem : items) {
+			try {
+				Item replacement = ClassSpecificItems.replacementFor(oldItem, hero);
+				if (replacement == null) continue;
+				if (oldItem instanceof ItemArmorAttachable
+						&& ((ItemArmorAttachable) oldItem).attachedTo != null) {
+					ItemArmorAttachable attachment = (ItemArmorAttachable) oldItem;
+					Armor attachedArmor = attachment.attachedTo;
+					int index = attachedArmor.getToys().indexOf(attachment);
+					if (attachment instanceof BrokenSeal) attachedArmor.detachSeal(hero);
+					else attachedArmor.detachToy(index);
+					if (!attachment.collect()) {
+						attachedArmor.attachToy(attachment);
+						continue;
+					}
+				}
+				replaceEquipped(hero, oldItem, replacement);
+			} catch (Throwable t) {
+				logMetamorphError(t);
+			}
+		}
+	}
 	/** 护甲变身为同 tier 的随机护甲（原版嬗变卷轴不处理护甲，故单独实现）。 */
 	private void transmuteArmor(Hero hero, Armor old) {
 		int tier = old.tier;
@@ -390,6 +436,7 @@ public class JumbleChangeBuff extends Buff {
 		if (result == null || result == oldItem) return false;
 
 		int slot = Dungeon.quickslot.getSlot(oldItem);
+		boolean oldWasEquipped = oldItem.isEquipped(hero);
 		boolean oldCursed = oldItem.cursed;
 		// 记下换装前英雄还剩多少时间没过完，换完后只退掉装备 API 自己扣的那一段
 		float cooldownBefore = hero.cooldown();
@@ -408,9 +455,15 @@ public class JumbleChangeBuff extends Buff {
 			}
 		}
 
+		boolean canEquipReplacement = oldWasEquipped
+				&& oldItem instanceof EquipableItem
+				&& result instanceof EquipableItem
+				&& !(result instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow)
+				&& (oldItem instanceof Artifact) == (result instanceof Artifact)
+				&& (oldItem instanceof KindOfWeapon) == (result instanceof KindOfWeapon);
 		boolean replaced = false;
 		try {
-			if (result instanceof EquipableItem) {
+			if (canEquipReplacement) {
 				replaced = ((EquipableItem) result).doEquip(hero);
 			} else {
 				replaced = result.collect();
@@ -422,10 +475,16 @@ public class JumbleChangeBuff extends Buff {
 		} catch (Throwable t) {
 			logMetamorphError(t);
 		}
-
 		if (!replaced) {
 			rollbackEquipmentReplacement(hero, oldItem, oldCursed, result);
 			return false;
+		}
+		if (oldItem instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool) {
+			Pulse pulse = hero.buff(Pulse.class);
+			if (pulse != null) {
+				ActionIndicator.clearAction(pulse);
+				pulse.detach();
+			}
 		}
 		//装备 API 会正常扣除装备/卸下时间；蜕变是即时效果，只抵消装备 API 这次扣的时间。
 		//不能写 hero.spend(-hero.cooldown())：那会把玩家刚做的动作和 act() 里的 hero.spend(TICK) 一起退掉；

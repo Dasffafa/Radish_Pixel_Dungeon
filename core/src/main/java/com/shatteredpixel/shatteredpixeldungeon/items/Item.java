@@ -70,6 +70,8 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PathFinder;
 import com.watabou.utils.Reflection;
 
+import com.shatteredpixel.shatteredpixeldungeon.items.ClassSpecificItems;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -618,6 +620,14 @@ public class Item implements Bundlable {
 		return icon;
 	}
 
+	public HeroClass classSpecificOwner() {
+		return ClassSpecificItems.ownerOf(this);
+	}
+
+	public boolean isClassSpecific() {
+		return classSpecificOwner() != null;
+	}
+
 	public Emitter emitter() { return null; }
 
 	public String info() {
@@ -636,11 +646,14 @@ public class Item implements Bundlable {
 		return desc();
 	}
 
+
 	public final String displayInfo() {
 		if (SnakeBiteChallengeManager.shouldReplaceItemText(this)) {
 			return Messages.getSnakeBiteItemDescription();
 		}
-		return info();
+		String info = info();
+		HeroClass owner = classSpecificOwner();
+		return owner == null ? info : Messages.get(Item.class, "class_specific", info, owner.title());
 	}
 
 	public final String displayDesc() {
