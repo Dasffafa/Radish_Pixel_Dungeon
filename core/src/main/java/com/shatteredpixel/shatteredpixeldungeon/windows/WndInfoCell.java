@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -150,6 +151,16 @@ public class WndInfoCell extends Window {
 			if (blocked != null) {
 				desc += "\n\n" + blocked;
 			}
+		}
+
+		//特殊门：检视时给出当前状态与真实解锁条件
+		String doorInfo = SpecialDoors.examineMessage(
+				SpecialDoors.get(Dungeon.level, cell), Dungeon.level, cell);
+		if (doorInfo != null) {
+			if (desc.length() > 0) {
+				desc += "\n\n";
+			}
+			desc += doorInfo;
 		}
 
 		titlebar.setRect(0, 0, WIDTH, 0);

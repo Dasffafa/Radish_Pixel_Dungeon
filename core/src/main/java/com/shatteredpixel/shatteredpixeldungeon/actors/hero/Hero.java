@@ -2023,6 +2023,11 @@ public class Hero extends Char {
 			return false;
 		}
 
+		//不在门前：先走到门格旁，到位后的下一次动作再判定开启/提示
+		if (door != null && !Dungeon.level.adjacent(pos, cell) && getCloser(cell)) {
+			return true;
+		}
+
 		if (door == null || !Dungeon.level.adjacent(pos, cell) || Actor.findChar(cell) != null
 				|| !com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.allowsOpen(
 						Dungeon.level, cell, pos)) {
@@ -2871,9 +2876,8 @@ public class Hero extends Char {
 							.blockMessage(specialDoor));
 					return false;
 				}
-				curAction = new HeroAction.Move(
-						com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors
-								.approachCell(Dungeon.level, cell));
+				//不在门前：同样由 EnterDoor 走过去，到位后提示只能从另一侧推开
+				curAction = new HeroAction.EnterDoor(cell);
 				return true;
 			}
 
@@ -2886,8 +2890,13 @@ public class Hero extends Char {
 					: com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors
 							.blockMessage(specialDoor);
 			if (blocked != null) {
-				GLog.w(blocked);
-				return false;
+				if (adjacent) {
+					GLog.w(blocked);
+					return false;
+				}
+				//无法解锁也要走到门前交互，EnterDoor 在到位后给出真实解锁条件
+				curAction = new HeroAction.EnterDoor(cell);
+				return true;
 			}
 		}
 

@@ -74,7 +74,59 @@ public final class SpecialDoors {
 
 	public static String blockMessage(SpecialDoor door) {
 		String key = door == null ? null : door.blockedMessageKey();
-		return key == null ? null : Messages.get(SpecialDoors.class, key);
+		if (key == null) {
+			return null;
+		}
+		//条件锁直接说清楚真实解锁条件，不给玩家一句"等待特定事件"
+		if ("blocked_condition".equals(key)) {
+			return Messages.get(SpecialDoors.class, "state_locked") + " " + conditionMessage(door);
+		}
+		return Messages.get(SpecialDoors.class, key);
+	}
+
+	/** triggerId 对应的真实解锁条件文案；未知/自定义 id 有兜底文案。 */
+	public static String conditionMessage(SpecialDoor door) {
+		String id = door == null || door.triggerId == null ? "" : door.triggerId;
+		String key;
+		if ("explosion".equals(id)) {
+			key = "condition_explosion";
+		} else if ("any_hero_move".equals(id)) {
+			key = "condition_any_hero_move";
+		} else if (id.startsWith("signal:combat:")) {
+			key = "condition_signal_combat";
+		} else if (id.startsWith("signal:")) {
+			key = "condition_signal";
+		} else {
+			key = "condition_unknown";
+		}
+		return Messages.get(SpecialDoors.class, key);
+	}
+
+	/** 检视窗口用的"当前状态 + 解锁条件"说明；不是特殊门（或条件墙）返回 null。 */
+	public static String examineMessage(SpecialDoor door, Level level, int cell) {
+		if (door == null) {
+			return null;
+		}
+		boolean isDoorTile = level.map[cell] == Terrain.DOOR || level.map[cell] == Terrain.OPEN_DOOR;
+		if (!isDoorTile && !(door.toggle && !door.appeared)) {
+			return null;
+		}
+		if (door.toggle && !door.appeared) {
+			return Messages.get(SpecialDoors.class, "state_toggle_wall");
+		}
+		if (door.sealed) {
+			return Messages.get(SpecialDoors.class, "state_sealed");
+		}
+		if (door.locked()) {
+			return Messages.get(SpecialDoors.class, "state_locked") + " " + conditionMessage(door);
+		}
+		if (door.toggle) {
+			return Messages.get(SpecialDoors.class, "state_toggle_open");
+		}
+		if (door.oneWay) {
+			return Messages.get(SpecialDoors.class, "state_one_way");
+		}
+		return Messages.get(SpecialDoors.class, "state_unlocked");
 	}
 
 	public static int bitFor(int dx, int dy) {
