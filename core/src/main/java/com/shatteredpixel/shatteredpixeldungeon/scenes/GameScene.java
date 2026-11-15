@@ -1359,13 +1359,16 @@ public class GameScene extends PixelScene {
 				}
 			}
 
-			// WndBag 用的是独立相机：把它的底边压在常驻背包面板之上，别被面板挡住。
-			if (wnd instanceof WndBag && scene.inventory != null && scene.inventory.visible) {
+			// WndBag 用的是独立相机：把它的底边压到工具栏上沿之上，三种界面布局通用。
+			// 档位 2 时工具栏上沿 = 常驻背包面板顶边 - 工具栏高度，即整个底部 UI 块的上沿；
+			// 档位 0/1 时工具栏贴屏幕底边，同样以它为界。窗口过高抬不动时不强推，退回原版行为（窗口盖住按钮）。
+			if (wnd instanceof WndBag && scene.toolbar != null && scene.toolbar.visible) {
 				float zoom = wnd.camera().zoom;
 				float windowBottom = wnd.camera().y / zoom + wnd.camera().screenHeight() / zoom;
-				float paneTop = scene.inventory.top();
-				if (windowBottom > paneTop) {
-					wnd.offset(wnd.getOffset().x, wnd.getOffset().y - (int)Math.ceil(windowBottom - paneTop));
+				float limit = scene.toolbar.top();
+				float lift = Math.min( windowBottom - limit, wnd.camera().y / zoom );
+				if (lift > 0) {
+					wnd.offset(wnd.getOffset().x, wnd.getOffset().y - (int)Math.ceil(lift));
 				}
 			}
 
