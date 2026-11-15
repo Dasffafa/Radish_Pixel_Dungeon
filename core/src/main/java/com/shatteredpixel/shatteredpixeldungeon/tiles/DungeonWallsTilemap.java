@@ -23,8 +23,6 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
-import com.shatteredpixel.shatteredpixeldungeon.effects.shaders.SpecialDoorShader;
-import com.watabou.noosa.NoosaScript;
 
 import java.util.HashSet;
 
@@ -111,11 +109,27 @@ public class DungeonWallsTilemap extends DungeonTilemap {
 		return -1;
 	}
 
+	private SpecialDoorLock lock;
+
 	@Override
-	protected NoosaScript script() {
-		SpecialDoorShader shader = SpecialDoorShader.get();
-		shader.walls(true);
-		return shader;
+	public void destroy() {
+		if (lock != null) lock.destroy();
+		super.destroy();
+	}
+
+	@Override
+	public void draw() {
+		super.draw();
+		if (lock == null && !Dungeon.level.specialDoors.isEmpty()) lock = new SpecialDoorLock();
+		if (lock != null) {
+			lock.camera = camera();
+			for (com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor door : Dungeon.level.specialDoors.values()) {
+				if (!DungeonTileSheet.doorTile(map[door.cell])) continue;
+				lock.x = x + (door.cell % mapWidth) * SIZE + 4;
+				lock.y = y + (door.cell / mapWidth) * SIZE - 2;
+				lock.draw(door);
+			}
+		}
 	}
 
 	@Override

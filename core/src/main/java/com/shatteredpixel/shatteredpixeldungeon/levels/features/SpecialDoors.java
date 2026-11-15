@@ -177,9 +177,10 @@ public final class SpecialDoors {
 	}
 
 	public static void open(Level level, int cell) {
-		Level.set(cell, Terrain.OPEN_DOOR, level);
 		if (level == Dungeon.level) {
-			GameScene.updateMap(cell);
+			Door.enter(cell);
+		} else {
+			Level.set(cell, Terrain.OPEN_DOOR, level);
 		}
 	}
 

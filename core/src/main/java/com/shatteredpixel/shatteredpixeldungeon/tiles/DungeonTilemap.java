@@ -73,6 +73,7 @@ public abstract class DungeonTilemap extends Tilemap {
 
 	protected abstract int getTileVisual(int pos, int tile, boolean flat);
 
+
 	public int screenToTile(int x, int y ){
 		return screenToTile(x, y, false);
 	}

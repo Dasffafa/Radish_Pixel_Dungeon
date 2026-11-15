@@ -22,9 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.tiles;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.effects.shaders.SpecialDoorShader;
 import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors;
-import com.watabou.noosa.NoosaScript;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.noosa.Image;
 import com.watabou.utils.PathFinder;
@@ -104,21 +102,26 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 
 	}
 
-	@Override
-	protected NoosaScript script() {
-		SpecialDoorShader shader = SpecialDoorShader.get();
-		shader.walls(false);
-		return shader;
-	}
-
 
 	public static Image tile(int pos, int tile ) {
 		Image img = new Image( instance.texture ) {
+			private final SpecialDoorLock lock = new SpecialDoorLock();
+
 			@Override
-			protected NoosaScript script() {
-				SpecialDoorShader shader = SpecialDoorShader.get();
-				shader.mark(DungeonTileSheet.doorTile(tile) ? SpecialDoors.get(Dungeon.level, pos) : null);
-				return shader;
+			public void destroy() {
+				lock.destroy();
+				super.destroy();
+			}
+			@Override
+			public void draw() {
+				super.draw();
+				if (DungeonTileSheet.doorTile(tile)) {
+					lock.camera = camera();
+					lock.scale.set(scale);
+					lock.x = x + 4 * scale.x;
+					lock.y = y + 3 * scale.y;
+					lock.draw(SpecialDoors.get(Dungeon.level, pos));
+				}
 			}
 		};
 		img.frame( instance.tileset.get( instance.getTileVisual( pos, tile, true ) ) );
