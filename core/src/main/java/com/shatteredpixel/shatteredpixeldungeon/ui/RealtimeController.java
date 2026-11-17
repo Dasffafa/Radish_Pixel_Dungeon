@@ -81,7 +81,7 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 			ax /= len;
 			ay /= len;
 		}
-		float speed = 3.2f;
+		float speed = 5.8f;
 		float dx = ax * speed * Game.elapsed;
 		float dy = ay * speed * Game.elapsed;
 
@@ -195,7 +195,7 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 	}
 
 	private void setAxes(float dx, float dy, boolean left) {
-		float max = Math.min(Game.width, Game.height) * 0.18f;
+		float max = Math.min(Game.width, Game.height) * 0.085f;
 		float len = (float) Math.sqrt(dx * dx + dy * dy);
 		if (len > max) {
 			dx = dx / len * max;
@@ -203,8 +203,8 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		}
 		float nx = dx / max;
 		float ny = dy / max;
-		if (Math.abs(nx) < 0.08f) nx = 0;
-		if (Math.abs(ny) < 0.08f) ny = 0;
+		if (Math.abs(nx) < 0.05f) nx = 0;
+		if (Math.abs(ny) < 0.05f) ny = 0;
 		if (left) {
 			moveX = nx;
 			moveY = ny;
