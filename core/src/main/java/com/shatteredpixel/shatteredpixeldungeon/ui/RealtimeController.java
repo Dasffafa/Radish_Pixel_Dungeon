@@ -112,10 +112,9 @@ public class RealtimeController extends Group {
 
 	private void startMoving(float dx, float dy) {
 		if (Dungeon.hero.sprite == null) return;
-		if (!wasMoving) {
-			wasMoving = true;
-			Dungeon.hero.sprite.playRun();
-		}
+		wasMoving = true;
+		// 游戏每回合可能把英雄切回 idle，这里持续确保处于 run 状态
+		Dungeon.hero.sprite.playRun();
 		if (Math.abs(dx) > 0.0001f) Dungeon.hero.sprite.flipHorizontal = dx < 0;
 	}
 
@@ -139,9 +138,19 @@ public class RealtimeController extends Group {
 	}
 
 	private boolean canStand(float x, float y) {
+		float r = 0.30f;
+		for (int i = -1; i <= 1; i++) {
+			for (int j = -1; j <= 1; j++) {
+				if (i == 0 && j == 0) continue;
+				int cx = (int) Math.floor(x + i * r);
+				int cy = (int) Math.floor(y + j * r);
+				if (cx < 0 || cy < 0 || cx >= Dungeon.level.width() || cy >= Dungeon.level.height()) return false;
+				int cell = cx + cy * Dungeon.level.width();
+				if (!Dungeon.level.passable[cell] || Dungeon.level.pit[cell]) return false;
+			}
+		}
 		int cx = (int) Math.floor(x);
 		int cy = (int) Math.floor(y);
-		if (cx < 0 || cy < 0 || cx >= Dungeon.level.width() || cy >= Dungeon.level.height()) return false;
 		int cell = cx + cy * Dungeon.level.width();
 		return Dungeon.level.passable[cell] && !Dungeon.level.pit[cell];
 	}

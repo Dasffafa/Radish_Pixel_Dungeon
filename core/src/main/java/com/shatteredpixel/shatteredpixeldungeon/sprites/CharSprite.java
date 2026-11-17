@@ -273,7 +273,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	}
 	
 	public void playRun() {
-		play(run);
+		if (curAnim != run) play(run);
 	}
 
 	public void idle() {
