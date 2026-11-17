@@ -95,7 +95,11 @@ public class RealtimeController extends Group {
 
 		int dx = Math.round(moveX);
 		int dy = Math.round(moveY);
-		if (dx == 0 && dy == 0) {
+		// 斜向不需要推到最大：两个轴都有明显输入就允许八角移动
+		if (Math.abs(moveX) > 0.2f && Math.abs(moveY) > 0.2f) {
+			dx = moveX > 0 ? 1 : -1;
+			dy = moveY > 0 ? 1 : -1;
+		} else if (dx == 0 && dy == 0) {
 			if (Math.abs(moveX) > Math.abs(moveY)) dx = moveX > 0 ? 1 : -1;
 			else dy = moveY > 0 ? 1 : -1;
 		}
