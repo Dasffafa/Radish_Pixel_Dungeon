@@ -103,18 +103,18 @@ public class RealtimeController extends Group {
 			return;
 		}
 
-		float speed = 3.6f;
+		float speed = 5.2f;
 		float dx = moveX * speed * Game.elapsed;
 		float dy = moveY * speed * Game.elapsed;
 
 		float nx = cellX + dx;
 		float ny = cellY + dy;
-		if (canStand(nx, ny)) {
+		if (canStandPath(cellX, cellY, nx, ny)) {
 			cellX = nx;
 			cellY = ny;
-		} else if (canStand(nx, cellY)) {
+		} else if (canStandPath(cellX, cellY, nx, cellY)) {
 			cellX = nx;
-		} else if (canStand(cellX, ny)) {
+		} else if (canStandPath(cellX, cellY, cellX, ny)) {
 			cellY = ny;
 		} else {
 			stopMoving();
@@ -136,8 +136,8 @@ public class RealtimeController extends Group {
 			Dungeon.hero.pos = cell;
 			Dungeon.observe();
 			GameScene.updateFog();
-			// 跨格才消耗回合，格内自由移动不消耗
-			Dungeon.hero.spend(1f);
+			// 跨格才消耗回合；spendAndNext 才会真正推进行动队列
+			Dungeon.hero.spendAndNext(1f);
 		}
 	}
 
@@ -155,6 +155,18 @@ public class RealtimeController extends Group {
 			wasMoving = false;
 			Dungeon.hero.sprite.idle();
 		}
+	}
+
+	private boolean canStandPath(float x0, float y0, float x1, float y1) {
+		float dx = x1 - x0;
+		float dy = y1 - y0;
+		float dist = (float) Math.sqrt(dx * dx + dy * dy);
+		int steps = Math.max(1, (int) Math.ceil(dist / 0.12f));
+		for (int s = 0; s <= steps; s++) {
+			float t = s / (float) steps;
+			if (!canStand(x0 + dx * t, y0 + dy * t)) return false;
+		}
+		return true;
 	}
 
 	private boolean canStand(float x, float y) {
