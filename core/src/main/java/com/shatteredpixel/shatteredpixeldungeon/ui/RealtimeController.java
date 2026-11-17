@@ -23,6 +23,7 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 	private final Joystick moveStick;
 	private final Joystick aimStick;
 	private final Image aimArrow;
+	private final RenderedTextBlock debug;
 
 	private float cellX, cellY;
 	private int lastCell = -1;
@@ -41,6 +42,11 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		add(moveStick);
 		add(aimStick);
 		add(aimArrow);
+
+		debug = PixelScene.renderTextBlock(7);
+		debug.camera = PixelScene.uiCamera;
+		debug.hardlight(0xFFFF66);
+		add(debug);
 		layout();
 		PointerEvent.addPointerListener(this);
 	}
@@ -103,8 +109,15 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 					- DungeonTilemap.SIZE * 6f / 16f;
 			Dungeon.hero.sprite.point(new PointF(PixelScene.align(Camera.main, sx), PixelScene.align(Camera.main, sy)));
 			if (Game.scene() instanceof GameScene) {
-				Camera.main.panFollow(Dungeon.hero.sprite, 6f);
+				Camera.main.panFollow(Dungeon.hero.sprite, 12f);
 			}
+		}
+
+		if (debug != null) {
+			debug.text(String.format(java.util.Locale.US,
+					"touch %b  L %.2f,%.2f  R %.2f,%.2f\ncell %.2f,%.2f  pos %d",
+					Gdx.input.isTouched(), moveX, moveY, aimX, aimY, cellX, cellY, Dungeon.hero.pos));
+			debug.setPos(8, 30);
 		}
 
 		int cell = (int) Math.floor(cellY) * Dungeon.level.width() + (int) Math.floor(cellX);
@@ -238,25 +251,16 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 	}
 
 	private float tryMove(float newX, float newY, float fallback) {
-		float radius = 0.28f;
-		int minX = (int) Math.floor(newX - radius);
-		int maxX = (int) Math.floor(newX + radius);
-		int minY = (int) Math.floor(newY - radius);
-		int maxY = (int) Math.floor(newY + radius);
-		int width = Dungeon.level.width();
-		for (int y = minY; y <= maxY; y++) {
-			for (int x = minX; x <= maxX; x++) {
-				if (x < 0 || y < 0 || x >= width || y >= Dungeon.level.height()) return fallback;
-				int cell = x + y * width;
-				if (!Dungeon.level.passable[cell]) return fallback;
-			}
-		}
-		return newX;
+		int x = (int) Math.floor(newX);
+		int y = (int) Math.floor(newY);
+		if (x < 0 || y < 0 || x >= Dungeon.level.width() || y >= Dungeon.level.height()) return fallback;
+		int cell = x + y * Dungeon.level.width();
+		return Dungeon.level.passable[cell] ? newX : fallback;
 	}
 
 	private Image arrow() {
 		Pixmap p = new Pixmap(12, 12, Pixmap.Format.RGBA8888);
-		p.setColor(Color.WHITE);
+		p.setColor(com.badlogic.gdx.graphics.Color.WHITE);
 		p.fillTriangle(0, 0, 0, 12, 12, 6);
 		SmartTexture t = new SmartTexture(p, Texture.LINEAR, Texture.CLAMP, false);
 		Image image = new Image(t);
