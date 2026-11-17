@@ -111,7 +111,17 @@ public class RealtimeController extends Group {
 			return;
 		}
 
-		if (Dungeon.hero.handle(target)) {
+		if (Dungeon.level.passable[target]
+				&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(target) == null
+				&& Dungeon.level.heaps.get(target) == null
+				&& Dungeon.level.getTransition(target) == null
+				&& Dungeon.level.map[target] != Terrain.DOOR) {
+			Dungeon.hero.move(target, false);
+			Dungeon.hero.spend(1f);
+			Dungeon.observe();
+			GameScene.updateFog();
+			stepCooldown = 0.22f;
+		} else if (Dungeon.hero.handle(target)) {
 			stepCooldown = 0.22f;
 		}
 	}
@@ -134,6 +144,11 @@ public class RealtimeController extends Group {
 				Point rc = aimStick.centerScreen();
 				float dl = (tx - lc.x) * (tx - lc.x) + (ty - lc.y) * (ty - lc.y);
 				float dr = (tx - rc.x) * (tx - rc.x) + (ty - rc.y) * (ty - rc.y);
+				float hit = Math.min(Game.width, Game.height) * 0.13f;
+				if (dl > hit * hit && dr > hit * hit) {
+					// 不在任何一个摇杆的触控范围内，不要把别的点击当摇杆
+					return;
+				}
 				activeLeft = dl <= dr;
 				pollStartX = activeLeft ? lc.x : rc.x;
 				pollStartY = activeLeft ? lc.y : rc.y;
