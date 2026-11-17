@@ -53,8 +53,8 @@ public class RealtimeController extends Group {
 	private void layout() {
 		float w = PixelScene.uiCamera.width;
 		float h = PixelScene.uiCamera.height;
-		moveStick.setBounds(8, h - 76, 24);
-		aimStick.setBounds(w - 32, h - 76, 24);
+		moveStick.setBounds(8, h - 82, 30);
+		aimStick.setBounds(w - 38, h - 82, 30);
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class RealtimeController extends Group {
 		if (stepCooldown > 0 || !Dungeon.hero.ready) return;
 
 		float len = (float) Math.sqrt(moveX * moveX + moveY * moveY);
-		if (len < 0.45f) return;
+		if (len < 0.30f) return;
 
 		int dx = Math.round(moveX);
 		int dy = Math.round(moveY);
@@ -124,9 +124,9 @@ public class RealtimeController extends Group {
 			}
 			Dungeon.observe();
 			GameScene.updateFog();
-			stepCooldown = 0.22f;
+			stepCooldown = 0.06f;
 		} else if (Dungeon.hero.handle(target)) {
-			stepCooldown = 0.22f;
+			stepCooldown = 0.06f;
 		}
 	}
 
@@ -148,7 +148,7 @@ public class RealtimeController extends Group {
 				Point rc = aimStick.centerScreen();
 				float dl = (tx - lc.x) * (tx - lc.x) + (ty - lc.y) * (ty - lc.y);
 				float dr = (tx - rc.x) * (tx - rc.x) + (ty - rc.y) * (ty - rc.y);
-				float hit = Math.min(Game.width, Game.height) * 0.13f;
+				float hit = Math.min(Game.width, Game.height) * 0.16f;
 				if (dl > hit * hit && dr > hit * hit) {
 					// 不在任何一个摇杆的触控范围内，不要把别的点击当摇杆
 					return;
