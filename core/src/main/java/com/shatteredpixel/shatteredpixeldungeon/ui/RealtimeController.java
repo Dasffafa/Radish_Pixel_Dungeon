@@ -116,8 +116,12 @@ public class RealtimeController extends Group {
 				&& Dungeon.level.heaps.get(target) == null
 				&& Dungeon.level.getTransition(target) == null
 				&& Dungeon.level.map[target] != Terrain.DOOR) {
+			int oldPos = Dungeon.hero.pos;
 			Dungeon.hero.move(target, false);
 			Dungeon.hero.spend(1f);
+			if (Dungeon.hero.sprite != null) {
+				Dungeon.hero.sprite.move(oldPos, target);
+			}
 			Dungeon.observe();
 			GameScene.updateFog();
 			stepCooldown = 0.22f;
