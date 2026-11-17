@@ -3,10 +3,9 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.gltextures.SmartTexture;
 import com.watabou.glwrap.Texture;
 import com.watabou.noosa.Camera;
@@ -14,10 +13,11 @@ import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Point;
+import com.watabou.utils.PointF;
 
 /**
- * 摇杆回合制：正常回合/饥饿规则不变，摇杆只负责选择下一步方向。
- * 每次推动只走一格，必须等英雄行动结束才能继续。
+ * 回合制 + 格内自由移动：
+ * 角色可以在当前格内任意位置连续移动；跨入新格时消耗一个回合。
  */
 public class RealtimeController extends Group {
 
@@ -30,8 +30,11 @@ public class RealtimeController extends Group {
 	private int activePointer = -1;
 	private boolean activeLeft;
 	private float pollStartX, pollStartY;
-	private float stepCooldown;
 	private float aimAngle;
+
+	private float cellX, cellY;
+	private boolean initialized;
+	private boolean wasMoving;
 
 	public RealtimeController() {
 		moveStick = new Joystick(42, 0xFFFFFF);
@@ -62,9 +65,13 @@ public class RealtimeController extends Group {
 		super.update();
 		if (Dungeon.hero == null || Dungeon.level == null) return;
 
-		pollTouches();
-		if (stepCooldown > 0) stepCooldown -= Game.elapsed;
+		if (!initialized) {
+			initialized = true;
+			cellX = Dungeon.hero.pos % Dungeon.level.width() + 0.5f;
+			cellY = Dungeon.hero.pos / Dungeon.level.width() + 0.5f;
+		}
 
+		pollTouches();
 		aimAngle = (float) Math.atan2(aimY, aimX);
 
 		if (Dungeon.hero.sprite != null) {
@@ -81,58 +88,81 @@ public class RealtimeController extends Group {
 
 		if (debug != null) {
 			debug.text(String.format(java.util.Locale.US,
-					"touch %b side %s  L %.2f,%.2f  R %.2f,%.2f\npos %d  ready %b",
+					"touch %b side %s  L %.2f,%.2f  R %.2f,%.2f\ncell %.2f,%.2f  pos %d  ready %b",
 					Gdx.input.isTouched(), activePointer < 0 ? "-" : (activeLeft ? "L" : "R"),
-					moveX, moveY, aimX, aimY, Dungeon.hero.pos, Dungeon.hero.ready));
+					moveX, moveY, aimX, aimY, cellX, cellY, Dungeon.hero.pos, Dungeon.hero.ready));
 			debug.setPos(8, 30);
 		}
 
-		if (stepCooldown > 0 || !Dungeon.hero.ready) return;
-		if (Dungeon.hero.sprite != null && Dungeon.hero.sprite.isMoving) return;
+		// 行动未结束时暂停移动，保持正常回合节奏
+		if (!Dungeon.hero.ready) return;
 
 		float len = (float) Math.sqrt(moveX * moveX + moveY * moveY);
-		if (len < 0.30f) return;
-
-		int dx = Math.round(moveX);
-		int dy = Math.round(moveY);
-		// 斜向不需要推到最大：两个轴都有明显输入就允许八角移动
-		if (Math.abs(moveX) > 0.2f && Math.abs(moveY) > 0.2f) {
-			dx = moveX > 0 ? 1 : -1;
-			dy = moveY > 0 ? 1 : -1;
-		} else if (dx == 0 && dy == 0) {
-			if (Math.abs(moveX) > Math.abs(moveY)) dx = moveX > 0 ? 1 : -1;
-			else dy = moveY > 0 ? 1 : -1;
-		}
-		int target = Dungeon.hero.pos + dx + dy * Dungeon.level.width();
-		if (target < 0 || target >= Dungeon.level.length()) return;
-
-		if (Dungeon.level.pit[target]) {
-			if (!com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm.jumpConfirmed) {
-				com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm.heroJump(Dungeon.hero);
-			} else {
-				com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm.heroFall(target);
-			}
-			stepCooldown = 0.35f;
+		if (len < 0.08f) {
+			stopMoving();
 			return;
 		}
 
-		if (Dungeon.level.passable[target]
-				&& com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(target) == null
-				&& Dungeon.level.heaps.get(target) == null
-				&& Dungeon.level.getTransition(target) == null
-				&& Dungeon.level.map[target] != Terrain.DOOR) {
-			int oldPos = Dungeon.hero.pos;
-			Dungeon.hero.move(target, false);
-			Dungeon.hero.spend(1f);
-			if (Dungeon.hero.sprite != null) {
-				Dungeon.hero.sprite.move(oldPos, target);
-			}
+		float speed = 3.6f;
+		float dx = moveX * speed * Game.elapsed;
+		float dy = moveY * speed * Game.elapsed;
+
+		float nx = cellX + dx;
+		float ny = cellY + dy;
+		if (canStand(nx, ny)) {
+			cellX = nx;
+			cellY = ny;
+		} else if (canStand(nx, cellY)) {
+			cellX = nx;
+		} else if (canStand(cellX, ny)) {
+			cellY = ny;
+		} else {
+			stopMoving();
+			return;
+		}
+
+		startMoving(dx, dy);
+
+		if (Dungeon.hero.sprite != null) {
+			float sx = cellX * DungeonTilemap.SIZE - Dungeon.hero.sprite.width() / 2f;
+			float sy = (cellY + 0.5f) * DungeonTilemap.SIZE - Dungeon.hero.sprite.height()
+					- DungeonTilemap.SIZE * 6f / 16f;
+			Dungeon.hero.sprite.point(new PointF(PixelScene.align(Camera.main, sx), PixelScene.align(Camera.main, sy)));
+			Camera.main.panFollow(Dungeon.hero.sprite, 12f);
+		}
+
+		int cell = (int) Math.floor(cellY) * Dungeon.level.width() + (int) Math.floor(cellX);
+		if (cell != Dungeon.hero.pos && Dungeon.level.passable[cell]) {
+			Dungeon.hero.pos = cell;
 			Dungeon.observe();
 			GameScene.updateFog();
-			stepCooldown = 0.12f;
-		} else if (Dungeon.hero.handle(target)) {
-			stepCooldown = 0.12f;
+			// 跨格才消耗回合，格内自由移动不消耗
+			Dungeon.hero.spend(1f);
 		}
+	}
+
+	private void startMoving(float dx, float dy) {
+		if (Dungeon.hero.sprite == null) return;
+		if (!wasMoving) {
+			wasMoving = true;
+			Dungeon.hero.sprite.playRun();
+		}
+		if (Math.abs(dx) > 0.0001f) Dungeon.hero.sprite.flipHorizontal = dx < 0;
+	}
+
+	private void stopMoving() {
+		if (wasMoving && Dungeon.hero.sprite != null) {
+			wasMoving = false;
+			Dungeon.hero.sprite.idle();
+		}
+	}
+
+	private boolean canStand(float x, float y) {
+		int cx = (int) Math.floor(x);
+		int cy = (int) Math.floor(y);
+		if (cx < 0 || cy < 0 || cx >= Dungeon.level.width() || cy >= Dungeon.level.height()) return false;
+		int cell = cx + cy * Dungeon.level.width();
+		return Dungeon.level.passable[cell] && !Dungeon.level.pit[cell];
 	}
 
 	private void pollTouches() {
@@ -148,16 +178,13 @@ public class RealtimeController extends Group {
 			if (Gdx.input.isTouched(i)) {
 				float tx = Gdx.input.getX(i);
 				float ty = Gdx.input.getY(i);
-				activePointer = i;
 				Point lc = moveStick.centerScreen();
 				Point rc = aimStick.centerScreen();
 				float dl = (tx - lc.x) * (tx - lc.x) + (ty - lc.y) * (ty - lc.y);
 				float dr = (tx - rc.x) * (tx - rc.x) + (ty - rc.y) * (ty - rc.y);
 				float hit = Math.min(Game.width, Game.height) * 0.16f;
-				if (dl > hit * hit && dr > hit * hit) {
-					// 不在任何一个摇杆的触控范围内，不要把别的点击当摇杆
-					return;
-				}
+				if (dl > hit * hit && dr > hit * hit) return;
+				activePointer = i;
 				activeLeft = dl <= dr;
 				pollStartX = activeLeft ? lc.x : rc.x;
 				pollStartY = activeLeft ? lc.y : rc.y;
