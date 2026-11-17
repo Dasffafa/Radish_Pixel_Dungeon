@@ -79,6 +79,15 @@ public class RealtimeController extends Group {
 
 		float nx = cellX + dx;
 		float ny = cellY + dy;
+
+		int door = doorInPath(cellX, cellY, nx, ny);
+		if (door != -1) {
+			// 撞到门时交给原版交互：开门/解锁，不直接穿过去
+			Dungeon.hero.handle(door);
+			stopMoving();
+			return;
+		}
+
 		if (canStandPath(cellX, cellY, nx, ny)) {
 			cellX = nx;
 			cellY = ny;
@@ -103,7 +112,7 @@ public class RealtimeController extends Group {
 
 		int cell = (int) Math.floor(cellY) * Dungeon.level.width() + (int) Math.floor(cellX);
 		if (cell != Dungeon.hero.pos && Dungeon.level.passable[cell]) {
-			Dungeon.hero.pos = cell;
+			Dungeon.hero.move(cell, true);
 			Dungeon.observe();
 			GameScene.updateFog();
 			Dungeon.hero.spendAndNext(1f);
@@ -123,6 +132,26 @@ public class RealtimeController extends Group {
 			wasMoving = false;
 			Dungeon.hero.sprite.idle();
 		}
+	}
+
+	private int doorInPath(float x0, float y0, float x1, float y1) {
+		float dx = x1 - x0;
+		float dy = y1 - y0;
+		float dist = (float) Math.sqrt(dx * dx + dy * dy);
+		int steps = Math.max(1, (int) Math.ceil(dist / 0.10f));
+		for (int s = 0; s <= steps; s++) {
+			float t = s / (float) steps;
+			int cx = (int) Math.floor(x0 + dx * t);
+			int cy = (int) Math.floor(y0 + dy * t);
+			if (cx < 0 || cy < 0 || cx >= Dungeon.level.width() || cy >= Dungeon.level.height()) continue;
+			int cell = cx + cy * Dungeon.level.width();
+			if (Dungeon.level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.DOOR
+					|| Dungeon.level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.LOCKED_DOOR
+					|| Dungeon.level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.CRYSTAL_DOOR) {
+				return cell;
+			}
+		}
+		return -1;
 	}
 
 	private boolean canStandPath(float x0, float y0, float x1, float y1) {
