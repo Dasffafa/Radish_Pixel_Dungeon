@@ -3,6 +3,8 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.watabou.gltextures.SmartTexture;
 import com.watabou.glwrap.Texture;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.watabou.utils.Point;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 
@@ -36,6 +38,10 @@ public class Joystick extends Group {
 		float maxOffset = size * 0.25f;
 		knob.setPos(base.x + size * 0.25f + nx * maxOffset,
 				base.y + size * 0.25f + ny * maxOffset);
+	}
+
+	public Point centerScreen() {
+		return PixelScene.uiCamera.cameraToScreen(base.x + size / 2f, base.y + size / 2f);
 	}
 
 	public float getXAxis() { return nx; }

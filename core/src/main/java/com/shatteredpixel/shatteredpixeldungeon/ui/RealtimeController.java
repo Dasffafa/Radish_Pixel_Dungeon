@@ -149,9 +149,15 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		for (int i = 0; i < 2; i++) {
 			if (Gdx.input.isTouched(i)) {
 				activePointer = i;
-				activeLeft = Gdx.input.getX(i) < Gdx.graphics.getWidth() / 2f;
-				pollStartX = Gdx.input.getX(i);
-				pollStartY = Gdx.input.getY(i);
+				float tx = Gdx.input.getX(i);
+				float ty = Gdx.input.getY(i);
+				com.watabou.utils.Point lc = moveStick.centerScreen();
+				com.watabou.utils.Point rc = aimStick.centerScreen();
+				float dl = (tx - lc.x) * (tx - lc.x) + (ty - lc.y) * (ty - lc.y);
+				float dr = (tx - rc.x) * (tx - rc.x) + (ty - rc.y) * (ty - rc.y);
+				activeLeft = dl <= dr;
+				pollStartX = tx;
+				pollStartY = ty;
 				return;
 			}
 		}
