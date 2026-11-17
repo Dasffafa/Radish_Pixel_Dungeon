@@ -29,9 +29,11 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 	private int lastCell = -1;
 	private float aimAngle;
 
-	private int leftId = -1, rightId = -1;
-	private float leftStartX, leftStartY, rightStartX, rightStartY;
 	private float moveX, moveY, aimX, aimY;
+	private boolean initialized;
+	private int activePointer = -1;
+	private boolean activeLeft;
+	private float pollStartX, pollStartY;
 
 	public RealtimeController() {
 		moveStick = new Joystick(42, 0xFFFFFF);
@@ -63,7 +65,8 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		super.update();
 		if (Dungeon.hero == null || Dungeon.level == null) return;
 
-		if (lastCell != Dungeon.hero.pos) {
+		if (!initialized) {
+			initialized = true;
 			lastCell = Dungeon.hero.pos;
 			cellX = lastCell % Dungeon.level.width() + 0.5f;
 			cellY = lastCell / Dungeon.level.width() + 0.5f;
@@ -115,8 +118,9 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 
 		if (debug != null) {
 			debug.text(String.format(java.util.Locale.US,
-					"touch %b  L %.2f,%.2f  R %.2f,%.2f\ncell %.2f,%.2f  pos %d",
-					Gdx.input.isTouched(), moveX, moveY, aimX, aimY, cellX, cellY, Dungeon.hero.pos));
+					"touch %b side %s  L %.2f,%.2f  R %.2f,%.2f\ncell %.2f,%.2f  pos %d",
+					Gdx.input.isTouched(), activePointer < 0 ? "-" : (activeLeft ? "L" : "R"),
+					moveX, moveY, aimX, aimY, cellX, cellY, Dungeon.hero.pos));
 			debug.setPos(8, 30);
 		}
 
@@ -130,104 +134,38 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 
 	@Override
 	public boolean onSignal(PointerEvent event) {
-		if (event == null) return false;
-		float screenY = event.current.y;
-		if (screenY < Game.height * 0.55f) {
-			// 上半屏留给正常 UI/点击
-			return false;
-		}
-
-		if (event.type == PointerEvent.Type.DOWN) {
-			if (event.current.x < Game.width / 2f) {
-				if (leftId == -1) {
-					leftId = event.id;
-					leftStartX = event.current.x;
-					leftStartY = event.current.y;
-					moveX = moveY = 0;
-					return true;
-				}
-			} else {
-				if (rightId == -1) {
-					rightId = event.id;
-					rightStartX = event.current.x;
-					rightStartY = event.current.y;
-					aimX = aimY = 0;
-					return true;
-				}
-			}
-		} else if (event.type == PointerEvent.Type.HOVER) {
-			if (event.id == leftId) {
-				setAxes(event.current.x - leftStartX, event.current.y - leftStartY, true);
-				return true;
-			} else if (event.id == rightId) {
-				setAxes(event.current.x - rightStartX, event.current.y - rightStartY, false);
-				return true;
-			}
-		} else if (event.type == PointerEvent.Type.UP) {
-			if (event.id == leftId) {
-				leftId = -1;
-				moveX = moveY = 0;
-				moveStick.setAxes(0, 0);
-				return true;
-			} else if (event.id == rightId) {
-				rightId = -1;
-				aimX = aimY = 0;
-				aimStick.setAxes(0, 0);
-				return true;
-			}
-		}
 		return false;
 	}
 
-
-	private boolean leftDown, rightDown;
-	private float leftStartX2, leftStartY2, rightStartX2, rightStartY2;
-
 	private void pollTouches() {
-		com.badlogic.gdx.Gdx.app.log("RTPoll", "t0=" + Gdx.input.isTouched(0) + " t1=" + Gdx.input.isTouched(1)
-				+ " x=" + Gdx.input.getX() + " y=" + Gdx.input.getY()
-				+ " w=" + Gdx.graphics.getWidth() + " h=" + Gdx.graphics.getHeight());
-		boolean any = false;
-		if (Gdx.input.isTouched(0)) {
-			any = true;
-			handleTouch(0);
+		if (activePointer >= 0) {
+			if (!Gdx.input.isTouched(activePointer)) {
+				resetStick();
+			} else {
+				updateStick(activePointer);
+			}
+			return;
 		}
-		if (Gdx.input.isTouched(1)) {
-			any = true;
-			handleTouch(1);
-		}
-		if (!any) {
-			leftDown = rightDown = false;
-			moveX = moveY = aimX = aimY = 0;
-			moveStick.setAxes(0, 0);
-			aimStick.setAxes(0, 0);
+		for (int i = 0; i < 2; i++) {
+			if (Gdx.input.isTouched(i)) {
+				activePointer = i;
+				activeLeft = Gdx.input.getX(i) < Gdx.graphics.getWidth() / 2f;
+				pollStartX = Gdx.input.getX(i);
+				pollStartY = Gdx.input.getY(i);
+				return;
+			}
 		}
 	}
 
-	private void handleTouch(int index) {
-		float x = Gdx.input.getX(index);
-		float y = Gdx.input.getY(index);
-		float w = Gdx.graphics.getWidth();
-		float h = Gdx.graphics.getHeight();
-		if (y < h * 0.55f) return;
-		boolean left = x < w / 2f;
-		if (left) {
-			if (!leftDown) {
-				leftDown = true;
-				leftStartX2 = x;
-				leftStartY2 = y;
-				return;
-			}
-			setAxes(x - leftStartX2, y - leftStartY2, true);
-		} else {
-			if (!rightDown) {
-				rightDown = true;
-				rightStartX2 = x;
-				rightStartY2 = y;
-				return;
-			}
-			setAxes(x - rightStartX2, y - rightStartY2, false);
-		}
+	private void updateStick(int pointer) {
+		setAxes(Gdx.input.getX(pointer) - pollStartX, Gdx.input.getY(pointer) - pollStartY, activeLeft);
+	}
+
+	private void resetStick() {
+		activePointer = -1;
+		moveX = moveY = aimX = aimY = 0;
+		moveStick.setAxes(0, 0);
+		aimStick.setAxes(0, 0);
 	}
 
 	private void setAxes(float dx, float dy, boolean left) {
