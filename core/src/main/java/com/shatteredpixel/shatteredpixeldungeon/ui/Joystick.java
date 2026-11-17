@@ -7,12 +7,14 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.utils.Point;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
+import com.watabou.noosa.PointerArea;
 
 /** 摇杆视觉；输入由 RealtimeController 统一处理。 */
 public class Joystick extends Group {
 
 	private final Image base;
 	private final Image knob;
+	private final PointerArea blocker;
 	private float nx, ny;
 	private float size;
 
@@ -22,6 +24,11 @@ public class Joystick extends Group {
 		knob = circle(radius, 0xFFFFFF, 0.75f);
 		add(base);
 		add(knob);
+
+		blocker = new PointerArea(0, 0, 0, 0);
+		blocker.camera = PixelScene.uiCamera;
+		blocker.blockLevel = PointerArea.ALWAYS_BLOCK;
+		add(blocker);
 	}
 
 	public void setBounds(float x, float y, float diameter) {
@@ -30,6 +37,10 @@ public class Joystick extends Group {
 		knob.scale.set(diameter * 0.5f / knob.width(), diameter * 0.5f / knob.height());
 		base.setPos(x, y);
 		knob.setPos(x + diameter * 0.25f, y + diameter * 0.25f);
+		blocker.x = x;
+		blocker.y = y;
+		blocker.width = diameter;
+		blocker.height = diameter;
 	}
 
 	public void setAxes(float nx, float ny) {
