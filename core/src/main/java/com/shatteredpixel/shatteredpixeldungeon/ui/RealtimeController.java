@@ -120,10 +120,18 @@ public class RealtimeController extends Group {
 
 		int cell = (int) Math.floor(cellY) * Dungeon.level.width() + (int) Math.floor(cellX);
 		if (cell != Dungeon.hero.pos && Dungeon.level.passable[cell]) {
+			int oldPos = Dungeon.hero.pos;
 			Dungeon.hero.move(cell, true);
-			Dungeon.observe();
-			GameScene.updateFog();
-			Dungeon.hero.spendAndNext(1f);
+			if (Dungeon.hero.pos != oldPos) {
+				Dungeon.observe();
+				GameScene.updateFog();
+				Dungeon.hero.spendAndNext(1f);
+			} else {
+				// 被怪物/物件挡住时没有真正进格，不能白扣回合
+				cellX = Dungeon.hero.pos % Dungeon.level.width() + 0.5f;
+				cellY = Dungeon.hero.pos / Dungeon.level.width() + 0.5f;
+				stopMoving();
+			}
 		}
 	}
 
