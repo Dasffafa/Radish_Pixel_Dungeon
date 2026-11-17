@@ -1,6 +1,11 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Color;
+import com.watabou.gltextures.SmartTexture;
+import com.watabou.glwrap.Texture;
+import com.watabou.noosa.Image;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -17,6 +22,7 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 
 	private final Joystick moveStick;
 	private final Joystick aimStick;
+	private final Image aimArrow;
 
 	private float cellX, cellY;
 	private int lastCell = -1;
@@ -29,8 +35,12 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 	public RealtimeController() {
 		moveStick = new Joystick(42, 0xFFFFFF);
 		aimStick = new Joystick(42, 0xFFFFFF);
+		aimArrow = arrow();
+		aimArrow.camera = Camera.main;
+		aimArrow.visible = false;
 		add(moveStick);
 		add(aimStick);
+		add(aimArrow);
 		layout();
 		PointerEvent.addPointerListener(this);
 	}
@@ -77,6 +87,15 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		aimAngle = (float) Math.atan2(aimY, aimX);
 
 		if (Dungeon.hero.sprite != null) {
+			float am = (float) Math.sqrt(aimX * aimX + aimY * aimY);
+			aimArrow.visible = am > 0.05f;
+			if (aimArrow.visible) {
+				aimArrow.angle = aimAngle * 180f / (float) Math.PI;
+				aimArrow.setPos(Dungeon.hero.sprite.x + Dungeon.hero.sprite.width() / 2f
+								+ (float) Math.cos(aimAngle) * 18f,
+						Dungeon.hero.sprite.y + Dungeon.hero.sprite.height() / 2f
+								+ (float) Math.sin(aimAngle) * 18f);
+			}
 			float sx = cellX * DungeonTilemap.SIZE - Dungeon.hero.sprite.width() / 2f;
 			float sy = (cellY + 0.5f) * DungeonTilemap.SIZE - Dungeon.hero.sprite.height()
 					- DungeonTilemap.SIZE * 6f / 16f;
@@ -228,6 +247,16 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 			}
 		}
 		return newX;
+	}
+
+	private Image arrow() {
+		Pixmap p = new Pixmap(12, 12, Pixmap.Format.RGBA8888);
+		p.setColor(Color.WHITE);
+		p.fillTriangle(0, 0, 0, 12, 12, 6);
+		SmartTexture t = new SmartTexture(p, Texture.LINEAR, Texture.CLAMP, false);
+		Image image = new Image(t);
+		image.origin.set(6, 6);
+		return image;
 	}
 
 	public float aimAngle() {
