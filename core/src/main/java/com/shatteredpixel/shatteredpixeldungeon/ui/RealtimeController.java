@@ -30,6 +30,7 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 	private float aimAngle;
 
 	private float moveX, moveY, aimX, aimY;
+	private boolean wasMoving;
 	private boolean initialized;
 	private int activePointer = -1;
 	private boolean activeLeft;
@@ -102,6 +103,15 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		aimAngle = (float) Math.atan2(aimY, aimX);
 
 		if (Dungeon.hero.sprite != null) {
+			boolean moving = Math.abs(moveX) + Math.abs(moveY) > 0.05f;
+			if (moving != wasMoving) {
+				wasMoving = moving;
+				if (moving) Dungeon.hero.sprite.playRun();
+				else Dungeon.hero.sprite.idle();
+			}
+			if (moving) {
+				Dungeon.hero.sprite.flipHorizontal = moveX < 0;
+			}
 			float am = (float) Math.sqrt(aimX * aimX + aimY * aimY);
 			aimArrow.visible = am > 0.05f;
 			if (aimArrow.visible) {

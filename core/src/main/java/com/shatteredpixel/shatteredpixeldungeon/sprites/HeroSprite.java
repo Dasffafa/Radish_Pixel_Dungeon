@@ -216,7 +216,10 @@ public class HeroSprite extends CharSprite {
 		Camera.main.panFollow(this, 20f);
 	}
 
-	@Override
+	public void playRun() {
+		play(run);
+	}
+
 	public void idle() {
 		super.idle();
 		if (ch != null && ch.flying) {
