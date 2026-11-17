@@ -76,6 +76,8 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		float dy = ay * speed * Game.elapsed;
 
 		if (dx != 0 || dy != 0) {
+			com.badlogic.gdx.Gdx.app.log("RTMove", "mx=" + moveX + " my=" + moveY
+					+ " cx=" + cellX + " cy=" + cellY + " pos=" + Dungeon.hero.pos);
 			float oldX = cellX;
 			cellX = tryMove(cellX + dx, cellY, cellX);
 			cellY = tryMove(cellX, cellY + dy, cellY);
@@ -169,6 +171,9 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 	private float leftStartX2, leftStartY2, rightStartX2, rightStartY2;
 
 	private void pollTouches() {
+		com.badlogic.gdx.Gdx.app.log("RTPoll", "t0=" + Gdx.input.isTouched(0) + " t1=" + Gdx.input.isTouched(1)
+				+ " x=" + Gdx.input.getX() + " y=" + Gdx.input.getY()
+				+ " w=" + Gdx.graphics.getWidth() + " h=" + Gdx.graphics.getHeight());
 		boolean any = false;
 		if (Gdx.input.isTouched(0)) {
 			any = true;
