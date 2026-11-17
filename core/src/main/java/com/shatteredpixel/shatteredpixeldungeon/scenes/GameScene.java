@@ -162,6 +162,7 @@ public class GameScene extends PixelScene {
 	private RaisedTerrainTilemap raisedTerrain;
 	private DungeonWallsTilemap walls;
 	private WallBlockingTilemap wallBlocking;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.RealtimeController realtime;
 	private FogOfWar fog;
 	private HeroSprite hero;
 
@@ -349,6 +350,12 @@ public class GameScene extends PixelScene {
 		fog = new FogOfWar( Dungeon.level.width(), Dungeon.level.height() );
 		add( fog );
 
+		if (Dungeon.isChallenged(com.shatteredpixel.shatteredpixeldungeon.Challenges.REALTIME)) {
+			realtime = new com.shatteredpixel.shatteredpixeldungeon.ui.RealtimeController();
+			realtime.camera = uiCamera;
+			add(realtime);
+		}
+
 		spells = new Group();
 		add( spells );
 
@@ -364,6 +371,10 @@ public class GameScene extends PixelScene {
 		add( emoicons );
 		
 		add( cellSelector = new CellSelector( tiles ) );
+		if (realtime != null) {
+			cellSelector.visible = false;
+			cellSelector.active = false;
+		}
 
 		int uiSize = SPDSettings.interfaceSize();
 
