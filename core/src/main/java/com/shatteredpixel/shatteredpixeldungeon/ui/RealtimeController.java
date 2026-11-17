@@ -2,39 +2,36 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Color;
-import com.watabou.gltextures.SmartTexture;
-import com.watabou.glwrap.Texture;
-import com.watabou.noosa.Image;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
-import com.watabou.input.PointerEvent;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.watabou.gltextures.SmartTexture;
+import com.watabou.glwrap.Texture;
 import com.watabou.noosa.Camera;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
-import com.watabou.utils.PointF;
-import com.watabou.utils.Signal;
+import com.watabou.noosa.Image;
+import com.watabou.utils.Point;
 
-/** 第一阶段：双摇杆、360°连续移动，不消耗回合。 */
-public class RealtimeController extends Group implements Signal.Listener<PointerEvent> {
+/**
+ * 摇杆回合制：正常回合/饥饿规则不变，摇杆只负责选择下一步方向。
+ * 每次推动只走一格，必须等英雄行动结束才能继续。
+ */
+public class RealtimeController extends Group {
 
 	private final Joystick moveStick;
 	private final Joystick aimStick;
 	private final Image aimArrow;
 	private final RenderedTextBlock debug;
 
-	private float cellX, cellY;
-	private int lastCell = -1;
-	private float aimAngle;
-
 	private float moveX, moveY, aimX, aimY;
-	private boolean wasMoving;
-	private boolean initialized;
 	private int activePointer = -1;
 	private boolean activeLeft;
 	private float pollStartX, pollStartY;
+	private float stepCooldown;
+	private float aimAngle;
 
 	public RealtimeController() {
 		moveStick = new Joystick(42, 0xFFFFFF);
@@ -51,7 +48,6 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		debug.hardlight(0xFFFF66);
 		add(debug);
 		layout();
-		PointerEvent.addPointerListener(this);
 	}
 
 	private void layout() {
@@ -66,52 +62,12 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		super.update();
 		if (Dungeon.hero == null || Dungeon.level == null) return;
 
-		if (!initialized) {
-			initialized = true;
-			lastCell = Dungeon.hero.pos;
-			cellX = lastCell % Dungeon.level.width() + 0.5f;
-			cellY = lastCell / Dungeon.level.width() + 0.5f;
-		}
-
 		pollTouches();
-
-		float len = (float) Math.sqrt(moveX * moveX + moveY * moveY);
-		float ax = moveX, ay = moveY;
-		if (len > 1f) {
-			ax /= len;
-			ay /= len;
-		}
-		float speed = 5.8f;
-		float dx = ax * speed * Game.elapsed;
-		float dy = ay * speed * Game.elapsed;
-
-		if (dx != 0 || dy != 0) {
-			com.badlogic.gdx.Gdx.app.log("RTMove", "mx=" + moveX + " my=" + moveY
-					+ " cx=" + cellX + " cy=" + cellY + " pos=" + Dungeon.hero.pos);
-			float nx = cellX + dx;
-			float ny = cellY + dy;
-			if (canStand(nx, ny)) {
-				cellX = nx;
-				cellY = ny;
-			} else if (canStand(nx, cellY)) {
-				cellX = nx;
-			} else if (canStand(cellX, ny)) {
-				cellY = ny;
-			}
-		}
+		if (stepCooldown > 0) stepCooldown -= Game.elapsed;
 
 		aimAngle = (float) Math.atan2(aimY, aimX);
 
 		if (Dungeon.hero.sprite != null) {
-			boolean moving = Math.abs(moveX) + Math.abs(moveY) > 0.05f;
-			if (moving != wasMoving) {
-				wasMoving = moving;
-				if (moving) Dungeon.hero.sprite.playRun();
-				else Dungeon.hero.sprite.idle();
-			}
-			if (moving) {
-				Dungeon.hero.sprite.flipHorizontal = moveX < 0;
-			}
 			float am = (float) Math.sqrt(aimX * aimX + aimY * aimY);
 			aimArrow.visible = am > 0.05f;
 			if (aimArrow.visible) {
@@ -121,34 +77,43 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 						Dungeon.hero.sprite.y + Dungeon.hero.sprite.height() / 2f
 								+ (float) Math.sin(aimAngle) * 18f);
 			}
-			float sx = cellX * DungeonTilemap.SIZE - Dungeon.hero.sprite.width() / 2f;
-			float sy = (cellY + 0.5f) * DungeonTilemap.SIZE - Dungeon.hero.sprite.height()
-					- DungeonTilemap.SIZE * 6f / 16f;
-			Dungeon.hero.sprite.point(new PointF(PixelScene.align(Camera.main, sx), PixelScene.align(Camera.main, sy)));
-			if (Game.scene() instanceof GameScene) {
-				Camera.main.panFollow(Dungeon.hero.sprite, 12f);
-			}
 		}
 
 		if (debug != null) {
 			debug.text(String.format(java.util.Locale.US,
-					"touch %b side %s  L %.2f,%.2f  R %.2f,%.2f\ncell %.2f,%.2f  pos %d",
+					"touch %b side %s  L %.2f,%.2f  R %.2f,%.2f\npos %d  ready %b",
 					Gdx.input.isTouched(), activePointer < 0 ? "-" : (activeLeft ? "L" : "R"),
-					moveX, moveY, aimX, aimY, cellX, cellY, Dungeon.hero.pos));
+					moveX, moveY, aimX, aimY, Dungeon.hero.pos, Dungeon.hero.ready));
 			debug.setPos(8, 30);
 		}
 
-		int cell = (int) Math.floor(cellY) * Dungeon.level.width() + (int) Math.floor(cellX);
-		if (cell != Dungeon.hero.pos && Dungeon.level.passable[cell]) {
-			Dungeon.hero.pos = cell;
-			Dungeon.observe();
-			GameScene.updateFog();
-		}
-	}
+		if (stepCooldown > 0 || !Dungeon.hero.ready) return;
 
-	@Override
-	public boolean onSignal(PointerEvent event) {
-		return false;
+		float len = (float) Math.sqrt(moveX * moveX + moveY * moveY);
+		if (len < 0.45f) return;
+
+		int dx = Math.round(moveX);
+		int dy = Math.round(moveY);
+		if (dx == 0 && dy == 0) {
+			if (Math.abs(moveX) > Math.abs(moveY)) dx = moveX > 0 ? 1 : -1;
+			else dy = moveY > 0 ? 1 : -1;
+		}
+		int target = Dungeon.hero.pos + dx + dy * Dungeon.level.width();
+		if (target < 0 || target >= Dungeon.level.length()) return;
+
+		if (Dungeon.level.pit[target]) {
+			if (!com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm.jumpConfirmed) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm.heroJump(Dungeon.hero);
+			} else {
+				com.shatteredpixel.shatteredpixeldungeon.levels.features.Chasm.heroFall(target);
+			}
+			stepCooldown = 0.35f;
+			return;
+		}
+
+		if (Dungeon.hero.handle(target)) {
+			stepCooldown = 0.22f;
+		}
 	}
 
 	private void pollTouches() {
@@ -162,22 +127,16 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		}
 		for (int i = 0; i < 2; i++) {
 			if (Gdx.input.isTouched(i)) {
-				activePointer = i;
 				float tx = Gdx.input.getX(i);
 				float ty = Gdx.input.getY(i);
-				com.watabou.utils.Point lc = moveStick.centerScreen();
-				com.watabou.utils.Point rc = aimStick.centerScreen();
+				activePointer = i;
+				Point lc = moveStick.centerScreen();
+				Point rc = aimStick.centerScreen();
 				float dl = (tx - lc.x) * (tx - lc.x) + (ty - lc.y) * (ty - lc.y);
 				float dr = (tx - rc.x) * (tx - rc.x) + (ty - rc.y) * (ty - rc.y);
 				activeLeft = dl <= dr;
-				// 用摇杆中心作为原点，避免第一帧 getX/getY 为 0 时产生巨大位移
-				if (activeLeft) {
-					pollStartX = lc.x;
-					pollStartY = lc.y;
-				} else {
-					pollStartX = rc.x;
-					pollStartY = rc.y;
-				}
+				pollStartX = activeLeft ? lc.x : rc.x;
+				pollStartY = activeLeft ? lc.y : rc.y;
 				return;
 			}
 		}
@@ -214,13 +173,6 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 			aimY = ny;
 			aimStick.setAxes(nx, ny);
 		}
-	}
-
-	private boolean canStand(float x, float y) {
-		int cx = (int) Math.floor(x);
-		int cy = (int) Math.floor(y);
-		if (cx < 0 || cy < 0 || cx >= Dungeon.level.width() || cy >= Dungeon.level.height()) return false;
-		return Dungeon.level.passable[cx + cy * Dungeon.level.width()];
 	}
 
 	private Image arrow() {
