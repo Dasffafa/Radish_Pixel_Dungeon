@@ -156,8 +156,14 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 				float dl = (tx - lc.x) * (tx - lc.x) + (ty - lc.y) * (ty - lc.y);
 				float dr = (tx - rc.x) * (tx - rc.x) + (ty - rc.y) * (ty - rc.y);
 				activeLeft = dl <= dr;
-				pollStartX = tx;
-				pollStartY = ty;
+				// 用摇杆中心作为原点，避免第一帧 getX/getY 为 0 时产生巨大位移
+				if (activeLeft) {
+					pollStartX = lc.x;
+					pollStartY = lc.y;
+				} else {
+					pollStartX = rc.x;
+					pollStartY = rc.y;
+				}
 				return;
 			}
 		}
@@ -183,6 +189,8 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		}
 		float nx = dx / max;
 		float ny = dy / max;
+		if (Math.abs(nx) < 0.08f) nx = 0;
+		if (Math.abs(ny) < 0.08f) ny = 0;
 		if (left) {
 			moveX = nx;
 			moveY = ny;
