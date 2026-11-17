@@ -88,6 +88,7 @@ public class RealtimeController extends Group {
 		}
 
 		if (stepCooldown > 0 || !Dungeon.hero.ready) return;
+		if (Dungeon.hero.sprite != null && Dungeon.hero.sprite.isMoving) return;
 
 		float len = (float) Math.sqrt(moveX * moveX + moveY * moveY);
 		if (len < 0.30f) return;
@@ -124,9 +125,9 @@ public class RealtimeController extends Group {
 			}
 			Dungeon.observe();
 			GameScene.updateFog();
-			stepCooldown = 0.06f;
+			stepCooldown = 0.12f;
 		} else if (Dungeon.hero.handle(target)) {
-			stepCooldown = 0.06f;
+			stepCooldown = 0.12f;
 		}
 	}
 
