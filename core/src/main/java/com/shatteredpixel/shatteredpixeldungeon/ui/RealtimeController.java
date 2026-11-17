@@ -82,8 +82,16 @@ public class RealtimeController extends Group {
 
 		int door = doorInPath(cellX, cellY, nx, ny);
 		if (door != -1) {
-			// 撞到门时交给原版交互：开门/解锁，不直接穿过去
-			Dungeon.hero.handle(door);
+			if (Dungeon.level.map[door] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.DOOR) {
+				// 普通门直接打开，避免反复撞门被弹回
+				Dungeon.level.set(door, com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.OPEN_DOOR);
+				GameScene.updateMap(door);
+				Dungeon.observe();
+				Dungeon.hero.spendAndNext(1f);
+			} else {
+				// 锁门/水晶门交给原版交互
+				Dungeon.hero.handle(door);
+			}
 			stopMoving();
 			return;
 		}
