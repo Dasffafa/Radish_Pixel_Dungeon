@@ -87,11 +87,15 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		if (dx != 0 || dy != 0) {
 			com.badlogic.gdx.Gdx.app.log("RTMove", "mx=" + moveX + " my=" + moveY
 					+ " cx=" + cellX + " cy=" + cellY + " pos=" + Dungeon.hero.pos);
-			float oldX = cellX;
-			cellX = tryMove(cellX + dx, cellY, cellX);
-			cellY = tryMove(cellX, cellY + dy, cellY);
-			if (oldX != cellX || cellY != lastCell / Dungeon.level.width() + 0.5f) {
-				// moved
+			float nx = cellX + dx;
+			float ny = cellY + dy;
+			if (canStand(nx, ny)) {
+				cellX = nx;
+				cellY = ny;
+			} else if (canStand(nx, cellY)) {
+				cellX = nx;
+			} else if (canStand(cellX, ny)) {
+				cellY = ny;
 			}
 		}
 
@@ -202,12 +206,11 @@ public class RealtimeController extends Group implements Signal.Listener<Pointer
 		}
 	}
 
-	private float tryMove(float newX, float newY, float fallback) {
-		int x = (int) Math.floor(newX);
-		int y = (int) Math.floor(newY);
-		if (x < 0 || y < 0 || x >= Dungeon.level.width() || y >= Dungeon.level.height()) return fallback;
-		int cell = x + y * Dungeon.level.width();
-		return Dungeon.level.passable[cell] ? newX : fallback;
+	private boolean canStand(float x, float y) {
+		int cx = (int) Math.floor(x);
+		int cy = (int) Math.floor(y);
+		if (cx < 0 || cy < 0 || cx >= Dungeon.level.width() || cy >= Dungeon.level.height()) return false;
+		return Dungeon.level.passable[cx + cy * Dungeon.level.width()];
 	}
 
 	private Image arrow() {
