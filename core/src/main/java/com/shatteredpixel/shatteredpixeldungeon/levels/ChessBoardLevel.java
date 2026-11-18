@@ -15,21 +15,26 @@ import com.watabou.noosa.audio.Music;
 import com.watabou.utils.Callback;
 
 /**
- * 自走棋棋盘：15×15 空场。
+ * 自走棋棋盘：15×15。
  *
- * <p>左半边（x 2..6）是玩家布阵区，右半边（x 9..13）是敌方出怪区；
- * 左上角掏了一个 {@link #SPECTATOR_X}..{@link #SPECTATOR_Y} 的小隔间给英雄观战，
- * 四面是墙，敌人既看不见也走不进来。</p>
+ * <pre>
+ *  y=1   [观战包间 x1-3][ 备战位 x5-13 共 9 格 ]
+ *  y=2   一整排墙，把备战区和战场隔开（棋子靠拖拽进出，不用走路）
+ *  y=3+  战场：左半（x 1..6）玩家，右半（x 9..13）敌方，x=7 是中线装饰格
+ * </pre>
  */
 public class ChessBoardLevel extends DeadEndLevel {
 
 	public static final int SIZE = 15;
-	public static final int PLAYER_MIN_X = 2;
 	public static final int PLAYER_MAX_X = 6;
 	public static final int ENEMY_MIN_X = 9;
+	public static final int FIELD_MIN_Y = 3;
+	public static final int BENCH_Y = 1;
+	public static final int BENCH_MIN_X = 5;
+	public static final int BENCH_COUNT = 9;
 
-	public static final int SPECTATOR_X = 7;
-	public static final int SPECTATOR_Y = 3;
+	public static final int SPECTATOR_X = 2;
+	public static final int SPECTATOR_Y = 1;
 
 	{
 		color1 = 0x534f3e;
@@ -56,7 +61,6 @@ public class ChessBoardLevel extends DeadEndLevel {
 
 		setSize(SIZE, SIZE);
 
-		int center = SIZE / 2;
 		for (int y = 0; y < SIZE; y++) {
 			for (int x = 0; x < SIZE; x++) {
 				boolean border = (x == 0 || y == 0 || x == SIZE - 1 || y == SIZE - 1);
@@ -64,16 +68,24 @@ public class ChessBoardLevel extends DeadEndLevel {
 			}
 		}
 
-		// 观战隔间：正中偏上的一间小包间，四面封死，镜头跟着英雄正好框住棋盘
-		for (int x = SPECTATOR_X - 2; x <= SPECTATOR_X + 2; x++) {
-			map[(SPECTATOR_Y - 1) * width() + x] = Terrain.WALL;
-			map[(SPECTATOR_Y + 1) * width() + x] = Terrain.WALL;
+		// 观战包间：x1..3 在 y=1，右边和下边用墙封死
+		map[SPECTATOR_Y * width() + 4] = Terrain.WALL;
+		for (int x = 1; x <= 4; x++) {
+			map[2 * width() + x] = Terrain.WALL;
 		}
-		map[SPECTATOR_Y * width() + SPECTATOR_X - 2] = Terrain.WALL;
-		map[SPECTATOR_Y * width() + SPECTATOR_X + 2] = Terrain.WALL;
 
-		// 中线：整列装饰格，把玩家半场和敌方半场明确分开（可以走，只是视觉界限）
-		for (int y = 1; y < SIZE - 1; y++) {
+		// 备战位：y=1 的 x5..13，铺装饰格让玩家一眼看出这是「备战席」
+		for (int i = 0; i < BENCH_COUNT; i++) {
+			map[BENCH_Y * width() + BENCH_MIN_X + i] = Terrain.EMPTY_DECO;
+		}
+		// 备战位下面整排墙，和战场隔开
+		for (int x = BENCH_MIN_X; x <= SIZE - 2; x++) {
+			map[2 * width() + x] = Terrain.WALL;
+		}
+
+		// 中线：战场整列装饰格
+		int center = SIZE / 2;
+		for (int y = FIELD_MIN_Y; y < SIZE - 1; y++) {
 			map[y * width() + center] = Terrain.EMPTY_DECO;
 		}
 
@@ -119,34 +131,45 @@ public class ChessBoardLevel extends DeadEndLevel {
 		return entrance();
 	}
 
-	/** 玩家布阵的第 index 个站位（从后往前排成两列）。 */
+	/** 备战位第 i 格在棋盘上的格子。 */
+	public static int benchCell(int index) {
+		if (Dungeon.level == null || index < 0 || index >= BENCH_COUNT) return -1;
+		return BENCH_Y * Dungeon.level.width() + BENCH_MIN_X + index;
+	}
+
+	/** 这个格子是不是备战位，是的话返回下标，否则 -1。 */
+	public static int benchIndexAt(int cell) {
+		if (Dungeon.level == null) return -1;
+		int w = Dungeon.level.width();
+		int x = cell % w;
+		int y = cell / w;
+		if (y != BENCH_Y || x < BENCH_MIN_X || x >= BENCH_MIN_X + BENCH_COUNT) return -1;
+		return x - BENCH_MIN_X;
+	}
+
+	/** 上阵位默认站位（战场左半场）。 */
 	public static int playerSlot(int index) {
 		int[][] layout = {
-				{6, 7}, {6, 6}, {6, 8}, {5, 7}, {5, 6}, {5, 8}, {4, 7}, {4, 6}, {4, 8}
+				{5, 8}, {5, 7}, {5, 9}, {4, 8}, {4, 7}, {4, 9}, {3, 8}, {3, 7}, {3, 9}
 		};
 		int[] slot = layout[Math.floorMod(index, layout.length)];
 		return cellAt(slot[0], slot[1]);
 	}
 
-	/** 敌方第 index 个站位。 */
+	/** 敌方站位（战场右半场）。 */
 	public static int enemySlot(int index) {
 		int[][] layout = {
-				{12, 7}, {12, 6}, {12, 8}, {12, 5}, {12, 9}, {11, 7}, {11, 6}, {11, 8}
+				{12, 8}, {12, 7}, {12, 9}, {12, 6}, {12, 10}, {11, 8}, {11, 7}, {11, 9}
 		};
 		int[] slot = layout[Math.floorMod(index, layout.length)];
 		return cellAt(slot[0], slot[1]);
 	}
 
 	private static int cellAt(int x, int y) {
-		if (Dungeon.level == null) {
-			return -1;
-		}
-		if (x <= 0 || y <= 0 || x >= SIZE - 1 || y >= SIZE - 1) {
-			return -1;
-		}
+		if (Dungeon.level == null) return -1;
+		if (x <= 0 || y <= 0 || x >= SIZE - 1 || y >= SIZE - 1) return -1;
 		int cell = y * Dungeon.level.width() + x;
 		if (!Dungeon.level.passable[cell] || Actor.findChar(cell) != null) {
-			// 被占了就找最近的空位
 			for (int r = 1; r <= 4; r++) {
 				for (int dy = -r; dy <= r; dy++) {
 					for (int dx = -r; dx <= r; dx++) {
@@ -166,30 +189,23 @@ public class ChessBoardLevel extends DeadEndLevel {
 		return cell;
 	}
 
-	/** 这个格子是否在玩家半场（含中线左侧）。 */
-	public static boolean isPlayerHalf(int cell) {
+	/** 战场里属于玩家的格子（x ≤ 6 且在中线以下）。 */
+	public static boolean isPlayerField(int cell) {
 		if (cell < 0 || Dungeon.level == null) return false;
-		return cell % Dungeon.level.width() <= PLAYER_MAX_X;
+		int w = Dungeon.level.width();
+		return cell % w <= PLAYER_MAX_X && cell / w >= FIELD_MIN_Y;
 	}
 
-	/** 这个格子是否在敌方半场。 */
-	public static boolean isEnemyHalf(int cell) {
+	/** 战场里属于敌方的格子。 */
+	public static boolean isEnemyField(int cell) {
 		if (cell < 0 || Dungeon.level == null) return false;
-		return cell % Dungeon.level.width() >= ENEMY_MIN_X;
-	}
-
-	/** 玩家半场某坐标的格子（越界返回 -1）。 */
-	public static int playerCellAt(int x, int y) {
-		if (x < 1 || y < 1 || x > PLAYER_MAX_X || y >= SIZE - 1) return -1;
-		int cell = y * Dungeon.level.width() + x;
-		return Dungeon.level.passable[cell] ? cell : -1;
+		int w = Dungeon.level.width();
+		return cell % w >= ENEMY_MIN_X && cell / w >= FIELD_MIN_Y;
 	}
 
 	/** 棋盘上指定阵营的单位数量。 */
 	public static int countSide(boolean player) {
-		if (Dungeon.level == null) {
-			return 0;
-		}
+		if (Dungeon.level == null) return 0;
 		int count = 0;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 			if (!mob.isAlive()) continue;
