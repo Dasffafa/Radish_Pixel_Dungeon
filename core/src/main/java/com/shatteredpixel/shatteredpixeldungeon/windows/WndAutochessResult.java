@@ -49,6 +49,14 @@ public class WndAutochessResult extends Window {
 			@Override
 			protected void onClick() {
 				hide();
+				// 从「继续游戏」进来时 selectedClass 可能是空的，
+				// 直接重开会在 Dungeon.init() 里 NPE，这里补上
+				if (com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.selectedClass == null) {
+					com.shatteredpixel.shatteredpixeldungeon.GamesInProgress.selectedClass =
+							Dungeon.hero != null && Dungeon.hero.heroClass != null
+									? Dungeon.hero.heroClass
+									: com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses.WARRIOR;
+				}
 				Dungeon.hero = null;
 				ActionIndicator.action = null;
 				InterlevelScene.mode = InterlevelScene.Mode.DESCEND;
