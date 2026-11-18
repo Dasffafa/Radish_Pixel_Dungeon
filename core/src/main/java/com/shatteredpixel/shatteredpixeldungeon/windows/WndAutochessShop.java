@@ -123,75 +123,30 @@ public class WndAutochessShop extends Window {
 		add(vs);
 		pos = vs.bottom() + 2;
 
-		// 对战大厅：看所有 AI 的本轮对局
-		RedButton lobby = new RedButton(M.L(WndAutochessShop.class, "lobby"), 7) {
+		// 对战大厅 + 羁绊总览（并排，省高度）
+		float halfBtn = (WIDTH - MARGIN * 2 - GAP) / 2f;
+		RedButton lobby = new RedButton("对战大厅", 7) {
 			@Override
 			protected void onClick() {
 				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
 						new WndAutochessLobby());
 			}
 		};
-		lobby.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 14);
+		lobby.setRect(MARGIN, pos, halfBtn, 14);
 		add(lobby);
+
+		RedButton traitsBtn = new RedButton("羁绊", 7) {
+			@Override
+			protected void onClick() {
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+						new WndAutochessTraits());
+			}
+		};
+		traitsBtn.setRect(MARGIN + halfBtn + GAP, pos, halfBtn, 14);
+		add(traitsBtn);
 		pos = lobby.bottom() + GAP;
 
-		if (!compact) {
-			RenderedTextBlock legend = PixelScene.renderTextBlock(
-					M.L(WndAutochessShop.class, "legend"), 7);
-			legend.maxWidth(WIDTH - MARGIN * 2);
-			legend.hardlight(COLOR_SECTION);
-			legend.setPos(MARGIN, pos);
-			add(legend);
-			pos = legend.bottom() + GAP;
-
-			pos = addSelectionRow(pos);
-		}
-
-		float halfW = (WIDTH - MARGIN * 2 - GAP) / 2f;
-
-		RedButton xpBtn = new RedButton(M.L(WndAutochessShop.class, "buy_xp", AutochessRun.XP_COST), 8) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				if (current != null && current.buyXp()) {
-					rebuild();
-				}
-			}
-		};
-		xpBtn.active = run.level() < AutochessRun.MAX_LEVEL && run.gold() >= AutochessRun.XP_COST;
-		xpBtn.setRect(MARGIN, pos, halfW, 17);
-		add(xpBtn);
-
-		RedButton refresh = new RedButton(
-				M.L(WndAutochessShop.class, "refresh", AutochessRun.REFRESH_COST), 8) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				if (current != null && current.refresh()) {
-					rebuild();
-				}
-			}
-		};
-		refresh.active = run.gold() >= AutochessRun.REFRESH_COST;
-		refresh.setRect(xpBtn.right() + GAP, pos, halfW, 17);
-		add(refresh);
-
-		pos = xpBtn.bottom() + 2;
-
-		RedButton lockBtn = new RedButton(
-				M.L(WndAutochessShop.class, run.shopLocked() ? "unlock" : "lock"), 7) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				if (current == null) return;
-				current.toggleShopLock();
-				rebuild();
-			}
-		};
-		lockBtn.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 13);
-		add(lockBtn);
-		pos = lockBtn.bottom() + GAP;
-
+		// 5 张卡
 		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
 			pos = addOfferRow(i, pos);
 		}
