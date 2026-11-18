@@ -94,6 +94,11 @@ public class AutochessBoardDrag extends Component {
 			}
 		};
 		area.camera = Camera.main;
+		// 必须真正「挡住」事件：否则拖拽松手那一下会穿透到商店窗口的按钮上，
+		// 表现为「拖一下棋子就买了一次经验 / 刷新」
+		area.visible = true;
+		area.active = true;
+		area.blockLevel = PointerArea.ALWAYS_BLOCK;
 		add(area);
 	}
 

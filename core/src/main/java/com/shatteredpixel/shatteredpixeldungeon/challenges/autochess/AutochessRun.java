@@ -67,6 +67,13 @@ public class AutochessRun extends Buff {
 	private String[] offers = new String[3];
 	private int[] prices = new int[3];
 
+	/** 本回合敌方阵容（类名），拖拽重排时不再重摇。 */
+	private String[] enemyComp = null;
+	private int enemyCompRound = -1;
+
+	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
+	private final java.util.HashMap<Integer, Mob> unitMobs = new java.util.HashMap<>();
+
 	private long lastBuyMs = 0;
 
 	{
@@ -321,7 +328,7 @@ public class AutochessRun extends Buff {
 			toArr[target[1]] = tmp;
 			if (from[0] == 1) boardCell[from[1]] = toCell;
 			if (target[0] == 1) boardCell[target[1]] = fromCell;
-			refreshPreview();
+			syncPositions();
 			return true;
 		}
 
@@ -341,8 +348,35 @@ public class AutochessRun extends Buff {
 		} else {
 			bench[benchIdx] = cls;
 		}
+		// 换了容器（备战位↔战场），实体归属也变了，直接重新铺一次
 		refreshPreview();
 		return true;
+	}
+
+	/** 拖拽后只把已有实体挪到新格子，不重新生成，避免重摇敌方阵容/产生副作用。 */
+	private void syncPositions() {
+		for (java.util.Map.Entry<Integer, Mob> e : unitMobs.entrySet()) {
+			int key = e.getKey();
+			Mob mob = e.getValue();
+			if (mob == null || !mob.isAlive()) continue;
+			int cell;
+			if (key >= 100) {
+				int index = key - 100;
+				String[] parts = split(board, index);
+				if (parts == null) continue;
+				cell = boardCell[index];
+			} else {
+				String[] parts = split(bench, key);
+				if (parts == null) continue;
+				cell = ChessBoardLevel.benchCell(key);
+			}
+			if (cell < 0 || cell == mob.pos) continue;
+			mob.pos = cell;
+			Dungeon.level.occupyCell(mob);
+			if (mob.sprite != null) {
+				mob.sprite.place(cell);
+			}
+		}
 	}
 
 	private int firstEmptyBoardSlot() {
@@ -414,27 +448,44 @@ public class AutochessRun extends Buff {
 		if (!(Dungeon.level instanceof ChessBoardLevel)) return;
 		clearUnits();
 
+		unitMobs.clear();
 		for (int i = 0; i < bench.length; i++) {
 			String[] parts = split(bench, i);
 			if (parts == null) continue;
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
 			if (def == null) continue;
-			spawnUnit(def, ChessBoardLevel.benchCell(i), true, parseInt(parts[1]));
+			Mob mob = spawnUnit(def, ChessBoardLevel.benchCell(i), true, parseInt(parts[1]));
+			if (mob != null) unitMobs.put(i, mob);
 		}
 		for (int i = 0; i < board.length; i++) {
 			String[] parts = split(board, i);
 			if (parts == null) continue;
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
 			if (def == null) continue;
-			spawnUnit(def, boardCell[i], true, parseInt(parts[1]));
+			Mob mob = spawnUnit(def, boardCell[i], true, parseInt(parts[1]));
+			if (mob != null) unitMobs.put(100 + i, mob);
 		}
 		spawnEnemies();
 	}
 
-	private void spawnEnemies() {
+	private void ensureEnemyComp() {
+		if (enemyComp != null && enemyCompRound == round) {
+			return;
+		}
 		int count = Math.min(6, 1 + round);
+		enemyComp = new String[count];
 		for (int i = 0; i < count; i++) {
-			AutochessPool.Def def = AutochessPool.random(round);
+			enemyComp[i] = AutochessPool.random(round).cls.getSimpleName();
+		}
+		enemyCompRound = round;
+	}
+
+	private void spawnEnemies() {
+		ensureEnemyComp();
+		int count = enemyComp.length;
+		for (int i = 0; i < count; i++) {
+			AutochessPool.Def def = AutochessPool.ofName(enemyComp[i]);
+			if (def == null) continue;
 			Mob mob = spawnUnit(def, ChessBoardLevel.enemySlot(i + (round % 3)), false, 1);
 			if (mob != null) {
 				float scale = 1f + Math.min(1.5f, 0.10f * (round - 1));
