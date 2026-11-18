@@ -66,6 +66,22 @@ public class AutochessItems {
 		}
 	}
 
+	/** 合成配方：两件不同装备 → 一件更强的（云顶式配方）。 */
+	public static final String[][] RECIPES = {
+			{"RatArmor", "KillBoatSword", "SoulMix"},
+			{"RatArmor", "CrabArmor", "AfterGlow"},
+			{"PrismArmor", "EnergyArmor", "MoonlightArmor"},
+			{"MoonlightArmor", "AfterGlow", "SoulMix"}
+	};
+
+	/** 短名 → 完整类名。 */
+	public static String fullName(String shortName) {
+		for (String id : ALL) {
+			if (AutochessItems.shortName(id).equals(shortName)) return id;
+		}
+		return "com.shatteredpixel.shatteredpixeldungeon.items.armor." + shortName;
+	}
+
 	public static String random() {
 		return ALL[com.watabou.utils.Random.Int(ALL.length)];
 	}
