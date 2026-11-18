@@ -2,7 +2,6 @@ package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
@@ -84,11 +83,9 @@ public class AutochessUnitBuff extends AllyBuff {
 		for (String trait : traits) {
 			int tier = AutochessRun.traitTier(trait);
 			if (tier <= 0) continue;
-			if (AutochessPool.GIANT.equals(trait)) {
+			if (AutochessPool.FIGHTER.equals(trait)) {
 				target.HT += Math.round(target.HT * 0.15f * tier);
 				target.HP = target.HT;
-			} else if (AutochessPool.GUARD.equals(trait)) {
-				Buff.affect(target, Barrier.class).setShield(Math.round(target.HT * 0.15f * tier));
 			}
 		}
 	}
@@ -105,6 +102,8 @@ public class AutochessUnitBuff extends AllyBuff {
 				mul += 0.30f * tier;
 			} else if (AutochessPool.BEAST.equals(trait)) {
 				mul += 0.10f * tier;
+			} else if (AutochessPool.RANGED.equals(trait)) {
+				mul += 0.15f * tier;
 			}
 		}
 		return mul;
@@ -116,6 +115,13 @@ public class AutochessUnitBuff extends AllyBuff {
 		float mul = damageMultiplier();
 		if (mul != 1f) {
 			info.addStackMultModifier(mul, "autochess");
+		}
+		// 刺客：按档位概率打出双倍伤害
+		if (hasTrait(AutochessPool.ASSASSIN)) {
+			int tier = AutochessRun.traitTier(AutochessPool.ASSASSIN);
+			if (tier > 0 && com.watabou.utils.Random.Float() < 0.20f * tier) {
+				info.addStackMultModifier(2f, "autochess_assassin");
+			}
 		}
 		if (hasTrait(AutochessPool.SWARM)) {
 			int tier = AutochessRun.traitTier(AutochessPool.SWARM);
@@ -132,6 +138,12 @@ public class AutochessUnitBuff extends AllyBuff {
 			int tier = AutochessRun.traitTier(AutochessPool.CONSTRUCT);
 			if (tier > 0) {
 				info.addStackMultModifier(1f - 0.20f * tier, "autochess_construct");
+			}
+		}
+		if (hasTrait(AutochessPool.TANK)) {
+			int tier = AutochessRun.traitTier(AutochessPool.TANK);
+			if (tier > 0) {
+				info.addStackMultModifier(1f - 0.15f * tier, "autochess_tank");
 			}
 		}
 	}

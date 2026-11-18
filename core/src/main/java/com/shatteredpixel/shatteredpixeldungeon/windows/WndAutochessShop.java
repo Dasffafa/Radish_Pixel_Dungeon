@@ -352,8 +352,9 @@ public class WndAutochessShop extends Window {
 		StringBuilder sb = new StringBuilder();
 		for (String trait : new String[]{
 				AutochessPool.BEAST, AutochessPool.HUMANOID, AutochessPool.CONSTRUCT,
-				AutochessPool.DEMON, AutochessPool.UNDEAD, AutochessPool.GUARD,
-				AutochessPool.GIANT, AutochessPool.SWARM}) {
+				AutochessPool.DEMON, AutochessPool.UNDEAD, AutochessPool.SWARM,
+				AutochessPool.TANK, AutochessPool.ASSASSIN,
+				AutochessPool.RANGED, AutochessPool.FIGHTER}) {
 			if (AutochessRun.countTrait(trait) > 0) {
 				appendTrait(sb, trait);
 			}
