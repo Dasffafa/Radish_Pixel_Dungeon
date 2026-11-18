@@ -21,11 +21,14 @@ import com.watabou.utils.Reflection;
 import java.util.ArrayList;
 
 /**
- * 「萝卜自走棋」的总控：金币、商店、阵容、开战、回合结算。
+ * 「萝卜自走棋」的总控：金币、等级、商店、备战席、上阵位、开战与结算。
  *
- * <p>英雄只在场边观战，不参战；玩家做的只有「买谁、凑什么羁绊」。
- * 阵容存在 {@link #roster} 里（类名 + 星级），每回合开打时整场重建，
- * 所以棋子不会因为上一场打死了就永久消失。</p>
+ * <p>云顶那套的三条线都在这里：</p>
+ * <ul>
+ *   <li>金币可以买棋子、刷新商店、买经验；</li>
+ *   <li>等级就是上阵人数上限，初始 3 级（3 个上阵位），每升一级 +1；</li>
+ *   <li>备战席（9 格）里的棋子不参战，只有摆到上阵位（战场）上的才打。</li>
+ * </ul>
  */
 public class AutochessRun extends Buff {
 
@@ -38,22 +41,39 @@ public class AutochessRun extends Buff {
 	public static final int START_LIFE = 10;
 	public static final int REFRESH_COST = 2;
 
-	/** 阵容上限。 */
-	public static final int MAX_UNITS = 8;
+	/** 备战席格数。 */
+	public static final int BENCH_SIZE = 9;
+	/** 上阵位格数（战场），实际能上几个由等级决定。 */
+	public static final int BOARD_SLOTS = 9;
+
+	public static final int XP_COST = 4;
+	public static final int XP_PER_BUY = 4;
+	public static final int XP_PER_ROUND = 2;
+	public static final int MAX_LEVEL = 9;
 
 	private State state = State.PREP;
 	private int round = 1;
 	private int gold = START_GOLD;
 	private int life = START_LIFE;
 
-	/** 备战位：8 个格子，每格是「类名:星级」，null 表示空位。 */
-	private final String[] bench = new String[MAX_UNITS];
+	private int level = 3;
+	private int xp = 0;
 
-	/** 备战界面当前选中的格子（-1 = 没选），只影响 UI，不进存档。 */
-	public int selectedSlot = -1;
+	/** 备战席：不参战。 */
+	private final String[] bench = new String[BENCH_SIZE];
+	/** 上阵位：只有这里面的棋子参战。 */
+	private final String[] board = new String[BOARD_SLOTS];
+	/** 每个上阵位在棋盘上的实际格子（可在地图上拖动改变）。 */
+	private final int[] boardCell = new int[BOARD_SLOTS];
+
+	/** 备战界面当前选中的格子：side 0 = 备战席，1 = 战场。 */
+	public int selectedSide = -1;
+	public int selectedIndex = -1;
 
 	private String[] offers = new String[3];
 	private int[] prices = new int[3];
+
+	private long lastBuyMs = 0;
 
 	{
 		type = buffType.POSITIVE;
@@ -84,17 +104,19 @@ public class AutochessRun extends Buff {
 		run.round = 1;
 		run.gold = START_GOLD;
 		run.life = START_LIFE;
+		run.level = 3;
+		run.xp = 0;
 		run.state = State.PREP;
 		java.util.Arrays.fill(run.bench, null);
+		java.util.Arrays.fill(run.board, null);
+		for (int i = 0; i < BOARD_SLOTS; i++) {
+			run.boardCell[i] = ChessBoardLevel.playerSlot(i);
+		}
+		run.selectedSide = -1;
+		run.selectedIndex = -1;
 		run.rollShop();
 
 
-
-
-
-
-
-;
 	}
 
 	@Override
@@ -103,7 +125,62 @@ public class AutochessRun extends Buff {
 		return true;
 	}
 
-	/* ====================== 商店与阵容 ====================== */
+	/* ====================== 等级与经验 ====================== */
+
+	public int level() {
+		return level;
+	}
+
+	public int xp() {
+		return xp;
+	}
+
+	/** 升到下一级需要的经验。 */
+	public int xpNeed() {
+		return xpNeed(level);
+	}
+
+	private static int xpNeed(int lvl) {
+		return 2 + lvl * 2;
+	}
+
+	/** 上阵人数上限 = 等级。 */
+	public int maxDeploy() {
+		return level;
+	}
+
+	public int deployed() {
+		int count = 0;
+		for (String entry : board) {
+			if (entry != null) count++;
+		}
+		return count;
+	}
+
+	/** 花 4 金买 4 点经验，够了就升级。 */
+	public boolean buyXp() {
+		if (state != State.PREP) {
+			return false;
+		}
+		if (level >= MAX_LEVEL) {
+			GLog.w(M.L(AutochessRun.class, "level_max"));
+			return false;
+		}
+		if (gold < XP_COST) {
+			GLog.w(M.L(AutochessRun.class, "no_gold"));
+			return false;
+		}
+		gold -= XP_COST;
+		xp += XP_PER_BUY;
+		while (level < MAX_LEVEL && xp >= xpNeed(level)) {
+			xp -= xpNeed(level);
+			level++;
+			GLog.p(M.L(AutochessRun.class, "level_up", level, maxDeploy()));
+		}
+		return true;
+	}
+
+	/* ====================== 商店 ====================== */
 
 	public void rollShop() {
 		for (int i = 0; i < offers.length; i++) {
@@ -133,10 +210,7 @@ public class AutochessRun extends Buff {
 		return true;
 	}
 
-	/** 上次购买的时间戳，用来挡掉同一次点击被多个按钮重复派发。 */
-	private long lastBuyMs = 0;
-
-	/** 买第 index 个位置上的单位，放进第一个空的备战位。 */
+	/** 买棋子：进第一个空的备战席，然后尝试三合一。 */
 	public boolean buy(int index) {
 		if (state != State.PREP) {
 			return false;
@@ -146,13 +220,14 @@ public class AutochessRun extends Buff {
 			return false;
 		}
 		lastBuyMs = now;
+
 		AutochessPool.Def def = offer(index);
 		if (def == null) {
 			return false;
 		}
-		int slot = firstEmptySlot();
+		int slot = firstEmptyBench();
 		if (slot == -1) {
-			GLog.w(M.L(AutochessRun.class, "full"));
+			GLog.w(M.L(AutochessRun.class, "bench_full"));
 			return false;
 		}
 		if (gold < prices[index]) {
@@ -163,103 +238,45 @@ public class AutochessRun extends Buff {
 		bench[slot] = def.cls.getSimpleName() + ":1";
 		offers[index] = null;
 		prices[index] = 0;
-
-		mergeBench(def.cls.getSimpleName(), 1);
+		merge(def.cls.getSimpleName(), 1);
 		return true;
 	}
 
-	private int firstEmptySlot() {
+	private int firstEmptyBench() {
 		for (int i = 0; i < bench.length; i++) {
 			if (bench[i] == null) return i;
 		}
 		return -1;
 	}
 
-	/**
-	 * 三合一：备战位里同名同星凑够 3 个就合成 1 个升一星，
-	 * 升上来的棋子放在第三个棋子的格子上（和云顶一样）。
-	 */
-	private void mergeBench(String className, int star) {
-		ArrayList<Integer> slots = new ArrayList<>();
-		for (int i = 0; i < bench.length; i++) {
-			String[] parts = splitEntry(bench[i]);
-			if (parts != null && parts[0].equals(className) && parseInt(parts[1]) == star) {
-				slots.add(i);
-			}
-		}
-		if (slots.size() < 3) {
-			return;
-		}
-		int keeper = slots.get(2);
-		bench[slots.get(0)] = null;
-		bench[slots.get(1)] = null;
-		bench[keeper] = null;
-		int newStar = Math.min(3, star + 1);
-		bench[keeper] = className + ":" + newStar;
-		GLog.p(M.L(AutochessRun.class, "merge", unitName(className), newStar));
-		if (newStar < 3) {
-			mergeBench(className, newStar);
-		}
+	/* ====================== 棋子存取 ====================== */
+
+	private String[] entryArr(int side) {
+		return side == 1 ? board : bench;
 	}
 
-	private static String[] splitEntry(String entry) {
-		if (entry == null) return null;
-		String[] parts = entry.split(":");
-		return parts.length == 2 ? parts : null;
-	}
-
-	/** 备战位里第 i 格的棋子类名，空位返回 null。 */
-	public String benchClass(int slot) {
-		String[] parts = splitEntry(slot >= 0 && slot < bench.length ? bench[slot] : null);
+	public String unitClass(int side, int index) {
+		String[] arr = entryArr(side);
+		String[] parts = split(arr, index);
 		return parts == null ? null : parts[0];
 	}
 
-	/** 备战位里第 i 格的星级，空位返回 0。 */
-	public int benchStar(int slot) {
-		String[] parts = splitEntry(slot >= 0 && slot < bench.length ? bench[slot] : null);
+	public int unitStar(int side, int index) {
+		String[] parts = split(entryArr(side), index);
 		return parts == null ? 0 : parseInt(parts[1]);
 	}
 
-	/** 备战位第 i 格的显示名，空位返回 null。 */
-	public String benchName(int slot) {
-		String cls = benchClass(slot);
-		return cls == null ? null : unitName(cls);
+	public String unitName(int side, int index) {
+		String cls = unitClass(side, index);
+		return cls == null ? null : nameOf(cls);
 	}
 
-	/** 交换两个备战位的棋子（拖拽换位用）。任一边为空就相当于移动。 */
-	public void swapBench(int a, int b) {
-		if (a == b || a < 0 || b < 0 || a >= bench.length || b >= bench.length) {
-			return;
+	private static String[] split(String[] arr, int index) {
+		if (arr == null || index < 0 || index >= arr.length || arr[index] == null) {
+			return null;
 		}
-		String tmp = bench[a];
-		bench[a] = bench[b];
-		bench[b] = tmp;
-	}
-
-	/** 卖掉一个棋子返还的金币：1 星原价、2 星 3 倍、3 星 9 倍。 */
-	public int sellValue(int slot) {
-		String cls = benchClass(slot);
-		if (cls == null) {
-			return 0;
-		}
-		AutochessPool.Def def = AutochessPool.ofName(cls);
-		if (def == null) {
-			return 0;
-		}
-		int star = benchStar(slot);
-		int mult = star >= 3 ? 9 : (star == 2 ? 3 : 1);
-		return def.cost * mult;
-	}
-
-	/** 卖掉备战位上的棋子，返回返还的金币。 */
-	public int sell(int slot) {
-		if (state != State.PREP || benchClass(slot) == null) {
-			return 0;
-		}
-		int value = sellValue(slot);
-		bench[slot] = null;
-		gold += value;
-		return value;
+		String[] parts = arr[index].split(":");
+		return parts.length == 2 ? parts : null;
 	}
 
 	private static int parseInt(String s) {
@@ -270,55 +287,103 @@ public class AutochessRun extends Buff {
 		}
 	}
 
-	private static String unitName(String className) {
+	private static String nameOf(String className) {
 		AutochessPool.Def def = AutochessPool.ofName(className);
-		if (def == null) {
-			return className;
-		}
+		if (def == null) return className;
 		Mob mob = Reflection.newInstance(def.cls);
 		return mob == null ? className : mob.name();
 	}
 
-	public int rosterSize() {
-		int count = 0;
-		for (String entry : bench) {
-			if (entry != null) count++;
+	/**
+	 * 拖拽落子：从 (fromSide, fromIndex) 拖到 (toSide, toIndex)。
+	 *
+	 * <p>规则和云顶一致：两边交换；放到战场但已经上满就不能再上，
+	 * 除非是同一侧互换（换完数量不变）。</p>
+	 */
+	public boolean drag(int fromSide, int fromIndex, int toSide, int toIndex) {
+		if (state != State.PREP || fromSide == toSide && fromIndex == toIndex) {
+			return false;
 		}
-		return count;
+		String[] from = entryArr(fromSide);
+		String[] to = entryArr(toSide);
+		if (fromIndex < 0 || fromIndex >= from.length || toIndex < 0 || toIndex >= to.length) {
+			return false;
+		}
+		if (from[fromIndex] == null) {
+			return false;
+		}
+
+		boolean movingToBoard = toSide == 1 && fromSide != 1;
+		boolean targetEmpty = to[toIndex] == null;
+
+		if (movingToBoard && targetEmpty && deployed() >= maxDeploy()) {
+			GLog.w(M.L(AutochessRun.class, "deploy_full", maxDeploy(), level));
+			return false;
+		}
+
+		String tmp = from[fromIndex];
+		from[fromIndex] = to[toIndex];
+		to[toIndex] = tmp;
+		return true;
 	}
 
-	/** 阵容里某个羁绊的数量。 */
-	public static int countTrait(String trait) {
-		AutochessRun run = get();
-		if (run == null) {
+	/** 卖棋子，返回返还金币。 */
+	public int sell(int side, int index) {
+		if (state != State.PREP) {
 			return 0;
 		}
-		int count = 0;
-		for (String entry : run.bench) {
-			String[] parts = splitEntry(entry);
-			if (parts == null) continue;
-			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
-			if (def != null && trait.equals(def.trait)) {
-				count++;
-			}
+		String[] arr = entryArr(side);
+		String[] parts = split(arr, index);
+		if (parts == null) {
+			return 0;
 		}
-		return count;
+		int value = sellValue(side, index);
+		arr[index] = null;
+		gold += value;
+		return value;
 	}
 
-	public static int traitTier(String trait) {
-		int count = countTrait(trait);
-		int[] th = AutochessPool.thresholds(trait);
-		if (count >= th[1]) return 2;
-		if (count >= th[0]) return 1;
-		return 0;
+	public int sellValue(int side, int index) {
+		String cls = unitClass(side, index);
+		if (cls == null) return 0;
+		AutochessPool.Def def = AutochessPool.ofName(cls);
+		if (def == null) return 0;
+		int star = unitStar(side, index);
+		int mult = star >= 3 ? 9 : (star == 2 ? 3 : 1);
+		return def.cost * mult;
+	}
+
+	/* ====================== 三合一 ====================== */
+
+	/** 在备战席 + 战场里找同名同星，凑够 3 个就升星；升上来的落在第三个棋子那格。 */
+	private void merge(String className, int star) {
+		ArrayList<int[]> slots = new ArrayList<>();
+		for (int side = 0; side <= 1; side++) {
+			String[] arr = entryArr(side);
+			for (int i = 0; i < arr.length; i++) {
+				String[] parts = split(arr, i);
+				if (parts != null && parts[0].equals(className) && parseInt(parts[1]) == star) {
+					slots.add(new int[]{side, i});
+				}
+			}
+		}
+		if (slots.size() < 3) {
+			return;
+		}
+		int[] keeper = slots.get(2);
+		entryArr(slots.get(0)[0])[slots.get(0)[1]] = null;
+		entryArr(slots.get(1)[0])[slots.get(1)[1]] = null;
+		int newStar = Math.min(3, star + 1);
+		entryArr(keeper[0])[keeper[1]] = className + ":" + newStar;
+		GLog.p(M.L(AutochessRun.class, "merge", nameOf(className), newStar));
+		if (newStar < 3) {
+			merge(className, newStar);
+		}
 	}
 
 	/* ====================== 战斗 ====================== */
 
-	private static final String[] ROSTER_SPLIT = new String[0];
-
-	/** 清空棋盘上所有参战单位（敌我都不留）。 */
-	private void clearBoard() {
+	private void clearBoardUnits() {
 		if (Dungeon.level == null) return;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 			boolean unit = mob.buff(AutochessUnitBuff.class) != null
@@ -332,36 +397,111 @@ public class AutochessRun extends Buff {
 		}
 	}
 
-	public void startFight() {
-		if (state != State.PREP) {
+	/** 上阵位 i 所在的棋盘格子。 */
+	public int boardCellOf(int index) {
+		return index >= 0 && index < boardCell.length ? boardCell[index] : -1;
+	}
+
+	/** 棋盘格子对应的上阵位下标，没有返回 -1。 */
+	public int boardIndexAt(int cell) {
+		for (int i = 0; i < boardCell.length; i++) {
+			if (board[i] != null && boardCell[i] == cell) return i;
+		}
+		return -1;
+	}
+
+	/** 备战阶段把双方摆到棋盘上预览（不推进回合，所以它们不会动）。 */
+	public void refreshPreview() {
+		if (!(Dungeon.level instanceof ChessBoardLevel)) {
 			return;
 		}
-		state = State.FIGHT;
-
-		clearBoard();
-
-		// 己方阵容：备战位第 i 格对应棋盘第 i 个站位
-		for (int i = 0; i < bench.length; i++) {
-			String[] parts = splitEntry(bench[i]);
+		clearBoardUnits();
+		for (int i = 0; i < board.length; i++) {
+			String[] parts = split(board, i);
 			if (parts == null) continue;
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
 			if (def == null) continue;
-			spawnUnit(def, ChessBoardLevel.playerSlot(i), true, parseInt(parts[1]));
+			spawnUnit(def, boardCell[i], true, parseInt(parts[1]));
 		}
-
-		// 敌方波次
-		int count = Math.min(6, 1 + round);
-		for (int i = 0; i < count; i++) {
+		for (int i = 0; i < enemyPreviewCount(); i++) {
 			AutochessPool.Def def = AutochessPool.random(round);
-			Mob mob = spawnUnit(def, ChessBoardLevel.enemySlot(i), false, 1);
+			Mob mob = spawnUnit(def, ChessBoardLevel.enemySlot(i + (round % 3)), false, 1);
 			if (mob != null) {
 				float scale = 1f + Math.min(1.5f, 0.10f * (round - 1));
 				mob.HT = Math.max(1, Math.round(mob.HT * scale));
 				mob.HP = mob.HT;
 			}
 		}
+	}
 
-		GLog.p(M.L(AutochessRun.class, "fight_start", round, count));
+	private int enemyPreviewCount() {
+		return Math.min(6, 1 + round);
+	}
+
+	/** 在地图上把一个己方棋子挪到另一个格子。 */
+	public boolean moveOnMap(int fromCell, int toCell) {
+		if (state != State.PREP) return false;
+		int index = boardIndexAt(fromCell);
+		if (index < 0) return false;
+		if (!ChessBoardLevel.isPlayerHalf(toCell)) {
+			GLog.w(M.L(AutochessRun.class, "only_player_half"));
+			return false;
+		}
+		int other = boardIndexAt(toCell);
+		if (other >= 0) {
+			boardCell[other] = boardCell[index];
+		}
+		boardCell[index] = toCell;
+		refreshPreview();
+		return true;
+	}
+
+	/** 备战席棋子直接上阵到空的上阵位。 */
+	public boolean deploy(int benchIndex) {
+		if (state != State.PREP || benchIndex < 0 || benchIndex >= bench.length || bench[benchIndex] == null) {
+			return false;
+		}
+		if (deployed() >= maxDeploy()) {
+			GLog.w(M.L(AutochessRun.class, "deploy_full", maxDeploy(), level));
+			return false;
+		}
+		for (int i = 0; i < board.length; i++) {
+			if (board[i] == null) {
+				board[i] = bench[benchIndex];
+				bench[benchIndex] = null;
+				boardCell[i] = ChessBoardLevel.playerSlot(i);
+				refreshPreview();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** 把一个上阵棋子撤回备战席。 */
+	public boolean retreat(int boardIndex) {
+		if (state != State.PREP || boardIndex < 0 || boardIndex >= board.length || board[boardIndex] == null) {
+			return false;
+		}
+		for (int i = 0; i < bench.length; i++) {
+			if (bench[i] == null) {
+				bench[i] = board[boardIndex];
+				board[boardIndex] = null;
+				refreshPreview();
+				return true;
+			}
+		}
+		GLog.w(M.L(AutochessRun.class, "bench_full"));
+		return false;
+	}
+
+	public void startFight() {
+		if (state != State.PREP) {
+			return;
+		}
+		state = State.FIGHT;
+		// 备战阶段的预览单位就是这一波的实际阵容，直接开打，不重新摆
+		refreshPreview();
+		GLog.p(M.L(AutochessRun.class, "fight_start", round, enemyPreviewCount()));
 	}
 
 	private static Mob spawnUnit(AutochessPool.Def def, int cell, boolean playerSide, int star) {
@@ -385,7 +525,6 @@ public class AutochessRun extends Buff {
 		return mob;
 	}
 
-	/** 最近的敌方位置，没有就返回自己的位置。 */
 	private static int findEnemyPos(Mob ally) {
 		int best = ally.pos;
 		int bestDist = Integer.MAX_VALUE;
@@ -400,7 +539,6 @@ public class AutochessRun extends Buff {
 		return best;
 	}
 
-	/** 每帧检查战斗是否结束。 */
 	public void checkFight() {
 		if (state != State.FIGHT || Dungeon.level == null) {
 			return;
@@ -418,6 +556,7 @@ public class AutochessRun extends Buff {
 		state = State.PREP;
 		int reward = 5 + (round % 3 == 0 ? 3 : 0);
 		gold += reward;
+		gainRoundXp();
 		round++;
 		rollShop();
 		GLog.p(M.L(AutochessRun.class, "win", reward, round));
@@ -439,10 +578,21 @@ public class AutochessRun extends Buff {
 			return;
 		}
 		gold += 2;
+		gainRoundXp();
 		round++;
 		rollShop();
 		GLog.w(M.L(AutochessRun.class, "lose", damage, life, round));
 		showShopNextFrame();
+	}
+
+	/** 每回合白给一点经验，和云顶一样。 */
+	private void gainRoundXp() {
+		xp += XP_PER_ROUND;
+		while (level < MAX_LEVEL && xp >= xpNeed(level)) {
+			xp -= xpNeed(level);
+			level++;
+			GLog.p(M.L(AutochessRun.class, "level_up", level, maxDeploy()));
+		}
 	}
 
 	private void showShopNextFrame() {
@@ -455,7 +605,31 @@ public class AutochessRun extends Buff {
 		});
 	}
 
-	/* ====================== HUD 取值 ====================== */
+	/* ====================== 羁绊 ====================== */
+
+	/** 羁绊只算「上阵」的棋子。 */
+	public static int countTrait(String trait) {
+		AutochessRun run = get();
+		if (run == null) return 0;
+		int count = 0;
+		for (String entry : run.board) {
+			if (entry == null) continue;
+			String[] parts = entry.split(":");
+			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
+			if (def != null && trait.equals(def.trait)) count++;
+		}
+		return count;
+	}
+
+	public static int traitTier(String trait) {
+		int count = countTrait(trait);
+		int[] th = AutochessPool.thresholds(trait);
+		if (count >= th[1]) return 2;
+		if (count >= th[0]) return 1;
+		return 0;
+	}
+
+	/* ====================== 状态 ====================== */
 
 	public State state() {
 		return state;
@@ -473,6 +647,14 @@ public class AutochessRun extends Buff {
 		return life;
 	}
 
+	/** 备战席 + 战场的棋子总数（HUD 用）。 */
+	public int rosterSize() {
+		int count = 0;
+		for (String entry : bench) if (entry != null) count++;
+		for (String entry : board) if (entry != null) count++;
+		return count;
+	}
+
 	@Override
 	public String icon() {
 		return BuffIndicator.NONE;
@@ -487,8 +669,13 @@ public class AutochessRun extends Buff {
 		bundle.put("ac_round", round);
 		bundle.put("ac_gold", gold);
 		bundle.put("ac_life", life);
+		bundle.put("ac_level", level);
+		bundle.put("ac_xp", xp);
 		for (int i = 0; i < bench.length; i++) {
 			bundle.put("ac_bench_" + i, bench[i] == null ? "" : bench[i]);
+		}
+		for (int i = 0; i < board.length; i++) {
+			bundle.put("ac_board_" + i, board[i] == null ? "" : board[i]);
 		}
 		for (int i = 0; i < offers.length; i++) {
 			bundle.put("ac_offer_" + i, offers[i] == null ? "" : offers[i]);
@@ -507,10 +694,15 @@ public class AutochessRun extends Buff {
 		round = bundle.getInt("ac_round");
 		gold = bundle.getInt("ac_gold");
 		life = bundle.getInt("ac_life");
-		java.util.Arrays.fill(bench, null);
+		level = bundle.getInt("ac_level");
+		xp = bundle.getInt("ac_xp");
 		for (int i = 0; i < bench.length; i++) {
-			String entry = bundle.getString("ac_bench_" + i);
-			bench[i] = entry == null || entry.isEmpty() ? null : entry;
+			String e = bundle.getString("ac_bench_" + i);
+			bench[i] = e == null || e.isEmpty() ? null : e;
+		}
+		for (int i = 0; i < board.length; i++) {
+			String e = bundle.getString("ac_board_" + i);
+			board[i] = e == null || e.isEmpty() ? null : e;
 		}
 		for (int i = 0; i < offers.length; i++) {
 			String name = bundle.getString("ac_offer_" + i);
@@ -518,6 +710,7 @@ public class AutochessRun extends Buff {
 			prices[i] = bundle.getInt("ac_price_" + i);
 		}
 		if (round < 1) round = 1;
+		if (level < 1) level = 3;
 		if (life <= 0) life = START_LIFE;
 	}
 }

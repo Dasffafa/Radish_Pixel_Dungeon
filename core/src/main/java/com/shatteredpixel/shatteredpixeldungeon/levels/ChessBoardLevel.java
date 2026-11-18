@@ -72,11 +72,9 @@ public class ChessBoardLevel extends DeadEndLevel {
 		map[SPECTATOR_Y * width() + SPECTATOR_X - 2] = Terrain.WALL;
 		map[SPECTATOR_Y * width() + SPECTATOR_X + 2] = Terrain.WALL;
 
-		// 中线做点视觉分隔，不挡路
-		for (int y = 3; y < SIZE - 1; y++) {
-			if (y % 3 == 0) {
-				map[y * width() + center] = Terrain.EMPTY_DECO;
-			}
+		// 中线：整列装饰格，把玩家半场和敌方半场明确分开（可以走，只是视觉界限）
+		for (int y = 1; y < SIZE - 1; y++) {
+			map[y * width() + center] = Terrain.EMPTY_DECO;
 		}
 
 		int entrance = SPECTATOR_Y * width() + SPECTATOR_X;
@@ -166,6 +164,25 @@ public class ChessBoardLevel extends DeadEndLevel {
 			return -1;
 		}
 		return cell;
+	}
+
+	/** 这个格子是否在玩家半场（含中线左侧）。 */
+	public static boolean isPlayerHalf(int cell) {
+		if (cell < 0 || Dungeon.level == null) return false;
+		return cell % Dungeon.level.width() <= PLAYER_MAX_X;
+	}
+
+	/** 这个格子是否在敌方半场。 */
+	public static boolean isEnemyHalf(int cell) {
+		if (cell < 0 || Dungeon.level == null) return false;
+		return cell % Dungeon.level.width() >= ENEMY_MIN_X;
+	}
+
+	/** 玩家半场某坐标的格子（越界返回 -1）。 */
+	public static int playerCellAt(int x, int y) {
+		if (x < 1 || y < 1 || x > PLAYER_MAX_X || y >= SIZE - 1) return -1;
+		int cell = y * Dungeon.level.width() + x;
+		return Dungeon.level.passable[cell] ? cell : -1;
 	}
 
 	/** 棋盘上指定阵营的单位数量。 */

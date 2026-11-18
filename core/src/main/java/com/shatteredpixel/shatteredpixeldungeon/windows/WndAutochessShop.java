@@ -18,37 +18,37 @@ import com.watabou.utils.Callback;
 import com.watabou.utils.PointF;
 
 /**
- * 自走棋的备战界面：金币、备战位（8 格，可拖拽换位、点选卖出）、三个可买的单位、开战。
- *
- * <p>备战位第 i 格就是棋盘上的第 i 个站位，所以拖拽换格 = 调整上阵站位。
- * 拖拽的实现是每个格子挂一个 {@link PointerArea}：拖动时把该格棋子的精灵当「幽灵」
- * 跟着手指走，松手时看落在哪一格，交换两格内容并重建窗口。</p>
+ * 自走棋备战界面：
+ * 战场（上阵位，数量受等级限制）+ 备战席（不参战）、买棋子、买经验、刷新、拖拽换位、卖出、开战。
  */
 public class WndAutochessShop extends Window {
 
-	private static final int WIDTH = 156;
+	private static final int WIDTH = 162;
 	private static final int MARGIN = 5;
-	private static final int CELL_W = 34;
-	private static final int CELL_H = 24;
+	private static final int CELL_W = 30;
+	private static final int CELL_H = 21;
 	private static final int CELL_GAP = 2;
-	private static final int OFFER_ROW = 30;
+	private static final int OFFER_ROW = 28;
 	private static final int GAP = 3;
+	private static final int COLS = 3;
 
 	private static final int COLOR_TITLE = 0xFFFF44;
 	private static final int COLOR_GOLD = 0xFFD700;
 	private static final int COLOR_DIM = 0xAAAAAA;
-	private static final int COLOR_BENCH_TITLE = 0x99CCFF;
+	private static final int COLOR_SECTION = 0x99CCFF;
 	private static final int FRAME_LINE = 0x55FFFF66;
 	private static final int FRAME_LINE_SELECTED = 0xFFFFAA00;
+	private static final int FRAME_LINE_BOARD = 0x6644FF88;
 
 	private final AutochessRun run;
 
-	private final float[] cellX = new float[AutochessRun.MAX_UNITS];
-	private final float[] cellY = new float[AutochessRun.MAX_UNITS];
-
+	/** [side][index] 的格子左上角（本地坐标），side 0 = 备战席，1 = 战场。 */
+	private final float[][] cellX = new float[2][9];
+	private final float[][] cellY = new float[2][9];
 
 	private CharSprite dragGhost;
-	private int dragFrom = -1;
+	private int dragSide = -1;
+	private int dragIndex = -1;
 	private boolean dragging = false;
 	private boolean dragged = false;
 
@@ -69,72 +69,45 @@ public class WndAutochessShop extends Window {
 		add(title);
 
 		RenderedTextBlock gold = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "gold", run.gold(), run.life(), run.rosterSize()), 8);
+				M.L(WndAutochessShop.class, "gold", run.gold(), run.life()), 8);
 		gold.hardlight(COLOR_GOLD);
 		gold.setPos(MARGIN, title.bottom() + 2);
 		add(gold);
 
-		float pos = gold.bottom() + GAP + 1;
+		RenderedTextBlock info = PixelScene.renderTextBlock(
+				M.L(WndAutochessShop.class, "info",
+						run.level(), run.deployed(), run.maxDeploy(), run.xp(), run.xpNeed()), 7);
+		info.hardlight(COLOR_SECTION);
+		info.setPos(MARGIN, gold.bottom() + 1);
+		add(info);
 
-		RenderedTextBlock benchTitle = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "bench", run.rosterSize()), 7);
-		benchTitle.hardlight(COLOR_BENCH_TITLE);
-		benchTitle.setPos(MARGIN, pos);
-		add(benchTitle);
-		pos = benchTitle.bottom() + 2;
+		float pos = info.bottom() + GAP;
 
-		pos = addBenchGrid(pos);
+		pos = addGrid(0, "bench_title", M.L(WndAutochessShop.class, "bench_title", benchCount()), pos);
 		pos = addSellRow(pos);
+		pos = addActions(pos);
 
 		for (int i = 0; i < 3; i++) {
 			pos = addOfferRow(i, pos);
 		}
 
 		RenderedTextBlock traits = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "traits", traitLine(), alliesLine()), 7);
+				M.L(WndAutochessShop.class, "traits", traitLine()), 7);
 		traits.maxWidth(WIDTH - MARGIN * 2);
-		traits.setPos(MARGIN, pos + 2);
+		traits.setPos(MARGIN, pos + 1);
 		traits.hardlight(COLOR_DIM);
 		add(traits);
 
-		pos = traits.bottom() + GAP + 1;
-
-		RedButton refresh = new RedButton(
-				M.L(WndAutochessShop.class, "refresh", AutochessRun.REFRESH_COST), 8) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				if (current != null && current.refresh()) {
-					rebuild();
-				}
-			}
-		};
-		refresh.setRect(MARGIN, pos, (WIDTH - MARGIN * 2 - GAP) / 2f, 18);
-		add(refresh);
-
-		RedButton fight = new RedButton(M.L(WndAutochessShop.class, "fight"), 8) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				hide();
-				if (current != null) {
-					current.startFight();
-				}
-			}
-		};
-		fight.setRect(refresh.right() + GAP, pos, (WIDTH - MARGIN * 2 - GAP) / 2f, 18);
-		add(fight);
-
-		resize(WIDTH, (int) fight.bottom() + MARGIN);
+		resize(WIDTH, (int) traits.bottom() + MARGIN);
 	}
 
-	/**
-	 * 重建备战界面。
-	 *
-	 * <p>必须延到下一帧再弹新窗口：如果在这一帧里 hide + show，
-	 * 当前这次点击的事件还会被派发给新窗口，落点正好压在「购买」上就会
-	 * 一路连锁买下去（实测过，一次点击能买空半个商店）。</p>
-	 */
+	private int benchCount() {
+		int count = 0;
+		for (int i = 0; i < 9; i++) {
+			if (run.unitClass(0, i) != null) count++;
+		}
+		return count;
+	}
 
 	private void rebuild() {
 		final AutochessRun current = AutochessRun.get();
@@ -152,59 +125,67 @@ public class WndAutochessShop extends Window {
 		});
 	}
 
-	/* ====================== 备战位 ====================== */
+	/* ====================== 棋盘格 ====================== */
 
-	private float addBenchGrid(float pos) {
+	private float addGrid(int side, String labelKey, String labelText, float pos) {
 
-		for (int i = 0; i < AutochessRun.MAX_UNITS; i++) {
+		RenderedTextBlock label = PixelScene.renderTextBlock(labelText, 7);
+		label.hardlight(COLOR_SECTION);
+		label.setPos(MARGIN, pos);
+		add(label);
+		pos = label.bottom() + 1;
+
+		for (int i = 0; i < 9; i++) {
 			final int slot = i;
-			int col = i % 4;
-			int row = i / 4;
+			final int theSide = side;
+			int col = i % COLS;
+			int row = i / COLS;
 			float cx = MARGIN + col * (CELL_W + CELL_GAP);
 			float cy = pos + row * (CELL_H + CELL_GAP);
-			cellX[i] = cx;
-			cellY[i] = cy;
+			cellX[side][i] = cx;
+			cellY[side][i] = cy;
 
-			boolean selected = run.selectedSlot == slot && run.benchClass(slot) != null;
+			boolean selected = run.selectedSide == side && run.selectedIndex == i
+					&& run.unitClass(side, i) != null;
 			RoundedFrame frame = new RoundedFrame(0xCC1A1A1A,
-					selected ? FRAME_LINE_SELECTED : FRAME_LINE);
+					selected ? FRAME_LINE_SELECTED : (side == 1 ? FRAME_LINE_BOARD : FRAME_LINE));
 			frame.setRect(cx, cy, CELL_W, CELL_H);
 			add(frame);
 
-			String cls = run.benchClass(slot);
+			String cls = run.unitClass(side, i);
 			if (cls != null) {
 				CharSprite icon = AutochessIcons.spriteFor(cls);
 				if (icon != null) {
-					AutochessIcons.place(icon, cx + 2, cy + 4, 14);
+					AutochessIcons.place(icon, cx + 2, cy + 4, 12);
 					add(icon);
 				}
-
-				RenderedTextBlock name = PixelScene.renderTextBlock(run.benchName(slot), 6);
-				name.maxWidth(15);
-				name.setPos(cx + 18, cy + 2);
+				RenderedTextBlock name = PixelScene.renderTextBlock(run.unitName(side, i), 6);
+				name.maxWidth(14);
+				name.setPos(cx + 15, cy + 2);
 				add(name);
 
-				RenderedTextBlock stars = PixelScene.renderTextBlock(stars(run.benchStar(slot)), 6);
+				RenderedTextBlock stars = PixelScene.renderTextBlock(stars(run.unitStar(side, i)), 6);
 				stars.hardlight(0xFFD700);
-				stars.setPos(cx + 18, cy + 13);
+				stars.setPos(cx + 15, cy + 12);
 				add(stars);
 			}
 
 			PointerArea area = new PointerArea(cx, cy, CELL_W, CELL_H) {
 				@Override
 				protected void onPointerDown(PointerEvent event) {
-					dragFrom = slot;
+					dragSide = theSide;
+					dragIndex = slot;
 					dragging = false;
 					dragged = false;
 				}
 
 				@Override
 				protected void onDrag(PointerEvent event) {
-					if (run.benchClass(slot) == null) {
+					if (run.unitClass(theSide, slot) == null) {
 						return;
 					}
 					if (!dragging) {
-						startGhost(slot);
+						startGhost(theSide, slot);
 						dragging = true;
 						dragged = true;
 					}
@@ -221,77 +202,115 @@ public class WndAutochessShop extends Window {
 
 				@Override
 				protected void onClick(PointerEvent event) {
-					// 拖完那一下不算点选
 					if (dragged) {
 						dragged = false;
 						return;
 					}
-					if (run.benchClass(slot) == null) {
+					if (run.unitClass(theSide, slot) == null) {
 						return;
 					}
-					run.selectedSlot = (run.selectedSlot == slot) ? -1 : slot;
+					if (run.selectedSide == theSide && run.selectedIndex == slot) {
+						run.selectedSide = -1;
+						run.selectedIndex = -1;
+					} else {
+						run.selectedSide = theSide;
+						run.selectedIndex = slot;
+					}
 					rebuild();
 				}
 			};
 			add(area);
 		}
 
-		return pos + 2 * CELL_H + CELL_GAP + 3;
+		return pos + 3 * CELL_H + 2 * CELL_GAP + GAP;
 	}
 
-	private void startGhost(int slot) {
-		CharSprite sprite = AutochessIcons.spriteFor(run.benchClass(slot));
-		if (sprite == null) {
-			return;
-		}
+	private void startGhost(int side, int index) {
+		CharSprite sprite = AutochessIcons.spriteFor(run.unitClass(side, index));
+		if (sprite == null) return;
 		dragGhost = sprite;
 		dragGhost.alpha(0.8f);
-		dragGhost.scale.set(1.2f);
+		dragGhost.scale.set(1.1f);
 		add(dragGhost);
 	}
 
 	private void moveGhost(PointerEvent event) {
-		if (dragGhost == null) {
-			return;
-		}
+		if (dragGhost == null) return;
 		PointF p = camera().screenToCamera((int) event.current.x, (int) event.current.y);
-		dragGhost.x = p.x - dragGhost.width() * 0.6f;
-		dragGhost.y = p.y - dragGhost.height() * 0.9f;
+		dragGhost.x = p.x - dragGhost.width() * 0.55f;
+		dragGhost.y = p.y - dragGhost.height() * 0.85f;
 		PixelScene.align(dragGhost);
 	}
 
 	private void dropGhost(PointerEvent event) {
 		PointF p = camera().screenToCamera((int) event.current.x, (int) event.current.y);
-		int target = cellAt(p.x, p.y);
-
 		if (dragGhost != null) {
 			dragGhost.killAndErase();
 			dragGhost = null;
 		}
-		if (target >= 0 && target != dragFrom) {
-			run.swapBench(dragFrom, target);
-			run.selectedSlot = target;
+		int[] target = cellAt(p.x, p.y);
+		if (target != null && run.drag(dragSide, dragIndex, target[0], target[1])) {
+			run.selectedSide = target[0];
+			run.selectedIndex = target[1];
 			rebuild();
 		}
-		dragFrom = -1;
+		dragSide = -1;
+		dragIndex = -1;
 	}
 
-	private int cellAt(float x, float y) {
-		for (int i = 0; i < AutochessRun.MAX_UNITS; i++) {
-			if (x >= cellX[i] && x <= cellX[i] + CELL_W
-					&& y >= cellY[i] && y <= cellY[i] + CELL_H) {
-				return i;
+	private int[] cellAt(float x, float y) {
+		for (int side = 0; side <= 1; side++) {
+			for (int i = 0; i < 9; i++) {
+				float cx = cellX[side][i];
+				float cy = cellY[side][i];
+				if (x >= cx && x <= cx + CELL_W && y >= cy && y <= cy + CELL_H) {
+					return new int[]{side, i};
+				}
 			}
 		}
-		return -1;
+		return null;
 	}
 
 	/* ====================== 卖出 ====================== */
 
 	private float addSellRow(float pos) {
+		int side = run.selectedSide;
+		int index = run.selectedIndex;
+		if (side == 0 && run.unitClass(side, index) != null) {
+			// 备战席上的棋子：可以上阵，也可以卖掉
+			float halfW = (WIDTH - MARGIN * 2 - GAP) / 2f;
+			RedButton deploy = new RedButton(M.L(WndAutochessShop.class, "deploy"), 8) {
+				@Override
+				protected void onClick() {
+					AutochessRun current = AutochessRun.get();
+					if (current != null && current.deploy(current.selectedIndex)) {
+						current.selectedSide = -1;
+						current.selectedIndex = -1;
+						rebuild();
+					}
+				}
+			};
+			deploy.setRect(MARGIN, pos, halfW, 16);
+			add(deploy);
 
-		int slot = run.selectedSlot;
-		if (slot < 0 || run.benchClass(slot) == null) {
+			RedButton sellBench = new RedButton(M.L(WndAutochessShop.class, "sell_short",
+					run.sellValue(0, index)), 8) {
+				@Override
+				protected void onClick() {
+					AutochessRun current = AutochessRun.get();
+					if (current == null) return;
+					if (current.sell(current.selectedSide, current.selectedIndex) > 0) {
+						current.selectedSide = -1;
+						current.selectedIndex = -1;
+						rebuild();
+					}
+				}
+			};
+			sellBench.setRect(deploy.right() + GAP, pos, halfW, 16);
+			add(sellBench);
+			return deploy.bottom() + GAP;
+		}
+		if (side < 0 || run.unitClass(side, index) == null) {
 			RenderedTextBlock hint = PixelScene.renderTextBlock(
 					M.L(WndAutochessShop.class, "select_hint"), 7);
 			hint.maxWidth(WIDTH - MARGIN * 2);
@@ -300,26 +319,88 @@ public class WndAutochessShop extends Window {
 			add(hint);
 			return hint.bottom() + GAP;
 		}
-
-		int value = run.sellValue(slot);
+		int value = run.sellValue(side, index);
 		RedButton sell = new RedButton(
-				M.L(WndAutochessShop.class, "sell", run.benchName(slot), stars(run.benchStar(slot)), value), 8) {
+				M.L(WndAutochessShop.class, "sell", run.unitName(side, index),
+						stars(run.unitStar(side, index)), value), 8) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
-				if (current == null) {
-					return;
-				}
-				int s = current.selectedSlot;
-				if (s >= 0 && current.sell(s) > 0) {
-					current.selectedSlot = -1;
+				if (current == null) return;
+				int s = current.selectedSide;
+				int i = current.selectedIndex;
+				if (s >= 0 && current.sell(s, i) > 0) {
+					current.selectedSide = -1;
+					current.selectedIndex = -1;
 					rebuild();
 				}
 			}
 		};
-		sell.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 16);
+		sell.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 15);
 		add(sell);
 		return sell.bottom() + GAP;
+	}
+
+	/* ====================== 操作按钮 ====================== */
+
+	private float addActions(float pos) {
+
+		float halfW = (WIDTH - MARGIN * 2 - GAP) / 2f;
+
+		RedButton xpBtn = new RedButton(M.L(WndAutochessShop.class, "buy_xp", AutochessRun.XP_COST), 8) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				if (current != null && current.buyXp()) {
+					rebuild();
+				}
+			}
+		};
+		xpBtn.active = run.level() < AutochessRun.MAX_LEVEL && run.gold() >= AutochessRun.XP_COST;
+		xpBtn.setRect(MARGIN, pos, halfW, 17);
+		add(xpBtn);
+
+		RedButton refresh = new RedButton(
+				M.L(WndAutochessShop.class, "refresh", AutochessRun.REFRESH_COST), 8) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				if (current != null && current.refresh()) {
+					rebuild();
+				}
+			}
+		};
+		refresh.active = run.gold() >= AutochessRun.REFRESH_COST;
+		refresh.setRect(xpBtn.right() + GAP, pos, halfW, 17);
+		add(refresh);
+
+		pos = xpBtn.bottom() + GAP;
+
+		RedButton place = new RedButton(M.L(WndAutochessShop.class, "place_on_map"), 8) {
+			@Override
+			protected void onClick() {
+				hide();
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPlacement.begin();
+			}
+		};
+		place.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 16);
+		add(place);
+		pos = place.bottom() + GAP;
+
+		RedButton fight = new RedButton(M.L(WndAutochessShop.class, "fight"), 8) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				hide();
+				if (current != null) {
+					current.startFight();
+				}
+			}
+		};
+		fight.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 18);
+		add(fight);
+
+		return fight.bottom() + GAP;
 	}
 
 	/* ====================== 商店 ====================== */
@@ -331,21 +412,21 @@ public class WndAutochessShop extends Window {
 		if (def == null) {
 			RenderedTextBlock sold = PixelScene.renderTextBlock(M.L(WndAutochessShop.class, "sold"), 7);
 			sold.hardlight(COLOR_DIM);
-			sold.setPos(MARGIN, pos + 9);
+			sold.setPos(MARGIN, pos + 8);
 			add(sold);
 			return pos + OFFER_ROW;
 		}
 
 		CharSprite icon = AutochessIcons.spriteFor(def);
 		if (icon != null) {
-			AutochessIcons.place(icon, MARGIN, pos + 1, 16);
+			AutochessIcons.place(icon, MARGIN, pos + 1, 15);
 			add(icon);
 		}
 
 		RenderedTextBlock name = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "row", unitName(def), def.cost, traitName(def.trait)), 8);
+				M.L(WndAutochessShop.class, "row", nameOf(def), def.cost, traitName(def.trait)), 8);
 		name.maxWidth(WIDTH - MARGIN * 2 - 20);
-		name.setPos(MARGIN + 19, pos + 1);
+		name.setPos(MARGIN + 18, pos + 1);
 		add(name);
 
 		final int idx = index;
@@ -359,13 +440,13 @@ public class WndAutochessShop extends Window {
 			}
 		};
 		buy.active = run.gold() >= def.cost;
-		buy.setRect(MARGIN + 19, pos + 14, 60, 14);
+		buy.setRect(MARGIN + 18, pos + 13, 58, 13);
 		add(buy);
 
 		return pos + OFFER_ROW;
 	}
 
-	private static String unitName(AutochessPool.Def def) {
+	private static String nameOf(AutochessPool.Def def) {
 		com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
 				com.watabou.utils.Reflection.newInstance(def.cls);
 		return mob == null ? def.cls.getSimpleName() : mob.name();
@@ -377,9 +458,7 @@ public class WndAutochessShop extends Window {
 
 	private static String stars(int star) {
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < star; i++) {
-			sb.append("★");
-		}
+		for (int i = 0; i < star; i++) sb.append("★");
 		return sb.toString();
 	}
 
@@ -390,10 +469,5 @@ public class WndAutochessShop extends Window {
 		sb.append("  ·  ").append(traitName(AutochessPool.CONSTRUCT)).append(" ").append(AutochessRun.countTrait(AutochessPool.CONSTRUCT));
 		sb.append("  ·  ").append(traitName(AutochessPool.DEMON)).append(" ").append(AutochessRun.countTrait(AutochessPool.DEMON));
 		return sb.toString();
-	}
-
-	private static String alliesLine() {
-		AutochessRun current = AutochessRun.get();
-		return M.L(WndAutochessShop.class, "allies", current == null ? 0 : current.rosterSize());
 	}
 }

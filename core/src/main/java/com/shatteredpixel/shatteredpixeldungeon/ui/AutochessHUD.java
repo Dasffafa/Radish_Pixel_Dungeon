@@ -141,7 +141,8 @@ public class AutochessHUD extends Component {
 		keepFullVision();
 
 		String text = M.L(AutochessHUD.class, "format",
-				run.round(), run.gold(), run.life(), run.rosterSize(),
+				run.round(), run.gold(), run.life(), run.level(),
+				run.deployed(), run.maxDeploy(),
 				M.L(AutochessHUD.class, run.state() == AutochessRun.State.FIGHT ? "fighting" : "prep"));
 		if (!text.equals(shown)) {
 			shown = text;
