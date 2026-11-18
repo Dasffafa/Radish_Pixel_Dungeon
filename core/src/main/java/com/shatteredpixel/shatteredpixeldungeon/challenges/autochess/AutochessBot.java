@@ -37,12 +37,10 @@ public class AutochessBot {
 		gold += 5 + Math.min(5, gold / 10);
 
 		// 和玩家一样靠回合经验升级：前几回合升得快，后面放缓
-		int targetLevel = Math.min(10, 2 + round / 2);
-		while (level < targetLevel) {
-			level++;
-		}
-		// 钱多就继续买等级（和玩家一样花 4 金换 1 级）
-		while (level < 10 && gold >= 8) {
+		// 等级跟着回合走，对齐玩家曲线（1 回合 1 级、2 回合 2 级…），
+		// 每回合最多花 4 金买 1 级，不会一开局就冲到 4 级
+		int targetLevel = Math.min(10, 1 + round / 2);
+		if (level < targetLevel && gold >= 6) {
 			gold -= 4;
 			level++;
 		}
@@ -54,7 +52,8 @@ public class AutochessBot {
 			String cls = pool.draw(level);
 			if (cls == null) break;
 			if (!pool.take(cls)) break;
-			gold -= 1;
+			AutochessPool.Def bought = AutochessPool.ofName(cls);
+			gold -= bought == null ? 1 : Math.max(1, bought.cost);
 			roster.add(cls + ":1");
 		}
 
