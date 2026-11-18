@@ -34,7 +34,11 @@ public class AutochessSkill {
 	}
 
 	public String name() {
-		return Messages.get(AutochessSkill.class, "name_" + id);
+		return Messages.get(AutochessSkill.class, "name_" + id.toLowerCase(java.util.Locale.ROOT));
+	}
+
+	public String desc() {
+		return Messages.get(AutochessSkill.class, "desc_" + id.toLowerCase(java.util.Locale.ROOT));
 	}
 
 	// ------------------------------------------------------------------

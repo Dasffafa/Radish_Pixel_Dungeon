@@ -243,6 +243,17 @@ public class WndAutochessShop extends Window {
 		card.setRect(MARGIN - 2, pos - 1, WIDTH - MARGIN * 2 + 4, OFFER_ROW - 3);
 		add(card);
 
+		// 详情按钮
+		RedButton infoBtn = new RedButton("i", 8) {
+			@Override
+			protected void onClick() {
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+						new WndAutochessInfo(def));
+			}
+		};
+		infoBtn.setRect(WIDTH - MARGIN - 14, pos + 1, 14, 12);
+		add(infoBtn);
+
 		CharSprite icon = AutochessIcons.spriteFor(def);
 		if (icon != null) {
 			AutochessIcons.place(icon, MARGIN, pos + 1, 15);
