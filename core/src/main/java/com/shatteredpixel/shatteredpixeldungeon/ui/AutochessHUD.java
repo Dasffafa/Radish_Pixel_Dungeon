@@ -24,7 +24,10 @@ public class AutochessHUD extends Component {
 
 	private RoundedFrame frame;
 	private RenderedTextBlock label;
+	private com.watabou.noosa.PointerArea tap;
 	private String shown = "";
+
+	private static final com.watabou.input.PointerEvent.Type[] NO_TYPES = null;
 
 	private float acc = 0f;
 
@@ -42,11 +45,31 @@ public class AutochessHUD extends Component {
 		label.maxWidth((int) WIDTH - 8);
 		label.hardlight(COLOR_NORMAL);
 		add(label);
+
+		// 点顶部状态条随时打开备战界面（关掉商店后不用等下一回合）
+		tap = new com.watabou.noosa.PointerArea(0, 0, WIDTH, HEIGHT) {
+			@Override
+			protected void onClick(com.watabou.input.PointerEvent event) {
+				AutochessRun run = AutochessRun.get();
+				if (run != null && run.state() == AutochessRun.State.PREP) {
+					com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+							new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessShop(run.round()));
+				}
+			}
+		};
+		tap.givePointerPriority();
+		add(tap);
 	}
 
 	@Override
 	protected void layout() {
 		frame.setRect(x, y, WIDTH, HEIGHT);
+		if (tap != null) {
+			tap.x = x;
+			tap.y = y;
+			tap.width = WIDTH;
+			tap.height = HEIGHT;
+		}
 		centerLabel();
 	}
 

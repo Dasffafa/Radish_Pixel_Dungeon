@@ -49,6 +49,9 @@ public class AutochessRun extends Buff {
 	/** 备战位：8 个格子，每格是「类名:星级」，null 表示空位。 */
 	private final String[] bench = new String[MAX_UNITS];
 
+	/** 备战界面当前选中的格子（-1 = 没选），只影响 UI，不进存档。 */
+	public int selectedSlot = -1;
+
 	private String[] offers = new String[3];
 	private int[] prices = new int[3];
 
@@ -84,6 +87,8 @@ public class AutochessRun extends Buff {
 		run.state = State.PREP;
 		java.util.Arrays.fill(run.bench, null);
 		run.rollShop();
+
+
 
 
 
@@ -220,6 +225,42 @@ public class AutochessRun extends Buff {
 	public String benchName(int slot) {
 		String cls = benchClass(slot);
 		return cls == null ? null : unitName(cls);
+	}
+
+	/** 交换两个备战位的棋子（拖拽换位用）。任一边为空就相当于移动。 */
+	public void swapBench(int a, int b) {
+		if (a == b || a < 0 || b < 0 || a >= bench.length || b >= bench.length) {
+			return;
+		}
+		String tmp = bench[a];
+		bench[a] = bench[b];
+		bench[b] = tmp;
+	}
+
+	/** 卖掉一个棋子返还的金币：1 星原价、2 星 3 倍、3 星 9 倍。 */
+	public int sellValue(int slot) {
+		String cls = benchClass(slot);
+		if (cls == null) {
+			return 0;
+		}
+		AutochessPool.Def def = AutochessPool.ofName(cls);
+		if (def == null) {
+			return 0;
+		}
+		int star = benchStar(slot);
+		int mult = star >= 3 ? 9 : (star == 2 ? 3 : 1);
+		return def.cost * mult;
+	}
+
+	/** 卖掉备战位上的棋子，返回返还的金币。 */
+	public int sell(int slot) {
+		if (state != State.PREP || benchClass(slot) == null) {
+			return 0;
+		}
+		int value = sellValue(slot);
+		bench[slot] = null;
+		gold += value;
+		return value;
 	}
 
 	private static int parseInt(String s) {
