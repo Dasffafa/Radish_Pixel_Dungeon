@@ -43,12 +43,12 @@ public class ChessBoardLevel extends DeadEndLevel {
 
 	@Override
 	public String tilesTex() {
-		return Assets.Environment.TILES_HALLS;
+		return Assets.Environment.TILES_MOSS;
 	}
 
 	@Override
 	public String waterTex() {
-		return Assets.Environment.WATER_HALLS;
+		return Assets.Environment.WATER_MOSS;
 	}
 
 	@Override

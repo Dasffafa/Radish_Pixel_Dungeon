@@ -30,6 +30,7 @@ public class AutochessHUD extends Component {
 	private static final com.watabou.input.PointerEvent.Type[] NO_TYPES = null;
 
 	private float acc = 0f;
+	private boolean revealed = false;
 
 	public AutochessHUD() {
 		super();
@@ -73,6 +74,20 @@ public class AutochessHUD extends Component {
 		centerLabel();
 	}
 
+	/** 把整张棋盘标记为已探索并刷新地图与迷雾，否则玩家看到的是一片黑。 */
+	private void revealBoard() {
+		if (Dungeon.level == null) {
+			return;
+		}
+		for (int i = 0; i < Dungeon.level.length(); i++) {
+			Dungeon.level.mapped[i] = true;
+			Dungeon.level.visited[i] = true;
+		}
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap();
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateFog();
+		Dungeon.observe();
+	}
+
 	private void centerLabel() {
 		if (label == null) return;
 		label.setPos(x + (WIDTH - label.width()) / 2f, y + (HEIGHT - label.height()) / 2f);
@@ -86,6 +101,12 @@ public class AutochessHUD extends Component {
 		AutochessRun run = AutochessRun.get();
 		if (run == null) {
 			return;
+		}
+
+		// 英雄坐在封闭包间里，视野只有一小块；场景建好后的第一帧把整张棋盘点亮
+		if (!revealed) {
+			revealed = true;
+			revealBoard();
 		}
 
 		String text = M.L(AutochessHUD.class, "format",

@@ -392,6 +392,11 @@ public class GameScene extends PixelScene {
 			autochessHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.WIDTH) / 2f, 2);
 			add(autochessHud);
 
+			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）
+			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
+					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
+			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f - 8f), 0f);
+
 			final com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun chessRun =
 					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.get();
 			if (chessRun != null && chessRun.state() == com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.State.PREP) {

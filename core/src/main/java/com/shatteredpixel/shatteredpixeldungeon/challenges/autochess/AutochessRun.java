@@ -92,18 +92,7 @@ public class AutochessRun extends Buff {
 
 
 
-		// 英雄坐在墙里观战，视野只有一小块；把整张棋盘标记为已探索，玩家才看得见对局
-		for (int i = 0; i < Dungeon.level.length(); i++) {
-			Dungeon.level.mapped[i] = true;
-			Dungeon.level.visited[i] = true;
-		}
-		Game.runOnRenderThread(new Callback() {
-			@Override
-			public void call() {
-				GameScene.updateMap();
-				Dungeon.observe();
-			}
-		});
+;
 	}
 
 	@Override
@@ -142,11 +131,19 @@ public class AutochessRun extends Buff {
 		return true;
 	}
 
+	/** 上次购买的时间戳，用来挡掉同一次点击被多个按钮重复派发。 */
+	private long lastBuyMs = 0;
+
 	/** 买第 index 个位置上的单位，放进第一个空的备战位。 */
 	public boolean buy(int index) {
 		if (state != State.PREP) {
 			return false;
 		}
+		long now = System.currentTimeMillis();
+		if (now - lastBuyMs < 200) {
+			return false;
+		}
+		lastBuyMs = now;
 		AutochessPool.Def def = offer(index);
 		if (def == null) {
 			return false;
