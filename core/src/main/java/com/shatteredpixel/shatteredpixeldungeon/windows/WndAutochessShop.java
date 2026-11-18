@@ -86,15 +86,21 @@ public class WndAutochessShop extends Window {
 
 		float pos = odds.bottom() + 1;
 
-		// 本轮对手 / 剩余 AI
+		// 本轮对手 / 剩余 AI：点一下看对方阵容
 		AutochessBot opp = run.opponent();
-		String matchup = M.L(WndAutochessShop.class, "matchup",
+		RedButton vs = new RedButton(M.L(WndAutochessShop.class, "matchup",
 				opp == null ? "-" : (opp.name + "（" + opp.hp + "血）"),
-				run.aliveBots(), Math.max(1, run.bots().size()));
-		RenderedTextBlock vs = PixelScene.renderTextBlock(matchup, 7);
-		vs.maxWidth(WIDTH - MARGIN * 2);
-		vs.hardlight(COLOR_SECTION);
-		vs.setPos(MARGIN, pos);
+				run.aliveBots(), Math.max(1, run.bots().size())), 7) {
+			@Override
+			protected void onClick() {
+				AutochessBot current = AutochessRun.get() == null ? null : AutochessRun.get().opponent();
+				if (current != null) {
+					com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+							new WndAutochessOpponent(current));
+				}
+			}
+		};
+		vs.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 14);
 		add(vs);
 		pos = vs.bottom() + GAP;
 
