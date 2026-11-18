@@ -1182,6 +1182,25 @@ public class AutochessRun extends Buff {
 			bundle.put("ac_offer_" + i, offers[i] == null ? "" : offers[i]);
 			bundle.put("ac_price_" + i, prices[i]);
 		}
+
+		// AI 对手：血量/等级/金币/阵容
+		bundle.put("ac_bot_count", bots.size());
+		for (int bi = 0; bi < bots.size(); bi++) {
+			AutochessBot bot = bots.get(bi);
+			StringBuilder sb = new StringBuilder();
+			sb.append(bot.name).append("|").append(bot.hp).append("|")
+					.append(bot.level).append("|").append(bot.gold);
+			for (String entry : bot.roster) sb.append(";").append(entry);
+			bundle.put("ac_bot_" + bi, sb.toString());
+		}
+		if (opponent != null) bundle.put("ac_opponent", opponent.name);
+		bundle.put("ac_items", AutochessItems.encode(itemBag));
+		bundle.put("ac_locked", shopLocked);
+		if (pool != null) {
+			for (AutochessPool.Def def : AutochessPool.all()) {
+				bundle.put("ac_pool_" + def.cls.getSimpleName(), pool.count(def.cls.getSimpleName()));
+			}
+		}
 	}
 
 	@Override
@@ -1216,6 +1235,56 @@ public class AutochessRun extends Buff {
 			offers[i] = name == null || name.isEmpty() ? null : name;
 			prices[i] = bundle.getInt("ac_price_" + i);
 		}
+		// 共享池
+		pool = new AutochessSharedPool();
+		for (AutochessPool.Def def : AutochessPool.all()) {
+			String cls = def.cls.getSimpleName();
+			if (bundle.contains("ac_pool_" + cls)) {
+				pool.setCount(cls, bundle.getInt("ac_pool_" + cls));
+			}
+		}
+		// AI 对手
+		bots.clear();
+		int botCount = bundle.getInt("ac_bot_count");
+		for (int bi = 0; bi < botCount; bi++) {
+			String saved = bundle.getString("ac_bot_" + bi);
+			if (saved == null || saved.isEmpty()) continue;
+			String[] parts = saved.split("\\|");
+			if (parts.length < 4) continue;
+			AutochessBot bot = new AutochessBot(parts[0]);
+			bot.hp = parseInt(parts[1]);
+			bot.level = parseInt(parts[2]);
+			bot.gold = parseInt(parts[3]);
+			int semi = saved.indexOf(";");
+			if (semi >= 0) {
+				for (String entry : saved.substring(semi + 1).split(";")) {
+					if (!entry.isEmpty()) bot.roster.add(entry);
+				}
+			}
+			bots.add(bot);
+		}
+		opponent = null;
+		String oppName = bundle.getString("ac_opponent");
+		if (oppName != null) {
+			for (AutochessBot bot : bots) {
+				if (bot.name.equals(oppName)) opponent = bot;
+			}
+		}
+		// 老存档没有 AI 数据：补建 5 个，别让大厅和对手空着
+		if (bots.isEmpty()) {
+			String[] defaultNames = {"老王", "阿呆", "包子", "萝卜头", "土豆"};
+			for (String n : defaultNames) bots.add(new AutochessBot(n));
+			for (AutochessBot bot : bots) bot.advance(pool, 0);
+		}
+		// 装备背包
+		itemBag.clear();
+		String savedItems = bundle.getString("ac_items");
+		if (savedItems != null && !savedItems.isEmpty()) {
+			for (String id : savedItems.split(",")) {
+				if (!id.isEmpty()) itemBag.add(id);
+			}
+		}
+		shopLocked = bundle.getBoolean("ac_locked");
 		if (round < 1) round = 1;
 		if (level < 1) level = 1;
 		if (life <= 0) life = START_LIFE;
