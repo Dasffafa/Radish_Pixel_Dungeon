@@ -340,10 +340,17 @@ public class WndAutochessShop extends Window {
 
 	private static String traitLine() {
 		StringBuilder sb = new StringBuilder();
-		appendTrait(sb, AutochessPool.BEAST);
-		appendTrait(sb, AutochessPool.HUMANOID);
-		appendTrait(sb, AutochessPool.CONSTRUCT);
-		appendTrait(sb, AutochessPool.DEMON);
+		for (String trait : new String[]{
+				AutochessPool.BEAST, AutochessPool.HUMANOID, AutochessPool.CONSTRUCT,
+				AutochessPool.DEMON, AutochessPool.UNDEAD, AutochessPool.GUARD,
+				AutochessPool.GIANT, AutochessPool.SWARM}) {
+			if (AutochessRun.countTrait(trait) > 0) {
+				appendTrait(sb, trait);
+			}
+		}
+		if (sb.length() == 0) {
+			sb.append(M.L(WndAutochessShop.class, "no_trait"));
+		}
 		return sb.toString();
 	}
 

@@ -63,6 +63,10 @@ public class AutochessPool {
 	public static final String HUMANOID  = "humanoid";   // 人形：攻击力
 	public static final String CONSTRUCT = "construct";  // 构装：减伤
 	public static final String DEMON     = "demon";      // 恶魔：全能增伤
+	public static final String UNDEAD    = "undead";     // 亡灵：持续回血
+	public static final String GUARD     = "guard";      // 守卫：开战护盾
+	public static final String GIANT     = "giant";      // 巨兽：血量上限
+	public static final String SWARM     = "swarm";      // 虫群：攻击附带额外伤害
 
 	public static class Def {
 		public final Class<? extends Mob> cls;
@@ -85,10 +89,10 @@ public class AutochessPool {
 		add(Snake.class, 1, BEAST);
 		add(Crab.class, 1, BEAST);
 		add(Slime.class, 1, BEAST);
-		add(Swarm.class, 1, BEAST);
+		add(Swarm.class, 1, SWARM);
 		add(Gnoll.class, 1, HUMANOID);
-		add(GiantWorm.class, 1, BEAST);
-		add(Mayfly.class, 1, BEAST);
+		add(GiantWorm.class, 1, GIANT);
+		add(Mayfly.class, 1, SWARM);
 		add(Dog.class, 1, BEAST);
 		add(Goblin.class, 1, HUMANOID);
 
@@ -96,38 +100,38 @@ public class AutochessPool {
 		add(Bat.class, 2, BEAST);
 		add(Thief.class, 2, HUMANOID);
 		add(DM100.class, 2, CONSTRUCT);
-		add(Skeleton.class, 2, CONSTRUCT);
-		add(Guard.class, 2, HUMANOID);
+		add(Skeleton.class, 2, UNDEAD);
+		add(Guard.class, 2, GUARD);
 		add(Shaman.BlueShaman.class, 2, HUMANOID);
-		add(Spinner.class, 2, CONSTRUCT);
-		add(Necromancer.class, 2, HUMANOID);
+		add(Spinner.class, 2, SWARM);
+		add(Necromancer.class, 2, UNDEAD);
 		add(GoblinRider.class, 2, HUMANOID);
-		add(Jailer.class, 2, HUMANOID);
+		add(Jailer.class, 2, GUARD);
 		add(Prisoner.class, 2, HUMANOID);
-		add(Torturer.class, 2, HUMANOID);
+		add(Torturer.class, 2, GUARD);
 
 		// 3 费：矿洞/洞穴（三区）
-		add(Brute.class, 3, HUMANOID);
-		add(Golem.class, 3, CONSTRUCT);
-		add(Ghoul.class, 3, HUMANOID);
+		add(Brute.class, 3, GIANT);
+		add(Golem.class, 3, GIANT);
+		add(Ghoul.class, 3, UNDEAD);
 		add(Grudge.class, 3, DEMON);
-		add(ClusteredSkeleton.class, 3, CONSTRUCT);
+		add(ClusteredSkeleton.class, 3, UNDEAD);
 		add(DM175.class, 3, CONSTRUCT);
 		add(GnollZealot.class, 3, HUMANOID);
 
 		// 4 费：城市（四区）
 		add(Monk.class, 4, HUMANOID);
-		add(Warlock.class, 4, HUMANOID);
+		add(Warlock.class, 4, DEMON);
 		add(Elemental.FireElemental.class, 4, DEMON);
-		add(Drake.class, 4, BEAST);
+		add(Drake.class, 4, GIANT);
 		add(StoneSpirit.class, 4, CONSTRUCT);
 		add(Artillerist.class, 4, HUMANOID);
-		add(RoyalGuard.class, 4, HUMANOID);
-		add(ShieldMage.class, 4, HUMANOID);
+		add(RoyalGuard.class, 4, GUARD);
+		add(ShieldMage.class, 4, GUARD);
 
 		// 5 费：恶魔大厅（五区）
 		add(Succubus.class, 5, DEMON);
-		add(Scorpio.class, 5, DEMON);
+		add(Scorpio.class, 5, BEAST);
 		add(Acidic.class, 5, BEAST);
 		add(Eye.class, 5, DEMON);
 		add(RipperDemon.class, 5, DEMON);
@@ -241,7 +245,7 @@ public class AutochessPool {
 
 	/** 羁绊的档位阈值：{ 一档人数, 二档人数 }。 */
 	public static int[] thresholds(String trait) {
-		if (DEMON.equals(trait)) return new int[]{2, 4};
+		if (DEMON.equals(trait) || GUARD.equals(trait)) return new int[]{2, 4};
 		return new int[]{3, 5};
 	}
 }

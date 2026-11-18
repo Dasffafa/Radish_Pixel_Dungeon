@@ -138,7 +138,13 @@ public class AutochessRun extends Buff {
 			run.bots.add(new AutochessBot(n));
 		}
 		run.opponent = null;
+		// 开局先给每个 AI 发一手牌，否则第一轮对手是空场
+		for (AutochessBot bot : run.bots) {
+			bot.advance(run.pool, 0);
+		}
 		run.rollShop();
+
+
 
 
 
@@ -572,6 +578,16 @@ public class AutochessRun extends Buff {
 			return;
 		}
 		java.util.ArrayList<String> units = opponent.deployed();
+		if (units.isEmpty()) {
+			// 对手还没成型（极端情况），先拿随机波次顶一下，别让玩家白赢
+			int count = Math.min(6, 1 + round);
+			for (int i = 0; i < count; i++) {
+				AutochessPool.Def def = AutochessPool.randomForLevel(round + 2);
+				if (def == null) continue;
+				spawnUnit(def, ChessBoardLevel.enemySlot(i), false, 1);
+			}
+			return;
+		}
 		for (int i = 0; i < units.size(); i++) {
 			String[] parts = units.get(i).split(":");
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
@@ -602,7 +618,10 @@ public class AutochessRun extends Buff {
 		}
 		state = State.FIGHT;
 		refreshPreview();
-		GLog.p(M.L(AutochessRun.class, "fight_start", round, Math.min(6, 1 + round)));
+		int enemyCount = (opponent != null && !opponent.deployed().isEmpty())
+				? opponent.deployed().size()
+				: Math.min(6, 1 + round);
+		GLog.p(M.L(AutochessRun.class, "fight_start", round, enemyCount));
 	}
 
 	private static Mob spawnUnit(AutochessPool.Def def, int cell, boolean playerSide, int star) {
