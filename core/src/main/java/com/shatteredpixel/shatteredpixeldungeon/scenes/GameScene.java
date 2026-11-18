@@ -168,6 +168,7 @@ public class GameScene extends PixelScene {
 	private MenuPane menu;
 	private StatusPane status;
 	private com.shatteredpixel.shatteredpixeldungeon.ui.ArenaHUD arenaHud;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD autochessHud;
 
 	private BossHealthBar boss;
 
@@ -222,6 +223,8 @@ public class GameScene extends PixelScene {
 
 		// 「三分钟一把」：进竞技场就挂上导演 Buff，计时与刷怪由它接管
 		com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaRun.ensureStarted();
+		// 「萝卜自走棋」：进棋盘挂上对局状态，并弹出备战界面
+		com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.ensureStarted();
 
 		SPDSettings.lastClass(Dungeon.hero.heroClass.ordinal());
 		
@@ -380,6 +383,26 @@ public class GameScene extends PixelScene {
 		status.camera = uiCamera;
 		status.setRect(0, uiSize > 0 ? uiCamera.height-39 : 0, uiCamera.width, 0 );
 		add(status);
+
+		// 「萝卜自走棋」的顶部状态条
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			autochessHud = new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD();
+			autochessHud.camera = uiCamera;
+			autochessHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.WIDTH) / 2f, 2);
+			add(autochessHud);
+
+			final com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun chessRun =
+					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.get();
+			if (chessRun != null && chessRun.state() == com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.State.PREP) {
+				com.watabou.noosa.Game.runOnRenderThread(new com.watabou.utils.Callback() {
+					@Override
+					public void call() {
+						show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessShop(chessRun.round()));
+					}
+				});
+			}
+		}
 
 		// 「三分钟一把」的顶部计时条
 		if (com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaRun.active()
