@@ -12,7 +12,7 @@ import java.util.Locale;
 public class AutochessBot {
 
 	public final String name;
-	public int hp = 10;
+	public int hp = 100;
 	public int level = 3;
 	public int gold = 8;
 

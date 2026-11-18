@@ -12,6 +12,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RoundedFrame;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
+import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Callback;
 
@@ -63,11 +64,24 @@ public class WndAutochessShop extends Window {
 		info.setPos(MARGIN, gold.bottom() + 1);
 		add(info);
 
+		// 经验条（云顶同款）
+		float barW = WIDTH - MARGIN * 2;
+		ColorBlock barBg = new ColorBlock(barW, 3, 0xFF2A2A2A);
+		barBg.x = MARGIN;
+		barBg.y = info.bottom() + 1;
+		add(barBg);
+		float ratio = run.level() >= AutochessRun.MAX_LEVEL ? 1f
+				: Math.max(0f, Math.min(1f, run.xp() / (float) Math.max(1, run.xpNeed())));
+		ColorBlock barFill = new ColorBlock(barW * ratio, 3, 0xFF66DDFF);
+		barFill.x = MARGIN;
+		barFill.y = barBg.y;
+		add(barFill);
+
 		RenderedTextBlock odds = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "odds_title") + " " + oddsLine(run.level()), 7);
 		odds.hardlight(COLOR_GOLD);
 		odds.maxWidth(WIDTH - MARGIN * 2);
-		odds.setPos(MARGIN, info.bottom() + 1);
+		odds.setPos(MARGIN, barBg.y + 6);
 		add(odds);
 
 		float pos = odds.bottom() + 1;

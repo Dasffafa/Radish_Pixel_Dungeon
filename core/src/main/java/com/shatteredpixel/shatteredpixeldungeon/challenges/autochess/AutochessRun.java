@@ -34,7 +34,8 @@ public class AutochessRun extends Buff {
 	}
 
 	public static final int START_GOLD = 8;
-	public static final int START_LIFE = 10;
+	/** 大家初始 100 血，扣血随回合递增。 */
+	public static final int START_LIFE = 100;
 	public static final int REFRESH_COST = 2;
 
 	public static final int BENCH_SIZE = ChessBoardLevel.BENCH_COUNT;
@@ -78,6 +79,7 @@ public class AutochessRun extends Buff {
 	private int lastIncome = 0;
 	private int lastInterest = 0;
 	private int lastStreakBonus = 0;
+	private int lastDamage = 0;
 
 
 	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
@@ -165,9 +167,17 @@ public class AutochessRun extends Buff {
 		return xp;
 	}
 
+	/** 云顶式升级经验表：3→4 要 6，4→5 要 10，5→6 要 20，6→7 要 36，7→8 要 48，8→9 要 76。 */
 	public int xpNeed() {
-		// 早期升级便宜一点，两次买经验就能升一级
-		return level * 2;
+		switch (level) {
+			case 3: return 6;
+			case 4: return 10;
+			case 5: return 20;
+			case 6: return 36;
+			case 7: return 48;
+			case 8: return 76;
+			default: return 999;
+		}
 	}
 
 	public int maxDeploy() {
@@ -683,12 +693,22 @@ public class AutochessRun extends Buff {
 	private void damageOpponent() {
 		if (opponent == null || !opponent.alive()) return;
 		int survivors = ChessBoardLevel.countSide(true);
-		int dmg = 2 + survivors;
+		int dmg = stageDamage() + survivors;
 		opponent.damage(dmg);
 		GLog.p(M.L(AutochessRun.class, "bot_hurt", opponent.name, dmg, opponent.hp));
 	}
 
 	/** 每回合所有 AI 一起变强，并让它们互相消耗一点血。 */
+	/** 阶段基础伤害：2 起步，每 5 回合 +1，最高 8（云顶同一套思路）。 */
+	public int stageDamage() {
+		return Math.min(8, 2 + round / 5);
+	}
+
+	/** 上一轮自己掉了多少血（UI 用）。 */
+	public int lastDamage() {
+		return lastDamage;
+	}
+
 	private void advanceBots() {
 		if (pool == null) return;
 		for (AutochessBot bot : bots) {
@@ -723,9 +743,10 @@ public class AutochessRun extends Buff {
 		winStreak = 0;
 		loseStreak++;
 
-		// 扣血 = 基础 2 + 场上还活着的敌人 + 回合加成（云顶的算法味道）
+		// 云顶式扣血：阶段基础（随回合涨）+ 场上还活着的敌人
 		int survivors = ChessBoardLevel.countSide(false);
-		int damage = 2 + survivors + round / 4;
+		int damage = stageDamage() + survivors;
+		lastDamage = damage;
 		life -= damage;
 		if (life <= 0) {
 			life = 0;
