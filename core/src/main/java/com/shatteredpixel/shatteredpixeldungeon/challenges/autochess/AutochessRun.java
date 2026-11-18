@@ -126,6 +126,8 @@ public class AutochessRun extends Buff {
 		run.selectedSide = -1;
 		run.selectedIndex = -1;
 		run.rollShop();
+
+
 	}
 
 	@Override
@@ -145,7 +147,8 @@ public class AutochessRun extends Buff {
 	}
 
 	public int xpNeed() {
-		return 2 + level * 2;
+		// 早期升级便宜一点，两次买经验就能升一级
+		return level * 2;
 	}
 
 	public int maxDeploy() {
@@ -170,10 +173,15 @@ public class AutochessRun extends Buff {
 		}
 		gold -= XP_COST;
 		xp += XP_PER_BUY;
+		boolean leveled = false;
 		while (level < MAX_LEVEL && xp >= xpNeed()) {
 			xp -= xpNeed();
 			level++;
+			leveled = true;
 			GLog.p(M.L(AutochessRun.class, "level_up", level, maxDeploy()));
+		}
+		if (!leveled) {
+			GLog.i(M.L(AutochessRun.class, "xp_gain", XP_PER_BUY, xp, xpNeed()));
 		}
 		return true;
 	}

@@ -57,40 +57,41 @@ public class AutochessPool {
 	private static final ArrayList<Def> POOL = new ArrayList<>();
 
 	static {
-		// 1 费：早期杂兵
+		// 1 费：下水道（一区）
 		add(Rat.class, 1, BEAST);
 		add(Albino.class, 1, BEAST);
 		add(Snake.class, 1, BEAST);
 		add(Crab.class, 1, BEAST);
 		add(Slime.class, 1, BEAST);
+		add(Swarm.class, 1, BEAST);
 		add(Gnoll.class, 1, HUMANOID);
 
-		// 2 费：二三区
+		// 2 费：监狱（二区）
 		add(Bat.class, 2, BEAST);
-		add(Swarm.class, 2, BEAST);
 		add(Acidic.class, 2, BEAST);
 		add(Thief.class, 2, HUMANOID);
 		add(DM100.class, 2, CONSTRUCT);
 		add(Skeleton.class, 2, CONSTRUCT);
+		add(Guard.class, 2, HUMANOID);
 
-		// 3 费：三区
-		add(Guard.class, 3, HUMANOID);
+		// 3 费：矿洞/洞穴（三区）
+		add(Brute.class, 3, HUMANOID);
 		add(Shaman.class, 3, HUMANOID);
 		add(Spinner.class, 3, CONSTRUCT);
 		add(Ghoul.class, 3, HUMANOID);
-		add(Brute.class, 3, HUMANOID);
 		add(Golem.class, 3, CONSTRUCT);
 
-		// 4 费：四区狠角色
+		// 4 费：城市（四区）
 		add(Monk.class, 4, HUMANOID);
 		add(Warlock.class, 4, HUMANOID);
 		add(Necromancer.class, 4, HUMANOID);
-		add(Succubus.class, 4, DEMON);
 		add(Elemental.class, 4, DEMON);
-		add(Scorpio.class, 4, DEMON);
-		add(RipperDemon.class, 4, DEMON);
-	}
 
+		// 5 费：恶魔大厅（五区）
+		add(Succubus.class, 5, DEMON);
+		add(Scorpio.class, 5, DEMON);
+		add(RipperDemon.class, 5, DEMON);
+	}
 	private static void add(Class<? extends Mob> cls, int cost, String trait) {
 		POOL.add(new Def(cls, cost, trait));
 	}
@@ -141,36 +142,25 @@ public class AutochessPool {
 	 * 等级越高，高费单位出现得越多（3~9 级）。
 	 */
 	public static Def randomForLevel(int level) {
-		float[] weights;
-		switch (Math.max(3, Math.min(9, level))) {
-			case 3:  weights = new float[]{65, 25, 10, 0}; break;
-			case 4:  weights = new float[]{50, 35, 15, 0}; break;
-			case 5:  weights = new float[]{40, 30, 25, 5}; break;
-			case 6:  weights = new float[]{30, 35, 25, 10}; break;
-			case 7:  weights = new float[]{20, 30, 35, 15}; break;
-			case 8:  weights = new float[]{15, 25, 35, 25}; break;
-			default: weights = new float[]{10, 20, 30, 40}; break;
-		}
-		ArrayList<Def> tier = new ArrayList<>();
+		// 1~5 费权重，按等级（3~9）
+		float[][] table = {
+				{65, 25, 10, 0, 0},   // 3 级
+				{50, 35, 15, 0, 0},   // 4 级
+				{40, 30, 25, 5, 0},   // 5 级
+				{30, 35, 25, 10, 0},  // 6 级
+				{20, 30, 30, 15, 5},  // 7 级
+				{15, 25, 30, 20, 10}, // 8 级
+				{10, 20, 25, 25, 20}  // 9 级
+		};
+		float[] weights = table[Math.max(0, Math.min(6, level - 3))];
 		float total = 0;
-		for (int cost = 1; cost <= 4; cost++) {
-			float w = weights[cost - 1];
-			if (w <= 0) continue;
-			for (Def def : POOL) {
-				if (def.cost == cost) {
-					tier.add(def);
-					total += w;
-				}
-			}
-		}
-		if (tier.isEmpty()) return POOL.get(0);
+		for (int cost = 1; cost <= 5; cost++) total += weights[cost - 1];
 		float roll = Random.Float(total);
 		float acc = 0;
-		int cost = 1;
-		for (int i = 0; i < 4; i++) {
+		int cost = 5;
+		for (int i = 0; i < 5; i++) {
 			acc += weights[i];
 			if (roll <= acc) { cost = i + 1; break; }
-			cost = 4;
 		}
 		ArrayList<Def> pool = new ArrayList<>();
 		for (Def def : POOL) {
@@ -179,7 +169,6 @@ public class AutochessPool {
 		if (pool.isEmpty()) pool = POOL;
 		return pool.get(Random.Int(pool.size()));
 	}
-
 	/** 羁绊的档位阈值：{ 一档人数, 二档人数 }。 */
 	public static int[] thresholds(String trait) {
 		if (DEMON.equals(trait)) return new int[]{2, 4};
