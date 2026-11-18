@@ -19,13 +19,17 @@ import java.util.LinkedHashMap;
  */
 public class WndAutochessOpponent extends Window {
 
-	private static final int WIDTH = 190;
+	/** 面板宽度：按屏幕宽度自适应。 */
+	private final int WIDTH;
 	private static final int MARGIN = 5;
 	private static final int GAP = 3;
 	private static final int ROW = 22;
 
 	public WndAutochessOpponent(AutochessBot bot) {
 		super();
+
+		int camW = Boolean.getBoolean("arena.compact") ? 150 : (int) PixelScene.uiCamera.width;
+		WIDTH = Math.min(190, Math.max(118, camW - 24));
 
 		RenderedTextBlock title = PixelScene.renderTextBlock(
 				Messages.get(WndAutochessOpponent.class, "title", bot.name), 9);

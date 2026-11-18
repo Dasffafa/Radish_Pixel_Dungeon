@@ -21,13 +21,17 @@ import java.util.ArrayList;
  */
 public class WndAutochessLobby extends Window {
 
-	private static final int WIDTH = 200;
+	/** 面板宽度：按屏幕宽度自适应。 */
+	private final int WIDTH;
 	private static final int MARGIN = 5;
 	private static final int GAP = 3;
 	private static final int ROW = 26;
 
 	public WndAutochessLobby() {
 		super();
+
+		int camW = Boolean.getBoolean("arena.compact") ? 150 : (int) PixelScene.uiCamera.width;
+		WIDTH = Math.min(200, Math.max(120, camW - 24));
 
 		AutochessRun run = AutochessRun.get();
 
@@ -93,11 +97,13 @@ public class WndAutochessLobby extends Window {
 		String line1 = Messages.get(WndAutochessLobby.class, "line", name, hp, level);
 		RenderedTextBlock first = PixelScene.renderTextBlock(line1, 8);
 		first.hardlight(bot == null ? 0x66DDFF : 0xFFFFFF);
+		first.maxWidth(WIDTH - MARGIN * 2 - 26);
 		first.setPos(MARGIN + 24, pos + 1);
 		add(first);
 
 		RenderedTextBlock vs = PixelScene.renderTextBlock(opponent, 7);
 		vs.hardlight(0xFFCC66);
+		vs.maxWidth(WIDTH - MARGIN * 2 - 26);
 		vs.setPos(MARGIN + 24, pos + 11);
 		add(vs);
 
