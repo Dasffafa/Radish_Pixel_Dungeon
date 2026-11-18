@@ -1311,6 +1311,10 @@ public class Hero extends Char {
 			t_lvl = Math.max(0,t_lvl-1);
 			speed *= (1f + ((float) t_lvl)/3);
 		}
+
+		// 「三分钟一把」的攻速强化：没有该 Buff 时系数恒为 1，不影响正常对局
+		speed /= com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaEmpower.attackDelayFactor(this);
+
         return delay/speed;
     }
 

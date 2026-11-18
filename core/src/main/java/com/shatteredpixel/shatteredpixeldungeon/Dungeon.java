@@ -386,6 +386,12 @@ public class Dungeon {
 			if (level == null) {
 				throw new IllegalStateException("Invalid floor: " + branchId + ":" + depth);
 		}
+
+		// 「三分钟一把」：整局都待在竞技场里，正常楼层生成全部跳过。
+		// 放在这里是为了让挑战优先于分支/随机地图变体，但不影响测试工具的强制关卡。
+		if (isChallenged(Challenges.THREE_MINUTE)) {
+			level = new com.shatteredpixel.shatteredpixeldungeon.levels.ArenaLevel();
+		}
 		
 		// 第10层的 Boss 选择：典狱长与天狗随机替换出现
 		if (branchId.equals(Branches.MAIN) && depth == 10 && level instanceof PrisonBossLevel) {

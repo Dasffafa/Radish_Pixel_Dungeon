@@ -167,6 +167,7 @@ public class GameScene extends PixelScene {
 
 	private MenuPane menu;
 	private StatusPane status;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.ArenaHUD arenaHud;
 
 	private BossHealthBar boss;
 
@@ -218,6 +219,9 @@ public class GameScene extends PixelScene {
 		}
 
 		Dungeon.level.playLevelMusic();
+
+		// 「三分钟一把」：进竞技场就挂上导演 Buff，计时与刷怪由它接管
+		com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaRun.ensureStarted();
 
 		SPDSettings.lastClass(Dungeon.hero.heroClass.ordinal());
 		
@@ -376,6 +380,15 @@ public class GameScene extends PixelScene {
 		status.camera = uiCamera;
 		status.setRect(0, uiSize > 0 ? uiCamera.height-39 : 0, uiCamera.width, 0 );
 		add(status);
+
+		// 「三分钟一把」的顶部计时条
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ArenaLevel) {
+			arenaHud = new com.shatteredpixel.shatteredpixeldungeon.ui.ArenaHUD();
+			arenaHud.camera = uiCamera;
+			arenaHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.ArenaHUD.WIDTH) / 2f, 2);
+			add(arenaHud);
+		}
 
 		boss = new BossHealthBar();
 		boss.camera = uiCamera;
