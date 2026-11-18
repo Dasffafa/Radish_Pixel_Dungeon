@@ -216,6 +216,27 @@ public class AutochessPool {
 		if (pool.isEmpty()) pool = POOL;
 		return pool.get(Random.Int(pool.size()));
 	}
+	/** 1~5 费在某个等级的出现概率（百分比，和为 100）。 */
+	public static int[] oddsForLevel(int level) {
+		float[][] table = {
+				{65, 25, 10, 0, 0},   // 3 级
+				{50, 35, 15, 0, 0},   // 4 级
+				{40, 30, 25, 5, 0},   // 5 级
+				{30, 35, 25, 10, 0},  // 6 级
+				{20, 30, 30, 15, 5},  // 7 级
+				{15, 25, 30, 20, 10}, // 8 级
+				{10, 20, 25, 25, 20}  // 9 级
+		};
+		float[] w = table[Math.max(0, Math.min(6, level - 3))];
+		int[] pct = new int[5];
+		float total = 0;
+		for (float v : w) total += v;
+		for (int i = 0; i < 5; i++) {
+			pct[i] = Math.round(w[i] / total * 100f);
+		}
+		return pct;
+	}
+
 	/** 羁绊的档位阈值：{ 一档人数, 二档人数 }。 */
 	public static int[] thresholds(String trait) {
 		if (DEMON.equals(trait)) return new int[]{2, 4};

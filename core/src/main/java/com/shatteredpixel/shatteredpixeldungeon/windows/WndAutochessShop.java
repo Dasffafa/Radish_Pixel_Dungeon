@@ -61,7 +61,13 @@ public class WndAutochessShop extends Window {
 		info.setPos(MARGIN, gold.bottom() + 1);
 		add(info);
 
-		float pos = info.bottom() + GAP;
+		RenderedTextBlock odds = PixelScene.renderTextBlock(
+				M.L(WndAutochessShop.class, "odds_title") + " " + oddsLine(run.level()), 7);
+		odds.hardlight(COLOR_GOLD);
+		odds.setPos(MARGIN, info.bottom() + 1);
+		add(odds);
+
+		float pos = odds.bottom() + GAP;
 
 		RenderedTextBlock legend = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "legend"), 7);
@@ -211,6 +217,7 @@ public class WndAutochessShop extends Window {
 
 		RenderedTextBlock name = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "row", nameOf(def), def.cost, traitName(def.trait)), 8);
+		name.hardlight(costColor(def.cost));
 		name.maxWidth(WIDTH - MARGIN * 2 - 20);
 		name.setPos(MARGIN + 18, pos + 1);
 		add(name);
@@ -236,6 +243,28 @@ public class WndAutochessShop extends Window {
 		com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
 				com.watabou.utils.Reflection.newInstance(def.cls);
 		return mob == null ? def.cls.getSimpleName() : mob.name();
+	}
+
+	/** 不同费用用不同颜色：1 灰、2 绿、3 蓝、4 紫、5 橙。 */
+	private static int costColor(int cost) {
+		switch (cost) {
+			case 1: return 0xBBBBBB;
+			case 2: return 0x66DD66;
+			case 3: return 0x66AAFF;
+			case 4: return 0xCC77FF;
+			default: return 0xFFAA33;
+		}
+	}
+
+	/** 「1费65% 2费25% ...」这种概率行。 */
+	private static String oddsLine(int level) {
+		int[] pct = AutochessPool.oddsForLevel(level);
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < pct.length; i++) {
+			if (i > 0) sb.append(" · ");
+			sb.append(i + 1).append("费").append(pct[i]).append("%");
+		}
+		return sb.toString();
 	}
 
 	private static String traitName(String trait) {
