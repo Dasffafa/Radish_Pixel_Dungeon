@@ -400,7 +400,8 @@ public class GameScene extends PixelScene {
 			// 左侧羁绊栏
 			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel traitPanel =
 					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel();
-			traitPanel.setPos(4, 42);
+			traitPanel.setPos(4, com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera == null
+					? 42 : (com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera.width < 200 ? 26 : 42));
 			add(traitPanel);
 
 			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）

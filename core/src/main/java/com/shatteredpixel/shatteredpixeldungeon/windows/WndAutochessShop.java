@@ -47,13 +47,22 @@ public class WndAutochessShop extends Window {
 		if (Boolean.getBoolean("arena.compact")) camWidth = 150;
 		WIDTH = Math.min(158, Math.max(112, camWidth - 26));
 		compact = WIDTH < 140;
-		OFFER_ROW = compact ? 24 : 30;
+		OFFER_ROW = compact ? 20 : 30;
 
 		run = AutochessRun.get();
 		if (run == null) {
 			hide();
 			return;
 		}
+
+		RedButton closeBtn = new RedButton("×", 9) {
+			@Override
+			protected void onClick() {
+				hide();
+			}
+		};
+		closeBtn.setRect(WIDTH - MARGIN - 14, MARGIN, 14, 13);
+		add(closeBtn);
 
 		RenderedTextBlock title = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "title", round), 9);
@@ -88,7 +97,7 @@ public class WndAutochessShop extends Window {
 		add(barFill);
 
 		RenderedTextBlock odds = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "odds_title") + " " + oddsLine(run.level()), 7);
+				M.L(WndAutochessShop.class, "odds_title") + " " + oddsLine(run.level(), compact), 7);
 		odds.hardlight(COLOR_GOLD);
 		odds.maxWidth(WIDTH - MARGIN * 2);
 		odds.setPos(MARGIN, barBg.y + 6);
@@ -387,28 +396,29 @@ public class WndAutochessShop extends Window {
 						new WndAutochessInfo(def));
 			}
 		};
-		infoBtn.setRect(WIDTH - MARGIN - 14, pos + 1, 14, 12);
+		infoBtn.setRect(WIDTH - MARGIN - 13, pos + (compact ? 3 : 1), 13, 12);
 		add(infoBtn);
 
 		CharSprite icon = AutochessIcons.spriteFor(def);
 		if (icon != null) {
-			AutochessIcons.place(icon, MARGIN, pos + 1, 15);
+			AutochessIcons.place(icon, MARGIN, pos + (compact ? 2 : 1), compact ? 13 : 15);
 			add(icon);
 		}
 
 		// 紧凑模式只显示「名字·费用」，羁绊/技能靠右上角 i 看详情
 		String rowText;
 		if (compact) {
-			rowText = nameOf(def) + "·" + def.cost + "金";
-			if (rowText.length() > 9) rowText = rowText.substring(0, 8) + "…";
+			// 窄屏只留名字，费用用颜色和右上角详情看
+			rowText = nameOf(def);
+			if (rowText.length() > 5) rowText = rowText.substring(0, 5);
 		} else {
 			rowText = M.L(WndAutochessShop.class, "row",
 					nameOf(def), def.cost, traitsOf(def), skillOf(def));
 		}
-		RenderedTextBlock name = PixelScene.renderTextBlock(rowText, compact ? 7 : 8);
+		RenderedTextBlock name = PixelScene.renderTextBlock(rowText, compact ? 6 : 8);
 		name.hardlight(costColor(def.cost));
-		name.maxWidth(compact ? WIDTH - MARGIN * 2 - 62 : WIDTH - MARGIN * 2 - 20);
-		name.setPos(MARGIN + (compact ? 16 : 18), pos + (compact ? 5 : 1));
+		name.maxWidth(compact ? WIDTH - MARGIN * 2 - 58 : WIDTH - MARGIN * 2 - 20);
+		name.setPos(MARGIN + (compact ? 14 : 18), pos + (compact ? 5 : 1));
 		add(name);
 
 		final int idx = index;
@@ -423,7 +433,7 @@ public class WndAutochessShop extends Window {
 		};
 		buy.active = run.gold() >= def.cost;
 		if (compact) {
-			buy.setRect(WIDTH - MARGIN - 60, pos + 4, 44, 12);
+			buy.setRect(WIDTH - MARGIN - 56, pos + 3, 40, 12);
 		} else {
 			buy.setRect(MARGIN + 18, pos + 13, 58, 13);
 		}
@@ -477,12 +487,16 @@ public class WndAutochessShop extends Window {
 	}
 
 	/** 「1费65% 2费25% ...」这种概率行。 */
-	private static String oddsLine(int level) {
+	private static String oddsLine(int level, boolean compact) {
 		int[] pct = AutochessPool.oddsForLevel(level);
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < pct.length; i++) {
 			if (i > 0) sb.append(" · ");
-			sb.append(i + 1).append("费").append(pct[i]).append("%");
+			if (compact) {
+				sb.append(i + 1).append(":").append(pct[i]).append("%");
+			} else {
+				sb.append(i + 1).append("费").append(pct[i]).append("%");
+			}
 		}
 		return sb.toString();
 	}
