@@ -100,6 +100,13 @@ public class AutochessRun extends Buff {
 	/** 未装备的装备背包。 */
 	private final java.util.ArrayList<String> itemBag = new java.util.ArrayList<>();
 
+	/** 把装备装到某个棋盘格子上的棋子（拖拽用）。 */
+	public boolean equipItemAtCell(int cell, String itemId) {
+		int[] at = unitAt(cell);
+		if (at == null) return false;
+		return equipItem(at[0], at[1], itemId);
+	}
+
 	/** 取某个格子的棋子条目（含装备）。 */
 	public String entryAt(int side, int index) {
 		String[] arr = entries(side);

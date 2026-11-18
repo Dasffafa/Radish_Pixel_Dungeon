@@ -173,12 +173,48 @@ public class WndAutochessShop extends Window {
 		int eqIndex = 0;
 		for (String itemId : new java.util.ArrayList<>(run.itemBag())) {
 			final String id = itemId;
-			RedButton itemBtn = new RedButton(
-					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id), 7) {
+			float x = MARGIN + (eqIndex % 2) * (halfEq + GAP);
+			float y = pos + (eqIndex / 2) * 15;
+
+			RoundedFrame box = new RoundedFrame(0xCC333333, 0xFFCC66);
+			box.setRect(x, y, halfEq, 13);
+			add(box);
+
+			RenderedTextBlock label = PixelScene.renderTextBlock(
+					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id), 7);
+			label.maxWidth((int) halfEq - 4);
+			label.setPos(x + 2, y + 2);
+			add(label);
+
+			com.watabou.noosa.PointerArea area = new com.watabou.noosa.PointerArea(0, 0, halfEq, 13) {
+				private float downX, downY;
+				private boolean dragged;
+
 				@Override
-				protected void onClick() {
+				protected void onPointerDown(com.watabou.input.PointerEvent event) {
+					downX = event.current.x;
+					downY = event.current.y;
+					dragged = false;
+				}
+
+				@Override
+				protected void onDrag(com.watabou.input.PointerEvent event) {
+					if (Math.abs(event.current.x - downX) > 8 || Math.abs(event.current.y - downY) > 8) {
+						dragged = true;
+					}
+				}
+
+				@Override
+				protected void onPointerUp(com.watabou.input.PointerEvent event) {
 					AutochessRun current = AutochessRun.get();
 					if (current == null) return;
+					if (dragged) {
+						int cell = cellAt(event.current.x, event.current.y);
+						if (cell >= 0 && current.equipItemAtCell(cell, id)) {
+							rebuild();
+							return;
+						}
+					}
 					if (current.selectedSide < 0 || current.selectedIndex < 0) {
 						com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(M.L(WndAutochessShop.class, "no_selection"));
 						return;
@@ -188,10 +224,10 @@ public class WndAutochessShop extends Window {
 					}
 				}
 			};
-			float x = MARGIN + (eqIndex % 2) * (halfEq + GAP);
-			float y = pos + (eqIndex / 2) * 15;
-			itemBtn.setRect(x, y, halfEq, 13);
-			add(itemBtn);
+			area.camera = PixelScene.uiCamera;
+			area.x = x;
+			area.y = y;
+			add(area);
 			eqIndex++;
 		}
 		if (eqIndex > 0) {
@@ -204,7 +240,6 @@ public class WndAutochessShop extends Window {
 			add(noEq);
 			pos = noEq.bottom() + GAP;
 		}
-
 		RenderedTextBlock economy = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "economy",
 						run.winStreak(), run.loseStreak(), run.lastIncome()), 7);
@@ -414,6 +449,18 @@ public class WndAutochessShop extends Window {
 			sb.append(traitName(t));
 		}
 		return sb.toString();
+	}
+
+	/** 屏幕坐标 → 棋盘格子。 */
+	private static int cellAt(float screenX, float screenY) {
+		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.level == null) return -1;
+		com.watabou.utils.PointF p = com.watabou.noosa.Camera.main.screenToCamera((int) screenX, (int) screenY);
+		int cx = (int) (p.x / com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE);
+		int cy = (int) (p.y / com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE);
+		if (cx < 0 || cy < 0
+				|| cx >= com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.width()
+				|| cy >= com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.height()) return -1;
+		return cy * com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.width() + cx;
 	}
 
 	private static String traitName(String trait) {

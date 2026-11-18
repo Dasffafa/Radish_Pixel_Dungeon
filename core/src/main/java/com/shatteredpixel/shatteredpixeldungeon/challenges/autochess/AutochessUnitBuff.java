@@ -61,14 +61,33 @@ public class AutochessUnitBuff extends AllyBuff {
 		return items.contains(id);
 	}
 
-	/** 板甲/斗篷这类出生时一次性生效。 */
+	private boolean hasItemShort(String shortName) {
+		for (String id : items) {
+			if (AutochessItems.shortName(id).equals(shortName)) return true;
+		}
+		return false;
+	}
+
+	private float itemPower(String shortName) {
+		for (String id : items) {
+			if (AutochessItems.shortName(id).equals(shortName)) return AutochessItems.power(id);
+		}
+		return 0f;
+	}
+
+	/** 防具类出生时一次性生效。 */
 	private void applyItemSetup() {
-		if (hasItem(AutochessItems.ARMOR)) {
-			target.HT += 200;
+		if (hasItemShort("MailArmor")) {
+			target.HT += Math.round(150 * itemPower("MailArmor"));
 			target.HP = target.HT;
 		}
-		if (hasItem(AutochessItems.CLOAK)) {
-			Buff.affect(target, Barrier.class).incShield(Math.max(1, Math.round(target.HT * 0.25f)));
+		if (hasItemShort("PlateArmor")) {
+			target.HT += Math.round(250 * itemPower("PlateArmor"));
+			target.HP = target.HT;
+		}
+		if (hasItemShort("RingOfMight")) {
+			target.HT += Math.round(100 * itemPower("RingOfMight"));
+			target.HP = target.HT;
 		}
 	}
 
@@ -176,9 +195,9 @@ public class AutochessUnitBuff extends AllyBuff {
 		}
 
 		// 刺客 · 突袭：对满血目标成倍伤害
-		if (hasItem(AutochessItems.SWORD)) {
-			mul += 0.25f;
-		}
+		mul += 0.25f * itemPower("Sword");
+		mul += 0.40f * itemPower("BattleAxe");
+		mul += 0.15f * itemPower("RingOfMight");
 		// 「狂怒」技能生效期间额外增伤
 		if (target.buff(AutochessRage.class) != null) {
 			mul += 0.6f;
@@ -193,12 +212,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		}
 
 		// 虫群 · 剧毒
-		if (hasItem(AutochessItems.FANG) && defender instanceof Mob) {
-			Buff.affect(defender, Poison.class).set(3f);
-		}
-		if (hasItem(AutochessItems.FLAME) && defender instanceof Mob) {
-			Buff.affect(defender, Burning.class).reignite(defender, 3f);
-		}
+
 		if (hasTrait(AutochessPool.SWARM)) {
 			int t = tier(AutochessPool.SWARM);
 			if (t > 0 && defender instanceof Mob) {
@@ -221,6 +235,10 @@ public class AutochessUnitBuff extends AllyBuff {
 		if (hasTrait(AutochessPool.CONSTRUCT)) {
 			int t = tier(AutochessPool.CONSTRUCT);
 			if (t > 0) info.addStackMultModifier(1f - 0.15f * t, "autochess_construct");
+		}
+		float evasion = itemPower("RingOfEvasion");
+		if (evasion > 0) {
+			info.addStackMultModifier(1f - 0.10f * evasion, "autochess_evasion");
 		}
 		// 被打也会涨一点充能
 		chargeMana(4);
@@ -254,11 +272,8 @@ public class AutochessUnitBuff extends AllyBuff {
 			healLowestAlly(support);
 		}
 
-		if (hasItem(AutochessItems.DRAIN) && target.HP < target.HT) {
-			target.HP = Math.min(target.HT, target.HP + Math.max(1, Math.round(target.HT * 0.03f)));
-		}
-		// 法杖：充能更快
-		chargeMana(hasItem(AutochessItems.STAFF) ? 15 : 10);
+		// 迅捷之戒：充能更快
+		chargeMana(hasItemShort("RingOfHaste") ? 15 : 10);
 
 		spend(TICK);
 		return true;
@@ -270,7 +285,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		mana += amount;
 		if (mana >= skill.mana) {
 			mana = 0;
-			skill.cast(target, star, hasItem(AutochessItems.GEM) ? 1.3f : 1f);
+			skill.cast(target, star, 1f + 0.3f * itemPower("WandOfMagicMissile"));
 		}
 	}
 
