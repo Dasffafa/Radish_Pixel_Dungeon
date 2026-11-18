@@ -76,12 +76,15 @@ public class AutochessPool {
 	public static class Def {
 		public final Class<? extends Mob> cls;
 		public final int cost;
+		/** 这只棋子的技能（攒满充能自动放）。 */
+		public final AutochessSkill skill;
 		/** 一只棋子可以有多个羁绊（云顶同款，一般 2~3 个）。 */
 		public final String[] traits;
 
-		Def(Class<? extends Mob> cls, int cost, String[] traits) {
+		Def(Class<? extends Mob> cls, int cost, AutochessSkill skill, String[] traits) {
 			this.cls = cls;
 			this.cost = cost;
+			this.skill = skill;
 			this.traits = traits;
 		}
 
@@ -97,64 +100,64 @@ public class AutochessPool {
 
 	static {
 		// 1 费：下水道
-		add(Rat.class, 1, BEAST, FIGHTER);
-		add(Albino.class, 1, BEAST, ASSASSIN);
-		add(Snake.class, 1, BEAST, ASSASSIN);
-		add(Crab.class, 1, BEAST, TANK);
-		add(Slime.class, 1, SWARM, TANK);
-		add(Swarm.class, 1, SWARM, FIGHTER);
-		add(Gnoll.class, 1, HUMANOID, FIGHTER);
-		add(GiantWorm.class, 1, SWARM, TANK);
-		add(Mayfly.class, 1, SWARM, SUPPORT);
-		add(Dog.class, 1, BEAST, FIGHTER);
-		add(Goblin.class, 1, HUMANOID, FIGHTER);
+		add(Rat.class, 1, AutochessSkill.STRIKE, BEAST, FIGHTER);
+		add(Albino.class, 1, AutochessSkill.SNIPE, BEAST, ASSASSIN);
+		add(Snake.class, 1, AutochessSkill.POISON, BEAST, ASSASSIN);
+		add(Crab.class, 1, AutochessSkill.SHIELD, BEAST, TANK);
+		add(Slime.class, 1, AutochessSkill.POISON, SWARM, TANK);
+		add(Swarm.class, 1, AutochessSkill.CLEAVE, SWARM, FIGHTER);
+		add(Gnoll.class, 1, AutochessSkill.STRIKE, HUMANOID, FIGHTER);
+		add(GiantWorm.class, 1, AutochessSkill.STUN, SWARM, TANK);
+		add(Mayfly.class, 1, AutochessSkill.HEAL, SWARM, SUPPORT);
+		add(Dog.class, 1, AutochessSkill.STRIKE, BEAST, FIGHTER);
+		add(Goblin.class, 1, AutochessSkill.STRIKE, HUMANOID, FIGHTER);
 
 		// 2 费：监狱
-		add(Bat.class, 2, BEAST, ASSASSIN);
-		add(Thief.class, 2, HUMANOID, ASSASSIN);
-		add(DM100.class, 2, CONSTRUCT, RANGED);
-		add(Skeleton.class, 2, UNDEAD, FIGHTER);
-		add(Guard.class, 2, HUMANOID, TANK);
-		add(Shaman.BlueShaman.class, 2, HUMANOID, MAGE);
-		add(Spinner.class, 2, SWARM, ASSASSIN);
-		add(Necromancer.class, 2, UNDEAD, SUPPORT);
-		add(GoblinRider.class, 2, HUMANOID, ASSASSIN);
-		add(Jailer.class, 2, HUMANOID, TANK);
-		add(Prisoner.class, 2, HUMANOID, FIGHTER);
-		add(Torturer.class, 2, HUMANOID, TANK);
+		add(Bat.class, 2, AutochessSkill.SNIPE, BEAST, ASSASSIN);
+		add(Thief.class, 2, AutochessSkill.SNIPE, HUMANOID, ASSASSIN);
+		add(DM100.class, 2, AutochessSkill.FIREBALL, CONSTRUCT, RANGED);
+		add(Skeleton.class, 2, AutochessSkill.CLEAVE, UNDEAD, FIGHTER);
+		add(Guard.class, 2, AutochessSkill.SHIELD, HUMANOID, TANK);
+		add(Shaman.BlueShaman.class, 2, AutochessSkill.HEAL, HUMANOID, MAGE);
+		add(Spinner.class, 2, AutochessSkill.POISON, SWARM, ASSASSIN);
+		add(Necromancer.class, 2, AutochessSkill.FIREBALL, UNDEAD, SUPPORT);
+		add(GoblinRider.class, 2, AutochessSkill.STRIKE, HUMANOID, ASSASSIN);
+		add(Jailer.class, 2, AutochessSkill.STUN, HUMANOID, TANK);
+		add(Prisoner.class, 2, AutochessSkill.RAGE, HUMANOID, FIGHTER);
+		add(Torturer.class, 2, AutochessSkill.CLEAVE, HUMANOID, TANK);
 
 		// 3 费：矿洞
-		add(Brute.class, 3, HUMANOID, FIGHTER);
-		add(Golem.class, 3, CONSTRUCT, TANK);
-		add(Ghoul.class, 3, UNDEAD, FIGHTER);
-		add(Grudge.class, 3, UNDEAD, ASSASSIN);
-		add(ClusteredSkeleton.class, 3, UNDEAD, FIGHTER);
-		add(DM175.class, 3, CONSTRUCT, MAGE);
-		add(GnollZealot.class, 3, HUMANOID, FIGHTER);
+		add(Brute.class, 3, AutochessSkill.CLEAVE, HUMANOID, FIGHTER);
+		add(Golem.class, 3, AutochessSkill.SHIELD, CONSTRUCT, TANK);
+		add(Ghoul.class, 3, AutochessSkill.RAGE, UNDEAD, FIGHTER);
+		add(Grudge.class, 3, AutochessSkill.SNIPE, UNDEAD, ASSASSIN);
+		add(ClusteredSkeleton.class, 3, AutochessSkill.CLEAVE, UNDEAD, FIGHTER);
+		add(DM175.class, 3, AutochessSkill.FIREBALL, CONSTRUCT, MAGE);
+		add(GnollZealot.class, 3, AutochessSkill.RAGE, HUMANOID, FIGHTER);
 
 		// 4 费：城市
-		add(Monk.class, 4, HUMANOID, FIGHTER);
-		add(Warlock.class, 4, DEMON, MAGE);
-		add(Elemental.FireElemental.class, 4, DEMON, MAGE);
-		add(Drake.class, 4, BEAST, FIGHTER);
-		add(StoneSpirit.class, 4, CONSTRUCT, TANK);
-		add(Artillerist.class, 4, HUMANOID, RANGED);
-		add(RoyalGuard.class, 4, HUMANOID, TANK);
-		add(ShieldMage.class, 4, HUMANOID, SUPPORT);
+		add(Monk.class, 4, AutochessSkill.STRIKE, HUMANOID, FIGHTER);
+		add(Warlock.class, 4, AutochessSkill.FIREBALL, DEMON, MAGE);
+		add(Elemental.FireElemental.class, 4, AutochessSkill.FIREBALL, DEMON, MAGE);
+		add(Drake.class, 4, AutochessSkill.CLEAVE, BEAST, FIGHTER);
+		add(StoneSpirit.class, 4, AutochessSkill.SHIELD, CONSTRUCT, TANK);
+		add(Artillerist.class, 4, AutochessSkill.SNIPE, HUMANOID, RANGED);
+		add(RoyalGuard.class, 4, AutochessSkill.SHIELD, HUMANOID, TANK);
+		add(ShieldMage.class, 4, AutochessSkill.SHIELD, HUMANOID, SUPPORT);
 
 		// 5 费：恶魔大厅
-		add(Succubus.class, 5, DEMON, ASSASSIN);
-		add(Scorpio.class, 5, SWARM, RANGED);
-		add(Acidic.class, 5, SWARM, RANGED);
-		add(Eye.class, 5, DEMON, MAGE);
-		add(RipperDemon.class, 5, DEMON, ASSASSIN);
-		add(Deminion.class, 5, DEMON, FIGHTER);
-		add(Deviloon.class, 5, DEMON, ASSASSIN);
-		add(Gorgon.class, 5, CONSTRUCT, MAGE);
-		add(DemonLord.class, 5, DEMON, TANK);
+		add(Succubus.class, 5, AutochessSkill.SNIPE, DEMON, ASSASSIN);
+		add(Scorpio.class, 5, AutochessSkill.POISON, SWARM, RANGED);
+		add(Acidic.class, 5, AutochessSkill.POISON, SWARM, RANGED);
+		add(Eye.class, 5, AutochessSkill.STUN, DEMON, MAGE);
+		add(RipperDemon.class, 5, AutochessSkill.STRIKE, DEMON, ASSASSIN);
+		add(Deminion.class, 5, AutochessSkill.CLEAVE, DEMON, FIGHTER);
+		add(Deviloon.class, 5, AutochessSkill.POISON, DEMON, ASSASSIN);
+		add(Gorgon.class, 5, AutochessSkill.STUN, CONSTRUCT, MAGE);
+		add(DemonLord.class, 5, AutochessSkill.FIREBALL, DEMON, TANK);
 	}
-	private static void add(Class<? extends Mob> cls, int cost, String... traits) {
-		POOL.add(new Def(cls, cost, traits));
+	private static void add(Class<? extends Mob> cls, int cost, AutochessSkill skill, String... traits) {
+		POOL.add(new Def(cls, cost, skill, traits));
 	}
 
 	/** 池子里全部棋子定义（共享池初始化/兜底用）。 */

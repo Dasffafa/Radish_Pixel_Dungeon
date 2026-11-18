@@ -250,7 +250,7 @@ public class WndAutochessShop extends Window {
 		}
 
 		RenderedTextBlock name = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "row", nameOf(def), def.cost, traitsOf(def)), 8);
+				M.L(WndAutochessShop.class, "row", nameOf(def), def.cost, traitsOf(def), skillOf(def)), 8);
 		name.hardlight(costColor(def.cost));
 		name.maxWidth(WIDTH - MARGIN * 2 - 20);
 		name.setPos(MARGIN + 18, pos + 1);
@@ -326,6 +326,11 @@ public class WndAutochessShop extends Window {
 			sb.append(i + 1).append("费").append(pct[i]).append("%");
 		}
 		return sb.toString();
+	}
+
+	/** 「重击(60)」这种技能展示。 */
+	private static String skillOf(AutochessPool.Def def) {
+		return def.skill == null ? "-" : def.skill.name() + "(" + def.skill.mana + ")";
 	}
 
 	/** 「兽群·虫群」这种多羁绊展示。 */

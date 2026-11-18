@@ -158,6 +158,9 @@ public class AutochessRun extends Buff {
 
 
 
+
+
+
 	}
 
 	@Override
@@ -647,7 +650,7 @@ public class AutochessRun extends Buff {
 		Dungeon.level.occupyCell(mob);
 		if (playerSide) {
 			AutochessUnitBuff buff = Buff.affect(mob, AutochessUnitBuff.class);
-			buff.setup(def.traits, star);
+			buff.setup(def.traits, star, def.skill);
 
 		} else {
 

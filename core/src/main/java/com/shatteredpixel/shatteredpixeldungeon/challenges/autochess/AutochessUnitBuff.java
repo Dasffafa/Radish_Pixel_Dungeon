@@ -35,15 +35,20 @@ public class AutochessUnitBuff extends AllyBuff {
 
 	private int star = 1;
 	private String[] traits = new String[]{AutochessPool.BEAST};
+	private AutochessSkill skill;
+	/** 当前充能 / 充满需要多少。 */
+	private int mana = 0;
 
 	{
 		type = buffType.POSITIVE;
 		announced = false;
 	}
 
-	public void setup(String[] traits, int star) {
+	public void setup(String[] traits, int star, AutochessSkill skill) {
 		this.traits = traits == null || traits.length == 0
 				? new String[]{AutochessPool.BEAST} : traits;
+		this.skill = skill;
+		this.mana = 0;
 		this.star = Math.max(1, Math.min(3, star));
 		applyStarStats();
 		applyTraitSetup();
@@ -143,6 +148,10 @@ public class AutochessUnitBuff extends AllyBuff {
 		}
 
 		// 刺客 · 突袭：对满血目标成倍伤害
+		// 「狂怒」技能生效期间额外增伤
+		if (target.buff(AutochessRage.class) != null) {
+			mul += 0.6f;
+		}
 		if (hasTrait(AutochessPool.ASSASSIN)) {
 			int t = tier(AutochessPool.ASSASSIN);
 			if (t > 0 && defender.HP >= defender.HT) mul *= (1f + t);
@@ -176,6 +185,8 @@ public class AutochessUnitBuff extends AllyBuff {
 			int t = tier(AutochessPool.CONSTRUCT);
 			if (t > 0) info.addStackMultModifier(1f - 0.15f * t, "autochess_construct");
 		}
+		// 被打也会涨一点充能
+		chargeMana(4);
 	}
 
 	// ------------------------------------------------------------------
@@ -206,8 +217,28 @@ public class AutochessUnitBuff extends AllyBuff {
 			healLowestAlly(support);
 		}
 
+		chargeMana(10);
+
 		spend(TICK);
 		return true;
+	}
+
+	/** 攒充能，充满就放技能。 */
+	private void chargeMana(int amount) {
+		if (skill == null) return;
+		mana += amount;
+		if (mana >= skill.mana) {
+			mana = 0;
+			skill.cast(target);
+		}
+	}
+
+	public AutochessSkill skill() {
+		return skill;
+	}
+
+	public float manaRatio() {
+		return skill == null ? 0f : Math.min(1f, mana / (float) skill.mana);
 	}
 
 	/** 辅助 · 庇护：治疗范围内血量比例最低的友军，并给一点护盾。 */
