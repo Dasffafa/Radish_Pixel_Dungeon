@@ -74,6 +74,9 @@ public class AutochessRun extends Buff {
 	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
 	private final java.util.HashMap<Integer, Mob> unitMobs = new java.util.HashMap<>();
 
+	/** 场上棋子有变动时自增，拖拽组件据此重建输入区。 */
+	public int unitVersion = 0;
+
 	private long lastBuyMs = 0;
 
 	{
@@ -372,6 +375,7 @@ public class AutochessRun extends Buff {
 			}
 			if (cell < 0 || cell == mob.pos) continue;
 			mob.pos = cell;
+			unitVersion++;
 			Dungeon.level.occupyCell(mob);
 			if (mob.sprite != null) {
 				mob.sprite.place(cell);
@@ -449,6 +453,7 @@ public class AutochessRun extends Buff {
 		clearUnits();
 
 		unitMobs.clear();
+		unitVersion++;
 		for (int i = 0; i < bench.length; i++) {
 			String[] parts = split(bench, i);
 			if (parts == null) continue;

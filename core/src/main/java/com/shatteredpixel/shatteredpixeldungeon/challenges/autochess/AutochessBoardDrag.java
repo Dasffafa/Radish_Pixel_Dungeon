@@ -1,6 +1,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
@@ -13,99 +15,117 @@ import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.ui.Component;
 import com.watabou.utils.PointF;
 
+import java.util.ArrayList;
+
 /**
- * 棋盘上的拖拽布阵：按住自己的棋子拖到别的格子松手。
+ * 棋盘上的拖拽布阵。
  *
- * <p>覆盖整个主镜头，所以屏幕上的任何格子都能落子；合法性（己方半场、上阵人数上限）
- * 由 {@link AutochessRun#moveUnit(int, int)} 判。</p>
+ * <p>只给「自己的棋子精灵」挂输入区：按在棋子上才算拖拽，其它地方的点击照常传给
+ * HUD / 商店窗口。之前用一块全屏输入区会把所有点击都吃掉，导致关掉商店后连
+ * 顶部状态条都点不动、也就没法再开战。</p>
  */
 public class AutochessBoardDrag extends Component {
 
-	private final PointerArea area;
-	private CharSprite ghost;
+	private final ArrayList<PointerArea> areas = new ArrayList<>();
+	private int builtVersion = -1;
 
+	private CharSprite ghost;
 	private int fromCell = -1;
 	private boolean dragging = false;
 	private boolean dragged = false;
 
-	public AutochessBoardDrag() {
-		super();
-		area = new PointerArea(0, 0, 0, 0) {
-			@Override
-			protected void onPointerDown(PointerEvent event) {
-				AutochessRun run = AutochessRun.get();
-				if (run == null || run.state() != AutochessRun.State.PREP) return;
-				int cell = cellAt(event.current.x, event.current.y);
-				if (cell == -1) return;
-				int[] unit = run.unitAt(cell);
-				if (unit == null) return;
-				fromCell = cell;
-				dragging = true;
-				dragged = false;
-				makeGhost(unit[0], unit[1]);
-			}
+	@Override
+	public void update() {
+		super.update();
 
-			@Override
-			protected void onDrag(PointerEvent event) {
-				if (!dragging || ghost == null) return;
-				dragged = true;
-				PointF p = Camera.main.screenToCamera((int) event.current.x, (int) event.current.y);
-				ghost.x = p.x - ghost.width() * 0.5f;
-				ghost.y = p.y - ghost.height() * 0.9f;
-				PixelScene.align(ghost);
-			}
-
-			@Override
-			protected void onPointerUp(PointerEvent event) {
-				AutochessRun run = AutochessRun.get();
-				int toCell = cellAt(event.current.x, event.current.y);
-				if (dragging && run != null && fromCell != -1 && toCell != -1) {
-					run.moveUnit(fromCell, toCell);
-				}
+		AutochessRun run = AutochessRun.get();
+		if (run == null || run.state() != AutochessRun.State.PREP) {
+			if (run != null && run.state() == AutochessRun.State.FIGHT) {
 				clearGhost();
-				dragging = false;
-				fromCell = -1;
 			}
-
-			@Override
-			protected void onClick(PointerEvent event) {
-				if (dragged) {
-					dragged = false;
-					return;
-				}
-				AutochessRun run = AutochessRun.get();
-				if (run == null || run.state() != AutochessRun.State.PREP) return;
-				int cell = cellAt(event.current.x, event.current.y);
-				if (cell == -1) return;
-				int[] unit = run.unitAt(cell);
-				if (unit == null) {
-					run.selectedSide = -1;
-					run.selectedIndex = -1;
-					return;
-				}
-				if (run.selectedSide == unit[0] && run.selectedIndex == unit[1]) {
-					run.selectedSide = -1;
-					run.selectedIndex = -1;
-				} else {
-					run.selectedSide = unit[0];
-					run.selectedIndex = unit[1];
-					GLog.i(M.L(AutochessBoardDrag.class, "selected", run.unitName(unit[0], unit[1])));
-				}
-			}
-		};
-		area.camera = Camera.main;
-		// 必须真正「挡住」事件：否则拖拽松手那一下会穿透到商店窗口的按钮上，
-		// 表现为「拖一下棋子就买了一次经验 / 刷新」
-		area.visible = true;
-		area.active = true;
-		area.blockLevel = PointerArea.ALWAYS_BLOCK;
-		add(area);
+			return;
+		}
+		if (run.unitVersion != builtVersion) {
+			builtVersion = run.unitVersion;
+			rebuildAreas();
+		}
 	}
 
-	private void makeGhost(int side, int index) {
-		AutochessRun run = AutochessRun.get();
-		if (run == null) return;
-		CharSprite sprite = AutochessIcons.spriteFor(run.unitClass(side, index));
+	/** 给场上每个己方棋子挂一个只覆盖精灵的输入区。 */
+	private void rebuildAreas() {
+		for (PointerArea area : areas) {
+			area.destroy();
+		}
+		areas.clear();
+
+		if (Dungeon.level == null) return;
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (!mob.isAlive() || mob.alignment != Char.Alignment.ALLY) continue;
+			if (mob.sprite == null || mob.sprite.parent == null) continue;
+			final Mob unit = mob;
+
+			PointerArea area = new PointerArea(mob.sprite) {
+				@Override
+				protected void onPointerDown(PointerEvent event) {
+					fromCell = unit.pos;
+					dragging = true;
+					dragged = false;
+					makeGhost(unit);
+				}
+
+				@Override
+				protected void onDrag(PointerEvent event) {
+					if (!dragging || ghost == null) return;
+					dragged = true;
+					PointF p = Camera.main.screenToCamera((int) event.current.x, (int) event.current.y);
+					ghost.x = p.x - ghost.width() * 0.5f;
+					ghost.y = p.y - ghost.height() * 0.9f;
+					PixelScene.align(ghost);
+				}
+
+				@Override
+				protected void onPointerUp(PointerEvent event) {
+					AutochessRun run = AutochessRun.get();
+					if (dragging && run != null && fromCell != -1) {
+						int toCell = cellAt(event.current.x, event.current.y);
+						if (toCell != -1) {
+							run.moveUnit(fromCell, toCell);
+						}
+					}
+					clearGhost();
+					dragging = false;
+					fromCell = -1;
+				}
+
+				@Override
+				protected void onClick(PointerEvent event) {
+					if (dragged) {
+						dragged = false;
+						return;
+					}
+					AutochessRun run = AutochessRun.get();
+					if (run == null) return;
+					int[] at = run.unitAt(unit.pos);
+					if (at == null) return;
+					if (run.selectedSide == at[0] && run.selectedIndex == at[1]) {
+						run.selectedSide = -1;
+						run.selectedIndex = -1;
+					} else {
+						run.selectedSide = at[0];
+						run.selectedIndex = at[1];
+						GLog.i(M.L(AutochessBoardDrag.class, "selected", unit.name()));
+					}
+				}
+			};
+			area.active = true;
+			area.visible = true;
+			add(area);
+			areas.add(area);
+		}
+	}
+
+	private void makeGhost(Mob unit) {
+		CharSprite sprite = AutochessIcons.spriteFor(unit.getClass().getSimpleName());
 		if (sprite == null) return;
 		ghost = sprite;
 		ghost.alpha(0.85f);
@@ -132,20 +152,11 @@ public class AutochessBoardDrag extends Component {
 	}
 
 	@Override
-	public void update() {
-		super.update();
-		// 让输入区始终盖住当前主镜头
-		Camera c = Camera.main;
-		if (c != null) {
-			area.x = c.scroll.x;
-			area.y = c.scroll.y;
-			area.width = c.width;
-			area.height = c.height;
+	public void destroy() {
+		for (PointerArea area : areas) {
+			area.destroy();
 		}
-		AutochessRun run = AutochessRun.get();
-		if (run == null || run.state() != AutochessRun.State.PREP) {
-			clearGhost();
-			dragging = false;
-		}
+		areas.clear();
+		super.destroy();
 	}
 }
