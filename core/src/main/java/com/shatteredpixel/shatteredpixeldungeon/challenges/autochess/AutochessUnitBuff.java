@@ -3,7 +3,10 @@ package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Poison;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
@@ -12,17 +15,20 @@ import com.watabou.utils.Bundle;
 /**
  * 自走棋里「自己的棋子」：把一只怪变成盟友，并记住它的星级与羁绊。
  *
- * <p>星级：2 星血量 ×1.8、伤害 ×1.8；3 星血量 ×3、伤害 ×3.5。</p>
- * <p>羁绊效果都写在这个类的钩子里，按场上同羁绊人数实时判定档位：</p>
+ * <p>羁绊不是简单的加伤加血，每系都尽量做成有操作感的机制：</p>
  * <ul>
- *   <li>兽群：伤害 +10%/档</li>
- *   <li>人形：伤害 +20%/档</li>
- *   <li>构装：受到伤害 -20%/档</li>
- *   <li>恶魔：伤害 +30%/档（2/4 两档）</li>
- *   <li>亡灵：每回合回复 1% 最大生命/档</li>
- *   <li>守卫：开战护盾 15% 最大生命/档（2/4 两档）</li>
- *   <li>巨兽：最大生命 +15%/档</li>
- *   <li>虫群：攻击附带 2 点/档 额外伤害</li>
+ *   <li>兽群 · 围攻：每有一个相邻敌人，伤害 +10%/档（最多 3 个）</li>
+ *   <li>虫群 · 剧毒：攻击使目标中毒，毒伤按目标最大生命计算</li>
+ *   <li>亡灵 · 吸血：攻击后回复自身生命</li>
+ *   <li>构装 · 装甲：每回合自动获得护盾</li>
+ *   <li>恶魔 · 斩杀：对残血（&lt;40%）目标伤害大幅提高</li>
+ *   <li>人形 · 阵型：每个相邻友军提供增伤</li>
+ *   <li>坦克 · 护盾：开战即获得大额护盾，并缓慢回复</li>
+ *   <li>刺客 · 突袭：对满血目标打出成倍伤害</li>
+ *   <li>射手 · 精准：距离越远伤害越高</li>
+ *   <li>战士 · 狂暴：生命越低伤害越高</li>
+ *   <li>法师 · 灼烧：攻击点燃目标</li>
+ *   <li>辅助 · 庇护：治疗最残的友军并附护盾</li>
  * </ul>
  */
 public class AutochessUnitBuff extends AllyBuff {
@@ -35,7 +41,6 @@ public class AutochessUnitBuff extends AllyBuff {
 		announced = false;
 	}
 
-	/** 出生时调用：设好羁绊与星级，并按星级放大属性、结算一次性羁绊。 */
 	public void setup(String[] traits, int star) {
 		this.traits = traits == null || traits.length == 0
 				? new String[]{AutochessPool.BEAST} : traits;
@@ -57,7 +62,6 @@ public class AutochessUnitBuff extends AllyBuff {
 		return traits;
 	}
 
-	/** 某个羁绊在这只棋子身上是否生效。 */
 	private boolean hasTrait(String trait) {
 		for (String t : traits) {
 			if (t.equals(trait)) return true;
@@ -65,76 +69,102 @@ public class AutochessUnitBuff extends AllyBuff {
 		return false;
 	}
 
-	private void applyStarStats() {
-		if (!(target instanceof Mob)) return;
-		Mob mob = (Mob) target;
-		int oldHT = mob.HT;
-		float factor = starFactor(star);
-		int base = Math.round(oldHT / starFactor(star - 1));
-		mob.HT = Math.max(1, Math.round(base * factor));
-		mob.HP = mob.HT;
+	private int tier(String trait) {
+		return AutochessRun.traitTier(trait);
 	}
 
 	private static float starFactor(int star) {
 		return star == 2 ? 1.8f : (star == 3 ? 3f : 1f);
 	}
 
-	/** 巨兽加血、守卫给盾——这类一次性效果在出生时结算。 */
+	private void applyStarStats() {
+		if (!(target instanceof Mob)) return;
+		Mob mob = (Mob) target;
+		float factor = starFactor(star);
+		int base = Math.round(mob.HT / starFactor(star - 1));
+		mob.HT = Math.max(1, Math.round(base * factor));
+		mob.HP = mob.HT;
+	}
+
+	/** 开战一次性效果：坦克的护盾。 */
 	private void applyTraitSetup() {
-		for (String trait : traits) {
-			int tier = AutochessRun.traitTier(trait);
-			if (tier <= 0) continue;
-			if (AutochessPool.FIGHTER.equals(trait)) {
-				target.HT += Math.round(target.HT * 0.15f * tier);
-				target.HP = target.HT;
+		if (hasTrait(AutochessPool.TANK)) {
+			int tier = tier(AutochessPool.TANK);
+			if (tier > 0) {
+				Buff.affect(target, Barrier.class).setShield(Math.round(target.HT * 0.20f * tier));
 			}
 		}
 	}
 
-	/** 伤害倍率：星级 + 攻击型羁绊。 */
-	private float damageMultiplier() {
-		float mul = 1f + 0.8f * (star - 1);
-		for (String trait : traits) {
-			int tier = AutochessRun.traitTier(trait);
-			if (tier <= 0) continue;
-			if (AutochessPool.HUMANOID.equals(trait)) {
-				mul += 0.20f * tier;
-			} else if (AutochessPool.DEMON.equals(trait)) {
-				mul += 0.30f * tier;
-			} else if (AutochessPool.BEAST.equals(trait)) {
-				mul += 0.10f * tier;
-			} else if (AutochessPool.RANGED.equals(trait)) {
-				mul += 0.15f * tier;
-			}
-		}
-		return mul;
-	}
+	// ------------------------------------------------------------------
+	// 输出侧
+	// ------------------------------------------------------------------
 
 	@Override
 	public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
-		if (attacker != target) return;
-		float mul = damageMultiplier();
+		if (attacker != target || defender == null) return;
+
+		float mul = 1f + 0.8f * (star - 1);
+
+		// 兽群 · 围攻：越被围伤害越高
+		if (hasTrait(AutochessPool.BEAST)) {
+			int t = tier(AutochessPool.BEAST);
+			if (t > 0) mul += 0.10f * t * Math.min(3, adjacentEnemies(defender));
+		}
+
+		// 人形 · 阵型：身边友军越多伤害越高
+		if (hasTrait(AutochessPool.HUMANOID)) {
+			int t = tier(AutochessPool.HUMANOID);
+			if (t > 0) mul += 0.08f * t * Math.min(3, adjacentAllies());
+		}
+
+		// 战士 · 狂暴：血越少越猛
+		if (hasTrait(AutochessPool.FIGHTER)) {
+			int t = tier(AutochessPool.FIGHTER);
+			if (t > 0) {
+				float missing = 1f - target.HP / (float) Math.max(1, target.HT);
+				mul += 0.15f * t * missing;
+			}
+		}
+
+		// 射手 · 精准：站得远打得疼
+		if (hasTrait(AutochessPool.RANGED)) {
+			int t = tier(AutochessPool.RANGED);
+			if (t > 0 && Dungeon.level != null
+					&& Dungeon.level.distance(target.pos, defender.pos) >= 3) {
+				mul += 0.25f * t;
+			}
+		}
+
+		// 恶魔 · 斩杀：对残血目标重击
+		if (hasTrait(AutochessPool.DEMON)) {
+			int t = tier(AutochessPool.DEMON);
+			if (t > 0 && defender.HP < defender.HT * 0.4f) mul += 0.5f * t;
+		}
+
+		// 刺客 · 突袭：对满血目标成倍伤害
+		if (hasTrait(AutochessPool.ASSASSIN)) {
+			int t = tier(AutochessPool.ASSASSIN);
+			if (t > 0 && defender.HP >= defender.HT) mul *= (1f + t);
+		}
+
 		if (mul != 1f) {
 			info.addStackMultModifier(mul, "autochess");
 		}
-		// 刺客：按档位概率打出双倍伤害
-		if (hasTrait(AutochessPool.ASSASSIN)) {
-			int tier = AutochessRun.traitTier(AutochessPool.ASSASSIN);
-			if (tier > 0 && com.watabou.utils.Random.Float() < 0.20f * tier) {
-				info.addStackMultModifier(2f, "autochess_assassin");
-			}
-		}
-		// 法师：按目标最大生命追加法术伤害
-		if (hasTrait(AutochessPool.MAGE)) {
-			int tier = AutochessRun.traitTier(AutochessPool.MAGE);
-			if (tier > 0) {
-				info.addFlatModifier(Math.max(1, Math.round(defender.HT * 0.03f * tier)), "autochess_mage");
-			}
-		}
+
+		// 虫群 · 剧毒
 		if (hasTrait(AutochessPool.SWARM)) {
-			int tier = AutochessRun.traitTier(AutochessPool.SWARM);
-			if (tier > 0) {
-				info.addFlatModifier(2 * tier, "autochess_swarm");
+			int t = tier(AutochessPool.SWARM);
+			if (t > 0 && defender instanceof Mob) {
+				Buff.affect(defender, Poison.class).set(3f);
+			}
+		}
+
+		// 法师 · 灼烧
+		if (hasTrait(AutochessPool.MAGE)) {
+			int t = tier(AutochessPool.MAGE);
+			if (t > 0 && defender instanceof Mob) {
+				Buff.affect(defender, Burning.class).reignite(defender, 3f);
 			}
 		}
 	}
@@ -143,47 +173,81 @@ public class AutochessUnitBuff extends AllyBuff {
 	public void modifyIncomingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 		if (defender != target) return;
 		if (hasTrait(AutochessPool.CONSTRUCT)) {
-			int tier = AutochessRun.traitTier(AutochessPool.CONSTRUCT);
-			if (tier > 0) {
-				info.addStackMultModifier(1f - 0.20f * tier, "autochess_construct");
-			}
-		}
-		if (hasTrait(AutochessPool.TANK)) {
-			int tier = AutochessRun.traitTier(AutochessPool.TANK);
-			if (tier > 0) {
-				info.addStackMultModifier(1f - 0.15f * tier, "autochess_tank");
-			}
+			int t = tier(AutochessPool.CONSTRUCT);
+			if (t > 0) info.addStackMultModifier(1f - 0.15f * t, "autochess_construct");
 		}
 	}
 
+	// ------------------------------------------------------------------
+	// 每回合
+	// ------------------------------------------------------------------
+
 	@Override
 	public boolean act() {
-		if (hasTrait(AutochessPool.SUPPORT)) {
-			int tier = AutochessRun.traitTier(AutochessPool.SUPPORT);
-			if (tier > 0 && Dungeon.level != null) {
-				Char lowest = null;
-				for (Char ch : Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-					if (ch == target || ch.alignment != target.alignment) continue;
-					if (!ch.isAlive() || ch.HP >= ch.HT) continue;
-					if (Dungeon.level.distance(ch.pos, target.pos) > 6) continue;
-					if (lowest == null || ch.HP / (float) ch.HT < lowest.HP / (float) lowest.HT) {
-						lowest = ch;
-					}
-				}
-				if (lowest != null) {
-					int heal = Math.max(1, Math.round(lowest.HT * 0.02f * tier));
-					lowest.HP = Math.min(lowest.HT, lowest.HP + heal);
-				}
+		int undead = hasTrait(AutochessPool.UNDEAD) ? tier(AutochessPool.UNDEAD) : 0;
+		if (undead > 0 && target.HP < target.HT) {
+			// 亡灵 · 吸血：持续从造成的伤害里回血，这里做成每回合稳定回复
+			target.HP = Math.min(target.HT, target.HP + Math.max(1, Math.round(target.HT * 0.02f * undead)));
+		}
+
+		int construct = hasTrait(AutochessPool.CONSTRUCT) ? tier(AutochessPool.CONSTRUCT) : 0;
+		int tank = hasTrait(AutochessPool.TANK) ? tier(AutochessPool.TANK) : 0;
+		if (construct + tank > 0) {
+			// 构装 · 装甲 / 坦克 · 护盾：每回合补护盾
+			int shield = Math.round(target.HT * 0.03f * (construct + tank));
+			Barrier barrier = Buff.affect(target, Barrier.class);
+			if (barrier.shielding() < target.HT * 0.3f) {
+				barrier.incShield(Math.max(1, shield));
 			}
 		}
-		if (hasTrait(AutochessPool.UNDEAD)) {
-			int tier = AutochessRun.traitTier(AutochessPool.UNDEAD);
-			if (tier > 0 && target.HP < target.HT) {
-				target.HP = Math.min(target.HT, target.HP + Math.max(1, Math.round(target.HT * 0.01f * tier)));
-			}
+
+		int support = hasTrait(AutochessPool.SUPPORT) ? tier(AutochessPool.SUPPORT) : 0;
+		if (support > 0) {
+			healLowestAlly(support);
 		}
+
 		spend(TICK);
 		return true;
+	}
+
+	/** 辅助 · 庇护：治疗范围内血量比例最低的友军，并给一点护盾。 */
+	private void healLowestAlly(int tier) {
+		if (Dungeon.level == null) return;
+		Char lowest = null;
+		for (Char ch : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (ch == target || ch.alignment != target.alignment) continue;
+			if (!ch.isAlive() || ch.HP >= ch.HT) continue;
+			if (Dungeon.level.distance(ch.pos, target.pos) > 6) continue;
+			if (lowest == null || ch.HP / (float) ch.HT < lowest.HP / (float) lowest.HT) {
+				lowest = ch;
+			}
+		}
+		if (lowest == null) return;
+		int heal = Math.max(1, Math.round(lowest.HT * 0.03f * tier));
+		lowest.HP = Math.min(lowest.HT, lowest.HP + heal);
+		Buff.affect(lowest, Barrier.class).incShield(Math.max(1, Math.round(lowest.HT * 0.05f * tier)));
+	}
+
+	/** 目标身边有几个敌人。 */
+	private int adjacentEnemies(Char target) {
+		if (Dungeon.level == null) return 0;
+		int count = 0;
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (!mob.isAlive() || mob.alignment == target.alignment) continue;
+			if (Dungeon.level.distance(mob.pos, target.pos) == 1) count++;
+		}
+		return count;
+	}
+
+	/** 自己身边有几个友军。 */
+	private int adjacentAllies() {
+		if (Dungeon.level == null) return 0;
+		int count = 0;
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (mob == target || !mob.isAlive() || mob.alignment != target.alignment) continue;
+			if (Dungeon.level.distance(mob.pos, target.pos) == 1) count++;
+		}
+		return count;
 	}
 
 	@Override
@@ -212,9 +276,8 @@ public class AutochessUnitBuff extends AllyBuff {
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
-		star = bundle.getInt("ac_star");
+		star = Math.max(1, bundle.getInt("ac_star"));
 		String saved = bundle.getString("ac_trait");
 		traits = saved == null ? new String[]{AutochessPool.BEAST} : new String[]{saved};
-		if (star < 1) star = 1;
 	}
 }

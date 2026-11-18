@@ -258,8 +258,9 @@ public class AutochessPool {
 
 	/** 羁绊的档位阈值：{ 一档人数, 二档人数 }。 */
 	public static int[] thresholds(String trait) {
-		if (DEMON.equals(trait) || UNDEAD.equals(trait) || TANK.equals(trait)) return new int[]{2, 4};
-		if (SUPPORT.equals(trait)) return new int[]{2, 3};
+		if (DEMON.equals(trait) || UNDEAD.equals(trait) || TANK.equals(trait)
+				|| MAGE.equals(trait)) return new int[]{2, 4};
+		if (SUPPORT.equals(trait) || RANGED.equals(trait)) return new int[]{2, 3};
 		return new int[]{3, 5};
 	}
 }
