@@ -389,7 +389,9 @@ public class GameScene extends PixelScene {
 				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
 			autochessHud = new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD();
 			autochessHud.camera = uiCamera;
-			autochessHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.WIDTH) / 2f, 2);
+			// 窄屏时往下挪一点，避开系统状态栏和左上角图标
+			float hudY = uiCamera.width < 210 ? 20f : 2f;
+			autochessHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.WIDTH) / 2f, hudY);
 			add(autochessHud);
 
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
