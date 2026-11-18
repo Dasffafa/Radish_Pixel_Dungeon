@@ -32,9 +32,31 @@ public class AutochessHUD extends Component {
 	private float acc = 0f;
 	private boolean revealed = false;
 
+	/** 屏幕中上方的短提示（胜利/战败/掉落等）。 */
+	private static AutochessHUD active = null;
+	private RenderedTextBlock bannerLabel;
+	private String bannerText = null;
+	private float bannerTimer = 0f;
+	private int bannerColor = 0xFFFFFF;
+
+	/** 弹一条提示，1.6 秒后淡出。 */
+	public static void banner(String text, int color) {
+		if (active == null) return;
+		active.bannerText = text;
+		active.bannerColor = color;
+		active.bannerTimer = 1.6f;
+	}
+
 	public AutochessHUD() {
 		super();
+		active = this;
 		setSize(WIDTH, HEIGHT);
+	}
+
+	@Override
+	public void destroy() {
+		if (active == this) active = null;
+		super.destroy();
 	}
 
 	@Override
@@ -46,6 +68,11 @@ public class AutochessHUD extends Component {
 		label.maxWidth((int) WIDTH - 8);
 		label.hardlight(COLOR_NORMAL);
 		add(label);
+
+		bannerLabel = PixelScene.renderTextBlock("", 9);
+		bannerLabel.hardlight(0xFFFFFF);
+		bannerLabel.visible = false;
+		add(bannerLabel);
 
 		// 点顶部状态条随时打开备战界面（关掉商店后不用等下一回合）
 		tap = new com.watabou.noosa.PointerArea(0, 0, WIDTH, HEIGHT) {
@@ -145,6 +172,7 @@ public class AutochessHUD extends Component {
 
 
 
+
 		}
 		// 之后每帧继续把视野撑满：怪物和迷雾都按 heroFOV 判断可见性，
 		// 不这么做的话棋子会在包间外面「隐身」，只看得到日志说谁死了
@@ -160,6 +188,22 @@ public class AutochessHUD extends Component {
 			centerLabel();
 		}
 		label.hardlight(run.state() == AutochessRun.State.FIGHT ? COLOR_FIGHT : COLOR_NORMAL);
+
+		// 顶部提示条（胜利/战败……）
+		if (bannerTimer > 0f && bannerText != null) {
+			bannerTimer -= Game.elapsed;
+			if (bannerTimer <= 0f) {
+				bannerLabel.visible = false;
+			} else {
+				if (!bannerText.equals(bannerLabel.text())) {
+					bannerLabel.text(bannerText);
+				}
+				bannerLabel.hardlight(bannerColor);
+				bannerLabel.visible = true;
+				bannerLabel.setPos(x + (width() - bannerLabel.width()) / 2f, y + height() + 3);
+				bannerLabel.alpha(Math.min(1f, bannerTimer / 0.5f));
+			}
+		}
 
 		if (run.state() == AutochessRun.State.FIGHT) {
 			acc += Game.elapsed;

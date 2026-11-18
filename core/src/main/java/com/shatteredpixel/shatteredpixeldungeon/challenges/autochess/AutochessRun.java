@@ -219,6 +219,8 @@ public class AutochessRun extends Buff {
 
 
 
+
+
 	}
 
 	@Override
@@ -870,6 +872,7 @@ public class AutochessRun extends Buff {
 			return;
 		}
 		rollShop();
+		com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.banner("胜利！", 0x66FF66);
 		GLog.p(M.L(AutochessRun.class, "win_income", BASE_INCOME, lastInterest, lastStreakBonus, lastIncome, round));
 		refreshPreview();
 		showShopNextFrame();
@@ -895,6 +898,7 @@ public class AutochessRun extends Buff {
 		String item = AutochessItems.random();
 		itemBag.add(item);
 		GLog.p(M.L(AutochessRun.class, "item_drop", AutochessItems.name(item)));
+		com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.banner("掉落装备：" + AutochessItems.name(item), 0xFFD766);
 	}
 
 	/** 把背包里的装备装到指定格子的棋子上。 */
@@ -1036,6 +1040,7 @@ public class AutochessRun extends Buff {
 		advanceBots();
 		round++;
 		rollShop();
+		com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.banner("战败 -" + damage, 0xFF6666);
 		GLog.w(M.L(AutochessRun.class, "lose", damage, life, round));
 		GLog.i(M.L(AutochessRun.class, "lose_income", BASE_INCOME, lastInterest, lastStreakBonus, lastIncome));
 		refreshPreview();
