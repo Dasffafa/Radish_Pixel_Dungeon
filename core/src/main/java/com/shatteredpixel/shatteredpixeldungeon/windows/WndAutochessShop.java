@@ -46,8 +46,6 @@ public class WndAutochessShop extends Window {
 	private final float[] cellX = new float[AutochessRun.MAX_UNITS];
 	private final float[] cellY = new float[AutochessRun.MAX_UNITS];
 
-	/** 窗口刚建出来时先别接手任何点击：否则触发它出现的那一次点击会继续落到新窗口的按钮上。 */
-	private boolean ready = false;
 
 	private CharSprite dragGhost;
 	private int dragFrom = -1;
@@ -105,7 +103,6 @@ public class WndAutochessShop extends Window {
 				M.L(WndAutochessShop.class, "refresh", AutochessRun.REFRESH_COST), 8) {
 			@Override
 			protected void onClick() {
-				if (!ready) return;
 				AutochessRun current = AutochessRun.get();
 				if (current != null && current.refresh()) {
 					rebuild();
@@ -118,7 +115,6 @@ public class WndAutochessShop extends Window {
 		RedButton fight = new RedButton(M.L(WndAutochessShop.class, "fight"), 8) {
 			@Override
 			protected void onClick() {
-				if (!ready) return;
 				AutochessRun current = AutochessRun.get();
 				hide();
 				if (current != null) {
@@ -139,11 +135,6 @@ public class WndAutochessShop extends Window {
 	 * 当前这次点击的事件还会被派发给新窗口，落点正好压在「购买」上就会
 	 * 一路连锁买下去（实测过，一次点击能买空半个商店）。</p>
 	 */
-	@Override
-	public void update() {
-		super.update();
-		ready = true;
-	}
 
 	private void rebuild() {
 		final AutochessRun current = AutochessRun.get();
@@ -230,7 +221,6 @@ public class WndAutochessShop extends Window {
 
 				@Override
 				protected void onClick(PointerEvent event) {
-					if (!ready) return;
 					// 拖完那一下不算点选
 					if (dragged) {
 						dragged = false;
@@ -316,7 +306,6 @@ public class WndAutochessShop extends Window {
 				M.L(WndAutochessShop.class, "sell", run.benchName(slot), stars(run.benchStar(slot)), value), 8) {
 			@Override
 			protected void onClick() {
-				if (!ready) return;
 				AutochessRun current = AutochessRun.get();
 				if (current == null) {
 					return;
@@ -363,7 +352,6 @@ public class WndAutochessShop extends Window {
 		RedButton buy = new RedButton(M.L(WndAutochessShop.class, "buy"), 7) {
 			@Override
 			protected void onClick() {
-				if (!ready) return;
 				AutochessRun current = AutochessRun.get();
 				if (current != null && current.buy(idx)) {
 					rebuild();

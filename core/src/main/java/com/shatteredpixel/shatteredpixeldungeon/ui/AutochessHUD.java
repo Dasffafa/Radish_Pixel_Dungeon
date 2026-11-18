@@ -88,6 +88,34 @@ public class AutochessHUD extends Component {
 		Dungeon.observe();
 	}
 
+	/** 把 heroFOV 全置真并刷新迷雾与棋子可见性。 */
+	private void keepFullVision() {
+		if (Dungeon.level == null || Dungeon.level.heroFOV == null
+				|| Dungeon.level.heroFOV.length != Dungeon.level.length()) {
+			return;
+		}
+		boolean changed = false;
+		for (int i = 0; i < Dungeon.level.heroFOV.length; i++) {
+			if (!Dungeon.level.heroFOV[i]) {
+				Dungeon.level.heroFOV[i] = true;
+				changed = true;
+			}
+		}
+		if (!changed) {
+			return;
+		}
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateFog();
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob :
+				Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+			if (mob.sprite != null) {
+				mob.sprite.visible = true;
+			}
+		}
+		if (Dungeon.hero != null && Dungeon.hero.sprite != null) {
+			Dungeon.hero.sprite.visible = true;
+		}
+	}
+
 	private void centerLabel() {
 		if (label == null) return;
 		label.setPos(x + (WIDTH - label.width()) / 2f, y + (HEIGHT - label.height()) / 2f);
@@ -108,6 +136,9 @@ public class AutochessHUD extends Component {
 			revealed = true;
 			revealBoard();
 		}
+		// 之后每帧继续把视野撑满：怪物和迷雾都按 heroFOV 判断可见性，
+		// 不这么做的话棋子会在包间外面「隐身」，只看得到日志说谁死了
+		keepFullVision();
 
 		String text = M.L(AutochessHUD.class, "format",
 				run.round(), run.gold(), run.life(), run.rosterSize(),
