@@ -36,12 +36,40 @@ public class AutochessUnitBuff extends AllyBuff {
 	private int star = 1;
 	private String[] traits = new String[]{AutochessPool.BEAST};
 	private AutochessSkill skill;
+	/** 这只棋子带的装备。 */
+	private final java.util.ArrayList<String> items = new java.util.ArrayList<>();
 	/** 当前充能 / 充满需要多少。 */
 	private int mana = 0;
 
 	{
 		type = buffType.POSITIVE;
 		announced = false;
+	}
+
+	/** 装备列表，出生时由 spawnUnit 传入。 */
+	public void setItems(java.util.List<String> equipped) {
+		items.clear();
+		if (equipped != null) items.addAll(equipped);
+		applyItemSetup();
+	}
+
+	public java.util.ArrayList<String> items() {
+		return items;
+	}
+
+	private boolean hasItem(String id) {
+		return items.contains(id);
+	}
+
+	/** 板甲/斗篷这类出生时一次性生效。 */
+	private void applyItemSetup() {
+		if (hasItem(AutochessItems.ARMOR)) {
+			target.HT += 200;
+			target.HP = target.HT;
+		}
+		if (hasItem(AutochessItems.CLOAK)) {
+			Buff.affect(target, Barrier.class).incShield(Math.max(1, Math.round(target.HT * 0.25f)));
+		}
 	}
 
 	public void setup(String[] traits, int star, AutochessSkill skill) {
@@ -148,6 +176,9 @@ public class AutochessUnitBuff extends AllyBuff {
 		}
 
 		// 刺客 · 突袭：对满血目标成倍伤害
+		if (hasItem(AutochessItems.SWORD)) {
+			mul += 0.25f;
+		}
 		// 「狂怒」技能生效期间额外增伤
 		if (target.buff(AutochessRage.class) != null) {
 			mul += 0.6f;
@@ -162,6 +193,12 @@ public class AutochessUnitBuff extends AllyBuff {
 		}
 
 		// 虫群 · 剧毒
+		if (hasItem(AutochessItems.FANG) && defender instanceof Mob) {
+			Buff.affect(defender, Poison.class).set(3f);
+		}
+		if (hasItem(AutochessItems.FLAME) && defender instanceof Mob) {
+			Buff.affect(defender, Burning.class).reignite(defender, 3f);
+		}
 		if (hasTrait(AutochessPool.SWARM)) {
 			int t = tier(AutochessPool.SWARM);
 			if (t > 0 && defender instanceof Mob) {
@@ -217,7 +254,11 @@ public class AutochessUnitBuff extends AllyBuff {
 			healLowestAlly(support);
 		}
 
-		chargeMana(10);
+		if (hasItem(AutochessItems.DRAIN) && target.HP < target.HT) {
+			target.HP = Math.min(target.HT, target.HP + Math.max(1, Math.round(target.HT * 0.03f)));
+		}
+		// 法杖：充能更快
+		chargeMana(hasItem(AutochessItems.STAFF) ? 15 : 10);
 
 		spend(TICK);
 		return true;
@@ -229,7 +270,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		mana += amount;
 		if (mana >= skill.mana) {
 			mana = 0;
-			skill.cast(target, star);
+			skill.cast(target, star, hasItem(AutochessItems.GEM) ? 1.3f : 1f);
 		}
 	}
 

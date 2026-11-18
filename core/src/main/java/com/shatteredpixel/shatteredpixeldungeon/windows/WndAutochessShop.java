@@ -161,6 +161,50 @@ public class WndAutochessShop extends Window {
 			pos = addOfferRow(i, pos);
 		}
 
+		// 装备背包
+		RenderedTextBlock eqTitle = PixelScene.renderTextBlock(
+				M.L(WndAutochessShop.class, "items"), 7);
+		eqTitle.hardlight(COLOR_SECTION);
+		eqTitle.setPos(MARGIN, pos);
+		add(eqTitle);
+		pos = eqTitle.bottom() + 1;
+
+		float halfEq = (WIDTH - MARGIN * 2 - GAP) / 2f;
+		int eqIndex = 0;
+		for (String itemId : new java.util.ArrayList<>(run.itemBag())) {
+			final String id = itemId;
+			RedButton itemBtn = new RedButton(
+					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id), 7) {
+				@Override
+				protected void onClick() {
+					AutochessRun current = AutochessRun.get();
+					if (current == null) return;
+					if (current.selectedSide < 0 || current.selectedIndex < 0) {
+						com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(M.L(WndAutochessShop.class, "no_selection"));
+						return;
+					}
+					if (current.equipItem(current.selectedSide, current.selectedIndex, id)) {
+						rebuild();
+					}
+				}
+			};
+			float x = MARGIN + (eqIndex % 2) * (halfEq + GAP);
+			float y = pos + (eqIndex / 2) * 15;
+			itemBtn.setRect(x, y, halfEq, 13);
+			add(itemBtn);
+			eqIndex++;
+		}
+		if (eqIndex > 0) {
+			pos += ((eqIndex + 1) / 2) * 15 + GAP;
+		} else {
+			RenderedTextBlock noEq = PixelScene.renderTextBlock(
+					M.L(WndAutochessShop.class, "no_items"), 7);
+			noEq.hardlight(COLOR_SECTION);
+			noEq.setPos(MARGIN, pos);
+			add(noEq);
+			pos = noEq.bottom() + GAP;
+		}
+
 		RenderedTextBlock economy = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "economy",
 						run.winStreak(), run.loseStreak(), run.lastIncome()), 7);

@@ -128,8 +128,10 @@ public class AutochessBoardDrag extends Component {
 					// 点一下顺便打开详情
 					AutochessPool.Def def = AutochessPool.ofName(unit.getClass().getSimpleName());
 					if (def != null) {
+						String entry = run.entryAt(at[0], at[1]);
 						com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-								new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessInfo(def));
+								new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessInfo(
+										def, AutochessItems.parse(entry)));
 					}
 					if (run.selectedSide == at[0] && run.selectedIndex == at[1]) {
 						run.selectedSide = -1;

@@ -21,6 +21,10 @@ public class WndAutochessInfo extends Window {
 	private static final int GAP = 3;
 
 	public WndAutochessInfo(AutochessPool.Def def) {
+		this(def, null);
+	}
+
+	public WndAutochessInfo(AutochessPool.Def def, java.util.List<String> itemIds) {
 		super();
 
 		Mob mob = null;
@@ -88,6 +92,22 @@ public class WndAutochessInfo extends Window {
 		descText.setPos(MARGIN, pos);
 		add(descText);
 		pos = descText.bottom() + GAP;
+
+		// 装备
+		java.util.ArrayList<String> items = new java.util.ArrayList<>();
+		if (itemIds != null) items.addAll(itemIds);
+		if (!items.isEmpty()) {
+			StringBuilder eq = new StringBuilder(Messages.get(WndAutochessInfo.class, "items"));
+			for (String id : items) {
+				eq.append(" ").append(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id));
+			}
+			RenderedTextBlock eqText = PixelScene.renderTextBlock(eq.toString(), 7);
+			eqText.maxWidth(WIDTH - MARGIN * 2);
+			eqText.hardlight(0xFFCC66);
+			eqText.setPos(MARGIN, pos);
+			add(eqText);
+			pos = eqText.bottom() + 1;
+		}
 
 		// 星级说明
 		RenderedTextBlock starText = PixelScene.renderTextBlock(

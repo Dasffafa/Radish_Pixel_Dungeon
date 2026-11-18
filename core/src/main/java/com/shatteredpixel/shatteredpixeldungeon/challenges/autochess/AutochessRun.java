@@ -97,6 +97,19 @@ public class AutochessRun extends Buff {
 	}
 
 	private final java.util.ArrayList<Match> matches = new java.util.ArrayList<>();
+	/** 未装备的装备背包。 */
+	private final java.util.ArrayList<String> itemBag = new java.util.ArrayList<>();
+
+	/** 取某个格子的棋子条目（含装备）。 */
+	public String entryAt(int side, int index) {
+		String[] arr = entries(side);
+		if (arr == null || index < 0 || index >= arr.length) return null;
+		return arr[index];
+	}
+
+	public java.util.ArrayList<String> itemBag() {
+		return itemBag;
+	}
 
 	public java.util.ArrayList<Match> matches() {
 		return matches;
@@ -630,6 +643,8 @@ public class AutochessRun extends Buff {
 			if (def == null) continue;
 			Mob mob = spawnUnit(def, ChessBoardLevel.benchCell(i), true, parseInt(parts[1]));
 			if (mob != null) unitMobs.put(i, mob);
+			AutochessUnitBuff ib = mob == null ? null : mob.buff(AutochessUnitBuff.class);
+			if (ib != null) ib.setItems(AutochessItems.parse(bench[i]));
 		}
 		for (int i = 0; i < board.length; i++) {
 			String[] parts = split(board, i);
@@ -638,9 +653,16 @@ public class AutochessRun extends Buff {
 			if (def == null) continue;
 			Mob mob = spawnUnit(def, boardCell[i], true, parseInt(parts[1]));
 			if (mob != null) unitMobs.put(100 + i, mob);
+			AutochessUnitBuff ib2 = mob == null ? null : mob.buff(AutochessUnitBuff.class);
+			if (ib2 != null) ib2.setItems(AutochessItems.parse(board[i]));
 		}
 		spawnEnemies();
 		spawnOpponentBench();
+
+		// 备战阶段就把本轮配对算出来，对战大厅才能显示「即将对战谁」
+		if (state == State.PREP) {
+			buildMatches();
+		}
 
 		if (fxPending != null) {
 			playMergeFx(fxPending);
@@ -728,6 +750,7 @@ public class AutochessRun extends Buff {
 			return;
 		}
 		state = State.FIGHT;
+		buildMatches();
 		refreshPreview();
 		int enemyCount = (opponent != null && !opponent.deployed().isEmpty())
 				? opponent.deployed().size()
@@ -830,6 +853,7 @@ public class AutochessRun extends Buff {
 
 		gainRoundXp();
 		damageOpponent();
+		dropItem();
 		advanceBots();
 		round++;
 		if (allBotsDead()) {
@@ -848,10 +872,44 @@ public class AutochessRun extends Buff {
 		int survivors = ChessBoardLevel.countSide(true);
 		int dmg = stageDamage() + survivors;
 		opponent.damage(dmg);
+		for (Match match : matches) {
+			if ("你".equals(match.a) && match.winner == null) match.winner = "你";
+		}
+		resolveAiMatches();
 		GLog.p(M.L(AutochessRun.class, "bot_hurt", opponent.name, dmg, opponent.hp));
 	}
 
 	/** 每回合所有 AI 一起变强，并让它们互相消耗一点血。 */
+	/** 每回合结束给一件装备（背包上限 9）。 */
+	private void dropItem() {
+		if (itemBag.size() >= 9) return;
+		String item = AutochessItems.random();
+		itemBag.add(item);
+		GLog.p(M.L(AutochessRun.class, "item_drop", AutochessItems.name(item)));
+	}
+
+	/** 把背包里的装备装到指定格子的棋子上。 */
+	public boolean equipItem(int side, int index, String itemId) {
+		String[] arr = entries(side);
+		if (arr == null || index < 0 || index >= arr.length) return false;
+		String entry = arr[index];
+		if (entry == null) return false;
+		java.util.ArrayList<String> items = AutochessItems.parse(entry);
+		if (items.size() >= AutochessItems.MAX_PER_UNIT) {
+			GLog.w(M.L(AutochessRun.class, "item_full"));
+			return false;
+		}
+		String base = entry;
+		int bar = base.indexOf('|');
+		if (bar >= 0) base = base.substring(0, bar);
+		items.add(itemId);
+		arr[index] = base + "|" + AutochessItems.encode(items);
+		itemBag.remove(itemId);
+		GLog.p(M.L(AutochessRun.class, "item_equip", AutochessItems.name(itemId), nameOf(base.split(":")[0])));
+		refreshPreview();
+		return true;
+	}
+
 	/** 阶段基础伤害：2 起步，每 5 回合 +1，最高 8（云顶同一套思路）。 */
 	public int stageDamage() {
 		return Math.min(8, 2 + round / 5);
@@ -860,6 +918,51 @@ public class AutochessRun extends Buff {
 	/** 上一轮自己掉了多少血（UI 用）。 */
 	public int lastDamage() {
 		return lastDamage;
+	}
+
+	/** 本轮配对：玩家打本轮对手，其余 AI 两两配对。 */
+	private void buildMatches() {
+		matches.clear();
+		if (opponent != null && opponent.alive()) {
+			matches.add(new Match("你", opponent.name));
+		}
+		java.util.ArrayList<AutochessBot> rest = new java.util.ArrayList<>();
+		for (AutochessBot bot : bots) {
+			if (bot.alive() && bot != opponent) rest.add(bot);
+		}
+		java.util.Collections.shuffle(rest, new java.util.Random(round * 7919L));
+		for (int i = 0; i + 1 < rest.size(); i += 2) {
+			matches.add(new Match(rest.get(i).name, rest.get(i + 1).name));
+		}
+		if (rest.size() % 2 == 1) {
+			matches.add(new Match(rest.get(rest.size() - 1).name, "轮空"));
+		}
+	}
+
+	/** 结算 AI 之间的对局（玩家那场由棋盘战斗决定）。 */
+	private void resolveAiMatches() {
+		for (Match match : matches) {
+			if (match.winner != null) continue;
+			if ("你".equals(match.a) || "你".equals(match.b)) continue;
+			AutochessBot a = botByName(match.a);
+			AutochessBot b = botByName(match.b);
+			if (a == null || b == null) continue;
+			int pa = a.power() + (int) (Math.random() * 6);
+			int pb = b.power() + (int) (Math.random() * 6);
+			AutochessBot loser = pa >= pb ? b : a;
+			AutochessBot winner = loser == a ? b : a;
+			loser.damage(stageDamage() + 2);
+			match.winner = winner.name;
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.i(
+					M.L(AutochessRun.class, "ai_battle", winner.name, loser.name, loser.hp));
+		}
+	}
+
+	private AutochessBot botByName(String name) {
+		for (AutochessBot bot : bots) {
+			if (bot.name.equals(name)) return bot;
+		}
+		return null;
 	}
 
 	private void advanceBots() {
@@ -901,6 +1004,10 @@ public class AutochessRun extends Buff {
 		int damage = stageDamage() + survivors;
 		lastDamage = damage;
 		life -= damage;
+		for (Match match : matches) {
+			if ("你".equals(match.a) && match.winner == null) match.winner = match.b;
+		}
+		resolveAiMatches();
 		if (life <= 0) {
 			life = 0;
 			Game.runOnRenderThread(new Callback() {

@@ -54,8 +54,12 @@ public class AutochessSkill {
 
 	/** 星级越高技能越强：2 星效果 ×1.6，3 星 ×2.2（持续类效果还会拉长）。 */
 	public void cast(Char caster, int star) {
-		this.starLevel = Math.max(1, Math.min(3, star));
-		this.power = starLevel >= 3 ? 2.2f : (starLevel == 2 ? 1.6f : 1f);
+		cast(caster, star, 1f);
+	}
+
+	/** itemBoost：装备（宝石）带来的技能强度加成。 */
+	public void cast(Char caster, int star, float itemBoost) {
+		this.power = (starLevel >= 3 ? 2.2f : (starLevel == 2 ? 1.6f : 1f)) * itemBoost;
 		Char target = lowestEnemy(caster, 4);
 		switch (id) {
 			// ---- 1 费：下水道 ----
