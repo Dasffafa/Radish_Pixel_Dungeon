@@ -69,6 +69,8 @@ public class AutochessPool {
 	public static final String ASSASSIN  = "assassin";   // 刺客：概率暴击
 	public static final String RANGED    = "ranged";     // 射手：稳定增伤
 	public static final String FIGHTER   = "fighter";    // 战士：血量上限
+	public static final String MAGE      = "mage";       // 法师：法术附伤
+	public static final String SUPPORT   = "support";    // 辅助：治疗友军
 	public static final String SWARM     = "swarm";      // 虫群：攻击附带额外伤害
 
 	public static class Def {
@@ -103,7 +105,7 @@ public class AutochessPool {
 		add(Swarm.class, 1, SWARM, FIGHTER);
 		add(Gnoll.class, 1, HUMANOID, FIGHTER);
 		add(GiantWorm.class, 1, SWARM, TANK);
-		add(Mayfly.class, 1, SWARM, ASSASSIN);
+		add(Mayfly.class, 1, SWARM, SUPPORT);
 		add(Dog.class, 1, BEAST, FIGHTER);
 		add(Goblin.class, 1, HUMANOID, FIGHTER);
 
@@ -113,9 +115,9 @@ public class AutochessPool {
 		add(DM100.class, 2, CONSTRUCT, RANGED);
 		add(Skeleton.class, 2, UNDEAD, FIGHTER);
 		add(Guard.class, 2, HUMANOID, TANK);
-		add(Shaman.BlueShaman.class, 2, HUMANOID, RANGED);
+		add(Shaman.BlueShaman.class, 2, HUMANOID, MAGE);
 		add(Spinner.class, 2, SWARM, ASSASSIN);
-		add(Necromancer.class, 2, UNDEAD, RANGED);
+		add(Necromancer.class, 2, UNDEAD, SUPPORT);
 		add(GoblinRider.class, 2, HUMANOID, ASSASSIN);
 		add(Jailer.class, 2, HUMANOID, TANK);
 		add(Prisoner.class, 2, HUMANOID, FIGHTER);
@@ -127,28 +129,28 @@ public class AutochessPool {
 		add(Ghoul.class, 3, UNDEAD, FIGHTER);
 		add(Grudge.class, 3, UNDEAD, ASSASSIN);
 		add(ClusteredSkeleton.class, 3, UNDEAD, FIGHTER);
-		add(DM175.class, 3, CONSTRUCT, RANGED);
+		add(DM175.class, 3, CONSTRUCT, MAGE);
 		add(GnollZealot.class, 3, HUMANOID, FIGHTER);
 
 		// 4 费：城市
 		add(Monk.class, 4, HUMANOID, FIGHTER);
-		add(Warlock.class, 4, DEMON, RANGED);
-		add(Elemental.FireElemental.class, 4, DEMON, RANGED);
+		add(Warlock.class, 4, DEMON, MAGE);
+		add(Elemental.FireElemental.class, 4, DEMON, MAGE);
 		add(Drake.class, 4, BEAST, FIGHTER);
 		add(StoneSpirit.class, 4, CONSTRUCT, TANK);
 		add(Artillerist.class, 4, HUMANOID, RANGED);
 		add(RoyalGuard.class, 4, HUMANOID, TANK);
-		add(ShieldMage.class, 4, HUMANOID, TANK);
+		add(ShieldMage.class, 4, HUMANOID, SUPPORT);
 
 		// 5 费：恶魔大厅
 		add(Succubus.class, 5, DEMON, ASSASSIN);
 		add(Scorpio.class, 5, SWARM, RANGED);
 		add(Acidic.class, 5, SWARM, RANGED);
-		add(Eye.class, 5, DEMON, RANGED);
+		add(Eye.class, 5, DEMON, MAGE);
 		add(RipperDemon.class, 5, DEMON, ASSASSIN);
 		add(Deminion.class, 5, DEMON, FIGHTER);
 		add(Deviloon.class, 5, DEMON, ASSASSIN);
-		add(Gorgon.class, 5, CONSTRUCT, TANK);
+		add(Gorgon.class, 5, CONSTRUCT, MAGE);
 		add(DemonLord.class, 5, DEMON, TANK);
 	}
 	private static void add(Class<? extends Mob> cls, int cost, String... traits) {
@@ -257,6 +259,7 @@ public class AutochessPool {
 	/** 羁绊的档位阈值：{ 一档人数, 二档人数 }。 */
 	public static int[] thresholds(String trait) {
 		if (DEMON.equals(trait) || UNDEAD.equals(trait) || TANK.equals(trait)) return new int[]{2, 4};
+		if (SUPPORT.equals(trait)) return new int[]{2, 3};
 		return new int[]{3, 5};
 	}
 }

@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.AllyBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -123,6 +124,13 @@ public class AutochessUnitBuff extends AllyBuff {
 				info.addStackMultModifier(2f, "autochess_assassin");
 			}
 		}
+		// 法师：按目标最大生命追加法术伤害
+		if (hasTrait(AutochessPool.MAGE)) {
+			int tier = AutochessRun.traitTier(AutochessPool.MAGE);
+			if (tier > 0) {
+				info.addFlatModifier(Math.max(1, Math.round(defender.HT * 0.03f * tier)), "autochess_mage");
+			}
+		}
 		if (hasTrait(AutochessPool.SWARM)) {
 			int tier = AutochessRun.traitTier(AutochessPool.SWARM);
 			if (tier > 0) {
@@ -150,6 +158,24 @@ public class AutochessUnitBuff extends AllyBuff {
 
 	@Override
 	public boolean act() {
+		if (hasTrait(AutochessPool.SUPPORT)) {
+			int tier = AutochessRun.traitTier(AutochessPool.SUPPORT);
+			if (tier > 0 && Dungeon.level != null) {
+				Char lowest = null;
+				for (Char ch : Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+					if (ch == target || ch.alignment != target.alignment) continue;
+					if (!ch.isAlive() || ch.HP >= ch.HT) continue;
+					if (Dungeon.level.distance(ch.pos, target.pos) > 6) continue;
+					if (lowest == null || ch.HP / (float) ch.HT < lowest.HP / (float) lowest.HT) {
+						lowest = ch;
+					}
+				}
+				if (lowest != null) {
+					int heal = Math.max(1, Math.round(lowest.HT * 0.02f * tier));
+					lowest.HP = Math.min(lowest.HT, lowest.HP + heal);
+				}
+			}
+		}
 		if (hasTrait(AutochessPool.UNDEAD)) {
 			int tier = AutochessRun.traitTier(AutochessPool.UNDEAD);
 			if (tier > 0 && target.HP < target.HT) {

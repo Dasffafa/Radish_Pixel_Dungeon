@@ -354,7 +354,8 @@ public class WndAutochessShop extends Window {
 				AutochessPool.BEAST, AutochessPool.HUMANOID, AutochessPool.CONSTRUCT,
 				AutochessPool.DEMON, AutochessPool.UNDEAD, AutochessPool.SWARM,
 				AutochessPool.TANK, AutochessPool.ASSASSIN,
-				AutochessPool.RANGED, AutochessPool.FIGHTER}) {
+				AutochessPool.RANGED, AutochessPool.FIGHTER,
+				AutochessPool.MAGE, AutochessPool.SUPPORT}) {
 			if (AutochessRun.countTrait(trait) > 0) {
 				appendTrait(sb, trait);
 			}
