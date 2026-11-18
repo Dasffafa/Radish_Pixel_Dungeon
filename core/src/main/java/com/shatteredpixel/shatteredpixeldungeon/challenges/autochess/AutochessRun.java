@@ -644,7 +644,7 @@ public class AutochessRun extends Buff {
 		Dungeon.level.occupyCell(mob);
 		if (playerSide) {
 			AutochessUnitBuff buff = Buff.affect(mob, AutochessUnitBuff.class);
-			buff.setup(def.trait, star);
+			buff.setup(def.traits, star);
 
 		} else {
 
@@ -834,7 +834,7 @@ public class AutochessRun extends Buff {
 			if (entry == null) continue;
 			String[] parts = entry.split(":");
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
-			if (def != null && trait.equals(def.trait)) count++;
+			if (def != null && def.hasTrait(trait)) count++;
 		}
 		return count;
 	}

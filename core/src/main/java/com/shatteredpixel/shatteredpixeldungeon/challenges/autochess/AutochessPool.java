@@ -71,77 +71,85 @@ public class AutochessPool {
 	public static class Def {
 		public final Class<? extends Mob> cls;
 		public final int cost;
-		public final String trait;
+		/** 一只棋子可以有多个羁绊（云顶同款，一般 2~3 个）。 */
+		public final String[] traits;
 
-		Def(Class<? extends Mob> cls, int cost, String trait) {
+		Def(Class<? extends Mob> cls, int cost, String[] traits) {
 			this.cls = cls;
 			this.cost = cost;
-			this.trait = trait;
+			this.traits = traits;
+		}
+
+		public boolean hasTrait(String trait) {
+			for (String t : traits) {
+				if (t.equals(trait)) return true;
+			}
+			return false;
 		}
 	}
 
 	private static final ArrayList<Def> POOL = new ArrayList<>();
 
 	static {
-		// 1 费：下水道（一区）
-		add(Rat.class, 1, BEAST);
-		add(Albino.class, 1, BEAST);
-		add(Snake.class, 1, BEAST);
-		add(Crab.class, 1, BEAST);
-		add(Slime.class, 1, BEAST);
-		add(Swarm.class, 1, SWARM);
-		add(Gnoll.class, 1, HUMANOID);
-		add(GiantWorm.class, 1, GIANT);
-		add(Mayfly.class, 1, SWARM);
-		add(Dog.class, 1, BEAST);
-		add(Goblin.class, 1, HUMANOID);
+		// 1 费：下水道
+		add(Rat.class, 1, BEAST, SWARM);
+		add(Albino.class, 1, BEAST, SWARM);
+		add(Snake.class, 1, BEAST, SWARM);
+		add(Crab.class, 1, BEAST, GUARD);
+		add(Slime.class, 1, BEAST, SWARM);
+		add(Swarm.class, 1, SWARM, BEAST);
+		add(Gnoll.class, 1, HUMANOID, BEAST);
+		add(GiantWorm.class, 1, SWARM, GIANT);
+		add(Mayfly.class, 1, SWARM, BEAST);
+		add(Dog.class, 1, BEAST, SWARM);
+		add(Goblin.class, 1, HUMANOID, SWARM);
 
-		// 2 费：监狱（二区）
-		add(Bat.class, 2, BEAST);
-		add(Thief.class, 2, HUMANOID);
-		add(DM100.class, 2, CONSTRUCT);
-		add(Skeleton.class, 2, UNDEAD);
-		add(Guard.class, 2, GUARD);
-		add(Shaman.BlueShaman.class, 2, HUMANOID);
-		add(Spinner.class, 2, SWARM);
-		add(Necromancer.class, 2, UNDEAD);
-		add(GoblinRider.class, 2, HUMANOID);
-		add(Jailer.class, 2, GUARD);
-		add(Prisoner.class, 2, HUMANOID);
-		add(Torturer.class, 2, GUARD);
+		// 2 费：监狱
+		add(Bat.class, 2, BEAST, SWARM);
+		add(Thief.class, 2, HUMANOID, SWARM);
+		add(DM100.class, 2, CONSTRUCT, GUARD);
+		add(Skeleton.class, 2, UNDEAD, CONSTRUCT);
+		add(Guard.class, 2, HUMANOID, GUARD);
+		add(Shaman.BlueShaman.class, 2, HUMANOID, DEMON);
+		add(Spinner.class, 2, SWARM, BEAST);
+		add(Necromancer.class, 2, HUMANOID, UNDEAD);
+		add(GoblinRider.class, 2, HUMANOID, BEAST);
+		add(Jailer.class, 2, HUMANOID, GUARD);
+		add(Prisoner.class, 2, HUMANOID, SWARM);
+		add(Torturer.class, 2, HUMANOID, GUARD);
 
-		// 3 费：矿洞/洞穴（三区）
-		add(Brute.class, 3, GIANT);
-		add(Golem.class, 3, GIANT);
-		add(Ghoul.class, 3, UNDEAD);
-		add(Grudge.class, 3, DEMON);
-		add(ClusteredSkeleton.class, 3, UNDEAD);
-		add(DM175.class, 3, CONSTRUCT);
-		add(GnollZealot.class, 3, HUMANOID);
+		// 3 费：矿洞
+		add(Brute.class, 3, HUMANOID, GIANT);
+		add(Golem.class, 3, CONSTRUCT, GIANT);
+		add(Ghoul.class, 3, UNDEAD, BEAST);
+		add(Grudge.class, 3, UNDEAD, DEMON);
+		add(ClusteredSkeleton.class, 3, UNDEAD, CONSTRUCT);
+		add(DM175.class, 3, CONSTRUCT, GUARD);
+		add(GnollZealot.class, 3, HUMANOID, BEAST);
 
-		// 4 费：城市（四区）
-		add(Monk.class, 4, HUMANOID);
-		add(Warlock.class, 4, DEMON);
-		add(Elemental.FireElemental.class, 4, DEMON);
-		add(Drake.class, 4, GIANT);
-		add(StoneSpirit.class, 4, CONSTRUCT);
-		add(Artillerist.class, 4, HUMANOID);
-		add(RoyalGuard.class, 4, GUARD);
-		add(ShieldMage.class, 4, GUARD);
+		// 4 费：城市
+		add(Monk.class, 4, HUMANOID, GUARD);
+		add(Warlock.class, 4, HUMANOID, DEMON);
+		add(Elemental.FireElemental.class, 4, DEMON, CONSTRUCT);
+		add(Drake.class, 4, BEAST, GIANT);
+		add(StoneSpirit.class, 4, CONSTRUCT, GIANT);
+		add(Artillerist.class, 4, HUMANOID, CONSTRUCT);
+		add(RoyalGuard.class, 4, HUMANOID, GUARD);
+		add(ShieldMage.class, 4, HUMANOID, GUARD);
 
-		// 5 费：恶魔大厅（五区）
-		add(Succubus.class, 5, DEMON);
-		add(Scorpio.class, 5, BEAST);
-		add(Acidic.class, 5, BEAST);
-		add(Eye.class, 5, DEMON);
-		add(RipperDemon.class, 5, DEMON);
-		add(Deminion.class, 5, DEMON);
-		add(Deviloon.class, 5, DEMON);
-		add(Gorgon.class, 5, CONSTRUCT);
-		add(DemonLord.class, 5, DEMON);
+		// 5 费：恶魔大厅
+		add(Succubus.class, 5, DEMON, HUMANOID);
+		add(Scorpio.class, 5, BEAST, GIANT);
+		add(Acidic.class, 5, BEAST, GIANT);
+		add(Eye.class, 5, DEMON, CONSTRUCT);
+		add(RipperDemon.class, 5, DEMON, BEAST);
+		add(Deminion.class, 5, DEMON, GIANT);
+		add(Deviloon.class, 5, DEMON, SWARM);
+		add(Gorgon.class, 5, CONSTRUCT, DEMON);
+		add(DemonLord.class, 5, DEMON, GIANT);
 	}
-	private static void add(Class<? extends Mob> cls, int cost, String trait) {
-		POOL.add(new Def(cls, cost, trait));
+	private static void add(Class<? extends Mob> cls, int cost, String... traits) {
+		POOL.add(new Def(cls, cost, traits));
 	}
 
 	/** 池子里全部棋子定义（共享池初始化/兜底用）。 */

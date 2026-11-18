@@ -28,7 +28,7 @@ import com.watabou.utils.Bundle;
 public class AutochessUnitBuff extends AllyBuff {
 
 	private int star = 1;
-	private String trait = AutochessPool.BEAST;
+	private String[] traits = new String[]{AutochessPool.BEAST};
 
 	{
 		type = buffType.POSITIVE;
@@ -36,8 +36,9 @@ public class AutochessUnitBuff extends AllyBuff {
 	}
 
 	/** 出生时调用：设好羁绊与星级，并按星级放大属性、结算一次性羁绊。 */
-	public void setup(String trait, int star) {
-		this.trait = trait;
+	public void setup(String[] traits, int star) {
+		this.traits = traits == null || traits.length == 0
+				? new String[]{AutochessPool.BEAST} : traits;
 		this.star = Math.max(1, Math.min(3, star));
 		applyStarStats();
 		applyTraitSetup();
@@ -52,8 +53,16 @@ public class AutochessUnitBuff extends AllyBuff {
 		return star;
 	}
 
-	public String trait() {
-		return trait;
+	public String[] traits() {
+		return traits;
+	}
+
+	/** 某个羁绊在这只棋子身上是否生效。 */
+	private boolean hasTrait(String trait) {
+		for (String t : traits) {
+			if (t.equals(trait)) return true;
+		}
+		return false;
 	}
 
 	private void applyStarStats() {
@@ -72,26 +81,31 @@ public class AutochessUnitBuff extends AllyBuff {
 
 	/** 巨兽加血、守卫给盾——这类一次性效果在出生时结算。 */
 	private void applyTraitSetup() {
-		int tier = AutochessRun.traitTier(trait);
-		if (tier <= 0) return;
-		if (AutochessPool.GIANT.equals(trait)) {
-			target.HT += Math.round(target.HT * 0.15f * tier);
-			target.HP = target.HT;
-		} else if (AutochessPool.GUARD.equals(trait)) {
-			Buff.affect(target, Barrier.class).setShield(Math.round(target.HT * 0.15f * tier));
+		for (String trait : traits) {
+			int tier = AutochessRun.traitTier(trait);
+			if (tier <= 0) continue;
+			if (AutochessPool.GIANT.equals(trait)) {
+				target.HT += Math.round(target.HT * 0.15f * tier);
+				target.HP = target.HT;
+			} else if (AutochessPool.GUARD.equals(trait)) {
+				Buff.affect(target, Barrier.class).setShield(Math.round(target.HT * 0.15f * tier));
+			}
 		}
 	}
 
 	/** 伤害倍率：星级 + 攻击型羁绊。 */
 	private float damageMultiplier() {
 		float mul = 1f + 0.8f * (star - 1);
-		int tier = AutochessRun.traitTier(trait);
-		if (AutochessPool.HUMANOID.equals(trait)) {
-			mul += 0.20f * tier;
-		} else if (AutochessPool.DEMON.equals(trait)) {
-			mul += 0.30f * tier;
-		} else if (AutochessPool.BEAST.equals(trait)) {
-			mul += 0.10f * tier;
+		for (String trait : traits) {
+			int tier = AutochessRun.traitTier(trait);
+			if (tier <= 0) continue;
+			if (AutochessPool.HUMANOID.equals(trait)) {
+				mul += 0.20f * tier;
+			} else if (AutochessPool.DEMON.equals(trait)) {
+				mul += 0.30f * tier;
+			} else if (AutochessPool.BEAST.equals(trait)) {
+				mul += 0.10f * tier;
+			}
 		}
 		return mul;
 	}
@@ -103,8 +117,8 @@ public class AutochessUnitBuff extends AllyBuff {
 		if (mul != 1f) {
 			info.addStackMultModifier(mul, "autochess");
 		}
-		if (AutochessPool.SWARM.equals(trait)) {
-			int tier = AutochessRun.traitTier(trait);
+		if (hasTrait(AutochessPool.SWARM)) {
+			int tier = AutochessRun.traitTier(AutochessPool.SWARM);
 			if (tier > 0) {
 				info.addFlatModifier(2 * tier, "autochess_swarm");
 			}
@@ -114,8 +128,8 @@ public class AutochessUnitBuff extends AllyBuff {
 	@Override
 	public void modifyIncomingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 		if (defender != target) return;
-		if (AutochessPool.CONSTRUCT.equals(trait)) {
-			int tier = AutochessRun.traitTier(trait);
+		if (hasTrait(AutochessPool.CONSTRUCT)) {
+			int tier = AutochessRun.traitTier(AutochessPool.CONSTRUCT);
 			if (tier > 0) {
 				info.addStackMultModifier(1f - 0.20f * tier, "autochess_construct");
 			}
@@ -124,8 +138,8 @@ public class AutochessUnitBuff extends AllyBuff {
 
 	@Override
 	public boolean act() {
-		if (AutochessPool.UNDEAD.equals(trait)) {
-			int tier = AutochessRun.traitTier(trait);
+		if (hasTrait(AutochessPool.UNDEAD)) {
+			int tier = AutochessRun.traitTier(AutochessPool.UNDEAD);
 			if (tier > 0 && target.HP < target.HT) {
 				target.HP = Math.min(target.HT, target.HP + Math.max(1, Math.round(target.HT * 0.01f * tier)));
 			}
@@ -154,15 +168,15 @@ public class AutochessUnitBuff extends AllyBuff {
 	public void storeInBundle(Bundle bundle) {
 		super.storeInBundle(bundle);
 		bundle.put("ac_star", star);
-		bundle.put("ac_trait", trait);
+		bundle.put("ac_trait", traits.length > 0 ? traits[0] : AutochessPool.BEAST);
 	}
 
 	@Override
 	public void restoreFromBundle(Bundle bundle) {
 		super.restoreFromBundle(bundle);
 		star = bundle.getInt("ac_star");
-		trait = bundle.getString("ac_trait");
+		String saved = bundle.getString("ac_trait");
+		traits = saved == null ? new String[]{AutochessPool.BEAST} : new String[]{saved};
 		if (star < 1) star = 1;
-		if (trait == null) trait = AutochessPool.BEAST;
 	}
 }

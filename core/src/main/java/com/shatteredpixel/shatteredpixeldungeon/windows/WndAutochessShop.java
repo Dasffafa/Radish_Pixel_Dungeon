@@ -250,7 +250,7 @@ public class WndAutochessShop extends Window {
 		}
 
 		RenderedTextBlock name = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "row", nameOf(def), def.cost, traitName(def.trait)), 8);
+				M.L(WndAutochessShop.class, "row", nameOf(def), def.cost, traitsOf(def)), 8);
 		name.hardlight(costColor(def.cost));
 		name.maxWidth(WIDTH - MARGIN * 2 - 20);
 		name.setPos(MARGIN + 18, pos + 1);
@@ -324,6 +324,16 @@ public class WndAutochessShop extends Window {
 		for (int i = 0; i < pct.length; i++) {
 			if (i > 0) sb.append(" · ");
 			sb.append(i + 1).append("费").append(pct[i]).append("%");
+		}
+		return sb.toString();
+	}
+
+	/** 「兽群·虫群」这种多羁绊展示。 */
+	private static String traitsOf(AutochessPool.Def def) {
+		StringBuilder sb = new StringBuilder();
+		for (String t : def.traits) {
+			if (sb.length() > 0) sb.append("·");
+			sb.append(traitName(t));
 		}
 		return sb.toString();
 	}
