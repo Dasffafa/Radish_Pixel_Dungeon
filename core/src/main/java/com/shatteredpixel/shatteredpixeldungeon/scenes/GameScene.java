@@ -397,6 +397,12 @@ public class GameScene extends PixelScene {
 			// 己方棋子头顶的小蓝箭头
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitMarks());
 
+			// 左侧羁绊栏
+			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel traitPanel =
+					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel();
+			traitPanel.setPos(4, 42);
+			add(traitPanel);
+
 			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）
 			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
 					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;

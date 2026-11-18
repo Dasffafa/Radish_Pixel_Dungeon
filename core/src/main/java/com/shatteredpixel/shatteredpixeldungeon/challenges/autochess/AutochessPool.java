@@ -157,6 +157,15 @@ public class AutochessPool {
 		POOL.add(new Def(cls, cost, skill, traits));
 	}
 
+	/** 这个羁绊下都有哪些棋子（羁绊列表窗口用）。 */
+	public static java.util.List<Def> unitsWithTrait(String trait) {
+		java.util.ArrayList<Def> list = new java.util.ArrayList<>();
+		for (Def def : POOL) {
+			if (def.hasTrait(trait)) list.add(def);
+		}
+		return list;
+	}
+
 	/** 池子里全部棋子定义（共享池初始化/兜底用）。 */
 	public static java.util.List<Def> all() {
 		return new ArrayList<>(POOL);
