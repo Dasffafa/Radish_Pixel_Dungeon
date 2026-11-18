@@ -30,6 +30,8 @@ public class ChessBoardLevel extends DeadEndLevel {
 	public static final int PLAYER_MAX_X = 6;
 	public static final int ENEMY_MIN_X = 9;
 	public static final int FIELD_MIN_Y = 3;
+	/** 战场最后一行（再往下是墙和敌人备战席）。 */
+	public static final int FIELD_MAX_Y = HEIGHT - 4;
 	public static final int BENCH_Y = 1;
 	public static final int BENCH_MIN_X = 5;
 	public static final int BENCH_COUNT = 9;
