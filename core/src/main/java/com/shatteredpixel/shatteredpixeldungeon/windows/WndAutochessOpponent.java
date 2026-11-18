@@ -23,16 +23,17 @@ public class WndAutochessOpponent extends Window {
 	private final int WIDTH;
 	private static final int MARGIN = 5;
 	private static final int GAP = 3;
-	private static final int ROW = 22;
+	private final int ROW;
 
 	public WndAutochessOpponent(AutochessBot bot) {
 		super();
 
 		int camW = Boolean.getBoolean("arena.compact") ? 150 : (int) PixelScene.uiCamera.width;
-		WIDTH = Math.min(190, Math.max(118, camW - 24));
+		WIDTH = Math.min(190, Math.max(118, camW - 20));
+		ROW = WIDTH < 160 ? 19 : 22;
 
 		RenderedTextBlock title = PixelScene.renderTextBlock(
-				Messages.get(WndAutochessOpponent.class, "title", bot.name), 9);
+				Messages.get(WndAutochessOpponent.class, "title", bot.name), WIDTH < 160 ? 8 : 9);
 		title.hardlight(0xFFCC66);
 		title.setPos(MARGIN, MARGIN);
 		add(title);
@@ -67,7 +68,7 @@ public class WndAutochessOpponent extends Window {
 
 			CharSprite icon = AutochessIcons.spriteFor(cls);
 			if (icon != null) {
-				AutochessIcons.place(icon, MARGIN, pos, 18);
+				AutochessIcons.place(icon, MARGIN, pos, ROW - 5);
 				add(icon);
 			}
 
@@ -76,7 +77,7 @@ public class WndAutochessOpponent extends Window {
 			RenderedTextBlock row = PixelScene.renderTextBlock(text, 7);
 			row.maxWidth(WIDTH - MARGIN * 2 - 24);
 			row.hardlight(costColor(def.cost));
-			row.setPos(MARGIN + 22, pos + 2);
+			row.setPos(MARGIN + ROW - 2, pos + 1);
 			add(row);
 
 			StringBuilder traits = new StringBuilder();
@@ -87,7 +88,7 @@ public class WndAutochessOpponent extends Window {
 			}
 			RenderedTextBlock traitText = PixelScene.renderTextBlock(traits.toString(), 7);
 			traitText.hardlight(0x999999);
-			traitText.setPos(MARGIN + 22, pos + 11);
+			traitText.setPos(MARGIN + ROW - 2, pos + (ROW < 21 ? 8 : 11));
 			add(traitText);
 
 			pos += ROW;

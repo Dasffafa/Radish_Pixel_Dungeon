@@ -16,7 +16,9 @@ import com.watabou.utils.Reflection;
  */
 public class WndAutochessInfo extends Window {
 
-	private static final int WIDTH = 190;
+	/** 面板宽度：按屏幕宽度自适应。 */
+	private final int WIDTH;
+	private final boolean compact;
 	private static final int MARGIN = 5;
 	private static final int GAP = 3;
 
@@ -27,6 +29,10 @@ public class WndAutochessInfo extends Window {
 	public WndAutochessInfo(AutochessPool.Def def, java.util.List<String> itemIds) {
 		super();
 
+		int camW = Boolean.getBoolean("arena.compact") ? 150 : (int) PixelScene.uiCamera.width;
+		WIDTH = Math.min(190, Math.max(116, camW - 20));
+		compact = WIDTH < 160;
+
 		Mob mob = null;
 		try {
 			mob = Reflection.newInstance(def.cls);
@@ -34,7 +40,7 @@ public class WndAutochessInfo extends Window {
 		}
 
 		String name = mob == null ? def.cls.getSimpleName() : mob.name();
-		RenderedTextBlock title = PixelScene.renderTextBlock(name, 9);
+		RenderedTextBlock title = PixelScene.renderTextBlock(name, compact ? 8 : 9);
 		title.hardlight(costColor(def.cost));
 		title.setPos(MARGIN, MARGIN);
 		add(title);
@@ -44,7 +50,7 @@ public class WndAutochessInfo extends Window {
 		// 图标
 		CharSprite icon = AutochessIcons.spriteFor(def.cls.getSimpleName());
 		if (icon != null) {
-			AutochessIcons.place(icon, MARGIN, pos, 32);
+			AutochessIcons.place(icon, MARGIN, pos, compact ? 26 : 32);
 			add(icon);
 		}
 
@@ -58,7 +64,7 @@ public class WndAutochessInfo extends Window {
 		headText.setPos(textX, pos);
 		add(headText);
 
-		pos = Math.max(pos + 34, headText.bottom() + GAP);
+		pos = Math.max(pos + (compact ? 28 : 34), headText.bottom() + GAP);
 
 		// 数值
 		int hp = mob == null ? 0 : mob.HT;

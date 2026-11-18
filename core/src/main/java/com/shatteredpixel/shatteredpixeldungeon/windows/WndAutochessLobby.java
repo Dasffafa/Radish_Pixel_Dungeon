@@ -90,21 +90,21 @@ public class WndAutochessLobby extends Window {
 			icon = AutochessIcons.spriteFor("Rat");
 		}
 		if (icon != null) {
-			AutochessIcons.place(icon, MARGIN, pos, 20);
+			AutochessIcons.place(icon, MARGIN, pos, 16);
 			add(icon);
 		}
 
 		String line1 = Messages.get(WndAutochessLobby.class, "line", name, hp, level);
-		RenderedTextBlock first = PixelScene.renderTextBlock(line1, 8);
+		RenderedTextBlock first = PixelScene.renderTextBlock(line1, 7);
 		first.hardlight(bot == null ? 0x66DDFF : 0xFFFFFF);
 		first.maxWidth(WIDTH - MARGIN * 2 - 26);
-		first.setPos(MARGIN + 24, pos + 1);
+		first.setPos(MARGIN + 20, pos + 1);
 		add(first);
 
 		RenderedTextBlock vs = PixelScene.renderTextBlock(opponent, 7);
 		vs.hardlight(0xFFCC66);
 		vs.maxWidth(WIDTH - MARGIN * 2 - 26);
-		vs.setPos(MARGIN + 24, pos + 11);
+		vs.setPos(MARGIN + 20, pos + 10);
 		add(vs);
 
 		if (clickable && bot != null) {
