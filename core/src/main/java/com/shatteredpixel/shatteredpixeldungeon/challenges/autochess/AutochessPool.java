@@ -140,6 +140,11 @@ public class AutochessPool {
 		POOL.add(new Def(cls, cost, trait));
 	}
 
+	/** 池子里全部棋子定义（共享池初始化/兜底用）。 */
+	public static java.util.List<Def> all() {
+		return new ArrayList<>(POOL);
+	}
+
 	public static Def of(Class<?> cls) {
 		for (Def def : POOL) {
 			if (def.cls == cls) {

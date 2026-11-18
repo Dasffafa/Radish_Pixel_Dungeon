@@ -79,9 +79,6 @@ public class AutochessRun extends Buff {
 	private int lastInterest = 0;
 	private int lastStreakBonus = 0;
 
-	/** 本回合敌方阵容（类名），拖拽重排时不再重摇。 */
-	private String[] enemyComp = null;
-	private int enemyCompRound = -1;
 
 	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
 	private final java.util.HashMap<Integer, Mob> unitMobs = new java.util.HashMap<>();
@@ -90,6 +87,13 @@ public class AutochessRun extends Buff {
 	public int unitVersion = 0;
 
 	private long lastBuyMs = 0;
+
+	/** 共享棋子池：玩家和 AI 都从这里抽牌。 */
+	private AutochessSharedPool pool;
+	/** 其他 AI 对手。 */
+	private final java.util.ArrayList<AutochessBot> bots = new java.util.ArrayList<>();
+	/** 本轮要打的对手。 */
+	private AutochessBot opponent;
 
 	{
 		type = buffType.POSITIVE;
@@ -125,7 +129,16 @@ public class AutochessRun extends Buff {
 		}
 		run.selectedSide = -1;
 		run.selectedIndex = -1;
+		run.pool = new AutochessSharedPool();
+		run.bots.clear();
+		String[] names = {"老王", "阿呆", "包子", "萝卜头", "土豆"};
+		for (String n : names) {
+			run.bots.add(new AutochessBot(n));
+		}
+		run.opponent = null;
 		run.rollShop();
+
+
 
 
 
@@ -196,9 +209,15 @@ public class AutochessRun extends Buff {
 
 	public void rollShop() {
 		for (int i = 0; i < offers.length; i++) {
-			AutochessPool.Def def = AutochessPool.randomForLevel(level);
-			offers[i] = def.cls.getSimpleName();
-			prices[i] = def.cost;
+			String cls = pool == null ? null : pool.draw(level);
+			if (cls == null) {
+				offers[i] = null;
+				prices[i] = 0;
+				continue;
+			}
+			AutochessPool.Def def = AutochessPool.ofName(cls);
+			offers[i] = cls;
+			prices[i] = def == null ? 1 : def.cost;
 		}
 	}
 
@@ -237,8 +256,13 @@ public class AutochessRun extends Buff {
 			GLog.w(M.L(AutochessRun.class, "no_gold"));
 			return false;
 		}
+		String cls = def.cls.getSimpleName();
+		if (pool != null && !pool.take(cls)) {
+			GLog.w(M.L(AutochessRun.class, "pool_empty"));
+			return false;
+		}
 		gold -= prices[index];
-		bench[slot] = def.cls.getSimpleName() + ":1";
+		bench[slot] = cls + ":1";
 		offers[index] = null;
 		prices[index] = 0;
 		merge(def.cls.getSimpleName(), 1);
@@ -421,6 +445,9 @@ public class AutochessRun extends Buff {
 		String[] parts = split(arr, index);
 		if (parts == null) return 0;
 		int value = sellValue(side, index);
+		if (pool != null) {
+			pool.give(parts[0]);
+		}
 		arr[index] = null;
 		gold += value;
 		refreshPreview();
@@ -511,31 +538,42 @@ public class AutochessRun extends Buff {
 		spawnEnemies();
 	}
 
-	private void ensureEnemyComp() {
-		if (enemyComp != null && enemyCompRound == round) {
+
+	/** 敌方半场铺上「本轮对手」的阵容；没有对手就退化成随机波次。 */
+	private void spawnEnemies() {
+		if (opponent == null || !opponent.alive()) {
+			pickOpponent();
+		}
+		if (opponent == null) {
+			int count = Math.min(6, 1 + round);
+			for (int i = 0; i < count; i++) {
+				AutochessPool.Def def = AutochessPool.randomForLevel(round + 2);
+				if (def == null) continue;
+				spawnUnit(def, ChessBoardLevel.enemySlot(i), false, 1);
+			}
 			return;
 		}
-		int count = Math.min(6, 1 + round);
-		enemyComp = new String[count];
-		for (int i = 0; i < count; i++) {
-			enemyComp[i] = AutochessPool.random(round).cls.getSimpleName();
+		java.util.ArrayList<String> units = opponent.deployed();
+		for (int i = 0; i < units.size(); i++) {
+			String[] parts = units.get(i).split(":");
+			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
+			if (def == null) continue;
+			int star = parts.length > 1 ? parseInt(parts[1]) : 1;
+			spawnUnit(def, ChessBoardLevel.enemySlot(i + (round % 3)), false, star);
 		}
-		enemyCompRound = round;
 	}
 
-	private void spawnEnemies() {
-		ensureEnemyComp();
-		int count = enemyComp.length;
-		for (int i = 0; i < count; i++) {
-			AutochessPool.Def def = AutochessPool.ofName(enemyComp[i]);
-			if (def == null) continue;
-			Mob mob = spawnUnit(def, ChessBoardLevel.enemySlot(i + (round % 3)), false, 1);
-			if (mob != null) {
-				float scale = 1f + Math.min(1.5f, 0.10f * (round - 1));
-				mob.HT = Math.max(1, Math.round(mob.HT * scale));
-				mob.HP = mob.HT;
-			}
+	/** 轮换着挑一个还活着的 AI 当对手。 */
+	private void pickOpponent() {
+		java.util.ArrayList<AutochessBot> alive = new java.util.ArrayList<>();
+		for (AutochessBot bot : bots) {
+			if (bot.alive()) alive.add(bot);
 		}
+		if (alive.isEmpty()) {
+			opponent = null;
+			return;
+		}
+		opponent = alive.get(round % alive.size());
 	}
 
 	public void startFight() {
@@ -628,11 +666,56 @@ public class AutochessRun extends Buff {
 		gold += lastIncome;
 
 		gainRoundXp();
+		damageOpponent();
+		advanceBots();
 		round++;
+		if (allBotsDead()) {
+			showVictory();
+			return;
+		}
 		rollShop();
 		GLog.p(M.L(AutochessRun.class, "win_income", BASE_INCOME, lastInterest, lastStreakBonus, lastIncome, round));
 		refreshPreview();
 		showShopNextFrame();
+	}
+
+	/** 赢了：对手按「2 + 场上存活单位」掉血。 */
+	private void damageOpponent() {
+		if (opponent == null || !opponent.alive()) return;
+		int survivors = ChessBoardLevel.countSide(true);
+		int dmg = 2 + survivors;
+		opponent.damage(dmg);
+		GLog.p(M.L(AutochessRun.class, "bot_hurt", opponent.name, dmg, opponent.hp));
+	}
+
+	/** 每回合所有 AI 一起变强，并让它们互相消耗一点血。 */
+	private void advanceBots() {
+		if (pool == null) return;
+		for (AutochessBot bot : bots) {
+			if (!bot.alive()) continue;
+			bot.advance(pool);
+			// 除本轮的对手外，其它 AI 互殴：随机掉 1~3 血
+			if (bot != opponent && Math.random() < 0.5) {
+				bot.damage(1 + (int) (Math.random() * 3));
+			}
+		}
+	}
+
+	private boolean allBotsDead() {
+		for (AutochessBot bot : bots) {
+			if (bot.alive()) return false;
+		}
+		return true;
+	}
+
+	private void showVictory() {
+		state = State.PREP;
+		Game.runOnRenderThread(new Callback() {
+			@Override
+			public void call() {
+				GameScene.show(new WndAutochessResult(round, gold));
+			}
+		});
 	}
 
 	private void loseRound() {
@@ -660,6 +743,7 @@ public class AutochessRun extends Buff {
 		gold += lastIncome;
 
 		gainRoundXp();
+		advanceBots();
 		round++;
 		rollShop();
 		GLog.w(M.L(AutochessRun.class, "lose", damage, life, round));
@@ -732,6 +816,21 @@ public class AutochessRun extends Buff {
 		return lastIncome;
 	}
 
+	/** 当前对手（可能为 null）。 */
+	public AutochessBot opponent() {
+		return opponent;
+	}
+
+	public java.util.ArrayList<AutochessBot> bots() {
+		return bots;
+	}
+
+	public int aliveBots() {
+		int n = 0;
+		for (AutochessBot bot : bots) if (bot.alive()) n++;
+		return n;
+	}
+
 	public int gold() {
 		return gold;
 	}
@@ -772,15 +871,7 @@ public class AutochessRun extends Buff {
 			bundle.put("ac_board_" + i, board[i] == null ? "" : board[i]);
 			bundle.put("ac_cell_" + i, boardCell[i]);
 		}
-		StringBuilder comp = new StringBuilder();
-		if (enemyComp != null) {
-			for (String name : enemyComp) {
-				if (comp.length() > 0) comp.append(",");
-				comp.append(name);
-			}
-		}
-		bundle.put("ac_enemy_comp", comp.toString());
-		bundle.put("ac_enemy_round", enemyCompRound);
+
 		for (int i = 0; i < offers.length; i++) {
 			bundle.put("ac_offer_" + i, offers[i] == null ? "" : offers[i]);
 			bundle.put("ac_price_" + i, prices[i]);
@@ -813,14 +904,7 @@ public class AutochessRun extends Buff {
 					? bundle.getInt("ac_cell_" + i)
 					: ChessBoardLevel.playerSlot(i);
 		}
-		String comp = bundle.getString("ac_enemy_comp");
-		if (comp != null && !comp.isEmpty()) {
-			enemyComp = comp.split(",");
-			enemyCompRound = bundle.getInt("ac_enemy_round");
-		} else {
-			enemyComp = null;
-			enemyCompRound = -1;
-		}
+
 		for (int i = 0; i < offers.length; i++) {
 			String name = bundle.getString("ac_offer_" + i);
 			offers[i] = name == null || name.isEmpty() ? null : name;

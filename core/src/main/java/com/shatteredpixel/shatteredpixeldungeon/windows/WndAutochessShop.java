@@ -1,5 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
+import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBot;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
@@ -69,7 +70,19 @@ public class WndAutochessShop extends Window {
 		odds.setPos(MARGIN, info.bottom() + 1);
 		add(odds);
 
-		float pos = odds.bottom() + GAP;
+		float pos = odds.bottom() + 1;
+
+		// 本轮对手 / 剩余 AI
+		AutochessBot opp = run.opponent();
+		String matchup = M.L(WndAutochessShop.class, "matchup",
+				opp == null ? "-" : (opp.name + "（" + opp.hp + "血）"),
+				run.aliveBots(), Math.max(1, run.bots().size()));
+		RenderedTextBlock vs = PixelScene.renderTextBlock(matchup, 7);
+		vs.maxWidth(WIDTH - MARGIN * 2);
+		vs.hardlight(COLOR_SECTION);
+		vs.setPos(MARGIN, pos);
+		add(vs);
+		pos = vs.bottom() + GAP;
 
 		RenderedTextBlock legend = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "legend"), 7);
