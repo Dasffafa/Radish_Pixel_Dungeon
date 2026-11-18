@@ -441,10 +441,22 @@ public class AutochessRun extends Buff {
 			boolean unit = mob.buff(AutochessUnitBuff.class) != null
 					|| mob.alignment == Char.Alignment.ENEMY;
 			if (unit) {
-				if (mob.sprite != null) mob.sprite.killAndErase();
-				mob.destroy();
+				despawn(mob);
 			}
 		}
+	}
+
+	/**
+	 * 清掉一个棋子。
+	 *
+	 * <p>不能直接 {@code mob.destroy()}：它会给英雄发经验、记击杀统计、掉战利品，
+	 * 于是「拖一下棋子就升级」。先把阵营改成中立再 destroy，这些奖励分支就都不走了。</p>
+	 */
+	private static void despawn(Mob mob) {
+		if (mob == null) return;
+		if (mob.sprite != null) mob.sprite.killAndErase();
+		mob.alignment = Char.Alignment.NEUTRAL;
+		mob.destroy();
 	}
 
 	/** 把双方按当前摆位重新铺到棋盘上（备战阶段就是预览，不会动）。 */
@@ -518,6 +530,9 @@ public class AutochessRun extends Buff {
 		if (playerSide) {
 			AutochessUnitBuff buff = Buff.affect(mob, AutochessUnitBuff.class);
 			buff.setup(def.trait, star);
+		} else {
+			// 自走棋里的敌人不给英雄经验/升级，玩家是观战方
+			mob.maxLvl = 0;
 		}
 		// 场景刚建时 sprite 可能还没挂上，beckon 会 NPE，等有 sprite 再吼
 		if (mob.sprite != null) {
@@ -674,6 +689,15 @@ public class AutochessRun extends Buff {
 			bundle.put("ac_board_" + i, board[i] == null ? "" : board[i]);
 			bundle.put("ac_cell_" + i, boardCell[i]);
 		}
+		StringBuilder comp = new StringBuilder();
+		if (enemyComp != null) {
+			for (String name : enemyComp) {
+				if (comp.length() > 0) comp.append(",");
+				comp.append(name);
+			}
+		}
+		bundle.put("ac_enemy_comp", comp.toString());
+		bundle.put("ac_enemy_round", enemyCompRound);
 		for (int i = 0; i < offers.length; i++) {
 			bundle.put("ac_offer_" + i, offers[i] == null ? "" : offers[i]);
 			bundle.put("ac_price_" + i, prices[i]);
@@ -703,6 +727,14 @@ public class AutochessRun extends Buff {
 			boardCell[i] = bundle.contains("ac_cell_" + i)
 					? bundle.getInt("ac_cell_" + i)
 					: ChessBoardLevel.playerSlot(i);
+		}
+		String comp = bundle.getString("ac_enemy_comp");
+		if (comp != null && !comp.isEmpty()) {
+			enemyComp = comp.split(",");
+			enemyCompRound = bundle.getInt("ac_enemy_round");
+		} else {
+			enemyComp = null;
+			enemyCompRound = -1;
 		}
 		for (int i = 0; i < offers.length; i++) {
 			String name = bundle.getString("ac_offer_" + i);
