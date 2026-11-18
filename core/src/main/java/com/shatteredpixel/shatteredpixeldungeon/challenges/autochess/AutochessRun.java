@@ -121,7 +121,7 @@ public class AutochessRun extends Buff {
 		run.round = 1;
 		run.gold = START_GOLD;
 		run.life = START_LIFE;
-		run.level = 3;
+		run.level = 1;
 		run.xp = 0;
 		run.state = State.PREP;
 		java.util.Arrays.fill(run.bench, null);
@@ -167,9 +167,11 @@ public class AutochessRun extends Buff {
 		return xp;
 	}
 
-	/** 云顶式升级经验表：3→4 要 6，4→5 要 10，5→6 要 20，6→7 要 36，7→8 要 48，8→9 要 76。 */
+	/** 云顶式升级经验表：1→2 要 2，2→3 要 2，3→4 要 6，之后 10/20/36/48/76。 */
 	public int xpNeed() {
 		switch (level) {
+			case 1: return 2;
+			case 2: return 2;
 			case 3: return 6;
 			case 4: return 10;
 			case 5: return 20;
@@ -713,7 +715,7 @@ public class AutochessRun extends Buff {
 		if (pool == null) return;
 		for (AutochessBot bot : bots) {
 			if (!bot.alive()) continue;
-			bot.advance(pool);
+			bot.advance(pool, round);
 			// 除本轮的对手外，其它 AI 互殴：随机掉 1~3 血
 			if (bot != opponent && Math.random() < 0.5) {
 				bot.damage(1 + (int) (Math.random() * 3));
@@ -932,7 +934,7 @@ public class AutochessRun extends Buff {
 			prices[i] = bundle.getInt("ac_price_" + i);
 		}
 		if (round < 1) round = 1;
-		if (level < 1) level = 3;
+		if (level < 1) level = 1;
 		if (life <= 0) life = START_LIFE;
 	}
 }

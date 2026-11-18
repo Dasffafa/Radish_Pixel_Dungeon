@@ -13,7 +13,7 @@ public class AutochessBot {
 
 	public final String name;
 	public int hp = 100;
-	public int level = 3;
+	public int level = 1;
 	public int gold = 8;
 
 	/** 阵容：「类名:星级」。 */
@@ -32,12 +32,12 @@ public class AutochessBot {
 	}
 
 	/** 每回合变强一点：拿钱、升级、从共享池里补棋子。 */
-	public void advance(AutochessSharedPool pool) {
+	public void advance(AutochessSharedPool pool, int round) {
 		gold += 5;
 
-		// 手上钱多就升级
-		while (level < 9 && gold >= 9) {
-			gold -= 4;
+		// 和玩家一样靠回合经验升级：前几回合升得快，后面放缓
+		int targetLevel = Math.min(9, 1 + (round + 1) / 2);
+		while (level < targetLevel) {
 			level++;
 		}
 
