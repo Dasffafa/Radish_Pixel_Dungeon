@@ -48,7 +48,7 @@ public class AutochessUnitMarks extends Component {
 			boolean ally = mob.alignment == com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY;
 			Mark mark = new Mark(mob, ally, run.starOf(mob));
 			mob.sprite.parent.add(mark.arrow);
-			for (com.watabou.noosa.Image star : mark.stars) mob.sprite.parent.add(star);
+			for (BitmapText star : mark.stars) mob.sprite.parent.add(star);
 			marks.add(mark);
 		}
 	}
@@ -69,7 +69,7 @@ public class AutochessUnitMarks extends Component {
 	private static class Mark {
 		final Mob mob;
 		final BitmapText arrow;
-		final com.watabou.noosa.ColorBlock[] stars;
+		final BitmapText[] stars;
 
 		Mark(Mob mob, boolean ally, int star) {
 			this.mob = mob;
@@ -80,18 +80,22 @@ public class AutochessUnitMarks extends Component {
 			arrow.scale.set(0.8f);
 			arrow.visible = ally;
 
-			// 星级用小方块拼的菱形（纯色块，不依赖贴图/字体，手机也不会变问号）
+			// 星级用 ASCII 星号，和箭头同一套 BitmapText 渲染（手机也不会缺字）
 			int count = Math.max(1, Math.min(3, star));
-			stars = new com.watabou.noosa.ColorBlock[count];
+			stars = new BitmapText[count];
 			for (int i = 0; i < count; i++) {
-				stars[i] = new com.watabou.noosa.ColorBlock(4, 2, COLOR_STAR);
+				BitmapText one = new BitmapText(PixelScene.pixelFont);
+				one.text("*");
+				one.hardlight(COLOR_STAR);
+				one.scale.set(0.9f);
+				stars[i] = one;
 			}
 		}
 
 		void update(AutochessRun run) {
 			if (mob == null || !mob.isAlive() || mob.sprite == null) {
 				arrow.visible = false;
-				for (com.watabou.noosa.ColorBlock star : stars) star.visible = false;
+				for (BitmapText star : stars) star.visible = false;
 				return;
 			}
 			boolean visible = mob.sprite.visible;
@@ -102,11 +106,11 @@ public class AutochessUnitMarks extends Component {
 				PixelScene.align(arrow);
 			}
 			float baseX = mob.sprite.x + mob.sprite.width() / 2f
-					- (stars.length * 6f) / 2f;
-			float baseY = mob.sprite.y - (arrow.visible ? 15f : 8f);
+					- (stars.length * 5f) / 2f;
+			float baseY = mob.sprite.y - (arrow.visible ? 16f : 9f);
 			for (int i = 0; i < stars.length; i++) {
 				stars[i].visible = visible;
-				stars[i].x = baseX + i * 6f;
+				stars[i].x = baseX + i * 5f;
 				stars[i].y = baseY;
 				PixelScene.align(stars[i]);
 			}
@@ -114,7 +118,7 @@ public class AutochessUnitMarks extends Component {
 
 		void destroy() {
 			arrow.killAndErase();
-			for (com.watabou.noosa.ColorBlock star : stars) star.killAndErase();
+			for (BitmapText star : stars) star.killAndErase();
 		}
 	}
 }

@@ -232,6 +232,8 @@ public class AutochessRun extends Buff {
 
 
 
+
+
 	}
 
 	@Override
@@ -844,18 +846,10 @@ public class AutochessRun extends Buff {
 	/** 本场战斗已经推进了多少回合（防止双方够不到对方时永远打不完）。 */
 	private int fightTurns = 0;
 
-	/** 每推进一回合调用；超过上限就按剩余人数判胜负。 */
+	/** 每回合推进计数（用于开战宽限）。 */
 	public void tickFight() {
 		if (state != State.FIGHT) return;
 		fightTurns++;
-		if (fightTurns < 140) return;
-		if (ChessBoardLevel.countSide(true) >= ChessBoardLevel.countSide(false)) {
-			GLog.i(M.L(AutochessRun.class, "timeout_win"));
-			winRound();
-		} else {
-			GLog.i(M.L(AutochessRun.class, "timeout_lose"));
-			loseRound();
-		}
 	}
 
 	public void checkFight() {
