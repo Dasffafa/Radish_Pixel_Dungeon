@@ -46,8 +46,8 @@ public class AutochessRun extends Buff {
 	private int gold = START_GOLD;
 	private int life = START_LIFE;
 
-	/** 阵容：每项是「类名:星级」。 */
-	private final ArrayList<String> roster = new ArrayList<>();
+	/** 备战位：8 个格子，每格是「类名:星级」，null 表示空位。 */
+	private final String[] bench = new String[MAX_UNITS];
 
 	private String[] offers = new String[3];
 	private int[] prices = new int[3];
@@ -82,8 +82,10 @@ public class AutochessRun extends Buff {
 		run.gold = START_GOLD;
 		run.life = START_LIFE;
 		run.state = State.PREP;
-		run.roster.clear();
+		java.util.Arrays.fill(run.bench, null);
 		run.rollShop();
+
+
 
 		// 英雄坐在墙里观战，视野只有一小块；把整张棋盘标记为已探索，玩家才看得见对局
 		for (int i = 0; i < Dungeon.level.length(); i++) {
@@ -135,7 +137,7 @@ public class AutochessRun extends Buff {
 		return true;
 	}
 
-	/** 买第 index 个位置上的单位，进阵容。 */
+	/** 买第 index 个位置上的单位，放进第一个空的备战位。 */
 	public boolean buy(int index) {
 		if (state != State.PREP) {
 			return false;
@@ -144,7 +146,8 @@ public class AutochessRun extends Buff {
 		if (def == null) {
 			return false;
 		}
-		if (roster.size() >= MAX_UNITS) {
+		int slot = firstEmptySlot();
+		if (slot == -1) {
 			GLog.w(M.L(AutochessRun.class, "full"));
 			return false;
 		}
@@ -153,36 +156,70 @@ public class AutochessRun extends Buff {
 			return false;
 		}
 		gold -= prices[index];
-		roster.add(def.cls.getSimpleName() + ":1");
+		bench[slot] = def.cls.getSimpleName() + ":1";
 		offers[index] = null;
 		prices[index] = 0;
 
-		mergeRoster(def.cls.getSimpleName(), 1);
+		mergeBench(def.cls.getSimpleName(), 1);
 		return true;
 	}
 
-	/** 三合一：阵容里同名同星凑够 3 个就升一星。 */
-	private void mergeRoster(String className, int star) {
-		ArrayList<Integer> indexes = new ArrayList<>();
-		for (int i = 0; i < roster.size(); i++) {
-			String[] parts = roster.get(i).split(":");
-			if (parts[0].equals(className) && parseInt(parts[1]) == star) {
-				indexes.add(i);
+	private int firstEmptySlot() {
+		for (int i = 0; i < bench.length; i++) {
+			if (bench[i] == null) return i;
+		}
+		return -1;
+	}
+
+	/**
+	 * 三合一：备战位里同名同星凑够 3 个就合成 1 个升一星，
+	 * 升上来的棋子放在第三个棋子的格子上（和云顶一样）。
+	 */
+	private void mergeBench(String className, int star) {
+		ArrayList<Integer> slots = new ArrayList<>();
+		for (int i = 0; i < bench.length; i++) {
+			String[] parts = splitEntry(bench[i]);
+			if (parts != null && parts[0].equals(className) && parseInt(parts[1]) == star) {
+				slots.add(i);
 			}
 		}
-		if (indexes.size() < 3) {
+		if (slots.size() < 3) {
 			return;
 		}
-		// 从后往前删，避免下标错位
-		for (int i = 2; i >= 0; i--) {
-			roster.remove((int) indexes.get(i));
-		}
+		int keeper = slots.get(2);
+		bench[slots.get(0)] = null;
+		bench[slots.get(1)] = null;
+		bench[keeper] = null;
 		int newStar = Math.min(3, star + 1);
-		roster.add(className + ":" + newStar);
+		bench[keeper] = className + ":" + newStar;
 		GLog.p(M.L(AutochessRun.class, "merge", unitName(className), newStar));
 		if (newStar < 3) {
-			mergeRoster(className, newStar);
+			mergeBench(className, newStar);
 		}
+	}
+
+	private static String[] splitEntry(String entry) {
+		if (entry == null) return null;
+		String[] parts = entry.split(":");
+		return parts.length == 2 ? parts : null;
+	}
+
+	/** 备战位里第 i 格的棋子类名，空位返回 null。 */
+	public String benchClass(int slot) {
+		String[] parts = splitEntry(slot >= 0 && slot < bench.length ? bench[slot] : null);
+		return parts == null ? null : parts[0];
+	}
+
+	/** 备战位里第 i 格的星级，空位返回 0。 */
+	public int benchStar(int slot) {
+		String[] parts = splitEntry(slot >= 0 && slot < bench.length ? bench[slot] : null);
+		return parts == null ? 0 : parseInt(parts[1]);
+	}
+
+	/** 备战位第 i 格的显示名，空位返回 null。 */
+	public String benchName(int slot) {
+		String cls = benchClass(slot);
+		return cls == null ? null : unitName(cls);
 	}
 
 	private static int parseInt(String s) {
@@ -203,7 +240,11 @@ public class AutochessRun extends Buff {
 	}
 
 	public int rosterSize() {
-		return roster.size();
+		int count = 0;
+		for (String entry : bench) {
+			if (entry != null) count++;
+		}
+		return count;
 	}
 
 	/** 阵容里某个羁绊的数量。 */
@@ -213,8 +254,9 @@ public class AutochessRun extends Buff {
 			return 0;
 		}
 		int count = 0;
-		for (String entry : run.roster) {
-			String[] parts = entry.split(":");
+		for (String entry : run.bench) {
+			String[] parts = splitEntry(entry);
+			if (parts == null) continue;
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
 			if (def != null && trait.equals(def.trait)) {
 				count++;
@@ -258,9 +300,10 @@ public class AutochessRun extends Buff {
 
 		clearBoard();
 
-		// 己方阵容
-		for (int i = 0; i < roster.size(); i++) {
-			String[] parts = roster.get(i).split(":");
+		// 己方阵容：备战位第 i 格对应棋盘第 i 个站位
+		for (int i = 0; i < bench.length; i++) {
+			String[] parts = splitEntry(bench[i]);
+			if (parts == null) continue;
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
 			if (def == null) continue;
 			spawnUnit(def, ChessBoardLevel.playerSlot(i), true, parseInt(parts[1]));
@@ -404,12 +447,9 @@ public class AutochessRun extends Buff {
 		bundle.put("ac_round", round);
 		bundle.put("ac_gold", gold);
 		bundle.put("ac_life", life);
-		StringBuilder sb = new StringBuilder();
-		for (String entry : roster) {
-			if (sb.length() > 0) sb.append(",");
-			sb.append(entry);
+		for (int i = 0; i < bench.length; i++) {
+			bundle.put("ac_bench_" + i, bench[i] == null ? "" : bench[i]);
 		}
-		bundle.put("ac_roster", sb.toString());
 		for (int i = 0; i < offers.length; i++) {
 			bundle.put("ac_offer_" + i, offers[i] == null ? "" : offers[i]);
 			bundle.put("ac_price_" + i, prices[i]);
@@ -427,12 +467,10 @@ public class AutochessRun extends Buff {
 		round = bundle.getInt("ac_round");
 		gold = bundle.getInt("ac_gold");
 		life = bundle.getInt("ac_life");
-		roster.clear();
-		String saved = bundle.getString("ac_roster");
-		if (saved != null && !saved.isEmpty()) {
-			for (String entry : saved.split(",")) {
-				if (entry.contains(":")) roster.add(entry);
-			}
+		java.util.Arrays.fill(bench, null);
+		for (int i = 0; i < bench.length; i++) {
+			String entry = bundle.getString("ac_bench_" + i);
+			bench[i] = entry == null || entry.isEmpty() ? null : entry;
 		}
 		for (int i = 0; i < offers.length; i++) {
 			String name = bundle.getString("ac_offer_" + i);
