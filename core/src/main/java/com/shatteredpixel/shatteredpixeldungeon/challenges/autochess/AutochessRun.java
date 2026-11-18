@@ -234,6 +234,8 @@ public class AutochessRun extends Buff {
 
 
 
+
+
 	}
 
 	@Override
@@ -850,6 +852,31 @@ public class AutochessRun extends Buff {
 	public void tickFight() {
 		if (state != State.FIGHT) return;
 		fightTurns++;
+		// 远程单位每隔几拍主动开火：无视挡在前面的友军
+		if (fightTurns % 3 == 0) rangedAssist();
+	}
+
+	/** 这些棋子按远程处理（能越过友军直接打对面）。 */
+	private static final java.util.HashSet<String> RANGED = new java.util.HashSet<>(java.util.Arrays.asList(
+			"DM100", "BlueShaman", "Necromancer", "Warlock",
+			"DM175", "Artillerist", "ShieldMage", "Eye", "Scorpio", "Acidic", "FireElemental"));
+
+	private void rangedAssist() {
+		if (Dungeon.level == null) return;
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (!mob.isAlive()) continue;
+			if (!RANGED.contains(mob.getClass().getSimpleName())) continue;
+			Mob enemy = null;
+			for (Mob other : Dungeon.level.mobs.toArray(new Mob[0])) {
+				if (!other.isAlive() || other.alignment == mob.alignment) continue;
+				int d = Dungeon.level.distance(mob.pos, other.pos);
+				if (d > 8) continue;
+				if (enemy == null || d < Dungeon.level.distance(mob.pos, enemy.pos)) enemy = other;
+			}
+			if (enemy == null) continue;
+			if (Dungeon.level.distance(mob.pos, enemy.pos) <= 1) continue;
+			mob.attack(enemy);
+		}
 	}
 
 	public void checkFight() {
