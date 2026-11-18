@@ -84,6 +84,24 @@ public class AutochessRun extends Buff {
 
 	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
 	private final java.util.HashMap<Integer, Mob> unitMobs = new java.util.HashMap<>();
+	/** 本轮的所有对局（玩家用「你」表示）。 */
+	public static class Match {
+		public final String a;
+		public final String b;
+		public String winner = null;
+
+		public Match(String a, String b) {
+			this.a = a;
+			this.b = b;
+		}
+	}
+
+	private final java.util.ArrayList<Match> matches = new java.util.ArrayList<>();
+
+	public java.util.ArrayList<Match> matches() {
+		return matches;
+	}
+
 	/** 升星后待播放的特效（"类名:星级"），预览重建完再放。 */
 	private String fxPending = null;
 	/** 每只棋子在场上的星级（敌我都有），单位头顶展示用。 */

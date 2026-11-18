@@ -33,7 +33,8 @@ public class AutochessBot {
 
 	/** 每回合变强一点：拿钱、升级、从共享池里补棋子。 */
 	public void advance(AutochessSharedPool pool, int round) {
-		gold += 5;
+		// 收入：基础 5 + 利息（每 10 金 +1，上限 5）
+		gold += 5 + Math.min(5, gold / 10);
 
 		// 和玩家一样靠回合经验升级：前几回合升得快，后面放缓
 		int targetLevel = Math.min(10, 1 + (round + 1) / 2);
@@ -88,11 +89,27 @@ public class AutochessBot {
 
 	/** 上阵单位：取阵容前 level 个。 */
 	public ArrayList<String> deployed() {
+		// 上场顺序：坦克/战士往前排
+		ArrayList<String> sorted = new ArrayList<>(roster);
+		sorted.sort((a, b) -> frontScore(b) - frontScore(a));
 		ArrayList<String> list = new ArrayList<>();
-		for (int i = 0; i < Math.min(level + 2, roster.size()); i++) {
-			list.add(roster.get(i));
+		for (int i = 0; i < Math.min(level + 2, sorted.size()); i++) {
+			list.add(sorted.get(i));
 		}
 		return list;
+	}
+
+	/** 越靠前越适合站前排。 */
+	private static int frontScore(String entry) {
+		AutochessPool.Def def = AutochessPool.ofName(entry.split(":")[0]);
+		if (def == null) return 0;
+		int score = 0;
+		if (def.hasTrait(AutochessPool.TANK)) score += 3;
+		if (def.hasTrait(AutochessPool.FIGHTER)) score += 2;
+		if (def.hasTrait(AutochessPool.ASSASSIN)) score += 1;
+		if (def.hasTrait(AutochessPool.RANGED)) score -= 2;
+		if (def.hasTrait(AutochessPool.MAGE)) score -= 1;
+		return score;
 	}
 
 	/** 阵容战力（给 UI / 强度估算用）。 */

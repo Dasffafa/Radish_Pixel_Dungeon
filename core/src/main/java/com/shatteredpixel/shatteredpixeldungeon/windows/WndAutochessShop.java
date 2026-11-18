@@ -102,7 +102,19 @@ public class WndAutochessShop extends Window {
 		};
 		vs.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 14);
 		add(vs);
-		pos = vs.bottom() + GAP;
+		pos = vs.bottom() + 2;
+
+		// 对战大厅：看所有 AI 的本轮对局
+		RedButton lobby = new RedButton(M.L(WndAutochessShop.class, "lobby"), 7) {
+			@Override
+			protected void onClick() {
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+						new WndAutochessLobby());
+			}
+		};
+		lobby.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 14);
+		add(lobby);
+		pos = lobby.bottom() + GAP;
 
 		RenderedTextBlock legend = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "legend"), 7);
