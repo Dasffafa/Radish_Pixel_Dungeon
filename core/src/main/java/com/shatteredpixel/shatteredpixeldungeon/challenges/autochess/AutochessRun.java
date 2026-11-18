@@ -84,6 +84,8 @@ public class AutochessRun extends Buff {
 
 	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
 	private final java.util.HashMap<Integer, Mob> unitMobs = new java.util.HashMap<>();
+	/** 升星后待播放的特效（"类名:星级"），预览重建完再放。 */
+	private String fxPending = null;
 	/** 每只棋子在场上的星级（敌我都有），单位头顶展示用。 */
 	private final java.util.HashMap<Mob, Integer> unitStars = new java.util.HashMap<>();
 	/** 对面备战席上的展示棋子（不参战）。 */
@@ -147,6 +149,7 @@ public class AutochessRun extends Buff {
 			bot.advance(run.pool, 0);
 		}
 		run.rollShop();
+
 
 
 
@@ -527,13 +530,47 @@ public class AutochessRun extends Buff {
 		entries(slots.get(1)[0])[slots.get(1)[1]] = null;
 		int newStar = Math.min(3, star + 1);
 		entries(keeper[0])[keeper[1]] = className + ":" + newStar;
+		fxPending = className + ":" + newStar;
 		GLog.p(M.L(AutochessRun.class, "merge", nameOf(className), newStar));
 		if (newStar < 3) merge(className, newStar);
 	}
 
 	/* ====================== 预览与战斗 ====================== */
 
+	/** 升星特效：星光 + 闪光 + 音效，3 星额外一圈金光。 */
+	private void playMergeFx(String tag) {
+		if (Dungeon.level == null) return;
+		String[] parts = tag.split(":");
+		if (parts.length < 2) return;
+		String cls = parts[0];
+		int star = parseInt(parts[1]);
+
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (!mob.isAlive() || mob.sprite == null) continue;
+			if (!mob.getClass().getSimpleName().equals(cls)) continue;
+			if (starOf(mob) != star) continue;
+
+			mob.sprite.flash();
+			mob.sprite.centerEmitter().burst(
+					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STAR),
+					star >= 3 ? 24 : 12);
+			if (star >= 3) {
+				mob.sprite.centerEmitter().burst(
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+								com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT), 12);
+				mob.sprite.showStatus(com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.POSITIVE, "★★★");
+			} else {
+				mob.sprite.showStatus(com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.POSITIVE, "★★");
+			}
+			com.watabou.noosa.audio.Sample.INSTANCE.play(
+					com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.LEVELUP);
+			break;
+		}
+	}
+
 	private void clearUnits() {
+
 		if (Dungeon.level == null) return;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 			boolean unit = mob.buff(AutochessUnitBuff.class) != null
@@ -586,6 +623,11 @@ public class AutochessRun extends Buff {
 		}
 		spawnEnemies();
 		spawnOpponentBench();
+
+		if (fxPending != null) {
+			playMergeFx(fxPending);
+			fxPending = null;
+		}
 	}
 
 	/** 把对手的备战席也铺出来，纯展示、不参战。 */
