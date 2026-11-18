@@ -235,6 +235,11 @@ public class ChessBoardLevel extends DeadEndLevel {
 		return benchIndexAt(cell) >= 0;
 	}
 
+	/** 观战包间的格子。 */
+	public static int spectatorCell() {
+		return SPECTATOR_Y * SIZE + SPECTATOR_X;
+	}
+
 	/** 战场里属于玩家的格子（x ≤ 6 且在中线以下）。 */
 	public static boolean isPlayerField(int cell) {
 		if (cell < 0 || Dungeon.level == null) return false;

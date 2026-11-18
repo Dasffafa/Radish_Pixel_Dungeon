@@ -118,6 +118,33 @@ public class AutochessHUD extends Component {
 	}
 
 	/** 把 heroFOV 全置真并刷新迷雾与棋子可见性。 */
+	/**
+	 * 观战者模式：英雄待在包间里不动、不饿、不掉血；
+	 * 备战阶段让场上所有棋子休眠，避免玩家一动它们就自己打起来。
+	 */
+	private void spectate(AutochessRun run) {
+		if (Dungeon.hero == null || Dungeon.level == null) return;
+
+		int booth = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.spectatorCell();
+		if (Dungeon.hero.pos != booth) {
+			Dungeon.hero.pos = booth;
+			if (Dungeon.hero.sprite != null) Dungeon.hero.sprite.place(booth);
+			Dungeon.hero.sprite.idle();
+		}
+		Dungeon.hero.HP = Dungeon.hero.HT;
+		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff.detach(
+				Dungeon.hero,
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger.class);
+
+		// 清掉棋子头顶的情绪气泡（"?"/"!"），它们会让画面很乱
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
+				: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+			if (!mob.isAlive()) continue;
+			if (run.state() == AutochessRun.State.PREP) mob.state = mob.SLEEPING;
+			if (mob.sprite != null) mob.sprite.hideEmo();
+		}
+	}
+
 	private void keepFullVision() {
 		if (Dungeon.level == null || Dungeon.level.heroFOV == null
 				|| Dungeon.level.heroFOV.length != Dungeon.level.length()) {
@@ -179,6 +206,7 @@ public class AutochessHUD extends Component {
 		// 之后每帧继续把视野撑满：怪物和迷雾都按 heroFOV 判断可见性，
 		// 不这么做的话棋子会在包间外面「隐身」，只看得到日志说谁死了
 		keepFullVision();
+		spectate(run);
 
 		String text = M.L(AutochessHUD.class, "format",
 				run.round(), run.gold(), run.life(), run.level(),
