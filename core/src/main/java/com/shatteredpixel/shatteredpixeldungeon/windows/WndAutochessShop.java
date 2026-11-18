@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AutochessIcons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RoundedFrame;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Game;
 import com.watabou.utils.Callback;
@@ -64,6 +65,7 @@ public class WndAutochessShop extends Window {
 		RenderedTextBlock odds = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "odds_title") + " " + oddsLine(run.level()), 7);
 		odds.hardlight(COLOR_GOLD);
+		odds.maxWidth(WIDTH - MARGIN * 2);
 		odds.setPos(MARGIN, info.bottom() + 1);
 		add(odds);
 
@@ -209,6 +211,11 @@ public class WndAutochessShop extends Window {
 			return pos + OFFER_ROW;
 		}
 
+		// 费用底色卡片
+		RoundedFrame card = new RoundedFrame(costFill(def.cost), costLine(def.cost));
+		card.setRect(MARGIN - 2, pos - 1, WIDTH - MARGIN * 2 + 4, OFFER_ROW - 3);
+		add(card);
+
 		CharSprite icon = AutochessIcons.spriteFor(def);
 		if (icon != null) {
 			AutochessIcons.place(icon, MARGIN, pos + 1, 15);
@@ -243,6 +250,28 @@ public class WndAutochessShop extends Window {
 		com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
 				com.watabou.utils.Reflection.newInstance(def.cls);
 		return mob == null ? def.cls.getSimpleName() : mob.name();
+	}
+
+	/** 费用卡片的底色（深色，保证文字看得清）。 */
+	private static int costFill(int cost) {
+		switch (cost) {
+			case 1: return 0xCC353535;
+			case 2: return 0xCC123012;
+			case 3: return 0xCC102A44;
+			case 4: return 0xCC2A1244;
+			default: return 0xCC442200;
+		}
+	}
+
+	/** 费用卡片的描边色。 */
+	private static int costLine(int cost) {
+		switch (cost) {
+			case 1: return 0xFFC8C8C8;
+			case 2: return 0xFF66DD66;
+			case 3: return 0xFF66AAFF;
+			case 4: return 0xFFCC77FF;
+			default: return 0xFFFFAA33;
+		}
 	}
 
 	/** 不同费用用不同颜色：1 灰、2 绿、3 蓝、4 紫、5 橙。 */
