@@ -143,6 +143,7 @@ public class AutochessHUD extends Component {
 
 
 
+
 		}
 		// 之后每帧继续把视野撑满：怪物和迷雾都按 heroFOV 判断可见性，
 		// 不这么做的话棋子会在包间外面「隐身」，只看得到日志说谁死了

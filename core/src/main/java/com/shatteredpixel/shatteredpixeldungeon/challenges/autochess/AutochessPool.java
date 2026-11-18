@@ -100,62 +100,59 @@ public class AutochessPool {
 
 	static {
 		// 1 费：下水道
-		add(Rat.class, 1, AutochessSkill.STRIKE, BEAST, FIGHTER);
-		add(Albino.class, 1, AutochessSkill.SNIPE, BEAST, ASSASSIN);
-		add(Snake.class, 1, AutochessSkill.POISON, BEAST, ASSASSIN);
-		add(Crab.class, 1, AutochessSkill.SHIELD, BEAST, TANK);
-		add(Slime.class, 1, AutochessSkill.POISON, SWARM, TANK);
-		add(Swarm.class, 1, AutochessSkill.CLEAVE, SWARM, FIGHTER);
-		add(Gnoll.class, 1, AutochessSkill.STRIKE, HUMANOID, FIGHTER);
-		add(GiantWorm.class, 1, AutochessSkill.STUN, SWARM, TANK);
-		add(Mayfly.class, 1, AutochessSkill.HEAL, SWARM, SUPPORT);
-		add(Dog.class, 1, AutochessSkill.STRIKE, BEAST, FIGHTER);
-		add(Goblin.class, 1, AutochessSkill.STRIKE, HUMANOID, FIGHTER);
-
+		add(Rat.class, 1, AutochessSkill.of("Rat", 55), BEAST, FIGHTER);
+		add(Albino.class, 1, AutochessSkill.of("Albino", 50), BEAST, ASSASSIN);
+		add(Snake.class, 1, AutochessSkill.of("Snake", 60), BEAST, ASSASSIN);
+		add(Crab.class, 1, AutochessSkill.of("Crab", 55), BEAST, TANK);
+		add(Slime.class, 1, AutochessSkill.of("Slime", 55), SWARM, TANK);
+		add(Swarm.class, 1, AutochessSkill.of("Swarm", 60), SWARM, FIGHTER);
+		add(Gnoll.class, 1, AutochessSkill.of("Gnoll", 55), HUMANOID, FIGHTER);
+		add(GiantWorm.class, 1, AutochessSkill.of("GiantWorm", 70), SWARM, TANK);
+		add(Mayfly.class, 1, AutochessSkill.of("Mayfly", 65), SWARM, SUPPORT);
+		add(Dog.class, 1, AutochessSkill.of("Dog", 50), BEAST, FIGHTER);
+		add(Goblin.class, 1, AutochessSkill.of("Goblin", 55), HUMANOID, FIGHTER);
 		// 2 费：监狱
-		add(Bat.class, 2, AutochessSkill.SNIPE, BEAST, ASSASSIN);
-		add(Thief.class, 2, AutochessSkill.SNIPE, HUMANOID, ASSASSIN);
-		add(DM100.class, 2, AutochessSkill.FIREBALL, CONSTRUCT, RANGED);
-		add(Skeleton.class, 2, AutochessSkill.CLEAVE, UNDEAD, FIGHTER);
-		add(Guard.class, 2, AutochessSkill.SHIELD, HUMANOID, TANK);
-		add(Shaman.BlueShaman.class, 2, AutochessSkill.HEAL, HUMANOID, MAGE);
-		add(Spinner.class, 2, AutochessSkill.POISON, SWARM, ASSASSIN);
-		add(Necromancer.class, 2, AutochessSkill.FIREBALL, UNDEAD, SUPPORT);
-		add(GoblinRider.class, 2, AutochessSkill.STRIKE, HUMANOID, ASSASSIN);
-		add(Jailer.class, 2, AutochessSkill.STUN, HUMANOID, TANK);
-		add(Prisoner.class, 2, AutochessSkill.RAGE, HUMANOID, FIGHTER);
-		add(Torturer.class, 2, AutochessSkill.CLEAVE, HUMANOID, TANK);
-
+		add(Bat.class, 2, AutochessSkill.of("Bat", 60), BEAST, ASSASSIN);
+		add(Thief.class, 2, AutochessSkill.of("Thief", 65), HUMANOID, ASSASSIN);
+		add(DM100.class, 2, AutochessSkill.of("DM100", 70), CONSTRUCT, RANGED);
+		add(Skeleton.class, 2, AutochessSkill.of("Skeleton", 65), UNDEAD, FIGHTER);
+		add(Guard.class, 2, AutochessSkill.of("Guard", 60), HUMANOID, TANK);
+		add(Shaman.BlueShaman.class, 2, AutochessSkill.of("BlueShaman", 70), HUMANOID, MAGE);
+		add(Spinner.class, 2, AutochessSkill.of("Spinner", 70), SWARM, ASSASSIN);
+		add(Necromancer.class, 2, AutochessSkill.of("Necromancer", 75), UNDEAD, SUPPORT);
+		add(GoblinRider.class, 2, AutochessSkill.of("GoblinRider", 70), HUMANOID, ASSASSIN);
+		add(Jailer.class, 2, AutochessSkill.of("Jailer", 75), HUMANOID, TANK);
+		add(Prisoner.class, 2, AutochessSkill.of("Prisoner", 65), HUMANOID, FIGHTER);
+		add(Torturer.class, 2, AutochessSkill.of("Torturer", 72), HUMANOID, TANK);
 		// 3 费：矿洞
-		add(Brute.class, 3, AutochessSkill.CLEAVE, HUMANOID, FIGHTER);
-		add(Golem.class, 3, AutochessSkill.SHIELD, CONSTRUCT, TANK);
-		add(Ghoul.class, 3, AutochessSkill.RAGE, UNDEAD, FIGHTER);
-		add(Grudge.class, 3, AutochessSkill.SNIPE, UNDEAD, ASSASSIN);
-		add(ClusteredSkeleton.class, 3, AutochessSkill.CLEAVE, UNDEAD, FIGHTER);
-		add(DM175.class, 3, AutochessSkill.FIREBALL, CONSTRUCT, MAGE);
-		add(GnollZealot.class, 3, AutochessSkill.RAGE, HUMANOID, FIGHTER);
-
+		add(Brute.class, 3, AutochessSkill.of("Brute", 75), HUMANOID, FIGHTER);
+		add(Golem.class, 3, AutochessSkill.of("Golem", 75), CONSTRUCT, TANK);
+		add(Ghoul.class, 3, AutochessSkill.of("Ghoul", 70), UNDEAD, FIGHTER);
+		add(Grudge.class, 3, AutochessSkill.of("Grudge", 78), UNDEAD, ASSASSIN);
+		add(ClusteredSkeleton.class, 3, AutochessSkill.of("ClusteredSkeleton", 78), UNDEAD, FIGHTER);
+		add(DM175.class, 3, AutochessSkill.of("DM175", 82), CONSTRUCT, MAGE);
+		add(GnollZealot.class, 3, AutochessSkill.of("GnollZealot", 75), HUMANOID, FIGHTER);
 		// 4 费：城市
-		add(Monk.class, 4, AutochessSkill.STRIKE, HUMANOID, FIGHTER);
-		add(Warlock.class, 4, AutochessSkill.FIREBALL, DEMON, MAGE);
-		add(Elemental.FireElemental.class, 4, AutochessSkill.FIREBALL, DEMON, MAGE);
-		add(Drake.class, 4, AutochessSkill.CLEAVE, BEAST, FIGHTER);
-		add(StoneSpirit.class, 4, AutochessSkill.SHIELD, CONSTRUCT, TANK);
-		add(Artillerist.class, 4, AutochessSkill.SNIPE, HUMANOID, RANGED);
-		add(RoyalGuard.class, 4, AutochessSkill.SHIELD, HUMANOID, TANK);
-		add(ShieldMage.class, 4, AutochessSkill.SHIELD, HUMANOID, SUPPORT);
-
+		add(Monk.class, 4, AutochessSkill.of("Monk", 80), HUMANOID, FIGHTER);
+		add(Warlock.class, 4, AutochessSkill.of("Warlock", 88), DEMON, MAGE);
+		add(Elemental.FireElemental.class, 4, AutochessSkill.of("FireElemental", 90), DEMON, MAGE);
+		add(Drake.class, 4, AutochessSkill.of("Drake", 92), BEAST, FIGHTER);
+		add(StoneSpirit.class, 4, AutochessSkill.of("StoneSpirit", 85), CONSTRUCT, TANK);
+		add(Artillerist.class, 4, AutochessSkill.of("Artillerist", 88), HUMANOID, RANGED);
+		add(RoyalGuard.class, 4, AutochessSkill.of("RoyalGuard", 85), HUMANOID, TANK);
+		add(ShieldMage.class, 4, AutochessSkill.of("ShieldMage", 88), HUMANOID, SUPPORT);
 		// 5 费：恶魔大厅
-		add(Succubus.class, 5, AutochessSkill.SNIPE, DEMON, ASSASSIN);
-		add(Scorpio.class, 5, AutochessSkill.POISON, SWARM, RANGED);
-		add(Acidic.class, 5, AutochessSkill.POISON, SWARM, RANGED);
-		add(Eye.class, 5, AutochessSkill.STUN, DEMON, MAGE);
-		add(RipperDemon.class, 5, AutochessSkill.STRIKE, DEMON, ASSASSIN);
-		add(Deminion.class, 5, AutochessSkill.CLEAVE, DEMON, FIGHTER);
-		add(Deviloon.class, 5, AutochessSkill.POISON, DEMON, ASSASSIN);
-		add(Gorgon.class, 5, AutochessSkill.STUN, CONSTRUCT, MAGE);
-		add(DemonLord.class, 5, AutochessSkill.FIREBALL, DEMON, TANK);
+		add(Succubus.class, 5, AutochessSkill.of("Succubus", 95), DEMON, ASSASSIN);
+		add(Scorpio.class, 5, AutochessSkill.of("Scorpio", 92), SWARM, RANGED);
+		add(Acidic.class, 5, AutochessSkill.of("Acidic", 92), SWARM, RANGED);
+		add(Eye.class, 5, AutochessSkill.of("Eye", 100), DEMON, MAGE);
+		add(RipperDemon.class, 5, AutochessSkill.of("RipperDemon", 100), DEMON, ASSASSIN);
+		add(Deminion.class, 5, AutochessSkill.of("Deminion", 98), DEMON, FIGHTER);
+		add(Deviloon.class, 5, AutochessSkill.of("Deviloon", 95), DEMON, ASSASSIN);
+		add(Gorgon.class, 5, AutochessSkill.of("Gorgon", 105), CONSTRUCT, MAGE);
+		add(DemonLord.class, 5, AutochessSkill.of("DemonLord", 110), DEMON, TANK);
 	}
+
 	private static void add(Class<? extends Mob> cls, int cost, AutochessSkill skill, String... traits) {
 		POOL.add(new Def(cls, cost, skill, traits));
 	}
