@@ -229,7 +229,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		mana += amount;
 		if (mana >= skill.mana) {
 			mana = 0;
-			skill.cast(target);
+			skill.cast(target, star);
 		}
 	}
 

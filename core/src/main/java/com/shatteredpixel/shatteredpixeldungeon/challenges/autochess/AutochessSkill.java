@@ -45,7 +45,17 @@ public class AutochessSkill {
 	// 释放
 	// ------------------------------------------------------------------
 
+	private float power = 1f;
+	private int starLevel = 1;
+
 	public void cast(Char caster) {
+		cast(caster, 1);
+	}
+
+	/** 星级越高技能越强：2 星效果 ×1.6，3 星 ×2.2（持续类效果还会拉长）。 */
+	public void cast(Char caster, int star) {
+		this.starLevel = Math.max(1, Math.min(3, star));
+		this.power = starLevel >= 3 ? 2.2f : (starLevel == 2 ? 1.6f : 1f);
 		Char target = lowestEnemy(caster, 4);
 		switch (id) {
 			// ---- 1 费：下水道 ----
@@ -109,7 +119,7 @@ public class AutochessSkill {
 				break;
 			case "DM100": // 酸性射击
 				if (target != null) {
-					hit(caster, target, Math.max(1, Math.round(target.HT * 0.08f)));
+					hitPct(caster, target, 0.08f);
 					poison(target, 3f);
 				}
 				break;
@@ -158,16 +168,16 @@ public class AutochessSkill {
 				heal(caster, 0.15f);
 				break;
 			case "Grudge": // 怨念缠身
-				if (target != null) hit(caster, target, Math.max(1, Math.round(target.HT * 0.12f)));
+				if (target != null) hitPct(caster, target, 0.12f);
 				break;
 			case "ClusteredSkeleton": // 骨堆冲撞
 				for (Char ch : enemiesAround(caster, 1)) hit(caster, ch, Math.round(atk(caster) * 1.1f));
 				break;
 			case "DM175": // 炮击
 				if (target != null) {
-					hit(caster, target, Math.max(1, Math.round(target.HT * 0.10f)));
+					hitPct(caster, target, 0.10f);
 					for (Char ch : enemiesAround(target, 1)) {
-						hit(caster, ch, Math.max(1, Math.round(ch.HT * 0.05f)));
+						hitPct(caster, ch, 0.05f);
 					}
 				}
 				break;
@@ -184,19 +194,19 @@ public class AutochessSkill {
 				break;
 			case "Warlock": // 暗影箭
 				if (target != null) {
-					hit(caster, target, Math.max(1, Math.round(target.HT * 0.12f)));
+					hitPct(caster, target, 0.12f);
 					burn(target, 3f);
 				}
 				break;
 			case "FireElemental": // 烈焰新星
 				for (Char ch : enemiesAround(caster, 2)) {
-					hit(caster, ch, Math.max(1, Math.round(ch.HT * 0.08f)));
+					hitPct(caster, ch, 0.08f);
 					burn(ch, 3f);
 				}
 				break;
 			case "Drake": // 龙息
 				for (Char ch : enemiesAround(caster, 2)) {
-					hit(caster, ch, Math.max(1, Math.round(ch.HT * 0.10f)));
+					hitPct(caster, ch, 0.10f);
 					burn(ch, 3f);
 				}
 				break;
@@ -205,7 +215,7 @@ public class AutochessSkill {
 				break;
 			case "Artillerist": // 炮火覆盖
 				Char weak = lowestEnemy(caster, 8);
-				if (weak != null) hit(caster, weak, Math.max(1, Math.round(weak.HT * 0.15f)));
+				if (weak != null) hitPct(caster, weak, 0.15f);
 				break;
 			case "RoyalGuard": // 王卫庇护
 				shield(caster, 0.20f);
@@ -219,13 +229,13 @@ public class AutochessSkill {
 			// ---- 5 费：恶魔大厅 ----
 			case "Succubus": // 魅惑之吻
 				if (target != null) {
-					hit(caster, target, Math.max(1, Math.round(target.HT * 0.08f)));
+					hitPct(caster, target, 0.08f);
 					stun(target, 2f);
 				}
 				break;
 			case "Scorpio": // 毒刺
 				if (target != null) {
-					hit(caster, target, Math.max(1, Math.round(target.HT * 0.10f)));
+					hitPct(caster, target, 0.10f);
 					poison(target, 5f);
 				}
 				break;
@@ -241,7 +251,7 @@ public class AutochessSkill {
 			case "Deminion": // 恶魔之力
 				Buff.affect(caster, AutochessRage.class).set(3f);
 				for (Char ch : enemiesAround(caster, 1)) {
-					hit(caster, ch, Math.max(1, Math.round(ch.HT * 0.08f)));
+					hitPct(caster, ch, 0.08f);
 				}
 				break;
 			case "Deviloon": // 烈焰撕咬
@@ -255,7 +265,7 @@ public class AutochessSkill {
 				break;
 			case "DemonLord": // 末日审判
 				for (Char ch : enemiesAround(caster, 8)) {
-					hit(caster, ch, Math.max(1, Math.round(ch.HT * 0.15f)));
+					hitPct(caster, ch, 0.15f);
 					burn(ch, 3f);
 				}
 				break;
@@ -269,38 +279,51 @@ public class AutochessSkill {
 	// 工具
 	// ------------------------------------------------------------------
 
-	private static int atk(Char caster) {
+	private int atk(Char caster) {
 		return Math.max(1, caster.damageRoll());
 	}
 
-	private static void hit(Char caster, Char target, int dmg) {
+	private void hit(Char caster, Char target, int dmg) {
 		if (target == null || !target.isAlive()) return;
 		target.damage(DamageInfo.physical(dmg, caster));
 	}
 
-	private static void heal(Char ch, float pct) {
+	/** 按目标最大生命比例造成技能伤害（受星级加成，上限 32%）。 */
+	private void hitPct(Char caster, Char target, float pct) {
+		if (target == null || !target.isAlive()) return;
+		float capped = Math.min(0.32f, pct * power);
+		hit(caster, target, Math.max(1, Math.round(target.HT * capped)));
+	}
+
+	private void heal(Char ch, float pct) {
 		if (ch == null || !ch.isAlive()) return;
-		ch.HP = Math.min(ch.HT, ch.HP + Math.max(1, Math.round(ch.HT * pct)));
+		ch.HP = Math.min(ch.HT, ch.HP + Math.max(1, Math.round(ch.HT * pct * power)));
 	}
 
-	private static void shield(Char ch, float pct) {
+	private void shield(Char ch, float pct) {
 		if (ch == null || !ch.isAlive()) return;
-		Buff.affect(ch, Barrier.class).incShield(Math.max(1, Math.round(ch.HT * pct)));
+		Buff.affect(ch, Barrier.class).incShield(Math.max(1, Math.round(ch.HT * pct * power)));
 	}
 
-	private static void poison(Char ch, float turns) {
-		if (ch != null && ch.isAlive()) Buff.affect(ch, Poison.class).set(turns);
+	private void poison(Char ch, float turns) {
+		if (ch == null || !ch.isAlive()) return;
+		float scaled = starLevel >= 3 ? turns * 1.5f : turns;
+		Buff.affect(ch, Poison.class).set(scaled);
 	}
 
-	private static void burn(Char ch, float turns) {
-		if (ch != null && ch.isAlive()) Buff.affect(ch, Burning.class).reignite(ch, turns);
+	private void burn(Char ch, float turns) {
+		if (ch == null || !ch.isAlive()) return;
+		float scaled = starLevel >= 3 ? turns * 1.5f : turns;
+		Buff.affect(ch, Burning.class).reignite(ch, scaled);
 	}
 
-	private static void stun(Char ch, float turns) {
-		if (ch != null && ch.isAlive()) Buff.affect(ch, Paralysis.class, turns);
+	private void stun(Char ch, float turns) {
+		if (ch == null || !ch.isAlive()) return;
+		float scaled = starLevel >= 3 ? turns + 1f : turns;
+		Buff.affect(ch, Paralysis.class, scaled);
 	}
 
-	private static ArrayList<Char> enemiesAround(Char caster, int range) {
+	private ArrayList<Char> enemiesAround(Char caster, int range) {
 		ArrayList<Char> list = new ArrayList<>();
 		if (Dungeon.level == null) return list;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
@@ -310,7 +333,7 @@ public class AutochessSkill {
 		return list;
 	}
 
-	private static ArrayList<Char> alliesAround(Char caster, int range) {
+	private ArrayList<Char> alliesAround(Char caster, int range) {
 		ArrayList<Char> list = new ArrayList<>();
 		if (Dungeon.level == null) return list;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
@@ -320,7 +343,7 @@ public class AutochessSkill {
 		return list;
 	}
 
-	private static Char lowestEnemy(Char caster, int range) {
+	private Char lowestEnemy(Char caster, int range) {
 		if (Dungeon.level == null) return null;
 		Char best = null;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
@@ -331,7 +354,7 @@ public class AutochessSkill {
 		return best;
 	}
 
-	private static Char lowestAlly(Char caster) {
+	private Char lowestAlly(Char caster) {
 		if (Dungeon.level == null) return null;
 		Char best = null;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
