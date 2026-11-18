@@ -63,6 +63,14 @@ public class WndAutochessShop extends Window {
 
 		float pos = info.bottom() + GAP;
 
+		RenderedTextBlock legend = PixelScene.renderTextBlock(
+				M.L(WndAutochessShop.class, "legend"), 7);
+		legend.maxWidth(WIDTH - MARGIN * 2);
+		legend.hardlight(COLOR_SECTION);
+		legend.setPos(MARGIN, pos);
+		add(legend);
+		pos = legend.bottom() + GAP;
+
 		pos = addSelectionRow(pos);
 
 		float halfW = (WIDTH - MARGIN * 2 - GAP) / 2f;

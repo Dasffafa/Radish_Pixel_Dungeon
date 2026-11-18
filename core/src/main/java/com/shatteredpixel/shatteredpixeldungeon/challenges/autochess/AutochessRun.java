@@ -130,6 +130,8 @@ public class AutochessRun extends Buff {
 
 
 
+
+
 	}
 
 	@Override
@@ -561,7 +563,15 @@ public class AutochessRun extends Buff {
 		if (playerSide) {
 			AutochessUnitBuff buff = Buff.affect(mob, AutochessUnitBuff.class);
 			buff.setup(def.trait, star);
+			// 己方棋子统一染蓝，方便一眼分清敌我
+			if (mob.sprite != null) {
+				mob.sprite.tint(0x66CCFF, 0.45f);
+			}
 		} else {
+			// 敌方染一点红
+			if (mob.sprite != null) {
+				mob.sprite.tint(0xFF7070, 0.3f);
+			}
 			// 自走棋里的敌人不给英雄经验/升级，玩家是观战方
 			mob.maxLvl = 0;
 		}
