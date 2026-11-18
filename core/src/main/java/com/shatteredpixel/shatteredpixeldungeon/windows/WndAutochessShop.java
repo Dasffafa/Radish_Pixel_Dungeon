@@ -210,60 +210,16 @@ public class WndAutochessShop extends Window {
 			float x = MARGIN + (eqIndex % 2) * (halfEq + GAP);
 			float y = pos + (eqIndex / 2) * 15;
 
-			RoundedFrame box = new RoundedFrame(0xCC333333, 0xFFCC66);
-			box.setRect(x, y, halfEq, 13);
-			add(box);
-
-			// 本体物品图标
-			com.shatteredpixel.shatteredpixeldungeon.items.Item item =
-					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.item(id);
-			if (item != null) {
-				com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite icon =
-						new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite(item);
-				icon.scale.set(0.5f);
-				icon.x = x + 1;
-				icon.y = y + 1;
-				add(icon);
-			}
-
-			String itemName = com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id);
-			if (itemName.length() > 7) itemName = itemName.substring(0, 6) + "…";
-			RenderedTextBlock label = PixelScene.renderTextBlock(itemName, 7);
-			label.maxWidth((int) halfEq - 13);
-			label.setPos(x + 11, y + 3);
-			add(label);
-
-			com.watabou.noosa.PointerArea area = new com.watabou.noosa.PointerArea(0, 0, halfEq, 13) {
-				private float downX, downY;
-				private boolean dragged;
-
+			// 装备用按钮（窗口里的 PointerArea 会被挡住，按钮才稳定可点）
+			RedButton chip = new RedButton(
+					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id), 7) {
 				@Override
-				protected void onPointerDown(com.watabou.input.PointerEvent event) {
-					downX = event.current.x;
-					downY = event.current.y;
-					dragged = false;
-				}
-
-				@Override
-				protected void onDrag(com.watabou.input.PointerEvent event) {
-					if (Math.abs(event.current.x - downX) > 8 || Math.abs(event.current.y - downY) > 8) {
-						dragged = true;
-					}
-				}
-
-				@Override
-				protected void onPointerUp(com.watabou.input.PointerEvent event) {
+				protected void onClick() {
 					AutochessRun current = AutochessRun.get();
 					if (current == null) return;
-					if (dragged) {
-						int cell = cellAt(event.current.x, event.current.y);
-						if (cell >= 0 && current.equipItemAtCell(cell, id)) {
-							rebuild();
-							return;
-						}
-					}
 					if (current.selectedSide < 0 || current.selectedIndex < 0) {
-						com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(M.L(WndAutochessShop.class, "no_selection"));
+						com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(
+								M.L(WndAutochessShop.class, "no_selection"));
 						return;
 					}
 					if (current.equipItem(current.selectedSide, current.selectedIndex, id)) {
@@ -271,10 +227,8 @@ public class WndAutochessShop extends Window {
 					}
 				}
 			};
-			area.camera = PixelScene.uiCamera;
-			area.x = x;
-			area.y = y;
-			add(area);
+			chip.setRect(x, y, halfEq, 13);
+			add(chip);
 			eqIndex++;
 		}
 		if (eqIndex > 0) {
