@@ -77,18 +77,10 @@ public class AutochessUnitBuff extends AllyBuff {
 
 	/** 防具类出生时一次性生效。 */
 	private void applyItemSetup() {
-		if (hasItemShort("MailArmor")) {
-			target.HT += Math.round(150 * itemPower("MailArmor"));
-			target.HP = target.HT;
-		}
-		if (hasItemShort("PlateArmor")) {
-			target.HT += Math.round(250 * itemPower("PlateArmor"));
-			target.HP = target.HT;
-		}
-		if (hasItemShort("RingOfMight")) {
-			target.HT += Math.round(100 * itemPower("RingOfMight"));
-			target.HP = target.HT;
-		}
+		target.HT += Math.round(150 * itemPower("RatArmor"));
+		target.HT += Math.round(200 * itemPower("AfterGlow"));
+		target.HT += Math.round(100 * itemPower("SoulMix"));
+		target.HP = target.HT;
 	}
 
 	public void setup(String[] traits, int star, AutochessSkill skill) {
@@ -195,9 +187,9 @@ public class AutochessUnitBuff extends AllyBuff {
 		}
 
 		// 刺客 · 突袭：对满血目标成倍伤害
-		mul += 0.25f * itemPower("Sword");
-		mul += 0.40f * itemPower("BattleAxe");
-		mul += 0.15f * itemPower("RingOfMight");
+		mul += 0.25f * itemPower("MoonlightArmor");
+		mul += 0.40f * itemPower("KillBoatSword");
+		mul += 0.20f * itemPower("SoulMix");
 		// 「狂怒」技能生效期间额外增伤
 		if (target.buff(AutochessRage.class) != null) {
 			mul += 0.6f;
@@ -236,7 +228,7 @@ public class AutochessUnitBuff extends AllyBuff {
 			int t = tier(AutochessPool.CONSTRUCT);
 			if (t > 0) info.addStackMultModifier(1f - 0.15f * t, "autochess_construct");
 		}
-		float evasion = itemPower("RingOfEvasion");
+		float evasion = itemPower("CrabArmor");
 		if (evasion > 0) {
 			info.addStackMultModifier(1f - 0.10f * evasion, "autochess_evasion");
 		}
@@ -273,7 +265,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		}
 
 		// 迅捷之戒：充能更快
-		chargeMana(hasItemShort("RingOfHaste") ? 15 : 10);
+		chargeMana(hasItemShort("EnergyArmor") ? 15 : 10);
 
 		spend(TICK);
 		return true;
@@ -285,7 +277,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		mana += amount;
 		if (mana >= skill.mana) {
 			mana = 0;
-			skill.cast(target, star, 1f + 0.3f * itemPower("WandOfMagicMissile"));
+			skill.cast(target, star, 1f + 0.3f * itemPower("PrismArmor"));
 		}
 	}
 

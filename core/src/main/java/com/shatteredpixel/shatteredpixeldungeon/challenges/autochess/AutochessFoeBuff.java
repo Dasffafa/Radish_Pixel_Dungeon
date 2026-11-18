@@ -25,18 +25,10 @@ public class AutochessFoeBuff extends Buff {
 	public void setItems(ArrayList<String> equipped) {
 		items.clear();
 		if (equipped != null) items.addAll(equipped);
-		if (has("MailArmor")) {
-			target.HT += Math.round(150 * power("MailArmor"));
-			target.HP = target.HT;
-		}
-		if (has("PlateArmor")) {
-			target.HT += Math.round(250 * power("PlateArmor"));
-			target.HP = target.HT;
-		}
-		if (has("RingOfMight")) {
-			target.HT += Math.round(100 * power("RingOfMight"));
-			target.HP = target.HT;
-		}
+		target.HT += Math.round(150 * power("RatArmor"));
+		target.HT += Math.round(200 * power("AfterGlow"));
+		target.HT += Math.round(100 * power("SoulMix"));
+		target.HP = target.HT;
 	}
 
 	private boolean has(String shortName) {
@@ -57,16 +49,16 @@ public class AutochessFoeBuff extends Buff {
 	public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 		if (attacker != target) return;
 		float mul = 1f;
-		mul += 0.25f * power("Sword");
-		mul += 0.40f * power("BattleAxe");
-		mul += 0.15f * power("RingOfMight");
+		mul += 0.25f * power("MoonlightArmor");
+		mul += 0.40f * power("KillBoatSword");
+		mul += 0.20f * power("SoulMix");
 		if (mul != 1f) info.addStackMultModifier(mul, "autochess_foe");
 	}
 
 	@Override
 	public void modifyIncomingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 		if (defender != target) return;
-		float evasion = power("RingOfEvasion");
+		float evasion = power("CrabArmor");
 		if (evasion > 0) {
 			info.addStackMultModifier(1f - 0.10f * evasion, "autochess_foe_evasion");
 		}

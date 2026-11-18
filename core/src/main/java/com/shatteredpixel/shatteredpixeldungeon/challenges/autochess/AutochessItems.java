@@ -11,14 +11,14 @@ public class AutochessItems {
 
 	/** 备选装备（全部是萝卜地牢本体里的物品）。 */
 	public static final String[] ALL = {
-			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sword",
-			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.BattleAxe",
-			"com.shatteredpixel.shatteredpixeldungeon.items.armor.MailArmor",
-			"com.shatteredpixel.shatteredpixeldungeon.items.armor.PlateArmor",
-			"com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfMight",
-			"com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfHaste",
-			"com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEvasion",
-			"com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile"
+			"com.shatteredpixel.shatteredpixeldungeon.items.armor.RatArmor",
+			"com.shatteredpixel.shatteredpixeldungeon.items.armor.CrabArmor",
+			"com.shatteredpixel.shatteredpixeldungeon.items.armor.PrismArmor",
+			"com.shatteredpixel.shatteredpixeldungeon.items.armor.EnergyArmor",
+			"com.shatteredpixel.shatteredpixeldungeon.items.armor.MoonlightArmor",
+			"com.shatteredpixel.shatteredpixeldungeon.items.armor.AfterGlow",
+			"com.shatteredpixel.shatteredpixeldungeon.items.armor.SoulMix",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.KillBoatSword"
 	};
 
 	public static final int MAX_PER_UNIT = 2;
