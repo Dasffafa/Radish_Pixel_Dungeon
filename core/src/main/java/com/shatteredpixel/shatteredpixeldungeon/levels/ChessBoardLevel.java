@@ -26,6 +26,7 @@ import com.watabou.utils.Callback;
 public class ChessBoardLevel extends DeadEndLevel {
 
 	public static final int SIZE = 15;
+	public static final int HEIGHT = 17;
 	public static final int PLAYER_MAX_X = 6;
 	public static final int ENEMY_MIN_X = 9;
 	public static final int FIELD_MIN_Y = 3;
@@ -35,6 +36,13 @@ public class ChessBoardLevel extends DeadEndLevel {
 
 	public static final int SPECTATOR_X = 2;
 	public static final int SPECTATOR_Y = 1;
+
+	/** 敌方备战席（最下面一排）与观战台。 */
+	public static final int ENEMY_BENCH_Y = HEIGHT - 2;
+	public static final int ENEMY_BENCH_MIN_X = 1;
+	public static final int ENEMY_BENCH_COUNT = 9;
+	public static final int ENEMY_SPECTATOR_X = 12;
+	public static final int ENEMY_SPECTATOR_Y = HEIGHT - 2;
 
 	{
 		color1 = 0x534f3e;
@@ -59,11 +67,11 @@ public class ChessBoardLevel extends DeadEndLevel {
 	@Override
 	protected boolean build() {
 
-		setSize(SIZE, SIZE);
+		setSize(SIZE, HEIGHT);
 
-		for (int y = 0; y < SIZE; y++) {
+		for (int y = 0; y < HEIGHT; y++) {
 			for (int x = 0; x < SIZE; x++) {
-				boolean border = (x == 0 || y == 0 || x == SIZE - 1 || y == SIZE - 1);
+				boolean border = (x == 0 || y == 0 || x == SIZE - 1 || y == HEIGHT - 1);
 				map[y * width() + x] = border ? Terrain.WALL : Terrain.EMPTY;
 			}
 		}
@@ -88,6 +96,17 @@ public class ChessBoardLevel extends DeadEndLevel {
 		for (int y = FIELD_MIN_Y; y < SIZE - 1; y++) {
 			map[y * width() + center] = Terrain.EMPTY_DECO;
 		}
+
+		// 敌方备战席：最下面一排 x1..9
+		for (int i = 0; i < ENEMY_BENCH_COUNT; i++) {
+			map[ENEMY_BENCH_Y * width() + ENEMY_BENCH_MIN_X + i] = Terrain.EMPTY_DECO;
+		}
+		// 敌方观战台：右下角，用墙隔开
+		for (int x = 1; x <= 13; x++) {
+			map[(HEIGHT - 3) * width() + x] = Terrain.WALL;
+		}
+		map[ENEMY_BENCH_Y * width() + 10] = Terrain.WALL;
+		map[ENEMY_BENCH_Y * width() + 11] = Terrain.WALL;
 
 		int entrance = SPECTATOR_Y * width() + SPECTATOR_X;
 		map[entrance] = Terrain.ENTRANCE;
@@ -189,6 +208,24 @@ public class ChessBoardLevel extends DeadEndLevel {
 			return -1;
 		}
 		return cell;
+	}
+
+	/** 敌方备战位（观战台上的对手棋子预览用）。 */
+	public static int enemyBenchCell(int index) {
+		return ENEMY_BENCH_Y * SIZE + ENEMY_BENCH_MIN_X + index;
+	}
+
+	/** 敌方观战台格子。 */
+	public static int enemySpectatorCell() {
+		return ENEMY_SPECTATOR_Y * SIZE + ENEMY_SPECTATOR_X;
+	}
+
+	/** 这个格子是不是敌方备战位。 */
+	public static boolean isEnemyBenchCell(int cell) {
+		for (int i = 0; i < ENEMY_BENCH_COUNT; i++) {
+			if (enemyBenchCell(i) == cell) return true;
+		}
+		return false;
 	}
 
 	/** 这个格子是不是备战位。 */

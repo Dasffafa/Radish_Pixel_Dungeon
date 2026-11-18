@@ -157,6 +157,12 @@ public class AutochessPool {
 		POOL.add(new Def(cls, cost, skill, traits));
 	}
 
+	/** 羁绊效果说明（羁绊列表窗口用）。 */
+	public static String effectFor(String trait) {
+		return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(
+				AutochessPool.class, "effect_" + trait);
+	}
+
 	/** 这个羁绊下都有哪些棋子（羁绊列表窗口用）。 */
 	public static java.util.List<Def> unitsWithTrait(String trait) {
 		java.util.ArrayList<Def> list = new java.util.ArrayList<>();

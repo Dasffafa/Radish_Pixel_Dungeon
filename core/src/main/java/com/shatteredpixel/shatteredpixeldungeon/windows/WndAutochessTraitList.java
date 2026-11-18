@@ -40,7 +40,14 @@ public class WndAutochessTraitList extends Window {
 		info.hardlight(0xAAAAAA);
 		info.setPos(MARGIN, pos);
 		add(info);
-		pos = info.bottom() + GAP * 2;
+		pos = info.bottom() + 1;
+
+		RenderedTextBlock effect = PixelScene.renderTextBlock(AutochessPool.effectFor(trait), 7);
+		effect.maxWidth(WIDTH - MARGIN * 2);
+		effect.hardlight(0x66DDFF);
+		effect.setPos(MARGIN, pos);
+		add(effect);
+		pos = effect.bottom() + GAP * 2;
 
 		List<AutochessPool.Def> units = AutochessPool.unitsWithTrait(trait);
 

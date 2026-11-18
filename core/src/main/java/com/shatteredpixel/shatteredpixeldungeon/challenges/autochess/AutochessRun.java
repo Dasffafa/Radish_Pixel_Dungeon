@@ -84,6 +84,8 @@ public class AutochessRun extends Buff {
 
 	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
 	private final java.util.HashMap<Integer, Mob> unitMobs = new java.util.HashMap<>();
+	/** 对面备战席上的展示棋子（不参战）。 */
+	private final java.util.ArrayList<Mob> benchVisuals = new java.util.ArrayList<>();
 
 	/** 场上棋子有变动时自增，拖拽组件据此重建输入区。 */
 	public int unitVersion = 0;
@@ -143,6 +145,8 @@ public class AutochessRun extends Buff {
 			bot.advance(run.pool, 0);
 		}
 		run.rollShop();
+
+
 
 
 
@@ -573,6 +577,32 @@ public class AutochessRun extends Buff {
 			if (mob != null) unitMobs.put(100 + i, mob);
 		}
 		spawnEnemies();
+		spawnOpponentBench();
+	}
+
+	/** 把对手的备战席也铺出来，纯展示、不参战。 */
+	private void spawnOpponentBench() {
+		clearBenchVisuals();
+		if (opponent == null || Dungeon.level == null) return;
+		for (int i = 0; i < opponent.roster.size() && i < ChessBoardLevel.ENEMY_BENCH_COUNT; i++) {
+			String[] parts = opponent.roster.get(i).split(":");
+			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
+			if (def == null) continue;
+			int star = parts.length > 1 ? parseInt(parts[1]) : 1;
+			Mob mob = spawnUnit(def, ChessBoardLevel.enemyBenchCell(i), false, star);
+			if (mob != null) {
+				mob.alignment = Char.Alignment.NEUTRAL;
+				mob.state = mob.SLEEPING;
+				benchVisuals.add(mob);
+			}
+		}
+	}
+
+	private void clearBenchVisuals() {
+		for (Mob mob : benchVisuals) {
+			if (mob != null && mob.isAlive()) despawn(mob);
+		}
+		benchVisuals.clear();
 	}
 
 

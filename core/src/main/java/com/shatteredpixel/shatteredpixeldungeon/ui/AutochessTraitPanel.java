@@ -18,7 +18,7 @@ import java.util.Comparator;
  */
 public class AutochessTraitPanel extends Component {
 
-	public static final float WIDTH = 62;
+	public static final float WIDTH = 66;
 	private static final int ROW = 11;
 	private static final int MAX_ROWS = 10;
 
@@ -81,6 +81,27 @@ public class AutochessTraitPanel extends Component {
 			add(row);
 			rows.add(row);
 			pos += ROW;
+		}
+
+		// 连胜 / 连败单独一行
+		AutochessRun run = AutochessRun.get();
+		if (run != null) {
+			String streak;
+			if (run.winStreak() > 0) {
+				streak = "连胜 " + run.winStreak() + " · 收入 +" + run.lastIncome();
+			} else if (run.loseStreak() > 0) {
+				streak = "连败 " + run.loseStreak() + " · 收入 +" + run.lastIncome();
+			} else {
+				streak = "连胜 0 · 收入 +" + run.lastIncome();
+			}
+			RoundedFrame box = new RoundedFrame(0xCC1A1A1A, 0xFFCC66);
+			box.setRect(0, pos, WIDTH, 10);
+			add(box);
+			RenderedTextBlock line = PixelScene.renderTextBlock(streak, 6);
+			line.hardlight(0xFFCC66);
+			line.setPos(2, pos + 2);
+			add(line);
+			pos += 12;
 		}
 
 		if (active.isEmpty()) {
