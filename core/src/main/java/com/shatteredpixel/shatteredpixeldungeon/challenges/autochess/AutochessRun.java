@@ -97,6 +97,17 @@ public class AutochessRun extends Buff {
 	}
 
 	private final java.util.ArrayList<Match> matches = new java.util.ArrayList<>();
+	/** 商店锁定：锁住后跨回合不刷新。 */
+	private boolean shopLocked = false;
+
+	public boolean shopLocked() {
+		return shopLocked;
+	}
+
+	public void toggleShopLock() {
+		shopLocked = !shopLocked;
+	}
+
 	/** 未装备的装备背包。 */
 	private final java.util.ArrayList<String> itemBag = new java.util.ArrayList<>();
 

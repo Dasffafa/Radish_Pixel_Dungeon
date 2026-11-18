@@ -155,7 +155,21 @@ public class WndAutochessShop extends Window {
 		refresh.setRect(xpBtn.right() + GAP, pos, halfW, 17);
 		add(refresh);
 
-		pos = xpBtn.bottom() + GAP;
+		pos = xpBtn.bottom() + 2;
+
+		RedButton lockBtn = new RedButton(
+				M.L(WndAutochessShop.class, run.shopLocked() ? "unlock" : "lock"), 7) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				if (current == null) return;
+				current.toggleShopLock();
+				rebuild();
+			}
+		};
+		lockBtn.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 13);
+		add(lockBtn);
+		pos = lockBtn.bottom() + GAP;
 
 		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
 			pos = addOfferRow(i, pos);

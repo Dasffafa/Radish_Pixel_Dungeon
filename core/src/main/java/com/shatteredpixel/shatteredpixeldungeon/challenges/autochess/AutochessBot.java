@@ -33,12 +33,17 @@ public class AutochessBot {
 
 	/** 每回合变强一点：拿钱、升级、从共享池里补棋子。 */
 	public void advance(AutochessSharedPool pool, int round) {
-		// 收入：基础 5 + 利息（每 10 金 +1，上限 5）
+		// 收入：基础 5 + 利息（每 10 金 +1，上限 5）+ 连败补贴
 		gold += 5 + Math.min(5, gold / 10);
 
 		// 和玩家一样靠回合经验升级：前几回合升得快，后面放缓
-		int targetLevel = Math.min(10, 1 + (round + 1) / 2);
+		int targetLevel = Math.min(10, 2 + round / 2);
 		while (level < targetLevel) {
+			level++;
+		}
+		// 钱多就继续买等级（和玩家一样花 4 金换 1 级）
+		while (level < 10 && gold >= 8) {
+			gold -= 4;
 			level++;
 		}
 
