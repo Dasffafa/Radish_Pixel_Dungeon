@@ -189,6 +189,11 @@ public class ChessBoardLevel extends DeadEndLevel {
 		return cell;
 	}
 
+	/** 这个格子是不是备战位。 */
+	public static boolean isBenchCell(int cell) {
+		return benchIndexAt(cell) >= 0;
+	}
+
 	/** 战场里属于玩家的格子（x ≤ 6 且在中线以下）。 */
 	public static boolean isPlayerField(int cell) {
 		if (cell < 0 || Dungeon.level == null) return false;
@@ -203,14 +208,21 @@ public class ChessBoardLevel extends DeadEndLevel {
 		return cell % w >= ENEMY_MIN_X && cell / w >= FIELD_MIN_Y;
 	}
 
-	/** 棋盘上指定阵营的单位数量。 */
+	/**
+	 * 棋盘上指定阵营的单位数量。
+	 *
+	 * <p>玩家的备战位棋子虽然也站在棋盘上，但不参战，所以这里要排除掉，
+	 * 否则「一个上阵单位都没有」也会被判成还没输。</p>
+	 */
 	public static int countSide(boolean player) {
 		if (Dungeon.level == null) return 0;
 		int count = 0;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
 			if (!mob.isAlive()) continue;
 			boolean ally = mob.alignment == Char.Alignment.ALLY;
-			if (ally == player) count++;
+			if (ally != player) continue;
+			if (ally && isBenchCell(mob.pos)) continue;
+			count++;
 		}
 		return count;
 	}

@@ -15,6 +15,27 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Rat;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Artillerist;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.ClusteredSkeleton;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deminion;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.DemonLord;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deviloon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.DM175;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Dog;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Drake;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GiantWorm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GnollZealot;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Goblin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GoblinRider;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Gorgon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Grudge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Jailer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Mayfly;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Prisoner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.RoyalGuard;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.ShieldMage;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.StoneSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RipperDemon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Scorpio;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman;
@@ -65,6 +86,11 @@ public class AutochessPool {
 		add(Slime.class, 1, BEAST);
 		add(Swarm.class, 1, BEAST);
 		add(Gnoll.class, 1, HUMANOID);
+		// 萝卜地牢特色怪：一区强度
+		add(GiantWorm.class, 1, BEAST);
+		add(Mayfly.class, 1, BEAST);
+		add(Dog.class, 1, BEAST);
+		add(Goblin.class, 1, HUMANOID);
 
 		// 2 费：监狱（二区）
 		add(Bat.class, 2, BEAST);
@@ -73,6 +99,11 @@ public class AutochessPool {
 		add(DM100.class, 2, CONSTRUCT);
 		add(Skeleton.class, 2, CONSTRUCT);
 		add(Guard.class, 2, HUMANOID);
+		// 特色怪：二区强度
+		add(GoblinRider.class, 2, HUMANOID);
+		add(Jailer.class, 2, HUMANOID);
+		add(Prisoner.class, 2, HUMANOID);
+		add(Torturer.class, 2, HUMANOID);
 
 		// 3 费：矿洞/洞穴（三区）
 		add(Brute.class, 3, HUMANOID);
@@ -80,17 +111,33 @@ public class AutochessPool {
 		add(Spinner.class, 3, CONSTRUCT);
 		add(Ghoul.class, 3, HUMANOID);
 		add(Golem.class, 3, CONSTRUCT);
+		// 特色怪：三区强度
+		add(Grudge.class, 3, DEMON);
+		add(ClusteredSkeleton.class, 3, CONSTRUCT);
+		add(DM175.class, 3, CONSTRUCT);
+		add(GnollZealot.class, 3, HUMANOID);
 
 		// 4 费：城市（四区）
 		add(Monk.class, 4, HUMANOID);
 		add(Warlock.class, 4, HUMANOID);
 		add(Necromancer.class, 4, HUMANOID);
 		add(Elemental.class, 4, DEMON);
+		// 特色怪：四区强度
+		add(Drake.class, 4, BEAST);
+		add(StoneSpirit.class, 4, CONSTRUCT);
+		add(Artillerist.class, 4, HUMANOID);
+		add(RoyalGuard.class, 4, HUMANOID);
+		add(ShieldMage.class, 4, HUMANOID);
 
 		// 5 费：恶魔大厅（五区）
 		add(Succubus.class, 5, DEMON);
 		add(Scorpio.class, 5, DEMON);
 		add(RipperDemon.class, 5, DEMON);
+		// 特色怪：五区强度
+		add(Deminion.class, 5, DEMON);
+		add(Deviloon.class, 5, DEMON);
+		add(Gorgon.class, 5, CONSTRUCT);
+		add(DemonLord.class, 5, DEMON);
 	}
 	private static void add(Class<? extends Mob> cls, int cost, String trait) {
 		POOL.add(new Def(cls, cost, trait));

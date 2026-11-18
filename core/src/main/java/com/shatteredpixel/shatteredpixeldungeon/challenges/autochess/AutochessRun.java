@@ -128,6 +128,8 @@ public class AutochessRun extends Buff {
 		run.rollShop();
 
 
+
+
 	}
 
 	@Override
@@ -547,6 +549,11 @@ public class AutochessRun extends Buff {
 		if (cell == -1 || Dungeon.level == null) return null;
 		Mob mob = Reflection.newInstance(def.cls);
 		if (mob == null) return null;
+		// 自走棋里放不下的单位（Boss / 不能移动）换成普通杂兵兜底
+		if (mob.properties().contains(Char.Property.BOSS)
+				|| mob.properties().contains(Char.Property.IMMOVABLE)) {
+			mob = new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Rat();
+		}
 		mob.pos = cell;
 		mob.state = mob.HUNTING;
 		GameScene.add(mob);
