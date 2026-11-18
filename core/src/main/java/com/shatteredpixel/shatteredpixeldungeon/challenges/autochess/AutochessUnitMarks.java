@@ -48,7 +48,7 @@ public class AutochessUnitMarks extends Component {
 			boolean ally = mob.alignment == com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY;
 			Mark mark = new Mark(mob, ally, run.starOf(mob));
 			mob.sprite.parent.add(mark.arrow);
-			mob.sprite.parent.add(mark.stars);
+			for (com.watabou.noosa.Image star : mark.stars) mob.sprite.parent.add(star);
 			marks.add(mark);
 		}
 	}
@@ -69,7 +69,7 @@ public class AutochessUnitMarks extends Component {
 	private static class Mark {
 		final Mob mob;
 		final BitmapText arrow;
-		final BitmapText stars;
+		final com.watabou.noosa.Image[] stars;
 
 		Mark(Mob mob, boolean ally, int star) {
 			this.mob = mob;
@@ -80,36 +80,46 @@ public class AutochessUnitMarks extends Component {
 			arrow.scale.set(0.8f);
 			arrow.visible = ally;
 
-			stars = new BitmapText(PixelScene.pixelFont);
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < Math.max(1, star); i++) sb.append("*");
-			stars.text(sb.toString());
-			stars.hardlight(COLOR_STAR);
-			stars.scale.set(0.7f);
+			// 星级用本体的星星粒子图做图标
+			int count = Math.max(1, Math.min(3, star));
+			stars = new com.watabou.noosa.Image[count];
+			for (int i = 0; i < count; i++) {
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck icon =
+						new com.shatteredpixel.shatteredpixeldungeon.effects.Speck();
+				icon.image(com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STAR);
+				icon.hardlight(COLOR_STAR);
+				icon.scale.set(0.75f);
+				stars[i] = icon;
+			}
 		}
 
 		void update(AutochessRun run) {
 			if (mob == null || !mob.isAlive() || mob.sprite == null) {
 				arrow.visible = false;
-				stars.visible = false;
+				for (com.watabou.noosa.Image star : stars) star.visible = false;
 				return;
 			}
 			boolean visible = mob.sprite.visible;
-			stars.visible = visible;
 			if (arrow.visible) {
 				arrow.visible = visible;
 				arrow.x = mob.sprite.x + mob.sprite.width() / 2f - 2f;
 				arrow.y = mob.sprite.y - 8f;
 				PixelScene.align(arrow);
 			}
-			stars.x = mob.sprite.x + mob.sprite.width() / 2f - 2f;
-			stars.y = mob.sprite.y - (arrow.visible ? 15f : 8f);
-			PixelScene.align(stars);
+			float baseX = mob.sprite.x + mob.sprite.width() / 2f
+					- (stars.length * 5f) / 2f;
+			float baseY = mob.sprite.y - (arrow.visible ? 16f : 9f);
+			for (int i = 0; i < stars.length; i++) {
+				stars[i].visible = visible;
+				stars[i].x = baseX + i * 5f;
+				stars[i].y = baseY;
+				PixelScene.align(stars[i]);
+			}
 		}
 
 		void destroy() {
 			arrow.killAndErase();
-			stars.killAndErase();
+			for (com.watabou.noosa.Image star : stars) star.killAndErase();
 		}
 	}
 }
