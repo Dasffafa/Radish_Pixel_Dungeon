@@ -39,12 +39,12 @@ public class AutochessRun extends Buff {
 	public static final int REFRESH_COST = 2;
 
 	public static final int BENCH_SIZE = ChessBoardLevel.BENCH_COUNT;
-	public static final int BOARD_SLOTS = 9;
+	public static final int BOARD_SLOTS = 12;
 
 	public static final int XP_COST = 4;
 	public static final int XP_PER_BUY = 4;
 	public static final int XP_PER_ROUND = 2;
-	public static final int MAX_LEVEL = 9;
+	public static final int MAX_LEVEL = 10;
 
 	private State state = State.PREP;
 	private int round = 1;
@@ -178,12 +178,14 @@ public class AutochessRun extends Buff {
 			case 6: return 36;
 			case 7: return 48;
 			case 8: return 76;
+			case 9: return 84;
 			default: return 999;
 		}
 	}
 
+	/** 上阵人数：1 级就能上 3 个，每升 1 级 +1，10 级 12 个。 */
 	public int maxDeploy() {
-		return level;
+		return level + 2;
 	}
 
 	public int deployed() {
@@ -347,8 +349,12 @@ public class AutochessRun extends Buff {
 	private static String nameOf(String className) {
 		AutochessPool.Def def = AutochessPool.ofName(className);
 		if (def == null) return className;
-		Mob mob = Reflection.newInstance(def.cls);
-		return mob == null ? className : mob.name();
+		try {
+			Mob mob = Reflection.newInstance(def.cls);
+			if (mob != null) return mob.name();
+		} catch (Exception ignored) {
+		}
+		return className;
 	}
 
 	/**
@@ -601,7 +607,12 @@ public class AutochessRun extends Buff {
 
 	private static Mob spawnUnit(AutochessPool.Def def, int cell, boolean playerSide, int star) {
 		if (cell == -1 || Dungeon.level == null) return null;
-		Mob mob = Reflection.newInstance(def.cls);
+		Mob mob;
+		try {
+			mob = Reflection.newInstance(def.cls);
+		} catch (Exception e) {
+			return null;
+		}
 		if (mob == null) return null;
 		// 自走棋里放不下的单位（Boss / 不能移动）换成普通杂兵兜底
 		if (mob.properties().contains(Char.Property.BOSS)

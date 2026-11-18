@@ -150,7 +150,8 @@ public class ChessBoardLevel extends DeadEndLevel {
 	/** 上阵位默认站位（战场左半场）。 */
 	public static int playerSlot(int index) {
 		int[][] layout = {
-				{5, 8}, {5, 7}, {5, 9}, {4, 8}, {4, 7}, {4, 9}, {3, 8}, {3, 7}, {3, 9}
+				{5, 8}, {5, 7}, {5, 9}, {4, 8}, {4, 7}, {4, 9}, {3, 8}, {3, 7}, {3, 9},
+				{6, 8}, {6, 7}, {6, 9}
 		};
 		int[] slot = layout[Math.floorMod(index, layout.length)];
 		return cellAt(slot[0], slot[1]);
@@ -159,7 +160,8 @@ public class ChessBoardLevel extends DeadEndLevel {
 	/** 敌方站位（战场右半场）。 */
 	public static int enemySlot(int index) {
 		int[][] layout = {
-				{12, 8}, {12, 7}, {12, 9}, {12, 6}, {12, 10}, {11, 8}, {11, 7}, {11, 9}
+				{12, 8}, {12, 7}, {12, 9}, {12, 6}, {12, 10}, {11, 8}, {11, 7}, {11, 9},
+				{11, 6}, {11, 10}, {10, 8}, {10, 7}
 		};
 		int[] slot = layout[Math.floorMod(index, layout.length)];
 		return cellAt(slot[0], slot[1]);

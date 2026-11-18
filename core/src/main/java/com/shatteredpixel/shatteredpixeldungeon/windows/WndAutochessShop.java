@@ -274,9 +274,14 @@ public class WndAutochessShop extends Window {
 	}
 
 	private static String nameOf(AutochessPool.Def def) {
-		com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
-				com.watabou.utils.Reflection.newInstance(def.cls);
-		return mob == null ? def.cls.getSimpleName() : mob.name();
+		try {
+			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
+					com.watabou.utils.Reflection.newInstance(def.cls);
+			if (mob != null) return mob.name();
+		} catch (Exception ignored) {
+			// 有些棋子类不能直接实例化，退回类名，别让商店崩掉
+		}
+		return def.cls.getSimpleName();
 	}
 
 	/** 费用卡片的底色（深色，保证文字看得清）。 */

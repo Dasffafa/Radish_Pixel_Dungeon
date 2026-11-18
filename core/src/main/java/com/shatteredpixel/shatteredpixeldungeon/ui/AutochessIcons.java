@@ -26,7 +26,12 @@ public class AutochessIcons {
 		if (def == null) {
 			return null;
 		}
-		Mob mob = Reflection.newInstance(def.cls);
+		Mob mob;
+		try {
+			mob = Reflection.newInstance(def.cls);
+		} catch (Exception e) {
+			return null;
+		}
 		if (mob == null) {
 			return null;
 		}

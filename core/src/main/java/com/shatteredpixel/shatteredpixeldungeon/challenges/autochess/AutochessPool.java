@@ -98,7 +98,7 @@ public class AutochessPool {
 		add(DM100.class, 2, CONSTRUCT);
 		add(Skeleton.class, 2, CONSTRUCT);
 		add(Guard.class, 2, HUMANOID);
-		add(Shaman.class, 2, HUMANOID);
+		add(Shaman.BlueShaman.class, 2, HUMANOID);
 		add(Spinner.class, 2, CONSTRUCT);
 		add(Necromancer.class, 2, HUMANOID);
 		add(GoblinRider.class, 2, HUMANOID);
@@ -118,7 +118,7 @@ public class AutochessPool {
 		// 4 费：城市（四区）
 		add(Monk.class, 4, HUMANOID);
 		add(Warlock.class, 4, HUMANOID);
-		add(Elemental.class, 4, DEMON);
+		add(Elemental.FireElemental.class, 4, DEMON);
 		add(Drake.class, 4, BEAST);
 		add(StoneSpirit.class, 4, CONSTRUCT);
 		add(Artillerist.class, 4, HUMANOID);

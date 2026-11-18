@@ -36,13 +36,13 @@ public class AutochessBot {
 		gold += 5;
 
 		// 和玩家一样靠回合经验升级：前几回合升得快，后面放缓
-		int targetLevel = Math.min(9, 1 + (round + 1) / 2);
+		int targetLevel = Math.min(10, 1 + (round + 1) / 2);
 		while (level < targetLevel) {
 			level++;
 		}
 
 		// 补棋子（只在池子里还有货的时候）
-		int cap = Math.min(9, level);
+		int cap = Math.min(12, level + 2);
 		int guard = 0;
 		while (roster.size() < cap && gold >= 1 && guard++ < 20) {
 			String cls = pool.draw(level);
@@ -89,7 +89,7 @@ public class AutochessBot {
 	/** 上阵单位：取阵容前 level 个。 */
 	public ArrayList<String> deployed() {
 		ArrayList<String> list = new ArrayList<>();
-		for (int i = 0; i < Math.min(level, roster.size()); i++) {
+		for (int i = 0; i < Math.min(level + 2, roster.size()); i++) {
 			list.add(roster.get(i));
 		}
 		return list;
