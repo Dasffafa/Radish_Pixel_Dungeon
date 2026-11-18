@@ -398,11 +398,13 @@ public class GameScene extends PixelScene {
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitMarks());
 
 			// 左侧羁绊栏
-			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel traitPanel =
-					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel();
-			traitPanel.setPos(4, com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera == null
-					? 42 : (com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene.uiCamera.width < 200 ? 26 : 42));
-			add(traitPanel);
+			// 左侧羁绊栏（窄屏不挂，改从商店的「羁绊」按钮看）
+			if (uiCamera == null || uiCamera.width >= 210) {
+				com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel traitPanel =
+						new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel();
+				traitPanel.setPos(4, 42);
+				add(traitPanel);
+			}
 
 			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）
 			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
