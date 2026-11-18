@@ -180,10 +180,23 @@ public class WndAutochessShop extends Window {
 			box.setRect(x, y, halfEq, 13);
 			add(box);
 
-			RenderedTextBlock label = PixelScene.renderTextBlock(
-					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id), 7);
-			label.maxWidth((int) halfEq - 4);
-			label.setPos(x + 2, y + 2);
+			// 本体物品图标
+			com.shatteredpixel.shatteredpixeldungeon.items.Item item =
+					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.item(id);
+			if (item != null) {
+				com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite icon =
+						new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite(item);
+				icon.scale.set(0.5f);
+				icon.x = x + 1;
+				icon.y = y + 1;
+				add(icon);
+			}
+
+			String itemName = com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id);
+			if (itemName.length() > 7) itemName = itemName.substring(0, 6) + "…";
+			RenderedTextBlock label = PixelScene.renderTextBlock(itemName, 7);
+			label.maxWidth((int) halfEq - 13);
+			label.setPos(x + 11, y + 3);
 			add(label);
 
 			com.watabou.noosa.PointerArea area = new com.watabou.noosa.PointerArea(0, 0, halfEq, 13) {

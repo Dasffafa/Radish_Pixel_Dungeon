@@ -71,6 +71,11 @@ public class AutochessSharedPool {
 		return sum;
 	}
 
+	/** 存档恢复用：直接设置某张牌的剩余份数。 */
+	public void setCount(String className, int n) {
+		remaining.put(className, Math.max(0, n));
+	}
+
 	public ArrayList<String> names() {
 		return new ArrayList<>(remaining.keySet());
 	}
