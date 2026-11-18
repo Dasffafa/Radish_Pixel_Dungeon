@@ -646,6 +646,8 @@ public class AutochessRun extends Buff {
 				despawn(mob);
 			}
 		}
+		// 对面备战席的展示棋子也一起清掉（它们同样不该留在战场上）
+		clearBenchVisuals();
 	}
 
 	/**
@@ -697,7 +699,12 @@ public class AutochessRun extends Buff {
 			if (ib2 != null) ib2.setItems(AutochessItems.parse(board[i]));
 		}
 		spawnEnemies();
-		spawnOpponentBench();
+		if (state == State.FIGHT) {
+			// 战斗中对面备战席也不留实体：它们不参战，留着会干扰回合
+			clearBenchVisuals();
+		} else {
+			spawnOpponentBench();
+		}
 
 		// 备战阶段就把本轮配对算出来，对战大厅才能显示「即将对战谁」
 		if (state == State.PREP) {
