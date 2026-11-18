@@ -18,7 +18,7 @@ public class AutochessHUD extends Component {
 	public static float WIDTH = 168;
 	public static final float HEIGHT = 16;
 
-	private static final float TURN_INTERVAL = 0.16f;
+	private static final float TURN_INTERVAL = 0.45f;   // 每回合之间的间隔：太短会看不清战斗过程
 	private static final int COLOR_NORMAL = 0xFFFFCC;
 	private static final int COLOR_FIGHT = 0xFF9060;
 

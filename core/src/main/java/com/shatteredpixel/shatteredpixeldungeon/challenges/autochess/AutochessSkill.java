@@ -295,7 +295,7 @@ public class AutochessSkill {
 	/** 按目标最大生命比例造成技能伤害（受星级加成，上限 32%）。 */
 	private void hitPct(Char caster, Char target, float pct) {
 		if (target == null || !target.isAlive()) return;
-		float capped = Math.min(0.32f, pct * power);
+		float capped = Math.min(0.22f, pct * power);
 		hit(caster, target, Math.max(1, Math.round(target.HT * capped)));
 	}
 

@@ -1,8 +1,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 
+import com.shatteredpixel.shatteredpixeldungeon.ShatteredPixelDungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.watabou.utils.Bundle;
 
@@ -25,20 +27,31 @@ public class AutochessFoeBuff extends Buff {
 	public void setup(AutochessSkill skill, int star) {
 		this.skill = skill;
 		this.star = Math.max(1, Math.min(3, star));
-		this.mana = 0;
+		// 起手充能错开，别让一整队在同一拍同时爆技能
+		this.mana = -20 - (int) (Math.random() * 30);
 	}
 
 	@Override
 	public boolean act() {
 		spend(TICK);
-		if (skill != null && target.isAlive()) {
-			mana += 12;
+		if (skill != null && target.isAlive() && hasFoeNearby()) {
+			mana += 6;   // 比原来慢一半，避免技能刷屏
 			if (mana >= skill.mana) {
 				mana = 0;
 				skill.cast(target, star, 1f);
 			}
 		}
 		return true;
+	}
+
+	/** 附近（8 格）有敌人才充能，避免开场空放技能。 */
+	private boolean hasFoeNearby() {
+		if (Dungeon.level == null) return false;
+		for (Char ch : Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+			if (!ch.isAlive() || ch.alignment == target.alignment) continue;
+			if (Dungeon.level.distance(ch.pos, target.pos) <= 8) return true;
+		}
+		return false;
 	}
 
 	{
