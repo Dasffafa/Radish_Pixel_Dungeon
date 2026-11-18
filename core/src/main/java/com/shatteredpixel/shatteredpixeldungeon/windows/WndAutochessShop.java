@@ -96,9 +96,17 @@ public class WndAutochessShop extends Window {
 
 		pos = xpBtn.bottom() + GAP;
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
 			pos = addOfferRow(i, pos);
 		}
+
+		RenderedTextBlock economy = PixelScene.renderTextBlock(
+				M.L(WndAutochessShop.class, "economy",
+						run.winStreak(), run.loseStreak(), run.lastIncome()), 7);
+		economy.hardlight(COLOR_GOLD);
+		economy.setPos(MARGIN, pos + 1);
+		add(economy);
+		pos = economy.bottom() + 1;
 
 		RenderedTextBlock traits = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "traits", traitLine()), 7);
@@ -234,10 +242,19 @@ public class WndAutochessShop extends Window {
 
 	private static String traitLine() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(traitName(AutochessPool.BEAST)).append(" ").append(AutochessRun.countTrait(AutochessPool.BEAST));
-		sb.append("  ·  ").append(traitName(AutochessPool.HUMANOID)).append(" ").append(AutochessRun.countTrait(AutochessPool.HUMANOID));
-		sb.append("  ·  ").append(traitName(AutochessPool.CONSTRUCT)).append(" ").append(AutochessRun.countTrait(AutochessPool.CONSTRUCT));
-		sb.append("  ·  ").append(traitName(AutochessPool.DEMON)).append(" ").append(AutochessRun.countTrait(AutochessPool.DEMON));
+		appendTrait(sb, AutochessPool.BEAST);
+		appendTrait(sb, AutochessPool.HUMANOID);
+		appendTrait(sb, AutochessPool.CONSTRUCT);
+		appendTrait(sb, AutochessPool.DEMON);
 		return sb.toString();
+	}
+
+	/** 「兽群 4 (3/5)」这种写法：数字是当前人数，括号里是两档阈值。 */
+	private static void appendTrait(StringBuilder sb, String trait) {
+		int count = AutochessRun.countTrait(trait);
+		int[] th = AutochessPool.thresholds(trait);
+		if (sb.length() > 0) sb.append("  ·  ");
+		sb.append(traitName(trait)).append(" ").append(count)
+				.append("(").append(th[0]).append("/").append(th[1]).append(")");
 	}
 }

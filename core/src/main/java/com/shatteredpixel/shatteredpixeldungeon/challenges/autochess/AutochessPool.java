@@ -136,6 +136,50 @@ public class AutochessPool {
 		return candidates.get(Random.Int(candidates.size()));
 	}
 
+	/**
+	 * 云顶式商店概率：按等级给不同费用单位的权重。
+	 * 等级越高，高费单位出现得越多（3~9 级）。
+	 */
+	public static Def randomForLevel(int level) {
+		float[] weights;
+		switch (Math.max(3, Math.min(9, level))) {
+			case 3:  weights = new float[]{65, 25, 10, 0}; break;
+			case 4:  weights = new float[]{50, 35, 15, 0}; break;
+			case 5:  weights = new float[]{40, 30, 25, 5}; break;
+			case 6:  weights = new float[]{30, 35, 25, 10}; break;
+			case 7:  weights = new float[]{20, 30, 35, 15}; break;
+			case 8:  weights = new float[]{15, 25, 35, 25}; break;
+			default: weights = new float[]{10, 20, 30, 40}; break;
+		}
+		ArrayList<Def> tier = new ArrayList<>();
+		float total = 0;
+		for (int cost = 1; cost <= 4; cost++) {
+			float w = weights[cost - 1];
+			if (w <= 0) continue;
+			for (Def def : POOL) {
+				if (def.cost == cost) {
+					tier.add(def);
+					total += w;
+				}
+			}
+		}
+		if (tier.isEmpty()) return POOL.get(0);
+		float roll = Random.Float(total);
+		float acc = 0;
+		int cost = 1;
+		for (int i = 0; i < 4; i++) {
+			acc += weights[i];
+			if (roll <= acc) { cost = i + 1; break; }
+			cost = 4;
+		}
+		ArrayList<Def> pool = new ArrayList<>();
+		for (Def def : POOL) {
+			if (def.cost == cost) pool.add(def);
+		}
+		if (pool.isEmpty()) pool = POOL;
+		return pool.get(Random.Int(pool.size()));
+	}
+
 	/** 羁绊的档位阈值：{ 一档人数, 二档人数 }。 */
 	public static int[] thresholds(String trait) {
 		if (DEMON.equals(trait)) return new int[]{2, 4};

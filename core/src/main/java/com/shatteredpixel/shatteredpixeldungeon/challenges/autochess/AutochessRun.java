@@ -64,8 +64,20 @@ public class AutochessRun extends Buff {
 	public int selectedSide = -1;
 	public int selectedIndex = -1;
 
-	private String[] offers = new String[3];
-	private int[] prices = new int[3];
+	/** 商店格子数（云顶是 5 个）。 */
+	public static final int OFFER_COUNT = 5;
+	/** 每回合基础收入。 */
+	public static final int BASE_INCOME = 5;
+
+	private String[] offers = new String[OFFER_COUNT];
+	private int[] prices = new int[OFFER_COUNT];
+
+	/** 连胜/连败与上回合收入（UI 展示用）。 */
+	private int winStreak = 0;
+	private int loseStreak = 0;
+	private int lastIncome = 0;
+	private int lastInterest = 0;
+	private int lastStreakBonus = 0;
 
 	/** 本回合敌方阵容（类名），拖拽重排时不再重摇。 */
 	private String[] enemyComp = null;
@@ -170,7 +182,7 @@ public class AutochessRun extends Buff {
 
 	public void rollShop() {
 		for (int i = 0; i < offers.length; i++) {
-			AutochessPool.Def def = AutochessPool.random(round);
+			AutochessPool.Def def = AutochessPool.randomForLevel(level);
 			offers[i] = def.cls.getSimpleName();
 			prices[i] = def.cost;
 		}
@@ -514,6 +526,10 @@ public class AutochessRun extends Buff {
 
 	public void startFight() {
 		if (state != State.PREP) return;
+		if (deployed() == 0) {
+			GLog.w(M.L(AutochessRun.class, "need_deploy"));
+			return;
+		}
 		state = State.FIGHT;
 		refreshPreview();
 		GLog.p(M.L(AutochessRun.class, "fight_start", round, Math.min(6, 1 + round)));
@@ -564,21 +580,46 @@ public class AutochessRun extends Buff {
 		winRound();
 	}
 
+	/** 利息：每 10 金 +1，最多 +5。 */
+	private int interest() {
+		return Math.min(5, gold / 10);
+	}
+
+	/** 连胜/连败奖励：2~3 连 +1，4 连 +2，5 连 +3，6 连以上 +4。 */
+	private int streakBonus(int streak) {
+		if (streak >= 6) return 4;
+		if (streak >= 5) return 3;
+		if (streak >= 4) return 2;
+		if (streak >= 2) return 1;
+		return 0;
+	}
+
 	private void winRound() {
 		state = State.PREP;
-		int reward = 5 + (round % 3 == 0 ? 3 : 0);
-		gold += reward;
+		winStreak++;
+		loseStreak = 0;
+
+		lastInterest = interest();
+		lastStreakBonus = streakBonus(winStreak);
+		lastIncome = BASE_INCOME + lastInterest + lastStreakBonus;
+		gold += lastIncome;
+
 		gainRoundXp();
 		round++;
 		rollShop();
-		GLog.p(M.L(AutochessRun.class, "win", reward, round));
+		GLog.p(M.L(AutochessRun.class, "win_income", BASE_INCOME, lastInterest, lastStreakBonus, lastIncome, round));
 		refreshPreview();
 		showShopNextFrame();
 	}
 
 	private void loseRound() {
 		state = State.PREP;
-		int damage = 2 + round / 4;
+		winStreak = 0;
+		loseStreak++;
+
+		// 扣血 = 基础 2 + 场上还活着的敌人 + 回合加成（云顶的算法味道）
+		int survivors = ChessBoardLevel.countSide(false);
+		int damage = 2 + survivors + round / 4;
 		life -= damage;
 		if (life <= 0) {
 			life = 0;
@@ -590,11 +631,16 @@ public class AutochessRun extends Buff {
 			});
 			return;
 		}
-		gold += 2;
+		lastInterest = interest();
+		lastStreakBonus = streakBonus(loseStreak);
+		lastIncome = BASE_INCOME + lastInterest + lastStreakBonus;
+		gold += lastIncome;
+
 		gainRoundXp();
 		round++;
 		rollShop();
 		GLog.w(M.L(AutochessRun.class, "lose", damage, life, round));
+		GLog.i(M.L(AutochessRun.class, "lose_income", BASE_INCOME, lastInterest, lastStreakBonus, lastIncome));
 		refreshPreview();
 		showShopNextFrame();
 	}
@@ -651,6 +697,18 @@ public class AutochessRun extends Buff {
 		return round;
 	}
 
+	public int winStreak() {
+		return winStreak;
+	}
+
+	public int loseStreak() {
+		return loseStreak;
+	}
+
+	public int lastIncome() {
+		return lastIncome;
+	}
+
 	public int gold() {
 		return gold;
 	}
@@ -682,6 +740,8 @@ public class AutochessRun extends Buff {
 		bundle.put("ac_life", life);
 		bundle.put("ac_level", level);
 		bundle.put("ac_xp", xp);
+		bundle.put("ac_win_streak", winStreak);
+		bundle.put("ac_lose_streak", loseStreak);
 		for (int i = 0; i < bench.length; i++) {
 			bundle.put("ac_bench_" + i, bench[i] == null ? "" : bench[i]);
 		}
@@ -717,6 +777,8 @@ public class AutochessRun extends Buff {
 		life = bundle.getInt("ac_life");
 		level = bundle.getInt("ac_level");
 		xp = bundle.getInt("ac_xp");
+		winStreak = bundle.getInt("ac_win_streak");
+		loseStreak = bundle.getInt("ac_lose_streak");
 		for (int i = 0; i < bench.length; i++) {
 			String e = bundle.getString("ac_bench_" + i);
 			bench[i] = e == null || e.isEmpty() ? null : e;
