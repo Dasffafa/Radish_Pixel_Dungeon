@@ -15,7 +15,7 @@ import com.watabou.noosa.ui.Component;
  */
 public class AutochessHUD extends Component {
 
-	public static final float WIDTH = 168;
+	public static float WIDTH = 168;
 	public static final float HEIGHT = 16;
 
 	private static final float TURN_INTERVAL = 0.16f;
@@ -50,6 +50,8 @@ public class AutochessHUD extends Component {
 	public AutochessHUD() {
 		super();
 		active = this;
+		float camWidth = PixelScene.uiCamera == null ? WIDTH : PixelScene.uiCamera.width;
+		WIDTH = Math.min(168f, Math.max(110f, camWidth - 10f));
 		setSize(WIDTH, HEIGHT);
 	}
 

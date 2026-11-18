@@ -23,10 +23,14 @@ import com.watabou.utils.Callback;
  */
 public class WndAutochessShop extends Window {
 
-	private static final int WIDTH = 158;
 	private static final int MARGIN = 5;
-	private static final int OFFER_ROW = 30;
 	private static final int GAP = 3;
+
+	/** 面板宽度：手机窄屏时收窄，桌面保持 158。 */
+	private final int WIDTH;
+	/** 紧凑模式：窄屏下压缩行高、把购买按钮放到右侧。 */
+	private final boolean compact;
+	private final int OFFER_ROW;
 
 	private static final int COLOR_TITLE = 0xFFFF44;
 	private static final int COLOR_GOLD = 0xFFD700;
@@ -38,6 +42,12 @@ public class WndAutochessShop extends Window {
 	public WndAutochessShop(int round) {
 
 		super();
+
+		int camWidth = PixelScene.uiCamera == null ? 158 : (int) PixelScene.uiCamera.width;
+		if (Boolean.getBoolean("arena.compact")) camWidth = 150;
+		WIDTH = Math.min(158, Math.max(112, camWidth - 26));
+		compact = WIDTH < 140;
+		OFFER_ROW = compact ? 24 : 30;
 
 		run = AutochessRun.get();
 		if (run == null) {
@@ -116,15 +126,17 @@ public class WndAutochessShop extends Window {
 		add(lobby);
 		pos = lobby.bottom() + GAP;
 
-		RenderedTextBlock legend = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "legend"), 7);
-		legend.maxWidth(WIDTH - MARGIN * 2);
-		legend.hardlight(COLOR_SECTION);
-		legend.setPos(MARGIN, pos);
-		add(legend);
-		pos = legend.bottom() + GAP;
+		if (!compact) {
+			RenderedTextBlock legend = PixelScene.renderTextBlock(
+					M.L(WndAutochessShop.class, "legend"), 7);
+			legend.maxWidth(WIDTH - MARGIN * 2);
+			legend.hardlight(COLOR_SECTION);
+			legend.setPos(MARGIN, pos);
+			add(legend);
+			pos = legend.bottom() + GAP;
 
-		pos = addSelectionRow(pos);
+			pos = addSelectionRow(pos);
+		}
 
 		float halfW = (WIDTH - MARGIN * 2 - GAP) / 2f;
 
@@ -384,15 +396,23 @@ public class WndAutochessShop extends Window {
 			add(icon);
 		}
 
-		RenderedTextBlock name = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "row", nameOf(def), def.cost, traitsOf(def), skillOf(def)), 8);
+		// 紧凑模式只显示「名字·费用」，羁绊/技能靠右上角 i 看详情
+		String rowText;
+		if (compact) {
+			rowText = nameOf(def) + "·" + def.cost + "金";
+			if (rowText.length() > 9) rowText = rowText.substring(0, 8) + "…";
+		} else {
+			rowText = M.L(WndAutochessShop.class, "row",
+					nameOf(def), def.cost, traitsOf(def), skillOf(def));
+		}
+		RenderedTextBlock name = PixelScene.renderTextBlock(rowText, compact ? 7 : 8);
 		name.hardlight(costColor(def.cost));
-		name.maxWidth(WIDTH - MARGIN * 2 - 20);
-		name.setPos(MARGIN + 18, pos + 1);
+		name.maxWidth(compact ? WIDTH - MARGIN * 2 - 62 : WIDTH - MARGIN * 2 - 20);
+		name.setPos(MARGIN + (compact ? 16 : 18), pos + (compact ? 5 : 1));
 		add(name);
 
 		final int idx = index;
-		RedButton buy = new RedButton(M.L(WndAutochessShop.class, "buy"), 7) {
+		RedButton buy = new RedButton(M.L(WndAutochessShop.class, "buy"), compact ? 6 : 7) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -402,7 +422,11 @@ public class WndAutochessShop extends Window {
 			}
 		};
 		buy.active = run.gold() >= def.cost;
-		buy.setRect(MARGIN + 18, pos + 13, 58, 13);
+		if (compact) {
+			buy.setRect(WIDTH - MARGIN - 60, pos + 4, 44, 12);
+		} else {
+			buy.setRect(MARGIN + 18, pos + 13, 58, 13);
+		}
 		add(buy);
 
 		return pos + OFFER_ROW;

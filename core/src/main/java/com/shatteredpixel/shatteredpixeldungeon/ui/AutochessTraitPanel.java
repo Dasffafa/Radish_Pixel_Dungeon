@@ -18,7 +18,7 @@ import java.util.Comparator;
  */
 public class AutochessTraitPanel extends Component {
 
-	public static final float WIDTH = 66;
+	public static float WIDTH = 66;
 	private static final int ROW = 11;
 	private static final int MAX_ROWS = 10;
 
