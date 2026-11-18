@@ -132,6 +132,8 @@ public class AutochessRun extends Buff {
 
 
 
+
+
 	}
 
 	@Override
@@ -563,20 +565,16 @@ public class AutochessRun extends Buff {
 		if (playerSide) {
 			AutochessUnitBuff buff = Buff.affect(mob, AutochessUnitBuff.class);
 			buff.setup(def.trait, star);
-			// 己方棋子统一染蓝，方便一眼分清敌我
-			if (mob.sprite != null) {
-				mob.sprite.tint(0x66CCFF, 0.45f);
-			}
+
 		} else {
-			// 敌方染一点红
-			if (mob.sprite != null) {
-				mob.sprite.tint(0xFF7070, 0.3f);
-			}
+
 			// 自走棋里的敌人不给英雄经验/升级，玩家是观战方
 			mob.maxLvl = 0;
 		}
-		// 场景刚建时 sprite 可能还没挂上，beckon 会 NPE，等有 sprite 再吼
-		if (mob.sprite != null) {
+		// 场景刚建时 sprite 可能还没挂上，beckon 会 NPE；
+		// 另外备战阶段不 beckon，否则每个棋子头上都会冒一个黄色感叹号
+		AutochessRun run = get();
+		if (mob.sprite != null && run != null && run.state == State.FIGHT) {
 			mob.beckon(playerSide ? findEnemyPos(mob) : 0);
 		}
 		return mob;

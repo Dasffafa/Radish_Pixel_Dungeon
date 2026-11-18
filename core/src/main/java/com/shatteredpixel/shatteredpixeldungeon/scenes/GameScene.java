@@ -394,6 +394,8 @@ public class GameScene extends PixelScene {
 
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());
+			// 己方棋子头顶的小蓝箭头
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitMarks());
 
 			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）
 			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
