@@ -144,7 +144,51 @@ public class WndAutochessShop extends Window {
 		};
 		traitsBtn.setRect(MARGIN + halfBtn + GAP, pos, halfBtn, 14);
 		add(traitsBtn);
-		pos = lobby.bottom() + GAP;
+		pos = lobby.bottom() + 2;
+
+		// 买经验 / 刷新（并排）
+		float halfW = (WIDTH - MARGIN * 2 - GAP) / 2f;
+		RedButton xpBtn = new RedButton(M.L(WndAutochessShop.class, "buy_xp", AutochessRun.XP_COST), 8) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				if (current != null && current.buyXp()) {
+					rebuild();
+				}
+			}
+		};
+		xpBtn.setRect(MARGIN, pos, halfW, 17);
+		add(xpBtn);
+
+		RedButton refresh = new RedButton(
+				M.L(WndAutochessShop.class, "refresh", AutochessRun.REFRESH_COST), 8) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				if (current != null && current.refresh()) {
+					rebuild();
+				}
+			}
+		};
+		refresh.setRect(xpBtn.right() + GAP, pos, halfW, 17);
+		add(refresh);
+
+		pos = xpBtn.bottom() + 2;
+
+		// 锁定商店
+		RedButton lockBtn = new RedButton(
+				M.L(WndAutochessShop.class, run.shopLocked() ? "unlock" : "lock"), 7) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				if (current == null) return;
+				current.toggleShopLock();
+				rebuild();
+			}
+		};
+		lockBtn.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 13);
+		add(lockBtn);
+		pos = lockBtn.bottom() + GAP;
 
 		// 5 张卡
 		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
