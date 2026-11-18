@@ -17,14 +17,24 @@ import java.util.List;
  */
 public class WndAutochessTraitList extends Window {
 
-	private static final int WIDTH = 180;
 	private static final int MARGIN = 5;
 	private static final int GAP = 3;
-	private static final int COL_W = 56;
-	private static final int ROW_H = 34;
+
+	/** 以下按屏幕宽度自适应 */
+	private final int WIDTH;
+	private final int COL_W;
+	private final int ROW_H;
+	private final int COLUMNS;
+	private final int ICON;
 
 	public WndAutochessTraitList(String trait) {
 		super();
+
+		WIDTH = Math.min(180, Math.max(120, (int) PixelScene.uiCamera.width - 24));
+		COLUMNS = WIDTH < 150 ? 2 : 3;
+		COL_W = (WIDTH - MARGIN * 2) / COLUMNS;
+		ROW_H = WIDTH < 150 ? 26 : 34;
+		ICON = WIDTH < 150 ? 12 : 16;
 
 		int[] thresholds = AutochessPool.thresholds(trait);
 		String titleText = Messages.get(AutochessPool.class, "trait_" + trait);
@@ -58,19 +68,19 @@ public class WndAutochessTraitList extends Window {
 
 			CharSprite icon = AutochessIcons.spriteFor(def.cls.getSimpleName());
 			if (icon != null) {
-				AutochessIcons.place(icon, x, y, 16);
+				AutochessIcons.place(icon, x, y, ICON);
 				add(icon);
 			}
 
 			RenderedTextBlock name = PixelScene.renderTextBlock(nameOf(def), 6);
 			name.maxWidth(COL_W - 4);
 			name.hardlight(costColor(def.cost));
-			name.setPos(x + 18, y + 1);
+			name.setPos(x + ICON + 2, y + 1);
 			add(name);
 
 			RenderedTextBlock cost = PixelScene.renderTextBlock(def.cost + "费", 6);
 			cost.hardlight(0x999999);
-			cost.setPos(x + 18, y + 9);
+			cost.setPos(x + ICON + 2, y + (ICON < 14 ? 7 : 9));
 			add(cost);
 
 			com.watabou.noosa.PointerArea tap = new com.watabou.noosa.PointerArea(0, 0, COL_W - 2, 16) {
@@ -85,7 +95,7 @@ public class WndAutochessTraitList extends Window {
 			add(tap);
 
 			col++;
-			if (col >= 3) {
+			if (col >= COLUMNS) {
 				col = 0;
 				pos += ROW_H;
 			}

@@ -55,7 +55,25 @@ public class AutochessTraitPanel extends Component {
 		}
 	}
 
+	/** 窄屏：只留一个「羁绊」按钮，点开总览窗口。 */
+	private boolean narrow() {
+		return PixelScene.uiCamera != null && PixelScene.uiCamera.width < 210;
+	}
+
 	private void rebuild() {
+		if (narrow()) {
+			clearRows();
+			RedButton btn = new RedButton("羁绊", 7) {
+				@Override
+				protected void onClick() {
+					GameScene.show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessTraits());
+				}
+			};
+			btn.setRect(0, 3, WIDTH, 12);
+			add(btn);
+			setSize(WIDTH, 15);
+			return;
+		}
 		clearRows();
 
 		RenderedTextBlock title = PixelScene.renderTextBlock("羁绊", 7);
