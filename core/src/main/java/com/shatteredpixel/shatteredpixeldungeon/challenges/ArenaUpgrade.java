@@ -23,7 +23,8 @@ public enum ArenaUpgrade {
 	REAP,       // 收割：击杀回复最大生命 5%
 	CLEAVE,     // 顺劈：击杀时溅射周围 2 格
 	SANDS,      // 时之沙：时间 +15 秒
-	EXECUTE;    // 处决：对 35% 生命以下的敌人双倍伤害
+	EXECUTE,    // 处决：对 35% 生命以下的敌人双倍伤害
+	RAPID;      // 连射：自动开火间隔 -1 回合
 
 	private String key() {
 		return name().toLowerCase(Locale.ROOT);
@@ -39,7 +40,7 @@ public enum ArenaUpgrade {
 
 	/** 功能类强化只能拿一次。 */
 	private boolean oneTime() {
-		return this == CLEAVE || this == EXECUTE;
+		return this == CLEAVE || this == EXECUTE || this == RAPID;
 	}
 
 	public void apply(Hero hero) {
@@ -78,6 +79,9 @@ public enum ArenaUpgrade {
 			case EXECUTE:
 				empower.execute = true;
 				break;
+			case RAPID:
+				ArenaRun.addRapid();
+				break;
 		}
 	}
 
@@ -89,6 +93,8 @@ public enum ArenaUpgrade {
 			if (empower.cleave) pool.remove(CLEAVE);
 			if (empower.execute) pool.remove(EXECUTE);
 		}
+		// 射速已经到顶（1 回合间隔）就不再抽连射，省得出现废选项
+		if (ArenaRun.fireInterval() <= 1) pool.remove(RAPID);
 		ArenaUpgrade[] picked = new ArenaUpgrade[3];
 		for (int i = 0; i < picked.length; i++) {
 			if (pool.isEmpty()) {

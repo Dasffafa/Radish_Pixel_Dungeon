@@ -55,6 +55,9 @@ public class ArenaRun extends Buff {
 	private int timeLeft = TOTAL_TURNS;
 	private int stall = 0;
 	private ArenaUpgrade pending = null;
+	/** 自动开火冷却（回合）与连射强化层数。 */
+	private int fireCd = 1;
+	private int rapid = 0;
 
 	{
 		type = buffType.POSITIVE;
@@ -124,6 +127,7 @@ public class ArenaRun extends Buff {
 
 			case FIGHTING:
 				timeLeft--;
+				tickAutoFire();
 				if (timeLeft <= 0) {
 					timeLeft = 0;
 					finish();
@@ -146,6 +150,33 @@ public class ArenaRun extends Buff {
 
 		spend(TICK);
 		return true;
+	}
+
+	/** 射击间隔：基础 2 回合，每层「连射」-1，最低 1。 */
+	public static int fireInterval() {
+		ArenaRun run = get();
+		int rapid = run == null ? 0 : run.rapid;
+		return Math.max(1, 2 - rapid);
+	}
+
+	/** 每回合尝试自动开火；打不出来就下回合再试，免得空转。 */
+	private void tickAutoFire() {
+		if (--fireCd > 0) {
+			return;
+		}
+		if (ArenaAutoFire.fire(Dungeon.hero)) {
+			fireCd = fireInterval();
+		} else {
+			fireCd = 1;
+		}
+	}
+
+	/** 连射强化：射击间隔 -1（最低 1）。 */
+	public static void addRapid() {
+		ArenaRun run = get();
+		if (run != null) {
+			run.rapid++;
+		}
 	}
 
 	private void startWave(int newWave) {
@@ -342,6 +373,8 @@ public class ArenaRun extends Buff {
 		bundle.put("arena_kills", kills);
 		bundle.put("arena_time", timeLeft);
 		bundle.put("arena_stall", stall);
+		bundle.put("arena_fire_cd", fireCd);
+		bundle.put("arena_rapid", rapid);
 	}
 
 	@Override
@@ -356,6 +389,8 @@ public class ArenaRun extends Buff {
 		kills = bundle.getInt("arena_kills");
 		timeLeft = bundle.getInt("arena_time");
 		stall = bundle.getInt("arena_stall");
+		fireCd = bundle.getInt("arena_fire_cd");
+		rapid = bundle.getInt("arena_rapid");
 		if (timeLeft <= 0) {
 			timeLeft = 1;
 		}

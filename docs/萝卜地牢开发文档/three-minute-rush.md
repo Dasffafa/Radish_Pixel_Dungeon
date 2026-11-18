@@ -9,6 +9,21 @@
 - 一局 180 回合（约等于三分钟的观感），按回合而不是真实时间计时：读弹窗、看说明不扣时间。
 - 每波清空 → 弹出三选一强化 → 选完立刻刷下一波。计时在选强化时暂停。
 - 时间归零 → 结算：清到第几波、击杀数、评级（S/A/B/C），可以「再来一把」或回主界面。
+- **自动开火**：每 2 个回合自动朝最近的可见怪打一发，边走边射。
+
+## 自动开火（元气骑士手感的核心）
+
+`ArenaAutoFire.fire(hero)` 每回合被 `ArenaRun.tickAutoFire()` 试一次：
+
+1. 在 8 格内找最近的、`hero.fieldOfView` 里看得见的敌对怪；
+2. 优先用杖里嵌的法杖（`MagesStaff.wand`），其次背包里任意 `Wand`；
+3. 直接走 `wand.fx(bolt, callback)` + `wand.onZap(bolt)`，**不经过 `wandUsed()`**，
+   所以整局不消耗充能——这是挑战特权，正常对局完全不受影响；
+4. 没有法杖就甩一发内置能量弹（`MagicMissile` + `DamageInfo.MAGICAL`），伤害是武器的一半。
+
+射击间隔 = `max(1, 2 - 连射层数)`；打不出目标时下回合立刻重试，不空转。
+`Wand.curUser` / `Wand.curItem` 在开火前后存旧值再还原，避免串到玩家手动施法。
+
 
 ## 爽点从哪来
 
@@ -32,6 +47,7 @@
 | `CLEAVE` | 顺劈 | 击杀时对周围 2 格溅射 50% 伤害 |
 | `SANDS` | 时之沙 | 剩余时间 +15 秒 |
 | `EXECUTE` | 处决 | 对 35% 生命以下的敌人双倍伤害 |
+| `RAPID` | 连射 | 自动开火间隔 -1 回合（最低 1），拿到即锁定 |
 
 ## 波次
 
@@ -48,6 +64,7 @@ core/.../challenges/ArenaRun.java       导演 Buff：计时、出怪、清波�
 core/.../challenges/ArenaEmpower.java   英雄身上的数值成长（伤害/吸血/攻速/减伤）
 core/.../challenges/ArenaUpgrade.java   强化池与三选一抽取
 core/.../challenges/ArenaMobs.java      波次出怪表
+core/.../challenges/ArenaAutoFire.java  自动索敌开火（法杖 / 保底能量弹）
 core/.../levels/ArenaLevel.java         竞技场地图
 core/.../windows/WndArenaReward.java    三选一窗口
 core/.../windows/WndArenaResult.java    结算窗口
@@ -71,11 +88,12 @@ core/.../ui/ArenaHUD.java               顶部「时间 ｜ 波次 ｜ 击杀」
 
 ## 已做 / 未做
 
-已做：开局进竞技场、波次刷怪、清波三选一、计时、结算评级、再来一把、HUD、存档字段。
+已做：开局进竞技场、波次刷怪、清波三选一、计时、结算评级、再来一把、HUD、存档字段、法杖自动开火（不耗充能）+ 连射强化。
 
 未做（下一步可以做）：
 
 - 玩家在竞技场里死亡目前走原版死亡流程，不弹竞技场结算（想做「死亡即结算」需要拦 `HeroDeathEvent` 并接管死亡流程）。
 - 每 5 波一个精英/Boss 波。
 - 连杀（Combo）计数与全屏击杀特效。
+- 真正的实时双摇杆：现在是「回合制 + 自动开火」，不是连续移动的实时射击。
 - 竞技场主题（现在借用洞窟贴图，四角掩体是实心墙）。
