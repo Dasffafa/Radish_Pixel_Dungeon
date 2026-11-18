@@ -17,6 +17,30 @@ public class AutochessFoeBuff extends Buff {
 
 	private final ArrayList<String> items = new ArrayList<>();
 
+	/** 敌方棋子也会放技能：攒充能，满了自动释放。 */
+	private AutochessSkill skill;
+	private int star = 1;
+	private int mana = 0;
+
+	public void setup(AutochessSkill skill, int star) {
+		this.skill = skill;
+		this.star = Math.max(1, Math.min(3, star));
+		this.mana = 0;
+	}
+
+	@Override
+	public boolean act() {
+		spend(TICK);
+		if (skill != null && target.isAlive()) {
+			mana += 12;
+			if (mana >= skill.mana) {
+				mana = 0;
+				skill.cast(target, star, 1f);
+			}
+		}
+		return true;
+	}
+
 	{
 		type = buffType.POSITIVE;
 		announced = false;

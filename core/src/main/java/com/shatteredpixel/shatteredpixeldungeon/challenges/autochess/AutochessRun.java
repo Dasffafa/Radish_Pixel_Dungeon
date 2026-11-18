@@ -844,6 +844,9 @@ public class AutochessRun extends Buff {
 
 			// 自走棋里的敌人不给英雄经验/升级，玩家是观战方
 			mob.maxLvl = 0;
+			// 敌方也要能放技能、吃装备加成
+			AutochessFoeBuff foe = Buff.affect(mob, AutochessFoeBuff.class);
+			foe.setup(def.skill, star);
 		}
 		// 场景刚建时 sprite 可能还没挂上，beckon 会 NPE；
 		// 另外备战阶段不 beckon，否则每个棋子头上都会冒一个黄色感叹号
