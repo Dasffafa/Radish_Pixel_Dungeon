@@ -84,6 +84,8 @@ public class AutochessRun extends Buff {
 
 	/** 单位实体：key = side * 100 + index，拖拽时只改坐标不重造。 */
 	private final java.util.HashMap<Integer, Mob> unitMobs = new java.util.HashMap<>();
+	/** 每只棋子在场上的星级（敌我都有），单位头顶展示用。 */
+	private final java.util.HashMap<Mob, Integer> unitStars = new java.util.HashMap<>();
 	/** 对面备战席上的展示棋子（不参战）。 */
 	private final java.util.ArrayList<Mob> benchVisuals = new java.util.ArrayList<>();
 
@@ -145,6 +147,8 @@ public class AutochessRun extends Buff {
 			bot.advance(run.pool, 0);
 		}
 		run.rollShop();
+
+
 
 
 
@@ -547,6 +551,10 @@ public class AutochessRun extends Buff {
 	 * 于是「拖一下棋子就升级」。先把阵营改成中立再 destroy，这些奖励分支就都不走了。</p>
 	 */
 	private static void despawn(Mob mob) {
+		AutochessRun current = get();
+		if (current != null) {
+			current.unitStars.remove(mob);
+		}
 		if (mob == null) return;
 		if (mob.sprite != null) mob.sprite.killAndErase();
 		mob.alignment = Char.Alignment.NEUTRAL;
@@ -667,6 +675,12 @@ public class AutochessRun extends Buff {
 		GLog.p(M.L(AutochessRun.class, "fight_start", round, enemyCount));
 	}
 
+	/** 某只场上棋子的星级；没记录就当作 1 星。 */
+	public int starOf(Char mob) {
+		Integer star = unitStars.get(mob);
+		return star == null ? 1 : star;
+	}
+
 	private static Mob spawnUnit(AutochessPool.Def def, int cell, boolean playerSide, int star) {
 		if (cell == -1 || Dungeon.level == null) return null;
 		Mob mob;
@@ -682,6 +696,10 @@ public class AutochessRun extends Buff {
 			mob = new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Rat();
 		}
 		mob.pos = cell;
+		AutochessRun current = get();
+		if (current != null) {
+			current.unitStars.put(mob, Math.max(1, star));
+		}
 		mob.state = mob.HUNTING;
 		GameScene.add(mob);
 		Dungeon.level.occupyCell(mob);

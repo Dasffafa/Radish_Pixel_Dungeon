@@ -1,7 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.noosa.BitmapText;
@@ -10,14 +9,14 @@ import com.watabou.noosa.ui.Component;
 import java.util.ArrayList;
 
 /**
- * 在己方棋子头顶画一个小蓝箭头（"v"），用来区分敌我。
+ * 棋子头顶标记：己方画蓝色箭头，双方的星级用金色 "*" 数量表示。
  *
- * <p>实现方式参考伤害飘字：文字挂在棋子精灵所在的 Group 里、用世界坐标定位，
- * 这样一定画在棋子上面，镜头移动也跟着走。</p>
+ * <p>文字挂在棋子精灵所在的 Group 里、用世界坐标定位，和伤害飘字同一套路。</p>
  */
 public class AutochessUnitMarks extends Component {
 
-	private static final int COLOR = 0x66DDFF;
+	private static final int COLOR_ALLY = 0x66DDFF;
+	private static final int COLOR_STAR = 0xFFD766;
 
 	private final ArrayList<Mark> marks = new ArrayList<>();
 	private int builtVersion = -1;
@@ -33,22 +32,23 @@ public class AutochessUnitMarks extends Component {
 		}
 		if (run.unitVersion != builtVersion) {
 			builtVersion = run.unitVersion;
-			rebuild();
+			rebuild(run);
 		}
 
 		for (Mark mark : marks) {
-			mark.update();
+			mark.update(run);
 		}
 	}
 
-	private void rebuild() {
+	private void rebuild(AutochessRun run) {
 		clearMarks();
 		if (Dungeon.level == null) return;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.alignment != Char.Alignment.ALLY) continue;
-			if (mob.sprite == null || mob.sprite.parent == null) continue;
-			Mark mark = new Mark(mob);
-			mob.sprite.parent.add(mark.label);
+			if (!mob.isAlive() || mob.sprite == null || mob.sprite.parent == null) continue;
+			boolean ally = mob.alignment == com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY;
+			Mark mark = new Mark(mob, ally, run.starOf(mob));
+			mob.sprite.parent.add(mark.arrow);
+			mob.sprite.parent.add(mark.stars);
 			marks.add(mark);
 		}
 	}
@@ -66,32 +66,50 @@ public class AutochessUnitMarks extends Component {
 		super.destroy();
 	}
 
-	/** 头顶的 "v" 标记，跟着精灵走。 */
 	private static class Mark {
 		final Mob mob;
-		final BitmapText label;
+		final BitmapText arrow;
+		final BitmapText stars;
 
-		Mark(Mob mob) {
+		Mark(Mob mob, boolean ally, int star) {
 			this.mob = mob;
-			label = new BitmapText(PixelScene.pixelFont);
-			label.text("v");
-			label.hardlight(COLOR);
-			label.scale.set(0.8f);
+
+			arrow = new BitmapText(PixelScene.pixelFont);
+			arrow.text("v");
+			arrow.hardlight(COLOR_ALLY);
+			arrow.scale.set(0.8f);
+			arrow.visible = ally;
+
+			stars = new BitmapText(PixelScene.pixelFont);
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < Math.max(1, star); i++) sb.append("*");
+			stars.text(sb.toString());
+			stars.hardlight(COLOR_STAR);
+			stars.scale.set(0.7f);
 		}
 
-		void update() {
+		void update(AutochessRun run) {
 			if (mob == null || !mob.isAlive() || mob.sprite == null) {
-				label.visible = false;
+				arrow.visible = false;
+				stars.visible = false;
 				return;
 			}
-			label.visible = mob.sprite.visible;
-			label.x = mob.sprite.x + mob.sprite.width() / 2f - 2f;
-			label.y = mob.sprite.y - 7f;
-			PixelScene.align(label);
+			boolean visible = mob.sprite.visible;
+			stars.visible = visible;
+			if (arrow.visible) {
+				arrow.visible = visible;
+				arrow.x = mob.sprite.x + mob.sprite.width() / 2f - 2f;
+				arrow.y = mob.sprite.y - 8f;
+				PixelScene.align(arrow);
+			}
+			stars.x = mob.sprite.x + mob.sprite.width() / 2f - 2f;
+			stars.y = mob.sprite.y - (arrow.visible ? 15f : 8f);
+			PixelScene.align(stars);
 		}
 
 		void destroy() {
-			label.killAndErase();
+			arrow.killAndErase();
+			stars.killAndErase();
 		}
 	}
 }

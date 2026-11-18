@@ -60,9 +60,27 @@ public class AutochessBoardDrag extends Component {
 
 		if (Dungeon.level == null) return;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.alignment != Char.Alignment.ALLY) continue;
+			if (!mob.isAlive()) continue;
 			if (mob.sprite == null || mob.sprite.parent == null) continue;
 			final Mob unit = mob;
+
+			// 敌方单位：只能点开详情，不能拖
+			if (mob.alignment != Char.Alignment.ALLY) {
+				PointerArea peek = new PointerArea(mob.sprite) {
+					@Override
+					protected void onClick(PointerEvent event) {
+						AutochessPool.Def def = AutochessPool.ofName(unit.getClass().getSimpleName());
+						if (def != null) {
+							com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+									new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessInfo(def));
+						}
+					}
+				};
+				peek.active = true;
+				peek.visible = true;
+				add(peek);
+				continue;
+			}
 
 			PointerArea area = new PointerArea(mob.sprite) {
 				@Override
