@@ -171,6 +171,12 @@ public abstract class Mob extends Char {
 		target = cell;
 	}
 
+	/** 自走棋用：去掉掉落物，免得场上堆一堆没人捡的东西。 */
+	public void clearLoot() {
+		loot = null;
+		lootChance = 0f;
+	}
+
 	public int defenseSkill = 0;
 
 	public int EXP = 1;

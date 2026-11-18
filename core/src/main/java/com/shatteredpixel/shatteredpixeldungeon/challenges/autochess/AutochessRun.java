@@ -236,6 +236,10 @@ public class AutochessRun extends Buff {
 
 
 
+
+
+
+
 	}
 
 	@Override
@@ -399,9 +403,13 @@ public class AutochessRun extends Buff {
 
 	/** 某个格子上是哪个棋子，返回 {side, index}，没有返回 null。 */
 	public int[] unitAt(int cell) {
+		// 战斗中不生成备战席棋子：它们不参战，留在场上只会干扰回合推进
+		if (state != State.FIGHT) {
 		for (int i = 0; i < bench.length; i++) {
 			if (bench[i] != null && ChessBoardLevel.benchCell(i) == cell) return new int[]{0, i};
 		}
+		}
+
 		for (int i = 0; i < board.length; i++) {
 			if (board[i] != null && boardCell[i] == cell) return new int[]{1, i};
 		}
@@ -530,6 +538,8 @@ public class AutochessRun extends Buff {
 			}
 			if (cell < 0 || cell == mob.pos) continue;
 			mob.pos = cell;
+		// 自走棋里棋子不掉落物（没人捡，只会堆一地）
+		mob.clearLoot();
 			unitVersion++;
 			Dungeon.level.occupyCell(mob);
 			if (mob.sprite != null) {
@@ -662,6 +672,8 @@ public class AutochessRun extends Buff {
 
 		unitMobs.clear();
 		unitVersion++;
+		// 战斗中不生成备战席棋子：它们不参战，留在场上只会干扰回合推进
+		if (state != State.FIGHT) {
 		for (int i = 0; i < bench.length; i++) {
 			String[] parts = split(bench, i);
 			if (parts == null) continue;
@@ -672,6 +684,8 @@ public class AutochessRun extends Buff {
 			AutochessUnitBuff ib = mob == null ? null : mob.buff(AutochessUnitBuff.class);
 			if (ib != null) ib.setItems(AutochessItems.parse(bench[i]));
 		}
+		}
+
 		for (int i = 0; i < board.length; i++) {
 			String[] parts = split(board, i);
 			if (parts == null) continue;
@@ -806,6 +820,8 @@ public class AutochessRun extends Buff {
 			mob = new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Rat();
 		}
 		mob.pos = cell;
+		// 自走棋里棋子不掉落物（没人捡，只会堆一地）
+		mob.clearLoot();
 		AutochessRun current = get();
 		if (current != null) {
 			current.unitStars.put(mob, Math.max(1, star));
@@ -1211,9 +1227,13 @@ public class AutochessRun extends Buff {
 		bundle.put("ac_xp", xp);
 		bundle.put("ac_win_streak", winStreak);
 		bundle.put("ac_lose_streak", loseStreak);
+		// 战斗中不生成备战席棋子：它们不参战，留在场上只会干扰回合推进
+		if (state != State.FIGHT) {
 		for (int i = 0; i < bench.length; i++) {
 			bundle.put("ac_bench_" + i, bench[i] == null ? "" : bench[i]);
 		}
+		}
+
 		for (int i = 0; i < board.length; i++) {
 			bundle.put("ac_board_" + i, board[i] == null ? "" : board[i]);
 			bundle.put("ac_cell_" + i, boardCell[i]);
@@ -1259,10 +1279,14 @@ public class AutochessRun extends Buff {
 		xp = bundle.getInt("ac_xp");
 		winStreak = bundle.getInt("ac_win_streak");
 		loseStreak = bundle.getInt("ac_lose_streak");
+		// 战斗中不生成备战席棋子：它们不参战，留在场上只会干扰回合推进
+		if (state != State.FIGHT) {
 		for (int i = 0; i < bench.length; i++) {
 			String e = bundle.getString("ac_bench_" + i);
 			bench[i] = e == null || e.isEmpty() ? null : e;
 		}
+		}
+
 		for (int i = 0; i < board.length; i++) {
 			String e = bundle.getString("ac_board_" + i);
 			board[i] = e == null || e.isEmpty() ? null : e;
