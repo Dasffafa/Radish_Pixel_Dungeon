@@ -772,6 +772,7 @@ public class AutochessRun extends Buff {
 			return;
 		}
 		state = State.FIGHT;
+		fightTurns = 0;
 		buildMatches();
 		refreshPreview();
 		int enemyCount = (opponent != null && !opponent.deployed().isEmpty())
@@ -840,8 +841,27 @@ public class AutochessRun extends Buff {
 		return best;
 	}
 
+	/** 本场战斗已经推进了多少回合（防止双方够不到对方时永远打不完）。 */
+	private int fightTurns = 0;
+
+	/** 每推进一回合调用；超过上限就按剩余人数判胜负。 */
+	public void tickFight() {
+		if (state != State.FIGHT) return;
+		fightTurns++;
+		if (fightTurns < 140) return;
+		if (ChessBoardLevel.countSide(true) >= ChessBoardLevel.countSide(false)) {
+			GLog.i(M.L(AutochessRun.class, "timeout_win"));
+			winRound();
+		} else {
+			GLog.i(M.L(AutochessRun.class, "timeout_lose"));
+			loseRound();
+		}
+	}
+
 	public void checkFight() {
 		if (state != State.FIGHT || Dungeon.level == null) return;
+		// 开局头几拍不判负：单位刚生成、刚唤醒，避免「点了开战立刻失败」
+		if (fightTurns < 10) return;
 		if (ChessBoardLevel.countSide(false) > 0) {
 			if (ChessBoardLevel.countSide(true) <= 0) loseRound();
 			return;

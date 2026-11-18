@@ -136,6 +136,25 @@ public class AutochessHUD extends Component {
 				Dungeon.hero,
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger.class);
 
+		// 战斗中：把盯着观战者的敌人改成盯己方棋子，否则它们会卡在包间外永远打不完
+		if (run.state() == AutochessRun.State.FIGHT) {
+			for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
+					: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+				if (!mob.isAlive() || mob.targetPos() != booth) continue;
+				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob best = null;
+				for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob other
+						: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+					if (!other.isAlive()) continue;
+					if (other.alignment != com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY) continue;
+					if (best == null || Dungeon.level.distance(mob.pos, other.pos)
+							< Dungeon.level.distance(mob.pos, best.pos)) {
+						best = other;
+					}
+				}
+				mob.retarget(best != null ? best.pos : -1);
+			}
+		}
+
 		// 清掉棋子头顶的情绪气泡（"?"/"!"），它们会让画面很乱
 		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
 				: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
@@ -244,6 +263,7 @@ public class AutochessHUD extends Component {
 					Dungeon.hero.spendAndNext(1f);
 				}
 			}
+			run.tickFight();
 			run.checkFight();
 		} else {
 			acc = 0f;

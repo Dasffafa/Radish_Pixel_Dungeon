@@ -162,6 +162,15 @@ public abstract class Mob extends Char {
 
 	protected int target = -1;
 
+	/** 自走棋用：读/改目标格子（观战者不想被敌人追）。 */
+	public int targetPos() {
+		return target;
+	}
+
+	public void retarget(int cell) {
+		target = cell;
+	}
+
 	public int defenseSkill = 0;
 
 	public int EXP = 1;
