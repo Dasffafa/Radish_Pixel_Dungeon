@@ -1216,13 +1216,7 @@ public class AutochessRun extends Buff {
 	}
 
 	private void showShopNextFrame() {
-		final int r = round;
-		Game.runOnRenderThread(new Callback() {
-			@Override
-			public void call() {
-				GameScene.show(new WndAutochessShop(r));
-			}
-		});
+		// 商店现在是常驻底部栏，不再弹窗
 	}
 
 	/* ====================== 羁绊 ====================== */
