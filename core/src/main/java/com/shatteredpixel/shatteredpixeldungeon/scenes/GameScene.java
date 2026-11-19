@@ -1051,7 +1051,7 @@ public class GameScene extends PixelScene {
 		// 自走棋：日志要抬到常驻商店栏上方，别盖住商店
 		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
 				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
-			y = uiCamera.height - 52 - 2;
+			y = uiCamera.height - 72 - 2;
 		}
 		if (SPDSettings.interfaceSize() == 0){
 			if (tagsOnLeft) {
