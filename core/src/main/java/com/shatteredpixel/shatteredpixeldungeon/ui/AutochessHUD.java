@@ -164,6 +164,13 @@ public class AutochessHUD extends Component {
 		}
 	}
 
+	/** 棋盘上不该有掉落物：每帧都清一遍，旧存档里的遗留物也会被扫掉。 */
+	private void clearGroundLoot() {
+		if (Dungeon.level != null && Dungeon.level.heaps != null && Dungeon.level.heaps.size > 0) {
+			Dungeon.level.heaps.clear();
+		}
+	}
+
 	private void keepFullVision() {
 		if (Dungeon.level == null || Dungeon.level.heroFOV == null
 				|| Dungeon.level.heroFOV.length != Dungeon.level.length()) {
@@ -225,6 +232,7 @@ public class AutochessHUD extends Component {
 		// 之后每帧继续把视野撑满：怪物和迷雾都按 heroFOV 判断可见性，
 		// 不这么做的话棋子会在包间外面「隐身」，只看得到日志说谁死了
 		keepFullVision();
+		clearGroundLoot();
 		spectate(run);
 
 		String text = M.L(AutochessHUD.class, "format",

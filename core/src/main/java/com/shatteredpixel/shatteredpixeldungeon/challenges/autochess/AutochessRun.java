@@ -669,6 +669,10 @@ public class AutochessRun extends Buff {
 
 	/** 把双方按当前摆位重新铺到棋盘上（备战阶段就是预览，不会动）。 */
 	public void refreshPreview() {
+		// 清掉棋盘上遗留的掉落物（旧存档/怪物死亡都可能留下）
+		if (Dungeon.level != null && Dungeon.level.heaps != null) {
+			Dungeon.level.heaps.clear();
+		}
 		if (!(Dungeon.level instanceof ChessBoardLevel)) return;
 		clearUnits();
 
