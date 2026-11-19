@@ -137,7 +137,7 @@ for f in (0, 6, 12):
     paint_floor(f, FLOOR_MID, FLOOR_MID_SEAM)
 
 # ---------- walls ----------
-for row in (3, 4, 5, 6):
+for row in (3, 4, 5, 6, 9, 10, 11):
     for col in range(COLS):
         paint_wall(row * COLS + col)
 for row in (12, 13, 14, 15):
