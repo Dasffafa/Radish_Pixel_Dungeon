@@ -683,6 +683,12 @@ public class AutochessRun extends Buff {
 		mob.destroy();
 	}
 
+	/** 备战时间到、场上和备战席都没有棋子：直接算这回合失败。 */
+	public void forfeitEmpty() {
+		if (state != State.PREP) return;
+		loseRound();
+	}
+
 	/** 备战时间到：把备战席的棋子随机补到空着的上阵位。 */
 	public void autoDeployBench() {
 		if (state != State.PREP) return;
