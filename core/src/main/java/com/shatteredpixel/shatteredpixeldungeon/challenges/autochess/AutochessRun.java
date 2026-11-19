@@ -578,6 +578,9 @@ public class AutochessRun extends Buff {
 		String[] parts = split(arr, index);
 		if (parts == null) return 0;
 		int value = sellValue(side, index);
+		// 卖掉棋子：身上的装备回到背包
+		java.util.ArrayList<String> worn = AutochessItems.parse(arr[index]);
+		for (String it : worn) itemBag.add(it);
 		if (pool != null) {
 			pool.give(parts[0]);
 		}
