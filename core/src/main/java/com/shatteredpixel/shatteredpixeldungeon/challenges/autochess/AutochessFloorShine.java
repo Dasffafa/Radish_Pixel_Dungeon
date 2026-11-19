@@ -45,11 +45,10 @@ public class AutochessFloorShine extends Component {
 
 		columns = new ColorBlock[fieldW];
 		for (int i = 0; i < fieldW; i++) {
-			// 斜向光带：每列高度一样，但整体略微倾斜
-			int slant = (int) (i * 0.35f);
-			ColorBlock c = new ColorBlock(1, fieldH - slant, 0xFFFFFFFF);
+			// 竖直光带：整列同高，扫过时是一条竖直的光
+			ColorBlock c = new ColorBlock(1, fieldH, 0xFFFFFFFF);
 			c.x = startX + i;
-			c.y = fieldY + slant;
+			c.y = fieldY;
 			c.visible = false;
 			add(c);
 			columns[i] = c;
