@@ -587,6 +587,20 @@ public class AutochessRun extends Buff {
 		return value;
 	}
 
+	/** 某只棋子身上的装备（给 UI 显示用）。 */
+	public void clearSelection() {
+		selectedSide = -1;
+		selectedIndex = -1;
+	}
+
+	public java.util.ArrayList<String> equippedItems(int side, int index) {
+		String[] arr = entries(side);
+		if (arr == null || index < 0 || index >= arr.length) return new java.util.ArrayList<>();
+		String entry = arr[index];
+		if (entry == null) return new java.util.ArrayList<>();
+		return AutochessItems.parse(entry);
+	}
+
 	public int sellValue(int side, int index) {
 		String cls = unitClass(side, index);
 		if (cls == null) return 0;

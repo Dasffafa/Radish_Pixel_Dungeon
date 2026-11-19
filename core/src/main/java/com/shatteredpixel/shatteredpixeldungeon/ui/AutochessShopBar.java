@@ -1,6 +1,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool;
+import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -102,7 +103,7 @@ public class AutochessShopBar extends Component {
 
 		// ---------- 按钮行 ----------
 		float by = oy + 11;
-		float bw = (w - MARGIN * 2 - GAP * 6) / 7f;
+		float bw = (w - MARGIN * 2 - GAP * 7) / 8f;
 		float bh = 11;
 
 		buildButton(M.L(AutochessShopBar.class, "refresh", AutochessRun.REFRESH_COST),

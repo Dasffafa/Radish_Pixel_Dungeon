@@ -39,10 +39,13 @@ public class AutochessHealthBars extends Component {
 		}
 		boolean hpVisible = run.state() == AutochessRun.State.FIGHT;
 
-		// 清掉已经死掉/消失的棋子
+		// 清掉已经死掉/消失的棋子（也包括已经不在场上、只剩残影的）
+		java.util.HashSet<Mob> present = new java.util.HashSet<>();
+		for (Mob m : Dungeon.level.mobs.toArray(new Mob[0])) present.add(m);
 		bars.entrySet().removeIf(e -> {
 			Mob mob = e.getKey();
-			boolean gone = !mob.isAlive() || mob.sprite == null || !mob.sprite.visible;
+			boolean gone = !mob.isAlive() || mob.sprite == null || !mob.sprite.visible
+					|| !present.contains(mob);
 			if (gone) {
 				e.getValue().bg.killAndErase();
 				e.getValue().fill.killAndErase();
