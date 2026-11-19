@@ -777,8 +777,22 @@ public class AutochessRun extends Buff {
 			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
 			if (def == null) continue;
 			int star = parts.length > 1 ? parseInt(parts[1]) : 1;
-			spawnUnit(def, ChessBoardLevel.enemySlot(i + (round % 3)), false, star);
+			Mob foeMob = spawnUnit(def, ChessBoardLevel.enemySlot(i + (round % 3)), false, star);
+			giveEnemyItems(foeMob);
 		}
+	}
+
+	/** 敌方棋子随机带 1~2 件装备（不然 AI 永远没装备）。 */
+	private static void giveEnemyItems(Mob mob) {
+		if (mob == null || Math.random() > 0.55) return;
+		AutochessFoeBuff fb = mob.buff(AutochessFoeBuff.class);
+		if (fb == null) return;
+		int n = 1 + (int) (Math.random() * 2);
+		java.util.ArrayList<String> eq = new java.util.ArrayList<>();
+		for (int k = 0; k < n; k++) {
+			eq.add(AutochessItems.ALL[(int) (Math.random() * AutochessItems.ALL.length)]);
+		}
+		fb.setItems(eq);
 	}
 
 	/** 轮换着挑一个还活着的 AI 当对手。 */
