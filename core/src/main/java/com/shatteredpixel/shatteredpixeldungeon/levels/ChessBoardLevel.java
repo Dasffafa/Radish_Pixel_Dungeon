@@ -58,7 +58,7 @@ public class ChessBoardLevel extends DeadEndLevel {
 
 	@Override
 	public String tilesTex() {
-		return Assets.Environment.TILES_MOSS;
+		return Assets.Environment.TILES_ARENA;
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public class ChessBoardLevel extends DeadEndLevel {
 		// 中线：战场整列装饰格
 		int center = SIZE / 2;
 		for (int y = FIELD_MIN_Y; y < SIZE - 1; y++) {
-			map[y * width() + center] = Terrain.EMPTY_SP;
+			map[y * width() + center] = Terrain.EMPTY;
 		}
 
 		// 敌方备战席：最下面一排 x1..9
