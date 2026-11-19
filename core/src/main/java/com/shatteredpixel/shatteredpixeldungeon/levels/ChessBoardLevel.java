@@ -96,7 +96,7 @@ public class ChessBoardLevel extends DeadEndLevel {
 		// 云顶风：我方半场绿色地砖、敌方半场灰砖，一眼分敌我
 		for (int y = FIELD_MIN_Y; y <= FIELD_MAX_Y; y++) {
 			for (int x = 1; x <= PLAYER_MAX_X; x++) {
-				map[y * width() + x] = Terrain.GRASS;
+				map[y * width() + x] = Terrain.EMPTY_SP;
 			}
 			for (int x = ENEMY_MIN_X; x <= SIZE - 2; x++) {
 				map[y * width() + x] = Terrain.EMPTY_DECO;
