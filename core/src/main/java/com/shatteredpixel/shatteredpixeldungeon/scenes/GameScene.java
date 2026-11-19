@@ -394,6 +394,9 @@ public class GameScene extends PixelScene {
 			autochessHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.WIDTH) / 2f, hudY);
 			add(autochessHud);
 
+			// 自走棋用不到原版英雄 UI：背包和右上角菜单都藏起来
+			menu.visible = false;
+
 			// 右侧对手列表（云顶式）：点头像看对方阵容
 			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessOpponentList oppList =
 					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessOpponentList();
@@ -406,6 +409,8 @@ public class GameScene extends PixelScene {
 			// 己方棋子头顶的小蓝箭头
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitMarks());
 
+			// 原版英雄状态条在自走棋里没用，藏起来（toolbar/inventory 此时还没创建）
+			status.visible = false;
 			// 左侧羁绊栏
 			// 左侧羁绊栏（窄屏不挂，改从商店的「羁绊」按钮看）
 			{
@@ -472,6 +477,11 @@ public class GameScene extends PixelScene {
 		}
 
 		toolbar = new Toolbar();
+		// 自走棋不需要物品栏
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			toolbar.visible = false;
+		}
 		toolbar.camera = uiCamera;
 		add( toolbar );
 
@@ -483,7 +493,14 @@ public class GameScene extends PixelScene {
 			inventory.maxHeight = Math.max( 60, (int)(uiCamera.height * 0.72f) );
 			inventory.setPos( Math.max(0, uiCamera.width - inventory.width()),
 					Math.max(0, uiCamera.height - inventory.height()) );
+
 			add(inventory);
+
+			// 自走棋不需要背包
+			if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+					&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+				inventory.visible = false;
+			}
 
 			toolbar.setRect( 0, uiCamera.height - toolbar.height() - inventory.height(), uiCamera.width, toolbar.height() );
 		} else {

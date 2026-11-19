@@ -297,7 +297,13 @@ public class WndAutochessShop extends Window {
 	@Override
 	public void update() {
 		super.update();
-		// 窗口内部布局本身就是横条，位置保持居中；不再改 camera，避免把窗口推出屏幕
+		// 云顶式：稍微往下贴，但不把窗口推出屏幕
+		float screenH = camera.screenHeight();
+		float targetY = Game.height - screenH - 2 * camera.zoom;
+		float centeredY = (Game.height - screenH) / 2f;
+		int shift = Math.round(targetY - centeredY);
+		shift = Math.max(0, Math.min(40, shift));
+		offset(0, shift);
 		AutochessRun current = AutochessRun.get();
 		if (current != null
 				&& (current.selectedSide != lastSelSide || current.selectedIndex != lastSelIndex)) {
