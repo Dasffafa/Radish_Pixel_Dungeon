@@ -896,12 +896,12 @@ public class AutochessRun extends Buff {
 			for (Mob other : Dungeon.level.mobs.toArray(new Mob[0])) {
 				if (!other.isAlive() || other.alignment == mob.alignment) continue;
 				int d = Dungeon.level.distance(mob.pos, other.pos);
-				if (d > 8) continue;
+				if (d > 5) continue;
 				if (enemy == null || d < Dungeon.level.distance(mob.pos, enemy.pos)) enemy = other;
 			}
 			if (enemy == null) continue;
-			if (Dungeon.level.distance(mob.pos, enemy.pos) <= 1) continue;
-			mob.attack(enemy);
+			// 只帮忙挑目标，真正出手交给它自己的 AI（保留攻速与攻击动画节奏）
+			mob.retarget(enemy.pos);
 		}
 	}
 

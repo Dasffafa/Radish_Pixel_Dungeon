@@ -86,6 +86,9 @@ public class AutochessFoeBuff extends Buff {
 	public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 		if (attacker != target) return;
 		float mul = 1f;
+		if (Dungeon.level != null && Dungeon.level.distance(target.pos, defender.pos) > 1) {
+			mul *= 0.78f;
+		}
 		mul += 0.25f * power("MoonlightArmor");
 		mul += 0.40f * power("KillBoatSword");
 		mul += 0.20f * power("SoulMix");

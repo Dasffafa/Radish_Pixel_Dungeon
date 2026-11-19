@@ -148,7 +148,10 @@ public class AutochessUnitBuff extends AllyBuff {
 	public void modifyOutgoingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 		if (attacker != target || defender == null) return;
 
-		float mul = 1f + 0.8f * (star - 1);
+		float mul = 1f + 0.8f * (star - 1);		// 远程出手伤害略降，避免后排还没接战就把前排融化
+		if (Dungeon.level != null && Dungeon.level.distance(target.pos, defender.pos) > 1) {
+			mul *= 0.78f;
+		}
 
 		// 兽群 · 围攻：越被围伤害越高
 		if (hasTrait(AutochessPool.BEAST)) {
