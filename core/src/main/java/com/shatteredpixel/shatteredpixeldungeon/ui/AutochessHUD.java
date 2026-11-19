@@ -30,6 +30,7 @@ public class AutochessHUD extends Component {
 	private static final com.watabou.input.PointerEvent.Type[] NO_TYPES = null;
 
 	private float acc = 0f;
+	private int stuckTicks = 0;
 	private boolean revealed = false;
 
 	/** 屏幕中上方的短提示（胜利/战败/掉落等）。 */
@@ -261,16 +262,21 @@ public class AutochessHUD extends Component {
 				bannerLabel.alpha(Math.min(1f, bannerTimer / 0.5f));
 			}
 		}
-
 		if (run.state() == AutochessRun.State.FIGHT) {
 			acc += Game.elapsed;
 			if (acc >= TURN_INTERVAL) {
 				acc = 0f;
-				// 英雄只是节拍器：ready 就正常推进；不 ready 就直接让 Actor 队列走一步
+				// 英雄只是节拍器：ready 就推进；连续几拍不 ready 就强制置为就绪
 				if (Dungeon.hero != null && Dungeon.hero.ready) {
+					stuckTicks = 0;
 					Dungeon.hero.spendAndNext(1f);
-				} else {
-					com.shatteredpixel.shatteredpixeldungeon.actors.Actor.process();
+				} else if (Dungeon.hero != null) {
+					stuckTicks++;
+					if (stuckTicks >= 3) {
+						stuckTicks = 0;
+						Dungeon.hero.ready = true;
+						Dungeon.hero.spendAndNext(1f);
+					}
 				}
 				run.tickFight();
 				run.checkFight();

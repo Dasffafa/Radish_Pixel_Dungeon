@@ -46,7 +46,7 @@ public class WndAutochessLobby extends Window {
 		if (run != null) {
 			// 玩家自己
 			pos = addRow(pos, Messages.get(WndAutochessLobby.class, "you"),
-					run.life(), run.level(), opponentOf(run, "你"), null, false);
+					run.life(), run.level(), run.gold(), opponentOf(run, "你"), null, false);
 
 			for (AutochessBot bot : run.bots()) {
 				if (!bot.alive()) {
@@ -58,7 +58,7 @@ public class WndAutochessLobby extends Window {
 					pos += 14;
 					continue;
 				}
-				pos = addRow(pos, bot.name, bot.hp, bot.level,
+				pos = addRow(pos, bot.name, bot.hp, bot.level, bot.gold,
 						opponentOf(run, bot.name), bot, true);
 			}
 		}
@@ -76,7 +76,7 @@ public class WndAutochessLobby extends Window {
 		resize(WIDTH, (int) Math.ceil(pos));
 	}
 
-	private float addRow(float pos, String name, int hp, int level,
+	private float addRow(float pos, String name, int hp, int level, int gold,
 						 String opponent, AutochessBot bot, boolean clickable) {
 		CharSprite icon = null;
 		if (bot != null) {
@@ -94,7 +94,7 @@ public class WndAutochessLobby extends Window {
 			add(icon);
 		}
 
-		String line1 = Messages.get(WndAutochessLobby.class, "line", name, hp, level);
+		String line1 = Messages.get(WndAutochessLobby.class, "line", name, hp, level, gold);
 		RenderedTextBlock first = PixelScene.renderTextBlock(line1, 7);
 		first.hardlight(bot == null ? 0x66DDFF : 0xFFFFFF);
 		first.maxWidth(WIDTH - MARGIN * 2 - 26);
