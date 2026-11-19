@@ -683,6 +683,35 @@ public class AutochessRun extends Buff {
 		mob.destroy();
 	}
 
+	/** 备战时间到：把备战席的棋子随机补到空着的上阵位。 */
+	public void autoDeployBench() {
+		if (state != State.PREP) return;
+		int need = maxDeploy() - deployed();
+		if (need <= 0) return;
+
+		java.util.ArrayList<Integer> emptySlots = new java.util.ArrayList<>();
+		for (int k = 0; k < 12; k++) {
+			int slot = ChessBoardLevel.playerSlot(k);
+			if (slot >= 0 && unitAt(slot) == null) emptySlots.add(k);
+		}
+		if (emptySlots.isEmpty()) return;
+		java.util.Collections.shuffle(emptySlots);
+
+		java.util.ArrayList<Integer> benchIdx = new java.util.ArrayList<>();
+		for (int i = 0; i < bench.length; i++) {
+			if (bench[i] != null) benchIdx.add(i);
+		}
+		java.util.Collections.shuffle(benchIdx);
+
+		for (int i : benchIdx) {
+			if (need <= 0 || emptySlots.isEmpty()) break;
+			int to = ChessBoardLevel.playerSlot(emptySlots.remove(0));
+			if (moveUnit(ChessBoardLevel.benchCell(i), to)) {
+				need--;
+			}
+		}
+	}
+
 	/** 校验并修复上阵格：越界的拉回默认格，重叠的找空位。 */
 	public void sanitizeBoardCells() {
 		if (!(Dungeon.level instanceof ChessBoardLevel)) return;
