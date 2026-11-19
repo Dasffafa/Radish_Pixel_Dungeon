@@ -86,17 +86,27 @@ public class ChessBoardLevel extends DeadEndLevel {
 
 		// 备战位：y=1 的 x5..13，铺装饰格让玩家一眼看出这是「备战席」
 		for (int i = 0; i < BENCH_COUNT; i++) {
-			map[BENCH_Y * width() + BENCH_MIN_X + i] = Terrain.EMPTY_DECO;
+			map[BENCH_Y * width() + BENCH_MIN_X + i] = Terrain.EMPTY_SP;
 		}
 		// 备战位下面整排墙，和战场隔开
 		for (int x = BENCH_MIN_X; x <= SIZE - 2; x++) {
 			map[2 * width() + x] = Terrain.WALL;
 		}
 
+		// 云顶风：我方半场绿色地砖、敌方半场灰砖，一眼分敌我
+		for (int y = FIELD_MIN_Y; y <= FIELD_MAX_Y; y++) {
+			for (int x = 1; x <= PLAYER_MAX_X; x++) {
+				map[y * width() + x] = Terrain.GRASS;
+			}
+			for (int x = ENEMY_MIN_X; x <= SIZE - 2; x++) {
+				map[y * width() + x] = Terrain.EMPTY_DECO;
+			}
+		}
+
 		// 中线：战场整列装饰格
 		int center = SIZE / 2;
 		for (int y = FIELD_MIN_Y; y < SIZE - 1; y++) {
-			map[y * width() + center] = Terrain.EMPTY_DECO;
+			map[y * width() + center] = Terrain.EMPTY_SP;
 		}
 
 		// 敌方备战席：最下面一排 x1..9

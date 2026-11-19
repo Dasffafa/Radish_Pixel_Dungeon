@@ -404,6 +404,9 @@ public class GameScene extends PixelScene {
 			oppList.setPos(Math.max(2f, uiCamera.width - 48f), hudY + com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.HEIGHT + 2);
 			add(oppList);
 
+			// 云顶风地格描边（我方蓝、敌方红）
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessArenaOverlay());
+
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());
 			// 己方棋子头顶的小蓝箭头
