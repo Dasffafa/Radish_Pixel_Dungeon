@@ -201,6 +201,48 @@ public class AutochessHUD extends Component {
 		}
 	}
 
+	/** 备战阶段的待机呼吸：棋子轻微上下浮动。 */
+	private final java.util.HashMap<com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob, Float> breathBase =
+			new java.util.HashMap<>();
+	private final java.util.HashMap<com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob, Float> breathPhase =
+			new java.util.HashMap<>();
+	private float breathTime = 0f;
+
+	private void idleBreath(AutochessRun run) {
+		breathTime += Game.elapsed;
+		if (Dungeon.level == null) {
+			breathBase.clear();
+			breathPhase.clear();
+			return;
+		}
+		boolean prep = run.state() == AutochessRun.State.PREP;
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
+				: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+			if (!mob.isAlive() || mob.sprite == null) {
+				Float b = breathBase.remove(mob);
+				breathPhase.remove(mob);
+				if (b != null && mob.sprite != null) mob.sprite.y = b;
+				continue;
+			}
+			boolean ours = mob.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff.class) != null
+					|| mob.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff.class) != null;
+			if (!ours || !prep) {
+				Float b = breathBase.remove(mob);
+				breathPhase.remove(mob);
+				if (b != null) mob.sprite.y = b;
+				continue;
+			}
+			Float base = breathBase.get(mob);
+			if (base == null) {
+				base = mob.sprite.y;
+				breathBase.put(mob, base);
+				breathPhase.put(mob, (float) (Math.random() * Math.PI * 2));
+			}
+			Float ph = breathPhase.get(mob);
+			mob.sprite.y = base + (float) Math.sin(breathTime * 1.8f + (ph == null ? 0f : ph)) * 1.2f;
+		}
+	}
+
 	/** 棋盘上不该有掉落物：每帧都清一遍，旧存档里的遗留物也会被扫掉。 */
 	private void clearGroundLoot() {
 		if (Dungeon.level != null && Dungeon.level.heaps != null && Dungeon.level.heaps.size > 0) {
@@ -270,6 +312,7 @@ public class AutochessHUD extends Component {
 		// 不这么做的话棋子会在包间外面「隐身」，只看得到日志说谁死了
 		keepFullVision();
 		clearGroundLoot();
+		idleBreath(run);
 		spectate(run);
 
 		// ------- 云顶式顶部条 -------
