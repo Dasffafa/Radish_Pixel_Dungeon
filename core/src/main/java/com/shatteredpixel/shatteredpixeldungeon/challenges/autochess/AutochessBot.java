@@ -23,8 +23,21 @@ public class AutochessBot {
 	/** 收集到的装备（上场时按顺序发给棋子）。 */
 	public final ArrayList<String> items = new ArrayList<>();
 
+	/** 这个 AI 偏好的羁绊（每个 AI 不一样，避免所有 AI 阵容雷同）。 */
+	private final String signatureTrait;
+	/** 消费激进程度：<1 更爱攒钱，>1 更爱花。 */
+	private final float greed;
+
 	public AutochessBot(String name) {
 		this.name = name;
+		String[] all = {
+				AutochessPool.BEAST, AutochessPool.SWARM, AutochessPool.UNDEAD,
+				AutochessPool.CONSTRUCT, AutochessPool.DEMON, AutochessPool.HUMANOID,
+				AutochessPool.TANK, AutochessPool.ASSASSIN, AutochessPool.RANGED,
+				AutochessPool.FIGHTER, AutochessPool.MAGE, AutochessPool.SUPPORT
+		};
+		this.signatureTrait = all[(int) (Math.random() * all.length)];
+		this.greed = 0.7f + (float) Math.random() * 0.6f;
 	}
 
 	public boolean alive() {
@@ -42,8 +55,10 @@ public class AutochessBot {
 	/** 每回合变强一点：收入 → 升级 → 留利息 → 补棋/换棋 → 三连 → 捡装备。 */
 	public void advance(AutochessSharedPool pool, int round) {
 
-		// 1) 收入：基础 5 + 利息（每 10 金 +1，上限 5）
-		gold += 5 + Math.min(5, gold / 10);
+		// 1) 收入：基础 5 + 利息（每 10 金 +1，上限 5）；round 0 是开场选秀，不发工资
+		if (round > 0) {
+			gold += 5 + Math.min(5, gold / 10);
+		}
 
 		// 2) 升级：跟着回合走，钱够才买（每回合最多一次）
 		int targetLevel = Math.min(10, 1 + round / 2);
@@ -52,12 +67,13 @@ public class AutochessBot {
 			level++;
 		}
 
-		// 3) 留底：前两回合把钱花光，之后开始攒利息
-		int reserve = round <= 2 ? 0 : Math.min(20, (gold / 10) * 10);
+		// 3) 留钱：前两回合花光，之后按性格攒利息
+		int reserve = round <= 2 ? 0 : Math.round(Math.min(20, (gold / 10) * 10) * greed);
 
-		int cap = Math.min(12, level + 2);
+		// 上阵 level+2，另留 3 个备战位（AI 才有板凳）
+		int cap = Math.min(12, level + 5);
 
-		// 4) 补棋：从池子里挑「最合阵容」的一个，直到钱花到底线
+		// 4) 补棋：从池子里挑最合阵容的，直到钱到底线
 		int guard = 0;
 		while (roster.size() < cap && gold > reserve && gold >= 1 && guard++ < 10) {
 			String pick = pickBestCandidate(pool);
@@ -67,7 +83,7 @@ public class AutochessBot {
 			roster.add(pick + ":1");
 		}
 
-		// 5) 阵容满了：如果抽到比队里最弱更好的，就卖掉换掉
+		// 5) 阵容满了：抽到比队里最弱更好的，就卖掉换掉
 		if (roster.size() >= cap && gold > reserve + 2) {
 			String pick = pickBestCandidate(pool);
 			if (pick != null) {
@@ -86,26 +102,40 @@ public class AutochessBot {
 		// 6) 三连升星
 		mergeAll();
 
-		// 7) 装备：每回合 40% 概率捡一件，最多 8 件
+		// 7) 装备：每回合 40% 捡一件，最多 8 件
 		if (Math.random() < 0.4f && items.size() < 8) {
 			items.add(AutochessItems.ALL[(int) (Math.random() * AutochessItems.ALL.length)]);
 		}
 	}
 
-	/** 从池子里抽几个候选，挑评分最高的（模拟「刷新看牌」）。 */
+	/** 从池子里抽几个候选，在评分最高的前 3 个里随机取（模拟「看牌挑一个」）。 */
 	private String pickBestCandidate(AutochessSharedPool pool) {
-		String best = null;
-		int bestScore = Integer.MIN_VALUE;
-		for (int i = 0; i < 6; i++) {
+		java.util.ArrayList<String> cands = new java.util.ArrayList<>();
+		java.util.ArrayList<Integer> scores = new java.util.ArrayList<>();
+		for (int i = 0; i < 7; i++) {
 			String cls = pool.draw(level);
 			if (cls == null) continue;
-			int score = scoreClass(cls);
-			if (score > bestScore) {
-				bestScore = score;
-				best = cls;
-			}
+			cands.add(cls);
+			scores.add(scoreClass(cls));
 		}
-		return best;
+		if (cands.isEmpty()) return null;
+		// 选前 3 名
+		int best = -1;
+		for (int i = 0; i < 3 && !cands.isEmpty(); i++) {
+			best = 0;
+			for (int j = 1; j < cands.size(); j++) {
+				if (scores.get(j) > scores.get(best)) best = j;
+			}
+			if (i == 2 || cands.size() == 1) break;
+			// 前两名直接取最优，第三名开始随机，避免所有 AI 走同一条线
+			String cls = cands.get(best);
+			if (Math.random() < 0.45f) {
+				return cls;
+			}
+			cands.remove(best);
+			scores.remove(best);
+		}
+		return cands.get(best);
 	}
 
 	/** 一张牌对本阵容的价值：费用、主流羁绊、是否凑对/凑三连。 */
@@ -117,6 +147,7 @@ public class AutochessBot {
 
 		String dominant = dominantTrait();
 		if (dominant != null && def.hasTrait(dominant)) score += 3;
+		if (def.hasTrait(signatureTrait)) score += 4;
 
 		int sameClass = 0;
 		for (String e : roster) {
@@ -223,6 +254,15 @@ public class AutochessBot {
 			list.add(sorted.get(i));
 		}
 		return list;
+	}
+
+	/** 备战席：阵容里没上场的那些（和出战阵容不一样）。 */
+	public ArrayList<String> bench() {
+		ArrayList<String> rest = new ArrayList<>(roster);
+		for (String d : deployed()) {
+			rest.remove(d);
+		}
+		return rest;
 	}
 
 	/** 越靠前越适合站前排。 */

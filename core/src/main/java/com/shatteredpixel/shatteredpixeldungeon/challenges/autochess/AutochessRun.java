@@ -240,6 +240,10 @@ public class AutochessRun extends Buff {
 
 
 
+
+
+
+
 	}
 
 	@Override
@@ -725,10 +729,11 @@ public class AutochessRun extends Buff {
 	private void spawnOpponentBench() {
 		clearBenchVisuals();
 		if (opponent == null || Dungeon.level == null) return;
-		for (int i = 0; i < opponent.roster.size() && i < ChessBoardLevel.ENEMY_BENCH_COUNT; i++) {
-			AutochessPool.Def def = AutochessPool.ofName(AutochessBot.clsOf(opponent.roster.get(i)));
+		java.util.ArrayList<String> benchList = opponent.bench();
+		for (int i = 0; i < benchList.size() && i < ChessBoardLevel.ENEMY_BENCH_COUNT; i++) {
+			AutochessPool.Def def = AutochessPool.ofName(AutochessBot.clsOf(benchList.get(i)));
 			if (def == null) continue;
-			int star = AutochessBot.starOf(opponent.roster.get(i));
+			int star = AutochessBot.starOf(benchList.get(i));
 			Mob mob = spawnUnit(def, ChessBoardLevel.enemyBenchCell(i), false, star);
 			if (mob != null) {
 				mob.alignment = Char.Alignment.NEUTRAL;
