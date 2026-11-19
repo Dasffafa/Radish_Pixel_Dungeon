@@ -408,7 +408,7 @@ public class GameScene extends PixelScene {
 
 			// 左侧羁绊栏
 			// 左侧羁绊栏（窄屏不挂，改从商店的「羁绊」按钮看）
-			if (uiCamera == null || uiCamera.width >= 210) {
+			{
 				com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel traitPanel =
 						new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel();
 				traitPanel.setPos(4, 42);
