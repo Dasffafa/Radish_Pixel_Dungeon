@@ -71,7 +71,8 @@ public class AutochessBot {
 		int reserve = round <= 2 ? 0 : Math.round(Math.min(20, (gold / 10) * 10) * greed);
 
 		// 上阵 level+2，另留 3 个备战位（AI 才有板凳）
-		int cap = Math.min(12, level + 5);
+		// 开场选秀只买够上阵（和玩家开局买 3 个左右对等），之后才留 3 个备战位
+		int cap = round == 0 ? level + 2 : Math.min(12, level + 5);
 
 		// 4) 补棋：从池子里挑最合阵容的，直到钱到底线
 		int guard = 0;
