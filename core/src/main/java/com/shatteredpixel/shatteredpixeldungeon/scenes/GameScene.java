@@ -410,6 +410,8 @@ public class GameScene extends PixelScene {
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFloorShine());
 			// 开战特效：双方阵地闪一下
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBattleFlash());
+			// 回合切换转场（镜头轻推）
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRoundTransition());
 
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());

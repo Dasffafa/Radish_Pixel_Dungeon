@@ -207,6 +207,9 @@ public class AutochessHUD extends Component {
 	private final java.util.HashMap<com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob, Float> breathPhase =
 			new java.util.HashMap<>();
 	private float breathTime = 0f;
+	/** 回合切换时的状态条脉冲（1 → 0）。 */
+	private float roundPulse = 0f;
+	private int lastRoundSeen = -1;
 
 	private void idleBreath(AutochessRun run) {
 		breathTime += Game.elapsed;
@@ -314,6 +317,21 @@ public class AutochessHUD extends Component {
 		clearGroundLoot();
 		idleBreath(run);
 		spectate(run);
+
+		// 回合切换：状态条脉冲 + 顶部横幅
+		if (run.round() != lastRoundSeen) {
+			lastRoundSeen = run.round();
+			roundPulse = 1f;
+			banner("第 " + run.round() + " 回合", 0xFFD58A);
+		}
+		if (roundPulse > 0f) {
+			roundPulse = Math.max(0f, roundPulse - Game.elapsed / 0.9f);
+			// 边框从亮金渐变回暗金
+			int r = (int) (0xB5 + (0xF5 - 0xB5) * roundPulse);
+			int g2 = (int) (0x9E + (0xE8 - 0x9E) * roundPulse);
+			int b2 = (int) (0x09 + (0x9A - 0x09) * roundPulse);
+			if (frame != null) frame.setLineColor(0xFF000000 | (r << 16) | (g2 << 8) | b2);
+		}
 
 		// ------- 云顶式顶部条 -------
 		boolean fighting = run.state() == AutochessRun.State.FIGHT;
