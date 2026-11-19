@@ -15,8 +15,8 @@ import java.util.ArrayList;
  */
 public class AutochessOpponentList extends Component {
 
-	private static final int WIDTH = 46;
-	private static final int ROW = 22;
+	private static final int WIDTH = 42;
+	private static final int ROW = 17;
 	private static final int MAX_ROWS = 6;
 
 	private final ArrayList<Component> built = new ArrayList<>();
@@ -59,7 +59,7 @@ public class AutochessOpponentList extends Component {
 
 	private void rebuild(AutochessRun run) {
 		// 子元素用绝对坐标，这里直接把整列摆到右上角
-		float ox = PixelScene.uiCamera == null ? 2f : Math.max(2f, PixelScene.uiCamera.width - 48f);
+		float ox = PixelScene.uiCamera == null ? 2f : Math.max(2f, PixelScene.uiCamera.width - 45f);
 		float oy = 40f;
 		clearRows();
 		int i = 0;
@@ -83,7 +83,7 @@ public class AutochessOpponentList extends Component {
 		if (first != null) {
 			CharSprite icon = AutochessIcons.spriteFor(AutochessBot.clsOf(first));
 			if (icon != null) {
-				AutochessIcons.place(icon, x0 + 2, y + 3, 12);
+				AutochessIcons.place(icon, x0 + 1, y + 2, 11);
 				if (!bot.alive()) icon.alpha(0.4f);
 				row.add(icon);
 			}
@@ -91,25 +91,25 @@ public class AutochessOpponentList extends Component {
 
 		RenderedTextBlock name = PixelScene.renderTextBlock(bot.name, 5);
 		name.hardlight(bot.alive() ? 0xFFFFFF : 0x888888);
-		name.maxWidth(WIDTH - 17);
-		name.setPos(x0 + 16, y + 1);
+		name.maxWidth(WIDTH - 14);
+		name.setPos(x0 + 13, y + 1);
 		row.add(name);
 
 		// 血条
-		float barW = WIDTH - 18;
+		float barW = WIDTH - 15;
 		ColorBlock barBg = new ColorBlock(barW, 2, 0xFF303030);
-		barBg.x = x0 + 16;
+		barBg.x = x0 + 13;
 		barBg.y = y + 8;
 		row.add(barBg);
 		ColorBlock barFill = new ColorBlock(barW * Math.max(0f, Math.min(1f, bot.hp / 100f)), 2,
 				bot.hp > 50 ? 0xFF66DD66 : (bot.hp > 25 ? 0xFFDDCC44 : 0xFFDD5555));
-		barFill.x = x0 + 16;
+		barFill.x = x0 + 13;
 		barFill.y = barBg.y;
 		row.add(barFill);
 
-		RenderedTextBlock info = PixelScene.renderTextBlock(bot.hp + " ｜ Lv" + bot.level, 5);
+		RenderedTextBlock info = PixelScene.renderTextBlock(bot.hp + " " + bot.level + "级", 4);
 		info.hardlight(0xAAAAAA);
-		info.setPos(x0 + 16, y + 11);
+		info.setPos(x0 + 13, y + 10);
 		row.add(info);
 
 		com.watabou.noosa.PointerArea tap = new com.watabou.noosa.PointerArea(0, 0, WIDTH, ROW - 2) {

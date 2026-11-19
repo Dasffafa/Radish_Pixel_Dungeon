@@ -26,7 +26,7 @@ public class WndAutochessShop extends Window {
 
 	private static final int MARGIN = 3;
 	private static final int GAP = 2;
-	private static final int CARD_H = 54;
+	private static final int CARD_H = 40;
 
 	private static final int COLOR_GOLD = 0xFFD700;
 	private static final int COLOR_DIM = 0xAAAAAA;
@@ -65,7 +65,7 @@ public class WndAutochessShop extends Window {
 		RenderedTextBlock header = PixelScene.renderTextBlock(
 				M.L(WndAutochessShop.class, "hud",
 						run.round(), run.gold(), run.life(), run.level(),
-						run.deployed(), run.maxDeploy()), 7);
+						run.deployed(), run.maxDeploy()), 6);
 		header.hardlight(COLOR_GOLD);
 		header.maxWidth(WIDTH - MARGIN * 2);
 		header.setPos(MARGIN, y);
@@ -89,9 +89,9 @@ public class WndAutochessShop extends Window {
 		// ---------- 操作按钮（一排 6 个）----------
 		float btnW = (WIDTH - MARGIN * 2 - GAP * 5) / 6f;
 		float bx = MARGIN;
-		float bh = 13;
+		float bh = 11;
 
-		RedButton refresh = new RedButton("刷新 " + AutochessRun.REFRESH_COST, 6) {
+		RedButton refresh = new RedButton("刷新" + AutochessRun.REFRESH_COST, 5) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -102,7 +102,7 @@ public class WndAutochessShop extends Window {
 		add(refresh);
 		bx += btnW + GAP;
 
-		RedButton xp = new RedButton("经验 " + AutochessRun.XP_COST, 6) {
+		RedButton xp = new RedButton("经验" + AutochessRun.XP_COST, 5) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -113,7 +113,7 @@ public class WndAutochessShop extends Window {
 		add(xp);
 		bx += btnW + GAP;
 
-		RedButton lock = new RedButton(run.shopLocked() ? "开锁" : "锁定", 6) {
+		RedButton lock = new RedButton(run.shopLocked() ? "开锁" : "锁定", 5) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -126,7 +126,7 @@ public class WndAutochessShop extends Window {
 		add(lock);
 		bx += btnW + GAP;
 
-		RedButton lobby = new RedButton("大厅", 6) {
+		RedButton lobby = new RedButton("大厅", 5) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndAutochessLobby());
@@ -136,7 +136,7 @@ public class WndAutochessShop extends Window {
 		add(lobby);
 		bx += btnW + GAP;
 
-		RedButton traitsBtn = new RedButton("羁绊", 6) {
+		RedButton traitsBtn = new RedButton("羁绊", 5) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndAutochessTraits());
@@ -146,7 +146,7 @@ public class WndAutochessShop extends Window {
 		add(traitsBtn);
 		bx += btnW + GAP;
 
-		RedButton fight = new RedButton("开战", 7) {
+		RedButton fight = new RedButton("开战", 6) {
 			@Override
 			protected void onClick() {
 				hide();
@@ -269,7 +269,7 @@ public class WndAutochessShop extends Window {
 		RenderedTextBlock nameText = PixelScene.renderTextBlock(name, 5);
 		nameText.hardlight(costColor);
 		nameText.maxWidth(CARD_W);
-		nameText.setPos(x + (CARD_W - nameText.width()) / 2f, y + 22);
+		nameText.setPos(x + (CARD_W - nameText.width()) / 2f, y + 16);
 		add(nameText);
 
 		// 卡片窄，只显示第一个羁绊
@@ -280,29 +280,29 @@ public class WndAutochessShop extends Window {
 		RenderedTextBlock traitText = PixelScene.renderTextBlock(traitStr, 5);
 		traitText.hardlight(COLOR_DIM);
 		traitText.maxWidth(CARD_W - 2);
-		traitText.setPos(x + (CARD_W - traitText.width()) / 2f, y + 31);
+		traitText.setPos(x + (CARD_W - traitText.width()) / 2f, y + 23);
 		add(traitText);
 
-		RedButton buy = new RedButton(def.cost + " 金", 6) {
+		RedButton buy = new RedButton(def.cost + "金", 5) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
 				if (current != null && current.buy(index)) rebuild();
 			}
 		};
-		buy.setRect(x + 1, y + CARD_H - 12, CARD_W - 2, 11);
+		buy.setRect(x + 1, y + CARD_H - 10, CARD_W - 2, 9);
 		add(buy);
 	}
 
 	@Override
 	public void update() {
 		super.update();
-		// 云顶式：稍微往下贴，但不把窗口推出屏幕
+		// 云顶式：贴到屏幕底部。offset 的单位是 UI 单位（内部会乘 zoom），
+		// 所以像素位移要再除以 zoom，之前漏了这步导致窗口被推出屏幕
 		float screenH = camera.screenHeight();
-		float targetY = Game.height - screenH - 2 * camera.zoom;
-		float centeredY = (Game.height - screenH) / 2f;
-		int shift = Math.round(targetY - centeredY);
-		shift = Math.max(0, Math.min(40, shift));
+		float shiftPx = (Game.height - screenH) / 2f - 3 * camera.zoom;
+		int shift = Math.round(shiftPx / Math.max(0.5f, camera.zoom));
+		shift = Math.max(0, Math.min(400, shift));
 		offset(0, shift);
 		AutochessRun current = AutochessRun.get();
 		if (current != null

@@ -18,7 +18,7 @@ import com.watabou.noosa.ui.Component;
 public class AutochessHUD extends Component {
 
 	public static float WIDTH = 168;
-	public static final float HEIGHT = 26;
+	public static final float HEIGHT = 20;
 
 	private static final float TURN_INTERVAL = 0.45f;   // 每回合之间的间隔：太短会看不清战斗过程
 	private static final int COLOR_NORMAL = 0xFFFFCC;
@@ -79,16 +79,16 @@ public class AutochessHUD extends Component {
 		avatarFrame = new RoundedFrame(0xCC222222, 0xFFFFCC66);
 		add(avatarFrame);
 
-		hpBg = new ColorBlock(18, 2, 0xFF302020);
+		hpBg = new ColorBlock(14, 2, 0xFF302020);
 		add(hpBg);
-		hpFill = new ColorBlock(18, 2, 0xFF66DD66);
+		hpFill = new ColorBlock(14, 2, 0xFF66DD66);
 		add(hpFill);
 
-		subLabel = PixelScene.renderTextBlock(6);
+		subLabel = PixelScene.renderTextBlock(5);
 		subLabel.hardlight(0xFFFFCC66);
 		add(subLabel);
 
-		fieldLabel = PixelScene.renderTextBlock(6);
+		fieldLabel = PixelScene.renderTextBlock(5);
 		fieldLabel.hardlight(0xFF99CCFF);
 		add(fieldLabel);
 
@@ -120,17 +120,17 @@ public class AutochessHUD extends Component {
 	@Override
 	protected void layout() {
 		frame.setRect(x, y, WIDTH, HEIGHT);
-		avatarFrame.setRect(x + 2, y + 2, 18, 18);
-		hpBg.x = x + 2;
-		hpBg.y = y + 21;
-		hpFill.x = x + 2;
-		hpFill.y = y + 21;
+		avatarFrame.setRect(x + 2, y + 2, 14, 14);
+		hpBg.x = x + 1;
+		hpBg.y = y + 17;
+		hpFill.x = x + 1;
+		hpFill.y = y + 17;
 		if (label != null) {
 			label.maxWidth((int) Math.max(40, WIDTH - 26));
-			label.setPos(x + 23, y + 2);
+			label.setPos(x + 18, y + 1);
 		}
-		if (subLabel != null) subLabel.setPos(x + 23, y + 10);
-		if (fieldLabel != null) fieldLabel.setPos(x + 23, y + 17);
+		if (subLabel != null) subLabel.setPos(x + 18, y + 8);
+		if (fieldLabel != null) fieldLabel.setPos(x + 18, y + 14);
 		if (tap != null) {
 			tap.x = x;
 			tap.y = y;
@@ -275,8 +275,8 @@ public class AutochessHUD extends Component {
 		boolean fighting = run.state() == AutochessRun.State.FIGHT;
 		String line1 = "第 " + run.round() + " 回合 · "
 				+ M.L(AutochessHUD.class, fighting ? "fighting" : "prep");
-		String line2 = run.gold() + " 金 ｜ Lv" + run.level() + " ｜ 上阵 "
-				+ run.deployed() + "/" + run.maxDeploy();
+		String line2 = run.gold() + " 金 ｜ Lv" + run.level()
+				+ " ｜ " + run.deployed() + "/" + run.maxDeploy();
 		String line3 = "经验 " + run.xp() + "/"
 				+ (run.level() >= AutochessRun.MAX_LEVEL ? "-" : run.xpNeed());
 
@@ -292,7 +292,7 @@ public class AutochessHUD extends Component {
 		// 生命条（观战者血量）
 		float lifeRatio = Math.max(0f, Math.min(1f, run.life() / 100f));
 		if (hpFill != null) {
-			hpFill.width = 18 * lifeRatio;
+			hpFill.width = 14 * lifeRatio;
 			hpFill.color(0xFF000000 | (run.life() > 50 ? 0x66DD66 : (run.life() > 25 ? 0xDDCC44 : 0xDD5555)));
 		}
 
