@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.utils.Reflection;
 
@@ -28,6 +29,8 @@ public class WndAutochessInfo extends Window {
 
 	public WndAutochessInfo(AutochessPool.Def def, java.util.List<String> itemIds) {
 		super();
+		chrome.hardlight(DiceMageUI.DARK);
+		chrome.hardlight(DiceMageUI.DARK);
 
 		int camW = Boolean.getBoolean("arena.compact") ? 150 : (int) PixelScene.uiCamera.width;
 		WIDTH = Math.min(190, Math.max(116, camW - 20));
@@ -124,7 +127,7 @@ public class WndAutochessInfo extends Window {
 		add(starText);
 		pos = starText.bottom() + GAP;
 
-		RedButton close = new RedButton(Messages.get(WndAutochessInfo.class, "close"), 8) {
+		DiceMageUI.DiceButton close = new DiceMageUI.DiceButton(Messages.get(WndAutochessInfo.class, "close"), 8) {
 			@Override
 			protected void onClick() {
 				hide();

@@ -5,6 +5,7 @@ import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRu
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.ui.Component;
@@ -21,8 +22,8 @@ public class AutochessHUD extends Component {
 	public static final float HEIGHT = 20;
 
 	private static final float TURN_INTERVAL = 0.45f;   // 每回合之间的间隔：太短会看不清战斗过程
-	private static final int COLOR_NORMAL = 0xFFFFCC;
-	private static final int COLOR_FIGHT = 0xFF9060;
+	private static final int COLOR_NORMAL = 0xF1E5B5;   // DiceMage 奶油色
+	private static final int COLOR_FIGHT = 0xE8A24A;
 
 	private RoundedFrame frame;
 	private RoundedFrame avatarFrame;
@@ -73,7 +74,7 @@ public class AutochessHUD extends Component {
 
 	@Override
 	protected void createChildren() {
-		frame = new RoundedFrame(0xCC1A1A1A, 0xFFFF66);
+		frame = new RoundedFrame(0xEE09070B, DiceMageUI.GOLD);
 		add(frame);
 
 		avatarFrame = new RoundedFrame(0xCC222222, 0xFFFFCC66);
@@ -85,11 +86,11 @@ public class AutochessHUD extends Component {
 		add(hpFill);
 
 		subLabel = PixelScene.renderTextBlock(5);
-		subLabel.hardlight(0xFFFFCC66);
+		subLabel.hardlight(0xE8C13A);
 		add(subLabel);
 
 		fieldLabel = PixelScene.renderTextBlock(5);
-		fieldLabel.hardlight(0xFF99CCFF);
+		fieldLabel.hardlight(0x66CCFF);
 		add(fieldLabel);
 
 		label = PixelScene.renderTextBlock(7);

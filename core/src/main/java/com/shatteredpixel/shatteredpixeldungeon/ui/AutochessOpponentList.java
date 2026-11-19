@@ -74,7 +74,7 @@ public class AutochessOpponentList extends Component {
 		Component row = new Component();
 		row.camera = PixelScene.uiCamera;
 
-		RoundedFrame bg = new RoundedFrame(bot.alive() ? 0xCC1A1A1A : 0x88202020, 0xFF666666);
+		RoundedFrame bg = new RoundedFrame(bot.alive() ? 0xEE09070B : 0x88120F17, DiceMageUI.GREY_LINE);
 		bg.setRect(x0, y, WIDTH, ROW - 2);
 		row.add(bg);
 

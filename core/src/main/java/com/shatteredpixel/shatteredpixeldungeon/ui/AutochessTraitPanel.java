@@ -89,7 +89,7 @@ public class AutochessTraitPanel extends Component {
 		int tier = AutochessRun.traitTier(trait);
 		int border = tier >= 2 ? 0xFFFFCC33 : (tier == 1 ? 0xFFBFC7D5 : 0xFF666666);
 
-		RoundedFrame bg = new RoundedFrame(0xCC1A1A1A, border);
+		RoundedFrame bg = new RoundedFrame(0xEE09070B, border);
 		bg.setRect(x, y, CELL, CELL);
 		add(bg);
 

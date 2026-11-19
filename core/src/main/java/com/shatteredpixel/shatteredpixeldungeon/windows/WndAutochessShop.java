@@ -11,6 +11,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.AutochessIcons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RoundedFrame;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
@@ -51,6 +52,7 @@ public class WndAutochessShop extends Window {
 		WIDTH = Math.min(camW - 6, 340);
 		CARD_W = (WIDTH - MARGIN * 2 - GAP * 4) / 5;
 
+		chrome.hardlight(DiceMageUI.DARK);
 		run = AutochessRun.get();
 		if (run == null) {
 			hide();
@@ -91,7 +93,7 @@ public class WndAutochessShop extends Window {
 		float bx = MARGIN;
 		float bh = 11;
 
-		RedButton refresh = new RedButton("刷新" + AutochessRun.REFRESH_COST, 5) {
+		DiceMageUI.DiceButton refresh = new DiceMageUI.DiceButton("刷新" + AutochessRun.REFRESH_COST, 6) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -102,7 +104,7 @@ public class WndAutochessShop extends Window {
 		add(refresh);
 		bx += btnW + GAP;
 
-		RedButton xp = new RedButton("经验" + AutochessRun.XP_COST, 5) {
+		DiceMageUI.DiceButton xp = new DiceMageUI.DiceButton("经验" + AutochessRun.XP_COST, 6) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -113,7 +115,7 @@ public class WndAutochessShop extends Window {
 		add(xp);
 		bx += btnW + GAP;
 
-		RedButton lock = new RedButton(run.shopLocked() ? "开锁" : "锁定", 5) {
+		DiceMageUI.DiceButton lock = new DiceMageUI.DiceButton(run.shopLocked() ? "开锁" : "锁定", 6) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -126,7 +128,7 @@ public class WndAutochessShop extends Window {
 		add(lock);
 		bx += btnW + GAP;
 
-		RedButton lobby = new RedButton("大厅", 5) {
+		DiceMageUI.DiceButton lobby = new DiceMageUI.DiceButton("大厅", 6) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndAutochessLobby());
@@ -136,7 +138,7 @@ public class WndAutochessShop extends Window {
 		add(lobby);
 		bx += btnW + GAP;
 
-		RedButton traitsBtn = new RedButton("羁绊", 5) {
+		DiceMageUI.DiceButton traitsBtn = new DiceMageUI.DiceButton("羁绊", 6) {
 			@Override
 			protected void onClick() {
 				GameScene.show(new WndAutochessTraits());
@@ -146,7 +148,7 @@ public class WndAutochessShop extends Window {
 		add(traitsBtn);
 		bx += btnW + GAP;
 
-		RedButton fight = new RedButton("开战", 6) {
+		DiceMageUI.DiceButton fight = new DiceMageUI.DiceButton("开战", 6) {
 			@Override
 			protected void onClick() {
 				hide();
@@ -173,7 +175,7 @@ public class WndAutochessShop extends Window {
 			int shown = 0;
 			for (String id : bag) {
 				if (shown >= 6) break;
-				RedButton chip = new RedButton(AutochessItems.name(id), 6) {
+				DiceMageUI.DiceButton chip = new DiceMageUI.DiceButton(AutochessItems.name(id), 6) {
 					@Override
 					protected void onClick() {
 						AutochessRun current = AutochessRun.get();
@@ -200,7 +202,7 @@ public class WndAutochessShop extends Window {
 		if (run.selectedSide >= 0 && run.selectedIndex >= 0) {
 			final int side = run.selectedSide;
 			final int index = run.selectedIndex;
-			RedButton sell = new RedButton("卖出（+" + run.sellValue(side, index) + " 金）", 6) {
+			DiceMageUI.DiceButton sell = new DiceMageUI.DiceButton("卖出（+" + run.sellValue(side, index) + " 金）", 6) {
 				@Override
 				protected void onClick() {
 					AutochessRun current = AutochessRun.get();
@@ -241,7 +243,7 @@ public class WndAutochessShop extends Window {
 	private void addCard(int index, float x, float y) {
 		AutochessPool.Def def = run.offer(index);
 
-		RoundedFrame card = new RoundedFrame(0xCC1E1E1E, 0xFF444444);
+		RoundedFrame card = new RoundedFrame(0xEE09070B, DiceMageUI.GREY_LINE);
 		card.setRect(x, y, CARD_W, CARD_H);
 		add(card);
 
@@ -283,7 +285,7 @@ public class WndAutochessShop extends Window {
 		traitText.setPos(x + (CARD_W - traitText.width()) / 2f, y + 23);
 		add(traitText);
 
-		RedButton buy = new RedButton(def.cost + "金", 5) {
+		DiceMageUI.DiceButton buy = new DiceMageUI.DiceButton(def.cost + "金", 6) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();

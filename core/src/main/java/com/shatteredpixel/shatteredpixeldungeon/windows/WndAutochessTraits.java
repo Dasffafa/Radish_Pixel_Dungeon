@@ -7,6 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ public class WndAutochessTraits extends Window {
 
 	public WndAutochessTraits() {
 		super();
+		chrome.hardlight(DiceMageUI.DARK);
+		chrome.hardlight(DiceMageUI.DARK);
 
 		int width = Math.min(170, (int) PixelScene.uiCamera.width - 24);
 
@@ -70,7 +73,7 @@ public class WndAutochessTraits extends Window {
 			int goal = n >= thresholds[1] ? thresholds[1] : (n >= thresholds[0] ? thresholds[1] : thresholds[0]);
 
 			String text = Messages.get(AutochessPool.class, "trait_" + trait) + "  " + n + "/" + goal;
-			RedButton btn = new RedButton(text, 7) {
+			DiceMageUI.DiceButton btn = new DiceMageUI.DiceButton(text, 7) {
 				@Override
 				protected void onClick() {
 					GameScene.show(new WndAutochessTraitList(trait));
@@ -82,7 +85,7 @@ public class WndAutochessTraits extends Window {
 			pos += ROW;
 		}
 
-		RedButton close = new RedButton(Messages.get(WndAutochessTraits.class, "close"), 8) {
+		DiceMageUI.DiceButton close = new DiceMageUI.DiceButton(Messages.get(WndAutochessTraits.class, "close"), 8) {
 			@Override
 			protected void onClick() {
 				hide();

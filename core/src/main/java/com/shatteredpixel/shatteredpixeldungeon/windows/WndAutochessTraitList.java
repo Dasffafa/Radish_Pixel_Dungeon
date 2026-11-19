@@ -6,6 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AutochessIcons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 
@@ -29,6 +30,8 @@ public class WndAutochessTraitList extends Window {
 
 	public WndAutochessTraitList(String trait) {
 		super();
+		chrome.hardlight(DiceMageUI.DARK);
+		chrome.hardlight(DiceMageUI.DARK);
 
 		WIDTH = Math.min(180, Math.max(120, (int) PixelScene.uiCamera.width - 24));
 		COLUMNS = WIDTH < 150 ? 2 : 3;
@@ -102,7 +105,7 @@ public class WndAutochessTraitList extends Window {
 		}
 		if (col > 0) pos += ROW_H;
 
-		RedButton close = new RedButton(Messages.get(WndAutochessTraitList.class, "close"), 8) {
+		DiceMageUI.DiceButton close = new DiceMageUI.DiceButton(Messages.get(WndAutochessTraitList.class, "close"), 8) {
 			@Override
 			protected void onClick() {
 				hide();

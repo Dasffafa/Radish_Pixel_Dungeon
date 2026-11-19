@@ -8,6 +8,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.AutochessIcons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 
@@ -27,6 +28,8 @@ public class WndAutochessOpponent extends Window {
 
 	public WndAutochessOpponent(AutochessBot bot) {
 		super();
+		chrome.hardlight(DiceMageUI.DARK);
+		chrome.hardlight(DiceMageUI.DARK);
 
 		int camW = Boolean.getBoolean("arena.compact") ? 150 : (int) PixelScene.uiCamera.width;
 		WIDTH = Math.min(190, Math.max(118, camW - 20));
@@ -108,7 +111,7 @@ public class WndAutochessOpponent extends Window {
 			pos = traitSummary.bottom() + GAP;
 		}
 
-		RedButton close = new RedButton(Messages.get(WndAutochessOpponent.class, "close"), 8) {
+		DiceMageUI.DiceButton close = new DiceMageUI.DiceButton(Messages.get(WndAutochessOpponent.class, "close"), 8) {
 			@Override
 			protected void onClick() {
 				hide();

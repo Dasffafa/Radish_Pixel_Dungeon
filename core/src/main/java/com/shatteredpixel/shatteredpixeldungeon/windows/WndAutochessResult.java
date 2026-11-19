@@ -9,6 +9,7 @@ import com.shatteredpixel.shatteredpixeldungeon.scenes.TitleScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.watabou.noosa.Game;
 
@@ -24,6 +25,8 @@ public class WndAutochessResult extends Window {
 	public WndAutochessResult(int round, int gold) {
 
 		super();
+		chrome.hardlight(DiceMageUI.DARK);
+		chrome.hardlight(DiceMageUI.DARK);
 
 		RenderedTextBlock title = PixelScene.renderTextBlock(
 				M.L(WndAutochessResult.class, "title"), 9);
@@ -45,7 +48,7 @@ public class WndAutochessResult extends Window {
 
 		float pos = rank.bottom() + GAP + 2;
 
-		RedButton again = new RedButton(M.L(WndAutochessResult.class, "again"), 8) {
+		DiceMageUI.DiceButton again = new DiceMageUI.DiceButton(M.L(WndAutochessResult.class, "again"), 8) {
 			@Override
 			protected void onClick() {
 				hide();
@@ -68,7 +71,7 @@ public class WndAutochessResult extends Window {
 
 		pos = again.bottom() + GAP;
 
-		RedButton quit = new RedButton(M.L(WndAutochessResult.class, "quit"), 8) {
+		DiceMageUI.DiceButton quit = new DiceMageUI.DiceButton(M.L(WndAutochessResult.class, "quit"), 8) {
 			@Override
 			protected void onClick() {
 				hide();
