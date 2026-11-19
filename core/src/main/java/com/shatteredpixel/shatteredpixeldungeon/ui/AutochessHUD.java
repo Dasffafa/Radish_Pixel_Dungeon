@@ -326,16 +326,19 @@ public class AutochessHUD extends Component {
 			prepLeft = PREP_TIME;
 			banner(M.L(AutochessHUD.class, "round_banner", run.round()), 0xFFD58A);
 		}
-
-		// ------- 准备阶段倒计时：到 0 自动开战 -------
+		// ------- 准备阶段倒计时：到 0 自动开战 / 补位 / 判负 -------
 		if (run.state() == AutochessRun.State.PREP) {
 			if (prepLeft < 0f) prepLeft = PREP_TIME;
 			prepLeft -= Game.elapsed;
 			if (prepLeft <= 0f) {
 				prepLeft = PREP_TIME;
+				run.autoDeployBench();
 				if (run.deployed() > 0) {
 					banner(M.L(AutochessHUD.class, "auto_fight"), 0xFFD58A);
 					run.startFight();
+				} else {
+					banner(M.L(AutochessHUD.class, "no_units_lose"), 0xFF8844);
+					run.forfeitEmpty();
 				}
 			}
 		} else {
