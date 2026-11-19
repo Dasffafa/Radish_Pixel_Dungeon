@@ -284,6 +284,7 @@ public class Assets {
 		public static final String MAN = "sounds/man.mp3";
 
 		public static final String JUTTE_BREAK = "sounds/weapon_break.ogg";
+		public static final String CRITICAL = "sounds/snd_critical.ogg";
 
 		//圣宣的命中音效
 		public static final String HOLY_DECREE_HIT = "sounds/holy_decree_hit.mp3";
@@ -305,7 +306,7 @@ public class Assets {
 				LARGE_BELL,KILL_BOAT_SWORD_SLASH, KILL_BOAT_SWORD_SWING, MAN, JUTTE_BREAK,
 
 				//不在这个列表里的音效启动时不会加载，播放时没有任何声音
-				HOLY_DECREE_HIT,
+				HOLY_DECREE_HIT, CRITICAL,
 		};
 	}
 

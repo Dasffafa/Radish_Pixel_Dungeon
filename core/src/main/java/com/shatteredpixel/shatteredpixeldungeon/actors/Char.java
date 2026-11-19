@@ -456,7 +456,9 @@ public abstract class Char extends Actor {
 			int effectiveDamage = OrdinaryAttackDamage.foldPostProcessing(this, enemy, attackDamage);
 
             if (visibleFight) {
-                if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
+                if (attackDamage.isCritical() && effectiveDamage > 0) {
+                    Sample.INSTANCE.play(Assets.Sounds.CRITICAL, 1f, 1f, 1f);
+                } else if (effectiveDamage > 0 || !enemy.blockSound(Random.Float(0.96f, 1.05f))) {
                     hitSound(Random.Float(0.87f, 1.15f));
                 }
             }
@@ -475,8 +477,14 @@ public abstract class Char extends Actor {
             EventManager.emit(new AttackHitEvent(this, enemy, effectiveDamage, attackDamage,
                     attackingWeapon(), defendingArmor(enemy), prep));
 
-            enemy.sprite.bloodBurstA(sprite.center(), effectiveDamage);
-            enemy.sprite.flash();
+            if (attackDamage.isCritical() && effectiveDamage > 0) {
+                enemy.sprite.bloodBurstB(sprite.center(), effectiveDamage);
+                enemy.sprite.spriteBurst(sprite.center(), effectiveDamage);
+                enemy.sprite.flash();
+            } else {
+                enemy.sprite.bloodBurstA(sprite.center(), effectiveDamage);
+                enemy.sprite.flash();
+            }
 
             if (!enemy.isAlive() && visibleFight) {
                 if (enemy == hero) {
