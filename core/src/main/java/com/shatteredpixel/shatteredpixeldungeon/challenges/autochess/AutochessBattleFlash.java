@@ -22,7 +22,12 @@ public class AutochessBattleFlash extends Component {
 	private final ColorBlock midLine;
 
 	private float flash = 0f;
-	private AutochessRun.State prevState = null;
+	/** 只有在 startFight() 真正开打时才会被置位，避免状态抖动误触发。 */
+	private static boolean pending = false;
+
+	public static void request() {
+		pending = true;
+	}
 
 	public AutochessBattleFlash() {
 		super();
@@ -57,14 +62,10 @@ public class AutochessBattleFlash extends Component {
 	public void update() {
 		super.update();
 
-		AutochessRun run = AutochessRun.get();
-		if (run == null) return;
-
-		AutochessRun.State state = run.state();
-		if (prevState == AutochessRun.State.PREP && state == AutochessRun.State.FIGHT) {
+		if (pending) {
+			pending = false;
 			flash = FLASH_TIME;
 		}
-		prevState = state;
 
 		if (flash <= 0f) {
 			playerHalf.visible = false;

@@ -244,6 +244,8 @@ public class AutochessRun extends Buff {
 
 
 
+
+
 	}
 
 	@Override
@@ -1344,9 +1346,12 @@ public class AutochessRun extends Buff {
 		for (int i = 0; i < board.length; i++) {
 			String e = bundle.getString("ac_board_" + i);
 			board[i] = e == null || e.isEmpty() ? null : e;
-			boardCell[i] = bundle.contains("ac_cell_" + i)
+			int savedCell = bundle.contains("ac_cell_" + i)
 					? bundle.getInt("ac_cell_" + i)
 					: ChessBoardLevel.playerSlot(i);
+			// 老存档可能存了墙外的坐标，读档时拉回默认格子
+			boardCell[i] = ChessBoardLevel.isPlayerField(savedCell)
+					? savedCell : ChessBoardLevel.playerSlot(i);
 		}
 
 		for (int i = 0; i < offers.length; i++) {
