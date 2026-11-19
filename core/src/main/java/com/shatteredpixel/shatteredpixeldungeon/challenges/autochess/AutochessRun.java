@@ -726,10 +726,9 @@ public class AutochessRun extends Buff {
 		clearBenchVisuals();
 		if (opponent == null || Dungeon.level == null) return;
 		for (int i = 0; i < opponent.roster.size() && i < ChessBoardLevel.ENEMY_BENCH_COUNT; i++) {
-			String[] parts = opponent.roster.get(i).split(":");
-			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
+			AutochessPool.Def def = AutochessPool.ofName(AutochessBot.clsOf(opponent.roster.get(i)));
 			if (def == null) continue;
-			int star = parts.length > 1 ? parseInt(parts[1]) : 1;
+			int star = AutochessBot.starOf(opponent.roster.get(i));
 			Mob mob = spawnUnit(def, ChessBoardLevel.enemyBenchCell(i), false, star);
 			if (mob != null) {
 				mob.alignment = Char.Alignment.NEUTRAL;
@@ -773,16 +772,32 @@ public class AutochessRun extends Buff {
 			return;
 		}
 		for (int i = 0; i < units.size(); i++) {
-			String[] parts = units.get(i).split(":");
-			AutochessPool.Def def = AutochessPool.ofName(parts[0]);
+			AutochessPool.Def def = AutochessPool.ofName(AutochessBot.clsOf(units.get(i)));
 			if (def == null) continue;
-			int star = parts.length > 1 ? parseInt(parts[1]) : 1;
+			int star = AutochessBot.starOf(units.get(i));
 			Mob foeMob = spawnUnit(def, ChessBoardLevel.enemySlot(i + (round % 3)), false, star);
-			giveEnemyItems(foeMob);
+			giveBotItems(foeMob, i);
 		}
 	}
 
 	/** 敌方棋子随机带 1~2 件装备（不然 AI 永远没装备）。 */
+	/** 把 AI 攒下的装备按顺序发给它的棋子（每个 2 件）。 */
+	private void giveBotItems(Mob mob, int unitIndex) {
+		if (mob == null) return;
+		AutochessFoeBuff fb = mob.buff(AutochessFoeBuff.class);
+		if (fb == null) return;
+		if (opponent == null || opponent.items.isEmpty()) {
+			giveEnemyItems(mob);
+			return;
+		}
+		java.util.ArrayList<String> eq = new java.util.ArrayList<>();
+		int start = unitIndex * 2;
+		for (int k = 0; k < 2 && start + k < opponent.items.size(); k++) {
+			eq.add(opponent.items.get(start + k));
+		}
+		if (!eq.isEmpty()) fb.setItems(eq);
+	}
+
 	private static void giveEnemyItems(Mob mob) {
 		if (mob == null || Math.random() > 0.55) return;
 		AutochessFoeBuff fb = mob.buff(AutochessFoeBuff.class);
@@ -1281,6 +1296,7 @@ public class AutochessRun extends Buff {
 					.append(bot.level).append("|").append(bot.gold);
 			for (String entry : bot.roster) sb.append(";").append(entry);
 			bundle.put("ac_bot_" + bi, sb.toString());
+			bundle.put("ac_bot_items_" + bi, AutochessItems.encode(bot.items));
 		}
 		if (opponent != null) bundle.put("ac_opponent", opponent.name);
 		bundle.put("ac_items", AutochessItems.encode(itemBag));
@@ -1353,6 +1369,10 @@ public class AutochessRun extends Buff {
 				for (String entry : saved.substring(semi + 1).split(";")) {
 					if (!entry.isEmpty()) bot.roster.add(entry);
 				}
+			}
+			String its = bundle.getString("ac_bot_items_" + bi);
+			if (its != null && !its.isEmpty()) {
+				bot.items.addAll(AutochessItems.parse("|" + its));
 			}
 			bots.add(bot);
 		}
