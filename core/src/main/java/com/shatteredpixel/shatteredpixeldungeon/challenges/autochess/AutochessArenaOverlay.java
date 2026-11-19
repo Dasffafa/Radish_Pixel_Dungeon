@@ -18,7 +18,8 @@ import java.util.Random;
 public class AutochessArenaOverlay extends Component {
 
 	private static final int CELL = DungeonTilemap.SIZE;
-	private static final int MARGIN = 320;
+	/** 夜色铺开的范围：要足够大，镜头缩放时也看不到边界。 */
+	private static final int MARGIN = 1400;
 	private static final int STAR_COUNT = 260;
 
 	private static final class Star {
@@ -65,10 +66,11 @@ public class AutochessArenaOverlay extends Component {
 		addGlow(0, bh, bw, 2);
 
 		// 星星
+		int starRange = 320;
 		Random rnd = new Random(20261120L);
 		for (int i = 0; i < STAR_COUNT; i++) {
-			float sx = rnd.nextInt(bw + MARGIN * 2) - MARGIN;
-			float sy = rnd.nextInt(bh + MARGIN * 2) - MARGIN;
+			float sx = rnd.nextInt(bw + starRange * 2) - starRange;
+			float sy = rnd.nextInt(bh + starRange * 2) - starRange;
 			if (sx >= -2 && sx <= bw + 2 && sy >= -2 && sy <= bh + 2) continue;
 
 			Star s = new Star();
