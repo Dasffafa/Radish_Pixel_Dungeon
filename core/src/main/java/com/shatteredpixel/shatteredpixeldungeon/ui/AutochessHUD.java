@@ -4,6 +4,8 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.ui.Component;
 
@@ -16,13 +18,20 @@ import com.watabou.noosa.ui.Component;
 public class AutochessHUD extends Component {
 
 	public static float WIDTH = 168;
-	public static final float HEIGHT = 16;
+	public static final float HEIGHT = 26;
 
 	private static final float TURN_INTERVAL = 0.45f;   // 每回合之间的间隔：太短会看不清战斗过程
 	private static final int COLOR_NORMAL = 0xFFFFCC;
 	private static final int COLOR_FIGHT = 0xFF9060;
 
 	private RoundedFrame frame;
+	private RoundedFrame avatarFrame;
+	private CharSprite avatar;
+	private String avatarCls = null;
+	private ColorBlock hpBg;
+	private ColorBlock hpFill;
+	private RenderedTextBlock subLabel;
+	private RenderedTextBlock fieldLabel;
 	private RenderedTextBlock label;
 	private com.watabou.noosa.PointerArea tap;
 	private String shown = "";
@@ -67,6 +76,22 @@ public class AutochessHUD extends Component {
 		frame = new RoundedFrame(0xCC1A1A1A, 0xFFFF66);
 		add(frame);
 
+		avatarFrame = new RoundedFrame(0xCC222222, 0xFFFFCC66);
+		add(avatarFrame);
+
+		hpBg = new ColorBlock(18, 2, 0xFF302020);
+		add(hpBg);
+		hpFill = new ColorBlock(18, 2, 0xFF66DD66);
+		add(hpFill);
+
+		subLabel = PixelScene.renderTextBlock(6);
+		subLabel.hardlight(0xFFFFCC66);
+		add(subLabel);
+
+		fieldLabel = PixelScene.renderTextBlock(6);
+		fieldLabel.hardlight(0xFF99CCFF);
+		add(fieldLabel);
+
 		label = PixelScene.renderTextBlock(7);
 		label.maxWidth((int) WIDTH - 8);
 		label.hardlight(COLOR_NORMAL);
@@ -95,13 +120,23 @@ public class AutochessHUD extends Component {
 	@Override
 	protected void layout() {
 		frame.setRect(x, y, WIDTH, HEIGHT);
+		avatarFrame.setRect(x + 2, y + 2, 18, 18);
+		hpBg.x = x + 2;
+		hpBg.y = y + 21;
+		hpFill.x = x + 2;
+		hpFill.y = y + 21;
+		if (label != null) {
+			label.maxWidth((int) Math.max(40, WIDTH - 26));
+			label.setPos(x + 23, y + 2);
+		}
+		if (subLabel != null) subLabel.setPos(x + 23, y + 10);
+		if (fieldLabel != null) fieldLabel.setPos(x + 23, y + 17);
 		if (tap != null) {
 			tap.x = x;
 			tap.y = y;
 			tap.width = WIDTH;
 			tap.height = HEIGHT;
 		}
-		centerLabel();
 	}
 
 	/** 把整张棋盘标记为已探索并刷新地图与迷雾，否则玩家看到的是一片黑。 */
@@ -236,16 +271,53 @@ public class AutochessHUD extends Component {
 		clearGroundLoot();
 		spectate(run);
 
-		String text = M.L(AutochessHUD.class, "format",
-				run.round(), run.gold(), run.life(), run.level(),
-				run.deployed(), run.maxDeploy(),
-				M.L(AutochessHUD.class, run.state() == AutochessRun.State.FIGHT ? "fighting" : "prep"));
-		if (!text.equals(shown)) {
-			shown = text;
-			label.text(text);
-			centerLabel();
+		// ------- 云顶式顶部条 -------
+		boolean fighting = run.state() == AutochessRun.State.FIGHT;
+		String line1 = "第 " + run.round() + " 回合 · "
+				+ M.L(AutochessHUD.class, fighting ? "fighting" : "prep");
+		String line2 = run.gold() + " 金 ｜ Lv" + run.level() + " ｜ 上阵 "
+				+ run.deployed() + "/" + run.maxDeploy();
+		String line3 = "经验 " + run.xp() + "/"
+				+ (run.level() >= AutochessRun.MAX_LEVEL ? "-" : run.xpNeed());
+
+		if (!line1.equals(shown)) {
+			shown = line1;
+			label.text(line1);
+			subLabel.text(line2);
+			fieldLabel.text(line3);
+			layout();
 		}
-		label.hardlight(run.state() == AutochessRun.State.FIGHT ? COLOR_FIGHT : COLOR_NORMAL);
+		label.hardlight(fighting ? COLOR_FIGHT : COLOR_NORMAL);
+
+		// 生命条（观战者血量）
+		float lifeRatio = Math.max(0f, Math.min(1f, run.life() / 100f));
+		if (hpFill != null) {
+			hpFill.width = 18 * lifeRatio;
+			hpFill.color(0xFF000000 | (run.life() > 50 ? 0x66DD66 : (run.life() > 25 ? 0xDDCC44 : 0xDD5555)));
+		}
+
+		// 头像：阵容里第一只棋子
+		String firstCls = null;
+		for (int i = 0; i < 12; i++) {
+			String cls = run.unitClass(1, i);
+			if (cls != null) { firstCls = cls; break; }
+		}
+		if (firstCls == null) firstCls = "Rat";
+		if (!firstCls.equals(avatarCls)) {
+			avatarCls = firstCls;
+			if (avatar != null) avatar.killAndErase();
+			avatar = AutochessIcons.spriteFor(firstCls);
+			if (avatar != null) {
+				avatar.scale.set(0.7f);
+				add(avatar);
+			}
+			layout();
+		}
+		if (avatar != null) {
+			avatar.x = x + 3;
+			avatar.y = y + 3;
+			PixelScene.align(avatar);
+		}
 
 		// 顶部提示条（胜利/战败……）
 		if (bannerTimer > 0f && bannerText != null) {

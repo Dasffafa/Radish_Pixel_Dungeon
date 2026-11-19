@@ -394,6 +394,13 @@ public class GameScene extends PixelScene {
 			autochessHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.WIDTH) / 2f, hudY);
 			add(autochessHud);
 
+			// 右侧对手列表（云顶式）：点头像看对方阵容
+			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessOpponentList oppList =
+					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessOpponentList();
+			oppList.camera = uiCamera;
+			oppList.setPos(Math.max(2f, uiCamera.width - 48f), hudY + com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.HEIGHT + 2);
+			add(oppList);
+
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());
 			// 己方棋子头顶的小蓝箭头
