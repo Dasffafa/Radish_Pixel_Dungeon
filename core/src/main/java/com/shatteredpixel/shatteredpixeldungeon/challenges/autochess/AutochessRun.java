@@ -373,6 +373,8 @@ public class AutochessRun extends Buff {
 			return false;
 		}
 		gold -= prices[index];
+		com.watabou.noosa.audio.Sample.INSTANCE.play(
+				com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.GOLD);
 		bench[slot] = cls + ":1";
 		offers[index] = null;
 		prices[index] = 0;
@@ -1097,6 +1099,7 @@ public class AutochessRun extends Buff {
 
 	/** 把背包里的装备装到指定格子的棋子上。 */
 	public boolean equipItem(int side, int index, String itemId) {
+		com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.ITEM);
 		String[] arr = entries(side);
 		if (arr == null || index < 0 || index >= arr.length) return false;
 		String entry = arr[index];

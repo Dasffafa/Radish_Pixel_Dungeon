@@ -102,7 +102,7 @@ public class AutochessShopBar extends Component {
 
 		// ---------- 按钮行 ----------
 		float by = oy + 11;
-		float bw = (w - MARGIN * 2 - GAP * 5) / 6f;
+		float bw = (w - MARGIN * 2 - GAP * 6) / 7f;
 		float bh = 11;
 
 		buildButton(M.L(AutochessShopBar.class, "refresh", AutochessRun.REFRESH_COST),
