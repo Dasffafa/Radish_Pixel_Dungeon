@@ -2,7 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.custom.dict;
 
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.HandAxe;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Naidan;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.BreakBall;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Quarterstaff;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Shortsword;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Spear;
@@ -85,7 +85,8 @@ public class Wishing {
     static {
 //        wishToCompare.put("","");
         wishToCompare.put("短剑", Shortsword.class);
-        wishToCompare.put("奶蛋", Naidan.class);
+        wishToCompare.put("破坏球", BreakBall.class);
+        wishToCompare.put("奶蛋", BreakBall.class);
         wishToCompare.put("手斧", HandAxe.class);
         wishToCompare.put("长矛", Spear.class);
         wishToCompare.put("铁头棍", Quarterstaff.class);

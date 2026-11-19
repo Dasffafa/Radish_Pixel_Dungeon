@@ -429,7 +429,7 @@ public class GameScene extends PixelScene {
 		add( toolbar );
 
 		// 奶蛋快捷键（C 收回 / V 快速发射），仅地牢场景内生效
-		add( new com.shatteredpixel.shatteredpixeldungeon.custom.naidan.NaidanHotkeys() );
+		add( new com.shatteredpixel.shatteredpixeldungeon.custom.breakball.BreakBallHotkeys() );
 
 		if (uiSize == 2) {
 			inventory = new InventoryPane();

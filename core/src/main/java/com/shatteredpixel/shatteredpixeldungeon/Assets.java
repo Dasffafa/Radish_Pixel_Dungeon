@@ -293,8 +293,8 @@ public class Assets {
 		//圣宣的命中音效
 		public static final String HOLY_DECREE_HIT = "sounds/holy_decree_hit.mp3";
 
-		/** 奶蛋撞墙的「安迪～」喊声（来源：bilibili av116492381258301「安迪～」5.4s 处切片） */
-		public static final String NAIDAN_ANDY   = "sounds/andy.mp3";
+		/** 破坏球撞墙的「安迪～」喊声（来源：bilibili av116492381258301「安迪～」5.4s 处切片） */
+		public static final String BREAK_BALL_ANDY = "sounds/andy.mp3";
 
 		public static final String[] all = new String[]{
 				CLICK, BADGE, GOLD,
@@ -314,8 +314,8 @@ public class Assets {
 
 				//不在这个列表里的音效启动时不会加载，播放时没有任何声音
 				HOLY_DECREE_HIT, CRITICAL,
-				//Added for 奶蛋
-				NAIDAN_ANDY,
+				//Added for BreakBall
+				BREAK_BALL_ANDY,
 		};
 	}
 
@@ -361,8 +361,10 @@ public class Assets {
 		public static final String FROG      = "sprites/frog.png";
 		public static final String AMULET   = "sprites/amulet.png";
 
-		public static final String RAT      = "sprites/rat.png";
-		public static final String NAIDAN   = "sprites/naidan.png";
+		public static final String RAT           = "sprites/rat.png";
+		public static final String BREAK_BALL_1  = "sprites/break_ball_1.png";
+		public static final String BREAK_BALL_2  = "sprites/break_ball_2.png";
+		public static final String BREAK_BALL_EGG = "sprites/break_ball_egg.png";
 		public static final String BRUTE    = "sprites/brute.png";
 		public static final String SPINNER  = "sprites/spinner.png";
 		public static final String DM300    = "sprites/dm300.png";
