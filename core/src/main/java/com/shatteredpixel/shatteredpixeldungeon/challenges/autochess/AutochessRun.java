@@ -445,6 +445,11 @@ public class AutochessRun extends Buff {
 		}
 	}
 
+	/** 给 UI 用：棋子的显示名（怪物本名）。 */
+	public static String displayName(String className) {
+		return nameOf(className);
+	}
+
 	private static String nameOf(String className) {
 		AutochessPool.Def def = AutochessPool.ofName(className);
 		if (def == null) return className;

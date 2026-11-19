@@ -1,6 +1,6 @@
 package com.shatteredpixel.shatteredpixeldungeon.windows;
 
-import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBot;
+import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
@@ -17,171 +17,103 @@ import com.watabou.noosa.Game;
 import com.watabou.utils.Callback;
 
 /**
- * 自走棋商店：买棋子、买经验、刷新、开战、卖出地图上选中的棋子。
+ * 自走棋商店（云顶风：底部横条）。
  *
- * <p>摆位和拖拽都在地图上做，这个界面只负责花钱。</p>
+ * <p>上面一条状态 + 一排操作按钮，中间 5 张横排卡牌，下面装备栏和卖出。
+ * 卡片直接点「购买」，装备点一下装到当前选中的棋子上。</p>
  */
 public class WndAutochessShop extends Window {
 
-	private static final int MARGIN = 5;
-	private static final int GAP = 3;
+	private static final int MARGIN = 3;
+	private static final int GAP = 2;
+	private static final int CARD_H = 54;
 
-	/** 面板宽度：手机窄屏时收窄，桌面保持 158。 */
-	private final int WIDTH;
-	/** 紧凑模式：窄屏下压缩行高、把购买按钮放到右侧。 */
-	private final boolean compact;
-	private final int OFFER_ROW;
-
-	private static final int COLOR_TITLE = 0xFFFF44;
 	private static final int COLOR_GOLD = 0xFFD700;
 	private static final int COLOR_DIM = 0xAAAAAA;
-	private static final int COLOR_SECTION = 0x99CCFF;
 
+	/** 费用对应的卡牌边框色（云顶那种一费白、五费金）。 */
+	private static final int[] COST_COLOR = {
+			0xBBBBBB, 0x66DD66, 0x66AAFF, 0xCC66DD, 0xFFCC33
+	};
+
+	private final int WIDTH;
+	private final int CARD_W;
 	private final AutochessRun run;
 
-	public WndAutochessShop(int round) {
+	private int lastSelSide = -2;
+	private int lastSelIndex = -2;
 
+	public WndAutochessShop(int round) {
 		super();
 
-		int camWidth = PixelScene.uiCamera == null ? 158 : (int) PixelScene.uiCamera.width;
-		if (Boolean.getBoolean("arena.compact")) camWidth = 150;
-		WIDTH = Math.min(158, Math.max(112, camWidth - 26));
-		compact = WIDTH < 140;
-		OFFER_ROW = compact ? 20 : 30;
+		int camW = PixelScene.uiCamera == null ? 158 : (int) PixelScene.uiCamera.width;
+		if (Boolean.getBoolean("arena.compact")) camW = 150;
+		WIDTH = Math.min(camW - 6, 340);
+		CARD_W = (WIDTH - MARGIN * 2 - GAP * 4) / 5;
 
 		run = AutochessRun.get();
-		if (run != null) {
-			lastSelSide = run.selectedSide;
-			lastSelIndex = run.selectedIndex;
-		}
 		if (run == null) {
 			hide();
 			return;
 		}
+		lastSelSide = run.selectedSide;
+		lastSelIndex = run.selectedIndex;
 
-		RedButton closeBtn = new RedButton("×", 9) {
-			@Override
-			protected void onClick() {
-				hide();
-			}
-		};
-		closeBtn.setRect(WIDTH - MARGIN - 14, MARGIN, 14, 13);
-		add(closeBtn);
+		float y = MARGIN;
 
-		RenderedTextBlock title = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "title", round), 9);
-		title.hardlight(COLOR_TITLE);
-		title.setPos(MARGIN, MARGIN);
-		add(title);
+		// ---------- 状态条 ----------
+		RenderedTextBlock header = PixelScene.renderTextBlock(
+				M.L(WndAutochessShop.class, "hud",
+						run.round(), run.gold(), run.life(), run.level(),
+						run.deployed(), run.maxDeploy()), 7);
+		header.hardlight(COLOR_GOLD);
+		header.maxWidth(WIDTH - MARGIN * 2);
+		header.setPos(MARGIN, y);
+		add(header);
+		y = header.bottom() + 1;
 
-		RenderedTextBlock gold = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "gold", run.gold(), run.life()), 8);
-		gold.hardlight(COLOR_GOLD);
-		gold.setPos(MARGIN, title.bottom() + 2);
-		add(gold);
-
-		RenderedTextBlock info = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "info",
-						run.level(), run.deployed(), run.maxDeploy(), run.xp(), run.xpNeed()), 7);
-		info.hardlight(COLOR_SECTION);
-		info.setPos(MARGIN, gold.bottom() + 1);
-		add(info);
-
-		// 经验条（云顶同款）
+		// 经验条
 		float barW = WIDTH - MARGIN * 2;
-		ColorBlock barBg = new ColorBlock(barW, 3, 0xFF2A2A2A);
+		ColorBlock barBg = new ColorBlock(barW, 2, 0xFF2A2A2A);
 		barBg.x = MARGIN;
-		barBg.y = info.bottom() + 1;
+		barBg.y = y;
 		add(barBg);
 		float ratio = run.level() >= AutochessRun.MAX_LEVEL ? 1f
 				: Math.max(0f, Math.min(1f, run.xp() / (float) Math.max(1, run.xpNeed())));
-		ColorBlock barFill = new ColorBlock(barW * ratio, 3, 0xFF66DDFF);
+		ColorBlock barFill = new ColorBlock(barW * ratio, 2, 0xFF66DDFF);
 		barFill.x = MARGIN;
 		barFill.y = barBg.y;
 		add(barFill);
+		y = barBg.y + 4;
 
-		RenderedTextBlock odds = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "odds_title") + " " + oddsLine(run.level(), compact), 7);
-		odds.hardlight(COLOR_GOLD);
-		odds.maxWidth(WIDTH - MARGIN * 2);
-		odds.setPos(MARGIN, barBg.y + 6);
-		add(odds);
+		// ---------- 操作按钮（一排 6 个）----------
+		float btnW = (WIDTH - MARGIN * 2 - GAP * 5) / 6f;
+		float bx = MARGIN;
+		float bh = 13;
 
-		float pos = odds.bottom() + 1;
-
-		// 本轮对手 / 剩余 AI：点一下看对方阵容
-		AutochessBot opp = run.opponent();
-		RedButton vs = new RedButton(M.L(WndAutochessShop.class, "matchup",
-				opp == null ? "-" : (opp.name + "（" + opp.hp + "血）"),
-				run.aliveBots(), Math.max(1, run.bots().size())), 7) {
-			@Override
-			protected void onClick() {
-				AutochessBot current = AutochessRun.get() == null ? null : AutochessRun.get().opponent();
-				if (current != null) {
-					com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-							new WndAutochessOpponent(current));
-				}
-			}
-		};
-		vs.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 14);
-		add(vs);
-		pos = vs.bottom() + 2;
-
-		// 对战大厅 + 羁绊总览（并排，省高度）
-		float halfBtn = (WIDTH - MARGIN * 2 - GAP) / 2f;
-		RedButton lobby = new RedButton("对战大厅", 7) {
-			@Override
-			protected void onClick() {
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-						new WndAutochessLobby());
-			}
-		};
-		lobby.setRect(MARGIN, pos, halfBtn, 14);
-		add(lobby);
-
-		RedButton traitsBtn = new RedButton("羁绊", 7) {
-			@Override
-			protected void onClick() {
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-						new WndAutochessTraits());
-			}
-		};
-		traitsBtn.setRect(MARGIN + halfBtn + GAP, pos, halfBtn, 14);
-		add(traitsBtn);
-		pos = lobby.bottom() + 2;
-
-		// 买经验 / 刷新（并排）
-		float halfW = (WIDTH - MARGIN * 2 - GAP) / 2f;
-		RedButton xpBtn = new RedButton(M.L(WndAutochessShop.class, "buy_xp", AutochessRun.XP_COST), 8) {
+		RedButton refresh = new RedButton("刷新 " + AutochessRun.REFRESH_COST, 6) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
-				if (current != null && current.buyXp()) {
-					rebuild();
-				}
+				if (current != null && current.refresh()) rebuild();
 			}
 		};
-		xpBtn.setRect(MARGIN, pos, halfW, 17);
-		add(xpBtn);
-
-		RedButton refresh = new RedButton(
-				M.L(WndAutochessShop.class, "refresh", AutochessRun.REFRESH_COST), 8) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				if (current != null && current.refresh()) {
-					rebuild();
-				}
-			}
-		};
-		refresh.setRect(xpBtn.right() + GAP, pos, halfW, 17);
+		refresh.setRect(bx, y, btnW, bh);
 		add(refresh);
+		bx += btnW + GAP;
 
-		pos = xpBtn.bottom() + 2;
+		RedButton xp = new RedButton("经验 " + AutochessRun.XP_COST, 6) {
+			@Override
+			protected void onClick() {
+				AutochessRun current = AutochessRun.get();
+				if (current != null && current.buyXp()) rebuild();
+			}
+		};
+		xp.setRect(bx, y, btnW, bh);
+		add(xp);
+		bx += btnW + GAP;
 
-		// 锁定商店
-		RedButton lockBtn = new RedButton(
-				M.L(WndAutochessShop.class, run.shopLocked() ? "unlock" : "lock"), 7) {
+		RedButton lock = new RedButton(run.shopLocked() ? "开锁" : "锁定", 6) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
@@ -190,15 +122,85 @@ public class WndAutochessShop extends Window {
 				rebuild();
 			}
 		};
-		lockBtn.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 13);
-		add(lockBtn);
-		pos = lockBtn.bottom() + GAP;
+		lock.setRect(bx, y, btnW, bh);
+		add(lock);
+		bx += btnW + GAP;
 
-		// 卖出选中的棋子（先在地图上点一只，再来这里卖）
+		RedButton lobby = new RedButton("大厅", 6) {
+			@Override
+			protected void onClick() {
+				GameScene.show(new WndAutochessLobby());
+			}
+		};
+		lobby.setRect(bx, y, btnW, bh);
+		add(lobby);
+		bx += btnW + GAP;
+
+		RedButton traitsBtn = new RedButton("羁绊", 6) {
+			@Override
+			protected void onClick() {
+				GameScene.show(new WndAutochessTraits());
+			}
+		};
+		traitsBtn.setRect(bx, y, btnW, bh);
+		add(traitsBtn);
+		bx += btnW + GAP;
+
+		RedButton fight = new RedButton("开战", 7) {
+			@Override
+			protected void onClick() {
+				hide();
+				AutochessRun current = AutochessRun.get();
+				if (current != null) current.startFight();
+			}
+		};
+		fight.setRect(bx, y, btnW, bh);
+		add(fight);
+
+		y += bh + GAP;
+
+		// ---------- 5 张卡（横排）----------
+		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
+			addCard(i, MARGIN + i * (CARD_W + GAP), y);
+		}
+		y += CARD_H + GAP;
+
+		// ---------- 装备栏 ----------
+		java.util.ArrayList<String> bag = new java.util.ArrayList<>(run.itemBag());
+		if (!bag.isEmpty()) {
+			float chipW = Math.min(46, (WIDTH - MARGIN * 2 - GAP * 5) / 6f);
+			float cx = MARGIN;
+			int shown = 0;
+			for (String id : bag) {
+				if (shown >= 6) break;
+				RedButton chip = new RedButton(AutochessItems.name(id), 6) {
+					@Override
+					protected void onClick() {
+						AutochessRun current = AutochessRun.get();
+						if (current == null) return;
+						if (current.selectedSide < 0 || current.selectedIndex < 0) {
+							com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(
+									M.L(WndAutochessShop.class, "no_selection"));
+							return;
+						}
+						if (current.equipItem(current.selectedSide, current.selectedIndex, id)) {
+							rebuild();
+						}
+					}
+				};
+				chip.setRect(cx, y, chipW, 11);
+				add(chip);
+				cx += chipW + GAP;
+				shown++;
+			}
+			y += 11 + GAP;
+		}
+
+		// ---------- 底部：卖出 / 提示 ----------
 		if (run.selectedSide >= 0 && run.selectedIndex >= 0) {
 			final int side = run.selectedSide;
 			final int index = run.selectedIndex;
-			RedButton sellBtn = new RedButton("卖出选中（+" + run.sellValue(side, index) + " 金）", 7) {
+			RedButton sell = new RedButton("卖出（+" + run.sellValue(side, index) + " 金）", 6) {
 				@Override
 				protected void onClick() {
 					AutochessRun current = AutochessRun.get();
@@ -212,106 +214,93 @@ public class WndAutochessShop extends Window {
 					}
 				}
 			};
-			sellBtn.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 13);
-			add(sellBtn);
-			pos = sellBtn.bottom() + GAP;
-		}
+			sell.setRect(MARGIN, y, (WIDTH - MARGIN * 2 - GAP) / 2f, 12);
+			add(sell);
 
-
-		// 5 张卡
-		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
-			pos = addOfferRow(i, pos);
-		}
-
-		// 装备背包
-		RenderedTextBlock eqTitle = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "items"), 7);
-		eqTitle.hardlight(COLOR_SECTION);
-		eqTitle.setPos(MARGIN, pos);
-		add(eqTitle);
-		pos = eqTitle.bottom() + 1;
-
-		float halfEq = (WIDTH - MARGIN * 2 - GAP) / 2f;
-		int eqIndex = 0;
-		for (String itemId : new java.util.ArrayList<>(run.itemBag())) {
-			final String id = itemId;
-			float x = MARGIN + (eqIndex % 2) * (halfEq + GAP);
-			float y = pos + (eqIndex / 2) * 15;
-
-			// 装备用按钮（窗口里的 PointerArea 会被挡住，按钮才稳定可点）
-			RedButton chip = new RedButton(
-					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems.name(id), 7) {
-				@Override
-				protected void onClick() {
-					AutochessRun current = AutochessRun.get();
-					if (current == null) return;
-					if (current.selectedSide < 0 || current.selectedIndex < 0) {
-						com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(
-								M.L(WndAutochessShop.class, "no_selection"));
-						return;
-					}
-					if (current.equipItem(current.selectedSide, current.selectedIndex, id)) {
-						rebuild();
-					}
-				}
-			};
-			chip.setRect(x, y, halfEq, 13);
-			add(chip);
-			eqIndex++;
-		}
-		if (eqIndex > 0) {
-			pos += ((eqIndex + 1) / 2) * 15 + GAP;
+			RenderedTextBlock hint = PixelScene.renderTextBlock(
+					M.L(WndAutochessShop.class, "select_hint"), 6);
+			hint.hardlight(COLOR_DIM);
+			hint.maxWidth((int) ((WIDTH - MARGIN * 2 - GAP) / 2f));
+			hint.setPos(MARGIN + (WIDTH - MARGIN * 2 - GAP) / 2f + GAP, y + 1);
+			add(hint);
+			y += 12 + GAP;
 		} else {
-			RenderedTextBlock noEq = PixelScene.renderTextBlock(
-					M.L(WndAutochessShop.class, "no_items"), 7);
-			noEq.hardlight(COLOR_SECTION);
-			noEq.setPos(MARGIN, pos);
-			add(noEq);
-			pos = noEq.bottom() + GAP;
+			RenderedTextBlock hint = PixelScene.renderTextBlock(
+					M.L(WndAutochessShop.class, "select_hint"), 6);
+			hint.hardlight(COLOR_DIM);
+			hint.maxWidth(WIDTH - MARGIN * 2);
+			hint.setPos(MARGIN, y);
+			add(hint);
+			y += hint.height() + GAP;
 		}
-		RenderedTextBlock economy = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "economy",
-						run.winStreak(), run.loseStreak(), run.lastIncome()), 7);
-		economy.hardlight(COLOR_GOLD);
-		economy.setPos(MARGIN, pos + 1);
-		add(economy);
-		pos = economy.bottom() + 1;
 
-		RenderedTextBlock traits = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "traits", traitLine()), 7);
-		traits.maxWidth(WIDTH - MARGIN * 2);
-		traits.hardlight(COLOR_DIM);
-		traits.setPos(MARGIN, pos + 1);
-		add(traits);
+		resize(WIDTH, (int) Math.ceil(y + MARGIN));
+	}
 
-		pos = traits.bottom() + GAP;
+	/** 一张卡：边框按费用着色，上面图标、名字、羁绊，下面是购买按钮。 */
+	private void addCard(int index, float x, float y) {
+		AutochessPool.Def def = run.offer(index);
 
-		RedButton fight = new RedButton(M.L(WndAutochessShop.class, "fight"), 8) {
+		RoundedFrame card = new RoundedFrame(0xCC1E1E1E, 0xFF444444);
+		card.setRect(x, y, CARD_W, CARD_H);
+		add(card);
+
+		if (def == null) {
+			RenderedTextBlock sold = PixelScene.renderTextBlock("已购买", 6);
+			sold.hardlight(COLOR_DIM);
+			sold.setPos(x + (CARD_W - sold.width()) / 2f, y + CARD_H / 2f - 3);
+			add(sold);
+			return;
+		}
+
+		int costColor = COST_COLOR[Math.max(0, Math.min(COST_COLOR.length - 1, def.cost - 1))];
+		RoundedFrame border = new RoundedFrame(0x00000000, costColor);
+		border.setRect(x, y, CARD_W, CARD_H);
+		add(border);
+
+		CharSprite icon = AutochessIcons.spriteFor(def.cls.getSimpleName());
+		if (icon != null) {
+			AutochessIcons.place(icon, x + (CARD_W - 18) / 2f, y + 2, 18);
+			add(icon);
+		}
+
+		String name = AutochessRun.displayName(def.cls.getSimpleName());
+		if (name.length() > 4) name = name.substring(0, 4);   // 卡片窄，名字截到 4 个字
+		RenderedTextBlock nameText = PixelScene.renderTextBlock(name, 5);
+		nameText.hardlight(costColor);
+		nameText.maxWidth(CARD_W);
+		nameText.setPos(x + (CARD_W - nameText.width()) / 2f, y + 22);
+		add(nameText);
+
+		// 卡片窄，只显示第一个羁绊
+		String traitStr = def.traits.length > 0
+				? com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(
+						AutochessPool.class, "trait_" + def.traits[0])
+				: "";
+		RenderedTextBlock traitText = PixelScene.renderTextBlock(traitStr, 5);
+		traitText.hardlight(COLOR_DIM);
+		traitText.maxWidth(CARD_W - 2);
+		traitText.setPos(x + (CARD_W - traitText.width()) / 2f, y + 31);
+		add(traitText);
+
+		RedButton buy = new RedButton(def.cost + " 金", 6) {
 			@Override
 			protected void onClick() {
 				AutochessRun current = AutochessRun.get();
-				hide();
-				if (current != null) {
-					current.startFight();
-				}
+				if (current != null && current.buy(index)) rebuild();
 			}
 		};
-		fight.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 18);
-		add(fight);
-
-		resize(WIDTH, (int) fight.bottom() + MARGIN);
+		buy.setRect(x + 1, y + CARD_H - 12, CARD_W - 2, 11);
+		add(buy);
 	}
-
-	/** 记录上次构建时的选中状态：选中变了就重建，卖出按钮才会出现/消失。 */
-	private int lastSelSide = -2;
-	private int lastSelIndex = -2;
 
 	@Override
 	public void update() {
 		super.update();
+		// 窗口内部布局本身就是横条，位置保持居中；不再改 camera，避免把窗口推出屏幕
 		AutochessRun current = AutochessRun.get();
-		if (current == null) return;
-		if (current.selectedSide != lastSelSide || current.selectedIndex != lastSelIndex) {
+		if (current != null
+				&& (current.selectedSide != lastSelSide || current.selectedIndex != lastSelIndex)) {
 			lastSelSide = current.selectedSide;
 			lastSelIndex = current.selectedIndex;
 			rebuild();
@@ -332,233 +321,5 @@ public class WndAutochessShop extends Window {
 				GameScene.show(new WndAutochessShop(round));
 			}
 		});
-	}
-
-	/** 有选中棋子就显示「卖出」，没选中就提示怎么操作。 */
-	private float addSelectionRow(float pos) {
-		int side = run.selectedSide;
-		int index = run.selectedIndex;
-
-		if (side < 0 || run.unitClass(side, index) == null) {
-			RenderedTextBlock hint = PixelScene.renderTextBlock(
-					M.L(WndAutochessShop.class, "select_hint"), 7);
-			hint.maxWidth(WIDTH - MARGIN * 2);
-			hint.hardlight(COLOR_DIM);
-			hint.setPos(MARGIN, pos);
-			add(hint);
-			return hint.bottom() + GAP;
-		}
-
-		RedButton sell = new RedButton(
-				M.L(WndAutochessShop.class, "sell", run.unitName(side, index),
-						stars(run.unitStar(side, index)), run.sellValue(side, index)), 8) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				if (current == null) return;
-				if (current.sell(current.selectedSide, current.selectedIndex) > 0) {
-					current.selectedSide = -1;
-					current.selectedIndex = -1;
-					rebuild();
-				}
-			}
-		};
-		sell.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 16);
-		add(sell);
-		return sell.bottom() + GAP;
-	}
-
-	private float addOfferRow(int index, float pos) {
-
-		AutochessPool.Def def = run.offer(index);
-
-		if (def == null) {
-			RenderedTextBlock sold = PixelScene.renderTextBlock(M.L(WndAutochessShop.class, "sold"), 7);
-			sold.hardlight(COLOR_DIM);
-			sold.setPos(MARGIN, pos + 8);
-			add(sold);
-			return pos + OFFER_ROW;
-		}
-
-		// 费用底色卡片
-		RoundedFrame card = new RoundedFrame(costFill(def.cost), costLine(def.cost));
-		card.setRect(MARGIN - 2, pos - 1, WIDTH - MARGIN * 2 + 4, OFFER_ROW - 3);
-		add(card);
-
-		// 详情按钮
-		RedButton infoBtn = new RedButton("i", 8) {
-			@Override
-			protected void onClick() {
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-						new WndAutochessInfo(def));
-			}
-		};
-		infoBtn.setRect(WIDTH - MARGIN - 13, pos + (compact ? 3 : 1), 13, 12);
-		add(infoBtn);
-
-		CharSprite icon = AutochessIcons.spriteFor(def);
-		if (icon != null) {
-			AutochessIcons.place(icon, MARGIN, pos + (compact ? 2 : 1), compact ? 13 : 15);
-			add(icon);
-		}
-
-		// 紧凑模式只显示「名字·费用」，羁绊/技能靠右上角 i 看详情
-		String rowText;
-		if (compact) {
-			// 窄屏只留名字，费用用颜色和右上角详情看
-			rowText = nameOf(def);
-			if (rowText.length() > 5) rowText = rowText.substring(0, 5);
-		} else {
-			rowText = M.L(WndAutochessShop.class, "row",
-					nameOf(def), def.cost, traitsOf(def), skillOf(def));
-		}
-		RenderedTextBlock name = PixelScene.renderTextBlock(rowText, compact ? 6 : 8);
-		name.hardlight(costColor(def.cost));
-		name.maxWidth(compact ? WIDTH - MARGIN * 2 - 58 : WIDTH - MARGIN * 2 - 20);
-		name.setPos(MARGIN + (compact ? 14 : 18), pos + (compact ? 5 : 1));
-		add(name);
-
-		final int idx = index;
-		RedButton buy = new RedButton(M.L(WndAutochessShop.class, "buy"), compact ? 6 : 7) {
-			@Override
-			protected void onClick() {
-				AutochessRun current = AutochessRun.get();
-				if (current != null && current.buy(idx)) {
-					rebuild();
-				}
-			}
-		};
-		buy.active = run.gold() >= def.cost;
-		if (compact) {
-			buy.setRect(WIDTH - MARGIN - 56, pos + 3, 40, 12);
-		} else {
-			buy.setRect(MARGIN + 18, pos + 13, 58, 13);
-		}
-		add(buy);
-
-		return pos + OFFER_ROW;
-	}
-
-	private static String nameOf(AutochessPool.Def def) {
-		try {
-			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob =
-					com.watabou.utils.Reflection.newInstance(def.cls);
-			if (mob != null) return mob.name();
-		} catch (Exception ignored) {
-			// 有些棋子类不能直接实例化，退回类名，别让商店崩掉
-		}
-		return def.cls.getSimpleName();
-	}
-
-	/** 费用卡片的底色（深色，保证文字看得清）。 */
-	private static int costFill(int cost) {
-		switch (cost) {
-			case 1: return 0xCC353535;
-			case 2: return 0xCC123012;
-			case 3: return 0xCC102A44;
-			case 4: return 0xCC2A1244;
-			default: return 0xCC442200;
-		}
-	}
-
-	/** 费用卡片的描边色。 */
-	private static int costLine(int cost) {
-		switch (cost) {
-			case 1: return 0xFFC8C8C8;
-			case 2: return 0xFF66DD66;
-			case 3: return 0xFF66AAFF;
-			case 4: return 0xFFCC77FF;
-			default: return 0xFFFFAA33;
-		}
-	}
-
-	/** 不同费用用不同颜色：1 灰、2 绿、3 蓝、4 紫、5 橙。 */
-	private static int costColor(int cost) {
-		switch (cost) {
-			case 1: return 0xBBBBBB;
-			case 2: return 0x66DD66;
-			case 3: return 0x66AAFF;
-			case 4: return 0xCC77FF;
-			default: return 0xFFAA33;
-		}
-	}
-
-	/** 「1费65% 2费25% ...」这种概率行。 */
-	private static String oddsLine(int level, boolean compact) {
-		int[] pct = AutochessPool.oddsForLevel(level);
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < pct.length; i++) {
-			if (i > 0) sb.append(" · ");
-			if (compact) {
-				sb.append(i + 1).append(":").append(pct[i]).append("%");
-			} else {
-				sb.append(i + 1).append("费").append(pct[i]).append("%");
-			}
-		}
-		return sb.toString();
-	}
-
-	/** 「重击(60)」这种技能展示。 */
-	private static String skillOf(AutochessPool.Def def) {
-		return def.skill == null ? "-" : def.skill.name() + "(" + def.skill.mana + ")";
-	}
-
-	/** 「兽群·虫群」这种多羁绊展示。 */
-	private static String traitsOf(AutochessPool.Def def) {
-		StringBuilder sb = new StringBuilder();
-		for (String t : def.traits) {
-			if (sb.length() > 0) sb.append("·");
-			sb.append(traitName(t));
-		}
-		return sb.toString();
-	}
-
-	/** 屏幕坐标 → 棋盘格子。 */
-	private static int cellAt(float screenX, float screenY) {
-		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.level == null) return -1;
-		com.watabou.utils.PointF p = com.watabou.noosa.Camera.main.screenToCamera((int) screenX, (int) screenY);
-		int cx = (int) (p.x / com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE);
-		int cy = (int) (p.y / com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE);
-		if (cx < 0 || cy < 0
-				|| cx >= com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.width()
-				|| cy >= com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.height()) return -1;
-		return cy * com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.width() + cx;
-	}
-
-	private static String traitName(String trait) {
-		return M.L(AutochessPool.class, "trait_" + trait);
-	}
-
-	private static String stars(int star) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < star; i++) sb.append("★");
-		return sb.toString();
-	}
-
-	private static String traitLine() {
-		StringBuilder sb = new StringBuilder();
-		for (String trait : new String[]{
-				AutochessPool.BEAST, AutochessPool.HUMANOID, AutochessPool.CONSTRUCT,
-				AutochessPool.DEMON, AutochessPool.UNDEAD, AutochessPool.SWARM,
-				AutochessPool.TANK, AutochessPool.ASSASSIN,
-				AutochessPool.RANGED, AutochessPool.FIGHTER,
-				AutochessPool.MAGE, AutochessPool.SUPPORT}) {
-			if (AutochessRun.countTrait(trait) > 0) {
-				appendTrait(sb, trait);
-			}
-		}
-		if (sb.length() == 0) {
-			sb.append(M.L(WndAutochessShop.class, "no_trait"));
-		}
-		return sb.toString();
-	}
-
-	/** 「兽群 4 (3/5)」这种写法：数字是当前人数，括号里是两档阈值。 */
-	private static void appendTrait(StringBuilder sb, String trait) {
-		int count = AutochessRun.countTrait(trait);
-		int[] th = AutochessPool.thresholds(trait);
-		if (sb.length() > 0) sb.append("  ·  ");
-		sb.append(traitName(trait)).append(" ").append(count)
-				.append("(").append(th[0]).append("/").append(th[1]).append(")");
 	}
 }
