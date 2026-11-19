@@ -22,6 +22,7 @@ public class AutochessHealthBars extends Component {
 	private static final class Bar {
 		ColorBlock bg;
 		ColorBlock fill;
+		ColorBlock[] stars;      // 1~3 颗星，画在血条正上方
 	}
 
 	private final HashMap<Mob, Bar> bars = new HashMap<>();
@@ -31,12 +32,11 @@ public class AutochessHealthBars extends Component {
 		super.update();
 
 		AutochessRun run = AutochessRun.get();
-		boolean show = run != null && run.state() == AutochessRun.State.FIGHT && Dungeon.level != null;
-
-		if (!show) {
+		if (run == null || Dungeon.level == null) {
 			hideAll();
 			return;
 		}
+		boolean hpVisible = run.state() == AutochessRun.State.FIGHT;
 
 		// 清掉已经死掉/消失的棋子
 		bars.entrySet().removeIf(e -> {
@@ -45,6 +45,9 @@ public class AutochessHealthBars extends Component {
 			if (gone) {
 				e.getValue().bg.killAndErase();
 				e.getValue().fill.killAndErase();
+				if (e.getValue().stars != null) {
+					for (ColorBlock star : e.getValue().stars) star.killAndErase();
+				}
 			}
 			return gone;
 		});
@@ -62,6 +65,14 @@ public class AutochessHealthBars extends Component {
 				bar.fill = new ColorBlock(BAR_W, BAR_H, 0xFF66DD66);
 				add(bar.bg);
 				add(bar.fill);
+
+				int starCount = Math.max(1, Math.min(3, run.starOf(mob)));
+				bar.stars = new ColorBlock[starCount];
+				for (int k = 0; k < starCount; k++) {
+					ColorBlock star = new ColorBlock(3, 3, 0xFFFFD766);
+					add(star);
+					bar.stars[k] = star;
+				}
 				bars.put(mob, bar);
 			}
 
@@ -71,6 +82,18 @@ public class AutochessHealthBars extends Component {
 			bar.bg.y = y;
 			bar.fill.x = x;
 			bar.fill.y = y;
+			bar.bg.visible = hpVisible;
+			bar.fill.visible = hpVisible;
+
+			// 星级：一行小方块，居中排在血条正上方
+			float starY = y - 5f;
+			float totalW = bar.stars.length * 4f - 1f;
+			float sx0 = mob.sprite.x + (mob.sprite.width() - totalW) / 2f;
+			for (int k = 0; k < bar.stars.length; k++) {
+				bar.stars[k].x = sx0 + k * 4f;
+				bar.stars[k].y = starY;
+				bar.stars[k].visible = true;
+			}
 
 			float ratio = Math.max(0f, Math.min(1f, mob.HP / (float) Math.max(1, mob.HT)));
 			bar.fill.width = Math.max(1f, BAR_W * ratio);
@@ -88,6 +111,9 @@ public class AutochessHealthBars extends Component {
 		for (Map.Entry<Mob, Bar> e : bars.entrySet()) {
 			e.getValue().bg.killAndErase();
 			e.getValue().fill.killAndErase();
+			if (e.getValue().stars != null) {
+				for (ColorBlock star : e.getValue().stars) star.killAndErase();
+			}
 		}
 		bars.clear();
 	}

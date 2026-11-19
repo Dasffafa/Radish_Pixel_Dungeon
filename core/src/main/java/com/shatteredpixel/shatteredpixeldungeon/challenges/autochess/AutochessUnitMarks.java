@@ -81,7 +81,7 @@ public class AutochessUnitMarks extends Component {
 			arrow.visible = ally;
 
 			// 星级用 ASCII 星号，和箭头同一套 BitmapText 渲染（手机也不会缺字）
-			int count = Math.max(1, Math.min(3, star));
+			int count = 0;   // 星级改由 AutochessHealthBars 统一画在血条上方
 			stars = new BitmapText[count];
 			for (int i = 0; i < count; i++) {
 				BitmapText one = new BitmapText(PixelScene.pixelFont);
