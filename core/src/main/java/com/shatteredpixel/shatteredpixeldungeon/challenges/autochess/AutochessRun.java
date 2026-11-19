@@ -1049,6 +1049,7 @@ public class AutochessRun extends Buff {
 	}
 
 	private void winRound() {
+		com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.LEVELUP);
 		state = State.PREP;
 		winStreak++;
 		loseStreak = 0;
@@ -1112,6 +1113,18 @@ public class AutochessRun extends Buff {
 		String base = entry;
 		int bar = base.indexOf('|');
 		if (bar >= 0) base = base.substring(0, bar);
+		// 同名装备可以合成强化版（+）
+		String baseId = AutochessItems.base(itemId);
+		for (int k = 0; k < items.size(); k++) {
+			String owned = items.get(k);
+			if (!AutochessItems.isUpgraded(owned) && AutochessItems.base(owned).equals(baseId)) {
+				items.set(k, baseId + "+");
+				itemBag.remove(itemId);
+				GLog.p(M.L(AutochessRun.class, "item_merge", AutochessItems.name(baseId)));
+				refreshPreview();
+				return true;
+			}
+		}
 		items.add(itemId);
 		arr[index] = base + "|" + AutochessItems.encode(items);
 		itemBag.remove(itemId);
@@ -1205,6 +1218,7 @@ public class AutochessRun extends Buff {
 	}
 
 	private void loseRound() {
+		com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.HIT);
 		state = State.PREP;
 		winStreak = 0;
 		loseStreak++;

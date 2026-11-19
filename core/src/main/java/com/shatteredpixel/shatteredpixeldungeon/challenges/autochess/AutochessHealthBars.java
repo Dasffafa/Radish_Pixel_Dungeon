@@ -22,6 +22,7 @@ public class AutochessHealthBars extends Component {
 	private static final class Bar {
 		ColorBlock bg;
 		ColorBlock fill;
+		ColorBlock mana;         // 法力条，画在血条下方
 		ColorBlock[] stars;      // 1~3 颗星，画在血条正上方
 	}
 
@@ -63,8 +64,10 @@ public class AutochessHealthBars extends Component {
 				bar = new Bar();
 				bar.bg = new ColorBlock(BAR_W, BAR_H, 0xCC100000);
 				bar.fill = new ColorBlock(BAR_W, BAR_H, 0xFF66DD66);
+				bar.mana = new ColorBlock(BAR_W, 1, 0xFF66CCFF);
 				add(bar.bg);
 				add(bar.fill);
+				add(bar.mana);
 
 				int starCount = Math.max(1, Math.min(3, run.starOf(mob)));
 				bar.stars = new ColorBlock[starCount];
@@ -84,6 +87,9 @@ public class AutochessHealthBars extends Component {
 			bar.fill.y = y;
 			bar.bg.visible = hpVisible;
 			bar.fill.visible = hpVisible;
+			bar.mana.visible = hpVisible;
+			bar.mana.x = x;
+			bar.mana.y = y + BAR_H + 1;
 
 			// 星级：一行小方块，居中排在血条正上方
 			float starY = y - 5f;
@@ -99,6 +105,12 @@ public class AutochessHealthBars extends Component {
 			bar.fill.width = Math.max(1f, BAR_W * ratio);
 			boolean ally = mob.alignment == Char.Alignment.ALLY
 					|| mob.buff(AutochessUnitBuff.class) != null;
+			AutochessUnitBuff allyBuff = mob.buff(AutochessUnitBuff.class);
+			AutochessFoeBuff foeBuff = mob.buff(AutochessFoeBuff.class);
+			float manaRatio = allyBuff != null ? allyBuff.manaRatio() : (foeBuff != null ? foeBuff.manaRatio() : 0f);
+			bar.mana.width = Math.max(0f, BAR_W * Math.min(1f, manaRatio));
+			bar.mana.color(manaRatio >= 0.999f ? 0xFFFFFFFF : 0xFF66CCFF);
+
 			if (ally) {
 				bar.fill.color(ratio > 0.5f ? 0xFF66DD66 : (ratio > 0.25f ? 0xFFDDCC44 : 0xFFDD5555));
 			} else {

@@ -59,6 +59,11 @@ public class AutochessFoeBuff extends Buff {
 		announced = false;
 	}
 
+	/** 法力进度（0~1），UI 用。 */
+	public float manaRatio() {
+		return skill == null ? 0f : Math.min(1f, Math.max(0f, mana) / (float) skill.mana);
+	}
+
 	public void setItems(ArrayList<String> equipped) {
 		items.clear();
 		if (equipped != null) items.addAll(equipped);
