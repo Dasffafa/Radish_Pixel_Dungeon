@@ -50,6 +50,10 @@ public class WndAutochessShop extends Window {
 		OFFER_ROW = compact ? 20 : 30;
 
 		run = AutochessRun.get();
+		if (run != null) {
+			lastSelSide = run.selectedSide;
+			lastSelIndex = run.selectedIndex;
+		}
 		if (run == null) {
 			hide();
 			return;
@@ -190,6 +194,30 @@ public class WndAutochessShop extends Window {
 		add(lockBtn);
 		pos = lockBtn.bottom() + GAP;
 
+		// 卖出选中的棋子（先在地图上点一只，再来这里卖）
+		if (run.selectedSide >= 0 && run.selectedIndex >= 0) {
+			final int side = run.selectedSide;
+			final int index = run.selectedIndex;
+			RedButton sellBtn = new RedButton("卖出选中（+" + run.sellValue(side, index) + " 金）", 7) {
+				@Override
+				protected void onClick() {
+					AutochessRun current = AutochessRun.get();
+					if (current == null) return;
+					int got = current.sell(side, index);
+					if (got > 0) {
+						current.selectedSide = -1;
+						current.selectedIndex = -1;
+						com.shatteredpixel.shatteredpixeldungeon.utils.GLog.i("卖出获得 " + got + " 金");
+						rebuild();
+					}
+				}
+			};
+			sellBtn.setRect(MARGIN, pos, WIDTH - MARGIN * 2, 13);
+			add(sellBtn);
+			pos = sellBtn.bottom() + GAP;
+		}
+
+
 		// 5 张卡
 		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
 			pos = addOfferRow(i, pos);
@@ -272,6 +300,22 @@ public class WndAutochessShop extends Window {
 		add(fight);
 
 		resize(WIDTH, (int) fight.bottom() + MARGIN);
+	}
+
+	/** 记录上次构建时的选中状态：选中变了就重建，卖出按钮才会出现/消失。 */
+	private int lastSelSide = -2;
+	private int lastSelIndex = -2;
+
+	@Override
+	public void update() {
+		super.update();
+		AutochessRun current = AutochessRun.get();
+		if (current == null) return;
+		if (current.selectedSide != lastSelSide || current.selectedIndex != lastSelIndex) {
+			lastSelSide = current.selectedSide;
+			lastSelIndex = current.selectedIndex;
+			rebuild();
+		}
 	}
 
 	private void rebuild() {
