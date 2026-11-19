@@ -484,6 +484,11 @@ public class AutochessRun extends Buff {
 			GLog.w(M.L(AutochessRun.class, "only_player_half"));
 			return false;
 		}
+		// 落点必须可通行，避免放到外墙或场地外
+		if (Dungeon.level != null && !Dungeon.level.passable[toCell]) {
+			GLog.w(M.L(AutochessRun.class, "only_player_half"));
+			return false;
+		}
 
 		int[] target = unitAt(toCell);
 
@@ -678,6 +683,32 @@ public class AutochessRun extends Buff {
 		mob.destroy();
 	}
 
+	/** 校验并修复上阵格：越界的拉回默认格，重叠的找空位。 */
+	public void sanitizeBoardCells() {
+		if (!(Dungeon.level instanceof ChessBoardLevel)) return;
+		int n = Dungeon.level.length();
+		boolean[] used = new boolean[n];
+		for (int i = 0; i < board.length; i++) {
+			if (board[i] == null) {
+				boardCell[i] = ChessBoardLevel.playerSlot(i);
+				continue;
+			}
+			int cell = boardCell[i];
+			boolean ok = cell >= 0 && cell < n && ChessBoardLevel.isPlayerField(cell) && !used[cell];
+			if (!ok) cell = firstFreePlayerSlot(used);
+			boardCell[i] = cell;
+			used[cell] = true;
+		}
+	}
+
+	private int firstFreePlayerSlot(boolean[] used) {
+		for (int k = 0; k < 12; k++) {
+			int cell = ChessBoardLevel.playerSlot(k);
+			if (cell >= 0 && !used[cell]) return cell;
+		}
+		return ChessBoardLevel.playerSlot(0);
+	}
+
 	/** 把双方按当前摆位重新铺到棋盘上（备战阶段就是预览，不会动）。 */
 	public void refreshPreview() {
 		// 清掉棋盘上遗留的掉落物（旧存档/怪物死亡都可能留下）
@@ -685,6 +716,8 @@ public class AutochessRun extends Buff {
 			Dungeon.level.heaps.clear();
 		}
 		if (!(Dungeon.level instanceof ChessBoardLevel)) return;
+		// 兜底：把越界/重叠的棋子挪回合法格子（老存档可能存了墙外坐标）
+		sanitizeBoardCells();
 		clearUnits();
 
 		unitMobs.clear();
@@ -859,6 +892,9 @@ public class AutochessRun extends Buff {
 
 	private static Mob spawnUnit(AutochessPool.Def def, int cell, boolean playerSide, int star) {
 		if (cell == -1 || Dungeon.level == null) return null;
+		if (playerSide && !ChessBoardLevel.isPlayerField(cell) && !ChessBoardLevel.isBenchCell(cell)) {
+			return null;
+		}
 		Mob mob;
 		try {
 			mob = Reflection.newInstance(def.cls);

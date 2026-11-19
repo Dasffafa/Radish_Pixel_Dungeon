@@ -254,16 +254,18 @@ public class ChessBoardLevel extends DeadEndLevel {
 	public static boolean isPlayerField(int cell) {
 		if (cell < 0 || Dungeon.level == null) return false;
 		int w = Dungeon.level.width();
+		int x = cell % w;
 		int y = cell / w;
-		return cell % w <= PLAYER_MAX_X && y >= FIELD_MIN_Y && y <= FIELD_MAX_Y;
+		return x >= 1 && x <= PLAYER_MAX_X && y >= FIELD_MIN_Y && y <= FIELD_MAX_Y;
 	}
 
 	/** 战场里属于敌方的格子。 */
 	public static boolean isEnemyField(int cell) {
 		if (cell < 0 || Dungeon.level == null) return false;
 		int w = Dungeon.level.width();
+		int x = cell % w;
 		int y = cell / w;
-		return cell % w >= ENEMY_MIN_X && y >= FIELD_MIN_Y && y <= FIELD_MAX_Y;
+		return x >= ENEMY_MIN_X && x <= SIZE - 2 && y >= FIELD_MIN_Y && y <= FIELD_MAX_Y;
 	}
 
 	/**
