@@ -63,16 +63,48 @@ public class WndAutochessShop extends Window {
 
 		float y = MARGIN;
 
-		// ---------- 状态条 ----------
-		RenderedTextBlock header = PixelScene.renderTextBlock(
-				M.L(WndAutochessShop.class, "hud",
-						run.round(), run.gold(), run.life(), run.level(),
-						run.deployed(), run.maxDeploy()), 6);
-		header.hardlight(COLOR_GOLD);
-		header.maxWidth(WIDTH - MARGIN * 2);
-		header.setPos(MARGIN, y);
-		add(header);
-		y = header.bottom() + 1;
+		// ---------- 状态行：回合 + 金币图标 + 等级徽章 + 上阵 ----------
+		RenderedTextBlock roundText = PixelScene.renderTextBlock("第 " + run.round() + " 回合", 7);
+		roundText.hardlight(DiceMageUI.CREAM);
+		roundText.setPos(MARGIN, y);
+		add(roundText);
+
+		float hx = roundText.right() + 6;
+
+		// 金币：用真·金币图标 + 数字
+		com.shatteredpixel.shatteredpixeldungeon.items.Item goldItem =
+				new com.shatteredpixel.shatteredpixeldungeon.items.Gold();
+		com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite coin =
+				new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite(goldItem);
+		coin.scale.set(0.5f);
+		coin.x = hx;
+		coin.y = y + 1;
+		add(coin);
+
+		RenderedTextBlock goldText = PixelScene.renderTextBlock(String.valueOf(run.gold()), 7);
+		goldText.hardlight(DiceMageUI.GOLD);
+		goldText.setPos(hx + 8, y);
+		add(goldText);
+
+		// 等级徽章
+		float lvX = goldText.right() + 8;
+		RoundedFrame lvBadge = new RoundedFrame(0xEE09070B, DiceMageUI.GOLD);
+		lvBadge.setRect(lvX, y + 1, 20, 9);
+		add(lvBadge);
+		RenderedTextBlock lvText = PixelScene.renderTextBlock("Lv" + run.level(), 6);
+		lvText.hardlight(DiceMageUI.CREAM);
+		lvText.setPos(lvX + (20 - lvText.width()) / 2f, y + 3);
+		add(lvText);
+
+		// 上阵数靠右
+		RenderedTextBlock fieldText = PixelScene.renderTextBlock(
+				"上阵 " + run.deployed() + "/" + run.maxDeploy(), 6);
+		fieldText.hardlight(DiceMageUI.SKY_BLUE);
+		fieldText.setPos(WIDTH - MARGIN - fieldText.width(), y + 2);
+		add(fieldText);
+
+		y = y + 13;
+
 
 		// 经验条
 		float barW = WIDTH - MARGIN * 2;
