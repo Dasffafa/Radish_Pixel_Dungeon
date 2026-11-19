@@ -408,10 +408,20 @@ public class GameScene extends PixelScene {
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessArenaOverlay());
 			// 我方地板流光
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFloorShine());
+			// 底部常驻商店栏（云顶风）
+			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessShopBar shopBar =
+					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessShopBar();
+			shopBar.camera = uiCamera;
+			add(shopBar);
+
 			// 开战特效：双方阵地闪一下
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBattleFlash());
 			// 回合切换转场（镜头轻推）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRoundTransition());
+			// 选中/可放置高亮
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessSelectionHighlight());
+			// 棋子头顶血条
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessHealthBars());
 
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());
@@ -434,16 +444,6 @@ public class GameScene extends PixelScene {
 					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
 			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f - 8f), 0f);
 
-			final com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun chessRun =
-					com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.get();
-			if (chessRun != null && chessRun.state() == com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.State.PREP) {
-				com.watabou.noosa.Game.runOnRenderThread(new com.watabou.utils.Callback() {
-					@Override
-					public void call() {
-						show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessShop(chessRun.round()));
-					}
-				});
-			}
 		}
 
 		// 「三分钟一把」的顶部计时条

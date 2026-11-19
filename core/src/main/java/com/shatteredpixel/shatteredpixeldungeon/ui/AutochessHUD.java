@@ -107,11 +107,7 @@ public class AutochessHUD extends Component {
 		tap = new com.watabou.noosa.PointerArea(0, 0, WIDTH, HEIGHT) {
 			@Override
 			protected void onClick(com.watabou.input.PointerEvent event) {
-				AutochessRun run = AutochessRun.get();
-				if (run != null && run.state() == AutochessRun.State.PREP) {
-					com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
-							new com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessShop(run.round()));
-				}
+				// 商店现在是底部常驻栏，点状态条不再弹窗
 			}
 		};
 		tap.givePointerPriority();
@@ -210,6 +206,11 @@ public class AutochessHUD extends Component {
 	/** 回合切换时的状态条脉冲（1 → 0）。 */
 	private float roundPulse = 0f;
 	private int lastRoundSeen = -1;
+	/** 准备阶段倒计时（秒），到 0 自动开战。 */
+	private float prepLeft = -1f;
+	private static final float PREP_TIME = 30f;
+	/** 上一次看到的羁绊档位，用来检测「刚激活」。 */
+	private final java.util.HashMap<String, Integer> lastTiers = new java.util.HashMap<>();
 
 	private void idleBreath(AutochessRun run) {
 		breathTime += Game.elapsed;
@@ -322,7 +323,47 @@ public class AutochessHUD extends Component {
 		if (run.round() != lastRoundSeen) {
 			lastRoundSeen = run.round();
 			roundPulse = 1f;
-			banner("第 " + run.round() + " 回合", 0xFFD58A);
+			prepLeft = PREP_TIME;
+			banner(M.L(AutochessHUD.class, "round_banner", run.round()), 0xFFD58A);
+		}
+
+		// ------- 准备阶段倒计时：到 0 自动开战 -------
+		if (run.state() == AutochessRun.State.PREP) {
+			if (prepLeft < 0f) prepLeft = PREP_TIME;
+			prepLeft -= Game.elapsed;
+			if (prepLeft <= 0f) {
+				prepLeft = PREP_TIME;
+				if (run.deployed() > 0) {
+					banner(M.L(AutochessHUD.class, "auto_fight"), 0xFFD58A);
+					run.startFight();
+				}
+			}
+		} else {
+			prepLeft = -1f;
+		}
+
+		// ------- 羁绊刚激活时提示 -------
+		for (String trait : new String[] {
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.BEAST,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.SWARM,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.UNDEAD,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.CONSTRUCT,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.DEMON,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.HUMANOID,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.TANK,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.ASSASSIN,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.RANGED,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.FIGHTER,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.MAGE,
+				com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.SUPPORT }) {
+			int tier = AutochessRun.traitTier(trait);
+			Integer prev = lastTiers.get(trait);
+			if (prev != null && tier > prev) {
+				banner(M.L(AutochessHUD.class, "trait_activated",
+						M.L(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool.class, "trait_" + trait),
+						tier), 0x66DDFF);
+			}
+			lastTiers.put(trait, tier);
 		}
 		if (roundPulse > 0f) {
 			roundPulse = Math.max(0f, roundPulse - Game.elapsed / 0.9f);
@@ -335,8 +376,11 @@ public class AutochessHUD extends Component {
 
 		// ------- 云顶式顶部条 -------
 		boolean fighting = run.state() == AutochessRun.State.FIGHT;
+		String countdown = run.state() == AutochessRun.State.PREP && prepLeft >= 0f
+				? " ｜ " + Math.max(0, (int) Math.ceil(prepLeft)) + "s"
+				: "";
 		String line1 = "第 " + run.round() + " 回合 · "
-				+ M.L(AutochessHUD.class, fighting ? "fighting" : "prep");
+				+ M.L(AutochessHUD.class, fighting ? "fighting" : "prep") + countdown;
 		String line2 = run.gold() + " 金 ｜ Lv" + run.level()
 				+ " ｜ " + run.deployed() + "/" + run.maxDeploy();
 		String line3 = "经验 " + run.xp() + "/"
