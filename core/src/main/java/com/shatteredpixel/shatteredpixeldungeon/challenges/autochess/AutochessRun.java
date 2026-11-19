@@ -912,7 +912,7 @@ public class AutochessRun extends Buff {
 	public void checkFight() {
 		if (state != State.FIGHT || Dungeon.level == null) return;
 		// 开局头几拍不判负：单位刚生成、刚唤醒，避免「点了开战立刻失败」
-		if (fightTurns < 10) return;
+		if (fightTurns < 3) return;
 		if (ChessBoardLevel.countSide(false) > 0) {
 			if (ChessBoardLevel.countSide(true) <= 0) loseRound();
 			return;

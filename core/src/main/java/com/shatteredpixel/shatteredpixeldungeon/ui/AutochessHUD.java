@@ -266,13 +266,15 @@ public class AutochessHUD extends Component {
 			acc += Game.elapsed;
 			if (acc >= TURN_INTERVAL) {
 				acc = 0f;
-				// 英雄只观战：这里只负责把回合推进器踩下去，让双方 AI 自己打
+				// 英雄只是节拍器：ready 就正常推进；不 ready 就直接让 Actor 队列走一步
 				if (Dungeon.hero != null && Dungeon.hero.ready) {
 					Dungeon.hero.spendAndNext(1f);
+				} else {
+					com.shatteredpixel.shatteredpixeldungeon.actors.Actor.process();
 				}
+				run.tickFight();
+				run.checkFight();
 			}
-			run.tickFight();
-			run.checkFight();
 		} else {
 			acc = 0f;
 		}
