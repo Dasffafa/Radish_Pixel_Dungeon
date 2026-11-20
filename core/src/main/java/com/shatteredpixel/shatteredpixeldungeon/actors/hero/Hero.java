@@ -918,6 +918,11 @@ public class Hero extends Char {
 			evasion *= 3;
 		}
 
+		if (buff(FogSword.ActBless.class) != null && belongings.weapon() instanceof FogSword){
+			FogSword fs = (FogSword) belongings.weapon();
+			evasion *= 1f + (20f + fs.level() * 4f) / 100f;
+		}
+
 		if (paralysed > 0) {
 			evasion /= 2;
 		}
