@@ -33,6 +33,13 @@ public class AutochessFoeBuff extends Buff {
 
 	@Override
 	public boolean act() {
+		AutochessRun runNow = AutochessRun.get();
+		if (runNow != null && runNow.state() == AutochessRun.State.FIGHT) {
+			if (AutochessUtil.combatStep((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target)) {
+				spend(TICK);
+				return true;
+			}
+		}
 		spend(TICK);
 		if (skill != null && AutochessUtil.alive(target) && hasFoeNearby()) {
 			mana += 6;   // 比原来慢一半，避免技能刷屏

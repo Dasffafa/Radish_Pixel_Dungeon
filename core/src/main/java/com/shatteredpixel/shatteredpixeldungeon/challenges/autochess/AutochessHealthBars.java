@@ -20,8 +20,8 @@ import java.util.HashMap;
  */
 public class AutochessHealthBars extends Component {
 
-	private static final int BAR_W = 16;
-	private static final int BAR_H = 3;
+	private static final int BAR_W = 12;
+	private static final int BAR_H = 2;
 	private static final int STAR = 3;
 	private static final int STAR_GAP = 4;
 
@@ -101,7 +101,8 @@ public class AutochessHealthBars extends Component {
 			int lx = mob.pos % lw;
 			int ly = mob.pos / lw;
 			float cx = lx * 16f + 8f;
-			float top = ly * 16f + 1f;
+			// 贴在格子上方（-5），不要压在棋子身上
+			float top = ly * 16f - 5f;
 
 			// 星级：只在备战阶段显示，一排居中
 			float starW = bar.stars.length * STAR_GAP - 1f;

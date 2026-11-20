@@ -245,6 +245,13 @@ public class AutochessUnitBuff extends AllyBuff {
 
 	@Override
 	public boolean act() {
+		AutochessRun runNow = AutochessRun.get();
+		if (runNow != null && runNow.state() == AutochessRun.State.FIGHT) {
+			if (AutochessUtil.combatStep((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target)) {
+				spend(TICK);
+				return true;
+			}
+		}
 		int undead = hasTrait(AutochessPool.UNDEAD) ? tier(AutochessPool.UNDEAD) : 0;
 		if (undead > 0 && target.HP < target.HT) {
 			// 亡灵 · 吸血：持续从造成的伤害里回血，这里做成每回合稳定回复

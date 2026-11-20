@@ -169,22 +169,30 @@ public class AutochessHUD extends Component {
 				Dungeon.hero,
 				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger.class);
 
-		// 战斗中：把盯着观战者的敌人改成盯己方棋子，否则它们会卡在包间外永远打不完
+		// 战斗中：双方棋子都要真的打起来
+		// 1) 睡着的叫醒（新拉出来的棋子默认在睡，英雄在包间里它们看不到）
+		// 2) 目标指向对面的棋子，而不是看戏的英雄
 		if (run.state() == AutochessRun.State.FIGHT) {
-			for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
-					: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-				if (!alive(mob) || mob.targetPos() != booth) continue;
-				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob best = null;
-				for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob other
-						: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-					if (!alive(other)) continue;
-					if (other.alignment != com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY) continue;
-					if (best == null || Dungeon.level.distance(mob.pos, other.pos)
-							< Dungeon.level.distance(mob.pos, best.pos)) {
-						best = other;
-					}
+			com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[] all =
+					Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0]);
+			for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob : all) {
+				if (!alive(mob)) continue;
+				if (mob.state == mob.SLEEPING || mob.state == mob.WANDERING) {
+					mob.state = mob.HUNTING;
 				}
-				mob.retarget(best != null ? best.pos : -1);
+				int tp = mob.targetPos();
+				if (tp == booth || tp == -1 || tp == mob.pos) {
+					com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob best = null;
+					for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob other : all) {
+						if (other == mob || !alive(other)) continue;
+						if (other.alignment == mob.alignment) continue;
+						if (best == null || Dungeon.level.distance(mob.pos, other.pos)
+								< Dungeon.level.distance(mob.pos, best.pos)) {
+							best = other;
+						}
+					}
+					if (best != null) mob.retarget(best.pos);
+				}
 			}
 		}
 
