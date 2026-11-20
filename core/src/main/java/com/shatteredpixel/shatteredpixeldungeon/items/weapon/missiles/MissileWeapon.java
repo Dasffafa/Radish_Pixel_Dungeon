@@ -397,9 +397,9 @@ abstract public class MissileWeapon extends Weapon {
 		AshKing.FatalBladeForm fatalBlade = attacker == Dungeon.hero ? Dungeon.hero.buff(AshKing.FatalBladeForm.class) : null;
 		if (fatalBlade != null) {
 			// 在目标位置生成毒雾 (250气体量)
-			Buff.affect(defender, Poison.class).set(5);
-			// 也可以在周围生成毒气blob
-			// Blob.seed(defender.pos, 250, ToxicGas.class);
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.add(
+					com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob.seed(
+							defender.pos, 250, com.shatteredpixel.shatteredpixeldungeon.actors.blobs.ToxicGas.class));
 		}
 
 		if (attacker == Dungeon.hero && Random.Int(3) < Dungeon.hero.pointsInTalent(Talent.SHARED_ENCHANTMENT)){
