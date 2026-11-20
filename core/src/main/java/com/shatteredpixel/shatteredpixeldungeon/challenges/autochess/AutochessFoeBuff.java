@@ -34,7 +34,7 @@ public class AutochessFoeBuff extends Buff {
 	@Override
 	public boolean act() {
 		spend(TICK);
-		if (skill != null && target.isAlive() && hasFoeNearby()) {
+		if (skill != null && AutochessUtil.alive(target) && hasFoeNearby()) {
 			mana += 6;   // 比原来慢一半，避免技能刷屏
 			if (mana >= skill.mana) {
 				mana = 0;
@@ -48,7 +48,7 @@ public class AutochessFoeBuff extends Buff {
 	private boolean hasFoeNearby() {
 		if (Dungeon.level == null) return false;
 		for (Char ch : Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-			if (!ch.isAlive() || ch.alignment == target.alignment) continue;
+			if (!AutochessUtil.alive(ch) || ch.alignment == target.alignment) continue;
 			if (Dungeon.level.distance(ch.pos, target.pos) <= 8) return true;
 		}
 		return false;

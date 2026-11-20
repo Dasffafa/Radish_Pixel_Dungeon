@@ -60,7 +60,7 @@ public class AutochessBoardDrag extends Component {
 
 		if (Dungeon.level == null) return;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive()) continue;
+			if (mob.sprite == null || mob.sprite.parent == null || !alive(mob)) continue;
 			if (mob.sprite == null || mob.sprite.parent == null) continue;
 			final Mob unit = mob;
 
@@ -184,5 +184,15 @@ public class AutochessBoardDrag extends Component {
 		}
 		areas.clear();
 		super.destroy();
+	}
+
+	/** ClusteredSkeleton 的 isAlive() 会触发死亡时钟、依赖 sprite.parent，这里统一兜住。 */
+	private static boolean alive(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m) {
+		if (m == null || m.sprite == null) return false;
+		try {
+			return AutochessUtil.alive(m);
+		} catch (Throwable t) {
+			return false;
+		}
 	}
 }

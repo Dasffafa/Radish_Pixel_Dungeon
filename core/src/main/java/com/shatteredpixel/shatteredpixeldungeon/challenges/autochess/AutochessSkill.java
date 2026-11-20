@@ -288,41 +288,41 @@ public class AutochessSkill {
 	}
 
 	private void hit(Char caster, Char target, int dmg) {
-		if (target == null || !target.isAlive()) return;
+		if (target == null || !AutochessUtil.alive(target)) return;
 		target.damage(DamageInfo.physical(dmg, caster));
 	}
 
 	/** 按目标最大生命比例造成技能伤害（受星级加成，上限 32%）。 */
 	private void hitPct(Char caster, Char target, float pct) {
-		if (target == null || !target.isAlive()) return;
+		if (target == null || !AutochessUtil.alive(target)) return;
 		float capped = Math.min(0.22f, pct * power);
 		hit(caster, target, Math.max(1, Math.round(target.HT * capped)));
 	}
 
 	private void heal(Char ch, float pct) {
-		if (ch == null || !ch.isAlive()) return;
+		if (ch == null || !AutochessUtil.alive(ch)) return;
 		ch.HP = Math.min(ch.HT, ch.HP + Math.max(1, Math.round(ch.HT * pct * power)));
 	}
 
 	private void shield(Char ch, float pct) {
-		if (ch == null || !ch.isAlive()) return;
+		if (ch == null || !AutochessUtil.alive(ch)) return;
 		Buff.affect(ch, Barrier.class).incShield(Math.max(1, Math.round(ch.HT * pct * power)));
 	}
 
 	private void poison(Char ch, float turns) {
-		if (ch == null || !ch.isAlive()) return;
+		if (ch == null || !AutochessUtil.alive(ch)) return;
 		float scaled = starLevel >= 3 ? turns * 1.5f : turns;
 		Buff.affect(ch, Poison.class).set(scaled);
 	}
 
 	private void burn(Char ch, float turns) {
-		if (ch == null || !ch.isAlive()) return;
+		if (ch == null || !AutochessUtil.alive(ch)) return;
 		float scaled = starLevel >= 3 ? turns * 1.5f : turns;
 		Buff.affect(ch, Burning.class).reignite(ch, scaled);
 	}
 
 	private void stun(Char ch, float turns) {
-		if (ch == null || !ch.isAlive()) return;
+		if (ch == null || !AutochessUtil.alive(ch)) return;
 		float scaled = starLevel >= 3 ? turns + 1f : turns;
 		Buff.affect(ch, Paralysis.class, scaled);
 	}
@@ -331,7 +331,7 @@ public class AutochessSkill {
 		ArrayList<Char> list = new ArrayList<>();
 		if (Dungeon.level == null) return list;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.alignment == caster.alignment) continue;
+			if (!AutochessUtil.alive(mob) || mob.alignment == caster.alignment) continue;
 			if (Dungeon.level.distance(mob.pos, caster.pos) <= range) list.add(mob);
 		}
 		return list;
@@ -341,7 +341,7 @@ public class AutochessSkill {
 		ArrayList<Char> list = new ArrayList<>();
 		if (Dungeon.level == null) return list;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.alignment != caster.alignment) continue;
+			if (!AutochessUtil.alive(mob) || mob.alignment != caster.alignment) continue;
 			if (Dungeon.level.distance(mob.pos, caster.pos) <= range) list.add(mob);
 		}
 		return list;
@@ -351,7 +351,7 @@ public class AutochessSkill {
 		if (Dungeon.level == null) return null;
 		Char best = null;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.alignment == caster.alignment) continue;
+			if (!AutochessUtil.alive(mob) || mob.alignment == caster.alignment) continue;
 			if (Dungeon.level.distance(mob.pos, caster.pos) > range) continue;
 			if (best == null || mob.HP < best.HP) best = mob;
 		}
@@ -362,7 +362,7 @@ public class AutochessSkill {
 		if (Dungeon.level == null) return null;
 		Char best = null;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.alignment != caster.alignment || mob.HP >= mob.HT) continue;
+			if (!AutochessUtil.alive(mob) || mob.alignment != caster.alignment || mob.HP >= mob.HT) continue;
 			if (best == null || mob.HP / (float) mob.HT < best.HP / (float) best.HT) best = mob;
 		}
 		return best;

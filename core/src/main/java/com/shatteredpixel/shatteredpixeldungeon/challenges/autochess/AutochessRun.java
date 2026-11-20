@@ -542,7 +542,7 @@ public class AutochessRun extends Buff {
 		for (java.util.Map.Entry<Integer, Mob> e : unitMobs.entrySet()) {
 			int key = e.getKey();
 			Mob mob = e.getValue();
-			if (mob == null || !mob.isAlive()) continue;
+			if (mob == null || !AutochessUtil.alive(mob)) continue;
 			int cell;
 			if (key >= 100) {
 				int index = key - 100;
@@ -648,7 +648,7 @@ public class AutochessRun extends Buff {
 		int star = parseInt(parts[1]);
 
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.sprite == null) continue;
+			if (!AutochessUtil.alive(mob) || mob.sprite == null) continue;
 			if (!mob.getClass().getSimpleName().equals(cls)) continue;
 			if (starOf(mob) != star) continue;
 
@@ -839,7 +839,7 @@ public class AutochessRun extends Buff {
 
 	private void clearBenchVisuals() {
 		for (Mob mob : benchVisuals) {
-			if (mob != null && mob.isAlive()) despawn(mob);
+			if (mob != null && AutochessUtil.alive(mob)) despawn(mob);
 		}
 		benchVisuals.clear();
 	}
@@ -996,7 +996,7 @@ public class AutochessRun extends Buff {
 		int best = ally.pos;
 		int bestDist = Integer.MAX_VALUE;
 		for (Mob other : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!other.isAlive() || other.alignment == Char.Alignment.ALLY) continue;
+			if (!AutochessUtil.alive(other) || other.alignment == Char.Alignment.ALLY) continue;
 			int d = Dungeon.level.distance(ally.pos, other.pos);
 			if (d < bestDist) {
 				bestDist = d;
@@ -1025,11 +1025,11 @@ public class AutochessRun extends Buff {
 	private void rangedAssist() {
 		if (Dungeon.level == null) return;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive()) continue;
+			if (!AutochessUtil.alive(mob)) continue;
 			if (!RANGED.contains(mob.getClass().getSimpleName())) continue;
 			Mob enemy = null;
 			for (Mob other : Dungeon.level.mobs.toArray(new Mob[0])) {
-				if (!other.isAlive() || other.alignment == mob.alignment) continue;
+				if (!AutochessUtil.alive(other) || other.alignment == mob.alignment) continue;
 				int d = Dungeon.level.distance(mob.pos, other.pos);
 				if (d > 5) continue;
 				if (enemy == null || d < Dungeon.level.distance(mob.pos, enemy.pos)) enemy = other;

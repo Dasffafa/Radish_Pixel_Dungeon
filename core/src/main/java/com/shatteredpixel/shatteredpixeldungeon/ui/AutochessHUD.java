@@ -173,11 +173,11 @@ public class AutochessHUD extends Component {
 		if (run.state() == AutochessRun.State.FIGHT) {
 			for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
 					: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-				if (!mob.isAlive() || mob.targetPos() != booth) continue;
+				if (!alive(mob) || mob.targetPos() != booth) continue;
 				com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob best = null;
 				for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob other
 						: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-					if (!other.isAlive()) continue;
+					if (!alive(other)) continue;
 					if (other.alignment != com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY) continue;
 					if (best == null || Dungeon.level.distance(mob.pos, other.pos)
 							< Dungeon.level.distance(mob.pos, best.pos)) {
@@ -191,7 +191,7 @@ public class AutochessHUD extends Component {
 		// 清掉棋子头顶的情绪气泡（"?"/"!"），它们会让画面很乱
 		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
 				: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-			if (!mob.isAlive()) continue;
+			if (!alive(mob)) continue;
 			if (run.state() == AutochessRun.State.PREP) mob.state = mob.SLEEPING;
 			if (mob.sprite != null) mob.sprite.hideEmo();
 		}
@@ -222,7 +222,7 @@ public class AutochessHUD extends Component {
 		boolean prep = run.state() == AutochessRun.State.PREP;
 		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob mob
 				: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-			if (!mob.isAlive() || mob.sprite == null) {
+			if (mob.sprite == null || !alive(mob)) {
 				Float b = breathBase.remove(mob);
 				breathPhase.remove(mob);
 				if (b != null && mob.sprite != null) mob.sprite.y = b;
@@ -464,6 +464,16 @@ public class AutochessHUD extends Component {
 			}
 		} else {
 			acc = 0f;
+		}
+	}
+
+	/** ClusteredSkeleton 的 isAlive() 会触发死亡时钟、依赖 sprite.parent，这里统一兜住。 */
+	private static boolean alive(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m) {
+		if (m == null || m.sprite == null) return false;
+		try {
+			return com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUtil.alive(m);
+		} catch (Throwable t) {
+			return false;
 		}
 	}
 }

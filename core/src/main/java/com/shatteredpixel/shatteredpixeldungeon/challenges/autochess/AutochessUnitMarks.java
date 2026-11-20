@@ -44,7 +44,7 @@ public class AutochessUnitMarks extends Component {
 		clearMarks();
 		if (Dungeon.level == null) return;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.sprite == null || mob.sprite.parent == null) continue;
+			if (mob.sprite == null || mob.sprite.parent == null || !alive(mob)) continue;
 			boolean ally = mob.alignment == com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY;
 			Mark mark = new Mark(mob, ally, run.starOf(mob));
 			mob.sprite.parent.add(mark.arrow);
@@ -93,7 +93,7 @@ public class AutochessUnitMarks extends Component {
 		}
 
 		void update(AutochessRun run) {
-			if (mob == null || !mob.isAlive() || mob.sprite == null) {
+			if (mob == null || mob.sprite == null || !alive(mob)) {
 				arrow.visible = false;
 				for (BitmapText star : stars) star.visible = false;
 				return;
@@ -119,6 +119,16 @@ public class AutochessUnitMarks extends Component {
 		void destroy() {
 			arrow.killAndErase();
 			for (BitmapText star : stars) star.killAndErase();
+		}
+	}
+
+	/** ClusteredSkeleton 的 isAlive() 会触发死亡时钟、依赖 sprite.parent，这里统一兜住。 */
+	private static boolean alive(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m) {
+		if (m == null || m.sprite == null) return false;
+		try {
+			return AutochessUtil.alive(m);
+		} catch (Throwable t) {
+			return false;
 		}
 	}
 }

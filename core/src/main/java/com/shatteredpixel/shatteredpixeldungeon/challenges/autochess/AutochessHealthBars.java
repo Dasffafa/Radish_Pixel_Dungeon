@@ -44,7 +44,7 @@ public class AutochessHealthBars extends Component {
 		for (Mob m : Dungeon.level.mobs.toArray(new Mob[0])) present.add(m);
 		bars.entrySet().removeIf(e -> {
 			Mob mob = e.getKey();
-			boolean gone = !mob.isAlive() || mob.sprite == null || !mob.sprite.visible
+			boolean gone = mob.sprite == null || !mob.sprite.visible
 					|| !present.contains(mob);
 			if (gone) {
 				e.getValue().bg.killAndErase();
@@ -57,7 +57,7 @@ public class AutochessHealthBars extends Component {
 		});
 
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.sprite == null) continue;
+			if (mob.sprite == null || !alive(mob)) continue;
 			boolean ours = mob.buff(AutochessUnitBuff.class) != null
 					|| mob.buff(AutochessFoeBuff.class) != null;
 			if (!ours) continue;
@@ -131,5 +131,15 @@ public class AutochessHealthBars extends Component {
 			}
 		}
 		bars.clear();
+	}
+
+	/** ClusteredSkeleton 的 isAlive() 会触发死亡时钟、依赖 sprite.parent，这里统一兜住。 */
+	private static boolean alive(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m) {
+		if (m == null || m.sprite == null) return false;
+		try {
+			return AutochessUtil.alive(m);
+		} catch (Throwable t) {
+			return false;
+		}
 	}
 }

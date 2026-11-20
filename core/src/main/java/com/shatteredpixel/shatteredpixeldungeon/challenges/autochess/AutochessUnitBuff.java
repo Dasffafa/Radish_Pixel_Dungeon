@@ -298,7 +298,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		Char lowest = null;
 		for (Char ch : Dungeon.level.mobs.toArray(new Mob[0])) {
 			if (ch == target || ch.alignment != target.alignment) continue;
-			if (!ch.isAlive() || ch.HP >= ch.HT) continue;
+			if (!AutochessUtil.alive(ch) || ch.HP >= ch.HT) continue;
 			if (Dungeon.level.distance(ch.pos, target.pos) > 6) continue;
 			if (lowest == null || ch.HP / (float) ch.HT < lowest.HP / (float) lowest.HT) {
 				lowest = ch;
@@ -315,7 +315,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		if (Dungeon.level == null) return 0;
 		int count = 0;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (!mob.isAlive() || mob.alignment == target.alignment) continue;
+			if (!AutochessUtil.alive(mob) || mob.alignment == target.alignment) continue;
 			if (Dungeon.level.distance(mob.pos, target.pos) == 1) count++;
 		}
 		return count;
@@ -326,7 +326,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		if (Dungeon.level == null) return 0;
 		int count = 0;
 		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
-			if (mob == target || !mob.isAlive() || mob.alignment != target.alignment) continue;
+			if (mob == target || !AutochessUtil.alive(mob) || mob.alignment != target.alignment) continue;
 			if (Dungeon.level.distance(mob.pos, target.pos) == 1) count++;
 		}
 		return count;
