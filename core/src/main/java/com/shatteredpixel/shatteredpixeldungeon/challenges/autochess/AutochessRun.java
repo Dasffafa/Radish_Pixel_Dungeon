@@ -198,6 +198,10 @@ public class AutochessRun extends Buff {
 			bot.advance(run.pool, 0);
 		}
 		run.rollShop();
+		// 调试：-Darena.seed=true 时开局白送棋子并自动上阵（仅测试用）
+		if (Boolean.getBoolean("arena.seed")) {
+			run.debugSeed();
+		}
 
 
 
@@ -345,6 +349,7 @@ public class AutochessRun extends Buff {
 		if (state != State.PREP || gold < REFRESH_COST) return false;
 		gold -= REFRESH_COST;
 		rollShop();
+
 		return true;
 	}
 
@@ -602,6 +607,18 @@ public class AutochessRun extends Buff {
 		String entry = arr[index];
 		if (entry == null) return new java.util.ArrayList<>();
 		return AutochessItems.parse(entry);
+	}
+
+	/** 调试用：给金币、买满备战席并自动上阵。 */
+	public void debugSeed() {
+		gold += 40;
+		for (int i = 0; i < 8; i++) {
+			for (int k = 0; k < OFFER_COUNT; k++) {
+				if (buy(k)) break;
+			}
+		}
+		autoDeployBench();
+		refreshPreview();
 	}
 
 	public int sellValue(int side, int index) {

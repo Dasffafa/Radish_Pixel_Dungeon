@@ -249,9 +249,14 @@ public class AutochessHUD extends Component {
 
 	/** 棋盘上不该有掉落物：每帧都清一遍，旧存档里的遗留物也会被扫掉。 */
 	private void clearGroundLoot() {
-		if (Dungeon.level != null && Dungeon.level.heaps != null && Dungeon.level.heaps.size > 0) {
-			Dungeon.level.heaps.clear();
+		if (Dungeon.level == null || Dungeon.level.heaps == null) return;
+		if (Dungeon.level.heaps.size == 0) return;
+		// heaps.clear() 只清数据，贴图要单独销毁，否则地上会残留一坨
+		for (com.shatteredpixel.shatteredpixeldungeon.items.Heap h
+				: new java.util.ArrayList<>(Dungeon.level.heaps.valueList())) {
+			if (h != null && h.sprite != null) h.sprite.killAndErase();
 		}
+		Dungeon.level.heaps.clear();
 	}
 
 	private void keepFullVision() {

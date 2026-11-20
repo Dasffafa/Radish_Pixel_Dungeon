@@ -1,15 +1,18 @@
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
-import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessItems;
+import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessPool;
 import com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun;
 import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessItems;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessLobby;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndAutochessTraits;
 import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.MovieClip;
+import com.watabou.noosa.PointerArea;
 import com.watabou.noosa.ui.Component;
 
 import java.util.ArrayList;
@@ -17,14 +20,18 @@ import java.util.ArrayList;
 /**
  * 云顶风的底部商店栏：常驻在屏幕底部，不再用弹窗。
  *
- * <p>上面一行状态（回合/金币/等级/上阵/倒计时），中间一排小按钮，
- * 下面 5 张卡，点卡直接买。备战阶段常显，战斗时隐藏。</p>
+ * <p>三行布局：</p>
+ * <pre>
+ * 第 N 回合 | 金币 X | LvN | 上阵 a/b      [锁] [卖N]
+ * [刷新2] [经验4] [装备] [大厅] [羁绊] [开战]
+ * [ 卡 ][ 卡 ][ 卡 ][ 卡 ][ 卡 ]
+ * </pre>
  */
 public class AutochessShopBar extends Component {
 
 	private static final int MARGIN = 3;
 	private static final int GAP = 2;
-	private static final float H = 52;
+	private static final float H = 58;
 
 	private static final int COLOR_GOLD = 0xFFFFD700;
 	private static final int COLOR_CREAM = 0xFFF1E5B5;
@@ -37,11 +44,6 @@ public class AutochessShopBar extends Component {
 	private final ArrayList<Component> components = new ArrayList<>();
 	private final ArrayList<com.watabou.noosa.Visual> visuals = new ArrayList<>();
 	private String lastSig = "";
-
-	@Override
-	protected void createChildren() {
-		super.createChildren();
-	}
 
 	@Override
 	public void update() {
@@ -61,13 +63,12 @@ public class AutochessShopBar extends Component {
 			return;
 		}
 
-		// 贴底铺满（子元素用绝对坐标，位置在 rebuild 里算）
 		width = PixelScene.uiCamera.width;
 		height = H;
 
 		String sig = run.round() + "|" + run.gold() + "|" + run.level() + "|" + run.deployed()
-				+ "|" + run.shopLocked() + "|" + run.unitVersion + "|" + run.selectedIndex
-				+ "|" + run.itemBag().size();
+				+ "|" + run.shopLocked() + "|" + run.unitVersion + "|" + run.selectedSide
+				+ "|" + run.selectedIndex + "|" + run.itemBag().size() + "|" + (int) width;
 		if (!sig.equals(lastSig)) {
 			lastSig = sig;
 			rebuild(run);
@@ -92,18 +93,67 @@ public class AutochessShopBar extends Component {
 		add(bg);
 		components.add(bg);
 
-		// ---------- 状态行 ----------
+		// ---------------- 第一行：状态 + 锁定 / 出售 ----------------
+		String selInfo = "";
+		if (run.selectedSide >= 0 && run.selectedIndex >= 0) {
+			String cls = run.unitClass(run.selectedSide, run.selectedIndex);
+			if (cls != null) {
+				selInfo = " | " + AutochessRun.displayName(cls) + " "
+						+ run.unitStar(run.selectedSide, run.selectedIndex) + "★";
+				java.util.ArrayList<String> eq = run.equippedItems(run.selectedSide, run.selectedIndex);
+				if (!eq.isEmpty()) {
+					StringBuilder sb = new StringBuilder(" [");
+					for (int k = 0; k < eq.size(); k++) {
+						if (k > 0) sb.append(",");
+						String nm = AutochessItems.name(eq.get(k));
+						sb.append(nm.length() > 4 ? nm.substring(0, 4) : nm);
+					}
+					sb.append("]");
+					selInfo += sb;
+				}
+			}
+		}
+
 		RenderedTextBlock info = PixelScene.renderTextBlock(
 				M.L(AutochessShopBar.class, "info",
-						run.round(), run.gold(), run.level(), run.deployed(), run.maxDeploy()), 6);
+						run.round(), run.gold(), run.level(), run.deployed(), run.maxDeploy())
+						+ selInfo, 6);
 		info.hardlight(COLOR_CREAM);
+		info.maxWidth((int) Math.max(40, w - 2 * MARGIN - 46));
 		info.setPos(MARGIN, oy + 2);
 		add(info);
 		components.add(info);
 
-		// ---------- 按钮行 ----------
-		float by = oy + 11;
-		float bw = (w - MARGIN * 2 - GAP * 7) / 8f;
+		// 右上角两个小按钮：锁 / 卖
+		float smallW = 21;
+		float smallH = 9;
+		float rx = w - MARGIN - smallW * 2 - GAP;
+		buildButton(run.shopLocked()
+						? M.L(AutochessShopBar.class, "unlock_short")
+						: M.L(AutochessShopBar.class, "lock_short"),
+				rx, oy + 1, smallW, smallH, () -> {
+					AutochessRun r = AutochessRun.get();
+					if (r != null) {
+						r.toggleShopLock();
+						lastSig = "";
+					}
+				});
+		buildButton(M.L(AutochessShopBar.class, "sell_short",
+						run.sellValue(run.selectedSide, run.selectedIndex)),
+				rx + smallW + GAP, oy + 1, smallW, smallH, () -> {
+					AutochessRun r = AutochessRun.get();
+					if (r != null && r.selectedSide >= 0 && r.selectedIndex >= 0) {
+						int got = r.sell(r.selectedSide, r.selectedIndex);
+						if (got > 0) {
+							r.clearSelection();
+							lastSig = "";
+						}
+					}
+				});
+
+		// ---------------- 第二行：六个功能按钮 ----------------
+		float by = oy + 13;
+		float bw = (w - MARGIN * 2 - GAP * 5) / 6f;
 		float bh = 11;
 
 		buildButton(M.L(AutochessShopBar.class, "refresh", AutochessRun.REFRESH_COST),
@@ -116,14 +166,9 @@ public class AutochessShopBar extends Component {
 					AutochessRun r = AutochessRun.get();
 					if (r != null && r.buyXp()) lastSig = "";
 				});
-		buildButton(run.shopLocked() ? M.L(AutochessShopBar.class, "unlock") : M.L(AutochessShopBar.class, "lock"),
-				MARGIN + (bw + GAP) * 2, by, bw, bh, () -> {
-					AutochessRun r = AutochessRun.get();
-					if (r != null) {
-						r.toggleShopLock();
-						lastSig = "";
-					}
-				});
+		buildButton(M.L(AutochessShopBar.class, "items"),
+				MARGIN + (bw + GAP) * 2, by, bw, bh,
+				() -> GameScene.show(new WndAutochessItems()));
 		buildButton(M.L(AutochessShopBar.class, "lobby"),
 				MARGIN + (bw + GAP) * 3, by, bw, bh,
 				() -> GameScene.show(new WndAutochessLobby()));
@@ -136,9 +181,9 @@ public class AutochessShopBar extends Component {
 					if (r != null) r.startFight();
 				});
 
-		// ---------- 卡牌行 ----------
-		float cy = oy + 23;
-		float ch = H - 23 - MARGIN;
+		// ---------------- 第三行：卡牌 ----------------
+		float cy = by + bh + GAP;
+		float ch = H - (cy - oy) - MARGIN;
 		float cw = (w - MARGIN * 2 - GAP * 4) / 5f;
 
 		for (int i = 0; i < AutochessRun.OFFER_COUNT; i++) {
@@ -203,7 +248,7 @@ public class AutochessShopBar extends Component {
 		add(price);
 		components.add(price);
 
-		com.watabou.noosa.PointerArea tap = new com.watabou.noosa.PointerArea(0, 0, w, h) {
+		PointerArea tap = new PointerArea(0, 0, w, h) {
 			@Override
 			protected void onClick(com.watabou.input.PointerEvent event) {
 				AutochessRun r = AutochessRun.get();
