@@ -35,6 +35,7 @@ public class AutochessUtil {
 		if (foe == null) return false;
 
 		if (best <= 1) {
+			if (self.sprite != null) self.sprite.hideEmo();
 			self.attack(foe);
 			return true;
 		}
@@ -54,8 +55,12 @@ public class AutochessUtil {
 			int np = ny * w + nx;
 			if (!level.passable[np]) continue;
 			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(np) != null) continue;
+			int from = self.pos;
 			self.pos = np;
-			if (self.sprite != null) self.sprite.place(np);
+			if (self.sprite != null) {
+				self.sprite.move(from, np);   // 平滑走过去，而不是瞬移
+				self.sprite.hideEmo();
+			}
 			return true;
 		}
 		return false;

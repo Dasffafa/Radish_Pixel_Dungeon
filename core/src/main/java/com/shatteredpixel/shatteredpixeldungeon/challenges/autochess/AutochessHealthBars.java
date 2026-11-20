@@ -101,15 +101,15 @@ public class AutochessHealthBars extends Component {
 			int lx = mob.pos % lw;
 			int ly = mob.pos / lw;
 			float cx = lx * 16f + 8f;
-			// 贴在格子上方（-5），不要压在棋子身上
-			float top = ly * 16f - 5f;
+			// 用精灵自己的 y 当基准，贴着头顶上方，绝不压住棋子
+			float top = (mob.sprite != null ? mob.sprite.y : ly * 16f) - 3f;
 
 			// 星级：只在备战阶段显示，一排居中
 			float starW = bar.stars.length * STAR_GAP - 1f;
 			for (int k = 0; k < bar.stars.length; k++) {
 				bar.stars[k].visible = !fighting;
 				bar.stars[k].x = cx - starW / 2f + k * STAR_GAP;
-				bar.stars[k].y = top - 6f;
+				bar.stars[k].y = top - 5f;
 			}
 
 			// 血条 / 法力条：只在战斗显示
