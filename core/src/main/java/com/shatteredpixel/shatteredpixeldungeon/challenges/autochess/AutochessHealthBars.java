@@ -57,6 +57,7 @@ public class AutochessHealthBars extends Component {
 		float manaTrailRatio = 0f;
 		float lastRatio = -1f;
 		float lastMana = -1f;
+		float loggedRatio = -1f;
 	}
 
 	private final HashMap<Mob, Bar> bars = new HashMap<>();
@@ -164,6 +165,22 @@ public class AutochessHealthBars extends Component {
 			}
 			bar.trailRatio = Math.max(ratio, bar.trailRatio - Game.elapsed * TRAIL_SPEED);
 			bar.lastRatio = ratio;
+
+			// debug: print hp/mana percent (arena.debug)
+			if (java.lang.Boolean.getBoolean("arena.debug")
+					&& Math.abs(ratio - bar.loggedRatio) > 0.04f) {
+				bar.loggedRatio = ratio;
+				float dbgMana = 0f;
+				AutochessUnitBuff ub = mob.buff(AutochessUnitBuff.class);
+				AutochessFoeBuff fb = mob.buff(AutochessFoeBuff.class);
+				if (ub != null) dbgMana = ub.manaRatio();
+				else if (fb != null) dbgMana = fb.manaRatio();
+				System.out.println("[BAR] " + mob.getClass().getSimpleName()
+						+ " hp=" + Math.round(ratio * 100) + "%"
+						+ " barW=" + Math.round(BAR_W * ratio) + "/" + BAR_W
+						+ " mana=" + Math.round(dbgMana * 100) + "%"
+						+ " manaW=" + Math.round(BAR_W * dbgMana) + "/" + BAR_W);
+			}
 
 			boolean ally = mob.buff(AutochessUnitBuff.class) != null;
 			int fillColor = ally ? ALLY_FILL : ENEMY_FILL;
