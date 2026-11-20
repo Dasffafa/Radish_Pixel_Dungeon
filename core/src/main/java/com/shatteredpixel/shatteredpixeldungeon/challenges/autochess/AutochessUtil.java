@@ -47,18 +47,26 @@ public class AutochessUtil {
 		int dy = Integer.signum(fy - sy);
 
 		// 一步一步挪（直接改 pos，不走 Char.move，避开边界崩溃）
-		int[][] tries = new int[][]{{dx, dy}, {dx, 0}, {0, dy}};
-		for (int[] t : tries) {
-			int nx = sx + t[0];
-			int ny = sy + t[1];
-			if (nx <= 0 || ny <= 0 || nx >= level.width() - 1 || ny >= level.height() - 1) continue;
-			int np = ny * w + nx;
-			if (!level.passable[np]) continue;
-			if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(np) != null) continue;
+		int bestCell = -1;
+		int bestDist = Integer.MAX_VALUE;
+		for (int oy = -1; oy <= 1; oy++) {
+			for (int ox = -1; ox <= 1; ox++) {
+				if (ox == 0 && oy == 0) continue;
+				int nx = sx + ox;
+				int ny = sy + oy;
+				if (nx <= 0 || ny <= 0 || nx >= level.width() - 1 || ny >= level.height() - 1) continue;
+				int np = ny * w + nx;
+				if (!level.passable[np]) continue;
+				if (com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findChar(np) != null) continue;
+				int d = level.distance(np, foe.pos);
+				if (d < bestDist) { bestDist = d; bestCell = np; }
+			}
+		}
+		if (bestCell >= 0) {
 			int from = self.pos;
-			self.pos = np;
+			self.pos = bestCell;
 			if (self.sprite != null) {
-				self.sprite.move(from, np);   // 平滑走过去，而不是瞬移
+				self.sprite.move(from, bestCell);
 				self.sprite.hideEmo();
 			}
 			return true;
