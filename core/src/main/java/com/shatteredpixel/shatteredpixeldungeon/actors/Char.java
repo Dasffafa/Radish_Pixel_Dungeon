@@ -471,7 +471,10 @@ public abstract class Char extends Actor {
 
             //TODO 不会 交给狗哥）2025.2.1 19：45
 
+            int hpBefore = enemy.HP;
             enemy.damage(attackDamage);
+            com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Midas.flushPending(
+                    this, enemy, Math.max(0, hpBefore - enemy.HP));
 
             // 命中后事件：附带 debuff（火/冰赋能）、控制（圆球皮肤）、斩杀（箭矢）、暗杀（潜行）等
             EventManager.emit(new AttackHitEvent(this, enemy, effectiveDamage, attackDamage,
