@@ -380,12 +380,14 @@ public class Hero extends Char {
 
 	public int lvl = 1;
 	public int exp = 0;
+
 	// 催化手环积累的炼金能量（暂时只做累积与提示）
 	public float alchemyEnergy = 0f;
 
 	// 仙女座：上一次视野内的敌人数与预警冷却
 	private int andromedaSeenFoes = 0;
 	private int andromedaCd = 0;
+	private int resistHealth = 0;
 	public int HTBoost = 0;
 
 	/**
@@ -916,11 +918,6 @@ public class Hero extends Char {
 
 		if (buff(Quarterstaff.DefensiveStance.class) != null){
 			evasion *= 3;
-		}
-
-		if (buff(FogSword.ActBless.class) != null && belongings.weapon() instanceof FogSword){
-			FogSword fs = (FogSword) belongings.weapon();
-			evasion *= 1f + (20f + fs.level() * 4f) / 100f;
 		}
 
 		if (paralysed > 0) {
@@ -2650,69 +2647,6 @@ public class Hero extends Char {
 		if (hasTalent(Talent.IRON_MUSCLE) && pointsInTalent(Talent.IRON_MUSCLE)>3){
 			if (HP*2<HT)  dmg = Math.round(dmg*0.75f);
 		}
-
-
-		if(hasTalent(Talent.PAIN_SCAR) && HP+ shielding() -dmg<=0){
-			int point = pointsInTalent(Talent.PAIN_SCAR);
-			float ber = 0;
-
-			if(buff(Berserk.class)!=null)
-				ber = buff(Berserk.class).getPower();
-
-			Ankh ankh = null;
-			for (Ankh i : belongings.getAllItems(Ankh.class)) {
-				if (ankh == null || i.isBlessed()) {
-					ankh = i;
-				}
-			}
-
-			int hpCost = point == 1 ? 20 : (point == 2 ? 15 : 10);
-			float rageCost = point == 1 ? 0.2f : (point == 2 ? 0.15f : 0.1f);
-			boolean canResist = ber >= rageCost && HT > hpCost;
-
-			if(ankh != null && canResist && !isOnly){
-				Game.runOnRenderThread(new Callback() {
-					@Override
-					public void call() {
-						GameScene.show(new WndOptions(new ItemSprite(ItemSpriteSheet.ANKH),
-								Messages.get(Talent.PAIN_SCAR,"title"),
-								Messages.get(Talent.PAIN_SCAR,"desc"),
-								Messages.get(Talent.PAIN_SCAR,"prompt"),
-								Messages.get(Talent.PAIN_SCAR,"cancel")){
-							@Override
-							public void onBackPressed() {
-								//阻止玩家逃课
-							}
-							@Override
-							protected void onSelect(int index){
-								super.onSelect(index);
-								isOnly = true;
-								if( index == 0 ){
-									HTBoost -= hpCost;
-									updateHT(false);
-									isOnly = false;
-									buff(Berserk.class).reducePower(rageCost);
-									GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-								}else if(index == 1 ){
-									isOnly = false;
-									die(false);
-								}
-							}
-						});
-					}
-				});
-
-				return;
-			} else if (canResist) {
-				HTBoost -= hpCost;
-				updateHT(false);
-				buff(Berserk.class).reducePower(rageCost);
-				GLog.n(Messages.get(Talent.PAIN_SCAR,"resistDeath"));
-				return;
-			}
-
-		}
-
 
 
 		int preHP = HP + shielding();
