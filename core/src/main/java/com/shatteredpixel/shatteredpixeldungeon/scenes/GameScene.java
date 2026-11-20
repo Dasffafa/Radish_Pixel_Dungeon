@@ -602,6 +602,14 @@ public class GameScene extends PixelScene {
 		}
 		Camera.main.panTo(hero.center(), 2.5f);
 
+		// 自走棋：镜头固定在棋盘中心（英雄在包间里，跟着他会把棋盘推偏）
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
+					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
+			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 26f), 0f);
+		}
+
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
 			LevelTransition travelTransition = InterlevelScene.curTransition;
 			String destinationBranch = travelTransition == null
