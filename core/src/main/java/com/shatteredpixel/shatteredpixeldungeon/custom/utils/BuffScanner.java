@@ -4,6 +4,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 图鉴「效果百科」用的 Buff 清单。
@@ -21,6 +24,27 @@ public class BuffScanner {
 
 	private static ArrayList<Class<? extends Buff>> cachedBuffClasses = null;
 
+	// 本作没有决斗家职业，从效果百科中隐藏原版决斗家专属 Buff
+	private static final Set<String> HIDDEN_DUELIST_BUFFS = new HashSet<>(Arrays.asList(
+			"com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MonkEnergy",
+			"com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge$DuelParticipant",
+			"com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge$EliminationMatchTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Challenge$SpectatorFreeze",
+			"com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike$DirectedPowerTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.ElementalStrike$ElementalStrikeLuckyTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.duelist.Feint$FeintConfusion",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon$Charger",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Crossbow$ChargedShot",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Flail$SpinAbilityTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Quarterstaff$DefensiveStance",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RoundShield$GuardTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.RunicBlade$RunicSlashTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sai$ComboStrikeTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Scimitar$SwordDance",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sickle$HarvestBleedTracker",
+			"com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sword$CleaveTracker"
+	));
+
 	public static ArrayList<Class<? extends Buff>> getAllBuffClasses() {
 		if (cachedBuffClasses == null) {
 			cachedBuffClasses = scanBuffClasses();
@@ -31,6 +55,9 @@ public class BuffScanner {
 	private static ArrayList<Class<? extends Buff>> scanBuffClasses() {
 		ArrayList<Class<? extends Buff>> result = new ArrayList<>();
 		for (String className : BuffClassIndex.NAMES) {
+			if (HIDDEN_DUELIST_BUFFS.contains(className)) {
+				continue;
+			}
 			Class<?> cls;
 			try {
 				// 不初始化类，避免触发静态代码块
