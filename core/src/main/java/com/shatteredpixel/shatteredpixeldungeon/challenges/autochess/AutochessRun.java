@@ -1057,10 +1057,32 @@ public class AutochessRun extends Buff {
 		}
 	}
 
+	/** 开战最大回合数：超过就按剩余血量判胜负，避免两边卡住永远不结束。 */
+	private static final int FIGHT_MAX_TURNS = 40;
+
+	private float sideHpRatio(boolean player) {
+		float hp = 0f, total = 0f;
+		if (Dungeon.level == null) return 0f;
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (mob == null || mob.sprite == null) continue;
+			boolean ally = mob.alignment == Char.Alignment.ALLY;
+			if (ally != player) continue;
+			hp += mob.HP;
+			total += Math.max(1, mob.HT);
+		}
+		return total <= 0f ? 0f : hp / total;
+	}
+
 	public void checkFight() {
 		if (state != State.FIGHT || Dungeon.level == null) return;
 		// 开局头几拍不判负：单位刚生成、刚唤醒，避免「点了开战立刻失败」
 		if (fightTurns < 3) return;
+		// 超时：比双方剩余血量，别让两边卡住
+		if (fightTurns > FIGHT_MAX_TURNS) {
+			if (sideHpRatio(true) >= sideHpRatio(false)) winRound();
+			else loseRound();
+			return;
+		}
 		if (ChessBoardLevel.countSide(false) > 0) {
 			if (ChessBoardLevel.countSide(true) <= 0) loseRound();
 			return;
