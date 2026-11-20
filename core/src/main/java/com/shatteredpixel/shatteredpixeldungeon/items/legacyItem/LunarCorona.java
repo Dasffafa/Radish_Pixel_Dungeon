@@ -6,11 +6,35 @@ import com.shatteredpixel.shatteredpixeldungeon.items.legacyItem.utils.LegacyIte
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.watabou.utils.Bundle;
 
 public class LunarCorona extends LegacyItemRing {
     {
         icon = ItemSpriteSheet.Icons.RING_WEALTH;
     }
+
+    private boolean Waxing = true;
+    private int PhaseInc = 0;
+
+    private static final String WAXING = "waxing";
+    private static final String PHASEINC = "phaseinc";
+
+    @Override
+    public void storeInBundle(Bundle bundle) {
+        super.storeInBundle(bundle);
+        bundle.put(WAXING, Waxing);
+        bundle.put(PHASEINC, PhaseInc);
+    }
+
+    @Override
+    public void restoreFromBundle(Bundle bundle) {
+        super.restoreFromBundle(bundle);
+        if (bundle.contains(WAXING)) {
+            Waxing = bundle.getBoolean(WAXING);
+        }
+        PhaseInc = bundle.getInt(PHASEINC);
+    }
+
     @Override
     protected RingBuff buff( ) {
         return new Phase();
@@ -21,12 +45,6 @@ public class LunarCorona extends LegacyItemRing {
             type = buffType.NEUTRAL;
             announced = true;
         }
-
-        private boolean Waxing = true;
-        private int PhaseInc = 0;
-
-        private static final String WAXING	= "waxing";
-        private static final String PHASEINC	= "phaseinc";
 
         public boolean isWaxing(){
             return Waxing;
