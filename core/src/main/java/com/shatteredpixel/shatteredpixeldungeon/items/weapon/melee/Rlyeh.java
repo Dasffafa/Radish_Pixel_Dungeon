@@ -25,11 +25,11 @@ public class Rlyeh extends MeleeWeapon {
     public float chance;
 
     public boolean chance(){
-        return Random.NormalFloat(0,1)<=chance;
+        return Random.Float() < chance;
     }
 
     public boolean HeroChance(){
-        return Random.NormalFloat(0,1)<=chance/2f;
+        return false;
     }
 
     {
