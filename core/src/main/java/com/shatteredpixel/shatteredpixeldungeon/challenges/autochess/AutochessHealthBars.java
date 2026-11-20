@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class AutochessHealthBars extends Component {
 
-	private static final int BAR_W = 20;
+	private static final int BAR_W = 24;
 	private static final int BAR_H = 2;
 
 	/** 分段刻度：每 1/5 一道。 */
@@ -34,7 +34,7 @@ public class AutochessHealthBars extends Component {
 	private static final int STAR_GAP = 4;
 
 	/** 残影追赶速度（每秒掉的百分比）。 */
-	private static final float TRAIL_SPEED = 0.45f;
+	private static final float TRAIL_SPEED = 2.5f;
 
 	private static final int ALLY_FILL = 0xFF4FD24F;
 	private static final int ALLY_TRAIL = 0xFFBAF0BA;
@@ -202,7 +202,7 @@ public class AutochessHealthBars extends Component {
 			} else if (mana < bar.lastMana - 0.0001f) {
 				bar.manaTrailRatio = Math.max(bar.manaTrailRatio, bar.lastMana);
 			} else {
-				bar.manaTrailRatio = Math.max(mana, bar.manaTrailRatio - Game.elapsed * 1.6f);
+				bar.manaTrailRatio = Math.max(mana, bar.manaTrailRatio - Game.elapsed * 3.0f);
 			}
 			bar.lastMana = mana;
 
