@@ -22,7 +22,7 @@ import com.watabou.utils.Reflection;
  */
 public class SurgerySpell extends DiceMageSpell {
 
-    private static final float COOLDOWN = 250f;
+    public static final float COOLDOWN = 250f;
 
     @Override
     public Talent school() {

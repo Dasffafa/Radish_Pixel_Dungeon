@@ -319,6 +319,16 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
 
     @Override
     public boolean act() {
+        if (activeSurgerySummon != -1) {
+            com.shatteredpixel.shatteredpixeldungeon.actors.Actor summon =
+                    com.shatteredpixel.shatteredpixeldungeon.actors.Actor.findById(activeSurgerySummon);
+            if (!(summon instanceof com.shatteredpixel.shatteredpixeldungeon.actors.Char)
+                    || !((com.shatteredpixel.shatteredpixeldungeon.actors.Char) summon).isAlive()) {
+                activeSurgerySummon = -1;
+                setCooldown(com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.SurgerySpell.class,
+                        com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.SurgerySpell.COOLDOWN);
+            }
+        }
         if (!cooldowns.isEmpty()) {
             cooldowns.entrySet().removeIf(e -> {
                 float v = e.getValue() - 1f;
