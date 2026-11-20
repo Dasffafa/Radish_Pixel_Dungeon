@@ -30,9 +30,7 @@ public class CardAutoDraw extends Buff {
 		if (target instanceof Hero) {
 			Hero hero = (Hero) target;
 			if (hero.heroClass == HeroClasses.CARDTRICKSTER && hero.isAlive()) {
-				if (hero.ready) {
-					CardDrawer.autoDraw(hero);
-				}
+				CardDrawer.autoDraw(hero);
 				if (hero.subClass == HeroSubClasses.SPIN_MASTER && hero.cardDeck != null) {
 					spinClock++;
 					if (spinClock >= 50) {
