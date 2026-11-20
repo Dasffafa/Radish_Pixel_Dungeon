@@ -714,7 +714,15 @@ public class AutochessRun extends Buff {
 			current.unitStars.remove(mob);
 		}
 		if (mob == null) return;
+		// 连同精灵的粒子发射器一起清掉，否则死后白线会留在地上
+		try {
+			if (mob.sprite != null) {
+				mob.sprite.emitter().killAndErase();
+				mob.sprite.centerEmitter().killAndErase();
+			}
 		if (mob.sprite != null) mob.sprite.killAndErase();
+		} catch (Throwable ignored) {
+		}
 		mob.alignment = Char.Alignment.NEUTRAL;
 		mob.destroy();
 	}
