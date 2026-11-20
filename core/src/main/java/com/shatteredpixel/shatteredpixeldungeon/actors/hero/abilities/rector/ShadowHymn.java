@@ -36,7 +36,7 @@ public class ShadowHymn extends ArmorAbility {
         }
         if(hero.pointsInTalent(Talent.SACRIFICE) > 2){
             int shield = hero.pointsInTalent(Talent.SACRIFICE)/2;
-            Buff.affect(hero, Barrier.class).setShield(shield * hero.lvl * 2);
+            Buff.affect(hero, Barrier.class).setShield(shield * hero.lvl);
         }
         //
 
