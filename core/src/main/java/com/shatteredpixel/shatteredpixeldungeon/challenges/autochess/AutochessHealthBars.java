@@ -24,13 +24,15 @@ import java.util.Map;
  */
 public class AutochessHealthBars extends Component {
 
-	private static final int BAR_W = 18;
-	private static final int BAR_H = 3;
+	private static final int BAR_W = 20;
+	private static final int BAR_H = 2;
 
 	private static final int STAR = 3;
 	private static final int STAR_GAP = 4;
 
 	private static final float FLASH_TIME = 0.28f;
+	/** 分段刻度：每 1/5 一个刻度。 */
+	private static final int SEGMENTS = 5;
 
 	private static final class Bar {
 		ColorBlock border;
@@ -39,6 +41,7 @@ public class AutochessHealthBars extends Component {
 		ColorBlock flash;
 		ColorBlock manaBg;
 		ColorBlock mana;
+		ColorBlock[] ticks;
 		int lastHp = -1;
 		float flashTimer = 0f;
 	}
@@ -121,6 +124,14 @@ public class AutochessHealthBars extends Component {
 				add(bar.flash);
 				add(bar.manaBg);
 				add(bar.mana);
+
+				// 分段刻度（LoL 那种每一段一格）
+				bar.ticks = new ColorBlock[SEGMENTS - 1];
+				for (int t = 0; t < SEGMENTS - 1; t++) {
+					ColorBlock tick = new ColorBlock(1, BAR_H, 0xFF1A1A1A);
+					add(tick);
+					bar.ticks[t] = tick;
+				}
 				bars.put(mob, bar);
 			}
 
@@ -130,6 +141,10 @@ public class AutochessHealthBars extends Component {
 			bar.border.y = top - 1;
 			bar.bg.x = left;
 			bar.bg.y = top;
+			for (int t = 0; t < bar.ticks.length; t++) {
+				bar.ticks[t].x = left + (BAR_W - 1) * (t + 1) / (float) SEGMENTS;
+				bar.ticks[t].y = top;
+			}
 			bar.fill.x = left;
 			bar.fill.y = top;
 

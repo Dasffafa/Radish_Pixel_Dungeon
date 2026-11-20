@@ -1112,7 +1112,34 @@ public class AutochessRun extends Buff {
 		return 0;
 	}
 
+
+	/** 战斗结束：立刻冻住所有棋子，别让它们再多打一回合；顺手清掉场地残留。 */
+	private void freezeBattlefield() {
+		if (Dungeon.level == null) return;
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (mob == null) continue;
+			mob.state = mob.SLEEPING;
+			mob.paralysed = Math.max(mob.paralysed, 1000);
+			mob.retarget(-1);
+		}
+		// 蜘蛛网之类的场地残留
+		if (Dungeon.level.blobs != null) {
+			java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob> toRemove = new java.util.ArrayList<>();
+			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : Dungeon.level.blobs.values()) {
+				if (b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Web) toRemove.add(b);
+			}
+			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : toRemove) {
+				b.fullyClear();
+				Dungeon.level.blobs.remove(b);
+			}
+		}
+		// 地上物品堆 + 战斗特效
+		if (Dungeon.level.heaps != null) Dungeon.level.heaps.clear();
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.clearAutochessFx();
+	}
+
 	private void winRound() {
+		freezeBattlefield();
 		com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.LEVELUP);
 		state = State.PREP;
 		winStreak++;
@@ -1282,6 +1309,7 @@ public class AutochessRun extends Buff {
 	}
 
 	private void loseRound() {
+		freezeBattlefield();
 		com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.HIT);
 		state = State.PREP;
 		winStreak = 0;
