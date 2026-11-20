@@ -1152,7 +1152,7 @@ public abstract class Mob extends Char {
 		}
 
 		//恩惠之雨 牧师
-		if (hero.hasTalent(Talent.RAIN_GRACE)){
+		if (hero.hasTalent(Talent.RAIN_GRACE) && cause == hero && alignment == Alignment.ENEMY){
 			if(hero.buff(Talent.Rain_Grace_Cooldown.class) == null){
 				for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])){
 					if (Dungeon.level.heroFOV[mob.pos] && mob != this){
