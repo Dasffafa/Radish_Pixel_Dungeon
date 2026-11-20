@@ -45,6 +45,14 @@ public class CharHealthIndicator extends HealthBar {
 	@Override
 	public void update() {
 		super.update();
+
+		// 自走棋：关掉原版头顶血条，统一由 AutochessHealthBars 画联盟风格的血条
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& com.shatteredpixel.shatteredpixeldungeon.Dungeon.level
+						instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			visible = false;
+			return;
+		}
 		
 		if (target != null && target.isAlive() && target.isActive() && target.sprite.visible) {
 			CharSprite sprite = target.sprite;

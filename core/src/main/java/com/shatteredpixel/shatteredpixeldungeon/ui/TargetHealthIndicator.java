@@ -39,6 +39,14 @@ public class TargetHealthIndicator extends HealthBar {
 	@Override
 	public void update() {
 		super.update();
+
+		// 自走棋：不要原版的目标血条，我们自己画了联盟风格的血条
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& com.shatteredpixel.shatteredpixeldungeon.Dungeon.level
+						instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			visible = false;
+			return;
+		}
 		
 		if (target != null && target.isAlive() && target.isActive() && target.sprite.visible) {
 			CharSprite sprite = target.sprite;
