@@ -10,40 +10,53 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 棋子头顶的血条（LoL 风格）。
+ * 棋子头顶的血条（LoL 风格：受伤变短 + 浅色残影，回血变长）。
  *
  * <pre>
- *      ■ ■ ■          ← 星级
- *      ▓▓▓▓▓▓▓▓       ← 技能条：随法力累积变长，放完技能回到初始状态
- *     ┏━━━━━━━━━┓
- *     ┃███████  ┃     ← 血条：联盟式黑框 + 纯色填充，掉血缩短
- *     ┗━━━━━━━━━┛
+ *      ■ ■ ■        ← 星级
+ *     ───────       ← 技能条：随法力增长，放完技能浅色残影缩回 0
+ *    ┏━━━━━━━━━┓
+ *    ┃██████░ ░┃    ← 血条：深色实心 + 浅色「受伤残影」，没有颜色渐变
+ *    ┗━━━━━━━━━┛
  * </pre>
  *
- * <p>我方绿色（残血转黄/红），敌方红色系。</p>
+ * <p>我方绿色、敌方红色，颜色固定，不随血量变化。</p>
  */
 public class AutochessHealthBars extends Component {
 
 	private static final int BAR_W = 20;
 	private static final int BAR_H = 2;
 
+	/** 分段刻度：每 1/5 一道。 */
+	private static final int SEGMENTS = 5;
+
 	private static final int STAR = 3;
 	private static final int STAR_GAP = 4;
 
-	private static final float FLASH_TIME = 0.28f;
-	/** 分段刻度：每 1/5 一个刻度。 */
-	private static final int SEGMENTS = 5;
+	/** 残影追赶速度（每秒掉的百分比）。 */
+	private static final float TRAIL_SPEED = 0.45f;
+
+	private static final int ALLY_FILL = 0xFF4FD24F;
+	private static final int ALLY_TRAIL = 0xFFBAF0BA;
+	private static final int ENEMY_FILL = 0xFFD83333;
+	private static final int ENEMY_TRAIL = 0xFFF5A8A8;
+
+	private static final int MANA_FILL = 0xFF3FA9F5;
+	private static final int MANA_TRAIL = 0xFFB9DFFB;
 
 	private static final class Bar {
 		ColorBlock border;
 		ColorBlock bg;
 		ColorBlock fill;
-		ColorBlock flash;
+		ColorBlock trail;
 		ColorBlock manaBg;
-		ColorBlock mana;
+		ColorBlock manaFill;
+		ColorBlock manaTrail;
 		ColorBlock[] ticks;
-		int lastHp = -1;
-		float flashTimer = 0f;
+		float trailRatio = 1f;
+		float manaTrailRatio = 0f;
+		float lastRatio = -1f;
+		float lastMana = -1f;
 	}
 
 	private final HashMap<Mob, Bar> bars = new HashMap<>();
@@ -114,18 +127,19 @@ public class AutochessHealthBars extends Component {
 				bar = new Bar();
 				bar.border = new ColorBlock(BAR_W + 2, BAR_H + 2, 0xFF000000);
 				bar.bg = new ColorBlock(BAR_W, BAR_H, 0xFF3A3A3A);
-				bar.fill = new ColorBlock(BAR_W, BAR_H, 0xFF44CC44);
-				bar.flash = new ColorBlock(BAR_W, BAR_H, 0xFFFFFFFF);
+				bar.trail = new ColorBlock(BAR_W, BAR_H, 0xFFBBBBBB);
+				bar.fill = new ColorBlock(BAR_W, BAR_H, 0xFF4FD24F);
 				bar.manaBg = new ColorBlock(BAR_W, 2, 0xFF14243A);
-				bar.mana = new ColorBlock(BAR_W, 2, 0xFF3FA9F5);
+				bar.manaTrail = new ColorBlock(BAR_W, 2, MANA_TRAIL);
+				bar.manaFill = new ColorBlock(BAR_W, 2, MANA_FILL);
 				add(bar.border);
 				add(bar.bg);
+				add(bar.trail);
 				add(bar.fill);
-				add(bar.flash);
 				add(bar.manaBg);
-				add(bar.mana);
+				add(bar.manaTrail);
+				add(bar.manaFill);
 
-				// 分段刻度（LoL 那种每一段一格）
 				bar.ticks = new ColorBlock[SEGMENTS - 1];
 				for (int t = 0; t < SEGMENTS - 1; t++) {
 					ColorBlock tick = new ColorBlock(1, BAR_H, 0xFF1A1A1A);
@@ -137,71 +151,81 @@ public class AutochessHealthBars extends Component {
 
 			float top = headTop - 8f;
 			float left = cx - BAR_W / 2f;
+			float ratio = Math.max(0f, Math.min(1f, mob.HP / (float) Math.max(1, mob.HT)));
+
+			// 浅色残影：受伤时保留旧长度，再慢慢追上新长度
+			if (bar.lastRatio < 0f) {
+				bar.trailRatio = ratio;
+			} else if (ratio < bar.lastRatio - 0.0001f) {
+				bar.trailRatio = Math.max(bar.trailRatio, bar.lastRatio);
+			} else if (ratio > bar.lastRatio + 0.0001f) {
+				// 回血：长度立刻变长，残影跟上
+				bar.trailRatio = Math.max(bar.trailRatio, ratio);
+			}
+			bar.trailRatio = Math.max(ratio, bar.trailRatio - Game.elapsed * TRAIL_SPEED);
+			bar.lastRatio = ratio;
+
+			boolean ally = mob.buff(AutochessUnitBuff.class) != null;
+			int fillColor = ally ? ALLY_FILL : ENEMY_FILL;
+			int trailColor = ally ? ALLY_TRAIL : ENEMY_TRAIL;
+
 			bar.border.x = left - 1;
 			bar.border.y = top - 1;
 			bar.bg.x = left;
 			bar.bg.y = top;
+
+			bar.trail.x = left;
+			bar.trail.y = top;
+			bar.trail.width = Math.max(0f, BAR_W * bar.trailRatio);
+			bar.trail.color(trailColor);
+
+			bar.fill.x = left;
+			bar.fill.y = top;
+			bar.fill.width = Math.max(0f, BAR_W * ratio);
+			bar.fill.color(fillColor);
+
 			for (int t = 0; t < bar.ticks.length; t++) {
 				bar.ticks[t].x = left + (BAR_W - 1) * (t + 1) / (float) SEGMENTS;
 				bar.ticks[t].y = top;
 			}
-			bar.fill.x = left;
-			bar.fill.y = top;
 
-			float ratio = Math.max(0f, Math.min(1f, mob.HP / (float) Math.max(1, mob.HT)));
-			bar.fill.width = Math.max(0f, BAR_W * ratio);
-
-			boolean ally = mob.buff(AutochessUnitBuff.class) != null;
-			if (ally) {
-				// 我方：绿 → 黄 → 红（残血警示）
-				if (ratio > 0.6f) bar.fill.color(0xFF44CC44);
-				else if (ratio > 0.3f) bar.fill.color(0xFFDDCC22);
-				else bar.fill.color(0xFFDD3333);
-			} else {
-				// 敌方：红色系
-				if (ratio > 0.5f) bar.fill.color(0xFFE03030);
-				else if (ratio > 0.25f) bar.fill.color(0xFFB01818);
-				else bar.fill.color(0xFF7A0A0A);
-			}
-
-			// 掉血闪白
-			if (bar.lastHp >= 0 && mob.HP < bar.lastHp) bar.flashTimer = FLASH_TIME;
-			bar.lastHp = mob.HP;
-			if (bar.flashTimer > 0f) {
-				bar.flashTimer -= Game.elapsed;
-				bar.flash.x = left;
-				bar.flash.y = top;
-				bar.flash.width = Math.max(0f, BAR_W * ratio);
-				bar.flash.visible = true;
-				bar.flash.alpha(Math.max(0f, bar.flashTimer / FLASH_TIME) * 0.85f);
-			} else {
-				bar.flash.visible = false;
-			}
-
-			// 技能条：随法力累积变长，放完技能归零
+			// ---------------- 技能条 ----------------
 			AutochessUnitBuff allyBuff = mob.buff(AutochessUnitBuff.class);
 			AutochessFoeBuff foeBuff = mob.buff(AutochessFoeBuff.class);
-			float manaRatio = allyBuff != null ? allyBuff.manaRatio()
+			float mana = allyBuff != null ? allyBuff.manaRatio()
 					: (foeBuff != null ? foeBuff.manaRatio() : 0f);
-			manaRatio = Math.max(0f, Math.min(1f, manaRatio));
+			mana = Math.max(0f, Math.min(1f, mana));
+
+			// 释放技能（mana 归零）时保留一段浅色残影，再缩回 0
+			if (bar.lastMana < 0f) {
+				bar.manaTrailRatio = mana;
+			} else if (mana < bar.lastMana - 0.0001f) {
+				bar.manaTrailRatio = Math.max(bar.manaTrailRatio, bar.lastMana);
+			} else {
+				bar.manaTrailRatio = Math.max(mana, bar.manaTrailRatio - Game.elapsed * 1.6f);
+			}
+			bar.lastMana = mana;
 
 			bar.manaBg.x = left;
 			bar.manaBg.y = top - 4f;
-			bar.manaBg.width = BAR_W;
-			bar.mana.x = left;
-			bar.mana.y = top - 4f;
-			bar.mana.width = Math.max(0f, BAR_W * manaRatio);
-			bar.mana.color(manaRatio >= 0.999f ? 0xFFFFFFFF : 0xFF3FA9F5);
+			bar.manaTrail.x = left;
+			bar.manaTrail.y = top - 4f;
+			bar.manaTrail.width = Math.max(0f, BAR_W * bar.manaTrailRatio);
+			bar.manaFill.x = left;
+			bar.manaFill.y = top - 4f;
+			bar.manaFill.width = Math.max(0f, BAR_W * mana);
 		}
 	}
 
 	private void destroy(Bar bar) {
 		bar.border.killAndErase();
 		bar.bg.killAndErase();
+		bar.trail.killAndErase();
 		bar.fill.killAndErase();
-		bar.flash.killAndErase();
 		bar.manaBg.killAndErase();
-		bar.mana.killAndErase();
+		bar.manaTrail.killAndErase();
+		bar.manaFill.killAndErase();
+		if (bar.ticks != null) for (ColorBlock t : bar.ticks) t.killAndErase();
 	}
 
 	private void clearBars() {

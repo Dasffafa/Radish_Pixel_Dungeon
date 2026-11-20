@@ -1122,16 +1122,17 @@ public class AutochessRun extends Buff {
 			mob.paralysed = Math.max(mob.paralysed, 1000);
 			mob.retarget(-1);
 		}
-		// 蜘蛛网之类的场地残留
+		// 所有场地 blob（蛛网、毒气、火等）连同粒子发射器一起清掉
 		if (Dungeon.level.blobs != null) {
-			java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob> toRemove = new java.util.ArrayList<>();
-			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : Dungeon.level.blobs.values()) {
-				if (b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Web) toRemove.add(b);
-			}
-			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : toRemove) {
+			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b
+					: new java.util.ArrayList<>(Dungeon.level.blobs.values())) {
+				try {
+					if (b.emitter != null) b.emitter.killAndErase();
+				} catch (Throwable ignored) {
+				}
 				b.fullyClear();
-				Dungeon.level.blobs.remove(b);
 			}
+			Dungeon.level.blobs.clear();
 		}
 		// 地上物品堆 + 战斗特效
 		if (Dungeon.level.heaps != null) Dungeon.level.heaps.clear();
