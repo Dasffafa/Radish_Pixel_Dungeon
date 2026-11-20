@@ -1,22 +1,19 @@
 package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
-import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
 import com.watabou.noosa.ColorBlock;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.ui.Component;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 棋子头顶信息：干净的一条，不叠加。
+ * 棋子头顶信息：星级常显，血条/法力条只在战斗显示。
  *
- * <ul>
- *   <li>备战阶段：只显示星级（1~3 颗小金块）</li>
- *   <li>战斗阶段：只显示血条（16×3）+ 血条下方 1px 法力条</li>
- * </ul>
- *
- * <p>血条掉血时会闪一下白，扣血更明显。</p>
+ * <p>星级和血条分开管理：星级一直是同一批方块，血条在备战阶段整体销毁，
+ * 不会出现「战斗结束还挂着一根绿条」的残留。</p>
  */
 public class AutochessHealthBars extends Component {
 
@@ -32,12 +29,12 @@ public class AutochessHealthBars extends Component {
 		ColorBlock fill;
 		ColorBlock flash;
 		ColorBlock mana;
-		ColorBlock[] stars;
 		int lastHp = -1;
 		float flashTimer = 0f;
 	}
 
 	private final HashMap<Mob, Bar> bars = new HashMap<>();
+	private final HashMap<Mob, ColorBlock[]> stars = new HashMap<>();
 
 	@Override
 	public void update() {
@@ -45,35 +42,67 @@ public class AutochessHealthBars extends Component {
 
 		AutochessRun run = AutochessRun.get();
 		if (run == null || Dungeon.level == null) {
-			hideAll();
+			clearEverything();
 			return;
 		}
 		boolean fighting = run.state() == AutochessRun.State.FIGHT;
 
-		// 场上现存棋子
-		java.util.HashSet<Mob> present = new java.util.HashSet<>();
+		// 备战：血条整批销毁（避免任何残留）
+		if (!fighting) {
+			clearBars();
+		}
+
 		Mob[] mobs = Dungeon.level.mobs.toArray(new Mob[0]);
+		java.util.HashSet<Mob> present = new java.util.HashSet<>();
 		for (Mob m : mobs) present.add(m);
 
-		// 清理已离场棋子的所有元素
+		// 清理已离场棋子
+		stars.entrySet().removeIf(e -> {
+			Mob mob = e.getKey();
+			boolean gone = mob.sprite == null || !present.contains(mob) || !AutochessUtil.alive(mob);
+			if (gone) {
+				for (ColorBlock c : e.getValue()) c.killAndErase();
+			}
+			return gone;
+		});
 		bars.entrySet().removeIf(e -> {
 			Mob mob = e.getKey();
-			boolean gone = mob.sprite == null || !mob.sprite.visible
-					|| !present.contains(mob) || !AutochessUtil.alive(mob);
+			boolean gone = mob.sprite == null || !present.contains(mob) || !AutochessUtil.alive(mob);
 			if (gone) destroy(e.getValue());
 			return gone;
 		});
 
 		for (Mob mob : mobs) {
+			if (mob.sprite == null || !mob.sprite.visible) continue;
 			boolean ours = mob.buff(AutochessUnitBuff.class) != null
 					|| mob.buff(AutochessFoeBuff.class) != null;
-			if (mob.sprite == null || !mob.sprite.visible || !ours) {
-				// 精灵不可见/不是自走棋棋子：把它的条彻底去掉，避免残留
-				Bar stale = bars.remove(mob);
-				if (stale != null) destroy(stale);
-				continue;
+			if (!ours) continue;
+
+			// ---------------- 星级（常显） ----------------
+			ColorBlock[] starArr = stars.get(mob);
+			if (starArr == null) {
+				int count = Math.max(1, Math.min(3, run.starOf(mob)));
+				starArr = new ColorBlock[count];
+				for (int k = 0; k < count; k++) {
+					ColorBlock c = new ColorBlock(STAR, STAR, 0xFFFFD766);
+					add(c);
+					starArr[k] = c;
+				}
+				stars.put(mob, starArr);
 			}
 
+			float cx = mob.sprite.center().x;
+			float headTop = mob.sprite.y;
+			float starW = starArr.length * STAR_GAP - 1f;
+			for (int k = 0; k < starArr.length; k++) {
+				starArr[k].x = cx - starW / 2f + k * STAR_GAP;
+				starArr[k].y = headTop - 11f;
+				starArr[k].visible = true;
+			}
+
+			if (!fighting) continue;
+
+			// ---------------- 血条 / 法力条（仅战斗） ----------------
 			Bar bar = bars.get(mob);
 			if (bar == null) {
 				bar = new Bar();
@@ -85,43 +114,10 @@ public class AutochessHealthBars extends Component {
 				add(bar.fill);
 				add(bar.flash);
 				add(bar.mana);
-
-				int starCount = Math.max(1, Math.min(3, run.starOf(mob)));
-				bar.stars = new ColorBlock[starCount];
-				for (int k = 0; k < starCount; k++) {
-					ColorBlock star = new ColorBlock(STAR, STAR, 0xFFFFD766);
-					add(star);
-					bar.stars[k] = star;
-				}
 				bars.put(mob, bar);
 			}
 
-			// 用格子坐标定位：棋子在战斗里不会离开格子，比 sprite 尺寸更稳
-			int lw = Dungeon.level.width();
-			int lx = mob.pos % lw;
-			int ly = mob.pos / lw;
-			float cx = lx * 16f + 8f;
-			// 用精灵自己的 y 当基准，贴着头顶上方，绝不压住棋子
-			float top = (mob.sprite != null ? mob.sprite.y : ly * 16f) - 3f;
-
-			// 星级：只在备战阶段显示，一排居中
-			float starW = bar.stars.length * STAR_GAP - 1f;
-			for (int k = 0; k < bar.stars.length; k++) {
-				bar.stars[k].visible = !fighting;
-				bar.stars[k].x = cx - starW / 2f + k * STAR_GAP;
-				bar.stars[k].y = top - 5f;
-			}
-
-			// 血条 / 法力条：只在战斗显示
-			bar.bg.visible = fighting;
-			bar.fill.visible = fighting;
-			bar.mana.visible = fighting;
-			bar.flash.visible = false;
-			if (!fighting) {
-				bar.lastHp = -1;
-				continue;
-			}
-
+			float top = headTop - 6f;
 			bar.bg.x = cx - BAR_W / 2f;
 			bar.bg.y = top;
 			bar.fill.x = bar.bg.x;
@@ -141,15 +137,16 @@ public class AutochessHealthBars extends Component {
 			}
 			bar.lastHp = mob.HP;
 			if (bar.flashTimer > 0f) {
-				bar.flashTimer -= com.watabou.noosa.Game.elapsed;
+				bar.flashTimer -= Game.elapsed;
 				bar.flash.x = bar.bg.x;
 				bar.flash.y = top;
 				bar.flash.width = BAR_W;
 				bar.flash.visible = true;
 				bar.flash.alpha(Math.max(0f, bar.flashTimer / FLASH_TIME) * 0.85f);
+			} else {
+				bar.flash.visible = false;
 			}
 
-			// 法力条
 			AutochessUnitBuff allyBuff = mob.buff(AutochessUnitBuff.class);
 			AutochessFoeBuff foeBuff = mob.buff(AutochessFoeBuff.class);
 			float manaRatio = allyBuff != null ? allyBuff.manaRatio()
@@ -165,13 +162,18 @@ public class AutochessHealthBars extends Component {
 		bar.fill.killAndErase();
 		bar.flash.killAndErase();
 		bar.mana.killAndErase();
-		if (bar.stars != null) {
-			for (ColorBlock star : bar.stars) star.killAndErase();
-		}
 	}
 
-	private void hideAll() {
-		for (Bar bar : bars.values()) destroy(bar);
+	private void clearBars() {
+		for (Map.Entry<Mob, Bar> e : bars.entrySet()) destroy(e.getValue());
 		bars.clear();
+	}
+
+	private void clearEverything() {
+		clearBars();
+		for (ColorBlock[] arr : stars.values()) {
+			for (ColorBlock c : arr) c.killAndErase();
+		}
+		stars.clear();
 	}
 }

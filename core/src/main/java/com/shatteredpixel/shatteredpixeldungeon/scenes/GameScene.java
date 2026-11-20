@@ -445,7 +445,8 @@ public class GameScene extends PixelScene {
 			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）
 			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
 					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
-			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 26f), 0f);
+			Camera.main.setCenterOffset(0, 0);
+			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 52f), 0f);
 
 		}
 
@@ -607,7 +608,8 @@ public class GameScene extends PixelScene {
 				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
 			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
 					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
-			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 26f), 0f);
+			Camera.main.setCenterOffset(0, 0);
+			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 52f), 0f);
 		}
 
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
