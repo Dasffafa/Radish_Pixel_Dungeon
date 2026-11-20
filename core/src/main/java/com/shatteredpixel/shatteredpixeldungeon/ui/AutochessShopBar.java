@@ -31,7 +31,7 @@ public class AutochessShopBar extends Component {
 
 	private static final int MARGIN = 3;
 	private static final int GAP = 2;
-	private static final float H = 58;
+	private static final float H = 48;
 
 	private static final int COLOR_GOLD = 0xFFFFD700;
 	private static final int COLOR_CREAM = 0xFFF1E5B5;
@@ -152,9 +152,9 @@ public class AutochessShopBar extends Component {
 				});
 
 		// ---------------- 第二行：六个功能按钮 ----------------
-		float by = oy + 13;
+		float by = oy + 12;
 		float bw = (w - MARGIN * 2 - GAP * 5) / 6f;
-		float bh = 11;
+		float bh = 10;
 
 		buildButton(M.L(AutochessShopBar.class, "refresh", AutochessRun.REFRESH_COST),
 				MARGIN, by, bw, bh, () -> {
@@ -238,13 +238,13 @@ public class AutochessShopBar extends Component {
 		if (name.length() > 3) name = name.substring(0, 3);
 		RenderedTextBlock nameText = PixelScene.renderTextBlock(name, 5);
 		nameText.hardlight(costColor);
-		nameText.setPos(x + (w - nameText.width()) / 2f, y + h - 13);
+		nameText.setPos(x + (w - nameText.width()) / 2f, y + h - 11);
 		add(nameText);
 		components.add(nameText);
 
 		RenderedTextBlock price = PixelScene.renderTextBlock(def.cost + "g", 5);
 		price.hardlight(COLOR_GOLD);
-		price.setPos(x + (w - price.width()) / 2f, y + h - 7);
+		price.setPos(x + (w - price.width()) / 2f, y + h - 6);
 		add(price);
 		components.add(price);
 

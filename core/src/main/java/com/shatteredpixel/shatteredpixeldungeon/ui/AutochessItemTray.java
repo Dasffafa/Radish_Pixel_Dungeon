@@ -80,7 +80,7 @@ public class AutochessItemTray extends Component {
 	private void rebuild(AutochessRun run) {
 		clearChips();
 
-		float y = PixelScene.uiCamera.height - 52 - CHIP - 4;
+		float y = PixelScene.uiCamera.height - 48 - CHIP - 4;
 		float x = MARGIN;
 
 		int shown = 0;

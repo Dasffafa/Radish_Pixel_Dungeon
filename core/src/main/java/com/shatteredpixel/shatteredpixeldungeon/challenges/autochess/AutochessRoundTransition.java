@@ -36,7 +36,7 @@ public class AutochessRoundTransition extends Component {
 
 		if (home == null) {
 			float boardPx = ChessBoardLevel.SIZE * (float) DungeonTilemap.SIZE;
-			home = new PointF(boardPx / 2f, boardPx / 2f - 8f);
+			home = new PointF(boardPx / 2f, boardPx / 2f + 26f);
 			pushed = new PointF(home.x + PUSH_DIST * 0.35f, home.y + PUSH_DIST);
 		}
 

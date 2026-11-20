@@ -442,7 +442,7 @@ public class GameScene extends PixelScene {
 			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）
 			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
 					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
-			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f - 8f), 0f);
+			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 26f), 0f);
 
 		}
 
@@ -1051,7 +1051,7 @@ public class GameScene extends PixelScene {
 		// 自走棋：日志要抬到常驻商店栏上方，别盖住商店
 		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
 				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
-			y = uiCamera.height - 72 - 2;
+			y = uiCamera.height - 68 - 2;
 		}
 		if (SPDSettings.interfaceSize() == 0){
 			if (tagsOnLeft) {
