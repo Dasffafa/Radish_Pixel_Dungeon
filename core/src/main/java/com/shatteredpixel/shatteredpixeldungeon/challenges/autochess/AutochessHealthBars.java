@@ -115,7 +115,7 @@ public class AutochessHealthBars extends Component {
 			float starW = starArr.length * STAR_GAP - 1f;
 			for (int k = 0; k < starArr.length; k++) {
 				starArr[k].x = cx - starW / 2f + k * STAR_GAP;
-				starArr[k].y = headTop - 20f;
+				starArr[k].y = headTop - 18f;
 				starArr[k].visible = true;
 			}
 
@@ -149,7 +149,7 @@ public class AutochessHealthBars extends Component {
 				bars.put(mob, bar);
 			}
 
-			float top = headTop - 8f;
+			float top = headTop - 11f;
 			float left = cx - BAR_W / 2f;
 			float ratio = Math.max(0f, Math.min(1f, mob.HP / (float) Math.max(1, mob.HT)));
 
