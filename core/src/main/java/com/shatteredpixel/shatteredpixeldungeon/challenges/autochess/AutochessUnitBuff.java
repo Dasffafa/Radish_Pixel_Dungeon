@@ -245,12 +245,11 @@ public class AutochessUnitBuff extends AllyBuff {
 
 	@Override
 	public boolean act() {
+		// 战斗中先走位/出手，但不提前 return，
+		// 否则下面的回蓝/技能/特质逻辑永远不会执行
 		AutochessRun runNow = AutochessRun.get();
 		if (runNow != null && runNow.state() == AutochessRun.State.FIGHT) {
-			if (AutochessUtil.combatStep((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target)) {
-				spend(TICK);
-				return true;
-			}
+			AutochessUtil.combatStep((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target);
 		}
 		int undead = hasTrait(AutochessPool.UNDEAD) ? tier(AutochessPool.UNDEAD) : 0;
 		if (undead > 0 && target.HP < target.HT) {

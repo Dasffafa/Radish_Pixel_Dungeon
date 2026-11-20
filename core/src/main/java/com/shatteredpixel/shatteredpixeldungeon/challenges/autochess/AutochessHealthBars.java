@@ -24,8 +24,8 @@ import java.util.Map;
  */
 public class AutochessHealthBars extends Component {
 
-	private static final int BAR_W = 16;
-	private static final int BAR_H = 4;
+	private static final int BAR_W = 18;
+	private static final int BAR_H = 3;
 
 	private static final int STAR = 3;
 	private static final int STAR_GAP = 4;
@@ -37,6 +37,7 @@ public class AutochessHealthBars extends Component {
 		ColorBlock bg;
 		ColorBlock fill;
 		ColorBlock flash;
+		ColorBlock manaBg;
 		ColorBlock mana;
 		int lastHp = -1;
 		float flashTimer = 0f;
@@ -112,11 +113,13 @@ public class AutochessHealthBars extends Component {
 				bar.bg = new ColorBlock(BAR_W, BAR_H, 0xFF3A3A3A);
 				bar.fill = new ColorBlock(BAR_W, BAR_H, 0xFF44CC44);
 				bar.flash = new ColorBlock(BAR_W, BAR_H, 0xFFFFFFFF);
+				bar.manaBg = new ColorBlock(BAR_W, 2, 0xFF14243A);
 				bar.mana = new ColorBlock(BAR_W, 2, 0xFF3FA9F5);
 				add(bar.border);
 				add(bar.bg);
 				add(bar.fill);
 				add(bar.flash);
+				add(bar.manaBg);
 				add(bar.mana);
 				bars.put(mob, bar);
 			}
@@ -167,10 +170,12 @@ public class AutochessHealthBars extends Component {
 					: (foeBuff != null ? foeBuff.manaRatio() : 0f);
 			manaRatio = Math.max(0f, Math.min(1f, manaRatio));
 
+			bar.manaBg.x = left;
+			bar.manaBg.y = top - 4f;
+			bar.manaBg.width = BAR_W;
 			bar.mana.x = left;
 			bar.mana.y = top - 4f;
-			bar.mana.width = BAR_W * manaRatio;
-			bar.mana.visible = manaRatio > 0.02f;
+			bar.mana.width = Math.max(0f, BAR_W * manaRatio);
 			bar.mana.color(manaRatio >= 0.999f ? 0xFFFFFFFF : 0xFF3FA9F5);
 		}
 	}
@@ -180,6 +185,7 @@ public class AutochessHealthBars extends Component {
 		bar.bg.killAndErase();
 		bar.fill.killAndErase();
 		bar.flash.killAndErase();
+		bar.manaBg.killAndErase();
 		bar.mana.killAndErase();
 	}
 
