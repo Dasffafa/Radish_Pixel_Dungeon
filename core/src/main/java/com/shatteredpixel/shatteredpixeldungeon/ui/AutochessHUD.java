@@ -19,7 +19,7 @@ import com.watabou.noosa.ui.Component;
 public class AutochessHUD extends Component {
 
 	public static float WIDTH = 168;
-	public static final float HEIGHT = 20;
+	public static final float HEIGHT = 26;
 
 	private static final float TURN_INTERVAL = 0.45f;   // 每回合之间的间隔：太短会看不清战斗过程
 	private static final int COLOR_NORMAL = 0xF1E5B5;   // DiceMage 奶油色
@@ -126,8 +126,8 @@ public class AutochessHUD extends Component {
 			label.maxWidth((int) Math.max(40, WIDTH - 26));
 			label.setPos(x + 18, y + 1);
 		}
-		if (subLabel != null) subLabel.setPos(x + 18, y + 8);
-		if (fieldLabel != null) fieldLabel.setPos(x + 18, y + 14);
+		if (subLabel != null) subLabel.setPos(x + 18, y + 9);
+		if (fieldLabel != null) fieldLabel.setPos(x + 18, y + 17);
 		if (tap != null) {
 			tap.x = x;
 			tap.y = y;
@@ -208,6 +208,7 @@ public class AutochessHUD extends Component {
 	private int lastRoundSeen = -1;
 	/** 准备阶段倒计时（秒），到 0 自动开战。 */
 	private float prepLeft = -1f;
+	private float fxClearTimer = 0f;
 	private static final float PREP_TIME = 30f;
 	/** 上一次看到的羁绊档位，用来检测「刚激活」。 */
 	private final java.util.HashMap<String, Integer> lastTiers = new java.util.HashMap<>();
@@ -321,6 +322,12 @@ public class AutochessHUD extends Component {
 		// 不这么做的话棋子会在包间外面「隐身」，只看得到日志说谁死了
 		keepFullVision();
 		clearGroundLoot();
+		// 清理残留粒子/光效：备战每帧清，战斗每 1 秒清一次（保留一下伤害数字）
+		fxClearTimer += Game.elapsed;
+		if (run.state() == AutochessRun.State.PREP || fxClearTimer >= 1f) {
+			fxClearTimer = 0f;
+			com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.clearAutochessFx();
+		}
 		idleBreath(run);
 		spectate(run);
 

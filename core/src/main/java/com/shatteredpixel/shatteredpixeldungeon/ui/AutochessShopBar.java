@@ -114,10 +114,14 @@ public class AutochessShopBar extends Component {
 			}
 		}
 
-		RenderedTextBlock info = PixelScene.renderTextBlock(
-				M.L(AutochessShopBar.class, "info",
+		boolean narrow = w < 210;
+		String infoText = narrow
+				? M.L(AutochessShopBar.class, "info_short",
 						run.round(), run.gold(), run.level(), run.deployed(), run.maxDeploy())
-						+ selInfo, 6);
+				: M.L(AutochessShopBar.class, "info",
+						run.round(), run.gold(), run.level(), run.deployed(), run.maxDeploy());
+		if (narrow && selInfo.length() > 12) selInfo = selInfo.substring(0, 12);
+		RenderedTextBlock info = PixelScene.renderTextBlock(infoText + selInfo, narrow ? 5 : 6);
 		info.hardlight(COLOR_CREAM);
 		info.maxWidth((int) Math.max(40, w - 2 * MARGIN - 46));
 		info.setPos(MARGIN, oy + 2);

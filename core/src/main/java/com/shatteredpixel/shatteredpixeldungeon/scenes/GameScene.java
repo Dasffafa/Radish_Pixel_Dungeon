@@ -188,7 +188,7 @@ public class GameScene extends PixelScene {
 	private Group mobs;
 	private Group floorEmitters;
 	private Group emitters;
-	private Group effects;
+	private static Group effects;
 	private Group gases;
 	private Group spells;
 	private Group statuses;
@@ -409,6 +409,9 @@ public class GameScene extends PixelScene {
 			// 我方地板流光
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFloorShine());
 			// 底部常驻商店栏（云顶风）
+			// 隐藏原版的「返回存档」浮动按钮，它会盖住底部商店栏的右侧按钮
+			if (resume != null) resume.visible = false;
+
 			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessShopBar shopBar =
 					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessShopBar();
 			shopBar.camera = uiCamera;
@@ -1434,6 +1437,11 @@ public class GameScene extends PixelScene {
 		}
 	}
 	
+	/** 自走棋：把战斗留下的粒子/光效一次性清干净，避免地上一团白线。 */
+	public static void clearAutochessFx() {
+		if (effects != null) effects.clearAll();
+	}
+
 	public static void show( Window wnd ) {
 		if (scene != null) {
 			cancel();

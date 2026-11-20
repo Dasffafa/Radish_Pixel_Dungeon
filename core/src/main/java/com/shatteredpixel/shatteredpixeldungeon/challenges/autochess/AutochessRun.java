@@ -673,7 +673,7 @@ public class AutochessRun extends Buff {
 			mob.sprite.centerEmitter().burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
 							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.STAR),
-					star >= 3 ? 24 : 12);
+					star >= 3 ? 10 : 5);
 			if (star >= 3) {
 				mob.sprite.centerEmitter().burst(
 						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
