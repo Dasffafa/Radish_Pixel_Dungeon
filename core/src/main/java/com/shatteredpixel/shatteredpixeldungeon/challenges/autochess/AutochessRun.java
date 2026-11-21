@@ -826,6 +826,25 @@ public class AutochessRun extends Buff {
 			if (ib2 != null) ib2.setItems(AutochessItems.parse(board[i]));
 		}
 		spawnEnemies();
+		// 去重：同一格上只留一个自走棋棋子（防止刷新时叠出隐藏的旧实例，
+		// 打到隐藏实例就会出现「有伤害数字但可见血条不掉」）
+		java.util.HashSet<Integer> used = new java.util.HashSet<>();
+		if (java.lang.Boolean.getBoolean("arena.debug")) {
+			int cnt = 0;
+			for (Mob m : Dungeon.level.mobs.toArray(new Mob[0])) {
+				if (m.buff(AutochessUnitBuff.class) != null || m.buff(AutochessFoeBuff.class) != null) cnt++;
+			}
+			System.out.println("[UNITS] autochess mobs=" + cnt + " deployed=" + deployed());
+		}
+		for (Mob dup : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (dup == null || dup.buff(AutochessUnitBuff.class) == null
+					&& dup.buff(AutochessFoeBuff.class) == null) {
+				continue;
+			}
+			if (!used.add(dup.pos)) {
+				despawn(dup);
+			}
+		}
 		if (state == State.FIGHT) {
 			// 战斗中对面备战席也不留实体：它们不参战，留着会干扰回合
 			clearBenchVisuals();

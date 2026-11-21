@@ -2,6 +2,8 @@ package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
+import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.ui.Component;
@@ -53,6 +55,8 @@ public class AutochessHealthBars extends Component {
 		ColorBlock manaFill;
 		ColorBlock manaTrail;
 		ColorBlock[] ticks;
+		RenderedTextBlock label;
+		int lastPct = -1;
 		float trailRatio = 1f;
 		float manaTrailRatio = 0f;
 		float lastRatio = -1f;
@@ -140,6 +144,10 @@ public class AutochessHealthBars extends Component {
 				add(bar.manaBg);
 				add(bar.manaTrail);
 				add(bar.manaFill);
+
+				bar.label = PixelScene.renderTextBlock("100", 5);
+				bar.label.hardlight(0xFFFFFF);
+				add(bar.label);
 
 				bar.ticks = new ColorBlock[SEGMENTS - 1];
 				for (int t = 0; t < SEGMENTS - 1; t++) {
@@ -243,6 +251,7 @@ public class AutochessHealthBars extends Component {
 		bar.manaTrail.killAndErase();
 		bar.manaFill.killAndErase();
 		if (bar.ticks != null) for (ColorBlock t : bar.ticks) t.killAndErase();
+		if (bar.label != null) bar.label.killAndErase();
 	}
 
 	private void clearBars() {

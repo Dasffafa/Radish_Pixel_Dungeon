@@ -25,10 +25,12 @@ public class AutochessUtil {
 		com.shatteredpixel.shatteredpixeldungeon.levels.Level level = com.shatteredpixel.shatteredpixeldungeon.Dungeon.level;
 
 		com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob foe = null;
+		// 只把「屏幕上真的显示出来」的棋子当目标，避免打到隐藏的旧实例
 		int best = Integer.MAX_VALUE;
 		for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m
 				: level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
 			if (m == self || !alive(m) || m.alignment == self.alignment) continue;
+			if (m.sprite == null || !m.sprite.visible) continue;
 			int d = level.distance(self.pos, m.pos);
 			if (d < best) { best = d; foe = m; }
 		}
