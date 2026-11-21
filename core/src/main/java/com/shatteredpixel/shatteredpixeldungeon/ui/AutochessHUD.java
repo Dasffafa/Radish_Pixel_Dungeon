@@ -26,7 +26,6 @@ public class AutochessHUD extends Component {
 	private static final int COLOR_FIGHT = 0xE8A24A;
 
 	private RoundedFrame frame;
-	private RenderedTextBlock manaDebug;
 	private RoundedFrame avatarFrame;
 	private CharSprite avatar;
 	private String avatarCls = null;
@@ -126,17 +125,7 @@ public class AutochessHUD extends Component {
 		if (label != null) {
 			label.maxWidth((int) Math.max(40, WIDTH - 26));
 			label.setPos(x + 18, y + 1);
-		// 版本标记：用来确认手机上装的是哪一版
-		RenderedTextBlock verTag = PixelScene.renderTextBlock("BARv8", 5);
-		verTag.hardlight(0x66DDFF);
-		verTag.setPos(x + WIDTH - 24, y + HEIGHT - 8);
-		add(verTag);
 
-		// 调试：显示我方/敌方法力百分比（确认充能是否生效）
-		manaDebug = PixelScene.renderTextBlock("A- E-", 5);
-		manaDebug.hardlight(0x99CCFF);
-		manaDebug.setPos(x + 2, y + HEIGHT + 1);
-		add(manaDebug);
 		}
 		if (subLabel != null) subLabel.setPos(x + 18, y + 9);
 		if (fieldLabel != null) fieldLabel.setPos(x + 18, y + 17);
@@ -515,27 +504,12 @@ public class AutochessHUD extends Component {
 					}
 				}
 				run.checkFight();
-				// 调试：把双方第一只棋子的法力百分比打到 HUD 上
-				if (manaDebug != null && Dungeon.level != null) {
-					float am = -1f, fm = -1f;
-					for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m : Dungeon.level.mobs.toArray(
-							new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-						com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff ub =
-								m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff.class);
-						com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff fb =
-								m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff.class);
-						if (ub != null && am < 0f) am = ub.manaRatio();
-						if (fb != null && fm < 0f) fm = fb.manaRatio();
-					}
-					manaDebug.text("A" + Math.round(am * 100) + " E" + Math.round(fm * 100));
-				}
 			}
 		} else {
 			acc = 0f;
 		}
 	}
 
-	/** ClusteredSkeleton 的 isAlive() 会触发死亡时钟、依赖 sprite.parent，这里统一兜住。 */
 	private static boolean alive(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m) {
 		if (m == null || m.sprite == null) return false;
 		try {
