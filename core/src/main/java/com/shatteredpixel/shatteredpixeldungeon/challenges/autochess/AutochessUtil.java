@@ -37,7 +37,7 @@ public class AutochessUtil {
 		if (best <= 1) {
 			if (self.sprite != null) self.sprite.hideEmo();
 			// 伤害压低，让战斗打十几秒，血条能一截一截变短、技能条有时间充能
-			self.attack(foe, 0.35f, 0f, 1f);
+			self.attack(foe, 0.22f, 0f, 1f);
 			return true;
 		}
 

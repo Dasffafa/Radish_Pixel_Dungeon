@@ -480,6 +480,21 @@ public class AutochessHUD extends Component {
 					}
 				}
 				run.tickFight();
+				// 由 HUD 直接驱动每一只棋子走位/出手：
+				// 不依赖 BUFF 的 act 排程，保证任何设备上都真的会打
+				if (Dungeon.level != null) {
+					for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m
+							: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
+						if (m == null || m.sprite == null) continue;
+						boolean ours = m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff.class) != null
+								|| m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff.class) != null;
+						if (!ours) continue;
+						try {
+							com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUtil.combatStep(m);
+						} catch (Throwable ignored) {
+						}
+					}
+				}
 				run.checkFight();
 			}
 		} else {
