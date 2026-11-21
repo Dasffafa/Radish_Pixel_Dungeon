@@ -57,6 +57,10 @@ public class AutochessHealthBars extends Component {
 
 	private final HashMap<Mob, Bar> bars = new HashMap<>();
 
+	/** 技能条充能节拍（由本组件直接驱动，保证任何设备都会涨）。 */
+	private static final float MANA_TICK = 0.45f;
+	private float manaAcc = 0f;
+
 	@Override
 	public void update() {
 		super.update();
@@ -67,6 +71,23 @@ public class AutochessHealthBars extends Component {
 			return;
 		}
 		boolean fighting = run.state() == AutochessRun.State.FIGHT;
+
+		// 直接给双方棋子充能：不依赖 BUFF 的 act 排程
+		if (fighting) {
+			manaAcc += com.watabou.noosa.Game.elapsed;
+			if (manaAcc >= MANA_TICK) {
+				manaAcc = 0f;
+				for (Mob m : Dungeon.level.mobs.toArray(new Mob[0])) {
+					if (m == null || m.sprite == null) continue;
+					AutochessUnitBuff ub2 = m.buff(AutochessUnitBuff.class);
+					if (ub2 != null) { ub2.combatManaTick(); continue; }
+					AutochessFoeBuff fb2 = m.buff(AutochessFoeBuff.class);
+					if (fb2 != null) fb2.combatManaTick();
+				}
+			}
+		} else {
+			manaAcc = 0f;
+		}
 
 		Mob[] mobs = Dungeon.level.mobs.toArray(new Mob[0]);
 		java.util.HashSet<Mob> present = new java.util.HashSet<>();
