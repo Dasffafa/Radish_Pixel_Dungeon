@@ -9,38 +9,49 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 棋子头顶的血条 + 技能条 + 星级。
+ * 棋子头顶的状态条（LoL 风格，干净版）。
  *
- * <p>位置完全照抄原版 CharHealthIndicator 的算法：
- * {@code x = sprite.x + sprite.width()/6, y = sprite.y - 2, width = sprite.width()*4/6}，
- * 所以永远贴着棋子、不会错位。</p>
+ * <pre>
+ *      ■ ■            ← 星级
+ *     ▔▔▔▔▔           ← 技能条（蓝）
+ *    ┏━━━━━━━┓
+ *    ┃▓▓▓▓▓  ┃        ← 血条（我方绿 / 敌方红）
+ *    ┗━━━━━━━┛
+ * </pre>
  *
- * <p>血条：长度 = 宽度 × HP%（掉 10% 就短 10%），我方绿、敌方红；
- * 技能条：长度 = 宽度 × 法力%，在血条正上方一条细蓝线，放完技能归零。</p>
+ * <p>长度严格按百分比：血条 = 宽度 × HP%，技能条 = 宽度 × 法力%。</p>
  */
 public class AutochessHealthBars extends Component {
 
-	private static final int STAR = 3;
-	private static final int STAR_GAP = 4;
+	private static final int STAR = 2;
+	private static final int STAR_GAP = 3;
 
-	private static final int BAR_H = 3;      // 血条高度
-	private static final int MANA_H = 1;     // 技能条高度
-	private static final int SEGMENTS = 5;   // 血条分段刻度
+	private static final int HP_H = 3;
+	private static final int MANA_H = 2;
 
-	private static final int ALLY_BG = 0xFF12300F;
-	private static final int ALLY_FILL = 0xFF4FD24F;
-	private static final int ENEMY_BG = 0xFF3A0A0A;
-	private static final int ENEMY_FILL = 0xFFE03030;
-	private static final int MANA_BG = 0xFF14243A;
-	private static final int MANA_FILL = 0xFF3FA9F5;
-	private static final int TICK = 0xFF101010;
+	// 我方
+	private static final int ALLY_BG = 0xFF16210F;
+	private static final int ALLY_FILL = 0xFF56C24B;
+	private static final int ALLY_HI = 0xFF9BEA8B;
+	// 敌方
+	private static final int ENEMY_BG = 0xFF2A0E0E;
+	private static final int ENEMY_FILL = 0xFFD63A34;
+	private static final int ENEMY_HI = 0xFFF58C86;
+	// 技能条
+	private static final int MANA_BG = 0xFF0E1A2B;
+	private static final int MANA_FILL = 0xFF3A9BE8;
+	private static final int MANA_HI = 0xFF8CCBFF;
+
+	private static final int BORDER = 0xFF0A0A0A;
 
 	private static final class Bar {
+		ColorBlock border;
 		ColorBlock bg;
 		ColorBlock fill;
+		ColorBlock hi;
 		ColorBlock manaBg;
-		ColorBlock mana;
-		ColorBlock[] ticks;
+		ColorBlock manaFill;
+		ColorBlock manaHi;
 		ColorBlock[] stars;
 	}
 
@@ -77,21 +88,21 @@ public class AutochessHealthBars extends Component {
 			Bar bar = bars.get(mob);
 			if (bar == null) {
 				bar = new Bar();
-				bar.bg = new ColorBlock(1, BAR_H, ALLY_BG);
-				bar.fill = new ColorBlock(1, BAR_H, ALLY_FILL);
-				bar.manaBg = new ColorBlock(1, MANA_H, MANA_BG);
-				bar.mana = new ColorBlock(1, MANA_H, MANA_FILL);
+				bar.border = new ColorBlock(1, 1, BORDER);
+				bar.bg = new ColorBlock(1, 1, ALLY_BG);
+				bar.fill = new ColorBlock(1, 1, ALLY_FILL);
+				bar.hi = new ColorBlock(1, 1, ALLY_HI);
+				bar.manaBg = new ColorBlock(1, 1, MANA_BG);
+				bar.manaFill = new ColorBlock(1, 1, MANA_FILL);
+				bar.manaHi = new ColorBlock(1, 1, MANA_HI);
+
+				add(bar.border);
 				add(bar.bg);
 				add(bar.fill);
+				add(bar.hi);
 				add(bar.manaBg);
-				add(bar.mana);
-
-				bar.ticks = new ColorBlock[SEGMENTS - 1];
-				for (int t = 0; t < SEGMENTS - 1; t++) {
-					ColorBlock tick = new ColorBlock(1, BAR_H, TICK);
-					add(tick);
-					bar.ticks[t] = tick;
-				}
+				add(bar.manaFill);
+				add(bar.manaHi);
 
 				int starCount = Math.max(1, Math.min(3, run.starOf(mob)));
 				bar.stars = new ColorBlock[starCount];
@@ -103,65 +114,86 @@ public class AutochessHealthBars extends Component {
 				bars.put(mob, bar);
 			}
 
-			// 位置：跟原版血条一致的精灵相对坐标
+			// ---------- 布局（以精灵中心对齐） ----------
 			float spriteW = mob.sprite.width();
-			int barW = Math.max(8, Math.round(spriteW * (4 / 6f)));
-			float barX = mob.sprite.x + spriteW / 6f;
-			float barY = mob.sprite.y - 4f;
+			float cx = mob.sprite.center().x;
+			int barW = Math.max(14, Math.round(spriteW * 1.15f));
+			float left = cx - barW / 2f;
+
+			float manaY = mob.sprite.y - (MANA_H + HP_H + 1) - 3f;
+			float hpY = manaY + MANA_H + 1f;
 
 			boolean ally = mob.buff(AutochessUnitBuff.class) != null;
-			bar.bg.visible = fighting;
-			bar.fill.visible = fighting;
-			bar.manaBg.visible = fighting;
-			bar.mana.visible = fighting;
-			for (ColorBlock t : bar.ticks) t.visible = fighting;
-
-			bar.bg.x = barX;
-			bar.bg.y = barY;
-			bar.bg.size(barW, BAR_H);
-			bar.bg.color(ally ? ALLY_BG : ENEMY_BG);
-
 			float ratio = Math.max(0f, Math.min(1f, mob.HP / (float) Math.max(1, mob.HT)));
-			bar.fill.x = barX;
-			bar.fill.y = barY;
-			bar.fill.size(Math.max(0f, barW * ratio), BAR_H);
-			bar.fill.color(ally ? ALLY_FILL : ENEMY_FILL);
-
-			for (int t = 0; t < bar.ticks.length; t++) {
-				bar.ticks[t].x = barX + (barW - 1) * (t + 1) / (float) SEGMENTS;
-				bar.ticks[t].y = barY;
-			}
-
-			// 技能条：血条正上方 1px 细蓝线
 			AutochessUnitBuff allyBuff = mob.buff(AutochessUnitBuff.class);
 			AutochessFoeBuff foeBuff = mob.buff(AutochessFoeBuff.class);
 			float mana = allyBuff != null ? allyBuff.manaRatio()
 					: (foeBuff != null ? foeBuff.manaRatio() : 0f);
 			mana = Math.max(0f, Math.min(1f, mana));
-			bar.manaBg.x = barX;
-			bar.manaBg.y = barY - MANA_H - 1;
+
+			// 边框（比血条大 1px）
+			bar.border.visible = fighting;
+			bar.border.x = left - 1;
+			bar.border.y = hpY - 1;
+			bar.border.size(barW + 2, HP_H + 2);
+
+			bar.bg.visible = fighting;
+			bar.bg.x = left;
+			bar.bg.y = hpY;
+			bar.bg.size(barW, HP_H);
+			bar.bg.color(ally ? ALLY_BG : ENEMY_BG);
+
+			float hpW = Math.max(0f, barW * ratio);
+			bar.fill.visible = fighting;
+			bar.fill.x = left;
+			bar.fill.y = hpY;
+			bar.fill.size(hpW, HP_H);
+			bar.fill.color(ally ? ALLY_FILL : ENEMY_FILL);
+
+			// 顶部 1px 高光，看起来更像联盟血条
+			bar.hi.visible = fighting && hpW >= 2f;
+			bar.hi.x = left;
+			bar.hi.y = hpY;
+			bar.hi.size(Math.max(0f, hpW - 1f), 1);
+			bar.hi.color(ally ? ALLY_HI : ENEMY_HI);
+
+			// 技能条
+			bar.manaBg.visible = fighting;
+			bar.manaBg.x = left;
+			bar.manaBg.y = manaY;
 			bar.manaBg.size(barW, MANA_H);
-			bar.mana.x = barX;
-			bar.mana.y = barY - MANA_H - 1;
-			bar.mana.size(Math.max(0f, barW * mana), MANA_H);
-			bar.mana.color(mana >= 0.999f ? 0xFFFFFFFF : MANA_FILL);
+
+			float manaW = Math.max(0f, barW * mana);
+			bar.manaFill.visible = fighting;
+			bar.manaFill.x = left;
+			bar.manaFill.y = manaY;
+			bar.manaFill.size(manaW, MANA_H);
+			bar.manaFill.color(mana >= 0.999f ? 0xFFFFFFFF : MANA_FILL);
+
+			bar.manaHi.visible = fighting && manaW >= 2f;
+			bar.manaHi.x = left;
+			bar.manaHi.y = manaY;
+			bar.manaHi.size(Math.max(0f, manaW - 1f), 1);
+			bar.manaHi.color(mana >= 0.999f ? 0xFFFFFFFF : MANA_HI);
 
 			// 星级：技能条上方
 			float starW = bar.stars.length * STAR_GAP - 1f;
 			for (int k = 0; k < bar.stars.length; k++) {
-				bar.stars[k].x = barX + barW / 2f - starW / 2f + k * STAR_GAP;
-				bar.stars[k].y = barY - 10f;
+				bar.stars[k].x = cx - starW / 2f + k * STAR_GAP;
+				bar.stars[k].y = manaY - STAR - 1;
 				bar.stars[k].visible = true;
 			}
 		}
 	}
 
 	private void destroy(Bar bar) {
+		bar.border.killAndErase();
 		bar.bg.killAndErase();
 		bar.fill.killAndErase();
+		bar.hi.killAndErase();
 		bar.manaBg.killAndErase();
-		bar.mana.killAndErase();
-		for (ColorBlock t : bar.ticks) t.killAndErase();
+		bar.manaFill.killAndErase();
+		bar.manaHi.killAndErase();
 		for (ColorBlock s : bar.stars) s.killAndErase();
 	}
 
