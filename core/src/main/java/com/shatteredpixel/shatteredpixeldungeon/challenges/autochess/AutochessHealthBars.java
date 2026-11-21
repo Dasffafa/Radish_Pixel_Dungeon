@@ -118,13 +118,13 @@ public class AutochessHealthBars extends Component {
 
 			bar.bg.x = barX;
 			bar.bg.y = barY;
-			bar.bg.width = barW;
+			bar.bg.size(barW, BAR_H);
 			bar.bg.color(ally ? ALLY_BG : ENEMY_BG);
 
 			float ratio = Math.max(0f, Math.min(1f, mob.HP / (float) Math.max(1, mob.HT)));
 			bar.fill.x = barX;
 			bar.fill.y = barY;
-			bar.fill.width = Math.max(0f, barW * ratio);
+			bar.fill.size(Math.max(0f, barW * ratio), BAR_H);
 			bar.fill.color(ally ? ALLY_FILL : ENEMY_FILL);
 
 			for (int t = 0; t < bar.ticks.length; t++) {
@@ -140,10 +140,10 @@ public class AutochessHealthBars extends Component {
 			mana = Math.max(0f, Math.min(1f, mana));
 			bar.manaBg.x = barX;
 			bar.manaBg.y = barY - MANA_H - 1;
-			bar.manaBg.width = barW;
+			bar.manaBg.size(barW, MANA_H);
 			bar.mana.x = barX;
 			bar.mana.y = barY - MANA_H - 1;
-			bar.mana.width = Math.max(0f, barW * mana);
+			bar.mana.size(Math.max(0f, barW * mana), MANA_H);
 			bar.mana.color(mana >= 0.999f ? 0xFFFFFFFF : MANA_FILL);
 
 			// 星级：技能条上方
