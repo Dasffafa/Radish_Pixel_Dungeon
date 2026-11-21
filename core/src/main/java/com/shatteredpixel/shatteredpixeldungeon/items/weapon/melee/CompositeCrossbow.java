@@ -107,7 +107,9 @@ public class CompositeCrossbow extends MeleeWeapon{
     }
 
     public CrossbowArrow combinedArrow(){
-        return new CrossbowArrow();
+        CrossbowArrow arrow = new CrossbowArrow();
+        arrow.level(level());
+        return arrow;
     }
 
     public class CrossbowArrow extends MissileWeapon {
