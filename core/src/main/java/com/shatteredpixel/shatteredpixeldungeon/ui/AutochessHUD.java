@@ -491,6 +491,12 @@ public class AutochessHUD extends Component {
 						if (!ours) continue;
 						try {
 							com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUtil.combatStep(m);
+							com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff ub =
+									m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff.class);
+							com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff fb =
+									m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff.class);
+							if (ub != null) ub.combatManaTick();
+							else if (fb != null) fb.combatManaTick();
 						} catch (Throwable ignored) {
 						}
 					}

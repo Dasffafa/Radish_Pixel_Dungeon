@@ -65,6 +65,18 @@ public class AutochessFoeBuff extends Buff {
 		announced = false;
 	}
 
+	/** HUD 直接驱动战斗时用：每拍给点法力并尝试放技能。 */
+	public void combatManaTick() {
+		mana += 6;
+		if (skill != null && mana >= skill.mana) {
+			mana = 0;
+			try {
+				skill.cast(target, star, 1f);
+			} catch (Throwable ignored) {
+			}
+		}
+	}
+
 	/** 法力进度（0~1），UI 用。 */
 	public float manaRatio() {
 		return skill == null ? 0f : Math.min(1f, Math.max(0f, mana) / (float) skill.mana);

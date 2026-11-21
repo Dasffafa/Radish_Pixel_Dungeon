@@ -294,6 +294,11 @@ public class AutochessUnitBuff extends AllyBuff {
 		return skill;
 	}
 
+	/** HUD 直接驱动战斗时用：每拍给点法力（不依赖 BUFF act 排程）。 */
+	public void combatManaTick() {
+		chargeMana(8);
+	}
+
 	public float manaRatio() {
 		return skill == null ? 0f : Math.min(1f, mana / (float) skill.mana);
 	}
