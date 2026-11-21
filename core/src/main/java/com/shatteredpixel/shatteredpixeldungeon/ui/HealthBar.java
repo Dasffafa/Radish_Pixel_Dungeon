@@ -69,6 +69,13 @@ public class HealthBar extends Component {
 		Hp.size( width * (float)Math.ceil(health * pixelWidth)/pixelWidth, height );
 	}
 	
+	/** 自走棋：按阵营改颜色（敌方红，我方绿）。 */
+	public void setColors(int bgColor, int hpColor, int shieldColor) {
+		Bg.color(bgColor);
+		Hp.color(hpColor);
+		Shld.color(shieldColor);
+	}
+
 	public void level( float value ) {
 		level( value, 0f );
 	}

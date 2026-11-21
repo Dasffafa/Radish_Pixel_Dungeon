@@ -143,6 +143,13 @@ public class AutochessHealthBars extends Component {
 				add(bar.manaTrail);
 				add(bar.manaFill);
 
+				// 血量条交给原版 CharHealthIndicator 画（它随伤害自动变短），
+				// 这里只保留技能条 + 星级，避免两条重叠
+				bar.border.visible = false;
+				bar.bg.visible = false;
+				bar.trail.visible = false;
+				bar.fill.visible = false;
+
 
 				bar.ticks = new ColorBlock[SEGMENTS - 1];
 				for (int t = 0; t < SEGMENTS - 1; t++) {

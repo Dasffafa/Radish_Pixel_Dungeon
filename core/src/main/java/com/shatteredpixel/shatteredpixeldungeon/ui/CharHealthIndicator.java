@@ -46,20 +46,20 @@ public class CharHealthIndicator extends HealthBar {
 	public void update() {
 		super.update();
 
-		// 自走棋：关掉原版头顶血条，统一由 AutochessHealthBars 画联盟风格的血条
-		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
-				&& com.shatteredpixel.shatteredpixeldungeon.Dungeon.level
-						instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
-			visible = false;
-			return;
-		}
-		
 		if (target != null && target.isAlive() && target.isActive() && target.sprite.visible) {
 			CharSprite sprite = target.sprite;
 			width = sprite.width()*(4/6f);
 			x = sprite.x + sprite.width()/6f;
 			y = sprite.y - 2;
 			level( target );
+			// 自走棋：按阵营配色（原版血条本身会随伤害变短）
+			if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()) {
+				if (target.alignment == com.shatteredpixel.shatteredpixeldungeon.actors.Char.Alignment.ALLY) {
+					setColors(0xFF143A14, 0xFF4FD24F, 0xFFBAF0BA);
+				} else {
+					setColors(0xFF3A0A0A, 0xFFE03030, 0xFFF5A8A8);
+				}
+			}
 			visible = target.HP < target.HT || target.shielding() > 0;
 		} else {
 			visible = false;
