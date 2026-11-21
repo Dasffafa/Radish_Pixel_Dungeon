@@ -153,6 +153,16 @@ public class CompositeCrossbow extends MeleeWeapon{
         }
 
         @Override
+        public int buffedLvl() {
+            return CompositeCrossbow.this.buffedLvl();
+        }
+
+        @Override
+        public int STRReq() {
+            return CompositeCrossbow.this.STRReq();
+        }
+
+        @Override
         public int STRReq(int lvl) {
             return CompositeCrossbow.this.STRReq(lvl);
         }
