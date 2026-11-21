@@ -37,22 +37,8 @@ public class AutochessUtil {
 		if (best <= 1) {
 			if (self.sprite != null) self.sprite.hideEmo();
 			// 伤害压低，让战斗打十几秒，血条能一截一截变短、技能条有时间充能
-			// 直接结算伤害，绕开 SPD 的护甲/闪避公式；否则高级棋子互相格挡，血条永远不动
-			int dmg = Math.max(1, Math.round(foe.HT * 0.05f));
-			foe.HP -= dmg;
-			if (foe.sprite != null) {
-				foe.sprite.flash();
-				foe.sprite.showStatus(
-						com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.NEGATIVE,
-						"-" + dmg);
-			}
-			if (foe.HP <= 0) {
-				foe.HP = 0;
-				try {
-					foe.die(self);
-				} catch (Throwable ignored) {
-				}
-			}
+			// 正常一次攻击（保留 SPD 的命中/伤害公式）
+			self.attack(foe);
 			return true;
 		}
 
