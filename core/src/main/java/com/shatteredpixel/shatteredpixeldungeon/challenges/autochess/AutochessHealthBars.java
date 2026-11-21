@@ -26,8 +26,8 @@ import java.util.Map;
  */
 public class AutochessHealthBars extends Component {
 
-	private static final int BAR_W = 24;
-	private static final int BAR_H = 2;
+	private static final int BAR_W = 40;
+	private static final int BAR_H = 3;
 
 	/** 分段刻度：每 1/5 一道。 */
 	private static final int SEGMENTS = 5;
@@ -55,8 +55,6 @@ public class AutochessHealthBars extends Component {
 		ColorBlock manaFill;
 		ColorBlock manaTrail;
 		ColorBlock[] ticks;
-		RenderedTextBlock label;
-		int lastPct = -1;
 		float trailRatio = 1f;
 		float manaTrailRatio = 0f;
 		float lastRatio = -1f;
@@ -120,7 +118,7 @@ public class AutochessHealthBars extends Component {
 			float starW = starArr.length * STAR_GAP - 1f;
 			for (int k = 0; k < starArr.length; k++) {
 				starArr[k].x = cx - starW / 2f + k * STAR_GAP;
-				starArr[k].y = headTop - 18f;
+				starArr[k].y = headTop - 16f;
 				starArr[k].visible = true;
 			}
 
@@ -145,9 +143,6 @@ public class AutochessHealthBars extends Component {
 				add(bar.manaTrail);
 				add(bar.manaFill);
 
-				bar.label = PixelScene.renderTextBlock("100", 5);
-				bar.label.hardlight(0xFFFFFF);
-				add(bar.label);
 
 				bar.ticks = new ColorBlock[SEGMENTS - 1];
 				for (int t = 0; t < SEGMENTS - 1; t++) {
@@ -251,7 +246,6 @@ public class AutochessHealthBars extends Component {
 		bar.manaTrail.killAndErase();
 		bar.manaFill.killAndErase();
 		if (bar.ticks != null) for (ColorBlock t : bar.ticks) t.killAndErase();
-		if (bar.label != null) bar.label.killAndErase();
 	}
 
 	private void clearBars() {
