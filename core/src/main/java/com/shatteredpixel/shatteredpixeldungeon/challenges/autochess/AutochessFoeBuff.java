@@ -81,6 +81,17 @@ public class AutochessFoeBuff extends Buff {
 	}
 
 	/** 法力进度（0~1），UI 用。 */
+	/** 状态条充满时直接放技能。 */
+	public void castNow() {
+		mana = 0;
+		if (skill != null) {
+			try {
+				skill.cast(target, star, 1f);
+			} catch (Throwable ignored) {
+			}
+		}
+	}
+
 	public float manaRatio() {
 		float need = skill == null ? 100f : skill.mana;
 		return Math.min(1f, Math.max(0f, mana) / need);

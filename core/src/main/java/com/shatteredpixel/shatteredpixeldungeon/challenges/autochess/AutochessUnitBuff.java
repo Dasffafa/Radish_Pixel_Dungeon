@@ -299,6 +299,17 @@ public class AutochessUnitBuff extends AllyBuff {
 		chargeMana(8);
 	}
 
+	/** 状态条充满时直接放技能（不靠 BUFF 自己的 mana）。 */
+	public void castNow() {
+		mana = 0;
+		if (skill != null) {
+			try {
+				skill.cast(target, star, 1f);
+			} catch (Throwable ignored) {
+			}
+		}
+	}
+
 	public float manaRatio() {
 		return skill == null ? 0f : Math.min(1f, mana / (float) skill.mana);
 	}

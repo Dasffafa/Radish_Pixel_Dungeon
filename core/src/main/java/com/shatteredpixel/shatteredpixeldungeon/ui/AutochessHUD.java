@@ -127,7 +127,7 @@ public class AutochessHUD extends Component {
 			label.maxWidth((int) Math.max(40, WIDTH - 26));
 			label.setPos(x + 18, y + 1);
 		// 版本标记：用来确认手机上装的是哪一版
-		RenderedTextBlock verTag = PixelScene.renderTextBlock("BARv7", 5);
+		RenderedTextBlock verTag = PixelScene.renderTextBlock("BARv8", 5);
 		verTag.hardlight(0x66DDFF);
 		verTag.setPos(x + WIDTH - 24, y + HEIGHT - 8);
 		add(verTag);
