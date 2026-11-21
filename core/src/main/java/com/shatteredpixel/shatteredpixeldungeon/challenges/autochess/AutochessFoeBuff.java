@@ -31,20 +31,23 @@ public class AutochessFoeBuff extends Buff {
 		this.mana = -20 - (int) (Math.random() * 30);
 	}
 
-	@Override
 	public boolean act() {
-		// 战斗中先走位/出手，但不提前 return，
-		// 否则下面的回蓝/技能/特质逻辑永远不会执行
+		// 战斗中先走位/出手，但不提前 return，否则下面的回蓝/技能不会执行
 		AutochessRun runNow = AutochessRun.get();
 		if (runNow != null && runNow.state() == AutochessRun.State.FIGHT) {
 			AutochessUtil.combatStep((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target);
 		}
 		spend(TICK);
-		if (skill != null && AutochessUtil.alive(target) && hasFoeNearby()) {
-			mana += 6;   // 比原来慢一半，避免技能刷屏
-			if (mana >= skill.mana) {
+
+		// 每回合稳定充能，和玩家方完全一致（不再依赖「附近有敌人」）
+		if (AutochessUtil.alive(target)) {
+			mana += 10;
+			if (skill != null && mana >= skill.mana) {
 				mana = 0;
-				skill.cast(target, star, 1f);
+				try {
+					skill.cast(target, star, 1f);
+				} catch (Throwable ignored) {
+				}
 			}
 		}
 		return true;
@@ -79,7 +82,8 @@ public class AutochessFoeBuff extends Buff {
 
 	/** 法力进度（0~1），UI 用。 */
 	public float manaRatio() {
-		return skill == null ? 0f : Math.min(1f, Math.max(0f, mana) / (float) skill.mana);
+		float need = skill == null ? 100f : skill.mana;
+		return Math.min(1f, Math.max(0f, mana) / need);
 	}
 
 	public void setItems(ArrayList<String> equipped) {
