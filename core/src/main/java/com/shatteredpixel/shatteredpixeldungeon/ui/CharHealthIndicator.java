@@ -46,6 +46,14 @@ public class CharHealthIndicator extends HealthBar {
 	public void update() {
 		super.update();
 
+		// 自走棋：血量条统一由 AutochessHealthBars 画（避免两条重叠）
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& com.shatteredpixel.shatteredpixeldungeon.Dungeon.level
+						instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			visible = false;
+			return;
+		}
+
 		if (target != null && target.isAlive() && target.isActive() && target.sprite.visible) {
 			CharSprite sprite = target.sprite;
 			width = sprite.width()*(4/6f);
