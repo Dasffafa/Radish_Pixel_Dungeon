@@ -564,6 +564,8 @@ public abstract class Level implements Bundlable {
 		return null;
 	}
 
+	public boolean fogHeld(){ return false; }
+
 	public String waterTex() {
 		return null;
 	}

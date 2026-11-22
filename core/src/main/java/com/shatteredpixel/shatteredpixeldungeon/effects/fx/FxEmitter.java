@@ -37,9 +37,7 @@ public class FxEmitter extends Emitter {
 
 	@Override
 	public void start( Factory factory, float interval, int quantity ){
-		netCell = -1;
-		netEmType = null;
-		startDelayed( factory, interval, quantity, interval > 0 ? FxRandom.Float( interval ) : 0f );
+		super.start( factory, interval, quantity );
 	}
 
 	@Override
@@ -65,8 +63,6 @@ public class FxEmitter extends Emitter {
 	@Override
 	public void revive(){
 		super.revive();
-		netCell = -1;
-		netEmType = null;
 		lightMode = false;
 	}
 

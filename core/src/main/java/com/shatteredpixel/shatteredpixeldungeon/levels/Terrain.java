@@ -69,6 +69,7 @@ public class Terrain {
 	public static final int MINE_BOULDER    = 36;
 
 	public static final int WATER		    = 29;
+	public static final int FROZEN_WATER    = WATER; // Warped 的冻水：本仓库暂用普通水代替
 	
 	public static final int PASSABLE		= 0x01;
 	public static final int LOS_BLOCKING	= 0x02;

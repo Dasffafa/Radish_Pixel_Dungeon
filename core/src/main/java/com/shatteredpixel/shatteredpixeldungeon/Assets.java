@@ -29,6 +29,8 @@ public class Assets {
 		public static final String SPECKS       = "effects/specks.png";
 		public static final String SPELL_ICONS  = "effects/spell_icons.png";
 		public static final String TEXT_ICONS   = "effects/text_icons.png";
+		public static final String FX_SHEET     = "effects/fx_sheet.png";
+		public static final String FX_LIGHT     = "effects/fx_light.png";
 
 		// CC0 effect assets (see effects/cc0/CREDITS.txt)
 		public static final String SWORD_SLASH    = "effects/cc0/sword_slash.png";
@@ -80,6 +82,8 @@ public class Assets {
 		public static final String WATER_CAVES  = "environment/water2.png";
 		public static final String WATER_CITY   = "environment/water3.png";
 		public static final String WATER_HALLS  = "environment/water4.png";
+		public static final String WATER_FROZEN = "environment/water_frozen.png";
+		public static final String WATER_TEMPLE = "environment/water_temple.png";
 
 		public static final String WEAK_FLOOR       = "environment/custom_tiles/weak_floor.png";
 		public static final String SEWER_BOSS       = "environment/custom_tiles/sewer_boss.png";

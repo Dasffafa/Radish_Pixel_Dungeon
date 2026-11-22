@@ -58,7 +58,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.AmbientCritters;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
 import com.shatteredpixel.shatteredpixeldungeon.effects.WaterCycle;
-import com.shatteredpixel.shatteredpixeldungeon.effects.WaterWade;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -187,6 +186,10 @@ public class GameScene extends PixelScene {
 	private Group ripples;
 	private Group waterFront;
 	private Group waterRipples;
+	// Warped fx 框架需要的三个图层（floor / surface / light）
+	private Group floorFx;
+	private Group lightFx;
+	private com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter fxE, lightE, floorE;
 	private String waterPath;
 	private Group plants;
 	private Group traps;
@@ -312,6 +315,10 @@ public class GameScene extends PixelScene {
 		emoicons = new Group();
 		overFogEffects = new Group();
 		
+		// fx 框架的 floor 层（水波之下）
+		floorFx = new Group();
+		add( floorFx );
+
 		// 水波画在地块之上、人物之下
 		waterRipples = new Group();
 		add( waterRipples );
@@ -322,7 +329,6 @@ public class GameScene extends PixelScene {
 		// 踩水的水线要盖在人物下半身上，所以放在 mobs 之后
 		waterFront = new Group();
 		add( waterFront );
-		WaterWade.init( waterFront, waterRipples );
 
 		// 不占回合的阻塞动画（Hero.playAnimationNoTime）靠旧场景里的精灵回调 / VirtualTimer 清位；
 		// 场景重建后它们都随旧场景没了，这里直接收尾，否则英雄的 act() 会永远 return false。
@@ -360,6 +366,14 @@ public class GameScene extends PixelScene {
 		add( emitters );
 		add( effects );
 		AmbientCritters.init( effects );
+
+		lightFx = new Group();
+		add( lightFx );
+
+		// Warped fx 框架：场景建立 + 水系统
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.sceneCreated();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.sceneCreated();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.sceneCreated( this );
 
 		gases = new Group();
 		add( gases );
@@ -974,7 +988,9 @@ public class GameScene extends PixelScene {
 
 		if (!Emitter.freezeEmitters) water.offset( 0, -5 * Game.elapsed );
 		WaterCycle.tick( water, waterPath, Game.timeTotal );
-		WaterWade.update( Game.timeTotal );
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.frame();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX.frame();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.update( Game.elapsed );
 		AmbientCritters.update();
 
 		if (!Actor.processing() && Dungeon.hero.isAlive()) {
@@ -1325,6 +1341,64 @@ public class GameScene extends PixelScene {
 		scene.overFogEffects.add( effect );
 	}
 	
+	/** Warped fx 框架的三个图层 */
+	public enum Layer { FLOOR, SURFACE, LIGHT, LIGHTS }
+
+	public static Group layer( Layer which ) {
+		if (scene == null) return null;
+		switch (which) {
+			case FLOOR: return scene.floorFx;
+			case SURFACE: return scene.waterRipples;
+			case LIGHT: case LIGHTS: default: return scene.lightFx;
+		}
+	}
+
+	public static <T extends Gizmo> T recycle( Layer which, Class<T> c ) {
+		Group g = layer( which );
+		if (g == null) return null;
+		return (T)g.recycle( c );
+	}
+
+	public static com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter fxEmitter() {
+		if (scene == null) return null;
+		if (scene.fxE == null) {
+			scene.fxE = newEmitter( scene.effects );
+		}
+		return scene.fxE;
+	}
+
+	public static com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter fxFloorEmitter() {
+		if (scene == null) return null;
+		if (scene.floorE == null) {
+			scene.floorE = newEmitter( scene.floorFx );
+		}
+		return scene.floorE;
+	}
+
+	public static com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter lightEmitter() {
+		if (scene == null) return null;
+		if (scene.lightE == null) {
+			scene.lightE = newEmitter( scene.lightFx );
+		}
+		return scene.lightE;
+	}
+
+	private static com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter newEmitter( Group host ) {
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter e = new com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter();
+		e.width = DungeonTilemap.SIZE;
+		e.height = DungeonTilemap.SIZE;
+		host.add( e );
+		return e;
+	}
+
+	public static void light( Gizmo e ) {
+		if (scene != null && scene.lightFx != null && e != null) scene.lightFx.add( e );
+	}
+
+	public static void carryLight( com.shatteredpixel.shatteredpixeldungeon.effects.fx.Lit lit ) {
+		// 本仓库没有图层化的光照系统，忽略
+	}
+
 	public static Ripple ripple( int pos ) {
 		if (scene != null) {
 			Ripple ripple = (Ripple) scene.ripples.recycle(Ripple.class);

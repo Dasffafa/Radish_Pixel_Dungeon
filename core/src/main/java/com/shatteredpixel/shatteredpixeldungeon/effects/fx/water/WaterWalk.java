@@ -215,7 +215,7 @@ public final class WaterWalk {
 	private static void footstep( CharSprite s, int from, int to, Level level ){
 		int t = level.map[from];
 		boolean grass = t == Terrain.GRASS || t == Terrain.FURROWED_GRASS;
-		boolean snow = t == Terrain.SNOW;
+		boolean snow = false; // 本仓库没有雪地地形
 		if (!grass && !snow) return;
 		Wader w = wader( s );
 		float now = Game.timeTotal;

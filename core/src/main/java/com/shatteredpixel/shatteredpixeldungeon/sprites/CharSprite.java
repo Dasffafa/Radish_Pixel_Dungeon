@@ -63,6 +63,16 @@ import com.watabou.utils.Random;
 import java.nio.Buffer;
 
 public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip.Listener {
+
+	/** Warped fx 框架给每个精灵留的槽位（本仓库只用了水那一格） */
+	public Object[] fxSlots = new Object[ com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.COUNT ];
+
+	/** 是否"漂浮"（船/水面载具）。本仓库没有载具系统，恒为 false。 */
+	public boolean afloat(){ return false; }
+
+	/** 是否正在跳跃中。 */
+	public boolean jumping(){ return false; }
+
 	
 	// Color constants for floating text
 	public static final int DEFAULT		= 0xFFFFFF;
@@ -277,6 +287,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	}
 	
 	public void move( int from, int to ) {
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.stepped( this, from, to );
 		turnTo( from , to );
 
 		play( run );
@@ -822,6 +833,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	
 	@Override
 	public void kill() {
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.gone( this );
 		super.kill();
 		
 		hideEmo();
@@ -897,6 +909,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 						super.draw();
 					}
 
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.afterDraw( this );
 				}
 
 	@Override
