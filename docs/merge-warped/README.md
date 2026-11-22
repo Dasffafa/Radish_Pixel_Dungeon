@@ -373,14 +373,23 @@ enchant/rarity/quality 类强绑定）没有整搬，而是在现有 fx 工具�
 计数：`EnchantFx.kills`、`SpecialFx.finishers`。
 实测：致命一击触发 1 次、其中特色分支 1 次，PASS。
 
-## 附魔装备的扫光（UI，按录像修正）
+## 附魔装备高光（UI，参数抄自 APK 反编译）
 
-参考录像里背包那件弓的效果，不是旋转圆环，而是**一道 45° 高光斜扫过图标**：
+用 jadx 反编译 APK 后找到真正的实现：`effects/fx/enchant/ItemAura.streak()`：
 
-- `ui/ItemSlot`：附魔物品的格子里加一条 18x2 的高光条（solid texture 染色），
-  `angle=45°`，每 **2.2~4.2 秒**扫一次，单次 **0.38 秒**，透明度按 sin 曲线淡入淡出
-- 颜色：`EnchantFx.uiColor(item)`（武器走逐附魔色；护甲符文按关键字取色）
-- 空槽 / 普通物品不显示
-- 覆盖所有用 `ItemSlot` 的界面（背包、快捷栏、物品窗口）
+```java
+float mod = Profile.mod( t, 2.0f );          // 2 秒一个周期
+if (mod >= 0.1f) return false;               // 只在前 0.1 秒出现
+quad.frame( FxFrames.STREAK_TAPER );         // 帧 167,98,16,5
+quad.hardlight( enchantLook.glow );          // 附魔光色
+quad.angle = -45.0f;                         // 斜 45°
+quad.scale.set( 0.85f, 0.6f );
+quad.am = (mod < 0.05f ? 0.9f : 0.45f);      // 前 0.05 秒更亮
+```
 
-实测：400 次 update 中扫光可见 35 帧，普通武器 0 帧。
+我们照抄到 `ui/ItemSlot`：同样 2 秒周期、0.1 秒可见、`STREAK_TAPER`、-45°、
+缩放 (0.85, 0.6)、alpha 0.9/0.45，颜色用 `EnchantFx.uiColor(item)`。
+
+**没搬的**：Warped 的 ItemAura 还有 ring/mote/glint 多种 motif、按稀有度决定数量、
+以及 `stillRing`（RING_5 在物品脚下脉动）、`vicious`（剑身火花）等；这些依赖它的
+EnchantLook/ItemLooks 框架，暂未搬。

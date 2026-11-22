@@ -239,10 +239,14 @@ public class ItemSlot extends Button {
 		return shine != null && shine.visible;
 	}
 
-	/** 附魔物品：周期性一道 45° 高光扫过图标，两端带亮点 */
-	private static final float SWEEP_DUR = 0.38f;
-	private static final float SWEEP_MIN = 2.2f, SWEEP_MAX = 4.2f;
-	private float sweepIn = 1.5f, sweepLeft = -1f;
+	/**
+	 * 附魔装备的高光：照抄 Warped 的 ItemAura.streak()。
+	 * 每 2 秒一次，只在前 0.1 秒出现：STREAK_TAPER 帧、-45°、缩放 (0.85, 0.6)，
+	 * 前 0.05 秒 alpha 0.9，之后 0.45。
+	 */
+	private static final float STREAK_PERIOD = 2f;
+	private static final float STREAK_FOR = 0.1f;
+	private float streakPhase = com.watabou.utils.Random.Float( 2f );
 
 	protected void updateAura(){
 		int color = item == null ? 0
@@ -254,52 +258,41 @@ public class ItemSlot extends Button {
 			return;
 		}
 		if (shine == null){
-			shine = new Image( com.watabou.gltextures.TextureCache.createSolid( 0xFFFFFFFF ) );
+			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.STREAK_TAPER;
+			shine = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
 			shine.visible = false;
 			add( shine );
 		}
 		hasShine = true;
 		shineColor = color;
 		shine.hardlight( color );
-		sendToBack( shine );
+		bringToFront( shine );
 	}
 
 	private boolean hasShine;
 	private int shineColor;
-	private float sweepPhase = 1.5f;
 
 	@Override
 	public void update(){
 		super.update();
 		if (!hasShine || shine == null) return;
 
-		if (sweepPhase < 0f){
-			sweepIn -= com.watabou.noosa.Game.elapsed;
-			if (sweepIn <= 0f){
-				sweepIn = SWEEP_MIN + com.watabou.utils.Random.Float() * (SWEEP_MAX - SWEEP_MIN);
-				sweepPhase = 0f;
-			} else {
-				shine.visible = false;
-				return;
-			}
-		}
+		float t = com.watabou.noosa.Game.timeTotal + streakPhase;
+		float mod = t - (float)Math.floor( t / STREAK_PERIOD ) * STREAK_PERIOD;
 
-		sweepPhase += com.watabou.noosa.Game.elapsed / SWEEP_DUR;
-		if (sweepPhase >= 1f){
-			sweepPhase = -1f;
+		if (mod >= STREAK_FOR){
 			shine.visible = false;
 			return;
 		}
 
-		float t = sweepPhase;
-		float cx = width / 2f, cy = height / 2f;
-		float off = (t - 0.5f) * (width * 1.15f);
+		if (shine.width() == 0f || sprite == null) return;
+
 		shine.visible = true;
-		shine.angle = 45f;
-		shine.x = cx + off - 9f;
-		shine.y = cy - off * 0.6f - 1f;
-		shine.scale.set( 18f, 2f );
-		shine.am = (float)Math.sin( Math.PI * t ) * 0.9f;
+		shine.angle = -45f;
+		shine.scale.set( 0.85f, 0.6f );
+		shine.x = sprite.x + sprite.width() / 2f - shine.width() * 0.85f / 2f;
+		shine.y = sprite.y + sprite.height() / 2f - shine.height() * 0.6f / 2f;
+		shine.am = (mod < 0.05f ? 0.9f : 0.45f);
 	}
 
 	public void updateText(){
