@@ -57,6 +57,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.AmbientCritters;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
+import com.watabou.noosa.ColorBlock;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -192,6 +193,10 @@ public class GameScene extends PixelScene {
 	private Group lightFx;
 	private com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter fxE, lightE, floorE;
 	private String waterPath;
+	// Warped 的全局昼夜色调：整张地图一层冷色暗罩
+	private com.watabou.noosa.ColorBlock dayNightOverlay;
+	private static float tintA = 0.12f;
+	private static int tintColor = 0x22304A;
 	private Group plants;
 	private Group traps;
 	private Group heaps;
@@ -387,6 +392,14 @@ public class GameScene extends PixelScene {
 			addBlobSprite( blob );
 		}
 
+
+		dayNightOverlay = new com.watabou.noosa.ColorBlock(
+				Dungeon.level.width() * DungeonTilemap.SIZE,
+				Dungeon.level.height() * DungeonTilemap.SIZE,
+				0xFFFFFFFF );
+		dayNightOverlay.hardlight( tintColor );
+		dayNightOverlay.alpha( tintA );
+		add( dayNightOverlay );
 
 		fog = new FogOfWar( Dungeon.level.width(), Dungeon.level.height() );
 		add( fog );
@@ -1408,7 +1421,13 @@ public class GameScene extends PixelScene {
 	}
 
 	/** 夜色浓度，0 = 白天（本仓库没有昼夜系统） */
-	public static float nightTintAlpha(){ return 0f; }
+	public static float nightTintAlpha(){ return tintA; }
+
+	/** 调试/验收：设全局夜色强度（0 = 白天） */
+	public static void setNightTint( float a ){
+		tintA = Math.max( 0f, Math.min( 1f, a ) );
+		if (scene != null && scene.dayNightOverlay != null) scene.dayNightOverlay.alpha( tintA );
+	}
 
 	public static float waterScroll = 5f;
 
