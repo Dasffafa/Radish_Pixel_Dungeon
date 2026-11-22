@@ -372,3 +372,14 @@ enchant/rarity/quality 类强绑定）没有整搬，而是在现有 fx 工具�
 
 计数：`EnchantFx.kills`、`SpecialFx.finishers`。
 实测：致命一击触发 1 次、其中特色分支 1 次，PASS。
+
+## 附魔装备的旋转光环（UI）
+
+`ui/ItemSlot`：附魔物品在背包/快捷栏的格子里，图标后面多一圈**缓慢旋转的光环**：
+
+- 帧：`fx_sheet` 的 `RING_23`，`Image(FX_SHEET, x, y, w, h)` 取区域
+- 颜色：`EnchantFx.uiColor(item)` —— 武器走逐附魔配色；护甲符文按关键字取色（火/冰/雷/毒/暗/血/石/默认冷蓝）
+- 动画：`angle += elapsed * 55°/s`，透明度 `0.55 + 0.25*sin(t*3)` 呼吸
+- 层级：`sendToBack`，压在图标下面不挡内容；空槽/普通物品自动隐藏
+
+覆盖范围：所有用 `ItemSlot` 的地方（背包、快捷栏、物品界面等）。

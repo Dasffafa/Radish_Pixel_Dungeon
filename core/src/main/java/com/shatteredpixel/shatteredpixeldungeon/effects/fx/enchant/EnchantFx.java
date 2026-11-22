@@ -123,6 +123,29 @@ public final class EnchantFx {
 		COLORS.put( "sweeping",     0xC0D0E8 );
 	}
 
+	/** 物品在 UI 里的光环颜色：武器附魔 → 逐附魔色；护甲符文 → 关键字取色；否则 0 */
+	public static int uiColor( Item item ){
+		if (item instanceof Weapon){
+			Weapon w = (Weapon) item;
+			return w.enchantment == null ? 0 : colorOf( w.enchantment );
+		}
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor){
+			com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor a =
+					(com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor) item;
+			if (a.glyph == null) return 0;
+			String n = a.glyph.getClass().getSimpleName().toLowerCase();
+			if (n.contains( "fire" ) || n.contains( "burn" ) || n.contains( "blaz" )) return 0xFF7A1E;
+			if (n.contains( "frost" ) || n.contains( "ice" ) || n.contains( "chill" )) return 0x9FE4FF;
+			if (n.contains( "shock" ) || n.contains( "stor" ) || n.contains( "light" )) return 0xFFF25A;
+			if (n.contains( "pois" ) || n.contains( "venom" ) || n.contains( "anti" )) return 0x9CE87A;
+			if (n.contains( "grim" ) || n.contains( "obscur" ) || n.contains( "shadow" )) return 0xB48AFF;
+			if (n.contains( "vamp" ) || n.contains( "blood" )) return 0xFF5A6A;
+			if (n.contains( "brim" ) || n.contains( "ston" ) || n.contains( "thorns" )) return 0xE8E8F0;
+			return 0xC8D8FF;
+		}
+		return 0;
+	}
+
 	/** 该附魔类名是否有自己的配色（测试用） */
 	public static boolean hasOwnColor( String simpleName ){
 		return COLORS.containsKey( simpleName.toLowerCase() );

@@ -58,6 +58,9 @@ public class ItemSlot extends Button {
 	protected BitmapText status;
 	protected BitmapText extra;
 	protected Image      itemIcon;
+	/** 附魔物品的旋转光环 */
+	protected Image      auraRing;
+	private float        auraAngle;
 	protected BitmapText level;
 	protected BitmapText special;
 
@@ -202,6 +205,7 @@ public class ItemSlot extends Button {
 			if (item != null) {
 				sprite.view( item );
 			}
+			updateAura();
 			updateText();
 			return;
 		}
@@ -221,7 +225,45 @@ public class ItemSlot extends Button {
 			sprite.visible(true);
 
 			sprite.view( item );
+			updateAura();
 			updateText();
+		}
+	}
+
+	/** 测试用：这个格子现在有没有光环 */
+	public boolean hasAura(){
+		return auraRing != null && auraRing.visible;
+	}
+
+	/** 附魔物品：在后面加一圈缓慢转动的光环 */
+	protected void updateAura(){
+		int color = item == null ? 0
+				: com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
+
+		if (color == 0){
+			if (auraRing != null) auraRing.visible = false;
+			return;
+		}
+		if (auraRing == null){
+			int[] rf = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.RING_23;
+			auraRing = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, rf[0], rf[1], rf[2], rf[3] );
+			auraRing.visible = false;
+			add( auraRing );
+		}
+		auraRing.visible = true;
+		auraRing.hardlight( color );
+		auraRing.am = 0.75f;
+		// 放到最底层，压住图标但不遮挡
+		sendToBack( auraRing );
+	}
+
+	@Override
+	public void update(){
+		super.update();
+		if (auraRing != null && auraRing.visible){
+			auraAngle += com.watabou.noosa.Game.elapsed * 55f;
+			auraRing.angle = auraAngle;
+			auraRing.am = 0.55f + 0.25f * (float)Math.sin( com.watabou.noosa.Game.timeTotal * 3f );
 		}
 	}
 
