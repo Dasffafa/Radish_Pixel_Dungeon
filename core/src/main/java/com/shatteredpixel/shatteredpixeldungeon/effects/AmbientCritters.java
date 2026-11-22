@@ -1,14 +1,17 @@
 /*
  * Radish Pixel Dungeon
  *
- * 环境小生物：在英雄视野内的空地上偶尔钻出蜘蛛/甲虫/蚱蜢，跳几步再消失。
- * 只影响画面，不参与回合与战斗（不会进 Dungeon.level.mobs）。
+ * 环境小生物：
+ *  - 地面小虫（蚱蜢/甲虫/蜘蛛）：在英雄视野内的空地上钻出、跳几步、淡出
+ *  - 萤火虫：在英雄附近的空中飘动、明暗呼吸
+ * 都只影响画面，不参与回合与战斗（不会进 Dungeon.level.mobs）。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.MovieClip;
 import com.watabou.noosa.TextureFilm;
@@ -20,27 +23,35 @@ import java.util.List;
 public class AmbientCritters {
 
 	private static final String SHEET = "effects/dungeon_critters.png";
+	private static final String FLY_SHEET = "effects/critters.png";
 	private static final int TILE = 16;
 
-	// 精灵表 8 列，每行一种小生物
+	// 小虫精灵表 8 列，每行一种
 	private static final int[][] KINDS = {
 			{ 0, 1, 2, 3, 4, 5 },        // 蚱蜢
 			{ 8, 9, 10, 11, 12, 13 },    // 甲虫
 			{ 40, 41, 42, 43, 44 },      // 蜘蛛
 	};
+	// 萤火虫：critters.png 第 8 行的光点帧
+	private static final int[] FLY_FRAMES = { 56, 57, 58 };
 
 	private static final List<Critter> alive = new ArrayList<>();
+	private static final List<Firefly> flies = new ArrayList<>();
 	private static Group host;
-	private static float nextIn = 2f;
+	private static float nextIn = 2f, nextFlyIn = 3f;
 
-	/** 调试：生成计数 */
-	public static int spawned;
-	public static int tries_used;
+	/** 调试计数 */
+	public static int spawned, firefliesSpawned, tries_used;
 
 	public static void init( Group group ) {
 		host = group;
 		alive.clear();
+		flies.clear();
 		nextIn = 2f;
+		nextFlyIn = 3f;
+		spawned = 0;
+		firefliesSpawned = 0;
+		tries_used = 0;
 	}
 
 	public static void update() {
@@ -49,38 +60,66 @@ public class AmbientCritters {
 		for (int i = alive.size() - 1; i >= 0; i--) {
 			if (!alive.get(i).alive) alive.remove(i);
 		}
+		for (int i = flies.size() - 1; i >= 0; i--) {
+			if (!flies.get(i).alive) flies.remove(i);
+		}
 
-		nextIn -= com.watabou.noosa.Game.elapsed;
+		nextIn -= Game.elapsed;
 		if (nextIn <= 0f) {
 			nextIn = 1.8f + Random.Float( 2.6f );
-			if (alive.size() < 2) spawn();
+			if (alive.size() < 2) spawnCritter();
+		}
+
+		nextFlyIn -= Game.elapsed;
+		if (nextFlyIn <= 0f) {
+			nextFlyIn = 3f + Random.Float( 4f );
+			if (flies.size() < 3) spawnFirefly();
 		}
 	}
 
-	private static void spawn() {
+	private static void spawnCritter() {
 		Hero hero = Dungeon.hero;
-		if (hero == null) return;
 		int width = Dungeon.level.width();
 		// 先在干燥地面找，找不到再退而求其次（水面上的甲虫/水黾）
 		for (int pass = 0; pass < 2; pass++) {
-		for (int tries = 0; tries < 12; tries++) {
-			int dx = Random.Int( 7 ) - 3;
-			int dy = Random.Int( 7 ) - 3;
-			if (dx == 0 && dy == 0) continue;
+			for (int tries = 0; tries < 12; tries++) {
+				int dx = Random.Int( 7 ) - 3;
+				int dy = Random.Int( 7 ) - 3;
+				if (dx == 0 && dy == 0) continue;
+				int cell = hero.pos + dx + dy * width;
+				if (cell < 0 || cell >= Dungeon.level.map.length) continue;
+				if (!Dungeon.level.heroFOV[cell]) continue;
+				if (Dungeon.level.solid[cell]) continue;
+				if (pass == 0 && Dungeon.level.water[cell]) continue;
+
+				Critter c = new Critter( KINDS[Random.Int( KINDS.length )], cell );
+				host.add( c );
+				alive.add( c );
+				spawned++;
+				tries_used += tries + 1;
+				return;
+			}
+		}
+	}
+
+	private static void spawnFirefly() {
+		Hero hero = Dungeon.hero;
+		int width = Dungeon.level.width();
+		for (int tries = 0; tries < 10; tries++) {
+			int dx = Random.Int( 9 ) - 4;
+			int dy = Random.Int( 9 ) - 4;
 			int cell = hero.pos + dx + dy * width;
 			if (cell < 0 || cell >= Dungeon.level.map.length) continue;
 			if (!Dungeon.level.heroFOV[cell]) continue;
-			if (!Dungeon.level.passable[cell]) continue;
 			if (Dungeon.level.solid[cell]) continue;
-			if (pass == 0 && Dungeon.level.water[cell]) continue;
 
-			Critter c = new Critter( KINDS[Random.Int( KINDS.length )], cell );
-			host.add( c );
-			alive.add( c );
-			spawned++;
-			tries_used += tries + 1;
+			float px = (cell % width) * TILE + Random.Float( 16f );
+			float py = (cell / width) * TILE + Random.Float( 16f );
+			Firefly f = new Firefly( px, py );
+			host.add( f );
+			flies.add( f );
+			firefliesSpawned++;
 			return;
-		}
 		}
 	}
 
@@ -120,7 +159,7 @@ public class AmbientCritters {
 		@Override
 		public void update() {
 			super.update();
-			float dt = com.watabou.noosa.Game.elapsed;
+			float dt = Game.elapsed;
 
 			life -= dt;
 			alphaT += dt;
@@ -128,7 +167,6 @@ public class AmbientCritters {
 				killAndErase();
 				return;
 			}
-			// 出现时淡入，消失前淡出
 			float target = life < 0.7f ? Math.max( 0f, life / 0.7f ) : Math.min( 1f, alphaT / 0.25f );
 			alpha( target );
 
@@ -156,8 +194,8 @@ public class AmbientCritters {
 			int d = Random.Int( 4 );
 			int next = cell + dirs[d][0] + dirs[d][1] * width;
 			if (next < 0 || next >= Dungeon.level.map.length) return;
-			if (!Dungeon.level.passable[next] || Dungeon.level.water[next]) return;
-			if (Math.abs( (next % width) - (cell % width) ) > 1) return; // 不跨越整行
+			if (Dungeon.level.solid[next]) return;
+			if (Math.abs( (next % width) - (cell % width) ) > 1) return;
 
 			cell = next;
 			fromX = x;
@@ -165,6 +203,46 @@ public class AmbientCritters {
 			toX = (cell % width) * TILE;
 			toY = (cell / width) * TILE;
 			hopT = HOP;
+		}
+	}
+
+	public static class Firefly extends MovieClip {
+
+		private float life, age, vx, vy, phase;
+
+		public Firefly( float px, float py ) {
+			super( FLY_SHEET );
+
+			TextureFilm film = new TextureFilm( texture, TILE, TILE );
+			play( new Animation( 6, true ).frames( film, 56, 57, 58 ) );
+
+			x = px;
+			y = py;
+			vx = Random.Float( -7f, 7f );
+			vy = Random.Float( -5f, 5f );
+			life = 6f + Random.Float( 6f );
+			phase = Random.Float( 6.28f );
+			hardlight( 0xFFFF99 );
+			alpha( 0f );
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			float dt = Game.elapsed;
+			age += dt;
+			life -= dt;
+			if (life <= 0f) {
+				killAndErase();
+				return;
+			}
+
+			x += vx * dt;
+			y += vy * dt + (float)Math.sin( age * 2.4f + phase ) * 8f * dt;
+
+			float pulse = 0.5f + 0.5f * (float)Math.sin( age * 4f + phase );
+			float fade = Math.min( 1f, Math.min( age * 2f, life * 0.8f ) );
+			alpha( Math.min( 1f, 0.35f + pulse * 0.65f ) * fade );
 		}
 	}
 }
