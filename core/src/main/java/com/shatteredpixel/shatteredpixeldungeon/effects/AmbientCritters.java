@@ -36,6 +36,7 @@ public final class AmbientCritters {
 	public static int spawned;
 	public static int expired;
 	public static int scared;
+	public static final java.util.Map<String,Integer> byType = new java.util.LinkedHashMap<>();
 	public static int badCells;
 	public static int lastCell = -1;
 
@@ -54,6 +55,7 @@ public final class AmbientCritters {
 		host = effects;
 		live.clear();
 		spawned = expired = badCells = scared = 0;
+		byType.clear();
 		lastCell = -1;
 		spawnIn = 4f;
 	}
@@ -132,14 +134,13 @@ public final class AmbientCritters {
 			float ay = y * SIZE + SIZE / 2f;
 
 			DungeonCritterSprite s = null;
-			boolean water = Dungeon.level.map[cell] == Terrain.WATER;
+			// 水面本身不生成（否则沼泽房里全是飞虫），青蛙只出现在靠水的岸上
+			if (Dungeon.level.map[cell] == Terrain.WATER) continue;
 			int waterCell = nearWater( cell );
 
-			if (waterCell != -1 && !water){
+			if (waterCell != -1){
 				int wx = waterCell % w, wy = waterCell / w;
 				s = new DungeonCritterSprite.Frog( ax, ay, wx * SIZE + SIZE / 2f, wy * SIZE + SIZE / 2f, true );
-			} else if (water){
-				s = new DungeonCritterSprite.Fly( ax, ay );
 			} else {
 				// 地面生物为主，飞虫少一些（飞虫会飘过墙，容易显得突兀）
 				int roll = RNG.nextInt( 100 );
@@ -166,6 +167,8 @@ public final class AmbientCritters {
 			live.add( new Entry( s, com.watabou.noosa.Game.timeTotal ) );
 			lastCell = cell;
 			spawned++;
+			String tn = s.getClass().getSimpleName();
+			byType.put( tn, byType.getOrDefault( tn, 0 ) + 1 );
 			return;
 		}
 	}
