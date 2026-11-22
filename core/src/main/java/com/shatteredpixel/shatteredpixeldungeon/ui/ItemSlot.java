@@ -273,11 +273,15 @@ public class ItemSlot extends Button {
 	public int shineActive(){
 		int n = 0;
 		if (shine != null && shine.visible) n++;
-		if (ring != null && ring.visible) n++;
-		if (vicious != null && vicious.visible) n++;
+		if (ENABLE_RING && ring != null && ring.visible) n++;
+		if (ENABLE_VICIOUS && vicious != null && vicious.visible) n++;
 		for (int i = 0; i < sparkBlocks; i++) if (sparks[i] != null && sparks[i].visible) n++;
 		return n;
 	}
+
+	/** 脚下光环与刀身火花在 16px 格子里太抢眼，默认关闭（想试就改 true） */
+	public static boolean ENABLE_RING = false;
+	public static boolean ENABLE_VICIOUS = false;
 
 	private static final float STREAK_PERIOD = 2f, STREAK_FOR = 0.1f;
 	private static final float RING_FOR = 0.53f;
@@ -436,7 +440,7 @@ public class ItemSlot extends Button {
 
 		// 2) stillRing：RING_5 在脚下 2s 一次、前 0.53s
 		float rm = mod( t, STREAK_PERIOD );
-		if (!hasShine || rm >= RING_FOR){
+		if (!ENABLE_RING || !hasShine || rm >= RING_FOR){
 			if (ring != null) ring.visible = false;
 		} else {
 			float grow = Math.min( 1f, rm / 0.25f );
@@ -452,7 +456,7 @@ public class ItemSlot extends Button {
 
 		// 3) vicious：0.8s 一轮，刀身 45° 火花闪 0.12s
 		float vm = mod( t, 0.8f );
-		if (!hasShine || vm >= 0.12f){
+		if (!ENABLE_VICIOUS || !hasShine || vm >= 0.12f){
 			if (vicious != null) vicious.visible = false;
 		} else {
 			vicious.visible = true;

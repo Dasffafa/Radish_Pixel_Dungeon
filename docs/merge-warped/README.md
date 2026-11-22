@@ -433,3 +433,6 @@ sendToBack(frame); bringToFront(sparks);
 与原版仍不同的两点：
 - 边框颜色：原版用 `quality.titleColor()`（稀有度色）；本分支没有稀有度 → 用附魔色，无附魔时用冷白
 - 火花数量：原版按稀有度 2~5；我们用 `2 + min(3, level/2)`
+
+**关掉仍显突兀的两种**：`stillRing`（脚下 RING_5）和 `vicious`（刀身 SPARK_2）在 16px 格子里
+缩放后像两块糊上去的色斑，已默认关闭；需要时把 `ItemSlot.ENABLE_RING / ENABLE_VICIOUS` 改 true。
