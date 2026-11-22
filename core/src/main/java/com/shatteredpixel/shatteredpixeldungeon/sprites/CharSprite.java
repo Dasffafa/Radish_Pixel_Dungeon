@@ -296,13 +296,37 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	/** 自走棋：只启动跑动动画与朝向，位置由调用方逐帧插值（不创建补间）。 */
 	public void autochessStartRun( int from, int to ) {
 		turnTo( from, to );
-		play( run );
+		play( autochessWalkAnim() );
+	}
+
+	/** 大多数 SPD 怪物的 run 只有 1 帧（看不出动画），这种情况改用 idle 的呼吸帧。 */
+	private float autoFrameTimer = 0f;
+	private int autoFrameIdx = 0;
+
+	/** 自走棋：手动推进走位动画帧（不依赖 MovieClip 的 finished/paused 判定）。 */
+	public void autochessAdvance(float dt) {
+		Animation a = autochessWalkAnim();
+		if (a == null || a.frames == null || a.frames.length < 2 || a.delay <= 0f) return;
+		autoFrameTimer += dt;
+		int guard = 0;
+		while (autoFrameTimer > a.delay && guard++ < 8) {
+			autoFrameTimer -= a.delay;
+			autoFrameIdx = (autoFrameIdx + 1) % a.frames.length;
+			frame(a.frames[autoFrameIdx]);
+		}
+	}
+
+	private Animation autochessWalkAnim() {
+		if (run != null && run.frames != null && run.frames.length > 1) return run;
+		if (idle != null && idle.frames != null && idle.frames.length > 1) return idle;
+		return run != null ? run : idle;
 	}
 
 	/** 自走棋：滑行过程中每帧确保仍在播跑动动画（防被 idle 覆盖）。 */
 	public void autochessTickRun() {
-		if (curAnim != run) {
-			play( run );
+		Animation want = autochessWalkAnim();
+		if (curAnim != want) {
+			play( want );
 		}
 	}
 
@@ -312,8 +336,13 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	}
 
 	/** 调试：当前动画是不是 run。 */
+	public int autochessFrame() { return curFrame; }
+	public boolean autochessPaused() { return paused; }
+	public int autochessAnimDelayMs() { return curAnim == null ? -1 : (int)(curAnim.delay * 1000); }
+	public int autochessWalkFrame() { return autoFrameIdx; }
+	public int autochessWalkFrames() { Animation a = autochessWalkAnim(); return a == null || a.frames == null ? 0 : a.frames.length; }
 	public boolean autochessIsRunning() {
-		return curAnim == run;
+		return curAnim == autochessWalkAnim();
 	}
 	
 	public static void setMoveInterval( float interval){

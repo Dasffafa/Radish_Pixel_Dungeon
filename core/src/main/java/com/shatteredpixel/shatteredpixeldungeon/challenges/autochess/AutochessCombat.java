@@ -129,12 +129,17 @@ public class AutochessCombat {
 		self.sprite.visible = true;
 		try {
 			self.sprite.autochessTickRun();   // 防止 idle 把跑动动画盖掉
+			self.sprite.autochessAdvance(delta);   // 手动推进走位帧
 			if (java.lang.Boolean.getBoolean("arena.debug")) {
 				animLog += delta;
 				if (animLog > 0.3f) {
 					animLog = 0f;
 					System.out.println("[ANIM] " + self.getClass().getSimpleName()
-							+ " running=" + self.sprite.autochessIsRunning());
+							+ " running=" + self.sprite.autochessIsRunning()
+							+ " wf=" + self.sprite.autochessWalkFrame()
+							+ "/" + self.sprite.autochessWalkFrames()
+							+ " paused=" + self.sprite.autochessPaused()
+							+ " delayMs=" + self.sprite.autochessAnimDelayMs());
 				}
 			}
 		} catch (Throwable ignored) {
