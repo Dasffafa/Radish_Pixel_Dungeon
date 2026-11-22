@@ -381,6 +381,7 @@ public class GameScene extends PixelScene {
 		AmbientCritters.init( waterRipples );
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.init();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.sceneCreated();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.ItemAura.reset();
 		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.sceneCreated();
 
 		lightFx = new Group();
@@ -1020,6 +1021,7 @@ public class GameScene extends PixelScene {
 		AmbientCritters.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.update( Game.elapsed );
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.ItemAura.update( Game.elapsed );
 		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.update();
 
 		if (!Actor.processing() && Dungeon.hero.isAlive()) {

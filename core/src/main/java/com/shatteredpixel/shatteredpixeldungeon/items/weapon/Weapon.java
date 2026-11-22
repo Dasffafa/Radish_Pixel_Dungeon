@@ -189,6 +189,10 @@ abstract public class Weapon extends KindOfWeapon {
 	
 	@Override
 	public int proc( Char attacker, Char defender, int damage ) {
+		// 附魔视觉：命中时在目标身上放元素效果
+		if (enchantment != null && attacker.alignment != defender.alignment){
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.proc( defender, enchantment );
+		}
 
 		// 小骑士濡湿附魔天赋逻辑
 		if (attacker instanceof Hero && this instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon) {
