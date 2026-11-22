@@ -292,6 +292,8 @@ public final class EnchantFx {
 		int tint = colorOf( e );
 		if (cursed) tint = curseTint( tint );
 
+		bigFlash( x, y, tint, ctx );
+
 		// 特色附魔优先走专属特效
 		if (SpecialFx.play( e.getClass().getSimpleName(), x, y, feet, tint, ctx )){
 			procs++;
@@ -309,6 +311,16 @@ public final class EnchantFx {
 		procs++;
 	}
 
+	/** 放大粒子（并补偿左上原点造成的偏移），让特效更显眼 */
+	static FxParticle boost( FxParticle p, float k ){
+		if (p == null) return null;
+		float w = p.width(), h = p.height();
+		p.scale.set( k, k );
+		p.x -= (k - 1f) * w / 2f;
+		p.y -= (k - 1f) * h / 2f;
+		return p;
+	}
+
 	/** 提亮（SpecialFx 也用） */
 	static int light( int color, float k ){
 		int r=(color>>16)&0xFF, g=(color>>8)&0xFF, b=color&0xFF;
@@ -320,6 +332,15 @@ public final class EnchantFx {
 	static int dark( int color, float k ){
 		int r=(int)(((color>>16)&0xFF)*(1f-k)), g=(int)(((color>>8)&0xFF)*(1f-k)), b=(int)((color&0xFF)*(1f-k));
 		return 0xFF000000 | (r<<16) | (g<<8) | b;
+	}
+
+	/** 命中大闪光：每次触发都来一下，显眼 */
+	private static void bigFlash( float x, float y, int tint, Ctx ctx ){
+		FxEmitter air = Fx.air();
+		if (air == null || !FxBudget.keep( FxBudget.P0, x, y )) return;
+		boost( (FxParticle) air.recycle( FxParticle.class ), 2.4f )
+				.reset( x, y ).look( FxFrames.PLUS_5 ).paint( light( tint, 0.55f ) )
+				.life( 0.16f ).alpha( ctx.a( 1f ), 0, 0.05f ).snap().priority( FxBudget.P0 );
 	}
 
 	/** 诅咒版颜色：去饱和 + 往暗紫偏 */

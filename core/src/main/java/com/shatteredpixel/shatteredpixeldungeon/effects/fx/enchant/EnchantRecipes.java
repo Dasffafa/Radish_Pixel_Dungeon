@@ -45,7 +45,7 @@ final class EnchantRecipes {
 		int tongues = ctx.tier == 0 ? 1 : (ctx.tier == 1 ? 2 : 3);
 		for (int i = 0; i < tongues; i++){
 			if (!FxBudget.keep( FxBudget.P2, cx, cy )) break;
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx + FxRandom.Float( -3f, 3f ), cy + FxRandom.Float( -2f, 4f ) )
 					.look( i == 0 ? FxFrames.TONGUE_S : FxFrames.TONGUE_M, 12f )
 					.paint( tint )
@@ -59,7 +59,7 @@ final class EnchantRecipes {
 		int embers = ctx.tier == 0 ? 2 : (ctx.tier == 1 ? 4 : 6);
 		for (int i = 0; i < embers; i++){
 			if (!FxBudget.keep( FxBudget.P3, cx, cy )) break;
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( -4f, 4f ) )
 					.look( FxRandom.chance( 0.6f ) ? FxFrames.EMBER_1 : FxFrames.EMBER_2 )
 					.paint( light( tint, 0.35f ) )
@@ -86,7 +86,7 @@ final class EnchantRecipes {
 
 		// 白闪
 		if (FxBudget.keep( FxBudget.P0, cx, cy )){
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx, cy ).look( FxFrames.PLUS_5 ).paint( 0xFFFFFF )
 					.life( 0.08f ).alpha( ctx.a( 1f ), 0, 0.03f ).snap().priority( FxBudget.P0 );
 		}
@@ -94,7 +94,7 @@ final class EnchantRecipes {
 		// 霜雾
 		for (int i = 0; i < 1 + ctx.tier; i++){
 			if (!FxBudget.keep( FxBudget.P2, cx, cy )) break;
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( 0f, 4f ) )
 					.look( FxFrames.PUFF_S, 0 )
 					.paint( light( tint, 0.5f ) ).smooth()
@@ -109,7 +109,7 @@ final class EnchantRecipes {
 			if (!FxBudget.keep( FxBudget.P2, cx, cy )) break;
 			boolean glass = i == shards - 1;
 			float a = (float)(-Math.PI / 2) + FxRandom.Float( -1.4f, 1.4f );
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx, cy )
 					.look( glass ? FxFrames.SHARD_GLASS : FxFrames.SHARD_ICE, 0 )
 					.paint( glass ? light( tint, 0.6f ) : tint )
@@ -137,7 +137,7 @@ final class EnchantRecipes {
 		for (int i = 0; i < 2 + ctx.tier; i++){
 			if (!FxBudget.keep( i == 0 ? FxBudget.P0 : FxBudget.P1, cx, cy )) break;
 			float a = FxRandom.angle();
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx, cy )
 					.look( FxFrames.SPARK_2 )
 					.orient()
@@ -153,7 +153,7 @@ final class EnchantRecipes {
 
 		// 中心闪光
 		if (FxBudget.keep( FxBudget.P0, cx, cy )){
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx, cy ).look( FxFrames.SPARK_3 ).paint( light( tint, 0.5f ) )
 					.life( 0.07f ).alpha( ctx.a( 1f ), 0, 0.03f ).snap().priority( FxBudget.P0 );
 		}
@@ -169,7 +169,7 @@ final class EnchantRecipes {
 
 		for (int i = 0; i < 2 + ctx.tier; i++){
 			if (!FxBudget.keep( FxBudget.P2, cx, cy )) break;
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( -4f, 2f ) )
 					.look( FxFrames.DROP_3 )
 					.paint( tint )
@@ -183,7 +183,7 @@ final class EnchantRecipes {
 		// 绿雾
 		for (int i = 0; i < 2; i++){
 			if (!FxBudget.keep( FxBudget.P3, cx, cy )) break;
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( -2f, 4f ) )
 					.look( FxFrames.PUFF_S, 0 )
 					.paint( dark( tint, 0.35f ) ).smooth()
@@ -204,7 +204,7 @@ final class EnchantRecipes {
 
 		for (int i = 0; i < 4; i++){
 			if (!FxBudget.keep( FxBudget.P2, cx, cy )) break;
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx + FxRandom.Float( -5f, 5f ), cy + FxRandom.Float( -4f, 4f ) )
 					.look( FxFrames.INK_WISP, 3f )
 					.paint( tint )
@@ -217,7 +217,7 @@ final class EnchantRecipes {
 
 		// 中间一团暗核
 		if (FxBudget.keep( FxBudget.P1, cx, cy )){
-			((FxParticle) air.recycle( FxParticle.class ))
+			EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f )
 					.reset( cx, cy ).look( FxFrames.INK_CORE ).paint( dark( tint, 0.45f ) )
 					.life( 1.2f ).alpha( ctx.a( 0.7f ), 0.15f, 0.6f ).snap().priority( FxBudget.P1 );
 		}

@@ -25,7 +25,7 @@ final class SpecialFx {
 		FxEmitter air = Fx.air();
 		if (air == null) return null;
 		if (!FxBudget.keep( prio, x, y )) return null;
-		return (FxParticle) air.recycle( FxParticle.class );
+		return EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f );
 	}
 
 	/** 按附魔类名播放专属特效；false = 没有专属，走族配方 */
