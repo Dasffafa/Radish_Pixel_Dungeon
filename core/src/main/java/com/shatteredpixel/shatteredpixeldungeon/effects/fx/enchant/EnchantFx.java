@@ -47,7 +47,80 @@ public final class EnchantFx {
 	}
 
 	public static int colorOf( Weapon.Enchantment e ){
-		return color( familyOf( e ) );
+		String n = e.getClass().getSimpleName().toLowerCase();
+		Integer exact = COLORS.get( n );
+		return exact != null ? exact : color( familyOf( e ) );
+	}
+
+	/** 逐附魔独立配色（类名 → 颜色）。没列到的回落到属性族颜色。 */
+	private static final java.util.Map<String,Integer> COLORS = new java.util.HashMap<>();
+	static {
+		// 火系
+		COLORS.put( "blazing",      0xFF7A1E );
+		COLORS.put( "blazingfury",  0xFF3A10 );
+		COLORS.put( "meteor",       0xFFB040 );
+		COLORS.put( "rainstorm",    0xFF9A5A );  // 流星雨：偏红的火
+		COLORS.put( "saturation",   0xFFC86A );
+		COLORS.put( "propulsion",   0xFFA040 );
+		// 冰系
+		COLORS.put( "chilling",     0x9FE4FF );
+		COLORS.put( "crystal",      0xD6F4FF );
+		COLORS.put( "flawless",     0xE8FBFF );
+		COLORS.put( "fluctuation",  0x8AD0F0 );
+		// 雷系
+		COLORS.put( "shocking",     0xFFF25A );
+		COLORS.put( "resonance",    0xFFE07A );
+		COLORS.put( "pulse",        0xFFD24A );
+		COLORS.put( "rainstormbolt",0xFFF08A );
+		// 毒系
+		COLORS.put( "corrupting",   0x9CE87A );
+		COLORS.put( "blooming",     0x7AE86A );
+		COLORS.put( "lamprey",      0x8AD06A );
+		COLORS.put( "seeking",      0xB6F08A );
+		// 暗系
+		COLORS.put( "grim",         0xB48AFF );
+		COLORS.put( "voidrift",     0x8A5AE0 );
+		COLORS.put( "eclipse",      0x6A3AC0 );
+		COLORS.put( "distortion",   0xC8A0FF );
+		COLORS.put( "jealousy",     0xA070E0 );
+		COLORS.put( "overwrite",    0x8060C8 );
+		COLORS.put( "unstable",     0xE070FF );
+		// 血系
+		COLORS.put( "vampiric",     0xFF5A6A );
+		COLORS.put( "soulrend",     0xFF3A5A );
+		COLORS.put( "reaping",      0xE04060 );
+		// 光系
+		COLORS.put( "lucky",        0xFFD86A );
+		COLORS.put( "midas",        0xFFE890 );
+		COLORS.put( "lamp",         0xFFF4B0 );
+		COLORS.put( "harmony",      0xFFE0A0 );
+		COLORS.put( "flowinglight", 0xFFF0C8 );
+		COLORS.put( "insight",      0xFFFAD8 );
+		COLORS.put( "refined",      0xFFE8C0 );
+		COLORS.put( "euphoria",     0xFFC8E0 );
+		// 水系
+		COLORS.put( "wetenchantment", 0x7AD6D6 );
+		COLORS.put( "reversal",     0x9AE0D0 );
+		COLORS.put( "survival",     0x8AD0C0 );
+		// 物理
+		COLORS.put( "blocking",     0xE8E8F0 );
+		COLORS.put( "clash",        0xF0F0F8 );
+		COLORS.put( "combos",       0xD8D8E8 );
+		COLORS.put( "elastic",      0xC8E8D8 );
+		COLORS.put( "kinetic",      0xD0D0E0 );
+		COLORS.put( "projecting",   0xB8C8E0 );
+		COLORS.put( "striking",     0xE0E0F0 );
+		COLORS.put( "sweeping",     0xC0D0E8 );
+	}
+
+	/** 该附魔类名是否有自己的配色（测试用） */
+	public static boolean hasOwnColor( String simpleName ){
+		return COLORS.containsKey( simpleName.toLowerCase() );
+	}
+
+	/** 表里有多少种逐附魔配色（测试用） */
+	public static int tableSize(){
+		return COLORS.size();
 	}
 
 	/** 族 → 颜色 */
@@ -136,7 +209,7 @@ public final class EnchantFx {
 		((FxParticle) air.recycle( FxParticle.class ))
 				.reset( x + FxRandom.Float( -2f, 2f ), y + FxRandom.Float( -2f, 2f ) )
 				.look( trailFrame( f ) )
-				.paint( color( f ) )
+				.paint( colorOf( e ) )
 				.vel( -vx * 0.08f + FxRandom.Float( -8f, 8f ), -vy * 0.08f + FxRandom.Float( -8f, 8f ) )
 				.life( FxRandom.Float( 0.22f, 0.42f ) )
 				.alpha( 0.85f, 0f, 0.15f )
