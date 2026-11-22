@@ -243,3 +243,23 @@ enchant/rarity/quality 类强绑定）没有整搬，而是在现有 fx 工具�
    - 只在敌我阵营不同触发，治疗/增益类不会乱放
 
 实测：火附魔剑 → 光环 29 粒；proc 一次触发 1 次
+
+## 附魔特效：偷来的配方（EnchantRecipes）
+
+从 Warped 的 `EmberFx / RimeFx / StormFx / VenomFx / DreadFx` 里提取**帧、颜色、速度曲线**，
+去掉它的 tier/echo/curse/tally 框架，重写成 `effects/fx/enchant/EnchantRecipes.java`：
+
+| 族 | 偷来的美术（同一张 fx_sheet） |
+|---|---|
+| 火 | 火舌 `TONGUE_S/TONGUE_M`（12fps，ramp `FxFactories.EMBER`，vel -12/-16）、火星 `EMBER_1/2`（polar 26、drag 3、gravity -10）、地面焦痕 `SCORCH_M`（`FxRecipes.SCORCH_COLOR/HOLD/FADE`） |
+| 冰 | 白闪 `PLUS_5`、霜雾 `PUFF_S`+`Element.FROST.smoke`、冰碴 `SHARD_ICE/SHARD_GLASS`（polar 30-60、gravity 160、spin、弹跳一次）、地面霜迹 `RIME[1]`（hold 2s / fade 1s） |
+| 雷 | 电弧 `SPARK_2`（orient + slow MOTE_1、ramp `Element.ELECTRIC.ember`、gravity 120、drag 1.2、弹跳）、中心闪 `SPARK_3`、地面焦刻 `ETCH`（0x2A2A40） |
+| 毒 | 毒滴 `DROP_3`（gravity 240）、绿雾 `PUFF_S`+`Element.SMOKE.smoke`、地面蚀痕 `ETCH`（0x2A3A1E） |
+| 暗 | 墨雾 `INK_WISP`（3fps、smooth）、暗核 `INK_CORE`（1.2s） |
+
+**自己设计的部分**：血/光/水/物理四族仍用通用爆点；物品光环（ItemAura）、
+飞行拖尾、按族取色表都是自建。
+
+**没搬的**：tier（WEAK/MID/STRONG）分级、echo/curse 变体、tally 预算、
+每种附魔的独立配色（Warped 是逐附魔定义 look，我们按族归纳）。
+实测：五族各触发一次，无异常（Z_FxEnch5）

@@ -169,7 +169,7 @@ public final class EnchantFx {
 		bursts++;
 	}
 
-	/** 附魔触发（命中时）：在目标身上放元素效果 */
+	/** 附魔触发（命中时）：按属性族放 Warped 的具体配方 */
 	public static void proc( Char defender, Weapon.Enchantment e ){
 		if (defender == null || e == null) return;
 		Family f = familyOf( e );
@@ -178,22 +178,16 @@ public final class EnchantFx {
 				: (defender.pos % Dungeon.level.width()) * Size + Size / 2f;
 		float y = defender.sprite != null ? defender.sprite.y + defender.sprite.height() / 2f
 				: (defender.pos / Dungeon.level.width()) * Size + Size / 2f;
-		burst( x, y, f, color( f ) );
-		// 各族再加一点特征粒子
-		FxEmitter air = Fx.air();
-		if (air != null){
-			int extra = f == Family.FIRE ? 4 : f == Family.ICE ? 3 : 2;
-			for (int i = 0; i < extra; i++){
-				if (!FxBudget.keep( FxBudget.P3, x, y )) continue;
-				((FxParticle) air.recycle( FxParticle.class ))
-						.reset( x + FxRandom.Float( -6f, 6f ), y + FxRandom.Float( -6f, 6f ) )
-						.look( f == Family.FIRE ? FxFrames.MOTE_1 : FxFrames.STAR4_5 )
-						.paint( color( f ) )
-						.vel( FxRandom.Float( -10f, 10f ), f == Family.FIRE ? -22f : FxRandom.Float( -6f, 6f ) )
-						.life( FxRandom.Float( 0.35f, 0.7f ) )
-						.alpha( 0.9f, 0f, 0.2f )
-						.priority( FxBudget.P3 );
-			}
+		float feet = defender.sprite != null ? defender.sprite.y + defender.sprite.height() - 2f
+				: (defender.pos / Dungeon.level.width()) * Size + Size - 2f;
+
+		switch (f){
+			case FIRE:      EnchantRecipes.fire( x, y, feet ); break;
+			case ICE:       EnchantRecipes.ice( x, y, feet ); break;
+			case LIGHTNING: EnchantRecipes.storm( x, y, feet ); break;
+			case POISON:    EnchantRecipes.venom( x, y, feet ); break;
+			case DARK:      EnchantRecipes.dark( x, y, feet ); break;
+			default:        burst( x, y, f, color( f ) ); break;
 		}
 		procs++;
 	}
