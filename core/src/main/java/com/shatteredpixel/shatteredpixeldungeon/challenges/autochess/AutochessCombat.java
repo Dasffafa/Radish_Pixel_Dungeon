@@ -52,7 +52,8 @@ public class AutochessCombat {
 				|| e.getKey().sprite == null || !AutochessUtil.alive(e.getKey()));
 
 		for (Mob self : mobs) {
-			if (self.sprite == null || !self.sprite.visible) continue;
+			if (self.sprite == null) continue;
+			self.sprite.visible = true;
 			boolean ours = self.buff(AutochessUnitBuff.class) != null
 					|| self.buff(AutochessFoeBuff.class) != null;
 			if (!ours) continue;
@@ -121,7 +122,7 @@ public class AutochessCombat {
 		int bestD = Integer.MAX_VALUE;
 		for (Mob m : mobs) {
 			if (m == self || !AutochessUtil.alive(m)) continue;
-			if (m.sprite == null || !m.sprite.visible) continue;
+			if (m.sprite == null) continue;
 			if (m.alignment == self.alignment) continue;
 			int d = Dungeon.level.distance(self.pos, m.pos);
 			if (d < bestD) {
@@ -157,10 +158,20 @@ public class AutochessCombat {
 		if (bestCell < 0) return false;
 
 		try {
+			int from = self.pos;
 			self.move(bestCell);
+			if (java.lang.Boolean.getBoolean("arena.debug")) {
+				System.out.println("[MOVE] " + self.getClass().getSimpleName()
+						+ " " + from + " -> " + bestCell + " now=" + self.pos);
+			}
 			if (self.sprite != null) self.sprite.hideEmo();
-			return true;
+			if (self.sprite != null) self.sprite.visible = true;
+			return self.pos == bestCell;
 		} catch (Throwable t) {
+			if (java.lang.Boolean.getBoolean("arena.debug")) {
+				System.out.println("[MOVE-FAIL] " + self.getClass().getSimpleName()
+						+ " -> " + bestCell + " : " + t);
+			}
 			return false;
 		}
 	}

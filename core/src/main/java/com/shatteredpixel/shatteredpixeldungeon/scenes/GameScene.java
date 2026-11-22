@@ -428,6 +428,10 @@ public class GameScene extends PixelScene {
 
 		// 自走棋：缩短精灵移动补间，让实时战斗看起来是连续跑动而不是一跳一跳
 		com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.setMoveInterval(0.10f);
+		// 棋盘全场可见：否则 Char.move() 会按 heroFOV 把精灵设为不可见（棋子看起来"卡住不动"）
+		if (Dungeon.level != null && Dungeon.level.heroFOV != null) {
+			java.util.Arrays.fill(Dungeon.level.heroFOV, true);
+		}
 
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());
