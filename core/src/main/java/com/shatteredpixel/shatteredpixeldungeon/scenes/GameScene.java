@@ -426,6 +426,9 @@ public class GameScene extends PixelScene {
 			// 棋子头顶血条
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessHealthBars());
 
+		// 自走棋：缩短精灵移动补间，让实时战斗看起来是连续跑动而不是一跳一跳
+		com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.setMoveInterval(0.10f);
+
 			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
 			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());
 			// 己方棋子头顶的小蓝箭头

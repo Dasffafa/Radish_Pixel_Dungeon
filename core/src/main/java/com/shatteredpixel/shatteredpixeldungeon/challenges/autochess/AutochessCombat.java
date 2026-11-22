@@ -3,29 +3,24 @@ package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
-import com.watabou.utils.PointF;
 
 import java.util.HashMap;
 
 /**
- * 实时战斗：每只棋子有自己的攻速、移速，移动是**逐帧连续滑行**。
+ * 实时战斗：每只棋子有自己的攻速、移速。
  *
- * <p>移动不再用 sprite.move 的补间（那是一跳一跳的），而是每帧按
- * 「像素/秒」把 sprite 往目标格子中心推进，到达后再提交 pos。</p>
+ * <p>移动走 SPD 自己的 {@link com.shatteredpixel.shatteredpixeldungeon.actors.Char#move(int)}，
+ * 这样格子占用、碰撞、跑动动画都由引擎处理；为了让节奏更接近云顶，
+ * GameScene 进场时会把 {@code CharSprite.moveInterval} 调到 0.10 秒（默认 0.2），
+ * 移动看起来就接近连续滑行，而不是一跳一跳。</p>
  */
 public class AutochessCombat {
 
 	private static final class UnitState {
 		float atkLeft = 0.25f;
 		float atkInterval = 1.1f;
-
-		/** 目标像素坐标；target < 0 表示没在移动。 */
-		int targetCell = -1;
-		float tx = 0f;
-		float ty = 0f;
-		float pxPerSec = 48f;
-		float retargetCooldown = 0f;
+		float moveLeft = 0f;
+		float moveInterval = 0.5f;
 	}
 
 	private static final HashMap<Mob, UnitState> states = new HashMap<>();
@@ -78,51 +73,67 @@ public class AutochessCombat {
 			}
 
 			st.atkLeft -= delta;
-			st.retargetCooldown -= delta;
+			st.moveLeft -= delta;
 
 			Mob foe = nearestFoe(self, mobs);
 			if (foe == null) continue;
 
-			boolean adjacent = Dungeon.level.distance(self.pos, foe.pos) <= 1;
-
-			// ---------- 移动：连续滑行 ----------
-			if (st.targetCell >= 0) {
-				glide(self, st, delta);
-			} else if (!adjacent && st.retargetCooldown <= 0f) {
-				startMove(self, st, foe);
-			}
-
-			// ---------- 攻击 ----------
-			if (st.targetCell < 0 && Dungeon.level.distance(self.pos, foe.pos) <= 1
-					&& st.atkLeft <= 0f) {
-				st.atkLeft = st.atkInterval;
-				attack(self, foe);
+			int dist = Dungeon.level.distance(self.pos, foe.pos);
+			if (dist <= 1) {
+				if (st.atkLeft <= 0f) {
+					st.atkLeft = st.atkInterval;
+					attack(self, foe);
+				}
+			} else if (st.moveLeft <= 0f) {
+				if (stepToward(self, foe)) {
+					st.moveLeft = st.moveInterval;
+				} else {
+					st.moveLeft = 0.15f;
+				}
 			}
 		}
 	}
 
-	/** 把 sprite 逐帧推进到目标格子中心。 */
-	private static void glide(Mob self, UnitState st, float delta) {
-		PointF p = new PointF(self.sprite.x, self.sprite.y);
-		float dx = st.tx - p.x;
-		float dy = st.ty - p.y;
-		float dist = (float) Math.sqrt(dx * dx + dy * dy);
-		float step = st.pxPerSec * delta;
+	private static void applySpeed(UnitState st, Mob mob, int star) {
+		String cls = mob.getClass().getSimpleName();
+		float atk = 1.1f;
+		float move = 0.42f;
 
-		if (dist <= step || dist < 0.5f) {
-			self.sprite.x = st.tx;
-			self.sprite.y = st.ty;
-			self.pos = st.targetCell;
-			st.targetCell = -1;
-			st.retargetCooldown = 0.05f;
-		} else {
-			self.sprite.x += dx / dist * step;
-			self.sprite.y += dy / dist * step;
+		if (ASSASSIN.contains(cls)) {
+			atk = 0.75f;
+			move = 0.26f;
+		} else if (TANK.contains(cls)) {
+			atk = 1.35f;
+			move = 0.60f;
+		} else if (RANGED.contains(cls)) {
+			atk = 1.00f;
+			move = 0.36f;
 		}
+
+		float starBonus = 1f + 0.06f * Math.max(0, Math.min(3, star) - 1);
+		st.atkInterval = atk / starBonus;
+		st.moveInterval = move / starBonus;
+		st.atkLeft = st.atkInterval * 0.5f;
 	}
 
-	/** 选一个更靠近敌人的相邻格，开始滑过去。 */
-	private static void startMove(Mob self, UnitState st, Mob foe) {
+	private static Mob nearestFoe(Mob self, Mob[] mobs) {
+		Mob best = null;
+		int bestD = Integer.MAX_VALUE;
+		for (Mob m : mobs) {
+			if (m == self || !AutochessUtil.alive(m)) continue;
+			if (m.sprite == null || !m.sprite.visible) continue;
+			if (m.alignment == self.alignment) continue;
+			int d = Dungeon.level.distance(self.pos, m.pos);
+			if (d < bestD) {
+				bestD = d;
+				best = m;
+			}
+		}
+		return best;
+	}
+
+	/** 朝敌人走一格；走成功返回 true。 */
+	private static boolean stepToward(Mob self, Mob foe) {
 		int w = Dungeon.level.width();
 		int sx = self.pos % w, sy = self.pos / w;
 
@@ -143,54 +154,15 @@ public class AutochessCombat {
 				}
 			}
 		}
-		if (bestCell < 0) {
-			st.retargetCooldown = 0.15f;
-			return;
+		if (bestCell < 0) return false;
+
+		try {
+			self.move(bestCell);
+			if (self.sprite != null) self.sprite.hideEmo();
+			return true;
+		} catch (Throwable t) {
+			return false;
 		}
-		st.targetCell = bestCell;
-		PointF dest = self.sprite.worldToCamera(bestCell);
-		st.tx = dest.x;
-		st.ty = dest.y;
-	}
-
-
-	private static void applySpeed(UnitState st, Mob mob, int star) {
-		String cls = mob.getClass().getSimpleName();
-		float atk = 1.1f;
-		float cellsPerSec = 2.0f;   // 每秒滑过几格
-
-		if (ASSASSIN.contains(cls)) {
-			atk = 0.75f;
-			cellsPerSec = 3.0f;
-		} else if (TANK.contains(cls)) {
-			atk = 1.35f;
-			cellsPerSec = 1.5f;
-		} else if (RANGED.contains(cls)) {
-			atk = 1.00f;
-			cellsPerSec = 1.8f;
-		}
-
-		float starBonus = 1f + 0.06f * Math.max(0, Math.min(3, star) - 1);
-		st.atkInterval = atk / starBonus;
-		st.pxPerSec = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE
-				* cellsPerSec * starBonus;
-		st.atkLeft = st.atkInterval * 0.5f;
-	}
-
-	private static Mob nearestFoe(Mob self, Mob[] mobs) {
-		Mob best = null;
-		int bestD = Integer.MAX_VALUE;
-		for (Mob m : mobs) {
-			if (m == self || !AutochessUtil.alive(m)) continue;
-			if (m.sprite == null || !m.sprite.visible) continue;
-			if (m.alignment == self.alignment) continue;
-			int d = Dungeon.level.distance(self.pos, m.pos);
-			if (d < bestD) {
-				bestD = d;
-				best = m;
-			}
-		}
-		return best;
 	}
 
 	private static void attack(Mob self, Mob foe) {
