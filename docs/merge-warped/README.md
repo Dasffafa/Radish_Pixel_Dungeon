@@ -296,3 +296,17 @@ enchant/rarity/quality 类强绑定）没有整搬，而是在现有 fx 工具�
 
 效果：Blazing 与 BlazingFury 的火、Chilling 与 Crystal 的霜，现在连命中时的火焰/冰碴
 主色都不同（之前只有拖尾/光环/爆点不同）。
+
+## 附魔框架：tier / echo / curse
+
+`EnchantFx.Ctx` 把 Warped 的框架级差异补上（它原版靠 tier/tally，我们按本分支能拿到的信号推断）：
+
+- **tier**（0 弱 / 1 中 / 2 强）：由 `Weapon.proc` 收到的伤害判定（<8 弱、8–15 中、≥16 强）
+  - 火舌 1/2/3 条、火星 2/4/6 粒；冰碴 2/4/6、霜雾 1/2/3；电弧 2/3/4 条；毒滴 2/3/4
+  - 地面痕迹（焦痕/霜迹/焦刻/蚀痕）只在**中/强**出现
+- **echo**（回响）：同一目标 **0.4 秒内**再次触发 → alpha ×0.5、预算减半、tier 降一档、不留痕迹
+- **curse**（诅咒武器）：`Weapon.cursed` → 颜色走 `curseTint()`（去饱和 + 偏暗紫）
+- **预算**：每次触发 18 粒子（回响 9），超了自动停
+
+计数：`EnchantFx.weaks/mids/strongs/echoes/curses` 便于验收。
+实测：弱1/中1/强3/回响4/诅咒1，四条断言全过。

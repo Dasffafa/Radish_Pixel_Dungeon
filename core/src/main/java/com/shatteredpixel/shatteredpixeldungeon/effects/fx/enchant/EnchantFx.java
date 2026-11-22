@@ -24,6 +24,16 @@ public final class EnchantFx {
 
 	private EnchantFx(){}
 
+	/** 一次触发的强度上下文：tier 0弱/1中/2强，echo 同目标短时间内的回响，cursed 诅咒武器 */
+	public static final class Ctx {
+		public int tier = 1;
+		public boolean echo, cursed;
+		public float alphaMul = 1f;
+		public int budget = 18;
+		public boolean take( int n ){ if (budget < n) return false; budget -= n; return true; }
+		public float a( float base ){ return base * alphaMul; }
+	}
+
 	/** 属性族 */
 	public enum Family { FIRE, ICE, LIGHTNING, POISON, DARK, BLOOD, LIGHT, WATER, PHYS }
 
@@ -242,8 +252,16 @@ public final class EnchantFx {
 		bursts++;
 	}
 
+	/** 同目标 0.4 秒内的第二次触发算回响 */
+	private static final java.util.Map<Integer, Float> lastProcAt = new java.util.HashMap<>();
+	public static int weaks, mids, strongs, echoes, curses;
+
 	/** 附魔触发（命中时）：按属性族放 Warped 的具体配方 */
 	public static void proc( Char defender, Weapon.Enchantment e ){
+		proc( defender, e, 10, false );
+	}
+
+	public static void proc( Char defender, Weapon.Enchantment e, int damage, boolean cursed ){
 		if (defender == null || e == null) return;
 		Family f = familyOf( e );
 		float Size = DungeonTilemap.SIZE;
@@ -254,14 +272,44 @@ public final class EnchantFx {
 		float feet = defender.sprite != null ? defender.sprite.y + defender.sprite.height() - 2f
 				: (defender.pos / Dungeon.level.width()) * Size + Size - 2f;
 
+		// 强度与回响
+		Ctx ctx = new Ctx();
+		ctx.tier = damage >= 16 ? 2 : (damage >= 8 ? 1 : 0);
+		if (ctx.tier == 0) weaks++; else if (ctx.tier == 1) mids++; else strongs++;
+		float now = com.watabou.noosa.Game.timeTotal;
+		Float last = lastProcAt.get( defender.pos );
+		ctx.echo = last != null && now - last < 0.4f;
+		if (ctx.echo){
+			echoes++;
+			ctx.alphaMul = 0.5f;
+			ctx.budget = 9;
+			ctx.tier = Math.max( 0, ctx.tier - 1 );
+		}
+		lastProcAt.put( defender.pos, now );
+		ctx.cursed = cursed;
+		if (cursed) curses++;
+
+		int tint = colorOf( e );
+		if (cursed) tint = curseTint( tint );
+
 		switch (f){
-			case FIRE:      EnchantRecipes.fire( x, y, feet, colorOf( e ) ); break;
-			case ICE:       EnchantRecipes.ice( x, y, feet, colorOf( e ) ); break;
-			case LIGHTNING: EnchantRecipes.storm( x, y, feet, colorOf( e ) ); break;
-			case POISON:    EnchantRecipes.venom( x, y, feet, colorOf( e ) ); break;
-			case DARK:      EnchantRecipes.dark( x, y, feet, colorOf( e ) ); break;
-			default:        burst( x, y, f, color( f ) ); break;
+			case FIRE:      EnchantRecipes.fire( x, y, feet, tint, ctx ); break;
+			case ICE:       EnchantRecipes.ice( x, y, feet, tint, ctx ); break;
+			case LIGHTNING: EnchantRecipes.storm( x, y, feet, tint, ctx ); break;
+			case POISON:    EnchantRecipes.venom( x, y, feet, tint, ctx ); break;
+			case DARK:      EnchantRecipes.dark( x, y, feet, tint, ctx ); break;
+			default:        burst( x, y, f, tint ); break;
 		}
 		procs++;
+	}
+
+	/** 诅咒版颜色：去饱和 + 往暗紫偏 */
+	public static int curseTint( int c ){
+		int r=(c>>16)&0xFF, g=(c>>8)&0xFF, b=c&0xFF;
+		int gray = (int)( r*0.3f + g*0.5f + b*0.2f );
+		r = (int)( gray*0.45f + 60 );
+		g = (int)( gray*0.25f + 20 );
+		b = (int)( gray*0.55f + 80 );
+		return 0xFF000000 | (Math.min(255,r)<<16) | (Math.min(255,g)<<8) | Math.min(255,b);
 	}
 }
