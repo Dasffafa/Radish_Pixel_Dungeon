@@ -267,7 +267,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			vx = x - px;
 			vy = y - py;
 			if ((trailIn -= com.watabou.noosa.Game.elapsed) <= 0f){
-				trailIn = 0.035f;
+				trailIn = 0.02f;
 				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trail( x, y, color, vx, vy );
 			}
 		}

@@ -485,3 +485,7 @@ sendToBack(frame); bringToFront(sparks);
 | **背包弓图标** | 弓类物品 | 扫光放大到 1.45× |
 
 `EnchantFx.itemColor(item)`：附魔色优先，否则按类型给本色（弓/弩）。
+
+**环绕光点改拖尾版**：10 个光点，每个带 2 段拖尾（角度相差 0.18、透明度 0.5/0.28、颜色递亮），
+按 sin 做前后景深度淡出；换层/换场景后自动重建（`orbit.parent == null` 时丢弃重建）。
+调参：`motes` 数量、`rx/ry` 半径、`m.scale`、`am` 系数。

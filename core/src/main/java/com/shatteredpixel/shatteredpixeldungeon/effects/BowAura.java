@@ -64,31 +64,58 @@ public final class BowAura {
 	/** 建/更新常驻环绕光点（6 个，绕角色转） */
 	private static void updateOrbit( CharSprite s, float cx, float cy, int tint ){
 		if (s.parent == null) return;
+		// 换层/换场景后旧的 group 已经脱离父节点，必须重建
+		if (orbit != null && orbit.parent == null){
+			orbit = null;
+			motes = null;
+		}
 		if (orbit == null){
 			orbit = new com.watabou.noosa.Group();
 			s.parent.add( orbit );
-			int[] f = FxFrames.MOTE_2;
-			motes = new com.watabou.noosa.Image[6];
+			int[] f = FxFrames.MOTE_1;
+			motes = new com.watabou.noosa.Image[10 * 3];   // 10 个光点，每个带 2 个拖尾
 			for (int i = 0; i < motes.length; i++){
 				motes[i] = new com.watabou.noosa.Image(
 						com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
-				motes[i].scale.set( 1.6f );
+				motes[i].scale.set( 1.5f );
 				orbit.add( motes[i] );
 			}
 		}
 		orbit.visible = true;
 		float breath = 0.55f + 0.35f * (float)Math.sin( Game.timeTotal * 0.6f ); // StanceOrbit: breath(0.55,0.9,0.6)
-		for (int i = 0; i < motes.length; i++){
-			float a = orbitAngle + (float)(Math.PI * 2 * i / motes.length);
-			float rx = 11f, ry = 5.5f;
-			motes[i].visible = true;
-			motes[i].x = cx + (float)Math.cos( a ) * rx - motes[i].width() * 0.8f;
-			motes[i].y = cy + (float)Math.sin( a ) * ry - motes[i].height() * 0.8f - 2f;
-			motes[i].hardlight( EnchantFx.light( tint, 0.3f ) );
-			// 越靠后越淡
-			motes[i].am = breath * (0.6f + 0.4f * (float)Math.sin( a ));
+		final int N = 10;
+		for (int i = 0; i < N; i++){
+			for (int k = 0; k < 3; k++){
+				com.watabou.noosa.Image m = motes[i * 3 + k];
+				float a = orbitAngle + (float)(Math.PI * 2 * i / N) - k * 0.18f;
+				float rx = 13f, ry = 6.5f;
+				m.visible = true;
+				m.x = cx + (float)Math.cos( a ) * rx - m.width() * 0.75f;
+				m.y = cy + (float)Math.sin( a ) * ry - m.height() * 0.75f - 2f;
+				m.hardlight( EnchantFx.light( tint, 0.3f + k * 0.15f ) );
+				float depth = 0.5f + 0.5f * (float)Math.sin( a );
+				m.am = Math.max( 0.12f, breath * depth * (k == 0 ? 1f : (k == 1 ? 0.5f : 0.28f)) );
+				m.scale.set( k == 0 ? 1.6f : 1.1f );
+			}
 			spawned++;
 		}
+	}
+
+	/** 测试用：环绕光点是否挂着且可见 */
+	public static boolean orbitVisible(){
+		if (orbit == null || !orbit.visible || orbit.parent == null) return false;
+		for (com.watabou.noosa.Image m : motes) if (m != null && m.visible) return true;
+		return false;
+	}
+
+	/** 测试用：环绕光点数量 */
+	public static int moteCount(){ return motes == null ? 0 : motes.length; }
+
+	/** 测试用：当前挂着没 */
+	public static String debugState(){
+		return "orbit=" + (orbit != null) + " parent=" + (orbit != null && orbit.parent != null)
+				+ " vis=" + (orbit != null && orbit.visible) + " motes=" + moteCount()
+				+ " spriteParent=" + (Dungeon.hero != null && Dungeon.hero.sprite != null && Dungeon.hero.sprite.parent != null);
 	}
 
 	private static void hideOrbit(){
