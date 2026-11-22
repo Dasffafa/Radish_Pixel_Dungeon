@@ -410,3 +410,26 @@ EnchantLook/ItemLooks 框架，暂未搬。
 
 **修正记录**：边框火花的子节点用的是**场景绝对坐标**，光用 `0..width` 定位会跑到别的格子里；
 `placeOnFrame` 里已补上 `this.x / this.y` 偏移（与 `ItemSlot.layout()` 里 `sprite.x = x + ...` 的约定一致）。
+
+### 静态边框（qualityFrame）已补
+
+APK 的 `ItemSlot.layoutQuality()` 里除了跑动的火花，还有**四根 1px 的静态边框线**：
+
+```java
+frameL = x + margin.left;
+frameT = y + margin.top;
+frameW = width - margin.left - margin.right;
+frameH = height - margin.top - margin.bottom;
+frame[0].size(frameW, 1)  at (frameL, frameT);              // 上
+frame[1].size(frameW, 1)  at (frameL, frameT + frameH - 1); // 下
+frame[2].size(1, frameH)  at (frameL, frameT);              // 左
+frame[3].size(1, frameH)  at (frameL + frameW - 1, frameT); // 右
+alpha = qualityAlpha * 0.35;
+sendToBack(frame); bringToFront(sparks);
+```
+
+已按同样方式实现；火花也从"格子边缘"改为沿**这个内框**跑（`placeOnFrame` 用 `frameL/frameT`）。
+
+与原版仍不同的两点：
+- 边框颜色：原版用 `quality.titleColor()`（稀有度色）；本分支没有稀有度 → 用附魔色，无附魔时用冷白
+- 火花数量：原版按稀有度 2~5；我们用 `2 + min(3, level/2)`

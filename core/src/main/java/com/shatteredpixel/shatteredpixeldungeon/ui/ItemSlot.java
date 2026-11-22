@@ -238,6 +238,11 @@ public class ItemSlot extends Button {
 
 	/** 测试用：这个格子有没有附魔光效 */
 	public boolean hasAura(){ return hasShine || sparkBlocks > 0; }
+	/** 测试用：静态边框是否可见 */
+	public boolean frameVisible(){
+		return frame[0] != null && frame[0].visible;
+	}
+
 	/** 测试用：有多少可见火花块跑到了本格子外面 */
 	public int sparksOutside(){
 		int bad = 0;
@@ -282,6 +287,10 @@ public class ItemSlot extends Button {
 	private Image ring;
 	private Image vicious;
 	private final com.watabou.noosa.ColorBlock[] sparks = new com.watabou.noosa.ColorBlock[15];
+	/** 稀有度/附魔的静态边框：上下左右四根 1px 线（抄 APK 的 qualityFrame） */
+	private final com.watabou.noosa.ColorBlock[] frame = new com.watabou.noosa.ColorBlock[4];
+	/** 边框盒（相对格子内缩 1px） */
+	private float frameL, frameT, frameW, frameH;
 	private int sparkBlocks;
 	private final float[] sparkPos = new float[5];
 	private final float[] sparkSpeed = new float[5];
@@ -327,6 +336,13 @@ public class ItemSlot extends Button {
 			vicious.visible = false;
 			add( vicious );
 		}
+		if (frame[0] == null){
+			for (int i = 0; i < frame.length; i++){
+				frame[i] = new com.watabou.noosa.ColorBlock( 1f, 1f, -1 );
+				frame[i].visible = false;
+				add( frame[i] );
+			}
+		}
 		if (sparks[0] == null){
 			for (int i = 0; i < sparks.length; i++){
 				sparks[i] = new com.watabou.noosa.ColorBlock( 1f, 1f, -1 );
@@ -338,6 +354,15 @@ public class ItemSlot extends Button {
 		shine.hardlight( color );
 		ring.hardlight( color );
 		vicious.hardlight( color );
+
+		boolean frameOn = hasShine || item.level() > 1;
+		for (com.watabou.noosa.ColorBlock b : frame){
+			b.visible = frameOn;
+			if (frameOn){
+				b.hardlight( color );
+				b.alpha( 0.35f );   // APK: qualityAlpha * 0.35
+			}
+		}
 
 		int n = sparkCount();
 		sparkBlocks = Math.min( 5, n ) * 3;
@@ -358,6 +383,7 @@ public class ItemSlot extends Button {
 
 	/** 光效压在图标下面/上面 */
 	private void applyOrder(){
+		for (com.watabou.noosa.ColorBlock b : frame) if (b != null) sendToBack( b );
 		if (shine != null) bringToFront( shine );
 		if (vicious != null) bringToFront( vicious );
 		if (ring != null) sendToBack( ring );
@@ -369,6 +395,7 @@ public class ItemSlot extends Button {
 		if (ring != null) ring.visible = false;
 		if (vicious != null) vicious.visible = false;
 		for (com.watabou.noosa.ColorBlock b : sparks) if (b != null) b.visible = false;
+		for (com.watabou.noosa.ColorBlock b : frame) if (b != null) b.visible = false;
 		sparkBlocks = 0;
 	}
 
@@ -436,10 +463,22 @@ public class ItemSlot extends Button {
 			vicious.am = 1f - (vm / 0.12f);
 		}
 
-		// 4) 边框火花：沿格子边框跑动
-		if (sparkBlocks > 0 && sparkPos.length > 0){
-			float fw = width - 1f, fh = height - 1f;
-			float perim = (fw + fh - 2f) * 2f;
+		// 3.5) 静态边框：上下左右四根线（抄 APK 的 layoutQuality）
+		frameL = x + margin.left;
+		frameT = y + margin.top;
+		frameW = width - margin.left - margin.right;
+		frameH = height - margin.top - margin.bottom;
+		if (frame[0] != null && frame[0].visible){
+			frame[0].size( frameW, 1f );  frame[0].x = frameL;              frame[0].y = frameT;
+			frame[1].size( frameW, 1f );  frame[1].x = frameL;              frame[1].y = frameT + frameH - 1f;
+			frame[2].size( 1f, frameH );  frame[2].x = frameL;              frame[2].y = frameT;
+			frame[3].size( 1f, frameH );  frame[3].x = frameL + frameW - 1f; frame[3].y = frameT;
+		}
+
+		// 4) 边框火花：沿"边框盒子"跑动
+		if (sparkBlocks > 0 && sparkPos.length > 0 && frameW > 2f && frameH > 2f){
+			float fw = frameW - 1f, fh = frameH - 1f;
+			float perim = (fw + fh) * 2f;
 			for (int i = 0; i < sparkBlocks / 3; i++){
 				sparkPos[i] = mod( sparkPos[i] + sparkSpeed[i] * com.watabou.noosa.Game.elapsed, perim );
 				float sign = Math.signum( sparkSpeed[i] );
@@ -465,9 +504,9 @@ public class ItemSlot extends Button {
 		} else {
 			px = 0; py = fh - (d - 2f * fw - fh);
 		}
-		// 子节点用的是场景绝对坐标：必须加上自身 x/y
-		b.x = x + 1f + px;
-		b.y = y + 1f + py;
+		// 子节点用场景绝对坐标：以边框盒左上角为基准
+		b.x = (float)Math.floor( frameL + px );
+		b.y = (float)Math.floor( frameT + py );
 		b.size( 1f, 1f );
 	}
 
