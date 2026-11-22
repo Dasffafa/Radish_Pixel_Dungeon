@@ -378,7 +378,7 @@ public class GameScene extends PixelScene {
 
 		add( emitters );
 		add( effects );
-		AmbientCritters.init( effects );
+		AmbientCritters.init( waterRipples );
 
 		lightFx = new Group();
 		add( lightFx );
