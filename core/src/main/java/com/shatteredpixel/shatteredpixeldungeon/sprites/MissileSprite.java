@@ -250,12 +250,21 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private float lastMarkX, lastMarkY;
 
 	// ---- 残影（照 Warped 的 EnchantTrail：GHOSTS=4、GHOST_ALPHA=0.35、GHOST_LIFE=0.3）----
-	private static final int GHOST_N = 4;
 	private static final float GHOST_ALPHA = 0.35f, GHOST_LIFE = 0.3f;
-	private final com.watabou.noosa.Image[] ghosts = new com.watabou.noosa.Image[GHOST_N];
-	private final float[] ghostLife = new float[GHOST_N];
-	private int ghostHead;
 	private float ghostIn = 0.03f;
+
+	/** 自己会淡出、自己会消失的残影（不依赖弹体是否还活着） */
+	public static class Ghost extends com.watabou.noosa.Image {
+		private float life = GHOST_LIFE;
+		Ghost( Object texture ){ super( texture ); }
+		@Override
+		public void update(){
+			super.update();
+			life -= com.watabou.noosa.Game.elapsed;
+			am = Math.max( 0f, GHOST_ALPHA * life / GHOST_LIFE );
+			if (life <= 0f) killAndErase();
+		}
+	}
 	private float lastX, lastY;
 	private float vx, vy;
 
@@ -276,8 +285,9 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 				float ux = len > 0.01f ? vx / len : 1f;
 				float uy = len > 0.01f ? vy / len : 0f;
 				float back = 7f + markDist;   // 留在弹体后方
+				// 抬高一点（Warped 的 EnchantTrail.RAISE = 6f），免得符号和箭在同一水平线上像铁轨
 				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailMark(
-						x - ux * back, y - uy * back, enchantSource, markRing );
+						x - ux * back, y - uy * back - 6f, enchantSource, markRing );
 			}
 			lastMarkX = x;
 			lastMarkY = y;
@@ -286,27 +296,13 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		updateGhosts();
 	}
 
-	/** 残影：每 0.03s 在当前位置留一张"同一帧"的淡影，0.3s 内淡出 */
+	/** 残影：每 0.03s 在当前位置留一张同一帧的淡影（Ghost 自己淡出） */
 	private void updateGhosts(){
-		for (int i = 0; i < GHOST_N; i++){
-			if (ghosts[i] == null) continue;
-			ghostLife[i] -= com.watabou.noosa.Game.elapsed;
-			if (ghostLife[i] <= 0f){
-				ghosts[i].killAndErase();
-				ghosts[i] = null;
-			} else {
-				ghosts[i].am = GHOST_ALPHA * (ghostLife[i] / GHOST_LIFE);
-			}
-		}
-
 		if ((ghostIn -= com.watabou.noosa.Game.elapsed) > 0f) return;
 		ghostIn = 0.03f;
 		if (parent == null) return;
 
-		int slot = ghostHead++ % GHOST_N;
-		if (ghosts[slot] != null) ghosts[slot].killAndErase();
-
-		com.watabou.noosa.Image g = new com.watabou.noosa.Image( texture );
+		Ghost g = new Ghost( texture );
 		g.frame( frame() );
 		g.scale.set( scale.x, scale.y );
 		g.angle = angle;
@@ -314,8 +310,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		g.y = y;
 		g.am = GHOST_ALPHA;
 		parent.add( g );
-		ghosts[slot] = g;
-		ghostLife[slot] = GHOST_LIFE;
 	}
 
 	@Override
