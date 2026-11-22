@@ -206,6 +206,9 @@ public final class Fx {
 
 	/** Once a frame (GameScene.update): the wind and the sky looked up once for every particle. */
 	public static void frame(){
+		// 每帧刷新特效预算：不刷新的话 spawnsLeft 只会被消耗、永不补充，
+		// 结果就是"开场几秒有水花/滴水，之后全部消失"。
+		FxBudget.frame( Game.elapsed );
 		// 本仓库没有天气系统：不开天、无风
 		openSky = false;
 		windX = 0;
