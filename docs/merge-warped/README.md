@@ -457,3 +457,6 @@ sendToBack(frame); bringToFront(sparks);
 - 后面跟 2 个 `MOTE_1` 尾点（alpha 0.55/0.40 递减）
 - 颜色仍用逐附魔配色
 - 原版统一的 `streak` 已替换；`stillRing`/`vicious` 仍默认关闭
+
+**修复：空格子残留光效**。`item(null)` 分支原来没调 `updateAura()`，物品被拿走后边框/火花会留在空格子上；
+现在清空即刷新，并且 `update()` 在 `item==null`、不可见或尺寸未布局时直接 `hideAll()`。

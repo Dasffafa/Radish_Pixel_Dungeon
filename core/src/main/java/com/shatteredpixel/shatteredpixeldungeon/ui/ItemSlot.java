@@ -215,6 +215,7 @@ public class ItemSlot extends Button {
 			enable(false);
 			sprite.visible(false);
 
+			updateAura();   // 清掉上一件物品留下的光效，否则空格子上会残留
 			updateText();
 
 		} else {
@@ -437,8 +438,11 @@ public class ItemSlot extends Button {
 	@Override
 	public void update(){
 		super.update();
-		if (item == null || sprite == null) return;
-		if (sweep == null) return;
+		if (item == null || !visible || width <= 2f || height <= 2f){
+			hideAll();
+			return;
+		}
+		if (sprite == null || sweep == null) return;
 
 		float t = com.watabou.noosa.Game.timeTotal + phase;
 		float sx = sprite.x + sprite.width() / 2f;
