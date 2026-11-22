@@ -10,7 +10,9 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.MovieClip;
@@ -38,20 +40,25 @@ public class AmbientCritters {
 	private static final List<Critter> alive = new ArrayList<>();
 	private static final List<Firefly> flies = new ArrayList<>();
 	private static Group host;
-	private static float nextIn = 2f, nextFlyIn = 3f;
+	// 生成间隔：小虫 9~18s，萤火虫 12~24s
+	private static float nextIn = 9f, nextFlyIn = 12f;
 
 	/** 调试计数 */
 	public static int spawned, firefliesSpawned, tries_used;
+	public static int lastCritterCell = -1, lastFlyCell = -1, badCells = 0;
 
 	public static void init( Group group ) {
 		host = group;
 		alive.clear();
 		flies.clear();
-		nextIn = 2f;
-		nextFlyIn = 3f;
+		nextIn = 9f;
+		nextFlyIn = 12f;
 		spawned = 0;
 		firefliesSpawned = 0;
 		tries_used = 0;
+		lastCritterCell = -1;
+		lastFlyCell = -1;
+		badCells = 0;
 	}
 
 	public static void update() {
@@ -66,52 +73,54 @@ public class AmbientCritters {
 
 		nextIn -= Game.elapsed;
 		if (nextIn <= 0f) {
-			nextIn = 1.8f + Random.Float( 2.6f );
-			if (alive.size() < 2) spawnCritter();
+			nextIn = 9f + Random.Float( 9f );
+			if (alive.size() < 1) spawnCritter();
 		}
 
 		nextFlyIn -= Game.elapsed;
 		if (nextFlyIn <= 0f) {
-			nextFlyIn = 3f + Random.Float( 4f );
-			if (flies.size() < 3) spawnFirefly();
+			nextFlyIn = 12f + Random.Float( 12f );
+			if (flies.size() < 2) spawnFirefly();
 		}
 	}
 
 	private static void spawnCritter() {
 		Hero hero = Dungeon.hero;
 		int width = Dungeon.level.width();
-		// 先在干燥地面找，找不到再退而求其次（水面上的甲虫/水黾）
-		for (int pass = 0; pass < 2; pass++) {
-			for (int tries = 0; tries < 12; tries++) {
-				int dx = Random.Int( 7 ) - 3;
-				int dy = Random.Int( 7 ) - 3;
-				if (dx == 0 && dy == 0) continue;
-				int cell = hero.pos + dx + dy * width;
-				if (cell < 0 || cell >= Dungeon.level.map.length) continue;
-				if (!Dungeon.level.heroFOV[cell]) continue;
-				if (Dungeon.level.solid[cell]) continue;
-				if (pass == 0 && Dungeon.level.water[cell]) continue;
+		// 只放在干燥、可通行、看得见、没被占的格子；找不到就不生成
+		for (int tries = 0; tries < 16; tries++) {
+			int dx = Random.Int( 5 ) - 2;
+			int dy = Random.Int( 5 ) - 2;
+			if (dx == 0 && dy == 0) continue;
+			int cell = hero.pos + dx + dy * width;
+			if (cell < 0 || cell >= Dungeon.level.map.length) continue;
+			if (!Dungeon.level.heroFOV[cell]) continue;
+			if (!Dungeon.level.passable[cell]) continue;
+			if (Dungeon.level.map[cell] == Terrain.CHASM) continue;
+			if (Dungeon.level.water[cell]) continue;
+			if (Actor.findChar( cell ) != null) continue;
 
-				Critter c = new Critter( KINDS[Random.Int( KINDS.length )], cell );
-				host.add( c );
-				alive.add( c );
-				spawned++;
-				tries_used += tries + 1;
-				return;
-			}
+			Critter c = new Critter( KINDS[Random.Int( KINDS.length )], cell );
+			host.add( c );
+			alive.add( c );
+			spawned++;
+			tries_used += tries + 1;
+			lastCritterCell = cell;
+			return;
 		}
 	}
 
 	private static void spawnFirefly() {
 		Hero hero = Dungeon.hero;
 		int width = Dungeon.level.width();
-		for (int tries = 0; tries < 10; tries++) {
-			int dx = Random.Int( 9 ) - 4;
-			int dy = Random.Int( 9 ) - 4;
+		for (int tries = 0; tries < 12; tries++) {
+			int dx = Random.Int( 5 ) - 2;
+			int dy = Random.Int( 5 ) - 2;
 			int cell = hero.pos + dx + dy * width;
 			if (cell < 0 || cell >= Dungeon.level.map.length) continue;
 			if (!Dungeon.level.heroFOV[cell]) continue;
-			if (Dungeon.level.solid[cell]) continue;
+			if (Dungeon.level.map[cell] == Terrain.CHASM) continue;
+			if (!Dungeon.level.passable[cell] && !Dungeon.level.water[cell]) continue;
 
 			float px = (cell % width) * TILE + Random.Float( 16f );
 			float py = (cell / width) * TILE + Random.Float( 16f );
@@ -119,6 +128,7 @@ public class AmbientCritters {
 			host.add( f );
 			flies.add( f );
 			firefliesSpawned++;
+			lastFlyCell = cell;
 			return;
 		}
 	}
@@ -194,7 +204,7 @@ public class AmbientCritters {
 			int d = Random.Int( 4 );
 			int next = cell + dirs[d][0] + dirs[d][1] * width;
 			if (next < 0 || next >= Dungeon.level.map.length) return;
-			if (Dungeon.level.solid[next]) return;
+			if (!Dungeon.level.passable[next]) return;
 			if (Math.abs( (next % width) - (cell % width) ) > 1) return;
 
 			cell = next;

@@ -117,12 +117,13 @@ public class WaterWade {
 		float cy = (cell / width) * 16f + 8f;
 		int color = liquidColor( Dungeon.level.waterTex() );
 
-		WaterRipple.spawn( rippleHost, cx, cy, 1.0f, 2.1f, 0.85f, 0.85f, 0f, color );
-		WaterRipple.spawn( rippleHost, cx, cy, 0.6f, 1.3f, 0.6f, 0.55f, 0.12f, color );
+		// 涟漪比之前小一半：0.8 -> 1.4 倍，淡一些
+		WaterRipple.spawn( rippleHost, cx, cy, 0.8f, 1.4f, 0.7f, 0.7f, 0f, color );
+		WaterRipple.spawn( rippleHost, cx, cy, 0.5f, 0.85f, 0.5f, 0.4f, 0.1f, color );
 		ripples++;
 
 		if (step) {
-			Splash.at( cell, color, 2 );
+			Splash.at( cell, color, 1 );
 		}
 	}
 
@@ -138,7 +139,7 @@ public class WaterWade {
 		Integer prev = lastCell.put( ch, cell );
 		if (prev == null) {
 			// 入水：水花 + 一圈水波
-			Splash.at( cell, liquidColor( Dungeon.level.waterTex() ), 6 );
+			Splash.at( cell, liquidColor( Dungeon.level.waterTex() ), 4 );
 			spawnRipples( cell, width, false );
 		} else if (prev != cell) {
 			// 水里挪动：涟漪留在刚离开的那格，身后带两点水花
