@@ -184,9 +184,11 @@ public class WaterLive extends Group {
 		//the overworld's window mid-slide: its map is not the one drawn; keep where things are
 		if (level.fogHeld()) return;
 		water = view( level );
-		sheens( l, dt );
-		lavaGlow( l, dt );
-		pocks( l, dt );
+		if (DRAW_SURFACE){
+			sheens( l, dt );
+			if (DRAW_GLOW) lavaGlow( l, dt );
+			if (DRAW_POCKS) pocks( l, dt );
+		}
 		driveFalls( level, l, dt );
 		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
 		if (dt > 0f && (dropIn -= dt) <= 0f){
@@ -399,6 +401,9 @@ public class WaterLive extends Group {
 	//the plane's texture: the cycle's frame now, or the liquid's own still texture
 	/** 调试：true 时用基础水面贴图，不做调色板循环 */
 	public static boolean NO_CYCLE = true; // 默认关：调色板循环会让水面出现 32px 网格感
+	/** 是否绘制水面叠加层（sheen/pocks/岩浆辉光）。关掉后水面只保留基础滚动贴图 */
+	public static boolean DRAW_SURFACE = true;
+	public static boolean DRAW_GLOW = false, DRAW_POCKS = false;
 
 	private void cycle( SkinnedBlock plane, Level level, Element.Liquid l ){
 		if (NO_CYCLE){
