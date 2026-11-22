@@ -466,43 +466,13 @@ public class AutochessHUD extends Component {
 			}
 		}
 		if (run.state() == AutochessRun.State.FIGHT) {
+			// 实时战斗：每只棋子按自己的攻速/移速行动，不再依赖回合
+			com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessCombat.update(Game.elapsed);
+
 			acc += Game.elapsed;
-			if (acc >= TURN_INTERVAL) {
+			if (acc >= 0.25f) {
 				acc = 0f;
-				// 英雄只是节拍器：ready 就推进；连续几拍不 ready 就强制置为就绪
-				if (Dungeon.hero != null && Dungeon.hero.ready) {
-					stuckTicks = 0;
-					Dungeon.hero.spendAndNext(1f);
-				} else if (Dungeon.hero != null) {
-					stuckTicks++;
-					if (stuckTicks >= 3) {
-						stuckTicks = 0;
-						Dungeon.hero.ready = true;
-						Dungeon.hero.spendAndNext(1f);
-					}
-				}
 				run.tickFight();
-				// 由 HUD 直接驱动每一只棋子走位/出手：
-				// 不依赖 BUFF 的 act 排程，保证任何设备上都真的会打
-				if (Dungeon.level != null) {
-					for (com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob m
-							: Dungeon.level.mobs.toArray(new com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob[0])) {
-						if (m == null || m.sprite == null) continue;
-						boolean ours = m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff.class) != null
-								|| m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff.class) != null;
-						if (!ours) continue;
-						try {
-							com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUtil.combatStep(m);
-							com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff ub =
-									m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitBuff.class);
-							com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff fb =
-									m.buff(com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFoeBuff.class);
-							if (ub != null) ub.combatManaTick();
-							else if (fb != null) fb.combatManaTick();
-						} catch (Throwable ignored) {
-						}
-					}
-				}
 				run.checkFight();
 			}
 		} else {
