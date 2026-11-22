@@ -217,8 +217,8 @@ public class WaterLive extends Group {
 		SEEN = 0;
 
 		WaterLive live = new WaterLive();
-		com.watabou.noosa.Group host = com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.layer(
-				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.Layer.SURFACE );
+		// 必须挂在地块之下：水格不画瓦片，sheen 才只在上面露出来
+		com.watabou.noosa.Group host = com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.waterSheen();
 		if (host != null) host.add( live );
 	}
 

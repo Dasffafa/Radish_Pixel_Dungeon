@@ -185,6 +185,8 @@ public class GameScene extends PixelScene {
 	private Group ripples;
 	private Group waterFront;
 	private Group waterRipples;
+	// Warped 的水面图层：在 water 之上、tiles 之下，靠"水格不画瓦片"自然遮罩
+	private Group waterSheen;
 	// Warped fx 框架需要的三个图层（floor / surface / light）
 	private Group floorFx;
 	private Group lightFx;
@@ -273,6 +275,9 @@ public class GameScene extends PixelScene {
 		};
 		water.autoAdjust = true;
 		terrain.add( water );
+
+		waterSheen = new Group();
+		terrain.add( waterSheen );
 
 		ripples = new Group();
 		terrain.add( ripples );
@@ -1395,6 +1400,11 @@ public class GameScene extends PixelScene {
 
 	public static void carryLight( com.shatteredpixel.shatteredpixeldungeon.effects.fx.Lit lit ) {
 		// 本仓库没有图层化的光照系统，忽略
+	}
+
+	/** 水面 sheen 的挂载点：在地块之下 */
+	public static Group waterSheen(){
+		return scene != null ? scene.waterSheen : null;
 	}
 
 	/** 夜色浓度，0 = 白天（本仓库没有昼夜系统） */
