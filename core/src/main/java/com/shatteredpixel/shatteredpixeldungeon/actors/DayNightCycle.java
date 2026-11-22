@@ -31,7 +31,7 @@ public final class DayNightCycle {
 	}
 
 	/** 一整轮昼夜的秒数 */
-	public static float FULL_CYCLE = 480f;
+	public static float FULL_CYCLE = 360f;
 	/** 黎明 / 黄昏 各占整轮的比例 */
 	public static float DAWN_SHARE = 0.1f, DUSK_SHARE = 0.1f;
 	/** 调试：强制某个相位（null = 按时间走） */
@@ -44,7 +44,7 @@ public final class DayNightCycle {
 
 	public static Phase phase() {
 		if (debugPhase != null) return debugPhase;
-		float t = Game.timeTotal % FULL_CYCLE;
+		float t = (Game.timeTotal + FULL_CYCLE * 0.62f) % FULL_CYCLE;
 		if (t < phaseSeconds()) return Phase.DAWN;
 		t -= phaseSeconds();
 		if (t < daySeconds()) return Phase.DAY;
@@ -56,7 +56,7 @@ public final class DayNightCycle {
 	/** 当前相位走了多远（0..1） */
 	public static float phaseProgress() {
 		if (debugPhase != null) return 0.5f;
-		float t = Game.timeTotal % FULL_CYCLE;
+		float t = (Game.timeTotal + FULL_CYCLE * 0.62f) % FULL_CYCLE;
 		if (t < phaseSeconds()) return t / phaseSeconds();
 		t -= phaseSeconds();
 		if (t < daySeconds()) return t / daySeconds();

@@ -500,7 +500,7 @@ public class WaterLive extends Group {
 	public static boolean DRAW_SURFACE = true;
 	public static boolean DRAW_GLOW = false, DRAW_POCKS = false;
 	/** 岸边泡沫边（打破笔直的直角边） */
-	public static boolean DRAW_SHORE = true;
+	public static boolean DRAW_SHORE = false; // 程序化泡沫点太假，默认关
 
 	private void cycle( SkinnedBlock plane, Level level, Element.Liquid l ){
 		if (NO_CYCLE){
