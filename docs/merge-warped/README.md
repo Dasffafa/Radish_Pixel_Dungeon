@@ -64,8 +64,8 @@ Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `Wa
 | 文件 | 作用 | 关键参数 |
 |---|---|---|
 | `effects/WaterCycle.java` | 把 `environment/waterN_cycle.png`（8 帧）切成 8 张 32×32 单帧，按时间轮换给水面 `SkinnedBlock` | `FRAME_TIME = 0.18s` |
-| `effects/WaterWade.java` | 在 `mobs` 之后新建 `waterFront` 层，为水格中的角色盖一条水线；取样条带跟随水面滚动；入水/移动时在离开的格子放两圈自绘水波 | 英雄水线 `7px`、小怪 `5px`、透明度 `0.86`、滚动 `5px/s` |
-| `effects/WaterRipple.java` | 自绘水波：Pixmap 生成 32×32 三圈水波（真实 3px 厚），放大 + 淡出 | `1.0→2.1` 倍、`0.85s`、第二圈延迟 `0.12s` |
+| `effects/WaterWade.java` | `waterFront` 层：水格角色脚边水线（跟随水面滚动）；入水 `Splash` 水花；移动时在离开的格子放两圈水波；岸边格水线收窄 | 英雄 `7px` / 小怪 `5px`；岸边 `×0.55`、透明度 `0.66`；滚动 `5px/s` |
+| `effects/WaterRipple.java` | 自绘水波：Pixmap 生成 32×32 三圈水波（3px 厚），放大 + 淡出；**颜色取自当前楼层水面贴图的平均色**（按颜色缓存） | `1.0→2.1` 倍、`0.85s`、第二圈延迟 `0.12s` |
 | `effects/AmbientCritters.java` | 地面小虫（蚱蜢/甲虫/蜘蛛，`dungeon_critters.png`）跳 2~4 格后淡出；萤火虫（`critters.png` 光点帧，暖黄 hardlight）飘动呼吸 | 小虫每 `1.8~4.4s`、同屏 ≤2；萤火虫每 `3~7s`、同屏 ≤3；均不进 `mobs` |
 | `scenes/GameScene.java` | 记录水面路径、创建 `waterFront` 层、每帧 tick 上述三者 | — |
 
