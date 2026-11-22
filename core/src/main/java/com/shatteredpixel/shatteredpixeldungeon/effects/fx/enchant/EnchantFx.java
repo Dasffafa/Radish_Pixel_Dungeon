@@ -274,6 +274,33 @@ public final class EnchantFx {
 		trailSpawned++;
 	}
 
+	/** 轨迹点：照 Warped EnchantTrail.dot() —— MOTE_1、加色、0.4s、alpha 0.8 */
+	public static int dotsPlaced;
+	public static void trailDot( float x, float y, Item source ){
+		int color = color( source );
+		if (color == 0) color = missileColor( source );
+		if (!FxBudget.keep( FxBudget.P2, x, y )) return;
+		FxEmitter glow = Fx.glowAir();
+		if (glow == null) return;
+		FxParticle p = (FxParticle) glow.recycle( FxParticle.class );
+		if (p == null) return;
+		p.reset( x, y ).look( FxFrames.MOTE_1 ).paint( color ).snap()
+				.life( 0.4f ).alpha( 0.8f, 0f, 0.24f ).priority( FxBudget.P2 );
+		dotsPlaced++;
+	}
+
+	/** 出手涟漪：照 Warped EnchantTrail.ripple() —— RING_9、加大色、0.23s */
+	public static void trailRipple( float x, float y, Item source ){
+		int color = color( source );
+		if (color == 0) color = missileColor( source );
+		FxEmitter glow = Fx.glowAir();
+		if (glow == null) return;
+		FxParticle p = (FxParticle) glow.recycle( FxParticle.class );
+		if (p == null) return;
+		p.reset( x, y ).look( FxFrames.RING_9 ).paint( color ).snap()
+				.life( 0.23f ).alpha( 0.8f, 0f, 0.15f ).priority( FxBudget.P1 );
+	}
+
 	/** 一路留下的"符号"：加号 / 圆环，交替出现（照 Warped 的轨迹表现） */
 	public static int marksPlaced;
 

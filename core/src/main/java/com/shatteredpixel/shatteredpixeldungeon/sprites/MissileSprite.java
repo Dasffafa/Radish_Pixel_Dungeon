@@ -172,9 +172,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private void setup( PointF from, PointF to, Item item, Callback listener, float speedMultiplier ){
 
 		this.enchantSource = item;
-		if (tail != null) tail.end();
-		tail = null;
 		flown = 0f;
+		nextDot = 12f;
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailRipple(
+				from.x, from.y, item );
 		originToCenter();
 
 		//adjust points so they work with the center of the missile sprite, not the corner
@@ -246,56 +247,9 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	}
 
 	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
-	/** 拖尾：一条从弹体后方拉伸出去的锥形光带（照 Warped 的 EnchantTrail：Image + STREAK_TAPER + origin 右中） */
-	private Tail tail;
 	private float vx, vy;
 	private float flown;
-
-	/** 锥形拖尾本体：自己淡出、自己消失 */
-	public static class Tail extends com.watabou.noosa.Image {
-		private float len = 0f;
-		private boolean ending;
-		private float fade = 0.9f;
-
-		public Tail( Object texture, int[] frame ){
-			super( texture );
-			frame( frame[0], frame[1], frame[2], frame[3] );
-			origin.set( frame[2], frame[3] / 2f );   // 右中：向"左"拉长，正好拖在弹体后面
-			am = 0.75f;
-		}
-
-		public void end(){ ending = true; }
-
-		public void stretch( float length, float deg ){
-			len = length;
-			angle = deg;
-			scale.set( Math.max( 0.05f, len / width() ), 1f );
-		}
-
-		@Override
-		public void update(){
-			super.update();
-			if (ending){
-				fade -= com.watabou.noosa.Game.elapsed / 0.25f;
-				am = Math.max( 0f, 0.75f * fade );
-				scale.set( scale.x * (1f - com.watabou.noosa.Game.elapsed * 1.5f), scale.y );
-				if (fade <= 0f) killAndErase();
-			}
-		}
-	}
-
-	/** 按附魔族选拖尾帧（火用火舌条，其它用锥形光带） */
-	private static int[] tailFrame( com.shatteredpixel.shatteredpixeldungeon.items.Item src ){
-		com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment e =
-				(src instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon)
-						? ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) src).enchantment : null;
-		if (e != null && com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.familyOf( e )
-				== com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.Family.FIRE){
-			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.STREAK_FLAME[0];
-			return f;
-		}
-		return com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.STREAK_TAPER;
-	}
+	private float nextDot;
 
 	@Override
 	public void update() {
@@ -309,19 +263,14 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		float len = (float)Math.hypot( vx, vy );
 		flown += len;
 
-		if (tail == null){
-			int[] f = tailFrame( enchantSource );
-			tail = new Tail( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f );
-			int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.color( enchantSource );
-			if (color == 0) color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.missileColor( enchantSource );
-			tail.hardlight( com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.light( color, 0.2f ) );
-			parent.add( tail );
+		// 照 Warped 的 EnchantTrail：每 12px 放一个点（MOTE_1），抬高 6px，0.4s 淡出
+		while (flown >= nextDot){
+			nextDot += 12f;
+			float ux = len > 0.01f ? vx / len : 1f;
+			float uy = len > 0.01f ? vy / len : 0f;
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailDot(
+					x - ux * (flown - nextDot + 12f), y - uy * (flown - nextDot + 12f) - 6f, enchantSource );
 		}
-
-		float deg = (float)Math.toDegrees( Math.atan2( vy, vx ) );
-		tail.x = x;   // 弹体 originToCenter，x/y 已是中心
-		tail.y = y;
-		tail.stretch( Math.min( flown + 6f, 42f ), deg );
 	}
 
 	@Override
@@ -331,7 +280,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (color != 0){
 			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.burst( x, y, color );
 		}
-		if (tail != null) tail.end();
 		kill();
 		if (callback != null) {
 			callback.call();
