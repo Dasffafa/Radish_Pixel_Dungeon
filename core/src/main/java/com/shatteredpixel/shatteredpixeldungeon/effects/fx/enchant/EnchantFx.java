@@ -146,6 +146,24 @@ public final class EnchantFx {
 		return 0;
 	}
 
+	/** 附魔 -> 图标扫过时的帧（UI 用）：火=火舌、雷=电弧、冰=星芒、毒=毒滴、暗=墨雾… */
+	public static int[] auraSweepFrame( Weapon.Enchantment e ){
+		if (e == null) return FxFrames.STREAK_TAPER;
+		Family f = familyOf( e );
+		switch (f){
+			case FIRE:      return FxFrames.STREAK_FLAME[0];
+			case LIGHTNING: return FxFrames.SPARK_2;
+			case ICE:       return FxFrames.STAR4_5;
+			case POISON:    return FxFrames.DROP_3;
+			case DARK:      return FxFrames.INK_WISP[0];
+			case BLOOD:     return FxFrames.MOTE_2;
+			case LIGHT:     return FxFrames.STAR4_7;
+			case WATER:     return FxFrames.DROP_2;
+			case PHYS:
+			default:        return FxFrames.STREAK_TAPER;
+		}
+	}
+
 	/** 该附魔类名是否有自己的配色（测试用） */
 	public static boolean hasOwnColor( String simpleName ){
 		return COLORS.containsKey( simpleName.toLowerCase() );

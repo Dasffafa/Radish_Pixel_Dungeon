@@ -260,7 +260,7 @@ public class ItemSlot extends Button {
 	}
 
 	/** 测试用：各 motif 是否可见 */
-	public boolean streakVisible(){ return shine != null && shine.visible; }
+	public boolean streakVisible(){ return sweep != null && sweep.visible; }
 	public boolean ringVisible(){ return ring != null && ring.visible; }
 	public boolean viciousVisible(){ return vicious != null && vicious.visible; }
 	public int borderSparksVisible(){
@@ -272,7 +272,7 @@ public class ItemSlot extends Button {
 	/** 测试用：此刻有几种光效可见 */
 	public int shineActive(){
 		int n = 0;
-		if (shine != null && shine.visible) n++;
+		if (sweep != null && sweep.visible) n++;
 		if (ENABLE_RING && ring != null && ring.visible) n++;
 		if (ENABLE_VICIOUS && vicious != null && vicious.visible) n++;
 		for (int i = 0; i < sparkBlocks; i++) if (sparks[i] != null && sparks[i].visible) n++;
@@ -287,7 +287,9 @@ public class ItemSlot extends Button {
 	private static final float RING_FOR = 0.53f;
 	private static final float SPARK_MIN_SPEED = 6f, SPARK_MAX_SPEED = 16f;
 
-	private Image shine;
+	private Image sweep;
+	private final Image[] tail = new Image[3];
+	private int sweepFrameRef = -1;
 	private Image ring;
 	private Image vicious;
 	private final com.watabou.noosa.ColorBlock[] sparks = new com.watabou.noosa.ColorBlock[15];
@@ -322,12 +324,26 @@ public class ItemSlot extends Button {
 		if (color == 0) color = 0xE8F0FF; // 只有升级、没有附魔：冷白
 		shineColor = color;
 
-		if (shine == null){
+		if (sweep == null){
 			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.STREAK_TAPER;
-			shine = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
-			shine.visible = false;
-			add( shine );
+			sweep = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
+			sweep.visible = false;
+			add( sweep );
+			for (int k = 0; k < tail.length; k++){
+				int[] g = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.MOTE_1;
+				tail[k] = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, g[0], g[1], g[2], g[3] );
+				tail[k].visible = false;
+				add( tail[k] );
+			}
 		}
+		// 按附魔族换帧
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment ench = null;
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
+			ench = ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) item).enchantment;
+		}
+		int[] swf = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.auraSweepFrame( ench );
+		sweep.frame( swf[0], swf[1], swf[2], swf[3] );
+		sweep.scale.set( 1.1f, 1.1f );
 		if (ring == null){
 			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.RING_5;
 			ring = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
@@ -355,7 +371,8 @@ public class ItemSlot extends Button {
 			}
 		}
 
-		shine.hardlight( color );
+		sweep.hardlight( color );
+		for (Image k : tail) k.hardlight( color );
 		ring.hardlight( color );
 		vicious.hardlight( color );
 
@@ -388,14 +405,16 @@ public class ItemSlot extends Button {
 	/** 光效压在图标下面/上面 */
 	private void applyOrder(){
 		for (com.watabou.noosa.ColorBlock b : frame) if (b != null) sendToBack( b );
-		if (shine != null) bringToFront( shine );
+		if (sweep != null) bringToFront( sweep );
+		for (Image k : tail) if (k != null) bringToFront( k );
 		if (vicious != null) bringToFront( vicious );
 		if (ring != null) sendToBack( ring );
 		for (int i = 0; i < sparks.length; i++) if (sparks[i] != null) bringToFront( sparks[i] );
 	}
 
 	private void hideAll(){
-		if (shine != null) shine.visible = false;
+		if (sweep != null) sweep.visible = false;
+		for (Image k : tail) if (k != null) k.visible = false;
 		if (ring != null) ring.visible = false;
 		if (vicious != null) vicious.visible = false;
 		for (com.watabou.noosa.ColorBlock b : sparks) if (b != null) b.visible = false;
@@ -419,23 +438,35 @@ public class ItemSlot extends Button {
 	public void update(){
 		super.update();
 		if (item == null || sprite == null) return;
-		if (shine == null) return;
+		if (sweep == null) return;
 
 		float t = com.watabou.noosa.Game.timeTotal + phase;
 		float sx = sprite.x + sprite.width() / 2f;
 		float sy = sprite.y + sprite.height() / 2f;
 
-		// 1) streak
-		float sm = mod( t, STREAK_PERIOD );
-		if (sm < STREAK_FOR){
-			shine.visible = true;
-			shine.angle = -45f;
-			shine.scale.set( 0.85f, 0.6f );
-			shine.x = sx - shine.width() * 0.85f / 2f;
-			shine.y = sy - shine.height() * 0.6f / 2f;
-			shine.am = (sm < 0.05f ? 0.9f : 0.45f);
+		// 1) 扫光：按附魔族换帧，从左上扫到右下
+		float sweepPeriod = 2.6f, sweepFor = 0.34f;
+		float sm = mod( t, sweepPeriod );
+		if (sm < sweepFor){
+			float u = sm / sweepFor;
+			float a = (float)Math.sin( Math.PI * u );
+			sweep.visible = true;
+			// 从图标左上扫到右下
+			sweep.x = sprite.x - 2f + u * (sprite.width() + 2f) - sweep.width() / 2f;
+			sweep.y = sprite.y - 2f + u * (sprite.height() + 2f) - sweep.height() / 2f;
+			sweep.angle = -35f;
+			sweep.am = a * 0.95f;
+			// 尾随两点
+			for (int k = 0; k < tail.length; k++){
+				float ub = Math.max( 0f, u - 0.18f * (k + 1) );
+				tail[k].visible = true;
+				tail[k].x = sprite.x - 2f + ub * (sprite.width() + 2f) - tail[k].width() / 2f;
+				tail[k].y = sprite.y - 2f + ub * (sprite.height() + 2f) - tail[k].height() / 2f;
+				tail[k].am = a * (0.55f - k * 0.15f);
+			}
 		} else {
-			shine.visible = false;
+			sweep.visible = false;
+			for (Image k : tail) k.visible = false;
 		}
 
 		// 2) stillRing：RING_5 在脚下 2s 一次、前 0.53s

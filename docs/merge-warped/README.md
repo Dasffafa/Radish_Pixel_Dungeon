@@ -436,3 +436,24 @@ sendToBack(frame); bringToFront(sparks);
 
 **关掉仍显突兀的两种**：`stillRing`（脚下 RING_5）和 `vicious`（刀身 SPARK_2）在 16px 格子里
 缩放后像两块糊上去的色斑，已默认关闭；需要时把 `ItemSlot.ENABLE_RING / ENABLE_VICIOUS` 改 true。
+
+## 按附魔族的图标扫光（自设计，替代原版统一 streak）
+
+用户要求：不要统一斜光，改成"烈焰一阵火光闪过、电击一阵电弧划过"这种按附魔区分：
+
+| 族 | 扫光帧（fx_sheet） |
+|---|---|
+| 火 | `STREAK_FLAME`（火舌条） |
+| 雷 | `SPARK_2`（电弧） |
+| 冰 | `STAR4_5`（霜芒） |
+| 毒 | `DROP_3`（毒滴） |
+| 暗 | `INK_WISP`（墨雾） |
+| 血 | `MOTE_2` |
+| 光 | `STAR4_7` |
+| 水 | `DROP_2` |
+| 物理 | `STREAK_TAPER`（默认斜光） |
+
+- 每 **2.6 秒**扫一次，单次 **0.34 秒**，从图标左上扫到右下，`angle=-35°`，sin 淡入淡出
+- 后面跟 2 个 `MOTE_1` 尾点（alpha 0.55/0.40 递减）
+- 颜色仍用逐附魔配色
+- 原版统一的 `streak` 已替换；`stillRing`/`vicious` 仍默认关闭
