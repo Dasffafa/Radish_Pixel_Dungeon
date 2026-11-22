@@ -35,7 +35,7 @@ public class AutochessFoeBuff extends Buff {
 		// 战斗中先走位/出手，但不提前 return，否则下面的回蓝/技能不会执行
 		AutochessRun runNow = AutochessRun.get();
 		if (runNow != null && runNow.state() == AutochessRun.State.FIGHT) {
-			AutochessUtil.combatStep((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target);
+			
 		}
 		spend(TICK);
 

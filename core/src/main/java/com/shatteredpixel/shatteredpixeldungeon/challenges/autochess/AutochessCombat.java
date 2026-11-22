@@ -61,6 +61,14 @@ public class AutochessCombat {
 					|| self.buff(AutochessFoeBuff.class) != null;
 			if (!ours) continue;
 
+			// 冻结原版 AI：只允许实时逻辑驱动，避免和 Actor 回合抢动作
+			try {
+				self.state = self.SLEEPING;
+				self.paralysed = Math.max(self.paralysed, 1000);
+				if (self.sprite != null) self.sprite.hideEmo();
+			} catch (Throwable ignored) {
+			}
+
 			UnitState st = states.get(self);
 			if (st == null) {
 				st = new UnitState();
@@ -128,13 +136,8 @@ public class AutochessCombat {
 	}
 
 	private static void attack(Mob self, Mob foe) {
-		// 出手动画（朝向敌人），让战斗看起来更"活"
-		if (self.sprite != null) {
-			try {
-				self.sprite.attack(foe.pos);
-			} catch (Throwable ignored) {
-			}
-		}
+		// 出手反馈：攻方闪一下
+		if (self.sprite != null) self.sprite.flash();
 		int hpBefore = foe.HP;
 		try {
 			self.attack(foe);

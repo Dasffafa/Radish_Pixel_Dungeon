@@ -249,7 +249,7 @@ public class AutochessUnitBuff extends AllyBuff {
 		// 否则下面的回蓝/技能/特质逻辑永远不会执行
 		AutochessRun runNow = AutochessRun.get();
 		if (runNow != null && runNow.state() == AutochessRun.State.FIGHT) {
-			AutochessUtil.combatStep((com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob) target);
+			
 		}
 		int undead = hasTrait(AutochessPool.UNDEAD) ? tier(AutochessPool.UNDEAD) : 0;
 		if (undead > 0 && target.HP < target.HT) {
