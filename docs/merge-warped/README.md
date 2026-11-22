@@ -530,3 +530,13 @@ sendToBack(frame); bringToFront(sparks);
 **符号留在弹体后方**：之前符号生成在弹体当前位置，看起来像"有东西跟着箭飞"。
 现在沿这一帧的线段按 12px 等间距补符号（`while (markDist>=12) markDist-=12`），
 并且从弹体位置**反向偏移 7px+余量**，保证符号始终在箭后面排成一条线。
+
+## 残影（ghost）拖尾——照 Warped 的 EnchantTrail
+
+反编译找到真正的拖尾类：`effects/fx/enchant/EnchantTrail extends Image`，
+常量是 `GHOSTS = 4`、`GHOST_ALPHA = 0.35`、`GHOST_LIFE = 0.3`、`SHED_PX = 12`、`DOT_HANG = 0.4`。
+它的核心不是"撒粒子"，而是**在弹体身后留同帧的淡影**。
+
+已照做（`MissileSprite`）：每 0.03s 在当前位置留一张**与弹体同一帧、同角度、同缩放**的淡影，
+初始 alpha 0.35，0.3 秒内线性淡出，最多 4 张循环复用。
+这样轨迹看起来是"箭的残影拖出去"，而不是旁边飘着不相干的东西。
