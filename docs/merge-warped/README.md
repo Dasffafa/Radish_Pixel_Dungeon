@@ -187,3 +187,13 @@ Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `Wa
 | 小动物（生成/吓跑/怕火/叫声） | 已搬 |
 | 雪地踩雪 | 不适用（本仓库没有雪地形） |
 | 天气（雨雪雾） | 未搬 |
+
+## 火光水面倒影 + 洞穴飞尘
+
+- `effects/fx/water/FireReflections.java`：火格附近（下/左/右 3 格内）的水面画一条暖色叠加光带，
+  随波动横向晃 ±1.2px、明暗呼吸；最多 4 条，挂在 waterSheen 层（水面上、瓦片下）
+- `effects/AmbientMotes.java`：洞窟/殿堂里每 0.45~1.35 秒飘起一粒 `CaveMoteParticle`，
+  在主角周围 11x9 格内随机、避开墙
+- 两者都由 GameScene 每帧驱动；WaterLive 里也调一次 FireReflections 以保证顺序
+
+实测：在水边点一堆火 → 倒影 shown=1；进 11 层洞窟 400 帧 → 飞尘 30 粒

@@ -190,6 +190,7 @@ public class WaterLive extends Group {
 			if (DRAW_GLOW) lavaGlow( l, dt );
 			if (DRAW_POCKS) pocks( l, dt );
 		}
+		FireReflections.update( dt );
 		driveFalls( level, l, dt );
 		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
 		if (dt > 0f && (dropIn -= dt) <= 0f){
