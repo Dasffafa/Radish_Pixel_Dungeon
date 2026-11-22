@@ -44,12 +44,10 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 		if (visual != -1) return DungeonTileSheet.getVisualWithAlts(visual, pos);
 
 		if (tile == Terrain.WATER) {
-			return DungeonTileSheet.stitchWaterTile(
-					map[pos + PathFinder.CIRCLE4[0]],
-					map[pos + PathFinder.CIRCLE4[1]],
-					map[pos + PathFinder.CIRCLE4[2]],
-					map[pos + PathFinder.CIRCLE4[3]]
-			);
+			// 水格不画任何瓦片：水面由 GameScene 的水面层（WaterLive 的调色板循环）绘制。
+			// 原先返回 stitchWaterTile 的 15 个"水边变体"，那几格在图集里是白砖图案，
+			// 会在水边糊出一圈白色斑点；Warped 的水边是直切 + 水面本身的泡沫。
+			return DungeonTileSheet.WATER;
 
 		} else if (tile == Terrain.CHASM) {
 			return DungeonTileSheet.stitchChasmTile( pos > mapWidth ? map[pos - mapWidth] : -1);
