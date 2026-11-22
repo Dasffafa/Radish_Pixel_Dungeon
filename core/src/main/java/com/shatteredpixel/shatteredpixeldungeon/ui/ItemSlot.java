@@ -246,9 +246,13 @@ public class ItemSlot extends Button {
 		float sw = sweep.width() * sweep.scale.x, sh = sweep.height() * sweep.scale.y;
 
 		sweep.visible = true;
-		sweep.x = clamp( sprite.x + u * (iw - sw), sprite.x, sprite.x + iw - sw );
-		sweep.y = clamp( sprite.y + u * (ih - sh), sprite.y, sprite.y + ih - sh );
-		sweep.angle = -35f;
+		// 不旋转：旋转会让贴图实际绘制区域超出轴对齐边界，视觉上溢出到邻格
+		sweep.angle = 0f;
+		// 内缩 2px，避免贴图边缘探出格子
+		float minX = sprite.x + 2f, maxX = Math.max( minX, sprite.x + iw - sw - 2f );
+		float minY = sprite.y + 2f, maxY = Math.max( minY, sprite.y + ih - sh - 2f );
+		sweep.x = clamp( sprite.x + u * (iw - sw), minX, maxX );
+		sweep.y = clamp( sprite.y + u * (ih - sh), minY, maxY );
 		sweep.am = a * 0.95f;
 
 		for (int k = 0; k < tail.length; k++){
