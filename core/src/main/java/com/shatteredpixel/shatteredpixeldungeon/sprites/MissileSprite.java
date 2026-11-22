@@ -250,7 +250,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private float lastMarkX, lastMarkY;
 
 	// ---- 残影（照 Warped 的 EnchantTrail：GHOSTS=4、GHOST_ALPHA=0.35、GHOST_LIFE=0.3）----
-	private static final float GHOST_ALPHA = 0.35f, GHOST_LIFE = 0.3f;
+	private static final float GHOST_ALPHA = 0.28f, GHOST_LIFE = 0.22f;
+	/** 全局最多 4 个残影（照 Warped 的 GHOSTS=4），超出就顶掉最老的 */
+	private static final Ghost[] GHOSTS = new Ghost[4];
+	private static int ghostHead;
 	private float ghostIn = 0.03f;
 
 	/** 自己会淡出、自己会消失的残影（不依赖弹体是否还活着） */
@@ -299,8 +302,12 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	/** 残影：每 0.03s 在当前位置留一张同一帧的淡影（Ghost 自己淡出） */
 	private void updateGhosts(){
 		if ((ghostIn -= com.watabou.noosa.Game.elapsed) > 0f) return;
-		ghostIn = 0.03f;
+		ghostIn = 0.045f;
 		if (parent == null) return;
+
+		// 超过 4 个就顶掉最老的
+		int slot = ghostHead++ % GHOSTS.length;
+		if (GHOSTS[slot] != null) GHOSTS[slot].killAndErase();
 
 		Ghost g = new Ghost( texture );
 		g.frame( frame() );
@@ -310,6 +317,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		g.y = y;
 		g.am = GHOST_ALPHA;
 		parent.add( g );
+		GHOSTS[slot] = g;
 	}
 
 	@Override
