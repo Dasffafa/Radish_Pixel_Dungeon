@@ -239,6 +239,13 @@ public class ItemSlot extends Button {
 
 	/** 测试用：这个格子有没有附魔光效 */
 	public boolean hasAura(){ return hasShine || sparkBlocks > 0; }
+	/** 当前物品是否该有光效：有附魔颜色，或升级等级 > 1 */
+	private boolean wantAura(){
+		if (item == null) return false;
+		int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
+		return color != 0 || item.level() > 1;
+	}
+
 	/** 把扫光摆到进度 u（0..1）处；alpha 由调用方给 */
 	private void placeSweep( float u, float a ){
 		if (sweep == null || sprite == null) return;
@@ -487,11 +494,16 @@ public class ItemSlot extends Button {
 	@Override
 	public void update(){
 		super.update();
-		if (item == null || !visible || width <= 2f || height <= 2f){
+		// 每帧按当前物品重新判断，避免任何"换了物品但没刷新"的路径
+		if (item == null || !visible || width <= 2f || height <= 2f || sprite == null || sweep == null){
 			hideAll();
 			return;
 		}
-		if (sprite == null || sweep == null) return;
+		final boolean wantAura = wantAura();
+		if (!wantAura){
+			hideAll();
+			return;
+		}
 
 		float t = com.watabou.noosa.Game.timeTotal + phase;
 		float sx = sprite.x + sprite.width() / 2f;
@@ -536,11 +548,17 @@ public class ItemSlot extends Button {
 			vicious.am = 1f - (vm / 0.12f);
 		}
 
+		// 3.2) 边框/火花的可见性每帧重设（防止任何残留）
+		boolean sparkOn = wantAura() && sparkBlocks > 0;
+
 		// 3.5) 静态边框：上下左右四根线（抄 APK 的 layoutQuality）
 		frameL = x + margin.left;
 		frameT = y + margin.top;
 		frameW = width - margin.left - margin.right;
 		frameH = height - margin.top - margin.bottom;
+		if (frame[0] != null){
+			for (com.watabou.noosa.ColorBlock b : frame) b.visible = wantAura();
+		}
 		if (frame[0] != null && frame[0].visible){
 			frame[0].size( frameW, 1f );  frame[0].x = frameL;              frame[0].y = frameT;
 			frame[1].size( frameW, 1f );  frame[1].x = frameL;              frame[1].y = frameT + frameH - 1f;
@@ -553,6 +571,7 @@ public class ItemSlot extends Button {
 			float fw = frameW - 1f, fh = frameH - 1f;
 			float perim = (fw + fh) * 2f;
 			for (int i = 0; i < sparkBlocks / 3; i++){
+				if (!sparkOn) break;
 				sparkPos[i] = mod( sparkPos[i] + sparkSpeed[i] * com.watabou.noosa.Game.elapsed, perim );
 				float sign = Math.signum( sparkSpeed[i] );
 				for (int k = 0; k < 3; k++){
