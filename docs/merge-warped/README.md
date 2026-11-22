@@ -110,3 +110,20 @@ Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `Wa
 3. sheen 层被降档关掉 → 水面变成一块平的矩形色块
 4. 水格若不画拼接变体 → 每格水面满覆盖，池子变成方方正正色块（岸线是靠拼接图块画出来的）
 5. 水面 sheen 必须挂在 terrain 内、water 之上、tiles 之下，靠"水格不画瓦片"自然遮罩
+
+## 小动物（Warped DungeonCritterSprite，已并入 ronghe）
+
+**搬进来的**
+- `effects/CritterSprite.java`（885 行）：精灵基类、鸟类（Crow/Gull/Finch/Owl）、野兔、蝴蝶、鱼影
+- `effects/DungeonCritterSprite.java`（1762 行）：青蛙、鼠妇、老鼠、蛾子、蜘蛛、蜗牛、甲虫、长脚虫、飞虫、栖鸟
+- `effects/AmbientCritters.java`：改成 Warped 精灵的生成器（视野内 6~11 秒一只、上限 5 只、靠水出青蛙、水里出飞虫）
+
+**桩**
+- `WeatherSprites.visible()` 恒 true（天气没搬）
+- `FishBrain`（鱼群 AI 没搬，只留 shade/dist/disturbances）
+- `AmbientSound/AmbientPlayer/AmbientSounds`：静默（没有音频管线）
+- `CaveMoteParticle`：简版飞尘
+- `TextureFilm(int,int,int,int)`：手工尺寸图集构造（Warped 用法）
+
+**没搬**
+- DungeonLife 的完整生态（鱼群、天气生物、营火/火焰反应、捕虫网玩法、语音）
