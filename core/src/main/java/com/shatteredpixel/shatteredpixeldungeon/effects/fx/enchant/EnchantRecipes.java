@@ -21,10 +21,23 @@ final class EnchantRecipes {
 
 	private EnchantRecipes(){}
 
+	/** 把颜色按比例提亮（往白里混） */
+	static int light( int color, float k ){
+		int r=(color>>16)&0xFF, g=(color>>8)&0xFF, b=color&0xFF;
+		r=(int)(r+(255-r)*k); g=(int)(g+(255-g)*k); b=(int)(b+(255-b)*k);
+		return 0xFF000000 | (r<<16) | (g<<8) | b;
+	}
+
+	/** 把颜色压暗 */
+	static int dark( int color, float k ){
+		int r=(int)(((color>>16)&0xFF)*(1f-k)), g=(int)(((color>>8)&0xFF)*(1f-k)), b=(int)((color&0xFF)*(1f-k));
+		return 0xFF000000 | (r<<16) | (g<<8) | b;
+	}
+
 	// ---------------------------------------------------------------- 火
 	static final int FIRE_AFTERGLOW = 0xFF8418;
 
-	static void fire( float cx, float cy, float feet ){
+	static void fire( float cx, float cy, float feet, int tint ){
 		FxEmitter air = Fx.air();
 		if (air == null) return;
 
@@ -34,7 +47,7 @@ final class EnchantRecipes {
 			((FxParticle) air.recycle( FxParticle.class ))
 					.reset( cx + FxRandom.Float( -3f, 3f ), cy + FxRandom.Float( -2f, 4f ) )
 					.look( i == 0 ? FxFrames.TONGUE_S : FxFrames.TONGUE_M, 12f )
-					.ramp( FxFactories.EMBER, true )
+					.paint( tint )
 					.vel( 0, -12f - i * 4f )
 					.life( 0.35f )
 					.alpha( 1f, 0, 0.15f )
@@ -48,7 +61,7 @@ final class EnchantRecipes {
 			((FxParticle) air.recycle( FxParticle.class ))
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( -4f, 4f ) )
 					.look( FxRandom.chance( 0.6f ) ? FxFrames.EMBER_1 : FxFrames.EMBER_2 )
-					.ramp( FxFactories.EMBER, true )
+					.paint( light( tint, 0.35f ) )
 					.polar( FxRandom.angle(), 26f )
 					.drag( 3f )
 					.gravity( -10f )
@@ -66,7 +79,7 @@ final class EnchantRecipes {
 	static final float RIME_HOLD = 2f, RIME_FADE = 1f;
 	static final int RIME_AFTERGLOW = 0xBCE0FF;
 
-	static void ice( float cx, float cy, float feet ){
+	static void ice( float cx, float cy, float feet, int tint ){
 		FxEmitter air = Fx.air();
 		if (air == null) return;
 
@@ -83,7 +96,7 @@ final class EnchantRecipes {
 			((FxParticle) air.recycle( FxParticle.class ))
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( 0f, 4f ) )
 					.look( FxFrames.PUFF_S, 0 )
-					.ramp( Element.FROST.smoke, false ).smooth()
+					.paint( light( tint, 0.5f ) ).smooth()
 					.vel( FxRandom.Float( -3f, 3f ), -FxRandom.Float( 5f, 9f ) )
 					.drag( 0.8f ).life( 0.9f ).alpha( 0.55f, 0.1f, 0.5f )
 					.priority( FxBudget.P2 );
@@ -98,7 +111,7 @@ final class EnchantRecipes {
 			((FxParticle) air.recycle( FxParticle.class ))
 					.reset( cx, cy )
 					.look( glass ? FxFrames.SHARD_GLASS : FxFrames.SHARD_ICE, 0 )
-					.paint( glass ? 0xD8F4FF : 0xFFFFFF )
+					.paint( glass ? light( tint, 0.6f ) : tint )
 					.polar( a, FxRandom.Float( 30f, 60f ) )
 					.gravity( 160f ).spin( 0.1f )
 					.ground( feet + FxRandom.Float( -1f, 2f ), FxParticle.BOUNCE, 0.3f )
@@ -109,13 +122,13 @@ final class EnchantRecipes {
 
 		// 地面霜迹
 		FxDecal.at( cx, feet + 1f, FxFrames.RIME[Math.min( FxFrames.RIME.length - 1, 1 )],
-				0xBCE0FF, 0.65f, RIME_HOLD, RIME_FADE, false );
+				dark( tint, 0.35f ), 0.65f, RIME_HOLD, RIME_FADE, false );
 	}
 
 	// ---------------------------------------------------------------- 雷
 	static final int ETCH = 0x2A2A40;
 
-	static void storm( float cx, float cy, float feet ){
+	static void storm( float cx, float cy, float feet, int tint ){
 		FxEmitter air = Fx.air();
 		if (air == null) return;
 
@@ -128,7 +141,7 @@ final class EnchantRecipes {
 					.look( FxFrames.SPARK_2 )
 					.orient()
 					.slow( FxFrames.MOTE_1, 15f )
-					.ramp( Element.ELECTRIC.ember, true )
+					.paint( tint )
 					.polar( a, FxRandom.Float( 30f, 70f ) )
 					.gravity( 120f ).drag( 1.2f )
 					.ground( feet + FxRandom.Float( -1f, 3f ), FxParticle.BOUNCE, 0.35f )
@@ -140,7 +153,7 @@ final class EnchantRecipes {
 		// 中心闪光
 		if (FxBudget.keep( FxBudget.P0, cx, cy )){
 			((FxParticle) air.recycle( FxParticle.class ))
-					.reset( cx, cy ).look( FxFrames.SPARK_3 ).paint( 0xFFF07A )
+					.reset( cx, cy ).look( FxFrames.SPARK_3 ).paint( light( tint, 0.5f ) )
 					.life( 0.07f ).alpha( 1f, 0, 0.03f ).snap().priority( FxBudget.P0 );
 		}
 
@@ -149,7 +162,7 @@ final class EnchantRecipes {
 	}
 
 	// ---------------------------------------------------------------- 毒
-	static void venom( float cx, float cy, float feet ){
+	static void venom( float cx, float cy, float feet, int tint ){
 		FxEmitter air = Fx.air();
 		if (air == null) return;
 
@@ -158,7 +171,7 @@ final class EnchantRecipes {
 			((FxParticle) air.recycle( FxParticle.class ))
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( -4f, 2f ) )
 					.look( FxFrames.DROP_3 )
-					.paint( 0x9CE87A )
+					.paint( tint )
 					.orient()
 					.polar( (float)(Math.PI / 2) + FxRandom.Float( -1f, 1f ), FxRandom.Float( 20f, 45f ) )
 					.gravity( 240f )
@@ -172,7 +185,7 @@ final class EnchantRecipes {
 			((FxParticle) air.recycle( FxParticle.class ))
 					.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( -2f, 4f ) )
 					.look( FxFrames.PUFF_S, 0 )
-					.ramp( Element.SMOKE.smoke, false ).smooth()
+					.paint( dark( tint, 0.35f ) ).smooth()
 					.vel( FxRandom.Float( -2f, 2f ), FxRandom.Float( -6f, -2f ) )
 					.life( 1f ).alpha( 0.45f, 0.1f, 0.5f )
 					.priority( FxBudget.P3 );
@@ -184,7 +197,7 @@ final class EnchantRecipes {
 	// ---------------------------------------------------------------- 暗
 	static final int DARK = 0x1A0C2C;
 
-	static void dark( float cx, float cy, float feet ){
+	static void dark( float cx, float cy, float feet, int tint ){
 		FxEmitter air = Fx.air();
 		if (air == null) return;
 
@@ -193,7 +206,7 @@ final class EnchantRecipes {
 			((FxParticle) air.recycle( FxParticle.class ))
 					.reset( cx + FxRandom.Float( -5f, 5f ), cy + FxRandom.Float( -4f, 4f ) )
 					.look( FxFrames.INK_WISP, 3f )
-					.paint( 0x6A4A9A )
+					.paint( tint )
 					.smooth()
 					.vel( FxRandom.Float( -2f, 2f ), -FxRandom.Float( 6f, 10f ) )
 					.life( FxRandom.Float( 0.6f, 1.1f ) )
@@ -204,7 +217,7 @@ final class EnchantRecipes {
 		// 中间一团暗核
 		if (FxBudget.keep( FxBudget.P1, cx, cy )){
 			((FxParticle) air.recycle( FxParticle.class ))
-					.reset( cx, cy ).look( FxFrames.INK_CORE ).paint( DARK )
+					.reset( cx, cy ).look( FxFrames.INK_CORE ).paint( dark( tint, 0.45f ) )
 					.life( 1.2f ).alpha( 0.7f, 0.15f, 0.6f ).snap().priority( FxBudget.P1 );
 		}
 	}

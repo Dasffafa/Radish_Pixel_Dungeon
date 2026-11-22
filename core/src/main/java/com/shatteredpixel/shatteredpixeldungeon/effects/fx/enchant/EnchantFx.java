@@ -255,11 +255,11 @@ public final class EnchantFx {
 				: (defender.pos / Dungeon.level.width()) * Size + Size - 2f;
 
 		switch (f){
-			case FIRE:      EnchantRecipes.fire( x, y, feet ); break;
-			case ICE:       EnchantRecipes.ice( x, y, feet ); break;
-			case LIGHTNING: EnchantRecipes.storm( x, y, feet ); break;
-			case POISON:    EnchantRecipes.venom( x, y, feet ); break;
-			case DARK:      EnchantRecipes.dark( x, y, feet ); break;
+			case FIRE:      EnchantRecipes.fire( x, y, feet, colorOf( e ) ); break;
+			case ICE:       EnchantRecipes.ice( x, y, feet, colorOf( e ) ); break;
+			case LIGHTNING: EnchantRecipes.storm( x, y, feet, colorOf( e ) ); break;
+			case POISON:    EnchantRecipes.venom( x, y, feet, colorOf( e ) ); break;
+			case DARK:      EnchantRecipes.dark( x, y, feet, colorOf( e ) ); break;
 			default:        burst( x, y, f, color( f ) ); break;
 		}
 		procs++;
