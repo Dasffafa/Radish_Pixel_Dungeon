@@ -55,7 +55,10 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.EmoIcon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
+import com.shatteredpixel.shatteredpixeldungeon.effects.AmbientCritters;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
+import com.shatteredpixel.shatteredpixeldungeon.effects.WaterCycle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.WaterWade;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -182,6 +185,8 @@ public class GameScene extends PixelScene {
 	private Group levelWallVisuals;
 	private Group customWalls;
 	private Group ripples;
+	private Group waterFront;
+	private String waterPath;
 	private Group plants;
 	private Group traps;
 	private Group heaps;
@@ -244,10 +249,11 @@ public class GameScene extends PixelScene {
 		terrain = new Group();
 		add( terrain );
 
+		waterPath = Dungeon.level.waterTex();
 		water = new SkinnedBlock(
 			Dungeon.level.width() * DungeonTilemap.SIZE,
 			Dungeon.level.height() * DungeonTilemap.SIZE,
-			Dungeon.level.waterTex() ){
+			waterPath ){
 
 			@Override
 			protected NoosaScript script() {
@@ -308,6 +314,11 @@ public class GameScene extends PixelScene {
 		mobs = new Group();
 		add( mobs );
 
+		// 踩水的水线要盖在人物下半身上，所以放在 mobs 之后
+		waterFront = new Group();
+		add( waterFront );
+		WaterWade.init( waterFront );
+
 		// 不占回合的阻塞动画（Hero.playAnimationNoTime）靠旧场景里的精灵回调 / VirtualTimer 清位；
 		// 场景重建后它们都随旧场景没了，这里直接收尾，否则英雄的 act() 会永远 return false。
 		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.JumbleChangeBuff.abortPendingVisual();
@@ -343,6 +354,7 @@ public class GameScene extends PixelScene {
 
 		add( emitters );
 		add( effects );
+		AmbientCritters.init( effects );
 
 		gases = new Group();
 		add( gases );
@@ -956,6 +968,9 @@ public class GameScene extends PixelScene {
 		if (notifyDelay > 0) notifyDelay -= Game.elapsed;
 
 		if (!Emitter.freezeEmitters) water.offset( 0, -5 * Game.elapsed );
+		WaterCycle.tick( water, waterPath, Game.timeTotal );
+		WaterWade.update( Game.timeTotal );
+		AmbientCritters.update();
 
 		if (!Actor.processing() && Dungeon.hero.isAlive()) {
 			if (actorThread == null || !actorThread.isAlive()) {
