@@ -222,4 +222,108 @@ final class EnchantRecipes {
 					.life( 1.2f ).alpha( ctx.a( 0.7f ), 0.15f, 0.6f ).snap().priority( FxBudget.P1 );
 		}
 	}
+
+	// ---------------------------------------------------------------- 击杀特效（各族）
+
+	/** 击杀：火（大火焰 + 火星 + 焦痕）/ 冰（全身碎裂）/ 雷（连续电弧 + 烟）/ 毒 / 暗 */
+	static void finisher( EnchantFx.Family f, float cx, float cy, float feet, int tint, EnchantFx.Ctx ctx ){
+		FxEmitter air = Fx.air();
+		if (air == null) return;
+		switch (f){
+			case FIRE: {
+				FxParticle p = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 2.4f );
+				p.reset( cx, cy + 2f ).look( FxFrames.TONGUE_L, 10f ).paint( tint )
+						.vel( 0, -14f ).life( 0.5f ).alpha( ctx.a( 1f ), 0, 0.2f ).priority( FxBudget.P0 );
+				for (int i = 0; i < 7; i++){
+					FxParticle e = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.6f );
+					e.reset( cx + FxRandom.Float( -5f, 5f ), cy + FxRandom.Float( -4f, 4f ) )
+							.look( FxFrames.EMBER_1 ).paint( EnchantFx.light( tint, 0.3f ) )
+							.polar( FxRandom.angle(), 30f ).drag( 2.4f ).gravity( -14f )
+							.life( FxRandom.Float( 0.7f, 1.1f ) ).alpha( ctx.a( 0.95f ), 0, 0.2f )
+							.priority( FxBudget.P2 );
+				}
+				FxDecal.at( cx, feet + 1f, FxFrames.SCORCH_M, FxRecipes.SCORCH_COLOR, 0.8f,
+						FxRecipes.SCORCH_HOLD, FxRecipes.SCORCH_FADE, false );
+				break;
+			}
+			case ICE: {
+				for (int i = 0; i < 8; i++){
+					FxParticle s = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.7f );
+					boolean glass = i >= 6;
+					s.reset( cx + FxRandom.Float( -3f, 3f ), cy + FxRandom.Float( -3f, 3f ) )
+							.look( glass ? FxFrames.SHARD_GLASS : FxFrames.SHARD_ICE, 0 )
+							.paint( glass ? EnchantFx.light( tint, 0.6f ) : tint )
+							.polar( FxRandom.angle(), FxRandom.Float( 40f, 80f ) ).gravity( 170f ).spin( 0.08f )
+							.ground( feet + FxRandom.Float( -1f, 2f ), FxParticle.BOUNCE, 0.35f )
+							.life( FxRandom.Float( 0.6f, 0.95f ) ).alpha( ctx.a( 1f ), 0, 0.25f )
+							.priority( FxBudget.P2 );
+				}
+				FxDecal.at( cx, feet + 1f, FxFrames.RIME[FxFrames.RIME.length - 1], EnchantFx.dark( tint, 0.35f ),
+						0.7f, RIME_HOLD, RIME_FADE, false );
+				break;
+			}
+			case LIGHTNING: {
+				for (int i = 0; i < 6; i++){
+					FxParticle s = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f );
+					s.reset( cx + FxRandom.Float( -4f, 4f ), cy + FxRandom.Float( -4f, 4f ) )
+							.look( FxFrames.SPARK_2 ).orient().slow( FxFrames.MOTE_1, 15f ).paint( tint )
+							.polar( FxRandom.angle(), FxRandom.Float( 40f, 80f ) )
+							.gravity( 130f ).drag( 1.1f )
+							.ground( feet + FxRandom.Float( -1f, 3f ), FxParticle.BOUNCE, 0.35f )
+							.life( FxRandom.Float( 0.35f, 0.6f ) ).alpha( ctx.a( 1f ), 0, 0.15f )
+							.priority( FxBudget.P2 );
+				}
+				FxParticle puff = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 2f );
+				puff.reset( cx, cy - 2f ).look( FxFrames.PUFF_S, 0 ).paint( 0x9AA0B0 ).smooth()
+						.vel( 0, -10f ).life( 0.8f ).alpha( ctx.a( 0.5f ), 0.05f, 0.4f )
+						.priority( FxBudget.P2 );
+				FxDecal.at( cx, feet + 1f, FxFrames.ETCH, ETCH, 0.7f, 3f, 0.6f, false );
+				break;
+			}
+			case POISON: {
+				for (int i = 0; i < 6; i++){
+					FxParticle d = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.7f );
+					d.reset( cx + FxRandom.Float( -5f, 5f ), cy + FxRandom.Float( -4f, 3f ) )
+							.look( FxFrames.DROP_3 ).paint( tint ).orient()
+							.polar( (float)(Math.PI / 2) + FxRandom.Float( -1.2f, 1.2f ), FxRandom.Float( 30f, 60f ) )
+							.gravity( 240f ).life( FxRandom.Float( 0.5f, 0.9f ) )
+							.alpha( ctx.a( 0.95f ), 0, 0.25f ).priority( FxBudget.P2 );
+				}
+				for (int i = 0; i < 3; i++){
+					FxParticle g = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 2.2f );
+					g.reset( cx + FxRandom.Float( -6f, 6f ), cy ).look( FxFrames.GAS_S, 0 ).paint( tint ).smooth()
+							.vel( FxRandom.Float( -3f, 3f ), -6f ).life( 1.1f )
+							.alpha( ctx.a( 0.4f ), 0.1f, 0.5f ).priority( FxBudget.P3 );
+				}
+				break;
+			}
+			case DARK: {
+				FxParticle core = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 2.6f );
+				core.reset( cx, cy ).look( FxFrames.INK_CORE ).paint( EnchantFx.dark( tint, 0.45f ) )
+						.life( 1.3f ).alpha( ctx.a( 0.85f ), 0.1f, 0.6f ).snap().priority( FxBudget.P0 );
+				FxParticle ring = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 2.2f );
+				ring.reset( cx, cy ).look( new int[][]{ FxFrames.RING_23, FxFrames.RING_17, FxFrames.RING_13, FxFrames.RING_9 }, 8f )
+						.paint( tint ).life( 0.7f ).alpha( ctx.a( 0.8f ), 0, 0.3f ).priority( FxBudget.P1 );
+				for (int i = 0; i < 5; i++){
+					FxParticle w = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.7f );
+					w.reset( cx + FxRandom.Float( -5f, 5f ), cy + FxRandom.Float( -5f, 5f ) )
+							.look( FxFrames.INK_WISP, 3f ).paint( tint ).smooth()
+							.vel( FxRandom.Float( -3f, 3f ), -FxRandom.Float( 8f, 16f ) )
+							.life( FxRandom.Float( 0.7f, 1.2f ) ).alpha( ctx.a( 0.8f ), 0.1f, 0.5f )
+							.priority( FxBudget.P2 );
+				}
+				break;
+			}
+			default: {
+				for (int i = 0; i < 5; i++){
+					FxParticle s = EnchantFx.boost( (FxParticle) air.recycle( FxParticle.class ), 1.8f );
+					s.reset( cx, cy ).look( FxFrames.STAR4_5 ).paint( tint )
+							.polar( FxRandom.angle(), FxRandom.Float( 30f, 70f ) ).gravity( 100f )
+							.life( FxRandom.Float( 0.4f, 0.8f ) ).alpha( ctx.a( 0.95f ), 0, 0.2f )
+							.priority( FxBudget.P2 );
+				}
+				break;
+			}
+		}
+	}
 }

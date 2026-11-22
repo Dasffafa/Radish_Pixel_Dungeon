@@ -254,7 +254,7 @@ public final class EnchantFx {
 
 	/** 同目标 0.4 秒内的第二次触发算回响 */
 	private static final java.util.Map<Integer, Float> lastProcAt = new java.util.HashMap<>();
-	public static int weaks, mids, strongs, echoes, curses;
+	public static int weaks, mids, strongs, echoes, curses, kills;
 
 	/** 附魔触发（命中时）：按属性族放 Warped 的具体配方 */
 	public static void proc( Char defender, Weapon.Enchantment e ){
@@ -293,6 +293,13 @@ public final class EnchantFx {
 		if (cursed) tint = curseTint( tint );
 
 		bigFlash( x, y, tint, ctx );
+
+		// 这一击若足以致命，再放一套击杀特效
+		if (damage >= defender.HP && defender.isAlive()){
+			boolean special = SpecialFx.finisher( e.getClass().getSimpleName(), x, y, feet, tint, ctx );
+			if (!special) EnchantRecipes.finisher( f, x, y, feet, tint, ctx );
+			kills++;
+		}
 
 		// 特色附魔优先走专属特效
 		if (SpecialFx.play( e.getClass().getSimpleName(), x, y, feet, tint, ctx )){

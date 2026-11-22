@@ -14,9 +14,11 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxRandom;
  *
  * 用同一张 fx_sheet 的帧，靠"帧组合 + 运动方式 + 颜色"做出辨识度。
  */
-final class SpecialFx {
+public final class SpecialFx {
 
 	private SpecialFx(){}
+
+	public static int finishers;
 
 	private static final int[][] RING_GROW_S = { FxFrames.RING_5, FxFrames.RING_9, FxFrames.RING_13 };
 	private static final int[][] RING_GROW_M = { FxFrames.RING_9, FxFrames.RING_13, FxFrames.RING_17, FxFrames.RING_23 };
@@ -184,5 +186,100 @@ final class SpecialFx {
 		if (c != null) c.look( FxFrames.CROSS_5 ).paint( tint )
 				.life( 0.12f ).alpha( ctx.a( 0.9f ), 0, 0.05f ).snap().priority( FxBudget.P2 );
 		return true;
+	}
+
+	// ---------------------------------------------------------------- 特色附魔的击杀特效
+	static boolean finisher( String simpleName, float x, float y, float feet, int tint, EnchantFx.Ctx ctx ){
+		boolean done = specialFinisher( simpleName, x, y, feet, tint, ctx );
+		if (done) finishers++;
+		return done;
+	}
+
+	private static boolean specialFinisher( String simpleName, float x, float y, float feet, int tint, EnchantFx.Ctx ctx ){
+		switch (simpleName.toLowerCase()){
+			case "flowinglight": {
+				big( x, y, FxFrames.RING_23, tint, 2.6f, 0.5f );
+				for (int i = 0; i < 8; i++) rise( x, y, tint, 2.4f );
+				return true;
+			}
+			case "crystal": {
+				big( x, y, FxFrames.PLUS_5, 0xFFFFFF, 2.8f, 0.18f );
+				for (int i = 0; i < 8; i++){
+					FxParticle s = p( x, y, FxBudget.P2 );
+					if (s == null) break;
+					float a = (float)(2 * Math.PI * i / 8);
+					EnchantFx.boost( s, 2f ).look( FxFrames.SQ_4 ).paint( i % 2 == 0 ? tint : 0xFFFFFF )
+							.polar( a, FxRandom.Float( 40f, 70f ) ).spin( 0.15f ).gravity( 150f )
+							.life( FxRandom.Float( 0.6f, 1f ) ).alpha( ctx.a( 1f ), 0, 0.25f )
+							.priority( FxBudget.P2 );
+				}
+				FxDecal.at( x, feet + 1f, FxFrames.RIME[1], EnchantFx.dark( tint, 0.3f ), 0.7f, 2.5f, 1f, false );
+				return true;
+			}
+			case "pulse": {
+				for (int i = 0; i < 3; i++) big( x, y, RING_GROW_M[i], tint, 2.2f + i * 0.6f, 0.45f + i * 0.08f );
+				return true;
+			}
+			case "voidrift": {
+				big( x, y, FxFrames.INK_CORE, EnchantFx.dark( tint, 0.5f ), 3.2f, 1.4f );
+				big( x, y, FxFrames.RING_23, tint, 2.4f, 0.8f );
+				for (int i = 0; i < 7; i++) rise( x, y, tint, 2f );
+				return true;
+			}
+			case "soulrend": {
+				big( x, y, FxFrames.CROSS_5, EnchantFx.light( tint, 0.5f ), 3f, 0.25f );
+				for (int i = 0; i < 8; i++) rise( x, y, tint, 2.2f );
+				return true;
+			}
+			case "meteor": {
+				big( x, y, FxFrames.CORE_FLASH, EnchantFx.light( tint, 0.5f ), 3f, 0.3f );
+				for (int i = 0; i < 10; i++){
+					FxParticle s = p( x, y, FxBudget.P2 );
+					if (s == null) break;
+					EnchantFx.boost( s, 2f ).look( FxFrames.SPARK_3 ).paint( tint )
+							.polar( (float)(-Math.PI / 2) + FxRandom.Float( -1.4f, 1.4f ), FxRandom.Float( 40f, 90f ) )
+							.gravity( 200f ).life( FxRandom.Float( 0.5f, 0.9f ) )
+							.alpha( ctx.a( 1f ), 0, 0.2f ).priority( FxBudget.P2 );
+				}
+				FxDecal.at( x, feet + 1f, FxFrames.SCORCH_M, 0xFF7A20, 0.85f, 3f, 1.2f, false );
+				return true;
+			}
+			case "rainstorm": {
+				for (int i = 0; i < 12; i++){
+					FxParticle d = p( x + FxRandom.Float( -12f, 12f ), y - FxRandom.Float( 16f, 30f ), FxBudget.P2 );
+					if (d == null) break;
+					EnchantFx.boost( d, 1.8f ).look( FxFrames.DROP_3 ).paint( EnchantFx.light( tint, 0.3f ) )
+							.vel( FxRandom.Float( -5f, 5f ), FxRandom.Float( 90f, 130f ) ).gravity( 130f )
+							.life( FxRandom.Float( 0.25f, 0.4f ) ).alpha( ctx.a( 0.95f ), 0, 0.1f )
+							.priority( FxBudget.P2 );
+				}
+				big( x, y, FxFrames.RING_17, tint, 2.4f, 0.5f );
+				return true;
+			}
+			case "sweeping": {
+				big( x, y, FxFrames.RING_31, EnchantFx.light( tint, 0.4f ), 2.6f, 0.45f );
+				big( x, y, FxFrames.CROSS_5, tint, 2.4f, 0.2f );
+				return true;
+			}
+			default:
+				return false;
+		}
+	}
+
+	/** 大号一次性帧 */
+	private static void big( float x, float y, int[] frame, int tint, float scale, float life ){
+		FxParticle f = p( x, y, FxBudget.P0 );
+		if (f == null) return;
+		EnchantFx.boost( f, scale ).look( frame ).paint( tint ).life( life )
+				.alpha( 0.95f, 0, 0.15f ).snap().priority( FxBudget.P0 );
+	}
+
+	/** 上升的点 */
+	private static void rise( float x, float y, int tint, float scale ){
+		FxParticle m = p( x + FxRandom.Float( -5f, 5f ), y + FxRandom.Float( -5f, 5f ), FxBudget.P3 );
+		if (m == null) return;
+		EnchantFx.boost( m, scale ).look( FxFrames.MOTE_1 ).paint( EnchantFx.light( tint, 0.4f ) )
+				.vel( FxRandom.Float( -5f, 5f ), -FxRandom.Float( 18f, 34f ) ).drag( 1.1f )
+				.life( FxRandom.Float( 0.6f, 1.1f ) ).alpha( 0.9f, 0, 0.3f ).priority( FxBudget.P3 );
 	}
 }
