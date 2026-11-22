@@ -129,9 +129,19 @@ public class AutochessCombat {
 		self.sprite.visible = true;
 		try {
 			self.sprite.autochessTickRun();   // 防止 idle 把跑动动画盖掉
+			if (java.lang.Boolean.getBoolean("arena.debug")) {
+				animLog += delta;
+				if (animLog > 0.3f) {
+					animLog = 0f;
+					System.out.println("[ANIM] " + self.getClass().getSimpleName()
+							+ " running=" + self.sprite.autochessIsRunning());
+				}
+			}
 		} catch (Throwable ignored) {
 		}
 	}
+
+	private static float animLog = 0f;
 
 	/** 选一格并开始滑行（立刻提交占用，避免两只棋子挤同一格）。 */
 	private static boolean startMove(Mob self, UnitState st, Mob foe) {

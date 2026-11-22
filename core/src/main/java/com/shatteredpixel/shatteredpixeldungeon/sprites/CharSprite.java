@@ -310,6 +310,11 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	public void autochessStopRun() {
 		play( idle );
 	}
+
+	/** 调试：当前动画是不是 run。 */
+	public boolean autochessIsRunning() {
+		return curAnim == run;
+	}
 	
 	public static void setMoveInterval( float interval){
 		moveInterval = interval;
