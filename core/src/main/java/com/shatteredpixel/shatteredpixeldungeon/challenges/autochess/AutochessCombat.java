@@ -117,7 +117,7 @@ public class AutochessCombat {
 			self.sprite.x = st.tx;
 			self.sprite.y = st.ty;
 			try {
-				self.sprite.idle();
+				self.sprite.autochessStopRun();
 			} catch (Throwable ignored) {
 			}
 			st.targetCell = -1;
@@ -127,6 +127,10 @@ public class AutochessCombat {
 			self.sprite.y = y + dy / dist * step;
 		}
 		self.sprite.visible = true;
+		try {
+			self.sprite.autochessTickRun();   // 防止 idle 把跑动动画盖掉
+		} catch (Throwable ignored) {
+		}
 	}
 
 	/** 选一格并开始滑行（立刻提交占用，避免两只棋子挤同一格）。 */

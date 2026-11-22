@@ -298,6 +298,18 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		turnTo( from, to );
 		play( run );
 	}
+
+	/** 自走棋：滑行过程中每帧确保仍在播跑动动画（防被 idle 覆盖）。 */
+	public void autochessTickRun() {
+		if (curAnim != run) {
+			play( run );
+		}
+	}
+
+	/** 自走棋：到达目的地，切回待机。 */
+	public void autochessStopRun() {
+		play( idle );
+	}
 	
 	public static void setMoveInterval( float interval){
 		moveInterval = interval;
