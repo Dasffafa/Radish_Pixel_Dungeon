@@ -16,7 +16,13 @@ public final class AmbientPlayer {
 	private AmbientPlayer(){}
 
 	public static boolean audible(){
-		return SPDSettings.SFXVol() > 0;
+		return SPDSettings.soundFx() && SPDSettings.ambVol() > 0;
+	}
+
+	/** 环境音量系数（0..1，平方曲线，和音乐/音效滑块一致） */
+	public static float level(){
+		float v = SPDSettings.ambVol() / 10f;
+		return v * v;
 	}
 
 	private static void ensureLoaded(){
@@ -27,6 +33,7 @@ public final class AmbientPlayer {
 
 	/** 播一个环境音；pan = -1 左 … 1 右 */
 	public static void play( AmbientSound sound, float volume, float pitch, float pan ){
+		volume *= level();
 		if (sound == null || volume <= 0.004f || !audible()) return;
 		ensureLoaded();
 		String take = sound.takes[RNG.nextInt( sound.takes.length )];

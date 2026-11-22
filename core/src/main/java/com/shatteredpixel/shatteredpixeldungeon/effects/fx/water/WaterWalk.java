@@ -165,14 +165,13 @@ public final class WaterWalk {
 		}
 	}
 
-	/** 溅水声：按音量/声像播放（主角才响，避免一群怪在水里哗哗响） */
+	/** 踩水声：用引擎自带的 water.mp3（比 amb_splash 轻、更像涉水），只有主角触发 */
 	private static void splashSound( CharSprite s, float volume ){
 		if (s == null || s.ch == null || Dungeon.hero == null || s.ch != Dungeon.hero) return;
-		if (!com.shatteredpixel.shatteredpixeldungeon.levels.ambience.AmbientPlayer.audible()) return;
-		float pan = 0f;
-		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.AmbientPlayer.play(
-				com.shatteredpixel.shatteredpixeldungeon.levels.ambience.AmbientSound.SPLASH,
-				volume, 1f + FxRandom.Float( -0.08f, 0.08f ), pan );
+		if (!com.shatteredpixel.shatteredpixeldungeon.SPDSettings.soundFx()) return;
+		com.watabou.noosa.audio.Sample.INSTANCE.play(
+				com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.WATER,
+				volume, 0.94f + FxRandom.Float( 0.12f ) );
 	}
 
 	//a step on the lava: an added ring in its glow, two sparks

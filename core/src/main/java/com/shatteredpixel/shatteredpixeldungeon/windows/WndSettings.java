@@ -1042,6 +1042,8 @@ public class WndSettings extends WndTabbed {
 		ColorBlock sep2;
 		OptionSlider optSFX;
 		CheckBox chkMuteSFX;
+		ColorBlock sepAmb;
+		OptionSlider optAmb;
 		ColorBlock sep3;
 		CheckBox chkIgnoreSilent;
 		CheckBox chkMusicBG;
@@ -1073,6 +1075,18 @@ public class WndSettings extends WndTabbed {
 			};
 			chkMusicMute.checked(!SPDSettings.music());
 			add(chkMusicMute);
+
+			sepAmb = new ColorBlock(1, 1, 0xFF000000);
+			add(sepAmb);
+
+			optAmb = new OptionSlider(Messages.get(this, "amb_vol"), "0", "10", 0, 10) {
+				@Override
+				protected void onChange() {
+					SPDSettings.ambVol(getSelectedValue());
+				}
+			};
+			optAmb.setSelectedValue(SPDSettings.ambVol());
+			add(optAmb);
 
 			sep2 = new ColorBlock(1, 1, 0xFF000000);
 			add(sep2);
@@ -1155,6 +1169,10 @@ public class WndSettings extends WndTabbed {
 				optSFX.setRect(optMusic.right()+2, sep2.y + 1 + GAP, width/2-1, SLIDER_HEIGHT);
 				chkMuteSFX.setRect(chkMusicMute.right()+2, optSFX.bottom() + GAP, width/2-1, BTN_HEIGHT);
 
+				sepAmb.size(width, 1);
+				sepAmb.y = Math.max(chkMusicMute.bottom(), chkMuteSFX.bottom()) + GAP;
+				optAmb.setRect(0, sepAmb.y + 1 + GAP, width, SLIDER_HEIGHT);
+
 			} else {
 				optMusic.setRect(0, sep1.y + 1 + GAP, width, SLIDER_HEIGHT);
 				chkMusicMute.setRect(0, optMusic.bottom() + GAP, width, BTN_HEIGHT);
@@ -1164,9 +1182,13 @@ public class WndSettings extends WndTabbed {
 
 				optSFX.setRect(0, sep2.y + 1 + GAP, width, SLIDER_HEIGHT);
 				chkMuteSFX.setRect(0, optSFX.bottom() + GAP, width, BTN_HEIGHT);
+
+				sepAmb.size(width, 1);
+				sepAmb.y = chkMuteSFX.bottom() + GAP;
+				optAmb.setRect(0, sepAmb.y + 1 + GAP, width, SLIDER_HEIGHT);
 			}
 
-			height = chkMuteSFX.bottom();
+			height = optAmb.bottom();
 
 			if (chkIgnoreSilent != null){
 				sep3.size(width, 1);

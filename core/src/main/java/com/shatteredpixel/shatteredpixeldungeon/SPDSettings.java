@@ -400,6 +400,7 @@ public class SPDSettings extends GameSettings {
 	public static final String KEY_SFX_VOL      = "sfx_vol";
 	public static final String KEY_IGNORE_SILENT= "ignore_silent";
 	public static final String KEY_MUSIC_BG     = "music_bg";
+	public static final String KEY_AMB_VOL      = "amb_vol";
 	
 	public static void music( boolean value ) {
 		Music.INSTANCE.enable( value );
@@ -435,6 +436,15 @@ public class SPDSettings extends GameSettings {
 	
 	public static int SFXVol() {
 		return getInt( KEY_SFX_VOL, 10, 0, 10 );
+	}
+
+	/** 环境音（水面、滴水、小动物、关卡音床）单独一档 */
+	public static void ambVol( int value ) {
+		put( KEY_AMB_VOL, value );
+	}
+
+	public static int ambVol() {
+		return getInt( KEY_AMB_VOL, 10, 0, 10 );
 	}
 
 	public static void ignoreSilentMode( boolean value ){
