@@ -304,6 +304,23 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	private int autoFrameIdx = 0;
 
 	/** 自走棋：手动推进走位动画帧（不依赖 MovieClip 的 finished/paused 判定）。 */
+	/** 自走棋：站立时也手动推进 idle 呼吸帧，避免看起来完全静止。 */
+	public void autochessIdleTick(float dt) {
+		if (curAnim != idle) {
+			play(idle);
+			autoFrameIdx = 0;
+			autoFrameTimer = 0f;
+		}
+		if (idle == null || idle.frames == null || idle.frames.length < 2 || idle.delay <= 0f) return;
+		autoFrameTimer += dt;
+		int guard = 0;
+		while (autoFrameTimer > idle.delay && guard++ < 8) {
+			autoFrameTimer -= idle.delay;
+			autoFrameIdx = (autoFrameIdx + 1) % idle.frames.length;
+			frame(idle.frames[autoFrameIdx]);
+		}
+	}
+
 	public void autochessAdvance(float dt) {
 		Animation a = autochessWalkAnim();
 		if (a == null || a.frames == null || a.frames.length < 2 || a.delay <= 0f) return;
