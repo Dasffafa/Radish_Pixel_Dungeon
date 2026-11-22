@@ -292,6 +292,12 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		}
 
 	}
+
+	/** 自走棋：只启动跑动动画与朝向，位置由调用方逐帧插值（不创建补间）。 */
+	public void autochessStartRun( int from, int to ) {
+		turnTo( from, to );
+		play( run );
+	}
 	
 	public static void setMoveInterval( float interval){
 		moveInterval = interval;
