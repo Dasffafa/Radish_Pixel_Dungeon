@@ -254,6 +254,12 @@ public final class Fx {
 		return glowAir;
 	}
 
+	/** 调试/验收：loose matter 里当前有多少粒子 */
+	public static int airCount(){
+		FxEmitter a = air();
+		return a == null ? 0 : a.live();
+	}
+
 	private static FxEmitter holder( FxEmitter e ){
 		if (e == null) return null;
 		e.on = false;

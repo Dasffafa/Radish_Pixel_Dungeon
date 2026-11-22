@@ -66,6 +66,11 @@ public class FxEmitter extends Emitter {
 		lightMode = false;
 	}
 
+	/** 当前挂着的粒子数（调试/验收） */
+	public int live(){
+		return length;
+	}
+
 	/** 本仓库的 Emitter 没暴露子节点，给 fx 模块遍历用 */
 	public java.util.List<com.watabou.noosa.Gizmo> members(){
 		return members;
