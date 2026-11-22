@@ -59,7 +59,6 @@ public class ItemSlot extends Button {
 	protected BitmapText extra;
 	protected Image      itemIcon;
 	/** 附魔物品的旋转光环 */
-	protected Image      shine;
 	protected BitmapText level;
 	protected BitmapText special;
 
@@ -229,70 +228,230 @@ public class ItemSlot extends Button {
 		}
 	}
 
-	/** 测试用：这个格子现在有没有附魔扫光 */
-	public boolean hasAura(){
-		return hasShine;
+	// ======================================================================
+	//  附魔物品的光效（参数抄自 APK 反编译的 effects/fx/enchant/ItemAura 与 ui/ItemSlot）
+	//  1) streak：2s 一次、0.1s、-45° 的高光
+	//  2) stillRing：2s 一次、前 0.53s 的脚下光环 RING_5
+	//  3) 边框火花：沿格子边框跑动的 3 连块高光（数量按升级等级）
+	//  4) vicious：刀身斜向火花 SPARK_2
+	// ======================================================================
+
+	/** 测试用：这个格子有没有附魔光效 */
+	public boolean hasAura(){ return hasShine || sparkBlocks > 0; }
+	/** 测试用：各 motif 是否可见 */
+	public boolean streakVisible(){ return shine != null && shine.visible; }
+	public boolean ringVisible(){ return ring != null && ring.visible; }
+	public boolean viciousVisible(){ return vicious != null && vicious.visible; }
+	public int borderSparksVisible(){
+		int n = 0;
+		for (int i = 0; i < sparkBlocks; i++) if (sparks[i] != null && sparks[i].visible) n++;
+		return n;
 	}
 
-	/** 测试用：扫光此刻是否可见 */
-	public boolean shineActive(){
-		return shine != null && shine.visible;
+	/** 测试用：此刻有几种光效可见 */
+	public int shineActive(){
+		int n = 0;
+		if (shine != null && shine.visible) n++;
+		if (ring != null && ring.visible) n++;
+		if (vicious != null && vicious.visible) n++;
+		for (int i = 0; i < sparkBlocks; i++) if (sparks[i] != null && sparks[i].visible) n++;
+		return n;
 	}
 
-	/**
-	 * 附魔装备的高光：照抄 Warped 的 ItemAura.streak()。
-	 * 每 2 秒一次，只在前 0.1 秒出现：STREAK_TAPER 帧、-45°、缩放 (0.85, 0.6)，
-	 * 前 0.05 秒 alpha 0.9，之后 0.45。
-	 */
-	private static final float STREAK_PERIOD = 2f;
-	private static final float STREAK_FOR = 0.1f;
-	private float streakPhase = com.watabou.utils.Random.Float( 2f );
+	private static final float STREAK_PERIOD = 2f, STREAK_FOR = 0.1f;
+	private static final float RING_FOR = 0.53f;
+	private static final float SPARK_MIN_SPEED = 6f, SPARK_MAX_SPEED = 16f;
+
+	private Image shine;
+	private Image ring;
+	private Image vicious;
+	private final com.watabou.noosa.ColorBlock[] sparks = new com.watabou.noosa.ColorBlock[15];
+	private int sparkBlocks;
+	private final float[] sparkPos = new float[5];
+	private final float[] sparkSpeed = new float[5];
+	private boolean hasShine;
+	private int shineColor;
+	private float phase = com.watabou.utils.Random.Float( 2f );
+
+	/** 附魔/升级等级决定火花数量（Warped 用稀有度，这里用等级近似） */
+	private int sparkCount(){
+		if (item == null) return 0;
+		int lvl = Math.max( 0, item.level() );
+		int n = 2 + Math.min( 3, lvl / 2 );
+		return hasShine ? n : (lvl >= 2 ? 1 : 0);
+	}
 
 	protected void updateAura(){
 		int color = item == null ? 0
 				: com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
 
-		if (color == 0){
-			if (shine != null) shine.visible = false;
-			hasShine = false;
+		hasShine = color != 0;
+		if (!hasShine && (item == null || item.level() <= 1)){
+			hideAll();
 			return;
 		}
+		if (color == 0) color = 0xE8F0FF; // 只有升级、没有附魔：冷白
+		shineColor = color;
+
 		if (shine == null){
 			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.STREAK_TAPER;
 			shine = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
 			shine.visible = false;
 			add( shine );
 		}
-		hasShine = true;
-		shineColor = color;
+		if (ring == null){
+			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.RING_5;
+			ring = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
+			ring.visible = false;
+			add( ring );
+		}
+		if (vicious == null){
+			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.SPARK_2;
+			vicious = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
+			vicious.visible = false;
+			add( vicious );
+		}
+		if (sparks[0] == null){
+			for (int i = 0; i < sparks.length; i++){
+				sparks[i] = new com.watabou.noosa.ColorBlock( 1f, 1f, -1 );
+				sparks[i].visible = false;
+				add( sparks[i] );
+			}
+		}
+
 		shine.hardlight( color );
-		bringToFront( shine );
+		ring.hardlight( color );
+		vicious.hardlight( color );
+
+		int n = sparkCount();
+		sparkBlocks = Math.min( 5, n ) * 3;
+		for (int i = 0; i < sparks.length; i++){
+			boolean on = i < sparkBlocks;
+			sparks[i].visible = on;
+			if (on){
+				sparks[i].hardlight( color );
+				if (i % 3 == 0 && sparkSpeed[i / 3] == 0f){
+					sparkPos[i / 3] = com.watabou.utils.Random.Float( 80f );
+					sparkSpeed[i / 3] = com.watabou.utils.Random.Float( SPARK_MIN_SPEED, SPARK_MAX_SPEED )
+							* (com.watabou.utils.Random.Int( 2 ) == 0 ? 1f : -1f);
+				}
+			}
+		}
+		applyOrder();
 	}
 
-	private boolean hasShine;
-	private int shineColor;
+	/** 光效压在图标下面/上面 */
+	private void applyOrder(){
+		if (shine != null) bringToFront( shine );
+		if (vicious != null) bringToFront( vicious );
+		if (ring != null) sendToBack( ring );
+		for (int i = 0; i < sparks.length; i++) if (sparks[i] != null) bringToFront( sparks[i] );
+	}
+
+	private void hideAll(){
+		if (shine != null) shine.visible = false;
+		if (ring != null) ring.visible = false;
+		if (vicious != null) vicious.visible = false;
+		for (com.watabou.noosa.ColorBlock b : sparks) if (b != null) b.visible = false;
+		sparkBlocks = 0;
+	}
+
+	/** 高光时刻：2s 周期内前 0.1s */
+	public static boolean streakOn( float t ){ return mod( t, STREAK_PERIOD ) < STREAK_FOR; }
+	/** 脚下光环：2s 周期内前 0.53s */
+	public static boolean ringOn( float t ){ return mod( t, STREAK_PERIOD ) < RING_FOR; }
+	/** 刀身火花：0.8s 周期内前 0.12s */
+	public static boolean viciousOn( float t ){ return mod( t, 0.8f ) < 0.12f; }
+
+	private static float mod( float t, float period ){
+		float m = t - (float)Math.floor( t / period ) * period;
+		return m < 0 ? m + period : m;
+	}
 
 	@Override
 	public void update(){
 		super.update();
-		if (!hasShine || shine == null) return;
+		if (item == null || sprite == null) return;
+		if (shine == null) return;
 
-		float t = com.watabou.noosa.Game.timeTotal + streakPhase;
-		float mod = t - (float)Math.floor( t / STREAK_PERIOD ) * STREAK_PERIOD;
+		float t = com.watabou.noosa.Game.timeTotal + phase;
+		float sx = sprite.x + sprite.width() / 2f;
+		float sy = sprite.y + sprite.height() / 2f;
 
-		if (mod >= STREAK_FOR){
+		// 1) streak
+		float sm = mod( t, STREAK_PERIOD );
+		if (sm < STREAK_FOR){
+			shine.visible = true;
+			shine.angle = -45f;
+			shine.scale.set( 0.85f, 0.6f );
+			shine.x = sx - shine.width() * 0.85f / 2f;
+			shine.y = sy - shine.height() * 0.6f / 2f;
+			shine.am = (sm < 0.05f ? 0.9f : 0.45f);
+		} else {
 			shine.visible = false;
-			return;
 		}
 
-		if (shine.width() == 0f || sprite == null) return;
+		// 2) stillRing：RING_5 在脚下 2s 一次、前 0.53s
+		float rm = mod( t, STREAK_PERIOD );
+		if (!hasShine || rm >= RING_FOR){
+			if (ring != null) ring.visible = false;
+		} else {
+			float grow = Math.min( 1f, rm / 0.25f );
+			float a = 0.8f;
+			if (rm < 0.25f) a = grow * 0.25f + 0.55f;
+			else if (rm >= 0.45f) a = 0.8f * (1f - ((rm - 0.45f) / 0.08f));
+			ring.visible = a > 0.02f;
+			ring.scale.set( grow * 0.8f + 1f );
+			ring.x = sx - ring.width() * ring.scale.x / 2f;
+			ring.y = sprite.y + sprite.height() - 2f;
+			ring.am = Math.max( 0f, Math.min( 1f, a ) );
+		}
 
-		shine.visible = true;
-		shine.angle = -45f;
-		shine.scale.set( 0.85f, 0.6f );
-		shine.x = sprite.x + sprite.width() / 2f - shine.width() * 0.85f / 2f;
-		shine.y = sprite.y + sprite.height() / 2f - shine.height() * 0.6f / 2f;
-		shine.am = (mod < 0.05f ? 0.9f : 0.45f);
+		// 3) vicious：0.8s 一轮，刀身 45° 火花闪 0.12s
+		float vm = mod( t, 0.8f );
+		if (!hasShine || vm >= 0.12f){
+			if (vicious != null) vicious.visible = false;
+		} else {
+			vicious.visible = true;
+			vicious.angle = 45f;
+			vicious.scale.set( 0.9f, 0.7f );
+			vicious.x = sprite.x + sprite.width() * 0.55f - vicious.width() * 0.45f;
+			vicious.y = sprite.y + sprite.height() * 0.45f - vicious.height() * 0.35f;
+			vicious.am = 1f - (vm / 0.12f);
+		}
+
+		// 4) 边框火花：沿格子边框跑动
+		if (sparkBlocks > 0 && sparkPos.length > 0){
+			float fw = width - 1f, fh = height - 1f;
+			float perim = (fw + fh - 2f) * 2f;
+			for (int i = 0; i < sparkBlocks / 3; i++){
+				sparkPos[i] = mod( sparkPos[i] + sparkSpeed[i] * com.watabou.noosa.Game.elapsed, perim );
+				float sign = Math.signum( sparkSpeed[i] );
+				for (int k = 0; k < 3; k++){
+					com.watabou.noosa.ColorBlock b = sparks[i * 3 + k];
+					placeOnFrame( b, mod( sparkPos[i] - k * sign, perim ), fw, fh );
+					b.alpha( (k == 0 ? 1f : k == 1 ? 0.6f : 0.3f) );
+					b.visible = true;
+				}
+			}
+		}
+	}
+
+	/** 沿格子边框走：抄自 APK 的 placeOnFrame */
+	private void placeOnFrame( com.watabou.noosa.ColorBlock b, float d, float fw, float fh ){
+		float x, y;
+		if (d < fw){
+			x = d; y = 0;
+		} else if (d < fw + fh){
+			x = fw; y = d - fw;
+		} else if (d < 2f * fw + fh){
+			x = fw - (d - fw - fh); y = fh;
+		} else {
+			x = 0; y = fh - (d - 2f * fw - fh);
+		}
+		b.x = x + 1f;
+		b.y = y + 1f;
+		b.size( 1f, 1f );
 	}
 
 	public void updateText(){

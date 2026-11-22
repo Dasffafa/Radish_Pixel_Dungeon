@@ -393,3 +393,17 @@ quad.am = (mod < 0.05f ? 0.9f : 0.45f);      // 前 0.05 秒更亮
 **没搬的**：Warped 的 ItemAura 还有 ring/mote/glint 多种 motif、按稀有度决定数量、
 以及 `stillRing`（RING_5 在物品脚下脉动）、`vicious`（剑身火花）等；这些依赖它的
 EnchantLook/ItemLooks 框架，暂未搬。
+
+## ItemAura 的另外三种 motif（抄自 APK 反编译）
+
+反编译源码：`E:\work-2\radish-merge\apk-src\sources`（jadx）。照抄到 `ui/ItemSlot`：
+
+| motif | 抄来的参数 |
+|---|---|
+| **streak** | 2s 周期，仅前 0.1s；`STREAK_TAPER`；-45°；scale(0.85,0.6)；alpha 0.9/0.45 |
+| **stillRing** | 2s 周期，前 0.53s；`RING_5`；scale `1 + 0.8*min(1, mod/0.25)`；alpha 0.55→0.8→回落的曲线；贴在图标脚下 |
+| **vicious** | 0.8s 周期，前 0.12s；`SPARK_2`；+45°；scale(0.9,0.7)；alpha 1→0 |
+| **边框火花** | 15 个 1px 块（5 火花 × 3 连）；沿格子边框按 `placeOnFrame` 跑动；速度 6~16 px/s（随机方向）；拖尾 alpha 1/0.6/0.3 |
+
+差异说明：APK 里火花数量由**稀有度**（Quality/Rarity）决定，本分支没有稀有度系统，
+改用**物品升级等级**近似：`2 + min(3, level/2)` 个火花；白板且 level<=1 不显示。
