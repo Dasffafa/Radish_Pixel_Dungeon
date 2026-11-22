@@ -66,6 +66,11 @@ public class FxEmitter extends Emitter {
 		lightMode = false;
 	}
 
+	/** 本仓库的 Emitter 没暴露子节点，给 fx 模块遍历用 */
+	public java.util.List<com.watabou.noosa.Gizmo> members(){
+		return members;
+	}
+
 	/** Drawn as light (added) though it is never started: a holder of loose light. */
 	public void holdLight(){
 		lightMode = true;

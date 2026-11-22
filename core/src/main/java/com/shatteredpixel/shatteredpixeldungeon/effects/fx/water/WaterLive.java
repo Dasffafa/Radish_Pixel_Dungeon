@@ -187,12 +187,63 @@ public class WaterLive extends Group {
 		sheens( l, dt );
 		lavaGlow( l, dt );
 		pocks( l, dt );
+		driveFalls( level, l, dt );
 		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
 		if (dt > 0f && (dropIn -= dt) <= 0f){
 			dropIn = 0.35f + FxRandom.Float( 0.9f );
 			dripOne( level, l );
 		}
 		// 本仓库没有水面氛围模块
+	}
+
+	/** 视野内"水→深渊"的边缘：把水沿边滴下去（Warped 的 WaterFalls） */
+	private void driveFalls( Level level, Element.Liquid l, float dt ){
+		if (dt <= 0f || level == null || level.water == null) return;
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter air =
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.air();
+		if (air == null) return;
+
+		seenFalls.clear();
+		int w = level.width(), h = level.height();
+		int x0 = Math.max( 0, (int)( boxX / SIZE ) ), x1 = Math.min( w - 1, (int)( (boxX + boxW) / SIZE ) );
+		int y0 = Math.max( 0, (int)( boxY / SIZE ) ), y1 = Math.min( h - 1, (int)( (boxY + boxH) / SIZE ) );
+
+		for (int y = y0; y <= y1 && falls.size() < 8; y++){
+			for (int x = x0; x <= x1 && falls.size() < 8; x++){
+				int cell = x + y * w;
+				if (!level.water[cell]) continue;
+
+				int side = -2;
+				if (y + 1 < h && isPit( level, cell + w )) side = 0;
+				else if (x - 1 >= 0 && isPit( level, cell - 1 )) side = -1;
+				else if (x + 1 < w && isPit( level, cell + 1 )) side = 1;
+				if (side == -2) continue;
+
+				WaterFalls.Fall f = falls.get( cell );
+				if (f == null){
+					f = WaterFalls.fall( level, cell, side );
+					falls.put( cell, f );
+					air.add( f.lip() );
+					fallEdges++;
+				}
+				seenFalls.add( cell );
+				WaterFalls.fall( f, air, level.heroFOV[cell], dt );
+			}
+		}
+		// 不在视野/不再成立的边：撤掉
+		java.util.Iterator<java.util.Map.Entry<Integer,WaterFalls.Fall>> it = falls.entrySet().iterator();
+		while (it.hasNext()){
+			java.util.Map.Entry<Integer,WaterFalls.Fall> e = it.next();
+			if (!seenFalls.contains( e.getKey() )){
+				e.getValue().lip().kill();
+				it.remove();
+			}
+		}
+	}
+
+	private static boolean isPit( Level level, int cell ){
+		if (cell < 0 || cell >= level.map.length) return false;
+		return level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.CHASM;
 	}
 
 	/** 在视野内随机一格水面滴水：三成是一颗从上落下的水珠，其余是落水的小涟漪 */
@@ -379,6 +430,10 @@ public class WaterLive extends Group {
 	/** 屋顶滴水：计时与计数 */
 	private float dropIn = 0.3f;
 	public static int drips;
+	/** 水沿边缘往深渊里滴 */
+	private final java.util.Map<Integer,WaterFalls.Fall> falls = new java.util.HashMap<>();
+	private final java.util.Set<Integer> seenFalls = new java.util.HashSet<>();
+	public static int fallEdges;
 	private float boxX, boxY, boxW, boxH;
 	//the cells in view, and one round them
 	private int vx0, vy0, vx1, vy1;
