@@ -195,8 +195,11 @@ public class GameScene extends PixelScene {
 	private String waterPath;
 	// Warped 的全局昼夜色调：整张地图一层冷色暗罩
 	private com.watabou.noosa.ColorBlock dayNightOverlay;
-	private static float tintA = 0.12f;
-	private static int tintColor = 0x22304A;
+	private static float tintA = 0f;
+	private static float tintR = 0f, tintG = 0f, tintB = 0f;
+	private static final float TINT_LERP_SPEED = 1.5f;
+	/** 调试：强制日夜颜色（-1 = 跟随 DayNightCycle） */
+	public static float debugTintOverride = -1f;
 	private Group plants;
 	private Group traps;
 	private Group heaps;
@@ -397,7 +400,8 @@ public class GameScene extends PixelScene {
 				Dungeon.level.width() * DungeonTilemap.SIZE,
 				Dungeon.level.height() * DungeonTilemap.SIZE,
 				0xFFFFFFFF );
-		dayNightOverlay.hardlight( tintColor );
+		updateDayNightTint();
+		dayNightOverlay.hardlight( tintR, tintG, tintB );
 		dayNightOverlay.alpha( tintA );
 		add( dayNightOverlay );
 
@@ -1004,6 +1008,8 @@ public class GameScene extends PixelScene {
 		if (notifyDelay > 0) notifyDelay -= Game.elapsed;
 
 		if (!Emitter.freezeEmitters) water.offset( 0, -waterScroll * Game.elapsed );
+		updateDayNightTint();
+		applyDayNightTint();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.frame();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX.frame();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.update( Game.elapsed );
@@ -1423,10 +1429,50 @@ public class GameScene extends PixelScene {
 	/** 夜色浓度，0 = 白天（本仓库没有昼夜系统） */
 	public static float nightTintAlpha(){ return tintA; }
 
-	/** 调试/验收：设全局夜色强度（0 = 白天） */
+	/** 调试/验收：固定全局夜色强度（0 = 白天，负数 = 交还给昼夜循环） */
 	public static void setNightTint( float a ){
+		debugTintOverride = a;
+		if (a < 0f) return;
 		tintA = Math.max( 0f, Math.min( 1f, a ) );
-		if (scene != null && scene.dayNightOverlay != null) scene.dayNightOverlay.alpha( tintA );
+		tintR = tintG = tintB = 0.12f;
+		if (scene != null && scene.dayNightOverlay != null){
+			scene.dayNightOverlay.hardlight( tintR, tintG, tintB );
+			scene.dayNightOverlay.alpha( tintA );
+		}
+	}
+
+	/** 每帧：从 DayNightCycle 取色调与亮度，平滑插到当前值 */
+	private static void updateDayNightTint(){
+		float[] tint = com.shatteredpixel.shatteredpixeldungeon.actors.DayNightCycle.phaseTintSmooth();
+		float brightness = com.shatteredpixel.shatteredpixeldungeon.actors.DayNightCycle.brightnessMult();
+
+		float a = tint[0], r = tint[1], g = tint[2], b = tint[3];
+		if (debugTintOverride >= 0f){
+			a = debugTintOverride; r = g = b = 0.12f;
+		} else if (brightness < 1f){
+			float darkA = 1f - brightness;
+			float totalA = Math.min( 1f, darkA + a );
+			if (totalA > 0f){
+				float w = a / totalA;
+				r *= w; g *= w; b *= w;
+			}
+			a = totalA;
+		}
+		if (debugTintOverride >= 0f){
+			tintR = r; tintG = g; tintB = b; tintA = a;
+			return;
+		}
+		float speed = TINT_LERP_SPEED * Game.elapsed;
+		tintR += (r - tintR) * speed;
+		tintG += (g - tintG) * speed;
+		tintB += (b - tintB) * speed;
+		tintA += (a - tintA) * speed;
+	}
+
+	private void applyDayNightTint(){
+		if (dayNightOverlay == null) return;
+		dayNightOverlay.hardlight( tintR, tintG, tintB );
+		dayNightOverlay.alpha( tintA );
 	}
 
 	public static float waterScroll = 5f;
