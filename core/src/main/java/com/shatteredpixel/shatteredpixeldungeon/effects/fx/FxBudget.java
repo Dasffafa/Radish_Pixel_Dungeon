@@ -80,6 +80,8 @@ public final class FxBudget {
 	private static final AtomicIntegerArray live = new AtomicIntegerArray( KINDS );
 	private static final AtomicInteger spawnsLeft = new AtomicInteger( SPAWNS );
 	private static volatile int tier = FULL;
+	/** 帧时调压器：默认关（关掉后永远 FULL，水/特效不会被降档吃掉） */
+	public static boolean GOVERNOR = false;
 	private static float ema = 1 / 60f, slowFor, fastFor;
 
 	/** The emitters and factories that say how much they matter; BlobEmitter's default is P1. */
@@ -107,6 +109,10 @@ public final class FxBudget {
 		//a hitch (a level load, a collection) counts as no worse than a quarter second
 		float dt = Math.min( realDelta, 0.25f );
 		ema += (dt - ema) * EMA;
+		if (!GOVERNOR){
+			tier = FULL;
+			return;
+		}
 		if (ema > SLOW){
 			fastFor = 0;
 			slowFor += dt;
@@ -280,17 +286,17 @@ public final class FxBudget {
 
 	/** The water's first sheen: off at MINIMAL. */
 	public static boolean sheenA(){
-		return tier < MINIMAL;
+		return true; // 水面第一层波纹始终绘制（降档会让水变成一块平的色块）
 	}
 
 	/** The water's second sheen: off from REDUCED. */
 	public static boolean sheenB(){
-		return tier == FULL;
+		return true; // 同上
 	}
 
 	/** The share of glints kept: all, half, none. */
 	public static float glints(){
-		return tier == FULL ? 1f : tier == REDUCED ? 0.5f : 0f;
+		return 1f;
 	}
 
 	/** Lights' reflections on the water: off at MINIMAL. */
