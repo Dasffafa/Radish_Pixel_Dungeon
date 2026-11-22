@@ -31,6 +31,10 @@ public class Assets {
 		public static final String TEXT_ICONS   = "effects/text_icons.png";
 		public static final String FX_SHEET     = "effects/fx_sheet.png";
 		public static final String FX_LIGHT     = "effects/fx_light.png";
+		public static final String WATER_POCKS  = "effects/water_pocks.png";
+		public static final String WATER_SHEEN_A = "effects/water_sheen_a.png";
+		public static final String WATER_SHEEN_B = "effects/water_sheen_b.png";
+		public static final String LAVA_GLOW    = "effects/lava_glow.png";
 
 		// CC0 effect assets (see effects/cc0/CREDITS.txt)
 		public static final String SWORD_SLASH    = "effects/cc0/sword_slash.png";
@@ -83,6 +87,12 @@ public class Assets {
 		public static final String WATER_CITY   = "environment/water3.png";
 		public static final String WATER_HALLS  = "environment/water4.png";
 		public static final String WATER_FROZEN = "environment/water_frozen.png";
+		public static final String WATER_SEWERS_CYCLE = "environment/water0_cycle.png";
+		public static final String WATER_PRISON_CYCLE = "environment/water1_cycle.png";
+		public static final String WATER_CAVES_CYCLE  = "environment/water2_cycle.png";
+		public static final String WATER_CITY_CYCLE   = "environment/water3_cycle.png";
+		public static final String WATER_HALLS_CYCLE  = "environment/water4_cycle.png";
+		public static final String WATER_TEMPLE_CYCLE = "environment/water_temple_cycle.png";
 		public static final String WATER_TEMPLE = "environment/water_temple.png";
 
 		public static final String WEAK_FLOOR       = "environment/custom_tiles/weak_floor.png";

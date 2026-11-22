@@ -57,7 +57,6 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.AmbientCritters;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Ripple;
-import com.shatteredpixel.shatteredpixeldungeon.effects.WaterCycle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
@@ -986,8 +985,7 @@ public class GameScene extends PixelScene {
 
 		if (notifyDelay > 0) notifyDelay -= Game.elapsed;
 
-		if (!Emitter.freezeEmitters) water.offset( 0, -5 * Game.elapsed );
-		WaterCycle.tick( water, waterPath, Game.timeTotal );
+		if (!Emitter.freezeEmitters) water.offset( 0, -waterScroll * Game.elapsed );
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.frame();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX.frame();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.update( Game.elapsed );
@@ -1397,6 +1395,16 @@ public class GameScene extends PixelScene {
 
 	public static void carryLight( com.shatteredpixel.shatteredpixeldungeon.effects.fx.Lit lit ) {
 		// 本仓库没有图层化的光照系统，忽略
+	}
+
+	/** 夜色浓度，0 = 白天（本仓库没有昼夜系统） */
+	public static float nightTintAlpha(){ return 0f; }
+
+	public static float waterScroll = 5f;
+
+	/** 水面那一层（WaterLive 用） */
+	public static com.watabou.noosa.SkinnedBlock waterPlane(){
+		return scene != null ? scene.water : null;
 	}
 
 	public static Ripple ripple( int pos ) {
