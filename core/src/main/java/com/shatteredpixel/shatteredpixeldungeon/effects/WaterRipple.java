@@ -1,14 +1,13 @@
 /*
  * Radish Pixel Dungeon
  *
- * 水面涟漪：程序生成一圈浅色水波，从 0.9 倍放大到 2 倍、同时淡出。
+ * 水面涟漪：程序生成一圈浅色水波，从 1.0 倍放大到 2.1 倍、同时淡出。
+ * 颜色跟着当前楼层的水色走（取水面贴图平均色再提亮），所以岩浆/冰水/神庙水各有各的泡沫色。
  * 放在 terrain 之上、mobs 之下（GameScene 的 waterRipples 层），所以在水面上、在人物身后。
- * 引擎自带的 Ripple 只有 16px 且从 0 放大，太弱；这里换成更大更慢的一版。
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.watabou.gltextures.SmartTexture;
 import com.watabou.glwrap.Texture;
@@ -16,9 +15,13 @@ import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class WaterRipple extends Image {
 
-	private static SmartTexture RING;
+	private static final int SIZE = 32;
+	private static final Map<Integer,SmartTexture> CACHE = new HashMap<>();
 
 	private float left, life;
 	private float fromScale, toScale;
@@ -26,15 +29,18 @@ public class WaterRipple extends Image {
 	private float delay;
 
 	public static WaterRipple spawn( Group host, float cx, float cy,
-	                                 float fromScale, float toScale, float life, float alpha, float delay ) {
-		if (host == null || ring() == null) return null;
-		WaterRipple r = new WaterRipple( cx, cy, fromScale, toScale, life, alpha, delay );
+	                                 float fromScale, float toScale, float life, float alpha, float delay, int color ) {
+		if (host == null) return null;
+		SmartTexture tex = ring( color );
+		if (tex == null) return null;
+		WaterRipple r = new WaterRipple( tex, cx, cy, fromScale, toScale, life, alpha, delay );
 		host.add( r );
 		return r;
 	}
 
-	private WaterRipple( float cx, float cy, float fromScale, float toScale, float life, float alpha, float delay ) {
-		super( ring() );
+	private WaterRipple( SmartTexture tex, float cx, float cy,
+	                     float fromScale, float toScale, float life, float alpha, float delay ) {
+		super( tex );
 		this.fromScale = fromScale;
 		this.toScale = toScale;
 		this.life = life;
@@ -72,26 +78,49 @@ public class WaterRipple extends Image {
 		alpha( startAlpha * (1f - p) );
 	}
 
-	private static SmartTexture ring() {
-		if (RING != null) return RING;
+	/** 一个颜色的水波贴图（外亮内淡的三圈） */
+	private static SmartTexture ring( int color ) {
+		SmartTexture cached = CACHE.get( color );
+		if (cached != null) return cached;
+
 		try {
-			Pixmap p = new Pixmap( 32, 32, Pixmap.Format.RGBA8888 );
+			Pixmap p = new Pixmap( SIZE, SIZE, Pixmap.Format.RGBA8888 );
 			p.setColor( 0f, 0f, 0f, 0f );
 			p.fill();
-			// 外圈亮、内圈略淡，读起来像水面反光的一圈
-			p.setColor( 0.95f, 1f, 0.98f, 1f );
+
+			int outer = lighten( color, 0.72f );
+			int mid = lighten( color, 0.55f );
+			int inner = lighten( color, 0.38f );
+
+			set( p, outer, 1f );
 			p.drawCircle( 15, 15, 14 );
 			p.drawCircle( 15, 15, 13 );
-			p.setColor( 0.86f, 0.98f, 0.92f, 0.8f );
+
+			set( p, mid, 0.85f );
 			p.drawCircle( 15, 15, 12 );
-			p.setColor( 0.74f, 0.92f, 0.86f, 0.55f );
-			p.drawCircle( 15, 15, 13 );
+
+			set( p, inner, 0.6f );
+			p.drawCircle( 15, 15, 11 );
+
 			SmartTexture t = new SmartTexture( p );
 			t.filter( Texture.NEAREST, Texture.NEAREST );
-			RING = t;
+			CACHE.put( color, t );
+			return t;
 		} catch (Throwable e) {
-			RING = null;
+			CACHE.put( color, null );
+			return null;
 		}
-		return RING;
+	}
+
+	private static void set( Pixmap p, int rgb, float a ) {
+		p.setColor( ((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f, a );
+	}
+
+	private static int lighten( int rgb, float toWhite ) {
+		int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+		r = (int)(r + (255 - r) * toWhite);
+		g = (int)(g + (255 - g) * toWhite);
+		b = (int)(b + (255 - b) * toWhite);
+		return (r << 16) | (g << 8) | b;
 	}
 }
