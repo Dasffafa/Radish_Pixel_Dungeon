@@ -244,31 +244,9 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
 	private float trailIn;
-	/** 累计飞行距离：每 6px 留一个符号 */
+	/** 累计飞行距离：每 12px 留一个符号 */
 	private float markDist;
 	private boolean markRing;
-	private float lastMarkX, lastMarkY;
-
-	// ---- 残影（照 Warped 的 EnchantTrail：GHOSTS=4、GHOST_ALPHA=0.35、GHOST_LIFE=0.3）----
-	private static final float GHOST_ALPHA = 0.28f, GHOST_LIFE = 0.22f;
-	/** 全局最多 4 个残影（照 Warped 的 GHOSTS=4），超出就顶掉最老的 */
-	private static final Ghost[] GHOSTS = new Ghost[4];
-	private static int ghostHead;
-	private float ghostIn = 0.03f;
-
-	/** 自己会淡出、自己会消失的残影（不依赖弹体是否还活着） */
-	public static class Ghost extends com.watabou.noosa.Image {
-		private float life = GHOST_LIFE;
-		Ghost( Object texture ){ super( texture ); }
-		@Override
-		public void update(){
-			super.update();
-			life -= com.watabou.noosa.Game.elapsed;
-			am = Math.max( 0f, GHOST_ALPHA * life / GHOST_LIFE );
-			if (life <= 0f) killAndErase();
-		}
-	}
-	private float lastX, lastY;
 	private float vx, vy;
 
 	@Override
@@ -292,33 +270,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailMark(
 						x - ux * back, y - uy * back - 6f, enchantSource, markRing );
 			}
-			lastMarkX = x;
-			lastMarkY = y;
 		}
 
-		updateGhosts();
 	}
 
-	/** 残影：每 0.03s 在当前位置留一张同一帧的淡影（Ghost 自己淡出） */
-	private void updateGhosts(){
-		if ((ghostIn -= com.watabou.noosa.Game.elapsed) > 0f) return;
-		ghostIn = 0.045f;
-		if (parent == null) return;
-
-		// 超过 4 个就顶掉最老的
-		int slot = ghostHead++ % GHOSTS.length;
-		if (GHOSTS[slot] != null) GHOSTS[slot].killAndErase();
-
-		Ghost g = new Ghost( texture );
-		g.frame( frame() );
-		g.scale.set( scale.x, scale.y );
-		g.angle = angle;
-		g.x = x;
-		g.y = y;
-		g.am = GHOST_ALPHA;
-		parent.add( g );
-		GHOSTS[slot] = g;
-	}
 
 	@Override
 	public void onComplete( Tweener tweener ) {
