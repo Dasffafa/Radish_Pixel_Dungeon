@@ -61,6 +61,8 @@ public class AmbientCritters {
 		Hero hero = Dungeon.hero;
 		if (hero == null) return;
 		int width = Dungeon.level.width();
+		// 先在干燥地面找，找不到再退而求其次（水面上的甲虫/水黾）
+		for (int pass = 0; pass < 2; pass++) {
 		for (int tries = 0; tries < 12; tries++) {
 			int dx = Random.Int( 7 ) - 3;
 			int dy = Random.Int( 7 ) - 3;
@@ -69,8 +71,8 @@ public class AmbientCritters {
 			if (cell < 0 || cell >= Dungeon.level.map.length) continue;
 			if (!Dungeon.level.heroFOV[cell]) continue;
 			if (!Dungeon.level.passable[cell]) continue;
-			// 水边/水里也能钻出（青蛙类）
 			if (Dungeon.level.solid[cell]) continue;
+			if (pass == 0 && Dungeon.level.water[cell]) continue;
 
 			Critter c = new Critter( KINDS[Random.Int( KINDS.length )], cell );
 			host.add( c );
@@ -78,6 +80,7 @@ public class AmbientCritters {
 			spawned++;
 			tries_used += tries + 1;
 			return;
+		}
 		}
 	}
 
