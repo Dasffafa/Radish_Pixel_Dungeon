@@ -292,6 +292,12 @@ public final class EnchantFx {
 		int tint = colorOf( e );
 		if (cursed) tint = curseTint( tint );
 
+		// 特色附魔优先走专属特效
+		if (SpecialFx.play( e.getClass().getSimpleName(), x, y, feet, tint, ctx )){
+			procs++;
+			return;
+		}
+
 		switch (f){
 			case FIRE:      EnchantRecipes.fire( x, y, feet, tint, ctx ); break;
 			case ICE:       EnchantRecipes.ice( x, y, feet, tint, ctx ); break;
@@ -301,6 +307,19 @@ public final class EnchantFx {
 			default:        burst( x, y, f, tint ); break;
 		}
 		procs++;
+	}
+
+	/** 提亮（SpecialFx 也用） */
+	static int light( int color, float k ){
+		int r=(color>>16)&0xFF, g=(color>>8)&0xFF, b=color&0xFF;
+		r=(int)(r+(255-r)*k); g=(int)(g+(255-g)*k); b=(int)(b+(255-b)*k);
+		return 0xFF000000 | (r<<16) | (g<<8) | b;
+	}
+
+	/** 压暗（SpecialFx 也用） */
+	static int dark( int color, float k ){
+		int r=(int)(((color>>16)&0xFF)*(1f-k)), g=(int)(((color>>8)&0xFF)*(1f-k)), b=(int)((color&0xFF)*(1f-k));
+		return 0xFF000000 | (r<<16) | (g<<8) | b;
 	}
 
 	/** 诅咒版颜色：去饱和 + 往暗紫偏 */

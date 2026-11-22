@@ -310,3 +310,23 @@ enchant/rarity/quality 类强绑定）没有整搬，而是在现有 fx 工具�
 
 计数：`EnchantFx.weaks/mids/strongs/echoes/curses` 便于验收。
 实测：弱1/中1/强3/回响4/诅咒1，四条断言全过。
+
+## 萝卜特色附魔的专属特效（自设计）
+
+`effects/fx/enchant/SpecialFx.java`：8 个本分支独有附魔的专属表现，
+按类名精确匹配，命中时优先于族配方：
+
+| 附魔 | 表现 |
+|---|---|
+| FlowingLight 流光 | CORE_FLASH 中心闪 + 递增光环 + 向上收束的光点 |
+| Crystal 结晶 | PLUS_5 白闪 + 方形冰晶 SQ_4 呈放射状崩开（自旋） |
+| Pulse 脉冲 | 三层 RING 递进扩散环（按 tier 叠 1~3 层） |
+| VoidRift 虚空裂隙 | INK_CORE 暗核 + 墨雾向内吸附（drag 减速） |
+| SoulRend 裂魂 | CROSS_5 十字裂口 + 魂点上飘（drag） |
+| Meteor 陨星 | 从上方 26px 落下的 STREAK_FLAME 火痕 + CORE_FLASH 落地 + SPARK 溅射 + 焦痕 |
+| Rainstorm 骤雨 | 多个 DROP_3 斜向斜落 + 落点小环 |
+| Sweeping 横扫 | 递增宽环模拟横向斩击弧 + 中心十字闪 |
+
+- 全部复用 fx_sheet 的帧，靠帧组合/运动/颜色区分
+- 同样受 tier（数量）/ echo（不留痕迹、alpha 减半）/ curse（配色）影响
+实测：八种各触发一次，无异常（Z_FxSpecial）
