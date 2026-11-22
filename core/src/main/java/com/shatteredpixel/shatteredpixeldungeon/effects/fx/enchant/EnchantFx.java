@@ -291,16 +291,17 @@ public final class EnchantFx {
 		if (p == null) return;
 
 		if (ring){
-			// 圆环：压扁成椭圆，本体色，停留久一点
-			boost( p, 1.4f ).reset( x, y ).look( FxFrames.RING_5 ).paint( color )
-					.life( 1.1f ).alpha( 0.85f, 0f, 0.5f )
+			// 圆环：固定暖橙、压得比较扁的椭圆（照录像）
+			boost( p, 1.0f ).reset( x, y ).look( FxFrames.RING_5 ).paint( 0xFF9A3C )
+					.life( 1.15f ).alpha( 0.9f, 0f, 0.55f )
 					.snap().priority( FxBudget.P3 );
-			p.scale.set( 1.5f, 0.9f );
+			p.scale.set( 1.7f, 0.62f );
 		} else {
-			// 加号：偏白，稍短
-			boost( p, 1.1f ).reset( x, y ).look( FxFrames.PLUS_5 ).paint( light( color, 0.8f ) )
-					.life( 0.9f ).alpha( 0.95f, 0f, 0.45f )
+			// 加号：纯白、细一点
+			boost( p, 1.0f ).reset( x, y ).look( FxFrames.PLUS_3 ).paint( 0xFFFFFF )
+					.life( 0.95f ).alpha( 1f, 0f, 0.5f )
 					.snap().priority( FxBudget.P3 );
+			p.scale.set( 1.2f, 1.2f );
 		}
 		marksPlaced++;
 	}
