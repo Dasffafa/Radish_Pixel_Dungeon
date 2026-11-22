@@ -184,6 +184,7 @@ public class WaterLive extends Group {
 		//the overworld's window mid-slide: its map is not the one drawn; keep where things are
 		if (level.fogHeld()) return;
 		water = view( level );
+		if (DRAW_SHORE) shore( level, l, dt );
 		if (DRAW_SURFACE){
 			sheens( l, dt );
 			if (DRAW_GLOW) lavaGlow( l, dt );
@@ -196,6 +197,100 @@ public class WaterLive extends Group {
 			dripOne( level, l );
 		}
 		// 本仓库没有水面氛围模块
+	}
+
+	/** 岸边泡沫边：每 0.22 秒重建一次，随机缺口 + 随机亮度，视觉上把直角边打碎 */
+	private void shore( Level level, Element.Liquid l, float dt ){
+		if (level == null || level.water == null || boxW <= 0f) return;
+		if (shore == null){
+			Group host = com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.waterSheen();
+			if (host == null) return;
+			shore = new Group();
+			host.add( shore );
+		}
+		shoreT += dt;
+		if (shoreT < 0.22f) return;
+		shoreT = 0f;
+
+		int w = level.width(), h = level.height();
+		int x0 = Math.max( 0, (int)( boxX / SIZE ) ), x1 = Math.min( w - 1, (int)( (boxX + boxW) / SIZE ) );
+		int y0 = Math.max( 0, (int)( boxY / SIZE ) ), y1 = Math.min( h - 1, (int)( (boxY + boxH) / SIZE ) );
+		int used = 0;
+
+		for (int y = y0; y <= y1; y++){
+			for (int x = x0; x <= x1; x++){
+				int cell = x + y * w;
+				if (!level.water[cell]) continue;
+
+				boolean edgeS = y + 1 < h && !level.water[cell + w];
+				boolean edgeN = y > 0 && !level.water[cell - w];
+				boolean edgeW = x > 0 && !level.water[cell - 1];
+				boolean edgeE = x + 1 < w && !level.water[cell + 1];
+				if (!edgeS && !edgeN && !edgeW && !edgeE) continue;
+
+				float bx = x * SIZE, by = y * SIZE;
+				if (edgeS){
+					used = shoreSeg( used, bx, by + SIZE - 2f, SIZE, 2f, l );
+					used = shoreDots( used, bx, by + SIZE - 3f, l );
+				}
+				if (edgeN){
+					used = shoreSeg( used, bx, by, SIZE, 2f, l );
+					used = shoreDots( used, bx, by + 1f, l );
+				}
+				if (edgeW){
+					used = shoreSeg( used, bx, by, 2f, SIZE, l );
+					used = shoreDots( used, bx + 1f, by, l );
+				}
+				if (edgeE){
+					used = shoreSeg( used, bx + SIZE - 2f, by, 2f, SIZE, l );
+					used = shoreDots( used, bx + SIZE - 3f, by, l );
+				}
+				if (used >= SHORE_MAX) break;
+			}
+			if (used >= SHORE_MAX) break;
+		}
+		for (int i = used; i < shoreBlocks.size(); i++) shoreBlocks.get( i ).visible = false;
+	}
+
+	/** 画一段岸边泡沫；有缺口、有明暗变化 */
+	private int shoreSeg( int used, float x, float y, float w, float h, Element.Liquid l ){
+		if (FxRandom.chance( 0.35f )) return used;          // 缺口
+		if (used >= SHORE_MAX) return used;
+		com.watabou.noosa.ColorBlock b;
+		if (used < shoreBlocks.size()){
+			b = shoreBlocks.get( used );
+		} else {
+			b = new com.watabou.noosa.ColorBlock( 1, 1, 0xFFFFFFFF );
+			shoreBlocks.add( b );
+			shore.add( b );
+		}
+		b.x = x;
+		b.y = y;
+		b.size( w, h );
+		b.visible = true;
+		b.hardlight( l.foam );
+		b.am = 0.22f + FxRandom.Float( 0.38f );
+		return used + 1;
+	}
+
+	/** 岸边零星泡沫点（2x2），让边线更碎 */
+	private int shoreDots( int used, float x, float y, Element.Liquid l ){
+		if (!FxRandom.chance( 0.45f )) return used;
+		if (used >= SHORE_MAX) return used;
+		com.watabou.noosa.ColorBlock b;
+		if (used < shoreBlocks.size()) b = shoreBlocks.get( used );
+		else {
+			b = new com.watabou.noosa.ColorBlock( 1, 1, 0xFFFFFFFF );
+			shoreBlocks.add( b );
+			shore.add( b );
+		}
+		b.x = x + FxRandom.Float( SIZE - 4f );
+		b.y = y + FxRandom.Float( 3f );
+		b.size( 2f, 2f );
+		b.visible = true;
+		b.hardlight( l.highlight );
+		b.am = 0.25f + FxRandom.Float( 0.45f );
+		return used + 1;
 	}
 
 	/** 视野内"水→深渊"的边缘：把水沿边滴下去（Warped 的 WaterFalls） */
@@ -404,6 +499,8 @@ public class WaterLive extends Group {
 	/** 是否绘制水面叠加层（sheen/pocks/岩浆辉光）。关掉后水面只保留基础滚动贴图 */
 	public static boolean DRAW_SURFACE = true;
 	public static boolean DRAW_GLOW = false, DRAW_POCKS = false;
+	/** 岸边泡沫边（打破笔直的直角边） */
+	public static boolean DRAW_SHORE = true;
 
 	private void cycle( SkinnedBlock plane, Level level, Element.Liquid l ){
 		if (NO_CYCLE){
@@ -447,6 +544,11 @@ public class WaterLive extends Group {
 	private final java.util.Map<Integer,WaterFalls.Fall> falls = new java.util.HashMap<>();
 	private final java.util.Set<Integer> seenFalls = new java.util.HashSet<>();
 	public static int fallEdges;
+	/** 岸边泡沫：一组短线段，随机明暗/缺口，让水边不笔直 */
+	private Group shore;
+	private static final int SHORE_MAX = 420;
+	private final java.util.List<com.watabou.noosa.ColorBlock> shoreBlocks = new java.util.ArrayList<>();
+	private float shoreT;
 	private float boxX, boxY, boxW, boxH;
 	//the cells in view, and one round them
 	private int vx0, vy0, vx1, vy1;
