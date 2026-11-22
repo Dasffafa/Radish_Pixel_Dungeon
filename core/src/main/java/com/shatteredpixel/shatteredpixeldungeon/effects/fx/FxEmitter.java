@@ -66,6 +66,20 @@ public class FxEmitter extends Emitter {
 		lightMode = false;
 	}
 
+	/**
+	 * 回收粒子：本仓库的 Emitter 没有覆写 recycle，Group.recycle 只返回死掉的池子对象、
+	 * 不会 revive —— 不补这一步，粒子永远 alive=false、既不动也不销毁，
+	 * 越攒越多直到预算耗尽，滴水就"过一会儿不掉了"。
+	 */
+	@Override
+	public synchronized com.watabou.noosa.Gizmo recycle( Class<? extends com.watabou.noosa.Gizmo> c ){
+		com.watabou.noosa.Gizmo g = super.recycle( c );
+		if (g != null && !g.alive){
+			g.revive();
+		}
+		return g;
+	}
+
 	/** 当前挂着的粒子数（调试/验收） */
 	public int live(){
 		return length;
