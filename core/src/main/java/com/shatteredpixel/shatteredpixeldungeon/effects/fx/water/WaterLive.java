@@ -208,15 +208,15 @@ public class WaterLive extends Group {
 		int x0 = Math.max( 0, (int)( boxX / SIZE ) ), x1 = Math.min( w - 1, (int)( (boxX + boxW) / SIZE ) );
 		int y0 = Math.max( 0, (int)( boxY / SIZE ) ), y1 = Math.min( h - 1, (int)( (boxY + boxH) / SIZE ) );
 
-		for (int y = y0; y <= y1 && falls.size() < 8; y++){
-			for (int x = x0; x <= x1 && falls.size() < 8; x++){
+		for (int y = y0; y <= y1 && falls.size() < 12; y++){
+			for (int x = x0; x <= x1 && falls.size() < 12; x++){
 				int cell = x + y * w;
 				if (!level.water[cell]) continue;
 
 				int side = -2;
-				if (y + 1 < h && isPit( level, cell + w )) side = 0;
-				else if (x - 1 >= 0 && isPit( level, cell - 1 )) side = -1;
-				else if (x + 1 < w && isPit( level, cell + 1 )) side = 1;
+				if (y + 1 < h && isEdge( level, cell + w )) side = 0;
+				else if (x - 1 >= 0 && isEdge( level, cell - 1 )) side = -1;
+				else if (x + 1 < w && isEdge( level, cell + 1 )) side = 1;
 				if (side == -2) continue;
 
 				WaterFalls.Fall f = falls.get( cell );
@@ -241,9 +241,11 @@ public class WaterLive extends Group {
 		}
 	}
 
-	private static boolean isPit( Level level, int cell ){
+	/** 水面的一条"边"：深渊，或任何可站立的地板（平台/岸边），水会沿它往下淌 */
+	private static boolean isEdge( Level level, int cell ){
 		if (cell < 0 || cell >= level.map.length) return false;
-		return level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.CHASM;
+		if (level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.CHASM) return true;
+		return level.passable[cell] && !level.water[cell];
 	}
 
 	/** 在视野内随机一格水面滴水：三成是一颗从上落下的水珠，其余是落水的小涟漪 */
