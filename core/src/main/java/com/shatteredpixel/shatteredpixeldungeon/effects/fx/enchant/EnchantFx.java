@@ -287,16 +287,35 @@ public final class EnchantFx {
 		FxEmitter air = Fx.air();
 		if (air == null) return;
 
-		int[] frame = ring ? FxFrames.RING_5 : FxFrames.PLUS_3;
 		FxParticle p = (FxParticle) air.recycle( FxParticle.class );
 		if (p == null) return;
 
-		p.reset( x, y ).look( frame )
-				.paint( ring ? color : light( color, 0.45f ) )
-				.life( ring ? 0.7f : 0.55f )
-				.alpha( ring ? 0.8f : 0.95f, 0f, 0.35f )
-				.snap().priority( FxBudget.P3 );
+		if (ring){
+			// 圆环：压扁成椭圆，本体色，停留久一点
+			boost( p, 1.4f ).reset( x, y ).look( FxFrames.RING_5 ).paint( color )
+					.life( 1.1f ).alpha( 0.85f, 0f, 0.5f )
+					.snap().priority( FxBudget.P3 );
+			p.scale.set( 1.5f, 0.9f );
+		} else {
+			// 加号：偏白，稍短
+			boost( p, 1.1f ).reset( x, y ).look( FxFrames.PLUS_5 ).paint( light( color, 0.8f ) )
+					.life( 0.9f ).alpha( 0.95f, 0f, 0.45f )
+					.snap().priority( FxBudget.P3 );
+		}
 		marksPlaced++;
+	}
+
+	/** 弹体头部的亮点（飞行中一直闪） */
+	public static void trailGlow( float x, float y, Item source ){
+		int color = color( source );
+		if (color == 0) color = missileColor( source );
+		FxEmitter air = Fx.air();
+		if (air == null) return;
+		FxParticle p = (FxParticle) air.recycle( FxParticle.class );
+		if (p == null) return;
+		boost( p, 1.2f ).reset( x, y ).look( FxFrames.CORE_FLASH ).paint( light( color, 0.6f ) )
+				.life( 0.12f ).alpha( 0.9f, 0f, 0.05f )
+				.snap().priority( FxBudget.P2 );
 	}
 
 	/** 投掷物拖尾：按附魔/物品类型换帧，严格顺着飞行方向 */

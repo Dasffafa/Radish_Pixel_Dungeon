@@ -260,11 +260,13 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			vx = x - px;
 			vy = y - py;
 			markDist += (float)Math.hypot( vx, vy );
-			if (markDist >= 6f){
+			if (markDist >= 12f){
 				markDist = 0f;
 				markRing = !markRing;
 				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailMark(
 						x, y, enchantSource, markRing );
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailGlow(
+						x, y, enchantSource );
 			}
 			lastMarkX = x;
 			lastMarkY = y;
