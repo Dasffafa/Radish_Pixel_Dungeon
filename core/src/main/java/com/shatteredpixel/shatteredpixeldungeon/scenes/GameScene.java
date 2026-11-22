@@ -186,6 +186,7 @@ public class GameScene extends PixelScene {
 	private Group customWalls;
 	private Group ripples;
 	private Group waterFront;
+	private Group waterRipples;
 	private String waterPath;
 	private Group plants;
 	private Group traps;
@@ -311,13 +312,17 @@ public class GameScene extends PixelScene {
 		emoicons = new Group();
 		overFogEffects = new Group();
 		
+		// 水波画在地块之上、人物之下
+		waterRipples = new Group();
+		add( waterRipples );
+
 		mobs = new Group();
 		add( mobs );
 
 		// 踩水的水线要盖在人物下半身上，所以放在 mobs 之后
 		waterFront = new Group();
 		add( waterFront );
-		WaterWade.init( waterFront );
+		WaterWade.init( waterFront, waterRipples );
 
 		// 不占回合的阻塞动画（Hero.playAnimationNoTime）靠旧场景里的精灵回调 / VirtualTimer 清位；
 		// 场景重建后它们都随旧场景没了，这里直接收尾，否则英雄的 act() 会永远 return false。

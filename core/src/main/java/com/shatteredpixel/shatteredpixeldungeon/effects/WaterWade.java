@@ -34,15 +34,16 @@ public class WaterWade {
 
 	private static final List<Image> pool = new ArrayList<>();
 	private static final Map<Char,Integer> lastCell = new IdentityHashMap<>();
-	private static Group host;
+	private static Group host, rippleHost;
 	private static String path;
 
 	/** 调试：上帧画了几条水线、累计生成多少涟漪 */
 	public static int drawn, ripples;
 
-	public static void init( Group group ) {
+	public static void init( Group group, Group rippleLayer ) {
 		ripples = 0;
 		host = group;
+		rippleHost = rippleLayer;
 		pool.clear();
 		lastCell.clear();
 		path = null;
@@ -80,6 +81,20 @@ public class WaterWade {
 		drawn = used;
 	}
 
+	/** 供调试/验收：在指定格子放一圈水波 */
+	public static void spawnAt( int cell ) {
+		spawnRipples( cell, Dungeon.level.width() );
+	}
+
+	private static void spawnRipples( int cell, int width ) {
+		if (rippleHost == null) return;
+		float cx = (cell % width) * 16f + 8f;
+		float cy = (cell / width) * 16f + 8f;
+		WaterRipple.spawn( rippleHost, cx, cy, 1.0f, 2.1f, 0.85f, 0.85f, 0f );
+		WaterRipple.spawn( rippleHost, cx, cy, 0.6f, 1.3f, 0.6f, 0.55f, 0.12f );
+		ripples++;
+	}
+
 	private static int draw( Char ch, int used, int width, float scroll ) {
 		if (ch == null || !ch.isAlive() || ch.sprite == null) return used;
 		int cell = ch.pos;
@@ -92,10 +107,10 @@ public class WaterWade {
 		// 入水 / 水里挪动：留一圈涟漪
 		Integer prev = lastCell.put( ch, cell );
 		if (prev != null && prev != cell) {
-			// 涟漪留在刚离开的那格：不会被角色自己挡住
-			GameScene.ripple( prev );
-			ripples++;
+			spawnRipples( prev, width );
 		}
+
+		if (prev == null) spawnRipples( cell, width );
 
 		Image img = used < pool.size() ? pool.get( used ) : patch();
 		if (img == null) return used;
