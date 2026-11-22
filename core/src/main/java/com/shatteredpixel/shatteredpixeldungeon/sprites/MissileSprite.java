@@ -244,6 +244,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
 	private float trailIn;
+	/** 累计飞行距离：每 6px 留一个符号 */
+	private float markDist;
+	private boolean markRing;
+	private float lastMarkX, lastMarkY;
 	private float lastX, lastY;
 	private float vx, vy;
 
@@ -251,15 +255,19 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	public void update() {
 		float px = x, py = y;
 		super.update();
-		// 拖尾：按物品的附魔/类型换帧和颜色
+		// 拖尾：沿飞行轨迹等距留"符号"（加号/圆环交替），像 Warped 那样
 		if (exists){
 			vx = x - px;
 			vy = y - py;
-			if ((trailIn -= com.watabou.noosa.Game.elapsed) <= 0f){
-				trailIn = 0.03f;
-				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailFor(
-						x, y, enchantSource, vx, vy );
+			markDist += (float)Math.hypot( vx, vy );
+			if (markDist >= 6f){
+				markDist = 0f;
+				markRing = !markRing;
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailMark(
+						x, y, enchantSource, markRing );
 			}
+			lastMarkX = x;
+			lastMarkY = y;
 		}
 	}
 

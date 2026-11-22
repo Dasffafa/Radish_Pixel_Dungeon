@@ -274,6 +274,31 @@ public final class EnchantFx {
 		trailSpawned++;
 	}
 
+	/** 一路留下的"符号"：加号 / 圆环，交替出现（照 Warped 的轨迹表现） */
+	public static int marksPlaced;
+
+	public static void trailMark( float x, float y, Item source, boolean ring ){
+		int color = color( source );
+		if (color == 0) color = missileColor( source );
+		Weapon.Enchantment e = source instanceof Weapon ? ((Weapon) source).enchantment : null;
+		Family f = e != null ? familyOf( e ) : familyForItem( source );
+
+		if (!FxBudget.keep( FxBudget.P3, x, y )) return;
+		FxEmitter air = Fx.air();
+		if (air == null) return;
+
+		int[] frame = ring ? FxFrames.RING_5 : FxFrames.PLUS_3;
+		FxParticle p = (FxParticle) air.recycle( FxParticle.class );
+		if (p == null) return;
+
+		p.reset( x, y ).look( frame )
+				.paint( ring ? color : light( color, 0.45f ) )
+				.life( ring ? 0.7f : 0.55f )
+				.alpha( ring ? 0.8f : 0.95f, 0f, 0.35f )
+				.snap().priority( FxBudget.P3 );
+		marksPlaced++;
+	}
+
 	/** 投掷物拖尾：按附魔/物品类型换帧，严格顺着飞行方向 */
 	public static void trailFor( float x, float y, Item source, float vx, float vy ){
 		int color = color( source );
