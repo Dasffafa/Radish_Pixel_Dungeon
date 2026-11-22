@@ -157,21 +157,18 @@ public class AutochessCombat {
 		}
 		if (bestCell < 0) return false;
 
+		// 自己处理移动：动画 + 占用，但不触发 Char.move() 里的 heroFOV 可见性副作用
 		try {
 			int from = self.pos;
-			self.move(bestCell);
-			if (java.lang.Boolean.getBoolean("arena.debug")) {
-				System.out.println("[MOVE] " + self.getClass().getSimpleName()
-						+ " " + from + " -> " + bestCell + " now=" + self.pos);
+			if (self.sprite != null) self.sprite.move(from, bestCell);
+			self.pos = bestCell;
+			Dungeon.level.occupyCell(self);
+			if (self.sprite != null) {
+				self.sprite.visible = true;
+				self.sprite.hideEmo();
 			}
-			if (self.sprite != null) self.sprite.hideEmo();
-			if (self.sprite != null) self.sprite.visible = true;
-			return self.pos == bestCell;
-		} catch (Throwable t) {
-			if (java.lang.Boolean.getBoolean("arena.debug")) {
-				System.out.println("[MOVE-FAIL] " + self.getClass().getSimpleName()
-						+ " -> " + bestCell + " : " + t);
-			}
+			return true;
+		} catch (Throwable t2) {
 			return false;
 		}
 	}
