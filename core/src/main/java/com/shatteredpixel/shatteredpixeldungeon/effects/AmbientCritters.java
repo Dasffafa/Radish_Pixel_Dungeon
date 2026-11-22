@@ -25,6 +25,8 @@ public final class AmbientCritters {
 	private static final int MAX = 5;
 	private static final float MIN_GAP = 6f, MAX_GAP = 11f;
 	private static final float LIFE_MIN = 25f, LIFE_MAX = 45f;
+	/** 主角靠得多近就吓跑，像素（约 2.5 格） */
+	private static final float SCARE_DIST = SIZE * 2.5f;
 
 	private static final Random RNG = new Random();
 
@@ -33,6 +35,7 @@ public final class AmbientCritters {
 	private static float spawnIn = 4f;
 	public static int spawned;
 	public static int expired;
+	public static int scared;
 	public static int badCells;
 	public static int lastCell = -1;
 
@@ -50,7 +53,7 @@ public final class AmbientCritters {
 	public static void init( Group effects ){
 		host = effects;
 		live.clear();
-		spawned = expired = badCells = 0;
+		spawned = expired = badCells = scared = 0;
 		lastCell = -1;
 		spawnIn = 4f;
 	}
@@ -84,6 +87,24 @@ public final class AmbientCritters {
 		}
 
 		if (Emitter.freezeEmitters) return;
+
+		// 主角走近：吓跑（Warped 的 scare），被吓过的过几秒淡出
+		float hx = Dungeon.hero.sprite != null ? Dungeon.hero.sprite.x + Dungeon.hero.sprite.width() / 2f
+				: (Dungeon.hero.pos % Dungeon.level.width()) * SIZE + SIZE / 2f;
+		float hy = Dungeon.hero.sprite != null ? Dungeon.hero.sprite.y + Dungeon.hero.sprite.height() / 2f
+				: (Dungeon.hero.pos / Dungeon.level.width()) * SIZE + SIZE / 2f;
+		for (Entry e : live){
+			if (e.asked) continue;
+			float dx = e.sprite.ax - hx, dy = e.sprite.ay - hy;
+			if (dx * dx + dy * dy <= SCARE_DIST * SCARE_DIST){
+				if (e.sprite.calm()){
+					e.sprite.scare( hx, hy );
+					scared++;
+				}
+				e.asked = true;
+				e.sprite.leave( 2.5f );
+			}
+		}
 
 		spawnIn -= Game.elapsed;
 		if (spawnIn > 0f) return;
