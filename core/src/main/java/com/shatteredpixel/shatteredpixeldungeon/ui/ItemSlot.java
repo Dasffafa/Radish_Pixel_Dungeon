@@ -239,6 +239,47 @@ public class ItemSlot extends Button {
 
 	/** 测试用：这个格子有没有附魔光效 */
 	public boolean hasAura(){ return hasShine || sparkBlocks > 0; }
+	/** 把扫光摆到进度 u（0..1）处；alpha 由调用方给 */
+	private void placeSweep( float u, float a ){
+		if (sweep == null || sprite == null) return;
+		float iw = sprite.width(), ih = sprite.height();
+		float sw = sweep.width() * sweep.scale.x, sh = sweep.height() * sweep.scale.y;
+
+		sweep.visible = true;
+		sweep.x = clamp( sprite.x + u * (iw - sw), sprite.x, sprite.x + iw - sw );
+		sweep.y = clamp( sprite.y + u * (ih - sh), sprite.y, sprite.y + ih - sh );
+		sweep.angle = -35f;
+		sweep.am = a * 0.95f;
+
+		for (int k = 0; k < tail.length; k++){
+			float ub = Math.max( 0f, u - 0.18f * (k + 1) );
+			float tw = tail[k].width(), th = tail[k].height();
+			tail[k].visible = true;
+			tail[k].x = clamp( sprite.x + ub * (iw - tw), sprite.x, sprite.x + iw - tw );
+			tail[k].y = clamp( sprite.y + ub * (ih - th), sprite.y, sprite.y + ih - th );
+			tail[k].am = a * (0.55f - k * 0.15f);
+		}
+	}
+
+	/** 测试用：把扫光摆到 u 处 */
+	public void placeSweepForTest( float u ){
+		placeSweep( u, 1f );
+	}
+
+	/** 测试用：扫光/尾点是否跑出图标范围 */
+	public int sweepOutside(){
+		int bad = 0;
+		if (sweep != null && sweep.visible
+				&& (sweep.x < sprite.x - 1 || sweep.x + sweep.width() * sweep.scale.x > sprite.x + sprite.width() + 1
+				|| sweep.y < sprite.y - 1 || sweep.y + sweep.height() * sweep.scale.y > sprite.y + sprite.height() + 1)) bad++;
+		for (Image k : tail){
+			if (k == null || !k.visible) continue;
+			if (k.x < sprite.x - 1 || k.x + k.width() > sprite.x + sprite.width() + 1
+					|| k.y < sprite.y - 1 || k.y + k.height() > sprite.y + sprite.height() + 1) bad++;
+		}
+		return bad;
+	}
+
 	/** 测试用：静态边框是否可见 */
 	public boolean frameVisible(){
 		return frame[0] != null && frame[0].visible;
@@ -430,6 +471,10 @@ public class ItemSlot extends Button {
 	/** 刀身火花：0.8s 周期内前 0.12s */
 	public static boolean viciousOn( float t ){ return mod( t, 0.8f ) < 0.12f; }
 
+	private static float clamp( float v, float lo, float hi ){
+		return hi < lo ? lo : Math.max( lo, Math.min( hi, v ) );
+	}
+
 	private static float mod( float t, float period ){
 		float m = t - (float)Math.floor( t / period ) * period;
 		return m < 0 ? m + period : m;
@@ -448,26 +493,11 @@ public class ItemSlot extends Button {
 		float sx = sprite.x + sprite.width() / 2f;
 		float sy = sprite.y + sprite.height() / 2f;
 
-		// 1) 扫光：按附魔族换帧，从左上扫到右下
+		// 1) 扫光：按附魔族换帧，从左上扫到右下（严格限制在图标范围内，免得溢出到邻格）
 		float sweepPeriod = 2.6f, sweepFor = 0.34f;
 		float sm = mod( t, sweepPeriod );
 		if (sm < sweepFor){
-			float u = sm / sweepFor;
-			float a = (float)Math.sin( Math.PI * u );
-			sweep.visible = true;
-			// 从图标左上扫到右下
-			sweep.x = sprite.x - 2f + u * (sprite.width() + 2f) - sweep.width() / 2f;
-			sweep.y = sprite.y - 2f + u * (sprite.height() + 2f) - sweep.height() / 2f;
-			sweep.angle = -35f;
-			sweep.am = a * 0.95f;
-			// 尾随两点
-			for (int k = 0; k < tail.length; k++){
-				float ub = Math.max( 0f, u - 0.18f * (k + 1) );
-				tail[k].visible = true;
-				tail[k].x = sprite.x - 2f + ub * (sprite.width() + 2f) - tail[k].width() / 2f;
-				tail[k].y = sprite.y - 2f + ub * (sprite.height() + 2f) - tail[k].height() / 2f;
-				tail[k].am = a * (0.55f - k * 0.15f);
-			}
+			placeSweep( sm / sweepFor, (float)Math.sin( Math.PI * sm / sweepFor ) );
 		} else {
 			sweep.visible = false;
 			for (Image k : tail) k.visible = false;

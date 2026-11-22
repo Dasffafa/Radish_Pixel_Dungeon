@@ -460,3 +460,7 @@ sendToBack(frame); bringToFront(sparks);
 
 **修复：空格子残留光效**。`item(null)` 分支原来没调 `updateAura()`，物品被拿走后边框/火花会留在空格子上；
 现在清空即刷新，并且 `update()` 在 `item==null`、不可见或尺寸未布局时直接 `hideAll()`。
+
+**修复：扫光溢出到相邻格子**。扫光/尾点原来按 `sprite.x + u*(w+2) - w/2` 摆放，末端会伸到图标外；
+现在 `placeSweep()` 用 `clamp` 把位置严格夹在图标矩形内（`x ∈ [sprite.x, sprite.x + iw - sw]`），
+尾点同理。
