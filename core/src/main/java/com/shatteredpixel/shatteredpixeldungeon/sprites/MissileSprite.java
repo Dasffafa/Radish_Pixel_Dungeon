@@ -172,6 +172,8 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private void setup( PointF from, PointF to, Item item, Callback listener, float speedMultiplier ){
 
 		this.enchantSource = item;
+		if (tail != null) tail.end();
+		tail = null;
 		flown = 0f;
 		originToCenter();
 
@@ -317,8 +319,8 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		}
 
 		float deg = (float)Math.toDegrees( Math.atan2( vy, vx ) );
-		tail.x = x + width() / 2f;
-		tail.y = y + height() / 2f;
+		tail.x = x;   // 弹体 originToCenter，x/y 已是中心
+		tail.y = y;
 		tail.stretch( Math.min( flown + 6f, 42f ), deg );
 	}
 
