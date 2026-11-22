@@ -251,15 +251,14 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	public void update() {
 		float px = x, py = y;
 		super.update();
-		// 附魔拖尾：按速度和颜色沿途撒粒子
-		int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.color( enchantSource );
-		if (color == 0) color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.missileColor( enchantSource );
-		if (color != 0 && exists){
+		// 拖尾：按物品的附魔/类型换帧和颜色
+		if (exists){
 			vx = x - px;
 			vy = y - py;
 			if ((trailIn -= com.watabou.noosa.Game.elapsed) <= 0f){
-				trailIn = 0.02f;
-				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trail( x, y, color, vx, vy );
+				trailIn = 0.03f;
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailFor(
+						x, y, enchantSource, vx, vy );
 			}
 		}
 	}

@@ -291,6 +291,87 @@ public final class EnchantFx {
 		trailSpawned++;
 	}
 
+	/** 投掷物拖尾（按附魔/物品类型换帧，带速度方向） */
+	public static void trailFor( float x, float y, Item source, float vx, float vy ){
+		int color = color( source );
+		if (color == 0) color = missileColor( source );
+
+		Weapon.Enchantment e = source instanceof Weapon ? ((Weapon) source).enchantment : null;
+		Family f = e != null ? familyOf( e ) : familyForItem( source );
+
+		if (!FxBudget.keep( FxBudget.P2, x, y )) return;
+		FxEmitter air = Fx.air();
+		if (air == null) return;
+
+		int[] frame = trailHeadFrame( f );
+		float scale = f == Family.FIRE || f == Family.LIGHTNING ? 1.5f : 1.2f;
+
+		// 主拖尾：顺着速度方向拉长
+		FxParticle head = boost( (FxParticle) air.recycle( FxParticle.class ), scale );
+		head.reset( x, y ).look( frame ).paint( light( color, 0.25f ) )
+				.vel( -vx * 0.05f, -vy * 0.05f )
+				.life( 0.22f ).alpha( 0.95f, 0f, 0.12f )
+				.snap().priority( FxBudget.P2 );
+
+		// 余烬/碎屑
+		if (FxRandom.chance( 0.55f )){
+			FxParticle tail = boost( (FxParticle) air.recycle( FxParticle.class ), scale * 0.8f );
+			if (tail != null){
+				tail.reset( x + FxRandom.Float( -1.5f, 1.5f ), y + FxRandom.Float( -1.5f, 1.5f ) )
+						.look( trailTailFrame( f ) ).paint( color )
+						.vel( -vx * 0.02f + FxRandom.Float( -14f, 14f ),
+								-vy * 0.02f + FxRandom.Float( -14f, 14f ) )
+						.drag( 1.2f )
+						.life( FxRandom.Float( 0.2f, 0.4f ) )
+						.alpha( 0.85f, 0f, 0.2f )
+						.priority( FxBudget.P3 );
+			}
+		}
+
+		trailSpawned++;
+	}
+
+	/** 没有附魔时按投掷物类型给族（箭/飞镖算物理，火瓶算火…） */
+	private static Family familyForItem( Item it ){
+		if (it == null) return Family.PHYS;
+		String n = it.getClass().getSimpleName().toLowerCase();
+		if (n.contains( "fire" ) || n.contains( "incendiar" ) || n.contains( "ember" )) return Family.FIRE;
+		if (n.contains( "frost" ) || n.contains( "chill" ) || n.contains( "ice" )) return Family.ICE;
+		if (n.contains( "shock" ) || n.contains( "light" ) || n.contains( "storm" )) return Family.LIGHTNING;
+		if (n.contains( "poison" ) || n.contains( "venom" ) || n.contains( "rot" )) return Family.POISON;
+		if (n.contains( "holy" ) || n.contains( "holy" )) return Family.LIGHT;
+		if (n.contains( "dark" ) || n.contains( "void" )) return Family.DARK;
+		return Family.PHYS;
+	}
+
+	private static int[] trailHeadFrame( Family f ){
+		switch (f){
+			case FIRE:      return FxFrames.STREAK_FLAME[0];
+			case ICE:       return FxFrames.SHARD_GLASS[0];
+			case LIGHTNING: return FxFrames.SPARK_2;
+			case POISON:    return FxFrames.DROP_3;
+			case DARK:      return FxFrames.INK_WISP[0];
+			case LIGHT:     return FxFrames.STAR4_7;
+			case BLOOD:     return FxFrames.MOTE_2;
+			case PHYS:
+			default:        return FxFrames.STREAK_TAPER;
+		}
+	}
+
+	private static int[] trailTailFrame( Family f ){
+		switch (f){
+			case FIRE:      return FxFrames.EMBER_1;
+			case ICE:       return FxFrames.MOTE_1;
+			case LIGHTNING: return FxFrames.MOTE_1;
+			case POISON:    return FxFrames.DROP_2;
+			case DARK:      return FxFrames.MOTE_2;
+			case LIGHT:     return FxFrames.MOTE_1;
+			case BLOOD:     return FxFrames.MOTE_1;
+			case PHYS:
+			default:        return FxFrames.SPARK_2;
+		}
+	}
+
 	/** 命中：一圈小爆点 */
 	public static void burst( float x, float y, int color ){
 		burst( x, y, Family.PHYS, color );

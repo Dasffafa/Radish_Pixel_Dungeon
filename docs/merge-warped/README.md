@@ -483,3 +483,22 @@ sendToBack(frame); bringToFront(sparks);
 - **任何投掷物都有拖尾**：`EnchantFx.missileColor(item)` 保证非 0——
   飞镖 `0xC8D8F0`、飞刀 `0xE0C8A0`、空/默认 `0xE8E4C8`；有附魔则用附魔色
 - **背包里弓/弩图标**：扫光放大到 1.45×
+
+## 分附魔拖尾（投掷物）
+
+`EnchantFx.trailFor(x, y, item, vx, vy)`：投掷物沿轨迹每 0.03s 留一次，**按附魔/物品种类换帧**：
+
+| 族 | 主拖尾帧 | 余屑帧 |
+|---|---|---|
+| 火 | `STREAK_FLAME` | `EMBER_1` |
+| 冰 | `SHARD_GLASS` | `MOTE_1` |
+| 雷 | `SPARK_2` | `MOTE_1` |
+| 毒 | `DROP_3` | `DROP_2` |
+| 暗 | `INK_WISP` | `MOTE_2` |
+| 光 | `STAR4_7` | `MOTE_1` |
+| 血 | `MOTE_2` | `MOTE_1` |
+| 物理/其它 | `STREAK_TAPER` | `SPARK_2` |
+
+- 主拖尾：放大 1.2~1.5 倍、颜色提亮 25%、半衰 0.22s、有速度拖拽
+- 55% 概率再撒一个余屑（带随机横向速度 + drag）
+- 无附魔时用 `missileColor(item)` 给本色（飞镖冷银/飞刀暖铜/箭木白）
