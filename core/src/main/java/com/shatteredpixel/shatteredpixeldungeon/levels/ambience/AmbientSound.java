@@ -11,7 +11,9 @@ public enum AmbientSound {
 	FLY     ( "fly",     1, 2.2f, 0.28f ),
 	SKITTER ( "skitter", 2, 1.5f, 1.00f ),
 	LAVA    ( "lava",    2, 4.3f, 0.32f ),
-	DRIP    ( "drip",    3, 1.2f, 0.30f );
+	DRIP    ( "drip",    3, 1.2f, 0.30f ),
+	DRIP_METAL ( "drip_metal", 2, 1.0f, 0.28f ),
+	DRIP_LEAF  ( "drip_leaf",  2, 0.7f, 0.30f );
 
 	/** 每一次录音的文件 */
 	public final String[] takes;

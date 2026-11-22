@@ -379,6 +379,7 @@ public class GameScene extends PixelScene {
 		add( emitters );
 		add( effects );
 		AmbientCritters.init( waterRipples );
+		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.sceneCreated();
 
 		lightFx = new Group();
 		add( lightFx );
@@ -1015,6 +1016,7 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX.frame();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.update( Game.elapsed );
 		AmbientCritters.update();
+		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.update();
 
 		if (!Actor.processing() && Dungeon.hero.isAlive()) {
 			if (actorThread == null || !actorThread.isAlive()) {

@@ -139,6 +139,7 @@ public final class WaterWalk {
 				lavaStep( at.x, at.y );
 				return;
 			}
+			splashSound( s, 0.55f );
 			WaterFX.crown( at.x, at.y, large ? WaterFX.L : WaterFX.M, l.foam );
 			WaterFX.droplets( at.x, at.y - 1, Math.round( FxRandom.IntRange( 3, 5 ) * (large ? 1.5f : 1f) ), 30f, 60f, 100f, l.foam );
 			Ripple r = WaterFX.ring( at.x, at.y, middling, l.foam, WaterFX.alphaOf( middling ), FxBudget.P1 );
@@ -149,6 +150,7 @@ public final class WaterWalk {
 				lavaStep( was.x, was.y );
 				return;
 			}
+			splashSound( s, 0.28f ); // 踩水：轻一点
 			wake( at.x, at.y, to % level.width() - from % level.width(), to / level.width() - from / level.width(), l );
 			WaterFX.ring( was.x, was.y, small, l.foam, WaterFX.alphaOf( small ), FxBudget.P1 );
 		} else {
@@ -157,9 +159,20 @@ public final class WaterWalk {
 				lavaStep( was.x, was.y );
 				return;
 			}
+			splashSound( s, 0.32f );
 			WaterFX.ring( was.x, was.y, small, l.foam, WaterFX.alphaOf( small ), FxBudget.P1 );
 			WaterFX.droplets( was.x, was.y - 1, large ? 3 : 2, 25f, 45f, 80f, l.foam );
 		}
+	}
+
+	/** 溅水声：按音量/声像播放（主角才响，避免一群怪在水里哗哗响） */
+	private static void splashSound( CharSprite s, float volume ){
+		if (s == null || s.ch == null || Dungeon.hero == null || s.ch != Dungeon.hero) return;
+		if (!com.shatteredpixel.shatteredpixeldungeon.levels.ambience.AmbientPlayer.audible()) return;
+		float pan = 0f;
+		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.AmbientPlayer.play(
+				com.shatteredpixel.shatteredpixeldungeon.levels.ambience.AmbientSound.SPLASH,
+				volume, 1f + FxRandom.Float( -0.08f, 0.08f ), pan );
 	}
 
 	//a step on the lava: an added ring in its glow, two sparks
@@ -178,6 +191,7 @@ public final class WaterWalk {
 			FxRecipes.embers( p.x, p.y - 2, Element.LAVA, 6 );
 			return;
 		}
+		splashSound( s, 0.7f );
 		WaterFX.crown( p.x, p.y, WaterFX.L, l.foam );
 		WaterFX.droplets( p.x, p.y - 1, FxRandom.IntRange( 6, 8 ), 35f, 70f, 110f, l.foam );
 		WaterFX.ring( p.x, p.y, WaterFX.M, l.foam, WaterFX.alphaOf( WaterFX.M ), FxBudget.P1 );
