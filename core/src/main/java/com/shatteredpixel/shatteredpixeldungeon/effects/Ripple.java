@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2024 Evan Debenham
+ * Copyright (C) 2014-2026 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,42 +22,67 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Element;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxRing;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
-import com.watabou.noosa.Game;
-import com.watabou.noosa.Image;
 
-public class Ripple extends Image {
+/**
+ * A ring on the water (WaterFX): the painted ring frames spreading on the water's surface,
+ * mirrored so their far crest catches the sky, in the level's liquid's foam (added, on lava),
+ * masked by the shore's tiles; it lingers 1.3 times as long on the city's oil (WaterFX.lifeOf).
+ * Its y is still a caller's to nudge after it is made (the sewers' pipes ring a cell up).
+ * Pooled by the game's scene; WaterFX.ring is the way to make one.
+ */
+public class Ripple extends FxRing {
 
-	private static final float TIME_TO_FADE = 0.5f;
-	
-	private float time;
-	
-	public Ripple() {
-		super( Effects.get( Effects.Type.RIPPLE ) );
+	//the size it was made at, and whether it is a first ring's second
+	private int size;
+	private boolean second;
+
+	public Ripple(){
+		super();
 	}
-	
-	public void reset( int p ) {
-		revive();
-		
-		x = (p % Dungeon.level.width()) * DungeonTilemap.SIZE;
-		y = (p / Dungeon.level.width()) * DungeonTilemap.SIZE;
-		
-		origin.set( width / 2, height / 2 );
-		scale.set( 0 );
-		
-		time = TIME_TO_FADE;
+
+	/** The size it was made at: WaterFX.S, M or L. */
+	public int sizeMade(){
+		return size;
 	}
-	
-	@Override
-	public void update() {
-		super.update();
-		
-		if ((time -= Game.elapsed) <= 0) {
-			kill();
-		} else {
-			float p = time / TIME_TO_FADE;
-			scale.set( 1 - p );
-			alpha( p );
-		}
+
+	/** Whether it is the second ring following a middling or large one. */
+	public boolean isSecond(){
+		return second;
+	}
+
+	/** A middling ring (WaterFX.M) on the middle of a cell. */
+	public void reset( int p ){
+		int w = Dungeon.level.width();
+		reset( (p % w + 0.5f) * DungeonTilemap.SIZE, (p / w + 0.5f) * DungeonTilemap.SIZE, WaterFX.M );
+	}
+
+	/** A ring of a size (WaterFX.S, M or L) on a point, the liquid's own. */
+	public void reset( float x, float y, int size ){
+		Element.Liquid l = WaterFX.liquid();
+		reset( x, y, size, l.foam, WaterFX.alphaOf( size ), l.ringAdditive );
+	}
+
+	/** A ring of a size on a point in a colour and alpha of its own, as light or as matter. */
+	public void reset( float x, float y, int size, int color, float alpha, boolean light ){
+		int s = WaterFX.sizeOf( size );
+		this.size = s;
+		second = false;
+		setup( x, y, WaterFX.FROM[s], WaterFX.TO[s], WaterFX.lifeOf( s ), color, alpha, light );
+		mirrorY();
+	}
+
+	/** The second ring after a middling or large one: a size of ring smaller, a little later. */
+	public void second( Ripple first, int size, int color, float alpha, boolean light ){
+		int s = WaterFX.sizeOf( size );
+		this.size = s;
+		second = true;
+		setup( first.centerX(), first.centerY(), WaterFX.SECOND_FROM[s], WaterFX.SECOND_TO[s], WaterFX.lifeOf( s ), color, alpha, light );
+		mirrorY();
+		delay( WaterFX.SECOND_AFTER );
+		follow( first );
 	}
 }
