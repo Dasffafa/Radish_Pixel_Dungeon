@@ -172,12 +172,11 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private void setup( PointF from, PointF to, Item item, Callback listener, float speedMultiplier ){
 
 		this.enchantSource = item;
-		if (com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero != null){
-			com.shatteredpixel.shatteredpixeldungeon.items.Item w =
-					com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero.belongings.weapon;
-			if (w != null && w.getClass().getSimpleName().toLowerCase().contains( "bow" )){
-				bowColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.itemColor( w );
-			}
+		com.shatteredpixel.shatteredpixeldungeon.items.Item bow =
+				com.shatteredpixel.shatteredpixeldungeon.effects.BowAura.bowOf(
+						com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero );
+		if (bow != null){
+			bowColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.itemColor( bow );
 		}
 		originToCenter();
 

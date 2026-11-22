@@ -1,10 +1,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.huntress.NaturesPower;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx;
-import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxBudget;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxParticle;
@@ -13,25 +13,29 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.watabou.noosa.Game;
+import com.watabou.noosa.Group;
+import com.watabou.noosa.Image;
 
 /**
- * 弓的持续光效（抄 Warped 的思路）：
- * 1) 装备弓时，角色身周有一圈绕转的光点（对应 Warped 的 StanceOrbit：MOTE_2 + 拖尾 + 呼吸）
- * 2) 自然之力激活时，身周持续飘落绿叶（对应 SpiritBow 里的 LeafParticle.GENERAL 喷发）
+ * 弓的持续光效（参照 Warped 的 StanceOrbit / SpiritBow）：
+ * 1) 装备弓时角色身周一圈带拖尾的光点
+ * 2) 自然之力生效时身周飘绿叶
+ *
+ * 本分支的武器可能挂在 weapon / secondWep / thrownWeapon / abilityWeapon / attackingWeapon()，
+ * 所以取弓时全部扫一遍。
  */
 public final class BowAura {
 
 	private BowAura(){}
 
-	public static int spawned;
-	private static float orbitIn = 0f;
-	private static float orbitAngle = 0f;
-	private static float leafIn = 0f;
+	private static final int MOTES = 10;
 
-	/** 常驻的环绕光点（贴图，保证一定可见） */
-	private static com.watabou.noosa.Group orbit;
-	private static com.watabou.noosa.Image[] motes;
-	private static com.watabou.noosa.Group leafGroup;
+	public static int spawned;
+
+	private static float orbitAngle;
+	private static Group orbit;
+	private static Image[] motes;
+	private static float leafIn;
 
 	/** 每帧调用（GameScene.update） */
 	public static void update(){
@@ -50,48 +54,69 @@ public final class BowAura {
 			hideOrbit();
 		}
 
-		// 自然之力：绿叶环绕
 		if (hero.buff( NaturesPower.naturesPowerTracker.class ) != null){
 			if ((leafIn -= Game.elapsed) <= 0f){
 				leafIn = 0.12f;
-				spawnLeaf( cx, cy, s );
+				spawnLeaf( cx, cy );
 			}
 		} else {
 			leafIn = 0f;
 		}
 	}
 
-	/** 建/更新常驻环绕光点（6 个，绕角色转） */
+	/** 判断一个物品是不是弓/弩类 */
+	public static boolean isBowItem( Item it ){
+		if (it == null) return false;
+		String n = it.getClass().getSimpleName().toLowerCase();
+		return n.contains( "bow" ) || n.contains( "arbalest" ) || n.contains( "sling" );
+	}
+
+	/** 取英雄身上的第一把弓（武器可能挂在多个槽位） */
+	public static Item bowOf( Hero hero ){
+		if (hero == null || hero.belongings == null) return null;
+		Item[] slots = {
+				hero.belongings.weapon,
+				hero.belongings.secondWep,
+				hero.belongings.thrownWeapon,
+				hero.belongings.abilityWeapon,
+		};
+		for (Item it : slots) if (isBowItem( it )) return it;
+		try {
+			Item atk = hero.belongings.attackingWeapon();
+			if (isBowItem( atk )) return atk;
+		} catch (Exception ignored){}
+		return null;
+	}
+
 	private static void updateOrbit( CharSprite s, float cx, float cy, int tint ){
 		if (s.parent == null) return;
-		// 换层/换场景后旧的 group 已经脱离父节点，必须重建
+
+		// 换层/换场景后旧 group 已经脱离父节点，必须重建
 		if (orbit != null && orbit.parent == null){
 			orbit = null;
 			motes = null;
 		}
 		if (orbit == null){
-			orbit = new com.watabou.noosa.Group();
+			orbit = new Group();
 			s.parent.add( orbit );
 			int[] f = FxFrames.MOTE_1;
-			motes = new com.watabou.noosa.Image[10 * 3];   // 10 个光点，每个带 2 个拖尾
+			motes = new Image[MOTES * 3];
 			for (int i = 0; i < motes.length; i++){
-				motes[i] = new com.watabou.noosa.Image(
-						com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
-				motes[i].scale.set( 1.5f );
+				motes[i] = new Image( Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
 				orbit.add( motes[i] );
 			}
 		}
 		orbit.visible = true;
-		float breath = 0.55f + 0.35f * (float)Math.sin( Game.timeTotal * 0.6f ); // StanceOrbit: breath(0.55,0.9,0.6)
-		final int N = 10;
-		for (int i = 0; i < N; i++){
+
+		float breath = 0.55f + 0.35f * (float)Math.sin( Game.timeTotal * 0.6f );
+
+		for (int i = 0; i < MOTES; i++){
 			for (int k = 0; k < 3; k++){
-				com.watabou.noosa.Image m = motes[i * 3 + k];
-				float a = orbitAngle + (float)(Math.PI * 2 * i / N) - k * 0.18f;
-				float rx = 13f, ry = 6.5f;
+				Image m = motes[i * 3 + k];
+				float a = orbitAngle + (float)(Math.PI * 2 * i / MOTES) - k * 0.18f;
 				m.visible = true;
-				m.x = cx + (float)Math.cos( a ) * rx - m.width() * 0.75f;
-				m.y = cy + (float)Math.sin( a ) * ry - m.height() * 0.75f - 2f;
+				m.x = cx + (float)Math.cos( a ) * 13f - m.width() * 0.75f;
+				m.y = cy + (float)Math.sin( a ) * 6.5f - m.height() * 0.75f - 2f;
 				m.hardlight( EnchantFx.light( tint, 0.3f + k * 0.15f ) );
 				float depth = 0.5f + 0.5f * (float)Math.sin( a );
 				m.am = Math.max( 0.12f, breath * depth * (k == 0 ? 1f : (k == 1 ? 0.5f : 0.28f)) );
@@ -101,61 +126,13 @@ public final class BowAura {
 		}
 	}
 
-	/** 测试用：环绕光点是否挂着且可见 */
-	public static boolean orbitVisible(){
-		if (orbit == null || !orbit.visible || orbit.parent == null) return false;
-		for (com.watabou.noosa.Image m : motes) if (m != null && m.visible) return true;
-		return false;
-	}
-
-	/** 测试用：环绕光点数量 */
-	public static int moteCount(){ return motes == null ? 0 : motes.length; }
-
-	/** 测试用：当前挂着没 */
-	public static String debugState(){
-		return "orbit=" + (orbit != null) + " parent=" + (orbit != null && orbit.parent != null)
-				+ " vis=" + (orbit != null && orbit.visible) + " motes=" + moteCount()
-				+ " spriteParent=" + (Dungeon.hero != null && Dungeon.hero.sprite != null && Dungeon.hero.sprite.parent != null);
-	}
-
 	private static void hideOrbit(){
 		if (orbit != null) orbit.visible = false;
 	}
 
-	/** 快捷栏/手持的弓（含 SpiritBow 与各种弩） */
-	public static Item bowOf( Hero hero ){
-		Item w = hero.belongings.weapon;
-		if (w == null) return null;
-		String n = w.getClass().getSimpleName().toLowerCase();
-		return n.contains( "bow" ) ? w : null;
-	}
-
-	private static void spawnOrbitMote( float cx, float cy, int tint ){
+	private static void spawnLeaf( float cx, float cy ){
 		FxEmitter air = Fx.air();
 		if (air == null) return;
-		if (!FxBudget.keep( FxBudget.P2, cx, cy )) return;
-		FxParticle p = (FxParticle) air.recycle( FxParticle.class );
-		if (p == null) return;
-
-		float a = orbitAngle + FxRandom.Float( -0.25f, 0.25f );
-		float rx = 11f, ry = 5f;
-		float x = cx + (float)Math.cos( a ) * rx;
-		float y = cy + (float)Math.sin( a ) * ry - 2f;
-		// 切向速度，形成绕转拖尾
-		float vx = -(float)Math.sin( a ) * 26f;
-		float vy = (float)Math.cos( a ) * 12f;
-
-		spawned++;
-		EnchantFx.boost( p, 2.0f ).reset( x, y )
-				.look( FxFrames.MOTE_2 ).paint( EnchantFx.light( tint, 0.25f ) )
-				.vel( vx, vy ).drag( 2.4f ).life( 0.55f )
-				.alpha( 0.85f, 0.05f, 0.3f );
-	}
-
-	private static void spawnLeaf( float cx, float cy, CharSprite s ){
-		FxEmitter air = Fx.air();
-		if (air == null) return;
-		if (!FxBudget.keep( FxBudget.P3, cx, cy )) return;
 		FxParticle p = (FxParticle) air.recycle( FxParticle.class );
 		if (p == null) return;
 		p.reset( cx + FxRandom.Float( -7f, 7f ), cy - 6f + FxRandom.Float( -4f, 4f ) )
@@ -163,5 +140,25 @@ public final class BowAura {
 				.vel( FxRandom.Float( -8f, 8f ), FxRandom.Float( 10f, 22f ) )
 				.drag( 0.6f ).life( FxRandom.Float( 0.7f, 1.2f ) )
 				.alpha( 0.9f, 0.05f, 0.4f );
+	}
+
+	/** 测试用 */
+	public static boolean orbitVisible(){
+		if (orbit == null || !orbit.visible || orbit.parent == null) return false;
+		for (Image m : motes) if (m != null && m.visible) return true;
+		return false;
+	}
+
+	public static String debugState(){
+		Hero hero = Dungeon.hero;
+		Item bow = BowAura.bowOf( hero );
+		String w = "?";
+		if (hero != null && hero.belongings != null){
+			w = "weapon=" + (hero.belongings.weapon == null ? "null" : hero.belongings.weapon.getClass().getSimpleName())
+					+ " second=" + (hero.belongings.secondWep == null ? "null" : hero.belongings.secondWep.getClass().getSimpleName());
+		}
+		return "bow=" + (bow == null ? "null" : bow.getClass().getSimpleName())
+				+ " | orbit=" + (orbit != null) + " parent=" + (orbit != null && orbit.parent != null)
+				+ " vis=" + (orbit != null && orbit.visible) + " | " + w;
 	}
 }
