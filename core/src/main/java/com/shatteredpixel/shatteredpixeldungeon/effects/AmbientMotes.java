@@ -21,6 +21,7 @@ public final class AmbientMotes {
 
 	private static float nextIn = 1f;
 	public static int spawned;
+	public static int embers;
 
 	public static void init(){
 		nextIn = 1f;
@@ -34,7 +35,29 @@ public final class AmbientMotes {
 
 		nextIn -= Game.elapsed;
 		if (nextIn > 0f) return;
-		nextIn = 0.45f + RNG.nextFloat() * 0.9f;
+
+		boolean halls = level.getClass().getSimpleName().toLowerCase().contains( "hall" );
+		nextIn = halls ? 0.3f + RNG.nextFloat() * 0.6f : 0.45f + RNG.nextFloat() * 0.9f;
+
+		if (halls){
+			// 地狱：飘火星
+			int ww = level.width();
+			int hx = Dungeon.hero.pos % ww, hy = Dungeon.hero.pos / ww;
+			for (int tries = 0; tries < 8; tries++){
+				int x = hx + RNG.nextInt( 13 ) - 6;
+				int y = hy + RNG.nextInt( 9 ) - 4;
+				if (x < 0 || y < 0 || x >= ww || y >= level.height()) continue;
+				int cell = x + y * ww;
+
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxRecipes.embers(
+						x * SIZE + RNG.nextFloat() * SIZE,
+						y * SIZE + RNG.nextFloat() * SIZE,
+						com.shatteredpixel.shatteredpixeldungeon.effects.fx.Element.LAVA, 1 );
+				embers++;
+				return;
+			}
+			return;
+		}
 
 		FxEmitter air = Fx.air();
 		if (air == null) return;
@@ -46,7 +69,6 @@ public final class AmbientMotes {
 			int y = heroY + RNG.nextInt( 9 ) - 4;
 			if (x < 0 || y < 0 || x >= w || y >= level.height()) continue;
 			int cell = x + y * w;
-			if (!level.heroFOV[cell]) continue;
 			if (Dungeon.level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.WALL) continue;
 
 			air.pos( x * SIZE + RNG.nextFloat() * SIZE, y * SIZE + RNG.nextFloat() * SIZE );
@@ -58,6 +80,7 @@ public final class AmbientMotes {
 
 	private static boolean motesHere( Level level ){
 		String n = level.getClass().getSimpleName().toLowerCase();
-		return n.contains( "cave" ) || n.contains( "hall" ) || n.contains( "crystal" ) || n.contains( "gnoll" );
+		return n.contains( "cave" ) || n.contains( "hall" ) || n.contains( "crystal" )
+				|| n.contains( "gnoll" ) || n.contains( "prison" );
 	}
 }

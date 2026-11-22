@@ -17,7 +17,18 @@ public enum AmbientSound {
 	TRICKLE    ( "trickle",   2, 2.2f, 0.34f ),
 	POUR       ( "pour",      1, 3.0f, 0.36f ),
 	GURGLE     ( "gurgle",    2, 2.0f, 0.30f ),
-	CRACKLE    ( "crackle",   1, 2.6f, 0.34f );
+	CRACKLE    ( "crackle",   1, 2.6f, 0.34f ),
+	CREAK      ( "creak",     2, 1.4f, 0.30f ),
+	MOAN       ( "moan",      2, 2.6f, 0.34f ),
+	WHISPER    ( "whisper",   2, 2.4f, 0.28f ),
+	RUMBLE     ( "rumble",    1, 3.5f, 0.30f ),
+	PEBBLES    ( "pebbles",   2, 1.2f, 0.26f ),
+	BAT        ( "bat",       2, 1.2f, 0.26f ),
+	ANVIL      ( "anvil",     1, 1.2f, 0.30f ),
+	CHIME      ( "chime",     1, 2.0f, 0.24f ),
+	COO        ( "coo",       1, 1.6f, 0.22f ),
+	WIND       ( "wind",      2, 4.0f, 0.22f ),
+	ICE        ( "ice",       2, 2.0f, 0.26f );
 
 	/** 每一次录音的文件 */
 	public final String[] takes;

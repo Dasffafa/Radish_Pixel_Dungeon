@@ -18,6 +18,12 @@ public final class AmbientSounds {
 		return busy >= MAX;
 	}
 
+	/** 新场景：清空占用的声道（换层后时间基数可能重置，不清会一直算满） */
+	public static void reset(){
+		for (int i = 0; i < MAX; i++) ends[i] = 0f;
+		next = 0;
+	}
+
 	public static void played( float seconds ){
 		ends[next] = Game.timeTotal + seconds;
 		next = (next + 1) % MAX;

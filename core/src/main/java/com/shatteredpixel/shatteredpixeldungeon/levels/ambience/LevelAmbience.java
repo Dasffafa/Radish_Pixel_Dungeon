@@ -26,31 +26,44 @@ public final class LevelAmbience {
 	private static final Bed[] SEWER = {
 			new Bed( AmbientSound.DRIP, 4f, 9f, 0.35f ),
 			new Bed( AmbientSound.LAP, 5f, 11f, 0.40f ),
+			new Bed( AmbientSound.TRICKLE, 6f, 13f, 0.30f ),
+			new Bed( AmbientSound.GURGLE, 8f, 15f, 0.24f ),
 			new Bed( AmbientSound.RAT, 8f, 16f, 0.22f ),
 			new Bed( AmbientSound.FLY, 9f, 18f, 0.18f ),
-			new Bed( AmbientSound.TRICKLE, 6f, 13f, 0.30f ),
 	};
 	private static final Bed[] PRISON = {
-			new Bed( AmbientSound.DRIP_METAL, 4f, 9f, 0.32f ),
-			new Bed( AmbientSound.DRIP, 5f, 10f, 0.30f ),
+			new Bed( AmbientSound.DRIP_METAL, 4f, 9f, 0.34f ),
+			new Bed( AmbientSound.CREAK, 5f, 11f, 0.30f ),      // 铁链吱呀
+			new Bed( AmbientSound.DRIP, 6f, 12f, 0.28f ),
 			new Bed( AmbientSound.SKITTER, 7f, 14f, 0.20f ),
-			new Bed( AmbientSound.RAT, 9f, 18f, 0.20f ),
+			new Bed( AmbientSound.RAT, 9f, 17f, 0.22f ),
+			new Bed( AmbientSound.MOAN, 14f, 26f, 0.20f ),      // 远处呻吟
 	};
 	private static final Bed[] CAVES = {
 			new Bed( AmbientSound.DRIP, 3f, 7f, 0.34f ),
+			new Bed( AmbientSound.PEBBLES, 5f, 10f, 0.26f ),    // 碎石滚落
+			new Bed( AmbientSound.WIND, 7f, 14f, 0.22f ),       // 洞风
+			new Bed( AmbientSound.BAT, 8f, 16f, 0.24f ),
 			new Bed( AmbientSound.SKITTER, 8f, 16f, 0.18f ),
 	};
 	private static final Bed[] CITY = {
-			new Bed( AmbientSound.DRIP_METAL, 4f, 9f, 0.30f ),
-			new Bed( AmbientSound.RAT, 7f, 14f, 0.22f ),
+			new Bed( AmbientSound.ANVIL, 6f, 13f, 0.28f ),      // 远处铁砧
+			new Bed( AmbientSound.CHIME, 9f, 18f, 0.22f ),
+			new Bed( AmbientSound.CREAK, 6f, 12f, 0.24f ),
+			new Bed( AmbientSound.DRIP_METAL, 5f, 11f, 0.28f ),
+			new Bed( AmbientSound.RUMBLE, 12f, 22f, 0.20f ),
 	};
 	private static final Bed[] HALLS = {
 			new Bed( AmbientSound.LAVA, 3f, 7f, 0.40f ),
-			new Bed( AmbientSound.DRIP, 6f, 12f, 0.22f ),
+			new Bed( AmbientSound.RUMBLE, 5f, 10f, 0.34f ),
+			new Bed( AmbientSound.WHISPER, 7f, 14f, 0.26f ),    // 低语
+			new Bed( AmbientSound.MOAN, 8f, 16f, 0.24f ),
+			new Bed( AmbientSound.CRACKLE, 6f, 12f, 0.26f ),
 	};
 	private static final Bed[] FROZEN = {
-			new Bed( AmbientSound.DRIP_LEAF, 4f, 9f, 0.28f ),
-			new Bed( AmbientSound.DRIP, 6f, 12f, 0.24f ),
+			new Bed( AmbientSound.ICE, 5f, 11f, 0.28f ),
+			new Bed( AmbientSound.DRIP_LEAF, 4f, 9f, 0.26f ),
+			new Bed( AmbientSound.WIND, 7f, 14f, 0.24f ),
 	};
 	private static final Bed[] GENERIC = {
 			new Bed( AmbientSound.DRIP, 5f, 12f, 0.28f ),
@@ -64,6 +77,8 @@ public final class LevelAmbience {
 
 	public static void sceneCreated(){
 		nextIn = 2f + RNG.nextFloat() * 4f;
+		fireIn = 2f;
+		AmbientSounds.reset();
 	}
 
 	public static void update(){
@@ -118,9 +133,15 @@ public final class LevelAmbience {
 		if (n.contains( "sewer" )) return SEWER;
 		if (n.contains( "prison" )) return PRISON;
 		if (n.contains( "cave" ) || n.contains( "crystal" ) || n.contains( "gnoll" )) return CAVES;
-		if (n.contains( "city" )) return CITY;
-		if (n.contains( "hall" ) || n.contains( "level" )) return HALLS;
+		if (n.contains( "city" ) || n.contains( "town" ) || n.contains( "shop" )) return CITY;
+		if (n.contains( "hall" )) return HALLS;
 		if (n.contains( "frozen" ) || n.contains( "ice" )) return FROZEN;
-		return GENERIC;
+		// 兜底按深度：6-10 监狱，11-15 矿洞，16-20 城镇，21+ 地狱
+		int d = com.shatteredpixel.shatteredpixeldungeon.Dungeon.depth;
+		if (d >= 21) return HALLS;
+		if (d >= 16) return CITY;
+		if (d >= 11) return CAVES;
+		if (d >= 6) return PRISON;
+		return SEWER;
 	}
 }
