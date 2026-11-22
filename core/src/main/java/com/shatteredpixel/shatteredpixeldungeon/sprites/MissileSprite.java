@@ -172,12 +172,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private void setup( PointF from, PointF to, Item item, Callback listener, float speedMultiplier ){
 
 		this.enchantSource = item;
-		com.shatteredpixel.shatteredpixeldungeon.items.Item bow =
-				com.shatteredpixel.shatteredpixeldungeon.effects.BowAura.bowOf(
-						com.shatteredpixel.shatteredpixeldungeon.Dungeon.hero );
-		if (bow != null){
-			bowColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.itemColor( bow );
-		}
 		originToCenter();
 
 		//adjust points so they work with the center of the missile sprite, not the corner
@@ -249,8 +243,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	}
 
 	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
-	/** 弓射出的矢：没有附魔色时用弓的本色 */
-	private int bowColor;
 	private float trailIn;
 	private float lastX, lastY;
 	private float vx, vy;
@@ -261,7 +253,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		super.update();
 		// 附魔拖尾：按速度和颜色沿途撒粒子
 		int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.color( enchantSource );
-		if (color == 0) color = bowColor;
+		if (color == 0) color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.missileColor( enchantSource );
 		if (color != 0 && exists){
 			vx = x - px;
 			vy = y - py;
@@ -275,7 +267,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	@Override
 	public void onComplete( Tweener tweener ) {
 		int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.color( enchantSource );
-		if (color == 0) color = bowColor;
+		if (color == 0) color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.missileColor( enchantSource );
 		if (color != 0){
 			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.burst( x, y, color );
 		}

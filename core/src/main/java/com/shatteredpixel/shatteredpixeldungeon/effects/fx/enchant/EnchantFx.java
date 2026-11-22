@@ -123,6 +123,18 @@ public final class EnchantFx {
 		COLORS.put( "sweeping",     0xC0D0E8 );
 	}
 
+	/** 投掷物（箭/飞镖等）的拖尾色：永远非 0，保证普通投掷也看得见 */
+	public static int missileColor( Item item ){
+		int c = itemColor( item );
+		if (c != 0 && c != 0xC8D8FF) return c;
+		if (item == null) return 0xE8E4C8;
+		String n = item.getClass().getSimpleName().toLowerCase();
+		if (n.contains( "arrow" )) return 0xE8E4C8;
+		if (n.contains( "dart" )) return 0xC8D8F0;
+		if (n.contains( "throwing" ) || n.contains( "bomb" )) return 0xE0C8A0;
+		return 0xD8D8E0;
+	}
+
 	/** 物品的"代表色"：附魔优先，否则按物品类型给本色（弓/弩/其它） */
 	public static int itemColor( Item item ){
 		int c = uiColor( item );
