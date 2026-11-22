@@ -183,7 +183,7 @@ public final class EnchantFx {
 			case LIGHT:     return FxFrames.STAR4_7;
 			case WATER:     return FxFrames.DROP_2;
 			case PHYS:
-			default:        return FxFrames.STREAK_TAPER;
+			default:        return FxFrames.SPARK_2;
 		}
 	}
 
@@ -304,7 +304,7 @@ public final class EnchantFx {
 		if (air == null) return;
 
 		int[] frame = trailHeadFrame( f );
-		float scale = f == Family.FIRE || f == Family.LIGHTNING ? 1.5f : 1.2f;
+		float scale = fitScale( frame, 3f );
 
 		// 主拖尾：顺着速度方向拉长
 		FxParticle head = boost( (FxParticle) air.recycle( FxParticle.class ), scale );
@@ -314,8 +314,8 @@ public final class EnchantFx {
 				.snap().priority( FxBudget.P2 );
 
 		// 余烬/碎屑
-		if (FxRandom.chance( 0.55f )){
-			FxParticle tail = boost( (FxParticle) air.recycle( FxParticle.class ), scale * 0.8f );
+		if (FxRandom.chance( 0.35f )){
+			FxParticle tail = boost( (FxParticle) air.recycle( FxParticle.class ), fitScale( trailTailFrame( f ), 2f ) );
 			if (tail != null){
 				tail.reset( x + FxRandom.Float( -1.5f, 1.5f ), y + FxRandom.Float( -1.5f, 1.5f ) )
 						.look( trailTailFrame( f ) ).paint( color )
@@ -329,6 +329,15 @@ public final class EnchantFx {
 		}
 
 		trailSpawned++;
+	}
+
+	/** 把某个帧缩放到目标像素大小（避免大帧变块） */
+	static float fitScale( int[] frame, float target ){
+		if (frame == null) return 1f;
+		float m = Math.max( frame[2], frame[3] );
+		if (m <= 0f) return 1f;
+		float s = target / m;
+		return Math.max( 0.5f, Math.min( 1f, s ) );
 	}
 
 	/** 没有附魔时按投掷物类型给族（箭/飞镖算物理，火瓶算火…） */
@@ -347,14 +356,14 @@ public final class EnchantFx {
 	private static int[] trailHeadFrame( Family f ){
 		switch (f){
 			case FIRE:      return FxFrames.STREAK_FLAME[0];
-			case ICE:       return FxFrames.SHARD_GLASS[0];
+			case ICE:       return FxFrames.MOTE_2;
 			case LIGHTNING: return FxFrames.SPARK_2;
 			case POISON:    return FxFrames.DROP_3;
 			case DARK:      return FxFrames.INK_WISP[0];
 			case LIGHT:     return FxFrames.STAR4_7;
 			case BLOOD:     return FxFrames.MOTE_2;
 			case PHYS:
-			default:        return FxFrames.STREAK_TAPER;
+			default:        return FxFrames.SPARK_2;
 		}
 	}
 
