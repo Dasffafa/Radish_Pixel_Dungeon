@@ -1177,6 +1177,15 @@ public abstract class Level implements Bundlable {
 
 		}
 
+		// 东西掉进水里：水花 + 落水声
+		if (map != null && cell >= 0 && cell < length() && water != null && water[cell]){
+			float px = (cell % width()) * com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE + 8f;
+			float py = (cell / width()) * com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE + 8f;
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterDrops.item( px, py );
+			com.watabou.noosa.audio.Sample.INSTANCE.play( Assets.Sounds.WATER, 0.6f,
+					com.watabou.utils.Random.Float( 0.9f, 1.1f ) );
+		}
+
 		Heap heap = heaps.get( cell );
 		if (heap == null) {
 

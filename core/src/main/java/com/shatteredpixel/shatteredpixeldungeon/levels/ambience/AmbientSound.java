@@ -16,7 +16,8 @@ public enum AmbientSound {
 	DRIP_LEAF  ( "drip_leaf",  2, 0.7f, 0.30f ),
 	TRICKLE    ( "trickle",   2, 2.2f, 0.34f ),
 	POUR       ( "pour",      1, 3.0f, 0.36f ),
-	GURGLE     ( "gurgle",    2, 2.0f, 0.30f );
+	GURGLE     ( "gurgle",    2, 2.0f, 0.30f ),
+	CRACKLE    ( "crackle",   1, 2.6f, 0.34f );
 
 	/** 每一次录音的文件 */
 	public final String[] takes;

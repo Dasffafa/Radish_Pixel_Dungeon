@@ -57,6 +57,8 @@ public final class LevelAmbience {
 	};
 
 	private static float nextIn = 4f;
+	private static float fireIn = 2f;
+	public static int crackles;
 	public static int played;
 	public static String lastLevel = "";
 
@@ -68,6 +70,17 @@ public final class LevelAmbience {
 		Level level = Dungeon.level;
 		if (level == null || Dungeon.hero == null) return;
 		if (!AmbientPlayer.audible()) return;
+
+		// 附近有火：隔一阵噼啪一声
+		fireIn -= Game.elapsed;
+		if (fireIn <= 0f){
+			fireIn = 2.5f + RNG.nextFloat() * 3.5f;
+			if (fireNear( level )){
+				AmbientPlayer.play( AmbientSound.CRACKLE, 0.34f, 1f + RNG.nextFloat() * 0.12f - 0.06f,
+						RNG.nextFloat() * 1.2f - 0.6f );
+				crackles++;
+			}
+		}
 
 		nextIn -= Game.elapsed;
 		if (nextIn > 0f) return;
@@ -81,6 +94,22 @@ public final class LevelAmbience {
 		float pan = RNG.nextFloat() * 1.4f - 0.7f;
 		AmbientPlayer.play( b.sound, b.volume, 1f + RNG.nextFloat() * 0.12f - 0.06f, pan );
 		played++;
+	}
+
+	/** 主角 6 格内有火吗 */
+	private static boolean fireNear( Level level ){
+		if (level.blobs == null || Dungeon.hero == null) return false;
+		int w = level.width();
+		int hx = Dungeon.hero.pos % w, hy = Dungeon.hero.pos / w;
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : level.blobs.values()){
+			if (!(b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire)) continue;
+			for (int i = 0; i < b.cur.length; i++){
+				if (b.cur[i] <= 0) continue;
+				int fx = i % w, fy = i / w;
+				if (Math.abs( fx - hx ) <= 6 && Math.abs( fy - hy ) <= 6) return true;
+			}
+		}
+		return false;
 	}
 
 	private static Bed[] bedsFor( Level level ){

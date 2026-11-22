@@ -160,6 +160,8 @@ public final class WaterWalk {
 				return;
 			}
 			splashSound( s, 0.32f );
+			// 出水：在落脚处留一小块湿印
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxDecal.wet( at.x, at.y );
 			WaterFX.ring( was.x, was.y, small, l.foam, WaterFX.alphaOf( small ), FxBudget.P1 );
 			WaterFX.droplets( was.x, was.y - 1, large ? 3 : 2, 25f, 45f, 80f, l.foam );
 		}
