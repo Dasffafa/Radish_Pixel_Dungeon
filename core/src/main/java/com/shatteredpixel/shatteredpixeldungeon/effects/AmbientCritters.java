@@ -1,258 +1,158 @@
-/*
- * Radish Pixel Dungeon
- *
- * 环境小生物：
- *  - 地面小虫（蚱蜢/甲虫/蜘蛛）：在英雄视野内的空地上钻出、跳几步、淡出
- *  - 萤火虫：在英雄附近的空中飘动、明暗呼吸
- * 都只影响画面，不参与回合与战斗（不会进 Dungeon.level.mobs）。
- */
-
 package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
-import com.watabou.noosa.MovieClip;
-import com.watabou.noosa.TextureFilm;
-import com.watabou.utils.Random;
+import com.watabou.noosa.particles.Emitter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-public class AmbientCritters {
+/**
+ * 环境小动物：直接使用 Warped 的 DungeonCritterSprite（青蛙/鼠妇/蜘蛛/蛾子/飞虫/蜗牛/长脚虫）。
+ * 生成节奏：视野内每 6~11 秒一只，最多 5 只，死亡/离开后自动补。
+ */
+public final class AmbientCritters {
 
-	private static final String SHEET = "effects/dungeon_critters.png";
-	private static final String FLY_SHEET = "effects/critters.png";
-	private static final int TILE = 16;
+	private AmbientCritters(){}
 
-	// 小虫精灵表 8 列，每行一种
-	private static final int[][] KINDS = {
-			{ 0, 1, 2, 3, 4, 5 },        // 蚱蜢
-			{ 8, 9, 10, 11, 12, 13 },    // 甲虫
-			{ 40, 41, 42, 43, 44 },      // 蜘蛛
-	};
-	// 萤火虫：critters.png 第 8 行的光点帧
-	private static final int[] FLY_FRAMES = { 56, 57, 58 };
+	private static final float SIZE = DungeonTilemap.SIZE;
+	private static final int MAX = 5;
+	private static final float MIN_GAP = 6f, MAX_GAP = 11f;
 
-	private static final List<Critter> alive = new ArrayList<>();
-	private static final List<Firefly> flies = new ArrayList<>();
+	private static final Random RNG = new Random();
+
 	private static Group host;
-	// 生成间隔：小虫 9~18s，萤火虫 12~24s
-	private static float nextIn = 9f, nextFlyIn = 12f;
+	private static final List<DungeonCritterSprite> live = new ArrayList<>();
+	private static float spawnIn = 4f;
+	public static int spawned;
+	public static int lastCell = -1;
 
-	/** 调试计数 */
-	public static int spawned, firefliesSpawned, tries_used;
-	public static int lastCritterCell = -1, lastFlyCell = -1, badCells = 0;
-
-	public static void init( Group group ) {
-		host = group;
-		alive.clear();
-		flies.clear();
-		nextIn = 9f;
-		nextFlyIn = 12f;
+	public static void init( Group effects ){
+		host = effects;
+		live.clear();
 		spawned = 0;
-		firefliesSpawned = 0;
-		tries_used = 0;
-		lastCritterCell = -1;
-		lastFlyCell = -1;
-		badCells = 0;
+		lastCell = -1;
+		spawnIn = 4f;
 	}
 
-	public static void update() {
+	/** 每帧：清掉已经离开的，按节奏补新的 */
+	public static void update(){
 		if (host == null || Dungeon.level == null || Dungeon.hero == null) return;
 
-		for (int i = alive.size() - 1; i >= 0; i--) {
-			if (!alive.get(i).alive) alive.remove(i);
-		}
-		for (int i = flies.size() - 1; i >= 0; i--) {
-			if (!flies.get(i).alive) flies.remove(i);
+		for (int i = live.size() - 1; i >= 0; i--){
+			if (!live.get( i ).alive) live.remove( i );
 		}
 
-		nextIn -= Game.elapsed;
-		if (nextIn <= 0f) {
-			nextIn = 9f + Random.Float( 9f );
-			if (alive.size() < 1) spawnCritter();
-		}
+		if (Emitter.freezeEmitters) return;
 
-		nextFlyIn -= Game.elapsed;
-		if (nextFlyIn <= 0f) {
-			nextFlyIn = 12f + Random.Float( 12f );
-			if (flies.size() < 2) spawnFirefly();
-		}
+		spawnIn -= Game.elapsed;
+		if (spawnIn > 0f) return;
+
+		spawnIn = MIN_GAP + RNG.nextFloat() * (MAX_GAP - MIN_GAP);
+		if (live.size() >= MAX) return;
+		spawnOne();
 	}
 
-	private static void spawnCritter() {
-		Hero hero = Dungeon.hero;
-		int width = Dungeon.level.width();
-		// 只放在干燥、可通行、看得见、没被占的格子；找不到就不生成
-		for (int tries = 0; tries < 16; tries++) {
-			int dx = Random.Int( 5 ) - 2;
-			int dy = Random.Int( 5 ) - 2;
-			if (dx == 0 && dy == 0) continue;
-			int cell = hero.pos + dx + dy * width;
-			if (cell < 0 || cell >= Dungeon.level.map.length) continue;
+	private static void spawnOne(){
+		int w = Dungeon.level.width(), h = Dungeon.level.height();
+		int heroX = Dungeon.hero.pos % w, heroY = Dungeon.hero.pos / w;
+
+		for (int tries = 0; tries < 24; tries++){
+			int x = heroX + RNG.nextInt( 7 ) - 3;
+			int y = heroY + RNG.nextInt( 7 ) - 3;
+			if (x < 0 || y < 0 || x >= w || y >= h) continue;
+
+			int cell = x + y * w;
 			if (!Dungeon.level.heroFOV[cell]) continue;
-			if (!Dungeon.level.passable[cell]) continue;
-			if (Dungeon.level.map[cell] == Terrain.CHASM) continue;
-			if (Dungeon.level.water[cell]) continue;
 			if (Actor.findChar( cell ) != null) continue;
+			if (Dungeon.level.map[cell] == Terrain.CHASM || Dungeon.level.map[cell] == Terrain.EMPTY) continue;
 
-			Critter c = new Critter( KINDS[Random.Int( KINDS.length )], cell );
-			host.add( c );
-			alive.add( c );
-			spawned++;
-			tries_used += tries + 1;
-			lastCritterCell = cell;
-			return;
-		}
-	}
+			float ax = x * SIZE + SIZE / 2f;
+			float ay = y * SIZE + SIZE / 2f;
 
-	private static void spawnFirefly() {
-		Hero hero = Dungeon.hero;
-		int width = Dungeon.level.width();
-		for (int tries = 0; tries < 12; tries++) {
-			int dx = Random.Int( 5 ) - 2;
-			int dy = Random.Int( 5 ) - 2;
-			int cell = hero.pos + dx + dy * width;
-			if (cell < 0 || cell >= Dungeon.level.map.length) continue;
-			if (!Dungeon.level.heroFOV[cell]) continue;
-			if (Dungeon.level.map[cell] == Terrain.CHASM) continue;
-			if (!Dungeon.level.passable[cell] && !Dungeon.level.water[cell]) continue;
+			DungeonCritterSprite s = null;
 
-			float px = (cell % width) * TILE + Random.Float( 16f );
-			float py = (cell / width) * TILE + Random.Float( 16f );
-			Firefly f = new Firefly( px, py );
-			host.add( f );
-			flies.add( f );
-			firefliesSpawned++;
-			lastFlyCell = cell;
-			return;
-		}
-	}
+			boolean water = Dungeon.level.map[cell] == Terrain.WATER;
+			int waterCell = nearWater( cell );
+			boolean passable = Dungeon.level.passable[cell];
 
-	public static class Critter extends MovieClip {
-
-		private static final float HOP = 0.22f;
-
-		private final int[] frames;
-		private int cell;
-		private float life, alphaT, hopIn, hopT = -1f;
-		private float fromX, fromY, toX, toY;
-
-		public Critter( int[] frames, int cell ) {
-			super( SHEET );
-			this.frames = frames;
-			this.cell = cell;
-
-			TextureFilm film = new TextureFilm( texture, TILE, TILE );
-			play( new Animation( 8, true ).frames( film, toObjects( frames ) ) );
-
-			x = (cell % Dungeon.level.width()) * TILE;
-			y = (cell / Dungeon.level.width()) * TILE;
-			fromX = toX = x;
-			fromY = toY = y;
-
-			life = 4f + Random.Float( 3f );
-			hopIn = Random.Float( 0.4f );
-			alpha( 0f );
-		}
-
-		private static Object[] toObjects( int[] ints ) {
-			Object[] out = new Object[ints.length];
-			for (int i = 0; i < ints.length; i++) out[i] = ints[i];
-			return out;
-		}
-
-		@Override
-		public void update() {
-			super.update();
-			float dt = Game.elapsed;
-
-			life -= dt;
-			alphaT += dt;
-			if (life <= 0f) {
-				killAndErase();
-				return;
-			}
-			float target = life < 0.7f ? Math.max( 0f, life / 0.7f ) : Math.min( 1f, alphaT / 0.25f );
-			alpha( target );
-
-			hopIn -= dt;
-			if (hopIn <= 0f && hopT < 0f) {
-				hopIn = 0.45f + Random.Float( 0.5f );
-				startHop();
-			}
-
-			if (hopT >= 0f) {
-				hopT -= dt;
-				float p = 1f - Math.max( 0f, hopT ) / HOP;
-				x = fromX + (toX - fromX) * p;
-				y = fromY + (toY - fromY) * p - (float)Math.sin( p * Math.PI ) * 2f;
-				if (hopT < 0f) {
-					x = toX;
-					y = toY;
+			if (waterCell != -1 && !water){
+				// 岸边：青蛙在岸与水之间蹦跶
+				int wx = waterCell % w, wy = waterCell / w;
+				s = new DungeonCritterSprite.Frog( ax, ay, wx * SIZE + SIZE / 2f, wy * SIZE + SIZE / 2f, true );
+			} else if (water){
+				// 水里不生成陆生小动物，换成水面的飞虫
+				s = new DungeonCritterSprite.Fly( ax, ay );
+			} else if (passable){
+				int roll = RNG.nextInt( 100 );
+				if (roll < 34){
+					s = new DungeonCritterSprite.Scuttler( DungeonCritterSprite.Scuttler.Look.ROACH, ax, ay, new SimpleGround() );
+				} else if (roll < 58){
+					s = new DungeonCritterSprite.Strider( ax, ay );
+				} else if (roll < 76){
+					s = new DungeonCritterSprite.Fly( ax, ay );
+				} else if (roll < 88){
+					s = new DungeonCritterSprite.Moth( ax, ay, 0f, 0xE8D9A0, false, true );
+				} else if (roll < 96){
+					s = new DungeonCritterSprite.Snail( ax, ay );
+				} else {
+					s = new DungeonCritterSprite.Spider( ax, ay, 0f, 2f );
 				}
 			}
-		}
 
-		private void startHop() {
-			int width = Dungeon.level.width();
-			int[][] dirs = { {0,-1}, {0,1}, {-1,0}, {1,0} };
-			int d = Random.Int( 4 );
-			int next = cell + dirs[d][0] + dirs[d][1] * width;
-			if (next < 0 || next >= Dungeon.level.map.length) return;
-			if (!Dungeon.level.passable[next]) return;
-			if (Math.abs( (next % width) - (cell % width) ) > 1) return;
+			if (s == null) continue;
 
-			cell = next;
-			fromX = x;
-			fromY = y;
-			toX = (cell % width) * TILE;
-			toY = (cell / width) * TILE;
-			hopT = HOP;
+			s.ax = ax;
+			s.ay = ay;
+			host.add( s );
+			live.add( s );
+			lastCell = cell;
+			spawned++;
+			return;
 		}
 	}
 
-	public static class Firefly extends MovieClip {
+	/** 四邻里有水就返回那格，否则 -1 */
+	private static int nearWater( int cell ){
+		int w = Dungeon.level.width();
+		int[] d = { cell - w, cell + w, cell - 1, cell + 1 };
+		for (int c : d){
+			if (c < 0 || c >= Dungeon.level.map.length) continue;
+			if (Dungeon.level.map[c] == Terrain.WATER) return c;
+		}
+		return -1;
+	}
 
-		private float life, age, vx, vy, phase;
-
-		public Firefly( float px, float py ) {
-			super( FLY_SHEET );
-
-			TextureFilm film = new TextureFilm( texture, TILE, TILE );
-			play( new Animation( 6, true ).frames( film, 56, 57, 58 ) );
-
-			x = px;
-			y = py;
-			vx = Random.Float( -7f, 7f );
-			vy = Random.Float( -5f, 5f );
-			life = 6f + Random.Float( 6f );
-			phase = Random.Float( 6.28f );
-			hardlight( 0xFFFF99 );
-			alpha( 0f );
+	/** 在出生点附近晃悠 */
+	private static final class SimpleGround implements DungeonCritterSprite.Ground {
+		@Override
+		public float[] wander( float x, float y ){
+			float[] pts = new float[4];
+			for (int i = 0; i < 2; i++){
+				float px = x + (RNG.nextFloat() * 2f - 1f) * SIZE * 1.5f;
+				float py = y + (RNG.nextFloat() * 2f - 1f) * SIZE * 1.5f;
+				pts[i * 2] = px;
+				pts[i * 2 + 1] = py;
+			}
+			return pts;
 		}
 
 		@Override
-		public void update() {
-			super.update();
-			float dt = Game.elapsed;
-			age += dt;
-			life -= dt;
-			if (life <= 0f) {
-				killAndErase();
-				return;
-			}
-
-			x += vx * dt;
-			y += vy * dt + (float)Math.sin( age * 2.4f + phase ) * 8f * dt;
-
-			float pulse = 0.5f + 0.5f * (float)Math.sin( age * 4f + phase );
-			float fade = Math.min( 1f, Math.min( age * 2f, life * 0.8f ) );
-			alpha( Math.min( 1f, 0.35f + pulse * 0.65f ) * fade );
+		public float[] flee( float x, float y, float sx, float sy ){
+			float dx = x - sx, dy = y - sy;
+			float len = (float)Math.sqrt( dx * dx + dy * dy );
+			if (len < 0.01f){ dx = 0; dy = 1; len = 1; }
+			float[] pts = new float[4];
+			pts[0] = x + dx / len * SIZE * 3f;
+			pts[1] = y + dy / len * SIZE * 3f;
+			pts[2] = x + dx / len * SIZE * 6f;
+			pts[3] = y + dy / len * SIZE * 6f;
+			return pts;
 		}
 	}
 }

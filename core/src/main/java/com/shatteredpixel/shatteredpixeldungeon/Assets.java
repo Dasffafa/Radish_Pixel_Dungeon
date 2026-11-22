@@ -34,6 +34,8 @@ public class Assets {
 		public static final String WATER_POCKS  = "effects/water_pocks.png";
 		public static final String WATER_SHEEN_A = "effects/water_sheen_a.png";
 		public static final String WATER_SHEEN_B = "effects/water_sheen_b.png";
+		public static final String CRITTERS       = "effects/critters.png";
+		public static final String DUNGEON_CRITTERS = "effects/dungeon_critters.png";
 		public static final String LAVA_GLOW    = "effects/lava_glow.png";
 
 		// CC0 effect assets (see effects/cc0/CREDITS.txt)

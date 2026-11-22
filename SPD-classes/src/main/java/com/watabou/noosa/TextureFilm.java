@@ -50,6 +50,21 @@ public class TextureFilm {
 		this( texture, width, texture.height );
 	}
 	
+	/** 手工指定图集尺寸的构造（不接触纹理），参考 Warped 的 TextureFilm。 */
+	public TextureFilm( int width, int height, int tileWidth, int tileHeight ) {
+		texWidth = width;
+		texHeight = height;
+		int cols = width / tileWidth;
+		int rows = height / tileHeight;
+		for (int y = 0; y < rows; y++) {
+			for (int x = 0; x < cols; x++) {
+				add( y * cols + x, new RectF(
+						(float)x * tileWidth / width, (float)y * tileHeight / height,
+						(float)(x + 1) * tileWidth / width, (float)(y + 1) * tileHeight / height ) );
+			}
+		}
+	}
+
 	public TextureFilm( Object tx, int width, int height ) {
 
 		SmartTexture texture = TextureCache.get( tx );

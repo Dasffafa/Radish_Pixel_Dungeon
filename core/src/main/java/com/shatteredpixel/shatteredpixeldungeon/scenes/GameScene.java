@@ -188,6 +188,7 @@ public class GameScene extends PixelScene {
 	private Group waterRipples;
 	// Warped 的水面图层：在 water 之上、tiles 之下，靠"水格不画瓦片"自然遮罩
 	private Group waterSheen;
+	private Group waterSubsurface;
 	// Warped fx 框架需要的三个图层（floor / surface / light）
 	private Group floorFx;
 	private Group lightFx;
@@ -1422,6 +1423,16 @@ public class GameScene extends PixelScene {
 	}
 
 	/** 水面 sheen 的挂载点：在地块之下 */
+	/** 水面之下（鱼影等）：water 之上、瓦片之下 */
+	public static void subsurface( Gizmo g ){
+		if (scene == null || g == null) return;
+		if (scene.waterSubsurface == null){
+			scene.waterSubsurface = new Group();
+			scene.waterSheen.add( scene.waterSubsurface );
+		}
+		scene.waterSubsurface.add( g );
+	}
+
 	public static Group waterSheen(){
 		return scene != null ? scene.waterSheen : null;
 	}
