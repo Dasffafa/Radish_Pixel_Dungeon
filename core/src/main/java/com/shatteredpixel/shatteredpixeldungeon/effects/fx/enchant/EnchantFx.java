@@ -274,24 +274,7 @@ public final class EnchantFx {
 		trailSpawned++;
 	}
 
-	public static void trail( float x, float y, Weapon.Enchantment e, float vx, float vy ){
-		if (e == null) return;
-		Family f = familyOf( e );
-		if (!FxBudget.keep( FxBudget.P3, x, y )) return;
-		FxEmitter air = Fx.air();
-		if (air == null) return;
-		((FxParticle) air.recycle( FxParticle.class ))
-				.reset( x + FxRandom.Float( -2f, 2f ), y + FxRandom.Float( -2f, 2f ) )
-				.look( trailFrame( f ) )
-				.paint( colorOf( e ) )
-				.vel( -vx * 0.08f + FxRandom.Float( -8f, 8f ), -vy * 0.08f + FxRandom.Float( -8f, 8f ) )
-				.life( FxRandom.Float( 0.22f, 0.42f ) )
-				.alpha( 0.85f, 0f, 0.15f )
-				.snap().priority( FxBudget.P3 );
-		trailSpawned++;
-	}
-
-	/** 投掷物拖尾（按附魔/物品类型换帧，带速度方向） */
+	/** 投掷物拖尾：按附魔/物品类型换帧，严格顺着飞行方向 */
 	public static void trailFor( float x, float y, Item source, float vx, float vy ){
 		int color = color( source );
 		if (color == 0) color = missileColor( source );
@@ -306,23 +289,31 @@ public final class EnchantFx {
 		int[] frame = trailHeadFrame( f );
 		float scale = fitScale( frame, 3f );
 
-		// 主拖尾：顺着速度方向拉长
-		FxParticle head = boost( (FxParticle) air.recycle( FxParticle.class ), scale );
-		head.reset( x, y ).look( frame ).paint( light( color, 0.25f ) )
-				.vel( -vx * 0.05f, -vy * 0.05f )
-				.life( 0.22f ).alpha( 0.95f, 0f, 0.12f )
-				.snap().priority( FxBudget.P2 );
+		float d = (float)Math.hypot( vx, vy );
+		float ux = d > 0.01f ? vx / d : 1f;
+		float uy = d > 0.01f ? vy / d : 0f;
+		float deg = (float)Math.toDegrees( Math.atan2( uy, ux ) );
 
-		// 余烬/碎屑
-		if (FxRandom.chance( 0.35f )){
-			FxParticle tail = boost( (FxParticle) air.recycle( FxParticle.class ), fitScale( trailTailFrame( f ), 2f ) );
+		FxParticle head = boost( (FxParticle) air.recycle( FxParticle.class ), scale );
+		if (head != null){
+			head.reset( x - ux * 2f, y - uy * 2f ).look( frame ).paint( light( color, 0.25f ) )
+					.vel( -vx * 0.03f, -vy * 0.03f )
+					.life( 0.2f ).alpha( 0.95f, 0f, 0.12f )
+					.snap().priority( FxBudget.P2 );
+			head.angle = deg;                    // 帧是横向的：转到运动方向
+			head.scale.set( scale * 1.8f, scale ); // 顺运动方向拉长
+		}
+
+		if (FxRandom.chance( 0.45f )){
+			int[] tf = trailTailFrame( f );
+			FxParticle tail = boost( (FxParticle) air.recycle( FxParticle.class ), fitScale( tf, 2f ) );
 			if (tail != null){
-				tail.reset( x + FxRandom.Float( -1.5f, 1.5f ), y + FxRandom.Float( -1.5f, 1.5f ) )
-						.look( trailTailFrame( f ) ).paint( color )
-						.vel( -vx * 0.02f + FxRandom.Float( -14f, 14f ),
-								-vy * 0.02f + FxRandom.Float( -14f, 14f ) )
-						.drag( 1.2f )
-						.life( FxRandom.Float( 0.2f, 0.4f ) )
+				float side = FxRandom.Float( -0.5f, 0.5f );
+				tail.reset( x - ux * 3f, y - uy * 3f )
+						.look( tf ).paint( color )
+						.vel( -vx * 0.05f - uy * side * 20f, -vy * 0.05f + ux * side * 20f )
+						.drag( 2.2f )
+						.life( FxRandom.Float( 0.18f, 0.34f ) )
 						.alpha( 0.85f, 0f, 0.2f )
 						.priority( FxBudget.P3 );
 			}
@@ -340,7 +331,7 @@ public final class EnchantFx {
 		return Math.max( 0.5f, Math.min( 1f, s ) );
 	}
 
-	/** 没有附魔时按投掷物类型给族（箭/飞镖算物理，火瓶算火…） */
+	/** 没有附魔时按投掷物类型给族 */
 	private static Family familyForItem( Item it ){
 		if (it == null) return Family.PHYS;
 		String n = it.getClass().getSimpleName().toLowerCase();
@@ -348,7 +339,7 @@ public final class EnchantFx {
 		if (n.contains( "frost" ) || n.contains( "chill" ) || n.contains( "ice" )) return Family.ICE;
 		if (n.contains( "shock" ) || n.contains( "light" ) || n.contains( "storm" )) return Family.LIGHTNING;
 		if (n.contains( "poison" ) || n.contains( "venom" ) || n.contains( "rot" )) return Family.POISON;
-		if (n.contains( "holy" ) || n.contains( "holy" )) return Family.LIGHT;
+		if (n.contains( "holy" )) return Family.LIGHT;
 		if (n.contains( "dark" ) || n.contains( "void" )) return Family.DARK;
 		return Family.PHYS;
 	}
@@ -381,7 +372,6 @@ public final class EnchantFx {
 		}
 	}
 
-	/** 命中：一圈小爆点 */
 	public static void burst( float x, float y, int color ){
 		burst( x, y, Family.PHYS, color );
 	}
