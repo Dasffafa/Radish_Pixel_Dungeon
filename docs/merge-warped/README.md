@@ -137,3 +137,13 @@ Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `Wa
 
 **说明**：Warped 原本只在主世界/海岸放鱼影，这里放宽到所有水面（下水道也有），
 因为本仓库没有主世界。要只在特定关卡出现，改 `FishShadows.waters()` 一个方法即可。
+
+## 水面氛围（WaterAmbience，已并入 ronghe）
+
+- `effects/fx/water/WaterAmbience.java`（390 行）：浪花/岸边泡沫（lapping foam）、水面闪光（glints）、
+  白色浪尖（whitecaps）、气泡（bubble，会破裂成小环）、冷水的浮冰渣/雾、岩浆的岸边辉光接口
+- 由 `WaterLive.update()` 每帧驱动，视图范围按水面包围盒传入
+- 天气相关（云量/风/降水/主世界海岸与海洋）全部退化为常量
+
+**`WaterScenes` 没有搬**：它其实是 Warped 的**调试画廊**（把角色传送到预设场景看特效），
+不是游戏里的水面转场，对玩法没用。

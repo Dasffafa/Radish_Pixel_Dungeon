@@ -196,7 +196,9 @@ public class WaterLive extends Group {
 			dropIn = 0.35f + FxRandom.Float( 0.9f );
 			dripOne( level, l );
 		}
-		// 本仓库没有水面氛围模块
+		ambience.update( level, l, dt,
+				(int)( boxX / SIZE ), (int)( boxY / SIZE ),
+				(int)( (boxX + boxW) / SIZE ), (int)( (boxY + boxH) / SIZE ) );
 	}
 
 	/** 岸边泡沫边：每 0.22 秒重建一次，随机缺口 + 随机亮度，视觉上把直角边打碎 */
@@ -373,7 +375,7 @@ public class WaterLive extends Group {
 
 	/** The lava's banks lit now (tests). */
 	int banksLitForTests(){
-		return 0;
+		return ambience.banksLit();
 	}
 
 	/** The water cells in view the hero saw at the live surface's last look. */
@@ -547,6 +549,7 @@ public class WaterLive extends Group {
 	private final java.util.Set<Integer> seenFalls = new java.util.HashSet<>();
 	public static int fallEdges;
 	/** 岸边泡沫：一组短线段，随机明暗/缺口，让水边不笔直 */
+	private final WaterAmbience ambience = new WaterAmbience();
 	private Group shore;
 	private static final int SHORE_MAX = 420;
 	private final java.util.List<com.watabou.noosa.ColorBlock> shoreBlocks = new java.util.ArrayList<>();
