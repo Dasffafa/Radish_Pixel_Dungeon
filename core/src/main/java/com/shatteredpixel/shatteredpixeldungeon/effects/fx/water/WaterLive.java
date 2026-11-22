@@ -222,29 +222,22 @@ public class WaterLive extends Group {
 				int cell = x + y * w;
 				if (!level.water[cell]) continue;
 
-				boolean edgeS = y + 1 < h && !level.water[cell + w];
-				boolean edgeN = y > 0 && !level.water[cell - w];
-				boolean edgeW = x > 0 && !level.water[cell - 1];
-				boolean edgeE = x + 1 < w && !level.water[cell + 1];
+				boolean landS = y + 1 >= h || !level.water[cell + w];
+				boolean landN = y <= 0 || !level.water[cell - w];
+				boolean landW = x <= 0 || !level.water[cell - 1];
+				boolean landE = x + 1 >= w || !level.water[cell + 1];
+				// 角落：两侧都是陆地时不画边，视觉上就是"缺角"
+				boolean edgeS = landS && !(landW && landE);
+				boolean edgeN = landN && !(landW && landE);
+				boolean edgeW = landW && !(landN && landS);
+				boolean edgeE = landE && !(landN && landS);
 				if (!edgeS && !edgeN && !edgeW && !edgeE) continue;
 
 				float bx = x * SIZE, by = y * SIZE;
-				if (edgeS){
-					used = shoreSeg( used, bx, by + SIZE - 2f, SIZE, 2f, l );
-					used = shoreDots( used, bx, by + SIZE - 3f, l );
-				}
-				if (edgeN){
-					used = shoreSeg( used, bx, by, SIZE, 2f, l );
-					used = shoreDots( used, bx, by + 1f, l );
-				}
-				if (edgeW){
-					used = shoreSeg( used, bx, by, 2f, SIZE, l );
-					used = shoreDots( used, bx + 1f, by, l );
-				}
-				if (edgeE){
-					used = shoreSeg( used, bx + SIZE - 2f, by, 2f, SIZE, l );
-					used = shoreDots( used, bx + SIZE - 3f, by, l );
-				}
+				if (edgeS) used = shoreSeg( used, bx, by + SIZE - 2f, SIZE, 2f, l );
+				if (edgeN) used = shoreSeg( used, bx, by, SIZE, 2f, l );
+				if (edgeW) used = shoreSeg( used, bx, by, 2f, SIZE, l );
+				if (edgeE) used = shoreSeg( used, bx + SIZE - 2f, by, 2f, SIZE, l );
 				if (used >= SHORE_MAX) break;
 			}
 			if (used >= SHORE_MAX) break;
@@ -268,9 +261,17 @@ public class WaterLive extends Group {
 		b.y = y;
 		b.size( w, h );
 		b.visible = true;
-		b.hardlight( l.foam );
-		b.am = 0.22f + FxRandom.Float( 0.38f );
+		b.hardlight( darken( l.highlight, 0.45f ) );
+		b.am = 0.30f + FxRandom.Float( 0.20f );
 		return used + 1;
+	}
+
+	/** 把颜色按比例调暗 */
+	private static int darken( int color, float k ){
+		int r = (int)( ((color >> 16) & 0xFF) * k );
+		int g = (int)( ((color >> 8) & 0xFF) * k );
+		int b = (int)( (color & 0xFF) * k );
+		return 0xFF000000 | (r << 16) | (g << 8) | b;
 	}
 
 	/** 岸边零星泡沫点（2x2），让边线更碎 */
@@ -500,7 +501,7 @@ public class WaterLive extends Group {
 	public static boolean DRAW_SURFACE = true;
 	public static boolean DRAW_GLOW = false, DRAW_POCKS = false;
 	/** 岸边泡沫边（打破笔直的直角边） */
-	public static boolean DRAW_SHORE = false; // 程序化泡沫点太假，默认关
+	public static boolean DRAW_SHORE = true;
 
 	private void cycle( SkinnedBlock plane, Level level, Element.Liquid l ){
 		if (NO_CYCLE){
