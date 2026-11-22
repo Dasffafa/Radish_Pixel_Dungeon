@@ -3,29 +3,29 @@ package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
+import com.watabou.utils.PointF;
 
 import java.util.HashMap;
 
 /**
- * 实时战斗：每只棋子有自己的攻击速度和移动速度。
+ * 实时战斗：每只棋子有自己的攻速、移速，移动是**逐帧连续滑行**。
  *
- * <p>不再按「回合」推进，而是每帧用 delta 时间驱动：</p>
- * <ul>
- *   <li>移动冷却到 0 → 朝最近的敌人挪一格（sprite 平滑走过去）</li>
- *   <li>攻击冷却到 0 且贴身 → 出手（带闪光与伤害数字）</li>
- * </ul>
- *
- * <p>速度按棋子的定位给：刺客快、坦克慢、远程标准。</p>
+ * <p>移动不再用 sprite.move 的补间（那是一跳一跳的），而是每帧按
+ * 「像素/秒」把 sprite 往目标格子中心推进，到达后再提交 pos。</p>
  */
 public class AutochessCombat {
 
-	/** 每只棋子的战斗计时。 */
 	private static final class UnitState {
-		float atkLeft = 0.2f;
-		float moveLeft = 0f;
+		float atkLeft = 0.25f;
 		float atkInterval = 1.1f;
-		float moveInterval = 0.5f;
-		boolean inited = false;
+
+		/** 目标像素坐标；target < 0 表示没在移动。 */
+		int targetCell = -1;
+		float tx = 0f;
+		float ty = 0f;
+		float pxPerSec = 48f;
+		float retargetCooldown = 0f;
 	}
 
 	private static final HashMap<Mob, UnitState> states = new HashMap<>();
@@ -40,13 +40,14 @@ public class AutochessCombat {
 	private static final java.util.HashSet<String> TANK = new java.util.HashSet<>(java.util.Arrays.asList(
 			"Guard", "Jailer", "Golem", "Crab", "Brute", "Skeleton", "ClusteredSkeleton", "Gnoll"));
 
-	/** 由 HUD 每帧调用，delta 为帧间隔。 */
 	public static void update(float delta) {
 		AutochessRun run = AutochessRun.get();
 		if (run == null || Dungeon.level == null || run.state() != AutochessRun.State.FIGHT) {
 			if (!states.isEmpty()) states.clear();
 			return;
 		}
+		if (delta <= 0f) return;
+		delta = Math.min(delta, 0.1f);
 
 		Mob[] mobs = Dungeon.level.mobs.toArray(new Mob[0]);
 		java.util.HashSet<Mob> present = new java.util.HashSet<>();
@@ -61,11 +62,11 @@ public class AutochessCombat {
 					|| self.buff(AutochessFoeBuff.class) != null;
 			if (!ours) continue;
 
-			// 冻结原版 AI：只允许实时逻辑驱动，避免和 Actor 回合抢动作
+			// 冻结原版 AI
 			try {
 				self.state = self.SLEEPING;
 				self.paralysed = Math.max(self.paralysed, 1000);
-				if (self.sprite != null) self.sprite.hideEmo();
+				self.sprite.hideEmo();
 			} catch (Throwable ignored) {
 			}
 
@@ -77,46 +78,103 @@ public class AutochessCombat {
 			}
 
 			st.atkLeft -= delta;
-			st.moveLeft -= delta;
+			st.retargetCooldown -= delta;
 
 			Mob foe = nearestFoe(self, mobs);
 			if (foe == null) continue;
 
-			if (Dungeon.level.distance(self.pos, foe.pos) <= 1) {
-				if (st.atkLeft <= 0f) {
-					st.atkLeft = st.atkInterval;
-					attack(self, foe);
-				}
-			} else if (st.moveLeft <= 0f) {
-				st.moveLeft = st.moveInterval;
-				stepToward(self, foe);
+			boolean adjacent = Dungeon.level.distance(self.pos, foe.pos) <= 1;
+
+			// ---------- 移动：连续滑行 ----------
+			if (st.targetCell >= 0) {
+				glide(self, st, delta);
+			} else if (!adjacent && st.retargetCooldown <= 0f) {
+				startMove(self, st, foe);
+			}
+
+			// ---------- 攻击 ----------
+			if (st.targetCell < 0 && Dungeon.level.distance(self.pos, foe.pos) <= 1
+					&& st.atkLeft <= 0f) {
+				st.atkLeft = st.atkInterval;
+				attack(self, foe);
 			}
 		}
 	}
 
-	/** 按棋子定位给速度（数值单位：秒）。 */
+	/** 把 sprite 逐帧推进到目标格子中心。 */
+	private static void glide(Mob self, UnitState st, float delta) {
+		PointF p = new PointF(self.sprite.x, self.sprite.y);
+		float dx = st.tx - p.x;
+		float dy = st.ty - p.y;
+		float dist = (float) Math.sqrt(dx * dx + dy * dy);
+		float step = st.pxPerSec * delta;
+
+		if (dist <= step || dist < 0.5f) {
+			self.sprite.x = st.tx;
+			self.sprite.y = st.ty;
+			self.pos = st.targetCell;
+			st.targetCell = -1;
+			st.retargetCooldown = 0.05f;
+		} else {
+			self.sprite.x += dx / dist * step;
+			self.sprite.y += dy / dist * step;
+		}
+	}
+
+	/** 选一个更靠近敌人的相邻格，开始滑过去。 */
+	private static void startMove(Mob self, UnitState st, Mob foe) {
+		int w = Dungeon.level.width();
+		int sx = self.pos % w, sy = self.pos / w;
+
+		int bestCell = -1;
+		int bestDist = Integer.MAX_VALUE;
+		for (int oy = -1; oy <= 1; oy++) {
+			for (int ox = -1; ox <= 1; ox++) {
+				if (ox == 0 && oy == 0) continue;
+				int nx = sx + ox, ny = sy + oy;
+				if (nx <= 0 || ny <= 0 || nx >= w - 1 || ny >= Dungeon.level.height() - 1) continue;
+				int np = ny * w + nx;
+				if (!Dungeon.level.passable[np]) continue;
+				if (Actor.findChar(np) != null) continue;
+				int d = Dungeon.level.distance(np, foe.pos);
+				if (d < bestDist) {
+					bestDist = d;
+					bestCell = np;
+				}
+			}
+		}
+		if (bestCell < 0) {
+			st.retargetCooldown = 0.15f;
+			return;
+		}
+		st.targetCell = bestCell;
+		PointF dest = self.sprite.worldToCamera(bestCell);
+		st.tx = dest.x;
+		st.ty = dest.y;
+	}
+
+
 	private static void applySpeed(UnitState st, Mob mob, int star) {
 		String cls = mob.getClass().getSimpleName();
 		float atk = 1.1f;
-		float move = 0.50f;
+		float cellsPerSec = 2.0f;   // 每秒滑过几格
 
 		if (ASSASSIN.contains(cls)) {
 			atk = 0.75f;
-			move = 0.35f;
+			cellsPerSec = 3.0f;
 		} else if (TANK.contains(cls)) {
 			atk = 1.35f;
-			move = 0.65f;
+			cellsPerSec = 1.5f;
 		} else if (RANGED.contains(cls)) {
 			atk = 1.00f;
-			move = 0.55f;
+			cellsPerSec = 1.8f;
 		}
 
-		// 星级越高越快一点
 		float starBonus = 1f + 0.06f * Math.max(0, Math.min(3, star) - 1);
 		st.atkInterval = atk / starBonus;
-		st.moveInterval = move / starBonus;
+		st.pxPerSec = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE
+				* cellsPerSec * starBonus;
 		st.atkLeft = st.atkInterval * 0.5f;
-		st.moveLeft = 0f;
 	}
 
 	private static Mob nearestFoe(Mob self, Mob[] mobs) {
@@ -136,14 +194,13 @@ public class AutochessCombat {
 	}
 
 	private static void attack(Mob self, Mob foe) {
-		// 出手反馈：攻方闪一下
 		if (self.sprite != null) self.sprite.flash();
+
 		int hpBefore = foe.HP;
 		try {
 			self.attack(foe);
 		} catch (Throwable ignored) {
 		}
-		// 被完全格挡/闪避时至少削 2% 最大生命，保证血条会动
 		if (foe.HP >= hpBefore) {
 			int chip = Math.max(1, Math.round(foe.HT * 0.02f));
 			foe.HP = Math.max(0, foe.HP - chip);
@@ -160,38 +217,6 @@ public class AutochessCombat {
 				foe.die(self);
 			} catch (Throwable ignored) {
 			}
-		}
-	}
-
-	private static void stepToward(Mob self, Mob foe) {
-		int w = Dungeon.level.width();
-		int sx = self.pos % w, sy = self.pos / w;
-		int fx = foe.pos % w, fy = foe.pos / w;
-
-		int bestCell = -1;
-		int bestDist = Integer.MAX_VALUE;
-		for (int oy = -1; oy <= 1; oy++) {
-			for (int ox = -1; ox <= 1; ox++) {
-				if (ox == 0 && oy == 0) continue;
-				int nx = sx + ox, ny = sy + oy;
-				if (nx <= 0 || ny <= 0 || nx >= Dungeon.level.width() - 1 || ny >= Dungeon.level.height() - 1) continue;
-				int np = ny * w + nx;
-				if (!Dungeon.level.passable[np]) continue;
-				if (Actor.findChar(np) != null) continue;
-				int d = Dungeon.level.distance(np, foe.pos);
-				if (d < bestDist) {
-					bestDist = d;
-					bestCell = np;
-				}
-			}
-		}
-		if (bestCell < 0) return;
-
-		int from = self.pos;
-		self.pos = bestCell;
-		if (self.sprite != null) {
-			self.sprite.move(from, bestCell);
-			self.sprite.hideEmo();
 		}
 	}
 }
