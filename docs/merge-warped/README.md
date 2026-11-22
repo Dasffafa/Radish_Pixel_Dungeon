@@ -211,3 +211,19 @@ Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `Wa
 - 音床按关卡类名优先判定，其次按 `Dungeon.depth` 分段兜底
 - 换层时 `AmbientSounds.reset()`，避免声道占用跨层累计导致"永远算满"
 - 城镇：本仓库是 Dwarven Metropolis（无独立城镇关卡），Warped 的暴风城/城镇属于主世界，没有搬
+
+## 附魔特效（自建，按 Warped 的视觉语言）
+
+Warped 的附魔特效体系（`effects/fx/enchant/*`，约 30 个文件、上万行，且和它自己的
+enchant/rarity/quality 类强绑定）没有整搬，而是在现有 fx 工具上做了本分支版本：
+
+- `effects/fx/enchant/EnchantFx.java`
+  - `colorOf(Enchantment)`：本分支 40+ 种附魔按类名归到 9 个属性族取色
+    （火/冰/雷/毒/暗/血/光/水/物理），无附魔 → 无粒子
+  - `trail(...)`：飞行拖尾，每 0.035s 一粒 MOTE，带反向速度与淡出
+  - `burst(...)`：命中时 5 粒 STAR/SPARK 向外炸开
+- `MissileSprite`：`update()` 里按附魔颜色撒拖尾，`onComplete()` 里放命中爆点；
+  弓箭取主角弓的附魔，其它投掷物取自身附魔
+
+**没做的**：物品在地上/装备时的光环（Warped `ItemAura`）、每种附魔的专属形状、
+附魔触发时的元素特效（火焰/冰霜/闪电本体）。

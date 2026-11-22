@@ -171,6 +171,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	//TODO it might be nice to have a source and destination angle, to improve thrown weapon visuals
 	private void setup( PointF from, PointF to, Item item, Callback listener, float speedMultiplier ){
 
+		this.enchantSource = item;
 		originToCenter();
 
 		//adjust points so they work with the center of the missile sprite, not the corner
@@ -241,8 +242,33 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		parent.add( tweener );
 	}
 
+	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
+	private float trailIn;
+	private float lastX, lastY;
+	private float vx, vy;
+
+	@Override
+	public void update() {
+		float px = x, py = y;
+		super.update();
+		// 附魔拖尾：按速度和颜色沿途撒粒子
+		int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.color( enchantSource );
+		if (color != 0 && exists){
+			vx = x - px;
+			vy = y - py;
+			if ((trailIn -= com.watabou.noosa.Game.elapsed) <= 0f){
+				trailIn = 0.035f;
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trail( x, y, color, vx, vy );
+			}
+		}
+	}
+
 	@Override
 	public void onComplete( Tweener tweener ) {
+		int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.color( enchantSource );
+		if (color != 0){
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.burst( x, y, color );
+		}
 		kill();
 		if (callback != null) {
 			callback.call();
