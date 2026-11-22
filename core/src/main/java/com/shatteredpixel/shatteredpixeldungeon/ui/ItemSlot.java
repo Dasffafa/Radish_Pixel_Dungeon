@@ -238,6 +238,22 @@ public class ItemSlot extends Button {
 
 	/** 测试用：这个格子有没有附魔光效 */
 	public boolean hasAura(){ return hasShine || sparkBlocks > 0; }
+	/** 测试用：有多少可见火花块跑到了本格子外面 */
+	public int sparksOutside(){
+		int bad = 0;
+		for (int i = 0; i < sparkBlocks; i++){
+			com.watabou.noosa.ColorBlock b = sparks[i];
+			if (b == null || !b.visible) continue;
+			if (b.x < x || b.x > x + width || b.y < y || b.y > y + height) bad++;
+		}
+		return bad;
+	}
+
+	/** 测试用：取第 i 个边框火花块 */
+	public com.watabou.noosa.ColorBlock sparkBlock( int i ){
+		return i >= 0 && i < sparks.length ? sparks[i] : null;
+	}
+
 	/** 测试用：各 motif 是否可见 */
 	public boolean streakVisible(){ return shine != null && shine.visible; }
 	public boolean ringVisible(){ return ring != null && ring.visible; }
@@ -437,20 +453,21 @@ public class ItemSlot extends Button {
 		}
 	}
 
-	/** 沿格子边框走：抄自 APK 的 placeOnFrame */
+	/** 沿格子边框走：抄自 APK 的 placeOnFrame（坐标要加上本格子的左上角） */
 	private void placeOnFrame( com.watabou.noosa.ColorBlock b, float d, float fw, float fh ){
-		float x, y;
+		float px, py;
 		if (d < fw){
-			x = d; y = 0;
+			px = d; py = 0;
 		} else if (d < fw + fh){
-			x = fw; y = d - fw;
+			px = fw; py = d - fw;
 		} else if (d < 2f * fw + fh){
-			x = fw - (d - fw - fh); y = fh;
+			px = fw - (d - fw - fh); py = fh;
 		} else {
-			x = 0; y = fh - (d - 2f * fw - fh);
+			px = 0; py = fh - (d - 2f * fw - fh);
 		}
-		b.x = x + 1f;
-		b.y = y + 1f;
+		// 子节点用的是场景绝对坐标：必须加上自身 x/y
+		b.x = x + 1f + px;
+		b.y = y + 1f + py;
 		b.size( 1f, 1f );
 	}
 

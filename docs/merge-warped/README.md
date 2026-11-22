@@ -407,3 +407,6 @@ EnchantLook/ItemLooks 框架，暂未搬。
 
 差异说明：APK 里火花数量由**稀有度**（Quality/Rarity）决定，本分支没有稀有度系统，
 改用**物品升级等级**近似：`2 + min(3, level/2)` 个火花；白板且 level<=1 不显示。
+
+**修正记录**：边框火花的子节点用的是**场景绝对坐标**，光用 `0..width` 定位会跑到别的格子里；
+`placeOnFrame` 里已补上 `this.x / this.y` 偏移（与 `ItemSlot.layout()` 里 `sprite.x = x + ...` 的约定一致）。
