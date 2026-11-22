@@ -59,8 +59,7 @@ public class ItemSlot extends Button {
 	protected BitmapText extra;
 	protected Image      itemIcon;
 	/** 附魔物品的旋转光环 */
-	protected Image      auraRing;
-	private float        auraAngle;
+	protected Image      shine;
 	protected BitmapText level;
 	protected BitmapText special;
 
@@ -230,41 +229,77 @@ public class ItemSlot extends Button {
 		}
 	}
 
-	/** 测试用：这个格子现在有没有光环 */
+	/** 测试用：这个格子现在有没有附魔扫光 */
 	public boolean hasAura(){
-		return auraRing != null && auraRing.visible;
+		return hasShine;
 	}
 
-	/** 附魔物品：在后面加一圈缓慢转动的光环 */
+	/** 测试用：扫光此刻是否可见 */
+	public boolean shineActive(){
+		return shine != null && shine.visible;
+	}
+
+	/** 附魔物品：周期性一道 45° 高光扫过图标，两端带亮点 */
+	private static final float SWEEP_DUR = 0.38f;
+	private static final float SWEEP_MIN = 2.2f, SWEEP_MAX = 4.2f;
+	private float sweepIn = 1.5f, sweepLeft = -1f;
+
 	protected void updateAura(){
 		int color = item == null ? 0
 				: com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
 
 		if (color == 0){
-			if (auraRing != null) auraRing.visible = false;
+			if (shine != null) shine.visible = false;
+			hasShine = false;
 			return;
 		}
-		if (auraRing == null){
-			int[] rf = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.RING_23;
-			auraRing = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, rf[0], rf[1], rf[2], rf[3] );
-			auraRing.visible = false;
-			add( auraRing );
+		if (shine == null){
+			shine = new Image( com.watabou.gltextures.TextureCache.createSolid( 0xFFFFFFFF ) );
+			shine.visible = false;
+			add( shine );
 		}
-		auraRing.visible = true;
-		auraRing.hardlight( color );
-		auraRing.am = 0.75f;
-		// 放到最底层，压住图标但不遮挡
-		sendToBack( auraRing );
+		hasShine = true;
+		shineColor = color;
+		shine.hardlight( color );
+		sendToBack( shine );
 	}
+
+	private boolean hasShine;
+	private int shineColor;
+	private float sweepPhase = 1.5f;
 
 	@Override
 	public void update(){
 		super.update();
-		if (auraRing != null && auraRing.visible){
-			auraAngle += com.watabou.noosa.Game.elapsed * 55f;
-			auraRing.angle = auraAngle;
-			auraRing.am = 0.55f + 0.25f * (float)Math.sin( com.watabou.noosa.Game.timeTotal * 3f );
+		if (!hasShine || shine == null) return;
+
+		if (sweepPhase < 0f){
+			sweepIn -= com.watabou.noosa.Game.elapsed;
+			if (sweepIn <= 0f){
+				sweepIn = SWEEP_MIN + com.watabou.utils.Random.Float() * (SWEEP_MAX - SWEEP_MIN);
+				sweepPhase = 0f;
+			} else {
+				shine.visible = false;
+				return;
+			}
 		}
+
+		sweepPhase += com.watabou.noosa.Game.elapsed / SWEEP_DUR;
+		if (sweepPhase >= 1f){
+			sweepPhase = -1f;
+			shine.visible = false;
+			return;
+		}
+
+		float t = sweepPhase;
+		float cx = width / 2f, cy = height / 2f;
+		float off = (t - 0.5f) * (width * 1.15f);
+		shine.visible = true;
+		shine.angle = 45f;
+		shine.x = cx + off - 9f;
+		shine.y = cy - off * 0.6f - 1f;
+		shine.scale.set( 18f, 2f );
+		shine.am = (float)Math.sin( Math.PI * t ) * 0.9f;
 	}
 
 	public void updateText(){
