@@ -56,3 +56,23 @@
 | `assets/music/` | APK 中 31 首曲目仓库已全部具备 |
 | 代码内写死的中文 UI（约 90 条） | 对应 Warped 的多人联机/天象盘/天气面板，需连带移植这些系统 |
 | 天气系统、新怪物 | 按需求明确不移植 |
+
+## 环境表现（轻量版，非 Warped 原实现）
+
+Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `WaterWalk.afterDraw` + `WaterLive` 调色板循环 + `CritterSprite`/`DungeonCritterSprite`，20+ 文件、3000+ 行，且与天气/昼夜耦合）。本仓库改用一个不依赖天气系统的最小实现：
+
+| 文件 | 作用 | 关键参数 |
+|---|---|---|
+| `effects/WaterCycle.java` | 把 `environment/waterN_cycle.png`（8 帧）切成 8 张 32×32 单帧，按时间轮换给水面 `SkinnedBlock` | `FRAME_TIME = 0.18s` |
+| `effects/WaterWade.java` | 在 `mobs` 之后新建 `waterFront` 层，为水格中的角色盖一条水线，盖住下半身 | 水线高 `7px`、透明度 `0.86`、随位置轻微起伏 |
+| `effects/AmbientCritters.java` | 视野内随机钻出蚱蜢/甲虫/蜘蛛（`dungeon_critters.png`），跳 2~4 格后淡出；不进 `Dungeon.level.mobs`，不参与回合 | 每 `1.8~4.4s` 尝试一次，同屏最多 2 只，寿命 `4~7s` |
+| `scenes/GameScene.java` | 记录水面路径、创建 `waterFront` 层、每帧 tick 上述三者 | — |
+
+与 Warped 原版的差距（可后续补）：
+
+- 没有踩水涟漪/水花/尾迹（`WaterWalk` 的 wake、droplet、collar 帧）
+- 没有 `sheen`/`subsurface` 双层与鱼影
+- 小生物不会区分浅水/深水，也没有 Warped 的鱼、萤火虫、蝴蝶等完整图集
+- 水面循环是整张纹理换帧，不是原版的调色板循环
+
+运行时验证：临时场景 `Z_WaterFx`（跑完即删）在真实引擎里把英雄放进水格并截图，PASS 3/3，`waterlines drawn=5`、`critters spawned=9`、无异常。
