@@ -147,3 +147,18 @@ Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `Wa
 
 **`WaterScenes` 没有搬**：它其实是 Warped 的**调试画廊**（把角色传送到预设场景看特效），
 不是游戏里的水面转场，对玩法没用。
+
+## 环境音 + 火焰反应（已并入 ronghe）
+
+**环境音**
+- `levels/ambience/AmbientSound.java`：仓库里实际存在的 amb_*.mp3（splash/lap/frog/rat/fly/skitter/lava/drip）
+- `levels/ambience/AmbientPlayer.java`：用 `Sample` 播放，支持距离衰减、左右声像、随机变调
+- `levels/ambience/AmbientSounds.java`：同时最多 4 个环境音
+- `effects/fx/water/WaterVoices.java`：视野里有水时每 2.5~6 秒一次拍岸声
+- 小动物的 `voice()` 现在真的会响（青蛙叫、鼠妇窜、水滴等）
+
+**火焰反应**
+- `AmbientCritters`：每 0.3 秒刷新一次 `Fire` blob 的格子，1 格内有火的小动物会 `scare` 并 1.2 秒内淡出
+
+**说明**：Warped 原版用 Android SoundPool + 自己的声像/变调实现；这里用引擎自带的 `Sample`，
+声像用左右声道音量近似，变调用 playback rate，效果接近但不完全相同。

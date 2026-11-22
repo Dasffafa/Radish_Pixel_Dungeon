@@ -37,6 +37,9 @@ public final class AmbientCritters {
 	public static int expired;
 	public static int scared;
 	public static final java.util.Map<String,Integer> byType = new java.util.LinkedHashMap<>();
+	/** 火焰反应：附近有火的格子，每 0.3 秒刷新一次 */
+	private static final java.util.List<Integer> fireCells = new ArrayList<>();
+	private static float fireLookIn;
 	public static int badCells;
 	public static int lastCell = -1;
 
@@ -105,6 +108,37 @@ public final class AmbientCritters {
 				}
 				e.asked = true;
 				e.sprite.leave( 2.5f );
+			}
+		}
+
+		// 火：附近有火的小动物会惊跑
+		if ((fireLookIn -= Game.elapsed) <= 0f){
+			fireLookIn = 0.3f;
+			fireCells.clear();
+			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : Dungeon.level.blobs.values()){
+				if (!(b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire)) continue;
+				for (int i = 0; i < b.cur.length; i++){
+					if (b.cur[i] > 0) fireCells.add( i );
+				}
+			}
+		}
+		if (!fireCells.isEmpty()){
+			int w = Dungeon.level.width();
+			for (Entry e : live){
+				if (e.asked) continue;
+				int c = cellOf( e.sprite.ax, e.sprite.ay );
+				if (c < 0) continue;
+				int cx = c % w, cy = c / w;
+				for (int fc : fireCells){
+					int fx = fc % w, fy = fc / w;
+					if (Math.abs( fx - cx ) <= 1 && Math.abs( fy - cy ) <= 1){
+						if (e.sprite.calm()) e.sprite.scare( fx * SIZE + SIZE / 2f, fy * SIZE + SIZE / 2f );
+						e.asked = true;
+						e.sprite.leave( 1.2f );
+						scared++;
+						break;
+					}
+				}
 			}
 		}
 
