@@ -13,7 +13,10 @@ public enum AmbientSound {
 	LAVA    ( "lava",    2, 4.3f, 0.32f ),
 	DRIP    ( "drip",    3, 1.2f, 0.30f ),
 	DRIP_METAL ( "drip_metal", 2, 1.0f, 0.28f ),
-	DRIP_LEAF  ( "drip_leaf",  2, 0.7f, 0.30f );
+	DRIP_LEAF  ( "drip_leaf",  2, 0.7f, 0.30f ),
+	TRICKLE    ( "trickle",   2, 2.2f, 0.34f ),
+	POUR       ( "pour",      1, 3.0f, 0.36f ),
+	GURGLE     ( "gurgle",    2, 2.0f, 0.30f );
 
 	/** 每一次录音的文件 */
 	public final String[] takes;

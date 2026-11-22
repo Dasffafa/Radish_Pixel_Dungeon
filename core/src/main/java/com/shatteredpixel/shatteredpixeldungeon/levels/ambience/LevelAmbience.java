@@ -28,6 +28,7 @@ public final class LevelAmbience {
 			new Bed( AmbientSound.LAP, 5f, 11f, 0.40f ),
 			new Bed( AmbientSound.RAT, 8f, 16f, 0.22f ),
 			new Bed( AmbientSound.FLY, 9f, 18f, 0.18f ),
+			new Bed( AmbientSound.TRICKLE, 6f, 13f, 0.30f ),
 	};
 	private static final Bed[] PRISON = {
 			new Bed( AmbientSound.DRIP_METAL, 4f, 9f, 0.32f ),
