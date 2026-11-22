@@ -399,6 +399,7 @@ public class WaterLive extends Group {
 		// 必须挂在地块之下：水格不画瓦片，sheen 才只在上面露出来
 		com.watabou.noosa.Group host = com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.waterSheen();
 		if (host != null) host.add( live );
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.subsurface( new FishShadows() );
 	}
 
 	/** GameScene 每帧调用：驱动 WaterWalk（水线/涟漪） */

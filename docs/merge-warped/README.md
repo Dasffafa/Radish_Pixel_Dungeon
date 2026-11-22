@@ -127,3 +127,13 @@ Warped 的环境表现是一整套 `effects/fx` 框架（`FxModule` 钩子 + `Wa
 
 **没搬**
 - DungeonLife 的完整生态（鱼群、天气生物、营火/火焰反应、捕虫网玩法、语音）
+
+## 水下鱼影（FishShadows / FishBrain，已并入 ronghe）
+
+- `effects/fx/water/FishBrain.java`：鱼的判断（何时被惊动、选方向、burst 速度曲线）
+- `effects/fx/water/FishShadows.java`：水面下的黑影，最多 3 条（夜里 1 条），4~8 秒来一条，被主角惊到会散开
+- 挂在 `GameScene.subsurface()`（water 之上、瓦片之下），由 `WaterLive.sceneCreated()` 建立
+- 去掉了 `Place.SHORE`/Overworld 判定：本仓库只要这层有水面就允许鱼影
+
+**说明**：Warped 原本只在主世界/海岸放鱼影，这里放宽到所有水面（下水道也有），
+因为本仓库没有主世界。要只在特定关卡出现，改 `FishShadows.waters()` 一个方法即可。
