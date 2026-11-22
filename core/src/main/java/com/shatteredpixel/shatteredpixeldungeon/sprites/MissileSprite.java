@@ -172,10 +172,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private void setup( PointF from, PointF to, Item item, Callback listener, float speedMultiplier ){
 
 		this.enchantSource = item;
-		flown = 0f;
-		nextDot = 12f;
-		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailRipple(
-				from.x, from.y, item );
 		originToCenter();
 
 		//adjust points so they work with the center of the missile sprite, not the corner
@@ -247,30 +243,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	}
 
 	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
-	private float vx, vy;
-	private float flown;
-	private float nextDot;
 
 	@Override
 	public void update() {
-		float px = x, py = y;
 		super.update();
-
-		if (!exists || parent == null) return;
-
-		vx = x - px;
-		vy = y - py;
-		float len = (float)Math.hypot( vx, vy );
-		flown += len;
-
-		// 照 Warped 的 EnchantTrail：每 12px 放一个点（MOTE_1），抬高 6px，0.4s 淡出
-		while (flown >= nextDot){
-			nextDot += 12f;
-			float ux = len > 0.01f ? vx / len : 1f;
-			float uy = len > 0.01f ? vy / len : 0f;
-			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.trailDot(
-					x - ux * (flown - nextDot + 12f), y - uy * (flown - nextDot + 12f) - 6f, enchantSource );
-		}
 	}
 
 	@Override
