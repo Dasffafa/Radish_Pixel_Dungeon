@@ -187,7 +187,36 @@ public class WaterLive extends Group {
 		sheens( l, dt );
 		lavaGlow( l, dt );
 		pocks( l, dt );
+		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
+		if (dt > 0f && (dropIn -= dt) <= 0f){
+			dropIn = 0.35f + FxRandom.Float( 0.9f );
+			dripOne( level, l );
+		}
 		// 本仓库没有水面氛围模块
+	}
+
+	/** 在视野内随机一格水面滴水：三成是一颗从上落下的水珠，其余是落水的小涟漪 */
+	private void dripOne( Level level, Element.Liquid l ){
+		if (level == null || level.water == null || boxW <= 0 || boxH <= 0) return;
+		for (int tries = 0; tries < 8; tries++){
+			int x = (int)( boxX / SIZE ) + FxRandom.IntRange( 0, Math.max( 0, (int)( boxW / SIZE ) - 1 ) );
+			int y = (int)( boxY / SIZE ) + FxRandom.IntRange( 0, Math.max( 0, (int)( boxH / SIZE ) - 1 ) );
+			if (x < 0 || y < 0 || x >= level.width() || y >= level.height()) continue;
+			int cell = x + y * level.width();
+			if (!level.water[cell] || !level.heroFOV[cell]) continue;
+
+			float px = x * SIZE + FxRandom.Float( SIZE );
+			float py = y * SIZE + FxRandom.Float( SIZE );
+			if (FxRandom.chance( 0.35f )){
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter air =
+						com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.air();
+				if (air != null) com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterDrops.fall( air, px, py, l.foam );
+			} else {
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterDrops.drip( px, py );
+			}
+			drips++;
+			return;
+		}
 	}
 
 	//glints, lap foam, whitecaps, the swamp's gas
@@ -347,6 +376,9 @@ public class WaterLive extends Group {
 	//the water cells in view (cells, inclusive), and as world px; whether there are any
 	private final int[] box = new int[4];
 	private boolean water;
+	/** 屋顶滴水：计时与计数 */
+	private float dropIn = 0.3f;
+	public static int drips;
 	private float boxX, boxY, boxW, boxH;
 	//the cells in view, and one round them
 	private int vx0, vy0, vx1, vy1;
