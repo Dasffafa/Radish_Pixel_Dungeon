@@ -1022,6 +1022,7 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.update( Game.elapsed );
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.ItemAura.update( Game.elapsed );
+		com.shatteredpixel.shatteredpixeldungeon.effects.BowAura.update();
 		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.update();
 
 		if (!Actor.processing() && Dungeon.hero.isAlive()) {

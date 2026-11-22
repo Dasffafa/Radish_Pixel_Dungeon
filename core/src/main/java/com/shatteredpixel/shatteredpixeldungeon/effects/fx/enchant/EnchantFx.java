@@ -123,6 +123,17 @@ public final class EnchantFx {
 		COLORS.put( "sweeping",     0xC0D0E8 );
 	}
 
+	/** 物品的"代表色"：附魔优先，否则按物品类型给本色（弓/弩/其它） */
+	public static int itemColor( Item item ){
+		int c = uiColor( item );
+		if (c != 0) return c;
+		if (item == null) return 0xC8D8FF;
+		String n = item.getClass().getSimpleName().toLowerCase();
+		if (n.contains( "spirit" )) return 0x9CE87A;   // 灵弓：绿色
+		if (n.contains( "bow" ) || n.contains( "crossbow" )) return 0xE8E4C8; // 其它弓弩：木色
+		return 0xC8D8FF;
+	}
+
 	/** 物品在 UI 里的光环颜色：武器附魔 → 逐附魔色；护甲符文 → 关键字取色；否则 0 */
 	public static int uiColor( Item item ){
 		if (item instanceof Weapon){
@@ -360,7 +371,7 @@ public final class EnchantFx {
 	}
 
 	/** 放大粒子（并补偿左上原点造成的偏移），让特效更显眼 */
-	static FxParticle boost( FxParticle p, float k ){
+	public static FxParticle boost( FxParticle p, float k ){
 		if (p == null) return null;
 		float w = p.width(), h = p.height();
 		p.scale.set( k, k );
@@ -370,14 +381,14 @@ public final class EnchantFx {
 	}
 
 	/** 提亮（SpecialFx 也用） */
-	static int light( int color, float k ){
+	public static int light( int color, float k ){
 		int r=(color>>16)&0xFF, g=(color>>8)&0xFF, b=color&0xFF;
 		r=(int)(r+(255-r)*k); g=(int)(g+(255-g)*k); b=(int)(b+(255-b)*k);
 		return 0xFF000000 | (r<<16) | (g<<8) | b;
 	}
 
 	/** 压暗（SpecialFx 也用） */
-	static int dark( int color, float k ){
+	public static int dark( int color, float k ){
 		int r=(int)(((color>>16)&0xFF)*(1f-k)), g=(int)(((color>>8)&0xFF)*(1f-k)), b=(int)((color&0xFF)*(1f-k));
 		return 0xFF000000 | (r<<16) | (g<<8) | b;
 	}

@@ -472,3 +472,16 @@ sendToBack(frame); bringToFront(sparks);
 **改成每帧判定**：不再依赖"换物品时调用 updateAura"这条链路，`ItemSlot.update()` 每帧用
 `wantAura()`（`uiColor != 0 || item.level() > 1`）重新决定边框/火花/扫光的可见性，
 任何漏掉刷新的路径都会在这一帧被清掉。
+
+## 弓的持续光效（BowAura）
+
+参照 Warped 的 StanceOrbit / SpiritBow 思路，新增 `effects/BowAura`（GameScene 每帧调用）：
+
+| 效果 | 触发 | 表现 |
+|---|---|---|
+| **环绕光点** | 手持弓/弩（类名含 bow） | 6 个 `MOTE_2` 绕角色转，速度 2.4 rad/s，椭圆半径 11×5.5，呼吸 0.55~0.9，附魔色提亮 30% |
+| **绿叶环绕** | `NaturesPower.naturesPowerTracker` 生效 | 每 0.12s 飘一片 `LEAF_D`，绿色 0x6FBF4A |
+| **箭矢拖尾** | 弓射出的矢 | 无附魔时也用弓的本色（SpiritBow 绿 0x9CE87A，其它弓弩木色 0xE8E4C8） |
+| **背包弓图标** | 弓类物品 | 扫光放大到 1.45× |
+
+`EnchantFx.itemColor(item)`：附魔色优先，否则按类型给本色（弓/弩）。

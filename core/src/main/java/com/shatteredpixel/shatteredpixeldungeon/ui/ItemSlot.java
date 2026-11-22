@@ -239,11 +239,21 @@ public class ItemSlot extends Button {
 
 	/** 测试用：这个格子有没有附魔光效 */
 	public boolean hasAura(){ return hasShine || sparkBlocks > 0; }
+	/** 是不是弓/弩类（图标光效要加强） */
+	private boolean isBowItem(){
+		if (item == null) return false;
+		String n = item.getClass().getSimpleName().toLowerCase();
+		return n.contains( "bow" );
+	}
+
+	/** 当前物品是否该有光效：有附魔颜色，或升级等级 > 1，或弓类 */
+	private boolean wantAuraImpl(){ return false; }
+
 	/** 当前物品是否该有光效：有附魔颜色，或升级等级 > 1 */
 	private boolean wantAura(){
 		if (item == null) return false;
 		int color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
-		return color != 0 || item.level() > 1;
+		return color != 0 || item.level() > 1 || isBowItem();
 	}
 
 	/** 把扫光摆到进度 u（0..1）处；alpha 由调用方给 */
@@ -396,7 +406,7 @@ public class ItemSlot extends Button {
 		}
 		int[] swf = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.auraSweepFrame( ench );
 		sweep.frame( swf[0], swf[1], swf[2], swf[3] );
-		sweep.scale.set( 1.1f, 1.1f );
+		sweep.scale.set( isBowItem() ? 1.45f : 1.1f, isBowItem() ? 1.45f : 1.1f );
 		if (ring == null){
 			int[] f = com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames.RING_5;
 			ring = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Effects.FX_SHEET, f[0], f[1], f[2], f[3] );
