@@ -330,6 +330,15 @@ public class Dungeon {
 		Badges.reset();
 		
 		GamesInProgress.selectedClass.initHero( hero );
+
+
+		// 「智能怪物」挑战：开局给 1 次装备融合机会
+
+		if (isChallenged(Challenges.REAL_INTELLIGENCE)) {
+
+			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.grantCharge(hero, 1);
+
+		}
 	}
 
 	public static boolean isChallenged( int mask ) {
@@ -605,6 +614,25 @@ public class Dungeon {
 		}
 
 		Mob.restoreAllies( level, pos );
+
+
+		if (hero != null) {
+
+			if (isChallenged(Challenges.REAL_INTELLIGENCE)) {
+
+				if (hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.class) == null) {
+
+					com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.grantCharge(hero, 1);
+
+				}
+
+			} else if (levelJustGenerated) {
+
+				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.grantCharge(hero, 1);
+
+			}
+
+		}
 
 		// 红包：每到一个新楼层，在英雄旁边生成一个盟友
 		if (levelJustGenerated) {

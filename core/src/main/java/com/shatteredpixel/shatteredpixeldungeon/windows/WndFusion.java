@@ -13,7 +13,7 @@ public class WndFusion extends WndBag {
 	public WndFusion() {
 		super(Dungeon.hero.belongings.backpack, new ItemSelector() {
 			{
-				if (com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.fusionCharges(Dungeon.hero) <= 0) {
+				if (com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.fusionCharges(Dungeon.hero) <= 0) {
 					com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("没有融合机会，请先获得红包融合属性");
 				}
 			}
@@ -41,10 +41,7 @@ public class WndFusion extends WndBag {
 
 					@Override
 					public boolean itemSelectable(Item item) {
-						return item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
-								|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor
-								|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand
-								|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
+						return com.shatteredpixel.shatteredpixeldungeon.items.Fusion.isEquipment(item);
 					}
 
 					@Override
@@ -57,10 +54,7 @@ public class WndFusion extends WndBag {
 
 			@Override
 			public boolean itemSelectable(Item item) {
-				return item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon
-						|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor
-						|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand
-						|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
+				return com.shatteredpixel.shatteredpixeldungeon.items.Fusion.isEquipment(item);
 			}
 
 			@Override

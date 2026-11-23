@@ -247,11 +247,11 @@ public abstract class Level implements Bundlable {
 				}
 			}
 
-			if (Dungeon.posNeeded()) {
+			if (Dungeon.posNeeded() && !com.shatteredpixel.shatteredpixeldungeon.challenges.FusionRules.active()) {
 				Dungeon.LimitedDrops.STRENGTH_POTIONS.count++;
 				addItemToSpawn( new PotionOfStrength() );
 			}
-			if (Dungeon.souNeeded()) {
+			if (Dungeon.souNeeded() && !com.shatteredpixel.shatteredpixeldungeon.challenges.FusionRules.active()) {
 				Dungeon.LimitedDrops.UPGRADE_SCROLLS.count++;
 				//every 2nd scroll of upgrade is removed with forbidden runes challenge on
 				//TODO while this does significantly reduce this challenge's levelgen impact, it doesn't quite remove it
