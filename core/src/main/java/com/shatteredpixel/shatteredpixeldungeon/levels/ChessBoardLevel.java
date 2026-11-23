@@ -1,0 +1,289 @@
+package com.shatteredpixel.shatteredpixeldungeon.levels;
+
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.custom.messages.M;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.LevelTransition;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.shatteredpixel.shatteredpixeldungeon.windows.WndMessage;
+import com.watabou.noosa.Game;
+import com.watabou.noosa.audio.Music;
+import com.watabou.utils.Callback;
+
+/**
+ * 自走棋棋盘：15×15。
+ *
+ * <pre>
+ *  y=1   [观战包间 x1-3][ 备战位 x5-13 共 9 格 ]
+ *  y=2   一整排墙，把备战区和战场隔开（棋子靠拖拽进出，不用走路）
+ *  y=3+  战场：左半（x 1..6）玩家，右半（x 9..13）敌方，x=7 是中线装饰格
+ * </pre>
+ */
+public class ChessBoardLevel extends DeadEndLevel {
+
+	public static final int SIZE = 15;
+	public static final int HEIGHT = 17;
+	public static final int PLAYER_MAX_X = 6;
+	public static final int ENEMY_MIN_X = 9;
+	public static final int FIELD_MIN_Y = 3;
+	/** 战场最后一行（再往下是墙和敌人备战席）。 */
+	public static final int FIELD_MAX_Y = HEIGHT - 4;
+	public static final int BENCH_Y = 1;
+	public static final int BENCH_MIN_X = 5;
+	public static final int BENCH_COUNT = 9;
+
+	public static final int SPECTATOR_X = 2;
+	public static final int SPECTATOR_Y = 1;
+
+	/** 敌方备战席（最下面一排）与观战台。 */
+	public static final int ENEMY_BENCH_Y = HEIGHT - 2;
+	public static final int ENEMY_BENCH_MIN_X = 1;
+	public static final int ENEMY_BENCH_COUNT = 9;
+	public static final int ENEMY_SPECTATOR_X = 12;
+	public static final int ENEMY_SPECTATOR_Y = HEIGHT - 2;
+
+	{
+		color1 = 0x534f3e;
+		color2 = 0xb9d661;
+	}
+
+	@Override
+	public void playLevelMusic() {
+		Music.INSTANCE.play(Assets.Music.SEWERS_TENSE, true);
+	}
+
+	@Override
+	public String tilesTex() {
+		return Assets.Environment.TILES_ARENA;
+	}
+
+	@Override
+	public String waterTex() {
+		return Assets.Environment.WATER_MOSS;
+	}
+
+	@Override
+	protected boolean build() {
+
+		setSize(SIZE, HEIGHT);
+
+		for (int y = 0; y < HEIGHT; y++) {
+			for (int x = 0; x < SIZE; x++) {
+				boolean border = (x == 0 || y == 0 || x == SIZE - 1 || y == HEIGHT - 1);
+				map[y * width() + x] = border ? Terrain.WALL : Terrain.EMPTY;
+			}
+		}
+
+		// 观战包间：x1..3 在 y=1，右边和下边用墙封死
+		map[SPECTATOR_Y * width() + 4] = Terrain.WALL;
+		for (int x = 1; x <= 4; x++) {
+			map[2 * width() + x] = Terrain.WALL;
+		}
+
+		// 备战位：y=1 的 x5..13，铺装饰格让玩家一眼看出这是「备战席」
+		for (int i = 0; i < BENCH_COUNT; i++) {
+			map[BENCH_Y * width() + BENCH_MIN_X + i] = Terrain.EMPTY_SP;
+		}
+		// 备战位下面整排墙，和战场隔开
+		for (int x = BENCH_MIN_X; x <= SIZE - 2; x++) {
+			map[2 * width() + x] = Terrain.WALL;
+		}
+
+		// 云顶风：我方半场绿色地砖、敌方半场灰砖，一眼分敌我
+		for (int y = FIELD_MIN_Y; y <= FIELD_MAX_Y; y++) {
+			for (int x = 1; x <= PLAYER_MAX_X; x++) {
+				map[y * width() + x] = Terrain.EMPTY_SP;
+			}
+			for (int x = ENEMY_MIN_X; x <= SIZE - 2; x++) {
+				map[y * width() + x] = Terrain.EMPTY_DECO;
+			}
+		}
+
+		// 中线：战场整列装饰格
+		int center = SIZE / 2;
+		for (int y = FIELD_MIN_Y; y < SIZE - 1; y++) {
+			map[y * width() + center] = Terrain.EMPTY;
+		}
+
+		// 敌方备战席：最下面一排 x1..9
+		for (int i = 0; i < ENEMY_BENCH_COUNT; i++) {
+			map[ENEMY_BENCH_Y * width() + ENEMY_BENCH_MIN_X + i] = Terrain.EMPTY_DECO;
+		}
+		// 敌方观战台：右下角，用墙隔开
+		for (int x = 1; x <= 13; x++) {
+			map[(HEIGHT - 3) * width() + x] = Terrain.WALL;
+		}
+		map[ENEMY_BENCH_Y * width() + 10] = Terrain.WALL;
+		map[ENEMY_BENCH_Y * width() + 11] = Terrain.WALL;
+
+		int entrance = SPECTATOR_Y * width() + SPECTATOR_X;
+		map[entrance] = Terrain.ENTRANCE;
+
+		LevelTransition t = LevelTransition.surface(this, entrance);
+		t.type = LevelTransition.Type.REGULAR_ENTRANCE;
+		transitions.add(t);
+
+		return true;
+	}
+
+	@Override
+	public boolean activateTransition(Hero hero, LevelTransition transition) {
+		if (transition.direction == LevelTransition.Direction.SURFACE) {
+			Game.runOnRenderThread(new Callback() {
+				@Override
+				public void call() {
+					GameScene.show(new WndMessage(M.L(ChessBoardLevel.class, "no_way_up")));
+				}
+			});
+			return false;
+		}
+		return super.activateTransition(hero, transition);
+	}
+
+	@Override
+	public Mob createMob() {
+		return null;
+	}
+
+	@Override
+	protected void createMobs() {
+	}
+
+	@Override
+	protected void createItems() {
+	}
+
+	@Override
+	public int exit() {
+		return entrance();
+	}
+
+	/** 备战位第 i 格在棋盘上的格子。 */
+	public static int benchCell(int index) {
+		if (Dungeon.level == null || index < 0 || index >= BENCH_COUNT) return -1;
+		return BENCH_Y * Dungeon.level.width() + BENCH_MIN_X + index;
+	}
+
+	/** 这个格子是不是备战位，是的话返回下标，否则 -1。 */
+	public static int benchIndexAt(int cell) {
+		if (Dungeon.level == null) return -1;
+		int w = Dungeon.level.width();
+		int x = cell % w;
+		int y = cell / w;
+		if (y != BENCH_Y || x < BENCH_MIN_X || x >= BENCH_MIN_X + BENCH_COUNT) return -1;
+		return x - BENCH_MIN_X;
+	}
+
+	/** 上阵位默认站位（战场左半场）。 */
+	public static int playerSlot(int index) {
+		int[][] layout = {
+				{5, 8}, {5, 7}, {5, 9}, {4, 8}, {4, 7}, {4, 9}, {3, 8}, {3, 7}, {3, 9},
+				{6, 8}, {6, 7}, {6, 9}
+		};
+		int[] slot = layout[Math.floorMod(index, layout.length)];
+		return cellAt(slot[0], slot[1]);
+	}
+
+	/** 敌方站位（战场右半场）。 */
+	public static int enemySlot(int index) {
+		int[][] layout = {
+				{12, 8}, {12, 7}, {12, 9}, {12, 6}, {12, 10}, {11, 8}, {11, 7}, {11, 9},
+				{11, 6}, {11, 10}, {10, 8}, {10, 7}
+		};
+		int[] slot = layout[Math.floorMod(index, layout.length)];
+		return cellAt(slot[0], slot[1]);
+	}
+
+	private static int cellAt(int x, int y) {
+		if (Dungeon.level == null) return -1;
+		if (x <= 0 || y <= 0 || x >= SIZE - 1 || y >= SIZE - 1) return -1;
+		int cell = y * Dungeon.level.width() + x;
+		if (!Dungeon.level.passable[cell] || Actor.findChar(cell) != null) {
+			for (int r = 1; r <= 4; r++) {
+				for (int dy = -r; dy <= r; dy++) {
+					for (int dx = -r; dx <= r; dx++) {
+						if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+						int nx = x + dx;
+						int ny = y + dy;
+						if (nx <= 0 || ny <= 0 || nx >= SIZE - 1 || ny >= SIZE - 1) continue;
+						int alt = ny * Dungeon.level.width() + nx;
+						if (Dungeon.level.passable[alt] && Actor.findChar(alt) == null) {
+							return alt;
+						}
+					}
+				}
+			}
+			return -1;
+		}
+		return cell;
+	}
+
+	/** 敌方备战位（观战台上的对手棋子预览用）。 */
+	public static int enemyBenchCell(int index) {
+		return ENEMY_BENCH_Y * SIZE + ENEMY_BENCH_MIN_X + index;
+	}
+
+	/** 敌方观战台格子。 */
+	public static int enemySpectatorCell() {
+		return ENEMY_SPECTATOR_Y * SIZE + ENEMY_SPECTATOR_X;
+	}
+
+	/** 这个格子是不是敌方备战位。 */
+	public static boolean isEnemyBenchCell(int cell) {
+		for (int i = 0; i < ENEMY_BENCH_COUNT; i++) {
+			if (enemyBenchCell(i) == cell) return true;
+		}
+		return false;
+	}
+
+	/** 这个格子是不是备战位。 */
+	public static boolean isBenchCell(int cell) {
+		return benchIndexAt(cell) >= 0;
+	}
+
+	/** 观战包间的格子。 */
+	public static int spectatorCell() {
+		return SPECTATOR_Y * SIZE + SPECTATOR_X;
+	}
+
+	/** 战场里属于玩家的格子（x ≤ 6 且在中线以下）。 */
+	public static boolean isPlayerField(int cell) {
+		if (cell < 0 || Dungeon.level == null) return false;
+		int w = Dungeon.level.width();
+		int x = cell % w;
+		int y = cell / w;
+		return x >= 1 && x <= PLAYER_MAX_X && y >= FIELD_MIN_Y && y <= FIELD_MAX_Y;
+	}
+
+	/** 战场里属于敌方的格子。 */
+	public static boolean isEnemyField(int cell) {
+		if (cell < 0 || Dungeon.level == null) return false;
+		int w = Dungeon.level.width();
+		int x = cell % w;
+		int y = cell / w;
+		return x >= ENEMY_MIN_X && x <= SIZE - 2 && y >= FIELD_MIN_Y && y <= FIELD_MAX_Y;
+	}
+
+	/**
+	 * 棋盘上指定阵营的单位数量。
+	 *
+	 * <p>玩家的备战位棋子虽然也站在棋盘上，但不参战，所以这里要排除掉，
+	 * 否则「一个上阵单位都没有」也会被判成还没输。</p>
+	 */
+	public static int countSide(boolean player) {
+		if (Dungeon.level == null) return 0;
+		int count = 0;
+		for (Mob mob : Dungeon.level.mobs.toArray(new Mob[0])) {
+			if (!mob.isAlive()) continue;
+			boolean ally = mob.alignment == Char.Alignment.ALLY;
+			if (ally != player) continue;
+			if (ally && isBenchCell(mob.pos)) continue;
+			count++;
+		}
+		return count;
+	}
+}

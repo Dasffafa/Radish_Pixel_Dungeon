@@ -1,0 +1,281 @@
+package com.shatteredpixel.shatteredpixeldungeon.challenges.autochess;
+
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Acidic;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Albino;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Bat;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Brute;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Crab;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Elemental;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Eye;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Ghoul;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Gnoll;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Golem;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Guard;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Monk;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Necromancer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Rat;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Artillerist;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.ClusteredSkeleton;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deminion;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.DemonLord;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Deviloon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.DM175;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Dog;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Drake;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GiantWorm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GnollZealot;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Goblin;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.GoblinRider;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Gorgon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Grudge;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Jailer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Mayfly;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Prisoner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.RoyalGuard;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.ShieldMage;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.StoneSpirit;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RadishEnemy.Torturer;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.RipperDemon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Scorpio;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Shaman;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Skeleton;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Slime;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Snake;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Spinner;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Succubus;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Swarm;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Thief;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Warlock;
+import com.watabou.utils.Random;
+
+import java.util.ArrayList;
+
+/**
+ * 自走棋的单位池：费用、羁绊。
+ *
+ * <p>费用 = 商店价格 = 强度档位。回合越往后，商店能刷出的高费单位越多。</p>
+ */
+public class AutochessPool {
+
+	public static final String BEAST     = "beast";      // 兽群：攻速
+	public static final String HUMANOID  = "humanoid";   // 人形：攻击力
+	public static final String CONSTRUCT = "construct";  // 构装：减伤
+	public static final String DEMON     = "demon";      // 恶魔：全能增伤
+	public static final String UNDEAD    = "undead";     // 亡灵：持续回血
+	// 职业轴
+	public static final String TANK      = "tank";       // 坦克：受伤减免
+	public static final String ASSASSIN  = "assassin";   // 刺客：概率暴击
+	public static final String RANGED    = "ranged";     // 射手：稳定增伤
+	public static final String FIGHTER   = "fighter";    // 战士：血量上限
+	public static final String MAGE      = "mage";       // 法师：法术附伤
+	public static final String SUPPORT   = "support";    // 辅助：治疗友军
+	public static final String SWARM     = "swarm";      // 虫群：攻击附带额外伤害
+
+	public static class Def {
+		public final Class<? extends Mob> cls;
+		public final int cost;
+		/** 这只棋子的技能（攒满充能自动放）。 */
+		public final AutochessSkill skill;
+		/** 一只棋子可以有多个羁绊（云顶同款，一般 2~3 个）。 */
+		public final String[] traits;
+
+		Def(Class<? extends Mob> cls, int cost, AutochessSkill skill, String[] traits) {
+			this.cls = cls;
+			this.cost = cost;
+			this.skill = skill;
+			this.traits = traits;
+		}
+
+		public boolean hasTrait(String trait) {
+			for (String t : traits) {
+				if (t.equals(trait)) return true;
+			}
+			return false;
+		}
+	}
+
+	private static final ArrayList<Def> POOL = new ArrayList<>();
+
+	static {
+		// 1 费：下水道
+		add(Rat.class, 1, AutochessSkill.of("Rat", 55), BEAST, FIGHTER);
+		add(Albino.class, 1, AutochessSkill.of("Albino", 50), BEAST, ASSASSIN);
+		add(Snake.class, 1, AutochessSkill.of("Snake", 60), BEAST, ASSASSIN);
+		add(Crab.class, 1, AutochessSkill.of("Crab", 55), BEAST, TANK);
+		add(Slime.class, 1, AutochessSkill.of("Slime", 55), SWARM, TANK);
+		add(Swarm.class, 1, AutochessSkill.of("Swarm", 60), SWARM, FIGHTER);
+		add(Gnoll.class, 1, AutochessSkill.of("Gnoll", 55), HUMANOID, FIGHTER);
+		add(GiantWorm.class, 1, AutochessSkill.of("GiantWorm", 70), SWARM, TANK);
+		add(Mayfly.class, 1, AutochessSkill.of("Mayfly", 65), SWARM, SUPPORT);
+		add(Dog.class, 1, AutochessSkill.of("Dog", 50), BEAST, FIGHTER);
+		add(Goblin.class, 1, AutochessSkill.of("Goblin", 55), HUMANOID, FIGHTER);
+		// 2 费：监狱
+		add(Bat.class, 2, AutochessSkill.of("Bat", 60), BEAST, ASSASSIN);
+		add(Thief.class, 2, AutochessSkill.of("Thief", 65), HUMANOID, ASSASSIN);
+		add(DM100.class, 2, AutochessSkill.of("DM100", 70), CONSTRUCT, RANGED);
+		add(Skeleton.class, 2, AutochessSkill.of("Skeleton", 65), UNDEAD, FIGHTER);
+		add(Guard.class, 2, AutochessSkill.of("Guard", 60), HUMANOID, TANK);
+		add(Shaman.BlueShaman.class, 2, AutochessSkill.of("BlueShaman", 70), HUMANOID, MAGE);
+		add(Spinner.class, 2, AutochessSkill.of("Spinner", 70), SWARM, ASSASSIN);
+		add(Necromancer.class, 2, AutochessSkill.of("Necromancer", 75), UNDEAD, SUPPORT);
+		add(GoblinRider.class, 2, AutochessSkill.of("GoblinRider", 70), HUMANOID, ASSASSIN);
+		add(Jailer.class, 2, AutochessSkill.of("Jailer", 75), HUMANOID, TANK);
+		add(Prisoner.class, 2, AutochessSkill.of("Prisoner", 65), HUMANOID, FIGHTER);
+		add(Torturer.class, 2, AutochessSkill.of("Torturer", 72), HUMANOID, TANK);
+		// 3 费：矿洞
+		add(Brute.class, 3, AutochessSkill.of("Brute", 75), HUMANOID, FIGHTER);
+		add(Golem.class, 3, AutochessSkill.of("Golem", 75), CONSTRUCT, TANK);
+		add(Ghoul.class, 3, AutochessSkill.of("Ghoul", 70), UNDEAD, FIGHTER);
+		add(Grudge.class, 3, AutochessSkill.of("Grudge", 78), UNDEAD, ASSASSIN);
+		add(ClusteredSkeleton.class, 3, AutochessSkill.of("ClusteredSkeleton", 78), UNDEAD, FIGHTER);
+		add(DM175.class, 3, AutochessSkill.of("DM175", 82), CONSTRUCT, MAGE);
+		add(GnollZealot.class, 3, AutochessSkill.of("GnollZealot", 75), HUMANOID, FIGHTER);
+		// 4 费：城市
+		add(Monk.class, 4, AutochessSkill.of("Monk", 80), HUMANOID, FIGHTER);
+		add(Warlock.class, 4, AutochessSkill.of("Warlock", 88), DEMON, MAGE);
+		add(Elemental.FireElemental.class, 4, AutochessSkill.of("FireElemental", 90), DEMON, MAGE);
+		add(Drake.class, 4, AutochessSkill.of("Drake", 92), BEAST, FIGHTER);
+		add(StoneSpirit.class, 4, AutochessSkill.of("StoneSpirit", 85), CONSTRUCT, TANK);
+		add(Artillerist.class, 4, AutochessSkill.of("Artillerist", 88), HUMANOID, RANGED);
+		add(RoyalGuard.class, 4, AutochessSkill.of("RoyalGuard", 85), HUMANOID, TANK);
+		add(ShieldMage.class, 4, AutochessSkill.of("ShieldMage", 88), HUMANOID, SUPPORT);
+		// 5 费：恶魔大厅
+		add(Succubus.class, 5, AutochessSkill.of("Succubus", 95), DEMON, ASSASSIN);
+		add(Scorpio.class, 5, AutochessSkill.of("Scorpio", 92), SWARM, RANGED);
+		add(Acidic.class, 5, AutochessSkill.of("Acidic", 92), SWARM, RANGED);
+		add(Eye.class, 5, AutochessSkill.of("Eye", 100), DEMON, MAGE);
+		add(RipperDemon.class, 5, AutochessSkill.of("RipperDemon", 100), DEMON, ASSASSIN);
+		add(Deminion.class, 5, AutochessSkill.of("Deminion", 98), DEMON, FIGHTER);
+		add(Deviloon.class, 5, AutochessSkill.of("Deviloon", 95), DEMON, ASSASSIN);
+		add(Gorgon.class, 5, AutochessSkill.of("Gorgon", 105), CONSTRUCT, MAGE);
+		add(DemonLord.class, 5, AutochessSkill.of("DemonLord", 110), DEMON, TANK);
+	}
+
+	private static void add(Class<? extends Mob> cls, int cost, AutochessSkill skill, String... traits) {
+		POOL.add(new Def(cls, cost, skill, traits));
+	}
+
+	/** 羁绊效果说明（羁绊列表窗口用）。 */
+	public static String effectFor(String trait) {
+		return com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(
+				AutochessPool.class, "effect_" + trait);
+	}
+
+	/** 这个羁绊下都有哪些棋子（羁绊列表窗口用）。 */
+	public static java.util.List<Def> unitsWithTrait(String trait) {
+		java.util.ArrayList<Def> list = new java.util.ArrayList<>();
+		for (Def def : POOL) {
+			if (def.hasTrait(trait)) list.add(def);
+		}
+		return list;
+	}
+
+	/** 池子里全部棋子定义（共享池初始化/兜底用）。 */
+	public static java.util.List<Def> all() {
+		return new ArrayList<>(POOL);
+	}
+
+	public static Def of(Class<?> cls) {
+		for (Def def : POOL) {
+			if (def.cls == cls) {
+				return def;
+			}
+		}
+		return null;
+	}
+
+	public static Def ofName(String className) {
+		for (Def def : POOL) {
+			if (def.cls.getSimpleName().equals(className)) {
+				return def;
+			}
+		}
+		return null;
+	}
+
+	/** 按回合限制最高费用，越早越只能刷到便宜的。 */
+	private static int costCap(int round) {
+		if (round <= 2) return 1;
+		if (round <= 4) return 2;
+		if (round <= 7) return 3;
+		return 4;
+	}
+
+	/** 随机一个当前回合能刷到的单位。 */
+	public static Def random(int round) {
+		int cap = costCap(round);
+		ArrayList<Def> candidates = new ArrayList<>();
+		for (Def def : POOL) {
+			if (def.cost <= cap) {
+				candidates.add(def);
+			}
+		}
+		if (candidates.isEmpty()) {
+			return POOL.get(0);
+		}
+		return candidates.get(Random.Int(candidates.size()));
+	}
+
+	/**
+	 * 云顶式商店概率：按等级给不同费用单位的权重。
+	 * 等级越高，高费单位出现得越多（3~9 级）。
+	 */
+	public static Def randomForLevel(int level) {
+		// 1~5 费权重，按等级（3~9）
+		float[][] table = {
+				{65, 25, 10, 0, 0},   // 3 级
+				{50, 35, 15, 0, 0},   // 4 级
+				{40, 30, 25, 5, 0},   // 5 级
+				{30, 35, 25, 10, 0},  // 6 级
+				{20, 30, 30, 15, 5},  // 7 级
+				{15, 25, 30, 20, 10}, // 8 级
+				{10, 20, 25, 25, 20}  // 9 级
+		};
+		float[] weights = table[Math.max(0, Math.min(6, level - 3))];
+		float total = 0;
+		for (int cost = 1; cost <= 5; cost++) total += weights[cost - 1];
+		float roll = Random.Float(total);
+		float acc = 0;
+		int cost = 5;
+		for (int i = 0; i < 5; i++) {
+			acc += weights[i];
+			if (roll <= acc) { cost = i + 1; break; }
+		}
+		ArrayList<Def> pool = new ArrayList<>();
+		for (Def def : POOL) {
+			if (def.cost == cost) pool.add(def);
+		}
+		if (pool.isEmpty()) pool = POOL;
+		return pool.get(Random.Int(pool.size()));
+	}
+	/** 1~5 费在某个等级的出现概率（百分比，和为 100）。 */
+	public static int[] oddsForLevel(int level) {
+		float[][] table = {
+				{65, 25, 10, 0, 0},   // 3 级
+				{50, 35, 15, 0, 0},   // 4 级
+				{40, 30, 25, 5, 0},   // 5 级
+				{30, 35, 25, 10, 0},  // 6 级
+				{20, 30, 30, 15, 5},  // 7 级
+				{15, 25, 30, 20, 10}, // 8 级
+				{10, 20, 25, 25, 20}  // 9 级
+		};
+		float[] w = table[Math.max(0, Math.min(6, level - 3))];
+		int[] pct = new int[5];
+		float total = 0;
+		for (float v : w) total += v;
+		for (int i = 0; i < 5; i++) {
+			pct[i] = Math.round(w[i] / total * 100f);
+		}
+		return pct;
+	}
+
+	/** 羁绊的档位阈值：{ 一档人数, 二档人数 }。 */
+	public static int[] thresholds(String trait) {
+		if (DEMON.equals(trait) || UNDEAD.equals(trait) || TANK.equals(trait)
+				|| MAGE.equals(trait)) return new int[]{2, 4};
+		if (SUPPORT.equals(trait) || RANGED.equals(trait)) return new int[]{2, 3};
+		return new int[]{3, 5};
+	}
+}

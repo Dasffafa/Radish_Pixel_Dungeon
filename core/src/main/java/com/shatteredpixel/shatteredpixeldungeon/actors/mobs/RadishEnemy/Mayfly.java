@@ -103,6 +103,15 @@ public class Mayfly extends Mob {
 //            return isAct;
 //        }
 //        isAlone = true;
+        // 身边有同阵营的队友就不算「落单」，这样自走棋里己方蜉蝣才会给队友加血
+        isAlone = true;
+        for (Mob other : Dungeon.level.mobs.toArray(new Mob[0])) {
+            if (other != this && other.isAlive() && other.alignment == this.alignment
+                    && isInRange(other.pos)) {
+                isAlone = false;
+                break;
+            }
+        }
         if(isAlone && HP < HT){
             int Heal = Random.NormalIntRange(0,1);
             this.HP += Heal;
@@ -124,7 +133,7 @@ public class Mayfly extends Mob {
         } else{
             Set<Mob> mobs = Collections.synchronizedSet(Dungeon.level.mobs);
             for(Mob mob:mobs){
-                if(isInRange(mob.pos) && mob != this && mob.alignment == Alignment.ENEMY && fieldOfView[mob.pos] && state == HUNTING){
+                if(isInRange(mob.pos) && mob != this && mob.alignment == this.alignment && fieldOfView[mob.pos] && state == HUNTING){
                     int healthHalo = HealRoll();
                     mob.HP += healthHalo;
                     mob.HP = Math.min(mob.HP, mob.HT);

@@ -384,6 +384,11 @@ public class Dungeon {
 			if (level == null) {
 				throw new IllegalStateException("Invalid floor: " + branchId + ":" + depth);
 		}
+
+		// 「萝卜自走棋」：整局都在棋盘上，正常楼层生成全部跳过。
+		if (isChallenged(Challenges.AUTO_BATTLER)) {
+			level = new com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel();
+		}
 		
 		// 第10层的 Boss 选择：典狱长与天狗随机替换出现
 		if (branchId.equals(Branches.MAIN) && depth == 10 && level instanceof PrisonBossLevel) {

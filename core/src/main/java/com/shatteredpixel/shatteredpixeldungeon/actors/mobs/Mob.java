@@ -143,6 +143,31 @@ import java.util.HashSet;
 
 public abstract class Mob extends Char {
 
+	/** 自走棋用：读/改目标格子（观战者不想被敌人追）。 */
+	public int targetPos() {
+		return target;
+	}
+
+	public void retarget(int cell) {
+		target = cell;
+	}
+
+	/** 自走棋用：去掉掉落物，免得场上堆一堆没人捡的东西。 */
+	/** 自走棋用：把怪物变成可被指挥的友军（魅惑/招募类技能）。 */
+	public void makeIntelligentAlly() {
+		alignment = Alignment.ALLY;
+		enemy = null;
+		target = -1;
+		state = HUNTING;
+		if (sprite != null) sprite.visible = true;
+	}
+
+	public void clearLoot() {
+		loot = null;
+		lootChance = 0f;
+	}
+
+
 	{
 		actPriority = MOB_PRIO;
 

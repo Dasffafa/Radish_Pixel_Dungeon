@@ -58,7 +58,16 @@ public class Group extends Gizmo {
 		length = 0;
 	}
 	
-	@Override
+	/** 一次性清掉这个组里所有元素（自走棋换回合时清理特效）。 */
+	/** 一次性清掉这个组里所有元素（自走棋换回合时清理特效）。 */
+	public synchronized void clearAll() {
+		if (members == null) return;
+		int n = Math.min(length, members.size());
+		for (int i = 0; i < n; i++) {
+			Gizmo g = members.get(i);
+			if (g != null) g.killAndErase();
+		}
+	}
 	public synchronized void update() {
 		for (int i=0; i < length; i++) {
 			Gizmo g = members.get( i );

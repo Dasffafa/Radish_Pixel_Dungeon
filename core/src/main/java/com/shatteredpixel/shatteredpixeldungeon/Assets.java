@@ -52,6 +52,7 @@ public class Assets {
 		public static final String TILES_HALLS  = "environment/tiles_halls.png";
 
 		public static final String TILES_MOSS  = "environment/tiles_moss.png";
+		public static final String TILES_ARENA = "environment/tiles_arena.png";
 
 		public static final String TILES_OLD_SEWERS =   "environment/alter/tiles_old_sewers.png";
 			public static final String TILES_BLOOD_PRISON = "environment/alter/tiles_blood_prison.png";

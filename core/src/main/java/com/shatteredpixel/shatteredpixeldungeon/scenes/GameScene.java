@@ -167,6 +167,7 @@ public class GameScene extends PixelScene {
 
 	private MenuPane menu;
 	private StatusPane status;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD autochessHud;
 
 	private BossHealthBar boss;
 
@@ -186,7 +187,7 @@ public class GameScene extends PixelScene {
 	private Group mobs;
 	private Group floorEmitters;
 	private Group emitters;
-	private Group effects;
+	private static Group effects;
 	private Group gases;
 	private Group spells;
 	private Group statuses;
@@ -218,6 +219,10 @@ public class GameScene extends PixelScene {
 		}
 
 		Dungeon.level.playLevelMusic();
+
+		// 「三分钟一把」：进竞技场就挂上导演 Buff，计时与刷怪由它接管
+		// 「萝卜自走棋」：进棋盘挂上对局状态，并弹出备战界面
+		com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.ensureStarted();
 
 		SPDSettings.lastClass(Dungeon.hero.heroClass.ordinal());
 		
@@ -377,6 +382,79 @@ public class GameScene extends PixelScene {
 		status.setRect(0, uiSize > 0 ? uiCamera.height-39 : 0, uiCamera.width, 0 );
 		add(status);
 
+		// 「萝卜自走棋」的顶部状态条
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			autochessHud = new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD();
+			autochessHud.camera = uiCamera;
+			// 窄屏时往下挪一点，避开系统状态栏和左上角图标
+			float hudY = uiCamera.width < 210 ? 20f : 2f;
+			autochessHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.WIDTH) / 2f, hudY);
+			add(autochessHud);
+
+			// 自走棋用不到原版英雄 UI：背包和右上角菜单都藏起来
+			menu.visible = false;
+
+			// 右侧对手列表（云顶式）：点头像看对方阵容
+			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessOpponentList oppList =
+					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessOpponentList();
+			oppList.camera = uiCamera;
+			oppList.setPos(Math.max(2f, uiCamera.width - 48f), hudY + com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD.HEIGHT + 2);
+			add(oppList);
+
+			// 云顶风地格描边（我方蓝、敌方红）
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessArenaOverlay());
+			// 我方地板流光
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessFloorShine());
+			// 底部常驻商店栏（云顶风）
+			// 隐藏原版的「返回存档」浮动按钮，它会盖住底部商店栏的右侧按钮
+			if (resume != null) resume.visible = false;
+
+			com.shatteredpixel.shatteredpixeldungeon.ui.AutochessShopBar shopBar =
+					new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessShopBar();
+			shopBar.camera = uiCamera;
+			add(shopBar);
+
+			// 开战特效：双方阵地闪一下
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBattleFlash());
+			// 回合切换转场（镜头轻推）
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRoundTransition());
+			// 选中/可放置高亮
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessSelectionHighlight());
+			// 棋子头顶血条
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessHealthBars());
+
+		// 自走棋：缩短精灵移动补间，让实时战斗看起来是连续跑动而不是一跳一跳
+		com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite.setMoveInterval(0.10f);
+		// 棋盘全场可见：否则 Char.move() 会按 heroFOV 把精灵设为不可见（棋子看起来"卡住不动"）
+		if (Dungeon.level != null && Dungeon.level.heroFOV != null) {
+			java.util.Arrays.fill(Dungeon.level.heroFOV, true);
+		}
+
+			// 地图拖拽布阵（备战位在棋盘顶部，拖到战场上任意己方格）
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessBoardDrag());
+			// 己方棋子头顶的小蓝箭头
+			add(new com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessUnitMarks());
+
+			// 原版英雄状态条在自走棋里没用，藏起来（toolbar/inventory 此时还没创建）
+			status.visible = false;
+			// 左侧羁绊栏
+			// 左侧羁绊栏（窄屏不挂，改从商店的「羁绊」按钮看）
+			{
+				com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel traitPanel =
+						new com.shatteredpixel.shatteredpixeldungeon.ui.AutochessTraitPanel();
+				traitPanel.setPos(4, 42);
+				add(traitPanel);
+			}
+
+			// 自走棋：镜头对准棋盘中心（英雄关在包间里，跟着他只能看见一小块）
+			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
+					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
+			Camera.main.setCenterOffset(0, 0);
+			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 52f), 0f);
+
+		}
+
 		boss = new BossHealthBar();
 		boss.camera = uiCamera;
 		boss.setPos( 6 + (uiCamera.width - boss.width())/2, 20);
@@ -408,6 +486,11 @@ public class GameScene extends PixelScene {
 		}
 
 		toolbar = new Toolbar();
+		// 自走棋不需要物品栏
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			toolbar.visible = false;
+		}
 		toolbar.camera = uiCamera;
 		add( toolbar );
 
@@ -419,7 +502,14 @@ public class GameScene extends PixelScene {
 			inventory.maxHeight = Math.max( 60, (int)(uiCamera.height * 0.72f) );
 			inventory.setPos( Math.max(0, uiCamera.width - inventory.width()),
 					Math.max(0, uiCamera.height - inventory.height()) );
+
 			add(inventory);
+
+			// 自走棋不需要背包
+			if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+					&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+				inventory.visible = false;
+			}
 
 			toolbar.setRect( 0, uiCamera.height - toolbar.height() - inventory.height(), uiCamera.width, toolbar.height() );
 		} else {
@@ -508,6 +598,15 @@ public class GameScene extends PixelScene {
 				Camera.main.snapTo(hero.center().x, hero.center().y);
 		}
 		Camera.main.panTo(hero.center(), 2.5f);
+
+		// 自走棋：镜头固定在棋盘中心（英雄在包间里，跟着他会把棋盘推偏）
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			float boardPx = com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel.SIZE
+					* com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.SIZE;
+			Camera.main.setCenterOffset(0, 0);
+			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 52f), 0f);
+		}
 
 		if (InterlevelScene.mode != InterlevelScene.Mode.NONE) {
 			LevelTransition travelTransition = InterlevelScene.curTransition;
@@ -958,6 +1057,11 @@ public class GameScene extends PixelScene {
 		float tagLeft = tagsOnLeft ? 0 : uiCamera.width - tagWidth;
 
 		float y = SPDSettings.interfaceSize() == 0 ? scene.toolbar.top()-2 : scene.status.top()-2;
+		// 自走棋：日志要抬到常驻商店栏上方，别盖住商店
+		if (com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.active()
+				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel) {
+			y = uiCamera.height - 68 - 2;
+		}
 		if (SPDSettings.interfaceSize() == 0){
 			if (tagsOnLeft) {
 				scene.log.setRect(tagWidth, y, uiCamera.width - tagWidth - insets.right, 0);
@@ -1339,6 +1443,11 @@ public class GameScene extends PixelScene {
 		}
 	}
 	
+	/** 自走棋：把战斗留下的粒子/光效一次性清干净，避免地上一团白线。 */
+	public static void clearAutochessFx() {
+		if (effects != null) effects.clearAll();
+	}
+
 	public static void show( Window wnd ) {
 		if (scene != null) {
 			cancel();

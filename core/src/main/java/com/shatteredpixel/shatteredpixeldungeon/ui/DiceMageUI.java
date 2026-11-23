@@ -166,11 +166,24 @@ public class DiceMageUI {
         private Frame bg;
         private RenderedTextBlock text;
 
+        private static final int TEXT_SIZE = 8;
+
         public DiceButton(String label) {
-            super();
-            text.text(label);
+            this(label, 8);
         }
 
+        public DiceButton(String label, int size) {
+            super();
+            if (size != TEXT_SIZE) {
+                // createChildren 里的字号是固定的 8，这里按需要重建一次
+                remove(text);
+                text = PixelScene.renderTextBlock(Math.max(6, Math.min(12, size)));
+                text.hardlight(CREAM);
+                add(text);
+            }
+            text.text(label);
+            layout();
+        }
         public void text(String value) {
             text.text(value);
             layout();
@@ -185,7 +198,7 @@ public class DiceMageUI {
             bg = new Frame(BLACK, GREY_LINE);
             add(bg);
 
-            text = PixelScene.renderTextBlock(8);
+            text = PixelScene.renderTextBlock(TEXT_SIZE);
             text.hardlight(CREAM);
             add(text);
 
