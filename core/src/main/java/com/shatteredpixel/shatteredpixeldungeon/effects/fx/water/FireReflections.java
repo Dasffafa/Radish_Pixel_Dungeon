@@ -49,6 +49,8 @@ public final class FireReflections {
 			fires.clear();
 			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : level.blobs.values()){
 				if (!(b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire)) continue;
+				// cur 可能还是 null（火焰区域创建了但没分配/已清空），直接跳过
+				if (b.cur == null) continue;
 				for (int i = 0; i < b.cur.length; i++){
 					if (b.cur[i] > 0) fires.add( new int[]{ i, b.cur[i] } );
 				}

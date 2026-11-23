@@ -117,6 +117,7 @@ public final class AmbientCritters {
 			fireCells.clear();
 			for (com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob b : Dungeon.level.blobs.values()){
 				if (!(b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire)) continue;
+				if (b.cur == null) continue;
 				for (int i = 0; i < b.cur.length; i++){
 					if (b.cur[i] > 0) fireCells.add( i );
 				}
