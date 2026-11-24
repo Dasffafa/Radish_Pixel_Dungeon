@@ -204,7 +204,8 @@ public class GameCalendar {
 	// Leap year: every 4th year, Winter gets 92 days → 365 total
 	// (Gregorian-like: skip century years except every 400th)
 
-	private static final int BASE_DAYS_PER_SEASON = 91;
+	//short enough that a run (about 8 days) sees the seasons turn
+	private static final int BASE_DAYS_PER_SEASON = 5;
 	private static final int BASE_DAYS_PER_YEAR = BASE_DAYS_PER_SEASON * 4; // 364
 
 	// Base year for random start (seed picks a date near this)

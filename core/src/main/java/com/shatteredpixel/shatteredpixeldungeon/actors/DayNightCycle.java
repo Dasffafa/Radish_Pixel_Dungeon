@@ -31,7 +31,8 @@ public final class DayNightCycle {
 	}
 
 	/** 一整轮昼夜的秒数 */
-	public static int FULL_CYCLE = 2500;
+	/** One day. A run is about 7000-10000 turns, so this gives 6-8 days a run. */
+	public static int FULL_CYCLE = 1200;
 	public static long turns;
 	public static void onHeroTurn(){ turns++; }
 	/** How much the night strengthens the undead：+25% damage taken by them. */
