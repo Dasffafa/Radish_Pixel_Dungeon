@@ -122,6 +122,10 @@ public final class EnchantFx {
 
 	/** Acceptance counter (Z_EnchantBlow selftest): procs the framework was asked to play. */
 	public static int procs, runs, earlyOut;
+	/** Whether a proc may join an open blow (Blow.offer). Off by default: joining the blow's state
+	 *  machine from the game thread is what left turns hanging in play; the fallback draws the same
+	 *  beat by itself, right away. */
+	public static boolean joinBlow = false;
 	/** Where a tier starts, by strength. */
 	public static final float MID_FROM = 0.30f, STRONG_FROM = 0.60f;
 
@@ -186,7 +190,7 @@ public final class EnchantFx {
 		final CharSprite as = a != null ? a.sprite : null, ds = d.sprite;
 		final boolean seen = fightSeen( a, d ), hero = involvesHero( a, d );
 		//inside a blow: its piece, drawn as the blow's lead or an accent (BlowPresenter)
-		if (Blow.offer( new ProcPiece( l, a, as, d, ds, s, level, flags, twist, seen, hero, false, -1, -1 ) )) return;
+		if (joinBlow && Blow.offer( new ProcPiece( l, a, as, d, ds, s, level, flags, twist, seen, hero, false, -1, -1 ) )) return;
 		Fx.post( () -> {
 			try {
 				runProc( l, a, as, d, ds, s, level, flags, -1, seen, hero, false, twist );

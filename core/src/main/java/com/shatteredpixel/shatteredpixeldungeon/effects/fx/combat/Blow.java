@@ -196,6 +196,11 @@ public final class Blow {
 	// ------------------------------------------------------------------ opening and closing
 
 	/** Char.attack's wrapper only. */
+	/** Acceptance counter (Z_BlazingTurn selftest): blow records left open, 0 when none are. */
+	public static int openRecords(){
+		return LEDGER.get().depth;
+	}
+
 	public static void begin( Char attacker, Char defender ){
 		Record r = LEDGER.get().push();
 		r.attacker = attacker;
