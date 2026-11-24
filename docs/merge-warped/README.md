@@ -595,8 +595,25 @@ sendToBack(frame); bringToFront(sparks);
 
 **没搬的**
 
-- `FireField`（地面上的一圈暖光、水面 wash、烧尽时的烟/火星、树冠着火 BurningTree、热浪 HeatRay）——它还要 LightRef / FloorGlow / BurningTree，留到下一批
 - 营火 / 煤床 / 火风（本仓库没有 CoalBed / CampFire / Firewind 这些 blob）
 - `ChimneySmokeParticle`（依赖 ClimateManager / HearthLight / WeatherSprites，天气没搬），营火的烟柱因此没有搬
 
 **实测**：临时场景 `Z_Fire`（跑完即删）在真实引擎里点着一块 3x3 的火，PASS 4/4：`poured=1`、`flames>0`、毒气 blob 仍正常驱动、英雄没死；`Smoke` 9/9 也过。
+
+## 火（fire 区第二批：FireField，已并入 feat/fx-modules）
+
+`FireBlobFx` 现在会把 `FireField` 挂到 FLOOR 层（第一次有燃烧格被看见时 `attach`），由它管整片火的外围表现：
+
+| 文件 | 作用 |
+|---|---|
+| `effects/fx/fire/FireField` | 每 0.2s 扫一遍火的格子：地面上铺暖色辉光（FloorGlow，最多 24 块，按组而非按格，随火光呼吸）、火的光照（LightRef 的 glow + pool 两组，各 4 个槽，最多 12 盏，超了按最近/最亮取舍）、水边的暖色 wash（最多 8 格）、走廊里的火光摊开、格子烧尽时的烟/火星/（被冻灭则蒸汽） |
+| `effects/fx/fire/FloorGlow` | 贴在地面上的一块光，2x2 格一块，用 FX_LIGHT 的软光帧，加色混合 |
+| `effects/fx/fire/LightRef` | 一盏火的 light 的引用：把 FxLight 的 glow 与 pool 配对、按格子的火光亮度驱动、位置移动时跟过去 |
+
+**刻意去掉的**
+- `BurningTree`（树冠着火）：本仓库没有 `Terrain.TREE`，也没有树冠层
+- `HeatRay`（热浪）：依赖天气图集 `WeatherSprites`，天气没搬；`FireField.shimmer()` 整段删掉
+- `Blob` 的 `Kickable` 钩子（有人穿过火堆时把火苗拨一下）没接，等有需要再说
+
+**实测**：`Z_Fire` 改成「3x3 火 + 旁边一条水」跑 80 帧，PASS 4/4：`poured>0`、`flames>0`、`FireField.attached>0`、英雄没死；
+截图里火堆周围有暖光铺地、水边有一条火色的 wash；`Smoke` 9/9 同时过。

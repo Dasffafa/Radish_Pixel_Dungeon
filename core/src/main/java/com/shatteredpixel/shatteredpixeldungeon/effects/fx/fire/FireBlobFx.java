@@ -89,6 +89,7 @@ public class FireBlobFx extends Emitter.Factory implements FxBudget.Prioritized 
 	final BlobEmitter emitter;
 	final FireStyle style;
 	private final float interval;
+	private FireField field;
 	//验收用计数（selftest 的 Z_Fire 场景会看）
 	public static int poured, flames;
 
@@ -106,6 +107,11 @@ public class FireBlobFx extends Emitter.Factory implements FxBudget.Prioritized 
 		emitter.bound.set( BOUND[0], BOUND[1], BOUND[2], BOUND[3] );
 		emitter.pour( f, INTERVAL );
 		return f;
+	}
+
+	/** Its field, once its blob burnt where the hero sees (null before, or off the scene). */
+	public FireField field(){
+		return field;
 	}
 
 	@Override
@@ -128,6 +134,7 @@ public class FireBlobFx extends Emitter.Factory implements FxBudget.Prioritized 
 	public void emit( Emitter e, int index, float x, float y ){
 		flames++;
 		BlobEmitter.Cell c = BlobEmitter.cell();
+		if ((field == null || !field.alive) && e == emitter) field = FireField.attach( blob, emitter, style );
 		if (!style.burning( c.cur )) return;
 		Level level = Dungeon.level;
 		boolean water = level != null && c.cell >= 0 && c.cell < level.length() && level.water[c.cell];
@@ -173,6 +180,7 @@ public class FireBlobFx extends Emitter.Factory implements FxBudget.Prioritized 
 			}
 		} else if (FxRandom.Float() < interval / EMBER_EVERY * k && FxBudget.keep( FxBudget.P2, x, y )){
 			FxParticle p = Flames.ember( make( e, x, y - 3 ), style.ember );
+			if (style.kind == FireStyle.Kind.INFERNO && field != null && field.seen() > 1) vortex( p, x, y );
 		}
 		//smoke off its top edge, thinner inside
 		if (style.smoke != null && !water && level != null){
@@ -194,6 +202,14 @@ public class FireBlobFx extends Emitter.Factory implements FxBudget.Prioritized 
 			}
 			m.paint( style.motes ).light( true ).alpha( 0.9f, 0.1f, 0.3f ).drag( 1f ).snap().priority( FxBudget.P2 );
 		}
+	}
+
+	//an inferno's ember: thrown round the fire's middle on the ground's 2:1 ellipse, still rising
+	private void vortex( FxParticle p, float x, float y ){
+		float dx = x - field.middleX(), dy = (y - field.middleY()) * 2f;
+		float len = Math.max( 4f, (float)Math.sqrt( dx * dx + dy * dy ) );
+		float speed = FxRandom.Float( VORTEX_MIN, VORTEX_MAX );
+		p.vel( -dy / len * speed, dx / len * speed * 0.5f - 6f ).drag( 0.4f );
 	}
 
 	//a bed of coals: a lick or a small tongue each visit, a spark popping now and then, an ember
