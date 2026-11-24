@@ -111,7 +111,27 @@ public final class Thermal {
 			}
 		}
 		t -= chill;
+
+		//quality lines: a held WARM_GRIP weapon keeps the cold off the hand
+		if (Dungeon.hero != null && Dungeon.hero.belongings != null
+				&& Dungeon.hero.belongings.weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
+			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( Dungeon.hero.belongings.weapon );
+			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.WARM_GRIP )){
+				t += 3f * q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.WARM_GRIP );
+			}
+		}
+
 		t += heat();
+
+		//quality lines: COOLING armour takes the edge off the heat, never below 25 C
+		if (Dungeon.hero != null && Dungeon.hero.belongings != null && Dungeon.hero.belongings.armor() != null && t > 25f){
+			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( Dungeon.hero.belongings.armor() );
+			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.COOLING )){
+				t = Math.max( 25f, t - 5f * q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.COOLING ) );
+			}
+		}
 		return t;
 	}
 

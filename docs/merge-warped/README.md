@@ -1586,3 +1586,13 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 编译通过、`Smoke` 9/9。**这两条没有单独写场景验证**（时间关系，下一轮可补）。
 
 **剩余**：SLAYER/HUNTER/STEADY/MOONLIT/WARM_GRIP + HUSHED/RAINPROOF/COOLING。
+
+## 品质系统第十阶段：COOLING 与 WARM_GRIP
+
+- **WARM_GRIP**：手持带该词条的武器时，空气温度 `+3×强度`（抵消寒冷）
+- **COOLING**：穿着带该词条的护甲且温度 >25°C 时，降 `5×强度`，不低于 25°C
+- 两者都在 `Thermal.ambient()` 里，与之前的 WINDBREAK 同一处
+
+编译通过、`Smoke` 9/9、`F1` 3/3。本轮同样未写专项场景（下一轮可补测试）。
+
+**剩余**：SLAYER/HUNTER/STEADY/MOONLIT + HUSHED/RAINPROOF。
