@@ -124,7 +124,7 @@ public final class WindSway {
 	}
 
 	private static void build(){
-		host = GameScene.layer( GameScene.Layer.SURFACE );
+		host = GameScene.layer( GameScene.Layer.FLOOR );
 		if (host == null){ blades = null; return; }
 		blades = new Blade[BLADES];
 		kick = new float[BLADES];
@@ -188,35 +188,10 @@ public final class WindSway {
 			rustles++;
 		}
 
-		//and a flat trampled mark under the foot, so the step reads on the ground too
-		PointF foot = DungeonTilemap.tileToWorld( to );
-		FxDecal.at( foot.x + 2f + FxRandom.Float( 4f ), foot.y + 9f + FxRandom.Float( 3f ),
-				FxFrames.WET_9, 0x53702E, 0.45f, 0.15f, 0.55f, FxRandom.chance( 0.5f ) );
-
-		//a few tips thrown out of the patch
-		FxEmitter air = Fx.air();
-		if (air != null){
-			PointF p = DungeonTilemap.tileToWorld( to );
-			//torn leaves and a puff of dust: readable even on dark grass
-			for (int i = 0; i < 6; i++){
-				FxParticle q = (FxParticle) air.recycle( FxParticle.class );
-				if (q == null) break;
-				int[] leaf = FxFrames.LEAF_D[FxRandom.Int( FxFrames.LEAF_D.length )];
-				q.reset( p.x + FxRandom.Float( 12f ), p.y + DungeonTilemap.SIZE - 4f )
-						.look( leaf ).paint( 0x8FBF5A )
-						.vel( FxRandom.Float( -22f, 22f ), -FxRandom.Float( 18f, 38f ) )
-						.gravity( 90f ).drag( 0.6f ).life( 0.7f ).alpha( 1f, 0f, 0.3f )
-						.priority( FxBudget.P3 );
-			}
-			for (int i = 0; i < 3; i++){
-				FxParticle q = (FxParticle) air.recycle( FxParticle.class );
-				if (q == null) break;
-				q.reset( p.x + FxRandom.Float( 10f ), p.y + DungeonTilemap.SIZE - 3f )
-						.look( FxFrames.MOTE_2 ).paint( 0xA89878 )
-						.vel( FxRandom.Float( -10f, 10f ), -FxRandom.Float( 6f, 14f ) )
-						.gravity( 30f ).life( 0.8f ).alpha( 0.55f, 0f, 0.4f )
-						.priority( FxBudget.P3 );
-			}
+		//the feet themselves kick up grass: a sprite emitter draws these for certain
+		if (Dungeon.hero != null && Dungeon.hero.sprite != null){
+			Dungeon.hero.sprite.centerEmitter().burst(
+					com.shatteredpixel.shatteredpixeldungeon.effects.particles.GrassParticle.FACTORY, 8 );
 		}
 	}
 
