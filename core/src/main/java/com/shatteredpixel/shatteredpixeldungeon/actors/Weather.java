@@ -82,7 +82,9 @@ public final class Weather {
 		//no sky in the deeper halls: keep them dry
 		if (Dungeon.depth >= 21) return;
 		float r = FxRandom.Float( 1f );
-		if (r >= 0.30f) return;
+		//the season makes bad weather likelier or rarer (ClimateManager)
+		float chance = 0.30f * ClimateManager.badWeatherChance( GameCalendar.season() );
+		if (r >= chance) return;
 		boolean snow = Dungeon.depth >= 11 || FxRandom.chance( 0.35f );
 		float strength = 0.35f + FxRandom.Float( 0.65f );
 		set( snow ? PrecipType.SNOW : PrecipType.RAIN, strength, FxRandom.Float( -0.5f, 0.5f ) );

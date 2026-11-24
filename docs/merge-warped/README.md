@@ -1711,3 +1711,10 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 编译通过、`Smoke` 9/9、`F1` 3/3。
 
 **未接**：`badWeatherChance` 还没接进 `Weather.rollForLevel()`；气候水晶与季节事件没搬。
+
+## 时间系统第五阶段：季节影响天气概率
+
+- `Weather.rollForLevel()`：降雨/降雪的基础概率 30% 乘上
+  `ClimateManager.badWeatherChance(GameCalendar.season())`（夏 0.8、秋 1.1、春 1.2、冬 1.3）
+
+编译通过、`Smoke` 9/9、`F1` 3/3。**未写专项场景**（概率测试需要大量重复，留待后续）。
