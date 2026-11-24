@@ -825,6 +825,21 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Glow`（跑完即删）在英雄旁边放一只 Eye 并让它蓄力，跑 60 帧，PASS 2/2（`glows>0`、英雄没死）；
 回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3 全过。
 
+## 火第五批：Explosion + BurstWatch（炸弹爆炸，已并入 feat/fx-modules）
+
+- `BurstWatch`：把老工厂「一次 burst 出 n 颗粒」读成**一件事**——第 0 颗开一个 watch，同一 emitter 后续颗粒累加数量与中心，
+  watch 第一帧时整件事一次播完；最多 16 个同时开，满了让最老的先播（碎片炸弹不会丢爆炸）
+- `Explosion`：按 burst 大小分 枪火/小爆/炸弹/大爆 四档——核心闪光、地面光环、光照、火舌、碎屑、
+  烟（按大小分 puff）、余烬、焦痕；还有 `hint`（落点预警）与 `meteor`
+- `BlastParticle` 换成 Warped 版：它的 `FACTORY` 不再撒方块，而是 `Explosion.burst(...)`，
+  于是**所有现有 `burst(BlastParticle.FACTORY, n)` 的调用点自动变成爆炸**（炸弹、DM-300 等）
+- `SmokeParticle` 一并换成 Warped 的 FxParticle 版（`puff/RAMP/ALPHA`，FACTORY/SPEW 名字不变）
+- 适配：删掉 `Explosion`/`Ash` 里的 `FireNet` 联机广播；`Explosion` 叠在 LIGHTS 层
+
+**实测**：临时场景 `Z_Bomb`（跑完即删）在英雄旁边直接引爆一颗炸弹，PASS 2/2（`Explosion.bursts>0`）；
+截图能看到烟团与地面光环。**注意**：在这块很暗的测试场里，核心闪光/火舌不明显，可能需要在真实关卡里再看一次、
+必要时调 `Explosion` 的亮度参数。回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3、`A1_BlastWaveMobIntoChasm` 3/3 全过。
+
 ## 火第三批：HeatRay（热浪，已并入 feat/fx-modules）
 
 - `effects/fx/fire/HeatRay`：一团热浪，一帧一帧往上飘，每 0.3~0.5s 左右镜像翻一次（像空气抖动，

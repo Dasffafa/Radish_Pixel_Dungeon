@@ -3,7 +3,7 @@
  * Copyright (C) 2012-2015 Oleg Dolya
  *
  * Shattered Pixel Dungeon
- * Copyright (C) 2014-2024 Evan Debenham
+ * Copyright (C) 2014-2026 Evan Debenham
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,44 +23,27 @@ package com.shatteredpixel.shatteredpixeldungeon.effects.particles;
 
 import com.watabou.noosa.particles.Emitter;
 import com.watabou.noosa.particles.Emitter.Factory;
-import com.watabou.noosa.particles.PixelParticle;
-import com.watabou.utils.Random;
 
-public class BlastParticle extends PixelParticle.Shrinking {
-	
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxParticle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.Explosion;
+
+/**
+ * A blast. FACTORY (the same object, net id "blast") no longer throws squares: a burst of it is
+ * read as one explosion sized by how many it asked for (effects/fx/fire/Explosion: a gun's
+ * flash, a small blast, a bomb, DM-300's), so every blast that bursts it - and every co-op guest
+ * replaying that burst - gets its core, ring, light, tongues, debris, smoke, embers and scorch.
+ * This class is the explosion's own flame and flash.
+ */
+public class BlastParticle extends FxParticle {
+
 	public static final Factory FACTORY = new Factory() {
 		@Override
 		public void emit( Emitter emitter, int index, float x, float y ) {
-			((BlastParticle)emitter.recycle( BlastParticle.class )).reset( x, y );
+			Explosion.burst( emitter, index, x, y );
 		}
 		@Override
 		public boolean lightMode() {
 			return true;
 		}
 	};
-	
-	public BlastParticle() {
-		super();
-		
-		color( 0xEE7722 );
-		acc.set( 0, +50 );
-	}
-	
-	public void reset( float x, float y ) {
-		revive();
-		
-		this.x = x;
-		this.y = y;
-		
-		left = lifespan = Random.Float();
-		
-		size = 8;
-		speed.polar( -Random.Float( 3.1415926f ), Random.Float( 32, 64 ) );
-	}
-	
-	@Override
-	public void update() {
-		super.update();
-		am = left > 0.8f ? (1 - left) * 5 : 1;
-	}
 }
