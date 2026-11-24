@@ -901,6 +901,14 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 天气第十三批：火的热浪（HeatRay 终于有得看）
+
+之前 `FireStyle.shimmers()` 只给 `INFERNO`/`FORGE`（Warped 里"普通火不闪"），所以营火上方没有热浪。
+这轮放开：**任何真实的火焰都冒热浪**（`FireField.shimmer()` 每 0.3 秒在火堆上方放一道 `HeatRay`）。
+
+**实测**：临时场景 `Z_HeatRay`（跑完即删）在英雄两格外点火，PASS 2/2（`heat rays=7`、火在视野内）；
+截图里火堆上方能看到淡淡的热浪。
+
 ## 天气第十二批：岩浆也给人回暖
 
 `Thermal.heat()` 之前只认焦土和火，现在再认**熔岩**：脚下或邻格是水面、且关卡液体是 `Element.Liquid.LAVA`

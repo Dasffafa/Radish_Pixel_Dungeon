@@ -96,7 +96,8 @@ public enum FireStyle {
 	}
 
 	/** Whether it always stands in shimmer (the inferno, the forge), not only where it is thick. */
+	/** Whether a fire of this style gives off heat rays: any real flame does now (a campfire too). */
 	public boolean shimmers(){
-		return this == INFERNO || this == FORGE;
+		return true;
 	}
 }
