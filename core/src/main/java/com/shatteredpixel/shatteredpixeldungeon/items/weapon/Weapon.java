@@ -260,8 +260,14 @@ abstract public class Weapon extends KindOfWeapon {
 				damage += Math.round( damage * 0.35f
 						* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.DEFIANT ) );
 			}
+			//a vestige: the top tiers echo their own enchantment, weakly and rarely
+			if (q.rarity().ordinal() >= com.shatteredpixel.shatteredpixeldungeon.items.rarity.Rarity.LEGENDARY.ordinal()
+					&& enchantment != null && com.watabou.utils.Random.Float() < 0.27f * 0.3f){
+				damage += Math.round( damage * 0.5f );
+			}
+
 			//the rarity's own grant: a share of the weapon's power, whatever its lines
-			damage = Math.round( damage * (1f + q.rarity().potency()) );
+			damage = Math.round( damage * (1f + com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.potencyOf( this )) );
 
 			//time system: the night strengthens the undead against every blow
 			if (com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.of( defender )

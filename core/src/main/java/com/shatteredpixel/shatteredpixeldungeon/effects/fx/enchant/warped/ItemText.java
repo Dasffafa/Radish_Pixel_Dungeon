@@ -115,7 +115,11 @@ public final class ItemText {
 			if (ench.isEmpty()) ench = "\u70c8\u7130";
 			b.append( "\n\n\u5b83\u8fd8\u5e26\u6709\u4e00\u4e2a\u6b8b\u8ff9\u9644\u9b54\uff0c\u90a3\u662f\u4e00\u7f15\u5b83\u59cb\u7ec8\u672a\u80fd\u771f\u6b63\u638c\u63e1\u7684\u9b54\u6cd5\u7684\u5fae\u5f31\u56de\u54cd\uff1a" );
 			b.append( "\n\u2726 \u6b8b\u8ff9" ).append( ench ).append( "\u9644\u9b54\uff1a\u89e6\u53d1\u9891\u7387\u4e3a\u771f\u54c1\u768427%" );
-			b.append( "\n\n\u6770\u4f5c 0/5\uff1a\u6bcf\u6761\u52a0\u6210\u8bcd\u6761\u6bcf\u7ea7\u63d0\u534715%\u3002\u5b83\u5df2\u6740\u6b7b0\u4e2a\u654c\u4eba\u3002\u4e0b\u4e00\u7ea7\u9700\u89811\u9897\u6770\u4f5c\u6838\u5fc3\u3002" );
+			b.append( "\n\n\u6770\u4f5c " )
+					.append( com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.masterworkLevel( it ) )
+					.append( "/5\uff1a\u6bcf\u6761\u52a0\u6210\u8bcd\u6761\u6bcf\u7ea7\u63d0\u534715%\u3002\u5b83\u5df2\u6740\u6b7b" )
+					.append( com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.masterworkKills( it ) )
+					.append( "\u4e2a\u654c\u4eba\u3002\u4e0b\u4e00\u7ea7\u9700\u89815\u4e2a\u6740\u654c\u3002" );
 		}
 		return b.toString();
 	}

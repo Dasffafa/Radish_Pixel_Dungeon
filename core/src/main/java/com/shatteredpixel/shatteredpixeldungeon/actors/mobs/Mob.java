@@ -1137,6 +1137,10 @@ public abstract class Mob extends Char {
 
 	@Override
 	public void die( Object cause ) {
+		if (cause == hero && hero.belongings != null && hero.belongings.weapon != null){
+			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.noteKill( hero.belongings.weapon );
+		}
+
 		//quality lines: HUNTER leaves meat off the beasts it kills
 		if (cause == hero || cause instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
 			if (hero.belongings != null && hero.belongings.weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){

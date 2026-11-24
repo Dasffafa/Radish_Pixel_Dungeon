@@ -156,6 +156,34 @@ public final class Quality {
 		return out;
 	}
 
+	//masterwork: kills made with the item, kept while the session lives (not saved yet)
+	private static final Map<Item, Integer> KILLS = new IdentityHashMap<>();
+
+	/** Records a kill with this item; every five of them is a masterwork level. */
+	public static void noteKill( Item item ){
+		if (item == null) return;
+		KILLS.merge( item, 1, Integer::sum );
+	}
+
+	/** How many kills it has to its name. */
+	public static int masterworkKills( Item item ){
+		if (item == null) return 0;
+		Integer k = KILLS.get( item );
+		return k == null ? 0 : k;
+	}
+
+	/** Its masterwork level, 0..5 (a level every five kills). */
+	public static int masterworkLevel( Item item ){
+		if (item == null) return 0;
+		Integer k = KILLS.get( item );
+		return k == null ? 0 : Math.min( 5, k / 5 );
+	}
+
+	/** The rarity's own grant, lifted by its masterwork level (each +15% of the lines). */
+	public static float potencyOf( Item item ){
+		return of( item ).rarity().potency() * (1f + 0.15f * masterworkLevel( item ) );
+	}
+
 	/** The family a SLAYER line hunts (NONE when the item does not carry it). */
 	public SlayerFamily slayer(){
 		if (!has( RarityLine.SLAYER )) return SlayerFamily.NONE;
