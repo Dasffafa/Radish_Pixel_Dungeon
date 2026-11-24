@@ -1337,3 +1337,18 @@ PASS：附魔表里有 Blazing（`lookKnown=1`），`procs 0 → 1`，截图里�
 
 注意：目前是“每次命中都叫一次附魔拍子”，与旧外观并存；后续可以改成“只在真正
 触发 proc 时”（需要逐个附魔改接）。物品光晕（`ItemAura`）仍未接，下一批做。
+
+## 附魔外观体系第四批：拍子确实跑了，但画面还没验证
+
+本批给 `EnchantFx` 加了 `runs`（真正进入绘制流程）与 `earlyOut`（因 `glowAir()` 为空或 sprite 不可见而提前返回）
+两个验收计数。自测（`Z_EnchantArt`，跑完即删）：直接请求 Blazing / Shocking 两次拍子，
+
+```
+procs ember=1 storm=2  runs=2  earlyOut=0
+```
+
+说明拍子**确实走到了绘制步骤**（不是被提前 return 掉），但截图里**看不到火花烟尘**——
+下一批要查：它们是不是落在了不可见的层（本仓库 `Fx.glowAir()` 在 `lightFx` 组）、或粒子参数（比例/颜色×暗色调）导致看不见。
+
+**物品光晕（`ItemAura`）暂缓**：它强依赖 Warped 的 `items/rarity`（`Quality.of`、`RarityLine.WARM_GRIP/COOLING/RAINPROOF`
+等）与 ~20 个本仓库没有的附魔/符文类，直接搬会变成一堆桩；先把现有的自定义光晕保留，等品质系统真正引入后再接。

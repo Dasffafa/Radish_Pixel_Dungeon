@@ -121,7 +121,7 @@ public final class EnchantFx {
 	public static final int WEAK = 0, MID = 1, STRONG = 2, FINISHER = 3;
 
 	/** Acceptance counter (Z_EnchantBlow selftest): procs the framework was asked to play. */
-	public static int procs;
+	public static int procs, runs, earlyOut;
 	/** Where a tier starts, by strength. */
 	public static final float MID_FROM = 0.30f, STRONG_FROM = 0.60f;
 
@@ -202,11 +202,12 @@ public final class EnchantFx {
 		boolean killed = forcedTier >= 0 ? forcedTier == FINISHER : (d != null && !d.isAlive());
 		int tier = forcedTier >= 0 ? forcedTier : (killed ? FINISHER : tier( s ));
 		if (!guest) EnchantNet.sendProc( l, a, d, s, level, flags, tier );
-		if (ds.parent == null || Fx.glowAir() == null) return;
+		runs++;
+		if (ds.parent == null || Fx.glowAir() == null){ earlyOut++; return; }
 		boolean echo = (flags & ECHO) != 0;
 		EnchantState st = EnchantState.of( ds );
 		if (seen) Sting.ask( st, l, d, tier, echo, guest );
-		if (!ds.visible && (as == null || !as.visible)) return;
+		if (!ds.visible && (as == null || !as.visible)){ earlyOut++; return; }
 
 		if (echo){
 			//a target past the rich ones echoes as its minimal star, pale
