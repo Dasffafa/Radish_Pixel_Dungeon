@@ -34,6 +34,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.events.DrinkPotionFinishEvent;
 import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
 import com.shatteredpixel.shatteredpixeldungeon.events.ThrowPotionEvent;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Splash;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -326,6 +327,8 @@ public class Potion extends Item {
 			hero.sprite.operate( hero.pos );
 		}
 
+		ItemFx.drink( hero, splashColor() );
+
 		if (!anonymous) {
 			Catalog.countUse(getClass());
 			if (Random.Float() < talentChance) {
@@ -481,6 +484,8 @@ public class Potion extends Item {
 	}
 
 	protected void splash( int cell ) {
+		//所有药水（含覆盖了 shatter 的）都先调 splash，所以特效挂这里
+		ItemFx.shatter( cell, splashColor() );
 		Fire fire = (Fire)Dungeon.level.blobs.get( Fire.class );
 		if (fire != null) {
 			fire.clear(cell);

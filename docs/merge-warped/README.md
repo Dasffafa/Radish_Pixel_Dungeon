@@ -681,3 +681,33 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 
 **实测**：临时场景 `Z_Nature`（跑完即删）放一片再生 + 一片枝叶跑 80 帧，再放一次水井回血，PASS 3/3：
 `BlobFx.grown>0`、`BlobFx.foliageTicks>0`、英雄没死；截图里生长区有绿叶、枝叶区有白色光柱与绒絮。`Smoke` 9/9 同时过。
+
+## 奥术（arcane 区第一批：药水的奥术表现，已并入 feat/fx-modules）
+
+**搬进来的**
+
+| 文件 | 作用 |
+|---|---|
+| `effects/fx/arcane/ItemFx` | 物品的奥术表现：`drink`（喝药的一圈光）、`shatter`（砸碎的碎片/闪光/落地粉屑）、`read`（读书）、`teleport`、`uncurse`、`upgrade`、`shock`、`mapping`、`secret`、`recharge`、`bloom`、`strength`、`flyToNear` |
+| `effects/fx/arcane/Arc` | 奥术公共件：`glow`/`light`/`matter`/`glint`/`make` |
+| `ArcFlash` / `ArcImage` / `ArcBitmask` | 光片、弧光图、位掩码绘制 |
+| `BoltFx` / `BoltTrails` / `ChargeGlow` | 弹体形态与拖尾、蓄力光 |
+| `PrismFx` / `RayFx` | 棱镜光与光线的配色/收束（给 Beam 用） |
+| `effects/fx/Afterimage` | 物品残影基类 |
+
+**接线**
+- `Potion.drink()` → `ItemFx.drink( hero, splashColor() )`
+- `Potion.splash()` → `ItemFx.shatter( cell, splashColor() )`。**注意**：大多数药水自己覆盖了 `shatter`，
+  但每个覆盖都会先调 `splash`，所以特效挂在 `splash` 上才覆盖得到全部药水
+- `MagicMissile` 补了 `velocityX/velocityY/progress/flown` 四个访问器（`BoltTrails` 读它们算拖尾）
+- `GameScene.Layer` 补了 `EFFECTS` 档（映射到 `effects` 组），`ArcFlash` 需要
+- `MagicMissile` 补了三个 Warped 弹种常量（`SHAMAN_ELMO/LIGHT_MISSILE/POISON_CONE` = 16/17/18），只给 `BoltFx` 配色用
+
+**没搬/没接**
+- `Beam`（死亡射线/光射线/治疗射线）还是老实现：Warped 的 `Beam` 有 271 行且绑 `RayFx`/`PrismFx`，替换留到下一批
+- `BoltFx.impact`（技能弹体命中）没接：调用方是 4.x 的 `SkillBolt`
+- `ItemGhost` 没搬：本仓库物品图集是运行时图集，没有 Warped 的 `ItemSheet.film`，`Afterimage` 里计数改 0
+- `ArcaneFx`（画廊模块）没搬
+
+**实测**：临时场景 `Z_Arcane`（跑完即删）喝一瓶治疗药、砸一瓶毒气，PASS 3/3：`ItemFx.drinks=1`、`shatters=1`、英雄没死；
+截图里喝药有治疗色光圈、砸药处有红色碎片。`Smoke` 9/9、`SelfTest_Potions` 5/5 同时过。

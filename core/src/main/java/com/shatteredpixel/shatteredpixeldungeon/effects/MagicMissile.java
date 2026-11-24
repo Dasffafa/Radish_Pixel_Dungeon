@@ -54,6 +54,8 @@ public class MagicMissile extends Emitter {
 	private float sx;
 	private float sy;
 	private float time;
+	//总飞行时长与已飞时长（fx/arcane 的拖尾读取）
+	private float total, elapsed;
 
 	//missile types
 	public static final int MAGIC_MISSILE   = 0;
@@ -72,6 +74,11 @@ public class MagicMissile extends Emitter {
 	public static final int SHAMAN_PURPLE   = 13;
 	public static final int ELMO            = 14;
 	public static final int POISON          = 15;
+
+	//Warped 的额外弹种：本仓库没有对应法杖，值只给 fx/arcane 的配色与形态用
+	public static final int SHAMAN_ELMO   = 16;
+	public static final int LIGHT_MISSILE = 17;
+	public static final int POISON_CONE   = 18;
 
 	public static final int MAGIC_MISS_CONE = 100;
 	public static final int FROST_CONE      = 101;
@@ -128,6 +135,8 @@ public class MagicMissile extends Emitter {
 		sx = speed.x;
 		sy = speed.y;
 		time = d.length() / SPEED;
+		total = time;
+		elapsed = 0;
 
 		//for now all specks share the same size and volume, this can easily be customized later if needed
 		if (type >= SPECK){
@@ -298,12 +307,24 @@ public class MagicMissile extends Emitter {
 			float d = Game.elapsed;
 			x += sx * d;
 			y += sy * d;
+			elapsed += d;
 			if ((time -= d) <= 0) {
 				on = false;
 				if (callback != null ) callback.call();
 			}
 		}
 	}
+
+	/** fx/arcane 的拖尾用：当前速度 px/s。 */
+	public float velocityX(){ return sx; }
+
+	public float velocityY(){ return sy; }
+
+	/** 飞行进度 0..1。 */
+	public float progress(){ return total <= 0 ? 1f : Math.max( 0f, Math.min( 1f, elapsed / total ) ); }
+
+	/** 已经飞了多久，s。 */
+	public float flown(){ return elapsed; }
 
 	public static class MagicParticle extends PixelParticle {
 

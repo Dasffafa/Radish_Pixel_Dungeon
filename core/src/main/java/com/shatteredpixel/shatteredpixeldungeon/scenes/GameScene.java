@@ -1369,13 +1369,14 @@ public class GameScene extends PixelScene {
 	}
 	
 	/** Warped fx 框架的三个图层 */
-	public enum Layer { FLOOR, SURFACE, LIGHT, LIGHTS }
+	public enum Layer { FLOOR, SURFACE, LIGHT, LIGHTS, EFFECTS }
 
 	public static Group layer( Layer which ) {
 		if (scene == null) return null;
 		switch (which) {
 			case FLOOR: return scene.floorFx;
 			case SURFACE: return scene.waterRipples;
+			case EFFECTS: return scene.effects;
 			case LIGHT: case LIGHTS: default: return scene.lightFx;
 		}
 	}
