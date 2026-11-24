@@ -48,7 +48,7 @@ import java.util.Map;
 public final class ItemAura {
 
 	/** Acceptance counter (Z_EnchantAura selftest): heap motes made. */
-	public static int motes;
+	public static int motes, wieldMotes;
 
 	/** The next moment each heap may breathe again, by cell. */
 	private static final HashMap<Integer, Float> next = new HashMap<>();
@@ -58,6 +58,7 @@ public final class ItemAura {
 	public static void reset(){
 		next.clear();
 		motes = 0;
+		wieldMotes = 0;
 	}
 
 	/** Every frame: let the visible heaps with an enchanted thing in them breathe. */
@@ -72,6 +73,22 @@ public final class ItemAura {
 		int y0 = Math.max( 0, (int)( camY / DungeonTilemap.SIZE ) - 1 );
 		int x1 = Math.min( lvlW - 1, (int)( (camX + c.width) / DungeonTilemap.SIZE ) + 1 );
 		int y1 = Math.min( lvlH - 1, (int)( (camY + c.height) / DungeonTilemap.SIZE ) + 1 );
+
+		// the hero's own weapon in hand: a mote at the weapon side now and then
+		if (Dungeon.hero != null && Dungeon.hero.sprite != null && Dungeon.hero.belongings != null
+				&& Dungeon.hero.belongings.weapon instanceof Weapon){
+			EnchantLook wl = lookOf( Dungeon.hero.belongings.weapon );
+			if (wl != null){
+				Float due = next.get( -1 );
+				if (due == null || Game.timeTotal >= due){
+					float hx = Dungeon.hero.sprite.x + (Dungeon.hero.sprite.flipHorizontal ? 2f : 10f);
+					float hy = Dungeon.hero.sprite.y + 6f;
+					MotifFx.wield( wl, hx, hy );
+					wieldMotes++;
+					next.put( -1, Game.timeTotal + wl.motif.periodAt( 0 ) );
+				}
+			}
+		}
 
 		for (int cy = y0; cy <= y1; cy++){
 			for (int cx = x0; cx <= x1; cx++){
