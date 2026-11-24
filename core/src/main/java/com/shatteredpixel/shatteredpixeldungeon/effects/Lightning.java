@@ -25,6 +25,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxLight;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.lightning.Afterglow;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.lightning.Crackle;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.lightning.ElectricityFx;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.lightning.StrikeGround;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.lightning.StrikeLights;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -134,6 +135,7 @@ public class Lightning extends Group {
 		StrikeLights.reset();
 		Crackle.reset();
 		Afterglow.reset();
+		ElectricityFx.sceneCreated();
 	}
 
 	private static synchronized boolean claimRich(){

@@ -752,3 +752,21 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 
 **实测**：临时场景 `Z_Beam`（跑完即删）连放光射线/死亡射线/治疗射线，PASS 1/1（三道光都正常画出、英雄没死）；
 截图里光射线是金白一道、死亡射线是紫白一道、治疗射线是粉紫一道，末端都有光斑。`Smoke`、`F1` 等回归见下一批提交。
+
+## 闪电第二批：ElectricityFx（被电的水面，已并入 feat/fx-modules）
+
+`Electricity` blob 的 `use()` 从「每 0.05s 一颗粒」换成 Warped 的 `emitter.start( new ElectricityFx(this), 0.2f, 0 )`：
+
+- **电火花**：每个被电的格子每次最多两粒（静止的噼啪 / 会弹一下的短跳），同屏上限 150（`ChargeSpark` 自计数）
+- **水面发亮**：被电的格子在水面层点亮一块 `ChargeWash`（`9CC8FF`、0.18 透明度、2.5Hz 噪声闪烁），
+  只保留离英雄最近的 24 格；格子停 0.45s 后开始淡出 0.2s
+- **电痕**：相邻两格之间偶尔拉出一道短闪，最多 6 道同时
+- 云体积变大时整片水会 `boost()` 一下（0.1s 内亮 30%）
+
+**为编译做的适配**
+- 本仓库的 `SparkParticle` 还是老的 `PixelParticle`（没有 `resetElectric/resetStatic/ground/polar`），
+  `ChargeSpark.charge()` 简化成 `reset( x, y )`
+- 电痕用本仓库的 `Lightning`（两段折线）代替 Warped 的 `Arc.visual().crawl()`；等 Arc 重写搬完再换回
+
+**实测**：临时场景 `Z_Electric`（跑完即删）在英雄旁铺一片水并灌满电，跑 60 帧，PASS 3/3：
+`sparksMade>0`、`washesMade>0`、英雄没死；截图里红水面上有白色电火花和一块块亮斑。`Smoke` 9/9、`E0` 3/3 同时过。
