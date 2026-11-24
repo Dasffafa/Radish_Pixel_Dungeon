@@ -260,6 +260,11 @@ abstract public class Weapon extends KindOfWeapon {
 				damage += Math.round( damage * 0.35f
 						* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.DEFIANT ) );
 			}
+			//time system: the night strengthens the undead against every blow
+			if (com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.of( defender )
+					== com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.UNDEAD){
+				damage = Math.round( damage * com.shatteredpixel.shatteredpixeldungeon.actors.DayNightCycle.undeadDamageMultiplier() );
+			}
 			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.MOONLIT )
 					&& com.shatteredpixel.shatteredpixeldungeon.actors.DayNightCycle.isNight()){
 				damage += Math.round( damage * 0.25f

@@ -34,6 +34,11 @@ public final class DayNightCycle {
 	public static int FULL_CYCLE = 2500;
 	public static long turns;
 	public static void onHeroTurn(){ turns++; }
+	/** How much the night strengthens the undead：+25% damage taken by them. */
+	public static float undeadDamageMultiplier(){
+		return isNight() ? 1.25f : 1f;
+	}
+
 	public static int daysElapsed(){ return (int)(turns / Math.max( 1, FULL_CYCLE )); }
 	/** 黎明 / 黄昏 各占整轮的比例 */
 	public static float DAWN_SHARE = 0.1f, DUSK_SHARE = 0.1f;

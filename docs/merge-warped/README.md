@@ -1691,3 +1691,11 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 编译通过、`Smoke` 9/9、`F1` 3/3。
 
 **未搬**：Warped DayNightCycle 里那些依赖小镇/住所/植物/睡眠的玩法效果（视野距离、刷怪率、亡灵伤害、潜行）。
+
+## 时间系统第三阶段：夜间强化亡灵
+
+- `DayNightCycle.undeadDamageMultiplier()`：夜晚 1.25，白天 1.0
+- `Weapon.proc`：对 `SlayerFamily.UNDEAD` 目标的伤害乘上该倍率
+
+**实测**（`Z_NightUndead`，跑完即删）：对骷髅，白天 100.0，夜晚 125.0。
+编译通过、`Smoke` 9/9、`F1` 3/3。
