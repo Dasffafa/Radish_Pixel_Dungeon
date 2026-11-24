@@ -156,27 +156,24 @@ public final class Quality {
 		return out;
 	}
 
-	//masterwork: kills made with the item, kept while the session lives (not saved yet)
-	private static final Map<Item, Integer> KILLS = new IdentityHashMap<>();
-
-	/** Records a kill with this item; every five of them is a masterwork level. */
+	/** Records a kill with this item; every five of them is a masterwork level. Saved on the item. */
 	public static void noteKill( Item item ){
-		if (item == null) return;
-		KILLS.merge( item, 1, Integer::sum );
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
+			((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon)item).masterworkKills++;
+		}
 	}
 
 	/** How many kills it has to its name. */
 	public static int masterworkKills( Item item ){
-		if (item == null) return 0;
-		Integer k = KILLS.get( item );
-		return k == null ? 0 : k;
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
+			return ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon)item).masterworkKills;
+		}
+		return 0;
 	}
 
 	/** Its masterwork level, 0..5 (a level every five kills). */
 	public static int masterworkLevel( Item item ){
-		if (item == null) return 0;
-		Integer k = KILLS.get( item );
-		return k == null ? 0 : Math.min( 5, k / 5 );
+		return Math.min( 5, masterworkKills( item ) / 5 );
 	}
 
 	/** The rarity's own grant, lifted by its masterwork level (each +15% of the lines). */

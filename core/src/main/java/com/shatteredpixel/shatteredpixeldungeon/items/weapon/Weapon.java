@@ -174,6 +174,8 @@ abstract public class Weapon extends KindOfWeapon {
 	private float availableUsesToID = USES_TO_ID/2f;
 	
 	public Enchantment enchantment;
+	/** Masterwork: kills made with this weapon, saved with it (a level every five). */
+	public int masterworkKills = 0;
 	public boolean enchantHardened = false;
 	public boolean curseInfusionBonus = false;
 	public boolean masteryPotionBonus = false;
@@ -337,6 +339,7 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
+		bundle.put( "masterwork", masterworkKills );
 		bundle.put( USES_LEFT_TO_ID, usesLeftToID );
 		bundle.put( AVAILABLE_USES, availableUsesToID );
 		bundle.put( ENCHANTMENT, enchantment );
@@ -354,6 +357,7 @@ abstract public class Weapon extends KindOfWeapon {
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle( bundle );
+		masterworkKills = bundle.getInt( "masterwork" );
 		usesLeftToID = bundle.getFloat( USES_LEFT_TO_ID );
 		availableUsesToID = bundle.getFloat( AVAILABLE_USES );
 		enchantment = (Enchantment)bundle.get( ENCHANTMENT );

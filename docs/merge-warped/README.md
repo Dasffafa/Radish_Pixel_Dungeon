@@ -1862,3 +1862,14 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_TimePace`，跑完即删）：`cycle=1200 day 0->1 season SPRING->SUMMER`
 编译通过、`Smoke` 9/9、`F1` 3/3。
+
+## 杰作：杀敌数随武器存档
+
+- `Weapon.masterworkKills`（新字段），在 `storeInBundle`/`restoreFromBundle` 里以 `"masterwork"` 一项存取
+- `Quality.noteKill` 直接加在武器上；`masterworkKills`/`masterworkLevel` 从武器读
+- 去掉了原来那张只存内存的 `IdentityHashMap`
+
+**实测**（`Z_MasterworkSave`，跑完即删）：记 7 次杀敌 → `storeInBundle` → 新实例
+`restoreFromBundle` → `kills before=7 after reload=7 level=1`。编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**限制**：目前只对**武器**计数（护甲尚未实现杰作）；升级仍不需要“杰作核心”道具。
