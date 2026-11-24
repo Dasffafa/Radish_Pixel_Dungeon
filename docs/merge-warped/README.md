@@ -1279,3 +1279,27 @@ Warped 的「打击演示」（`Blow` + `BlowPresenter` + `Looks` + `StateLooks`
 
 **实测**：临时场景 `Z_Embers`（跑完即删）把一片地板烧成 EMBERS、再烧一个堆，PASS 3/3（`Embers.laid>0`、`Ash.flakes>0`、英雄没死）；
 回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3、`D4_WardenSaveReload` 14/14 全过。
+
+## 附魔外观体系第一批：词汇表落位（命名空间）
+
+Warped 的 `effects/fx/enchant`（43 个文件）与本仓库**已有**的自定义 `effects/fx/enchant`
+（`EnchantFx`/`EnchantRecipes`/`ItemAura`/`SpecialFx`，被 `Weapon.proc`、`ItemSlot`、`MissileSprite`、
+`GameScene`、`BlowPresenter` 调用）**同名冲突**，所以不能直接替换。决定：Warped 的整套
+放进 **`effects/fx/enchant/warped/`**，两套并存。
+
+本批先把不依赖 `EnchantFx` 的底层词汇表搬过来并编译通过：
+
+- `warped/Family`（附魔家族，63 行）
+- `warped/Motif`（固定图案，71 行）
+- `warped/Profile`（配置档位，172 行）
+- `warped/EnchantLook`（一条附魔外观，116 行）
+- `effects/fx/ItemGhost`（占位：本仓库物品美术是运行时图集，没有残影帧，`of()` 返回 null）
+
+**依赖图**（后续批次用）：
+- 可直接搬的 21 个特效文件（`CutFx`、`DreadFx`、`EmberFx`……）都依赖 `EnchantFx.Beat`/`Flash`
+- `EnchantFx`（1603 行，核心）还差 `EnchantNet`、`EnchantState`、`Sting`，而 `EnchantState` 差
+  `EnchantLooks`（附魔行表）与 `items.rarity.Quality`
+- `EnchantLooks`/`ItemAura`/`TypeFx`/`PieceFx` 强依赖 Warped 的 `items/rarity`、`skills`、枪械/乐器等本仓库没有的系统
+
+下一批：带着桩过度（`Sting` 空实现、`EnchantNet` 断开、`Quality.vestigeOf` 返回 null）
+把 `EnchantFx` + `EnchantState` + 精简 `EnchantLooks` 弄编译，再接 `BlowPresenter`。
