@@ -200,6 +200,10 @@ public class WndInfoItem extends Window {
 	}
 
 	/** Lays the sections out; folded ones take only their header's height. */
+	//invisible buttons laid over each section header: pressing one folds that section
+	private com.shatteredpixel.shatteredpixeldungeon.ui.Button descHit, rarityHit;
+	private boolean descOpen = true, rarityOpen = true;
+
 	private void layoutSections(){
 		float y = 0;
 		secTitle.setRect( 0, 0, secWidth, 0 );
@@ -207,9 +211,21 @@ public class WndInfoItem extends Window {
 		y = secTitle.bottom() + 2;
 
 		descHeader.place( 0, y );
+		descHeader.open = descOpen;
+		if (descHit == null){
+			descHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+				@Override
+				protected void onClick(){
+					descOpen = !descOpen;
+					layoutSections();
+				}
+			};
+			add( descHit );
+		}
+		descHit.setRect( 0, y, secWidth, com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT );
 		y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
-		secInfo.visible = descHeader.open;
-		if (descHeader.open){
+		secInfo.visible = descOpen;
+		if (descOpen){
 			secInfo.setPos( 0, y );
 			y = secInfo.bottom();
 		}
@@ -217,10 +233,22 @@ public class WndInfoItem extends Window {
 
 		if (rarityHeader != null){
 			rarityHeader.place( 0, y );
+			rarityHeader.open = rarityOpen;
+			if (rarityHit == null){
+				rarityHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+					@Override
+					protected void onClick(){
+						rarityOpen = !rarityOpen;
+						layoutSections();
+					}
+				};
+				add( rarityHit );
+			}
+			rarityHit.setRect( 0, y, secWidth, com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT );
 			y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
 			if (secLines != null){
-				secLines.visible = rarityHeader.open;
-				if (rarityHeader.open){
+				secLines.visible = rarityOpen;
+				if (rarityOpen){
 					secLines.setPos( 0, y );
 					y = secLines.bottom();
 				}
