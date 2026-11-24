@@ -1553,3 +1553,16 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 英雄 HP 先压到 10，一刀下去 `hp 10 -> 12`。编译通过、`Smoke` 9/9、`F1` 3/3。
 
 **仍未做**：其余 14 条词条的数值、品质图标素材、残迹附魔。
+
+## 品质系统第七阶段：再三条词条生效
+
+- **EXECUTIONER**：目标低于半血时伤害 +35%×强度
+- **DEFIANT**：自己低于半血时伤害 +35%×强度
+- **STORMBORN**：雷暴天气下伤害 +20%×强度
+- 宜家：`Quality.familyOf` 对本仓库庞大的近战武器池增加了按类名归类（axe/spear/mace/dagger/staff），
+  不再全部堆在 SWORD
+
+**实测**（`Z_RarityPerk2`，跑完即删）：一把带“不屈”的巨斧，满血平均伤害 110.0，半血时 132.9（约 +21%）。
+编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**仍未做**：其余 11 条（SLAYER/HUNTER/STEADY/MOONLIT/WARM_GRIP/护甲六条）、品质图标、残迹附魔。

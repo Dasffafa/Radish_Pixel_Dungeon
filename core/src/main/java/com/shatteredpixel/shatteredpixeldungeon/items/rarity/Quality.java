@@ -106,7 +106,16 @@ public final class Quality {
 		if (item instanceof Spear) return Family.SPEAR;
 		if (item instanceof Mace) return Family.MACE;
 		if (item instanceof Dagger) return Family.DAGGER;
-		if (item instanceof MeleeWeapon) return Family.SWORD;
+		if (item instanceof MeleeWeapon){
+			//the repo's melee set is large and not all of it sits under one base class: read the name
+			String n = item.getClass().getSimpleName().toLowerCase();
+			if (n.contains( "axe" )) return Family.AXE;
+			if (n.contains( "spear" ) || n.contains( "glaive" ) || n.contains( "lance" )) return Family.SPEAR;
+			if (n.contains( "mace" ) || n.contains( "hammer" ) || n.contains( "flail" )) return Family.MACE;
+			if (n.contains( "dagger" ) || n.contains( "dirk" ) || n.contains( "blade" ) && n.contains( "assassin" )) return Family.DAGGER;
+			if (n.contains( "staff" )) return Family.STAFF;
+			return Family.SWORD;
+		}
 		if (item instanceof Weapon) return Family.OTHER;
 		return Family.OTHER;
 	}
