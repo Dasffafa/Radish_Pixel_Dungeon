@@ -115,11 +115,15 @@ public class WndInfoItem extends Window {
 		} else if (item.levelKnown && item.level() < 0) {
 			color = ItemSlot.DEGRADED;
 		}
+		//warped enchantment looks: the name in its colour, and its name again under the text
+		int enchColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.titleColor( item );
+		if (enchColor >= 0 && item.levelKnown && item.level() == 0) color = enchColor;
 
 		IconTitle titlebar = new IconTitle( item );
 		titlebar.color( color );
 		
-		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.displayInfo(), 6 );
+		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.displayInfo()
+				+ com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.suffix( item ), 6 );
 		
 		layoutFields(titlebar, txtInfo);
 		maybeAddCurseButton( item );

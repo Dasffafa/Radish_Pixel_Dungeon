@@ -1471,3 +1471,17 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 
 现在：`WaterWalk.step` 对“两边都不是水”的案例**直接返回**，`footstep` 方法与 `FOOTSTEP_GAP` 一并删除。
 水面/岩浆上的涟漪与火星保留（只在油/水面上发生）。
+
+## 附魔文本样式第一批（B）：物品窗口里的附魔名
+
+新增 `warped/ItemText`：
+
+- `titleColor(item)`：有附魔就用它的 `EnchantLook.glow`，诅咒用减淡的 hex 色
+- `line(item)` / `suffix(item)`：一行 `✦ <附魔名>`（诅咒加“（诅咒）”），追加在描述后
+
+已接入本仓库的 `WndInfoItem`：物品名按附魔色着色（+0 且已鉴定时），描述末尾多一行附魔名。
+
+**实测**（`Z_ItemText`，跑完即删）：烈焰短剑 +2 的窗口，标题绿色，底部出现
+`✦ 烈焰附魔`（`line=[✦ 烈焰附魔]`、`color=16745496`）。
+
+**还没做**：Warped 原版的多段式排版（分隔线、品质行、词条行）需要 `items/rarity`；这一批只做了“名字颜色 + 附魔行”。
