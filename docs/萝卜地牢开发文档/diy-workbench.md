@@ -1,6 +1,6 @@
 # DIY 工作台（拆解 / 自由组装）
 
-> 状态：**已实现**。开局送一件，商店在英雄没有时补货。
+> 状态：**已实现**。只在「智能怪物」挑战开局送一件，其它途径无法获得。
 
 ## 一句话
 
@@ -34,7 +34,7 @@ DIY 贴上去的附魔/铭文/特性，拆解时会原样还回来；强化等�
 底材本身的材料价（`拆解产出 × 1.5`）也计入总价。
 
 - 伤害加成写进 `KindOfWeapon.fusionMin/fusionMax` → 真实参与 `min()/max()`；
-  这两个字段以前没有存档，本功能顺手补上了（`kw_fusion_min/max`），融合/DIY 加的伤害读档不会丢。
+  这两个字段以前没有存档，本功能顺手补上了（`kw_diy_min/max`），DIY 加的伤害读档不会丢。
 - 减伤加成写进 `Armor.fusionDRMin/fusionDRMax` → 真实参与 `DRMin()/DRMax()`。
 - 附魔/特性/属性都可以同时叠任意多个，没有数量上限。
 
@@ -220,8 +220,25 @@ python tools/diy_sprites.py
 
 ## 获取
 
-- 开局：`Dungeon.newGame()` 里 `initHero` 之后塞进背包。
-- 商店：`ShopRoom.generateItems()` 在英雄身上没有工作台时补一件（250 金币）。
+- **只在「智能怪物」挑战（`Challenges.REAL_INTELLIGENCE`）开局发放**：
+  `Dungeon.newGame()` 里 `GamesInProgress.selectedClass.initHero(hero)` 之后，
+  如果 `Diy.shouldGrantStarterWorkbench()` 为真才塞进背包。
+- 商店不再补货（`ShopRoom.generateItems()` 里原补货逻辑已删除），
+  普通模式、掉落、商店、红包等其它途径都拿不到工作台。
+- 因此普通模式完全不会出现 DIY 内容；想玩 DIY 请开「智能怪物」挑战。
+
+## 融合系统已删除
+
+本分支原来的装备融合（`Fusion` / `WndFusion` / `FusionCharges` / `FusionRules`）
+已整体移除：融合机会、升级发放、红包开出、状态栏图标、游戏菜单按钮、调试入口、
+以及 `Item.fusedItems` 和各装备的融合 proc 合并全部删除。
+
+原来的融合属性字段改名成 DIY 专用：
+`fusionMin/fusionMax` → `diyMin/diyMax`（`KindOfWeapon`，存档键 `kw_diy_min/max`），
+`fusionDRMin/fusionDRMax` → `diyDRMin/diyDRMax`（`Armor`，存档键 `diy_dr_min/max`）。
+
+白帝圣剑 / 前线旗 / 莫雷洛 / 拉莱耶 / 幻影之书的被动现在直接看主手武器 +
+`Diy.equippedItemProvides()`（DIY 特性），不再依赖融合。
 
 ## 测试
 
