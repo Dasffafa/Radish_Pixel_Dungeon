@@ -1608,3 +1608,13 @@ warm 4.79 -> 6.14          (WARM_GRIP：手持暖手武器时气温回升)
 ```
 
 编译通过、`Smoke` 9/9、`F1` 3/3。**SUREFOOT / COOLING / STORMBORN 仍无专项验证**。
+
+## 品质系统第十二阶段：STORMBORN 验证 + STEADY 结论
+
+- **STORMBORN 验证**（`Z_PerkStorm`，跑完即删）：带该词条的长枪，平静天平均伤害 100.0，
+  雷暴天 105.0（+5%，与 `20%×强度 0.235` 对应）。
+- **STEADY 无法实现**：它在 Warped 里是“抵消风对射击/投掷的影响”，但本仓库**没有任何风影响命中的逻辑**
+  （`windX` 只用于视觉与温度）。不想凭空发明一个惩罚机制，所以这条先挂起。
+
+**剩余**：SLAYER、HUNTER、MOONLIT、HUSHED、RAINPROOF（均需额外系统）、STEADY（需先定风影响规则）、
+SUREFOOT/COOLING（实现已在，仅缺专项测试）。
