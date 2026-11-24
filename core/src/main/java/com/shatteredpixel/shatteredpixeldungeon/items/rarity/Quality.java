@@ -26,9 +26,13 @@ import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Greataxe;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Dagger;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Mace;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Spear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sword;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The gear quality, Warped's cut down to what this repo has: an item's rarity and the family of
@@ -65,6 +69,7 @@ public final class Quality {
 		if (item instanceof Spear) return Family.SPEAR;
 		if (item instanceof Mace) return Family.MACE;
 		if (item instanceof Dagger) return Family.DAGGER;
+		if (item instanceof MeleeWeapon) return Family.SWORD;
 		if (item instanceof Weapon) return Family.OTHER;
 		return Family.OTHER;
 	}
@@ -88,9 +93,25 @@ public final class Quality {
 		return 0;
 	}
 
-	/** Whether it has a quality line of that kind: none yet (the lines come with RarityLine). */
-	public boolean has( Object line ){
-		return false;
+	/** The lines this item shows: its family's, as many as its rarity allows, chosen by the item
+	 *  itself so the same gear always reads the same. */
+	public List<RarityLine> lines(){
+		List<RarityLine> pool = RarityLine.forFamily( family );
+		List<RarityLine> out = new ArrayList<>();
+		int want = Math.min( rarity.lines, pool.size() );
+		if (want <= 0) return out;
+		int seed = (item.getClass().getName().hashCode() ^ 0x5EED) & 0x7fffffff;
+		for (int i = 0; i < want; i++){
+			int k = (seed / (i + 1) + i * 7) % pool.size();
+			RarityLine line = pool.get( k );
+			if (!out.contains( line )) out.add( line );
+		}
+		return out;
+	}
+
+	/** Whether it carries that quality line. */
+	public boolean has( RarityLine line ){
+		return line != null && lines().contains( line );
 	}
 
 	/** A short label for the window: the rarity's own title. */

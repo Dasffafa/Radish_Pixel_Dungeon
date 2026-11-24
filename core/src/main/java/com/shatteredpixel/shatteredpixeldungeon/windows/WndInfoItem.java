@@ -123,7 +123,8 @@ public class WndInfoItem extends Window {
 		titlebar.color( color );
 		
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.displayInfo()
-				+ com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.suffix( item ), 6 );
+				+ com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.suffix( item )
+				+ com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.qualityText( item ), 6 );
 		
 		layoutFields(titlebar, txtInfo);
 		maybeAddCurseButton( item );

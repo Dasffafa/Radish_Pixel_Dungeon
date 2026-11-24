@@ -1495,3 +1495,14 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 - 保留 `Quality.vestigeOf(...)`（附魔框架需要）
 
 **实测**：编译通过，`Smoke` 9/9。品质线（`RarityLine`）与蓝图展示留给下一阶段。
+
+## 品质系统第二阶段：品质行与品质特质文字
+
+- 新增 `items/rarity/RarityLine`：Warped 名字的精简版（CRIT/LIFESTEAL/WARM_GRIP/SLAYER/…/FLEET/…/SUREFOOT），
+  只对“本仓库真有的装备家族”开放（剑/斧/矛/锤/匕首/法杖/护甲），没有枪械与弓
+- `Quality.lines()`：按 `Rarity.lines` 与物品自身哈希选出固定的几条（同一件装备永远读到同一组）
+- `ItemText.qualityText()`：“品质：普通” + 每条质量行；`Rarity.title()` 改为内置中文（本仓库没有 rarity 语言键）
+- `WndInfoItem` 将其追加在附魔行之后
+
+**实测**（`Z_RarityText`，跑完即删）：烈焰短剑 +2 窗口底部显示
+`品质：普通` 与一条品质特质（本次抽到“吸血”）。编译通过、`Smoke` 9/9、`F1` 3/3。

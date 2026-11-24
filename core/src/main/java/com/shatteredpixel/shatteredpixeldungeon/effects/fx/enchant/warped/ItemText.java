@@ -68,6 +68,19 @@ public final class ItemText {
 		return "\u2726 " + name + (l.curse ? "  (\u8bc5\u5492)" : "");
 	}
 
+	/** The gear quality block: its rarity and the lines it carries, or "" for non-gear. */
+	public static String qualityText( Item it ){
+		if (!(it instanceof Weapon) && !(it instanceof Armor)) return "";
+		com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+				com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( it );
+		StringBuilder b = new StringBuilder();
+		b.append( "\n\n\u54c1\u8d28\uff1a" ).append( q.title() );
+		for (com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine l : q.lines()){
+			b.append( "\n\u00b7 " ).append( l.title() );
+		}
+		return b.toString();
+	}
+
 	/** The same line, ready to be appended to a description. */
 	public static String suffix( Item it ){
 		String line = line( it );

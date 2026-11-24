@@ -59,7 +59,15 @@ public enum Rarity {
 	}
 
 	public String title(){
-		return Messages.get( this, name().toLowerCase() );
+		//this repo has no rarity message keys yet: name the tiers here
+		switch (this){
+			case COMMON:    return "\u666e\u901a";
+			case UNCOMMON:  return "\u826f\u597d";
+			case RARE:      return "\u7a00\u6709";
+			case LEGENDARY: return "\u4f20\u5947";
+			case EXOTIC:    return "\u5f02\u5b9d";
+			default:        return name();
+		}
 	}
 
 	/** icon cell in {@code sprites/rarity_icons.png} */
