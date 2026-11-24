@@ -1211,7 +1211,14 @@ public class GameScene extends PixelScene {
 	
 	private void addBlobSprite( final Blob gas ) {
 		if (gas.emitter == null) {
-			gases.add( new BlobEmitter( gas ) );
+			BlobEmitter e = new BlobEmitter( gas );
+			//发光的 blob（火、电）画在 light 层上，它掉下来的烟（matter）放进气体层
+			if (gas.emissive() && lightFx != null){
+				lightFx.add( e );
+				gases.add( e.matter() );
+			} else {
+				gases.add( e );
+			}
 		}
 	}
 	

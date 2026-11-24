@@ -29,6 +29,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HalomethaneBurning;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HolyLowBurinng;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.FireBlobFx;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.FireStyle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.HalomethaneFlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -110,8 +112,14 @@ public class HalomethaneFire extends Blob {
     @Override
     public void use( BlobEmitter emitter ) {
         super.use( emitter );
-        emitter.pour( HalomethaneFlameParticle.FACTORY, 0.03f );
+        FireBlobFx.pour( this, emitter, FireStyle.HALOMETHANE );
     }
+
+	//light: drawn over the night's tint, its smoke among the gases
+	@Override
+	public boolean emissive() {
+		return true;
+	}
 
     @Override
     public String tileDesc() {

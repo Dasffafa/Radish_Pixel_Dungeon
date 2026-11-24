@@ -28,6 +28,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.FireBlobFx;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.FireStyle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.particles.FlameParticle;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
@@ -117,8 +119,15 @@ public class Fire extends Blob {
 	@Override
 	public void use( BlobEmitter emitter ) {
 		super.use( emitter );
-		emitter.pour( FlameParticle.FACTORY, 0.03f );
+		FireBlobFx.pour( this, emitter, FireStyle.FIRE );
 	}
+
+	//light: drawn over the night's tint, its smoke among the gases
+	@Override
+	public boolean emissive() {
+		return true;
+	}
+
 	
 	@Override
 	public String tileDesc() {

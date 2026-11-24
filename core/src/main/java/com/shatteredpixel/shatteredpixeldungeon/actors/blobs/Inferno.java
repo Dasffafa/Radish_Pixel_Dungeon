@@ -23,6 +23,8 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.blobs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.FireBlobFx;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.FireStyle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
@@ -87,8 +89,15 @@ public class Inferno extends Blob {
 	public void use( BlobEmitter emitter ) {
 		super.use( emitter );
 		
-		emitter.pour( Speck.factory( Speck.INFERNO, true ), 0.4f );
+		FireBlobFx.pour( this, emitter, FireStyle.INFERNO );
 	}
+
+	//light: drawn over the night's tint, its smoke among the gases
+	@Override
+	public boolean emissive() {
+		return true;
+	}
+
 	
 	@Override
 	public String tileDesc() {

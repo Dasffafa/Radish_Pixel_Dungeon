@@ -46,6 +46,12 @@ public class Blob extends Actor {
 	
 	public boolean alwaysVisible = false;
 
+	/** Whether its particles are drawn as light (over the night's tint), its matter shed among the
+	 *  gases (BlobEmitter.matter): a fire, a bolt of electricity. */
+	public boolean emissive(){
+		return false;
+	}
+
 	private static final String CUR		= "cur";
 	private static final String START	= "start";
 	private static final String LENGTH	= "length";

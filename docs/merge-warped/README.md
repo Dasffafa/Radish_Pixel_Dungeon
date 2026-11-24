@@ -571,3 +571,32 @@ sendToBack(frame); bringToFront(sparks);
 **实测**：临时场景 `Z_Lightning`（跑完即删）在真实引擎里打三道电——水面上、干地上、不足一格的短电火花——PASS 7/7：
 光池 `poolsLaid>0`、焦痕 `scorchesLaid>0`、余光 `afterglowsShown>0`，短电火花两项都是 0。
 另做了对照：直接铺一块 63px 的暖色光池，`LIGHTS` 图层正常显示（说明不是图层问题，只是本仓库地板很暗、蓝光弱）。
+
+## 火（fire 区第一批：火焰粒子，已并入 feat/fx-modules）
+
+**底子：`BlobEmitter` 换成 Warped 的版本**（66 行 → 329 行）：
+
+- 每次 tick 只看几格改成「按块扫 + 按密度抽」，一格快烧完时粒子自然变稀（`FADE_VOLUME = 5`）
+- 新增 `cell()`：工厂能读到正在发粒子的那一格（体积、是不是云的边缘、往哪边漂、上一帧有没有）
+- 新增 `matter()`：`Blob.emissive()` 的 blob 画在 light 层，它掉下来的烟放进气体层
+- 新增 `Aftermath / Bloomable / Kickable / Held` 四个可选钩子（格子熄灭、云涌起来、有人穿过、每格留一张贴图）
+- **这是所有 blob 共用的类**（毒气、烟、水汽都走它），所以改完特地跑了 `Smoke`（9 项）和一个毒气 blob 的场景，都没问题
+
+**火本身**
+
+| 文件 | 作用 |
+|---|---|
+| `effects/fx/fire/FireStyle` | 12 种火的外观（火/地狱火/魔火/卤代烷/炼狱/火风/炉火/营火…）：火苗元素、火星、烟、地面辉光、光照、光点、燃烧速率 |
+| `effects/fx/fire/Flames` | 一簇火苗：TONGUE_S/M/L 按大小翻帧（12fps），0.40/0.58/0.80s；LICK 小火舌；EMBER_1/2 火星 |
+| `effects/fx/fire/FireBlobFx` | 把 blob 每个燃烧格分层撒出来：小舌头/舔舐每 0.05s、按体积升高的 tall/mid/low 火苗、每 0.6s 一粒火星、顶上每 1.4s 一股烟、水面换成蒸汽 |
+
+- `Fire` / `Inferno` / `HalomethaneFire` 的 `use()` 改成 `FireBlobFx.pour(this, emitter, FireStyle.XXX)`，并 `emissive() = true`
+- `GameScene.addBlobSprite` 按 `emissive()` 决定放 light 层还是气体层，并把 `matter()` 加进气体层
+
+**没搬的**
+
+- `FireField`（地面上的一圈暖光、水面 wash、烧尽时的烟/火星、树冠着火 BurningTree、热浪 HeatRay）——它还要 LightRef / FloorGlow / BurningTree，留到下一批
+- 营火 / 煤床 / 火风（本仓库没有 CoalBed / CampFire / Firewind 这些 blob）
+- `ChimneySmokeParticle`（依赖 ClimateManager / HearthLight / WeatherSprites，天气没搬），营火的烟柱因此没有搬
+
+**实测**：临时场景 `Z_Fire`（跑完即删）在真实引擎里点着一块 3x3 的火，PASS 4/4：`poured=1`、`flames>0`、毒气 blob 仍正常驱动、英雄没死；`Smoke` 9/9 也过。
