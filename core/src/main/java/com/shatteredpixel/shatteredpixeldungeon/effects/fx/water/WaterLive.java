@@ -191,6 +191,8 @@ public class WaterLive extends Group {
 			if (DRAW_POCKS) pocks( l, dt );
 		}
 		FireReflections.update( dt );
+		//雨点打在水面上的一圈圈涟漪（有天气时才有）
+		WaterRain.rain( level, dt );
 		driveFalls( level, l, dt );
 		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
 		if (dt > 0f && (dropIn -= dt) <= 0f){
