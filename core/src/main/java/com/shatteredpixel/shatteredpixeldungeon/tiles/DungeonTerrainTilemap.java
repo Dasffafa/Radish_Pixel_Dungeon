@@ -24,9 +24,6 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.noosa.Image;
-import com.watabou.utils.PointF;
-import com.watabou.utils.RectF;
-import com.watabou.gltextures.SmartTexture;
 import com.watabou.utils.PathFinder;
 
 public class DungeonTerrainTilemap extends DungeonTilemap {
@@ -41,47 +38,8 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 		instance = this;
 	}
 
-	/** Whether this cell's art is one the grass sway draws for itself (see GrassSwayLayer). */
-	public static boolean swayable( int cell ){
-		if (Dungeon.level == null || cell < 0 || cell >= Dungeon.level.length()) return false;
-		int t = Dungeon.level.map[cell];
-		return t == Terrain.GRASS || t == Terrain.HIGH_GRASS || t == Terrain.FURROWED_GRASS;
-	}
-
-	/** The tile over `cell`, cut to rows `from`..`to` of its 16, as a picture (null if not drawn). */
-	public static Image strip( int cell, int from, int to ){
-		if (instance == null || instance.tileset == null) return null;
-		//the grass's own visual (getTileVisual would say -1 for it now: the sway draws it)
-		int tile = Dungeon.level.map[cell];
-		int visual = DungeonTileSheet.directVisuals.get( tile, -1 );
-		if (visual >= 0){
-			visual = DungeonTileSheet.getVisualWithAlts( visual, cell );
-		} else {
-			visual = instance.visualFor( cell, tile, false );
-		}
-		if (visual < 0) return null;
-		RectF f = instance.tileset.get( visual );
-		if (f == null) return null;
-		SmartTexture tex = instance.texture;
-		//round, never truncate: a 15.999 px frame would leave a one-pixel seam at every tile edge
-		int px = Math.round( f.left * tex.width );
-		int py = Math.round( f.top * tex.height ) + from;
-		//one pixel of overlap to the right: separate quads leave a hairline seam at tile edges
-		//where the chunk's single quad set did not
-		int pw = Math.round( f.width() * tex.width ) + 2;
-		int ph = Math.max( 1, to - from );
-		return new Image( tex, px, py, pw, ph );
-	}
-
 	@Override
 	protected int getTileVisual(int pos, int tile, boolean flat) {
-		//the grass sways: it is left out of the chunk and drawn by GrassSwayLayer instead
-		if (!flat && swayable( pos )) return -1;
-		return visualFor( pos, tile, flat );
-	}
-
-	/** What the cell's art is, grass or not (the sway asks this for the grass it draws itself). */
-	protected int visualFor( int pos, int tile, boolean flat ){
 		int visual = DungeonTileSheet.directVisuals.get(tile, -1);
 		if (visual != -1) return DungeonTileSheet.getVisualWithAlts(visual, pos);
 

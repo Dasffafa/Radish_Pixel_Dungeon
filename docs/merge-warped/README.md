@@ -901,27 +901,6 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
-## 场景氛围第十一批：真正的 tile 摆动（Warped 的做法）
-
-上一批只是"草叶粒子 + 压弯"，草格贴图本身不动。这一批按 Warped 原本的思路做了**真的 tile 摆动**：
-
-- `DungeonTerrainTilemap.getTileVisual` 对草格（`GRASS/HIGH_GRASS/FURROWED_GRASS`）返回 **-1**：把草格从
-  tilemap 的 chunk 里排除（`Tilemap.needsRender` 看到 -1 就跳过该格）
-- 新增 `effects/fx/GrassSwayLayer`，在 `terrain` 组里、紧贴 tilemap 之上，把每个草格画成**两条**：
-  **下半截（第 9~16 行）固定** + **上半截（第 0~9 行）按风向整像素侧移**
-- 每格只画一次，所以**不会像上一版那样叠出偏亮的草**；两半拼起来正好 16 行，也不会漏
-- 只画镜头内的格子（视野外不建图）；格子建好后一直留在场景里，镜头移回来仍然正确
-- 接在 `GameScene.update` 每帧推进，`FxModules.sceneCreated` 时清空
-
-**踩过的坑**（都写进代码注释了）：
-1. `TextureFilm` 给的是 **UV 坐标**，要乘图集尺寸才是像素
-2. 浮点截断会让每格宽度变成 15 px，边上出现一条缝——改用 `Math.round`
-3. 即使宽度正确，独立 quad 在 tile 边界仍会有发丝级缝隙，所以每格向右多画 1~2 px、整体左移 1 px 盖住
-
-**实测**：临时场景 `Z_GrassSwayTile`（跑完即删）铺 9×9 高草，PASS（`tiles swaying=81`），
-两张相隔 16 帧的截图能看到草尖位置在变；全量回归 **57 通过**，仍只有 `A0`/`A4` 两个基线失败与
-`Extra_ActivatedPrototypeAsleep` 这个随机 flaky。
-
 ## 场景氛围第十批：实机确认（D 收尾）
 
 用 `9045abec4` 打的 jar 实机验证：**玩家走过草地时脚下会冒绿色草屑与闪光，怪物走过时脚下有闪光**——

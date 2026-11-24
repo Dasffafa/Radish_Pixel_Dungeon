@@ -207,8 +207,6 @@ public class GameScene extends PixelScene {
 	private Group floorEmitters;
 	private Group emitters;
 	private static Group effects;
-	//由 GrassSwayLayer 画会摆的草格
-	private static Group grassSway;
 	private Group gases;
 	private Group spells;
 	private Group statuses;
@@ -297,9 +295,6 @@ public class GameScene extends PixelScene {
 		
 		tiles = new DungeonTerrainTilemap();
 		terrain.add( tiles );
-		//会摆的草：tilemap 跳过的草格由这一层画
-		grassSway = new Group();
-		terrain.add( grassSway );
 
 		customTiles = new Group();
 		terrain.add(customTiles);
@@ -1025,8 +1020,6 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.actors.Thermal.update( Game.elapsed );
 		//空气里的浮尘
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.AmbientDust.update( Game.elapsed );
-		//会摆的草格：顶部随风的整像素侧移
-		com.shatteredpixel.shatteredpixeldungeon.effects.fx.GrassSwayLayer.update( Game.elapsed );
 		AmbientCritters.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.update( Game.elapsed );
@@ -1456,11 +1449,6 @@ public class GameScene extends PixelScene {
 			scene.waterSheen.add( scene.waterSubsurface );
 		}
 		scene.waterSubsurface.add( g );
-	}
-
-	/** The layer just over the tiles: the grass whose top leans with the wind. */
-	public static Group grassSway(){
-		return grassSway;
 	}
 
 	public static Group waterSheen(){
