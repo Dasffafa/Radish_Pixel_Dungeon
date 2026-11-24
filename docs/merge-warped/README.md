@@ -1618,3 +1618,13 @@ warm 4.79 -> 6.14          (WARM_GRIP：手持暖手武器时气温回升)
 
 **剩余**：SLAYER、HUNTER、MOONLIT、HUSHED、RAINPROOF（均需额外系统）、STEADY（需先定风影响规则）、
 SUREFOOT/COOLING（实现已在，仅缺专项测试）。
+
+## 品质系统第十三阶段：SLAYER（屠戮）生效
+
+- 新增 `items/rarity/SlayerFamily`：按怪物类名归入 **虫鼠 / 野兽 / 亡灵 / 恶魔 / 人形** 五族
+  （Warped 原表绑它自己的全怪物库，这里只按本仓库类名判断）
+- `Quality.slayer()`：带 SLAYER 词条的武器按实例确定性地指定一个猎物族
+- `Weapon.proc`：对同族目标伤害 `+30%×强度`
+
+**实测**（`Z_PerkSlayer`，跑完即删）：一把“虫鼠屠戮”短剑，对老鼠 125.0，
+对石像（BEAST）100.0（+25%，与 30%×0.837 对应）。编译通过、`Smoke` 9/9、`F1` 3/3。

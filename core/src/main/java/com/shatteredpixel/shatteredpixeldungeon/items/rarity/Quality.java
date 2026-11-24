@@ -156,6 +156,15 @@ public final class Quality {
 		return out;
 	}
 
+	/** The family a SLAYER line hunts (NONE when the item does not carry it). */
+	public SlayerFamily slayer(){
+		if (!has( RarityLine.SLAYER )) return SlayerFamily.NONE;
+		SlayerFamily[] all = { SlayerFamily.VERMIN, SlayerFamily.BEAST, SlayerFamily.UNDEAD,
+				SlayerFamily.DEMON, SlayerFamily.HUMANOID };
+		int seed = (System.identityHashCode( item ) ^ 0x51A7E) & 0x7fffffff;
+		return all[seed % all.length];
+	}
+
 	/** How strongly one of its lines reads, 0..1: its rarity's roll, fixed per item and line. */
 	public float strength( RarityLine line ){
 		if (!has( line )) return 0f;

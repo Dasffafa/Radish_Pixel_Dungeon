@@ -260,6 +260,12 @@ abstract public class Weapon extends KindOfWeapon {
 				damage += Math.round( damage * 0.35f
 						* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.DEFIANT ) );
 			}
+			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SLAYER )
+					&& q.slayer() != com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.NONE
+					&& q.slayer() == com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.of( defender )){
+				damage += Math.round( damage * 0.3f
+						* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SLAYER ) );
+			}
 			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.STORMBORN )
 					&& com.shatteredpixel.shatteredpixeldungeon.actors.Weather.storming ){
 				damage += Math.round( damage * 0.2f
