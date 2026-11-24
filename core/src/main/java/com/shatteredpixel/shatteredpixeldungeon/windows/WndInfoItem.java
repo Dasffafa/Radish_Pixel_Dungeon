@@ -173,7 +173,6 @@ public class WndInfoItem extends Window {
 		}
 
 		descHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader( "\u63cf\u8ff0", 0xE8D9A8, secWidth );
-		descHeader.setOnToggle( this::layoutSections );
 
 		rarityHeader = null;
 		secLines = null;
@@ -182,7 +181,6 @@ public class WndInfoItem extends Window {
 			rarityHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
 					"\u7a00\u6709\u5ea6\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityTitle( item ),
 					rColor, secWidth );
-			rarityHeader.setOnToggle( this::layoutSections );
 			String lines = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.qualityLines( item );
 			if (!lines.isEmpty()){
 				secLines = PixelScene.renderTextBlock( lines, 6 );

@@ -20,71 +20,63 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.noosa.ColorBlock;
-import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
+import com.watabou.noosa.Group;
 
 /**
- * A titled section divider that can be pressed to fold its text away, the way Warped's item window
- * reads: a triangle, the title, a hairline out to the edge, and the section's text under it. The
- * triangle points down while the text shows and right while it is folded; the owner lays the
- * window out again when it changes.
+ * A part's header in the item window, drawn the way Warped draws it: a five-pixel fold arrow (down
+ * while the section is open, right while it is folded), the title in its colour, and a rule out to
+ * the window's edge. It only draws; the window lays a transparent button over it for the press.
  */
-public class SectionHeader extends Button {
+public class SectionHeader extends Group {
 
 	public static final int HEIGHT = 9;
 
+	private final RenderedTextBlock arrow;
 	private final RenderedTextBlock label;
-	private final ColorBlock line;
-	private final ColorBlock mark;
+	private final ColorBlock rule;
+	private final int color;
 
-	/** Whether the section under this header is showing. */
+	/** Whether the section under this header is showing (the owner sets this before placing). */
 	public boolean open = true;
-
-	private Runnable onToggle;
 
 	public SectionHeader( String text, int color, int width ){
 		super();
+		this.color = color;
 
-		mark = new ColorBlock( 4, 4, color );
-		mark.x = 0;
-		mark.y = 2;
+		arrow = PixelScene.renderTextBlock( "\u25bc", 6 );
+		arrow.hardlight( color );
+		add( arrow );
 
 		label = PixelScene.renderTextBlock( text, 6 );
 		label.hardlight( color );
-		label.setPos( 6, 0 );
-
-		line = new ColorBlock( 1, 1, color );
-		line.alpha( 0.35f );
-		line.y = 3;
-
-		add( mark );
 		add( label );
-		add( line );
 
-		setSize( width, HEIGHT );
-		placeLine( 0, width );
+		rule = new ColorBlock( 1, 1, color );
+		rule.alpha( 0.3f );
+		add( rule );
+
+		place( 0, 0 );
+		placeRule( width );
 	}
 
-	public void setOnToggle( Runnable r ){
-		onToggle = r;
+	private void placeArrow( float y ){
+		arrow.text( open ? "\u25bc" : "\u25b6" );
+		arrow.hardlight( color );
+		arrow.setPos( 1, y + (HEIGHT - arrow.height()) / 2f );
 	}
 
-	@Override
-	protected void onClick(){
-		open = !open;
-		if (onToggle != null) onToggle.run();
-	}
-
-	private void placeLine( float x, int width ){
-		line.x = x + label.right() + 3;
-		line.size( Math.max( 1, width - (line.x - x) ), 1 );
+	private void placeRule( int width ){
+		float from = label.right() + 3;
+		rule.size( Math.max( 0, width - from ), 1 );
+		rule.x = from;
+		rule.y = HEIGHT / 2f;
 	}
 
 	/** Puts the whole header at (x, y). */
 	public void place( float x, float y ){
-		mark.x = x;
-		mark.y = y + 2;
-		label.setPos( x + 6, y );
-		line.y = y + 3;
-		placeLine( x, (int)width );
+		placeArrow( y );
+		label.setPos( x + 9, y + (HEIGHT - label.height()) / 2f );
+		rule.x = label.right() + 3;
+		rule.y = y + HEIGHT / 2f;
 	}
 }
