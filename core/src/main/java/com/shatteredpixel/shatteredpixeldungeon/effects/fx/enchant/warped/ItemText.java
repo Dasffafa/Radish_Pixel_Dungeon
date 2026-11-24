@@ -105,9 +105,11 @@ public final class ItemText {
 			if (b.length() > 0) b.append( "\n" );
 			b.append( "\u00b7 " ).append( l.describe( it, q.strength( l ) ) );
 		}
-		//the rarity's own grant, said the way Warped says it
-		b.append( "\n\n\u4ec5\u51ed\u7a00\u6709\u5ea6\uff0c\u5b83\u81ea\u8eab\u7684\u4f24\u5bb3\u3001\u9632\u5fa1\u6216\u5a01\u529b\u5c31\u63d0\u9ad8" )
-				.append( Math.round( q.rarity().potency() * 100f ) ).append( "%\u3002" );
+		//the rarity's own grant, said the way Warped says it (common gives nothing, so no line)
+		if (q.rarity().potency() > 0f){
+			b.append( "\n\n\u4ec5\u51ed\u7a00\u6709\u5ea6\uff0c\u5b83\u81ea\u8eab\u7684\u4f24\u5bb3\u3001\u9632\u5fa1\u6216\u5a01\u529b\u5c31\u63d0\u9ad8" )
+					.append( Math.round( q.rarity().potency() * 100f ) ).append( "%\u3002" );
+		}
 
 		//a vestige and its masterwork core, only on the top two tiers (text only for now)
 		if (q.rarity().ordinal() >= com.shatteredpixel.shatteredpixeldungeon.items.rarity.Rarity.LEGENDARY.ordinal()){

@@ -82,7 +82,7 @@ public enum Rarity {
 	 */
 	public float potency(){
 		switch (this){
-			case COMMON:    return 0.05f;
+			case COMMON:    return 0f;
 			case UNCOMMON:  return 0.10f;
 			case RARE:      return 0.15f;
 			case LEGENDARY: return 0.22f;
