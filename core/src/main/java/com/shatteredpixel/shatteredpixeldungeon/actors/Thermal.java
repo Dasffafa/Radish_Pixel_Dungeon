@@ -116,6 +116,12 @@ public final class Thermal {
 				if (cx < 0 || cy < 0 || cx >= wdt || cy >= Dungeon.level.height()) continue;
 				int cell = cy * wdt + cx;
 				if (Dungeon.level.map[cell] == Terrain.EMBERS) h = Math.max( h, HEAT_EMBERS );
+				//a molten pool is lava, not water, when the level's liquid says so
+				if (Dungeon.level.water[cell]
+						&& com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX.liquid()
+							== com.shatteredpixel.shatteredpixeldungeon.effects.fx.Element.Liquid.LAVA){
+					h = Math.max( h, HEAT_FIRE );
+				}
 				for (Blob b : Dungeon.level.blobs.values()){
 					if (b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire
 							&& b.volume > 0 && b.cur != null && b.cur[cell] > 0) h = Math.max( h, HEAT_FIRE );
