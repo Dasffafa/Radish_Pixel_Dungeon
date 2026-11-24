@@ -113,7 +113,12 @@ public final class ItemText {
 
 		//a vestige and its masterwork core, only on the top two tiers (text only for now)
 		if (q.rarity().ordinal() >= com.shatteredpixel.shatteredpixeldungeon.items.rarity.Rarity.LEGENDARY.ordinal()){
-			String ench = enchantName( it );
+			String ench = "";
+			if (it instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
+				ench = com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.vestigeName(
+						(com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon) it );
+			}
+			if (ench.isEmpty()) ench = enchantName( it );
 			if (ench.isEmpty()) ench = "\u70c8\u7130";
 			b.append( "\n\n\u5b83\u8fd8\u5e26\u6709\u4e00\u4e2a\u6b8b\u8ff9\u9644\u9b54\uff0c\u90a3\u662f\u4e00\u7f15\u5b83\u59cb\u7ec8\u672a\u80fd\u771f\u6b63\u638c\u63e1\u7684\u9b54\u6cd5\u7684\u5fae\u5f31\u56de\u54cd\uff1a" );
 			b.append( "\n\u2726 \u6b8b\u8ff9" ).append( ench ).append( "\u9644\u9b54\uff1a\u89e6\u53d1\u9891\u7387\u4e3a\u771f\u54c1\u768427%" );

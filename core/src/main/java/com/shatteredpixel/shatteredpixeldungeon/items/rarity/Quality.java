@@ -213,8 +213,36 @@ public final class Quality {
 		return rarity.title();
 	}
 
-	/** The vestige of a weapon's spent enchantment, or null: none here. */
+	/** The enchantments a vestige can echo (ones that are safe to trigger on their own). */
+	private static final String[] VESTIGES = { "Blazing", "Chilling", "Shocking", "Grim", "Lucky" };
+
+	/**
+	 * The vestige of a weapon's spent enchantment: a weak echo that triggers at 27% of the real
+	 * frequency. Only the top two tiers carry one; common and middling gear has none.
+	 */
 	public static Weapon.Enchantment vestigeOf( Weapon w ){
+		if (w == null) return null;
+		if (of( w ).rarity().ordinal() < Rarity.LEGENDARY.ordinal()) return null;
+		String own = w.enchantment == null ? "" : w.enchantment.getClass().getSimpleName();
+		int seed = Math.abs( System.identityHashCode( w ) / 7 ) + VESTIGES.length * 31;
+		for (int i = 0; i < VESTIGES.length; i++){
+			String name = VESTIGES[(seed + i) % VESTIGES.length];
+			if (name.equals( own )) continue;
+			try {
+				return (Weapon.Enchantment) Class.forName(
+						"com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments." + name )
+						.getDeclaredConstructor().newInstance();
+			} catch (Exception e) {
+				//fall through to the next candidate
+			}
+		}
 		return null;
 	}
+
+	/** The vestige's name, for the window, or "" when there is none. */
+	public static String vestigeName( Weapon w ){
+		Weapon.Enchantment v = vestigeOf( w );
+		return v == null ? "" : v.name();
+	}
+
 }

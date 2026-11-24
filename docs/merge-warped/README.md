@@ -1954,3 +1954,19 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_CommonNoBonus`，跑完即删）：`common potency=0.0 uncommon potency=0.1`，
 一把普通短剑 `avg damage=100.0`（不加不减）。`Smoke` 9/9、`F1` 3/3。
+
+## 残迹附魔：真实的弱化回响（从伤害回响改为真附魔）
+
+- `Quality.vestigeOf(Weapon)`：仅传奇/异宝有，从 `Blazing/Chilling/Shocking/Grim/Lucky` 里按实例确定性选一个
+  （排除武器自己的附魔）；`vestigeName()` 供窗口显示
+- `Weapon.proc`：命中时按 **27%** 概率调用该附魔的 `proc(...)`——就是“触发频率为真品的27%”
+- 窗口里的残迹段落现在显示**真正选中的那个附魔名**（不再是自己的）
+
+**实测**（`Z_Vestige`，跑完即删）：深度 25 找到传奇武器，`legendary vestige=电击附魔`、
+普通武器 `vestige=[]`（无），200 次 proc 均两无异常（`avgDmg=122.0`）。`Smoke` 9/9、`F1` 3/3。
+
+## 光线与时间（检查结果）
+
+`GameScene.updateDayNightTint()` 每帧从 `DayNightCycle.phaseTintSmooth()` 取颜色、
+`DayNightCycle.brightnessMult()` 取亮度，合成一层 `dayNightOverlay`（ColorBlock）盖在整张地图上。
+所以**光线（色调与暗度）确实与时间挂钩**；但它是全屏叠加层，不改变逐格照明半径。

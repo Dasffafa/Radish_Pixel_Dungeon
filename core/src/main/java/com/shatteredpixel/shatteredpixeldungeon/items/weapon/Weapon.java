@@ -262,10 +262,10 @@ abstract public class Weapon extends KindOfWeapon {
 				damage += Math.round( damage * 0.35f
 						* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.DEFIANT ) );
 			}
-			//a vestige: the top tiers echo their own enchantment, weakly and rarely
-			if (q.rarity().ordinal() >= com.shatteredpixel.shatteredpixeldungeon.items.rarity.Rarity.LEGENDARY.ordinal()
-					&& enchantment != null && com.watabou.utils.Random.Float() < 0.27f * 0.3f){
-				damage += Math.round( damage * 0.5f );
+			//a vestige: the top tiers echo another enchantment, at 27% of its usual frequency
+			Weapon.Enchantment vestige = com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.vestigeOf( this );
+			if (vestige != null && com.watabou.utils.Random.Float() < 0.27f){
+				damage = vestige.proc( this, attacker, defender, damage );
 			}
 
 			//the rarity's own grant: a share of the weapon's power, whatever its lines
