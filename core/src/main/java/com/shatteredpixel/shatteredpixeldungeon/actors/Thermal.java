@@ -101,7 +101,16 @@ public final class Thermal {
 			case BLIZZARD: t -= 12f; break;
 			default: break;
 		}
-		t -= Math.abs( Weather.windX ) * WIND_CHILL;
+		float chill = Math.abs( Weather.windX ) * WIND_CHILL;
+		//quality lines on worn armour: WINDBREAK keeps some of the wind off
+		if (Dungeon.hero != null && Dungeon.hero.belongings != null && Dungeon.hero.belongings.armor() != null){
+			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( Dungeon.hero.belongings.armor() );
+			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.WINDBREAK )){
+				chill *= 1f - 0.6f * q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.WINDBREAK );
+			}
+		}
+		t -= chill;
 		t += heat();
 		return t;
 	}

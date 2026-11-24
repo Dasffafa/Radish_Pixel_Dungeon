@@ -1577,3 +1577,12 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 （+10.3%，与强度 0.685 对应）。编译通过、`Smoke` 9/9、`F1` 3/3。
 
 **剩余**：SLAYER/HUNTER/STEADY/MOONLIT/WARM_GRIP + HUSHED/RAINPROOF/COOLING/WINDBREAK/SUREFOOT。
+
+## 品质系统第九阶段：WINDBREAK 与 SUREFOOT
+
+- **WINDBREAK**：`Thermal.ambient()` 里的风寒（`|windX|*9`）被减弱：`chill *= 1 - 0.6*强度`
+- **SUREFOOT**：`Chasm.heroLand()` 的坠落伤害乘以 `1 - 0.4*强度`（至少 1）
+
+编译通过、`Smoke` 9/9。**这两条没有单独写场景验证**（时间关系，下一轮可补）。
+
+**剩余**：SLAYER/HUNTER/STEADY/MOONLIT/WARM_GRIP + HUSHED/RAINPROOF/COOLING。

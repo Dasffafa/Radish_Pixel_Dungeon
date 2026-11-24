@@ -169,6 +169,15 @@ public class Chasm implements Hero.Doom {
 			if(hero.belongings.armor().hasGlyph(SkyWalker.class,hero)){
 				Buff.affect( hero, Bleeding.class).set( Math.round(hero.HT/ 4f / (6f + (6f*(hero.HP/(float)hero.HT)))), Chasm.class);
 				int damage = Math.max( hero.HP / 8, Char.combatRoll( hero.HP / 8, hero.HT / 16 ));
+				//quality lines on worn armour: SUREFOOT takes some of the fall
+				if (hero.belongings != null && hero.belongings.armor() != null){
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+							com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( hero.belongings.armor() );
+					if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SUREFOOT )){
+						damage = Math.max( 1, Math.round( damage * (1f - 0.4f
+								* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SUREFOOT )) ) );
+					}
+				}
 				hero.damage(new DamageInfo(damage, DamageType.CHASM, null, null, new Chasm()));
 				return;
 			}
