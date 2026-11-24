@@ -28,7 +28,23 @@ public enum AmbientSound {
 	CHIME      ( "chime",     1, 2.0f, 0.24f ),
 	COO        ( "coo",       1, 1.6f, 0.22f ),
 	WIND       ( "wind",      2, 4.0f, 0.22f ),
-	ICE        ( "ice",       2, 2.0f, 0.26f );
+	ICE        ( "ice",       2, 2.0f, 0.26f ),
+	//weather: rain, snow, thunder and the wind that carries them (files already in assets/sounds)
+	RAIN_LIGHT   ( "rain_light",   3, 5.62f, 0.08f ),
+	RAIN         ( "rain",         2, 5.62f, 0.10f ),
+	RAIN_HEAVY   ( "rain_heavy",   2, 5.67f, 0.14f ),
+	RAIN_WATER   ( "rain_water",   2, 5.67f, 0.06f ),
+	RAIN_LEAVES  ( "rain_leaves",  2, 5.59f, 0.06f ),
+	RAIN_ROOF    ( "rain_roof",    2, 5.77f, 0.09f ),
+	THUNDER_FAR  ( "thunder_far",  2, 6.48f, 0.17f ),
+	THUNDER_NEAR ( "thunder_near", 2, 6.48f, 0.50f ),
+	GALE         ( "gale",         2, 5.88f, 0.10f ),
+	GUST         ( "gust",         2, 5.88f, 0.27f ),
+	HAIL         ( "hail",         1, 5.67f, 0.08f ),
+	SLEET        ( "sleet",        1, 5.62f, 0.09f ),
+	SNOW         ( "snow",         1, 5.77f, 0.03f ),
+	BLIZZARD     ( "blizzard",     2, 5.77f, 0.15f ),
+	SANDSTORM    ( "sandstorm",    1, 5.67f, 0.11f );
 
 	/** 每一次录音的文件 */
 	public final String[] takes;

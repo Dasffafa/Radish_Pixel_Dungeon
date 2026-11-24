@@ -30,6 +30,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxRandom;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
 import com.watabou.utils.PointF;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ambience.WeatherSounds;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.Camera;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx;
@@ -98,6 +99,7 @@ public final class WeatherOverlay {
 				if (host != null && f != null){
 					host.add( f );
 					flashes++;
+					WeatherSounds.thunder();
 				}
 			}
 		}
@@ -107,6 +109,7 @@ public final class WeatherOverlay {
 
 		splash( dt );
 		mist( dt, air );
+		WeatherSounds.update( dt );
 
 		acc += dt * RATE * (0.3f + Weather.intensity);
 		int made = 0;

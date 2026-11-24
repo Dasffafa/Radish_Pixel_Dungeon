@@ -901,6 +901,25 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 天气第七批：天气的声音
+
+本仓库的 `assets/sounds` 里其实早就有整套天气环境音（rain / rain_light / rain_heavy / rain_water / rain_leaves /
+rain_roof / snow / hail / sleet / blizzard / gale / gust / thunder_far / thunder_near / sandstorm），只是
+`AmbientSound` 枚举里没有登记它们。这批：
+
+- **`AmbientSound` 补 15 个条目**（名字、段数、时长、增益照 Warped 的值），文件本来就在
+- **`levels/ambience/WeatherSounds`**（本仓库简化版，Warped 的 `WeatherScape` 703 行按地表/屋顶/树叶分声道、还按雷的距离算延迟）：
+  - 有天气时每隔"一段声音长度 × 0.6~1.1"播一段，按降水类型挑（雨有四种音色随机、暴雪在 blizzard/gale 之间、雪/冰霰/雨夹雪各自一条）
+  - 音量随天气强度 0.5~1.0 倍，音高/声像带随机
+  - 雷暴闪光时补一记雷（35% 近雷、否则远雷）
+- 接在 `WeatherOverlay.update` 每帧，换场景时 `reset`
+
+**实测**：临时场景 `Z_WeatherSound`（跑完即删）拉起暴雪 10 秒，PASS 5/5
+（`beds=1 thunders=2 flashes=2 last=GALE`，**血量 20→20、buff 3→3**）。
+
+**没搬的**：`GameCalendar`/`DayNightCycle`（昼夜循环）、`WeatherScape` 的分声道天气声景、天空/云层绘制
+（`SkyPaint`/`CloudSea`/`CloudShadows` 这一套和 Warped 的 overworld 天空绑死）。天气对玩家的所有效果也都没有。
+
 ## 天气第六批：雨天的地雾
 
 下雨/下雪时，地面会慢慢升起很淡的一缕缕雾（`FxFrames.Light.GLOW_31`，透明度 0.10~0.16、随风轻轻漂、4~7 秒消散），
