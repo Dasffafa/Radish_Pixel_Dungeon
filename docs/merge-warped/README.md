@@ -1699,3 +1699,15 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_NightUndead`，跑完即删）：对骷髅，白天 100.0，夜晚 125.0。
 编译通过、`Smoke` 9/9、`F1` 3/3。
+
+## 时间系统第四阶段：季节进温度（ClimateManager 精简版）
+
+- 新增 `actors/ClimateManager`：`seasonalOffset(season)` —— 夏 +6、冬 −8、春 +1、秋 0（℃）；
+  `badWeatherChance(season)` —— 季节对恶劣天气概率的倍率
+- `Thermal.ambient()` 在深度基线上叠加季节偏移
+- `GameCalendar.debugSeason` 供测试强制季节
+
+**实测**（`Z_SeasonClimate`，跑完即删）：同一层，夏天气温 16.2℃，冬天 2.2℃（差 14℃）。
+编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**未接**：`badWeatherChance` 还没接进 `Weather.rollForLevel()`；气候水晶与季节事件没搬。

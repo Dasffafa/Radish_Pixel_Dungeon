@@ -321,7 +321,11 @@ public class GameCalendar {
 		return turnDateComponents()[0];
 	}
 
+	/** 调试：强制季节（null = 按日期算） */
+	public static Season debugSeason = null;
+
 	public static Season season() {
+		if (debugSeason != null) return debugSeason;
 		if (false) return realSeason();
 		return Season.values()[turnDateComponents()[1]];
 	}

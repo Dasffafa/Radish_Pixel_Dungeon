@@ -93,6 +93,8 @@ public final class Thermal {
 
 		int idx = Dungeon.depth <= 0 ? 0 : Math.min( DEPTH_AIR.length - 1, Dungeon.depth - 1 );
 		float t = DEPTH_AIR[idx];
+		//the season's share of the climate
+		t += ClimateManager.seasonalOffset();
 		switch (Weather.precip){
 			case RAIN:     t -= 3f; break;
 			case SLEET:    t -= 5f; break;
