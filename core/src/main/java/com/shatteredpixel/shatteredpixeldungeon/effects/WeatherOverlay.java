@@ -73,6 +73,11 @@ public final class WeatherOverlay {
 
 	private WeatherOverlay(){}
 
+	/** How far a bolt from the sky leans with the wind, px (left when the wind blows left). */
+	public static float skyLean(){
+		return Weather.windX * 30f;
+	}
+
 	/** A new scene: the old one's weather went with it. */
 	public static void sceneCreated(){
 		acc = 0f;

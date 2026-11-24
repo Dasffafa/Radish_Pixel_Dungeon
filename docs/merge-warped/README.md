@@ -901,6 +901,24 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 场景氛围第一批：天上一道雷（ThunderBolt）
+
+Warped 的 `effects/ThunderBolt` 是"从天而降砸在某个人身上的一道雷"（它用两条带分叉的 Arc、三声声音与火花拼出来，
+接在 ShockingBrew / 雷霆药水上）。本仓库的 `Lightning` 自己从两点长出分叉，所以这里是：
+
+- `ThunderBolt.thunderEffect(CharSprite)`：从视野顶端（随风倾斜，`WeatherOverlay.skyLean()`）往目标砸一道
+  **major 闪电**，播一声 `Assets.Sounds.LIGHTNING`
+- 接线：法杖 `WandOfLightning` 每次 zap，对**英雄看得见的每个目标**补这一道天雷（火花与闪光原本就有，不重复）
+- 只是画面与声音：伤害仍是法杖自己的，天雷不加一点伤害
+
+**实测**：临时场景 `Z_ThunderBolt`（跑完即删）用闪电法杖打老鼠，PASS 4/4（`bolts=1`、老鼠 8→1、
+**英雄 HP 20→20**）；截图里能看到从天而降的白色分叉电弧落在老鼠身上。
+
+**这批其余四件（CaveGlow/StarStreak/FestivalDecor/WobblyBanner）的情况**：它们都是 overworld/城镇专用——
+CaveGlow 要 `MUSHROOM_PATCH/MINE_CRYSTAL/GEM` 这些本仓库没有的地形，StarStreak 是夜空的流星（地牢没有天空），
+FestivalDecor 绑在 overworld 的节日事件上，WobblyBanner 是个通用`Group`但地牢里没有可挂的旗帜内容。
+所以没有硬搬，等确认后再选地牢里用得上的替代品（沼泽雾、冰缘、水面浪花等）。
+
 ## 天气第十五批：水面会冻结（视觉 + 行为，不改变地形）
 
 Warped 的做法是把格子本身换成 `Terrain.FROZEN_WATER`（水⇄冰，冰可行走、有自己的贴图）。
