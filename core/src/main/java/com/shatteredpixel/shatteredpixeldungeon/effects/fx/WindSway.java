@@ -188,11 +188,17 @@ public final class WindSway {
 			rustles++;
 		}
 
-		//the same sparkle the teleport scroll uses (a plain Speck burst at the cell):
-		//that one is known to draw on this repo's scene
+		//the same sparkle the teleport scroll uses (a plain Speck burst at a cell): that one is
+		//known to draw on this repo's scene. Mostly at the cell just LEFT - the hero no longer
+		//stands over it, so the grass he pushed through is what the eye catches
 		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( to ).burst(
 				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 5 );
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 4 );
+		if (grassVisible( from )){
+			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( from ).burst(
+					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 8 );
+		}
 		if (Dungeon.hero != null && Dungeon.hero.sprite != null){
 			Dungeon.hero.sprite.centerEmitter().burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.particles.GrassParticle.FACTORY, 8 );
