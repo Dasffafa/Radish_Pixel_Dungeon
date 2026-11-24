@@ -1454,3 +1454,12 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 但**不再与 blow 状态机交互**——那是目前最可能把回合挂住的地方。
 
 若仍卡，下一步只能靠实机 `adb logcat`。
+
+## 负责修正：删掉踩草与走路的特效
+
+实机反馈：“踩草和走路特效好丑”。已整体移除：
+
+- `FxModules.stepped` 不再调 `WindSway.rustle(...)`：**走路不再有闪光、绿色草屑、草叶被压弯**
+- `WindSway` 里的 `rustle`/`placeAt` 与 `puffs`/`rustles` 计数一并删除（不留死代码）
+
+保留：风里的草叶（环境氛围，不是走路触发）、水面涟漪、怪物脚印。

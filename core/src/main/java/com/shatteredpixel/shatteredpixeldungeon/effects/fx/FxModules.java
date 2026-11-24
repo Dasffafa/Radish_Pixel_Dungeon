@@ -38,7 +38,6 @@ public final class FxModules {
 		if (s.ch == null) return;
 		WaterWalk.stepped( s, from, to );
 		RoamerTracks.stepped( s.ch, from, to );
-		WindSway.rustle( from, to );
 	}
 
 	public static void jumped( CharSprite s ){
