@@ -651,3 +651,33 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Gas`（跑完即删）在真实引擎里放一团毒气 + 一片冰冻，跑 90 帧，PASS 4/4：
 `GasFactory.emitted>0`、`FrostFactory.emitted>0`、毒气 blob 仍在、英雄没死；截图里毒气是 Warped 的深绿气团、
 冰冻区是白霜团 + 冰晶。`Smoke` 9/9 同时过。
+
+## 自然与圣光（nature / holy 区第一批，已并入 feat/fx-modules）
+
+**搬进来的（`effects/fx/nature/`）**
+
+| 文件 | 作用 |
+|---|---|
+| `BlobFx` | 自然类 blob 的粒子工厂：`growth()`（再生/生长：绿叶、水珠、湿润闪光）、`FOLIAGE`（枝叶间的光柱与绒絮）、`WELL`（治疗水井：上升光点、光柱、十字、水滴）、`SUN`（日光）、`GLOW`、`HALLOWED`、`PORTAL` |
+| `Nature` | 配色常量（HOLY/HEAL/SPELL/POLLEN/…）、叶子色阶、昼夜判断、`glow()/air()` 发射器选择 |
+| `HealFx` | 回血与护盾的表现（水井喝下去、治疗、护盾） |
+| `LitFrame` / `EllipseMote` / `Sprout` / `TileCrop` | light 层光片基类、绕椭圆跑的粒子、嫩芽、贴地裁剪 |
+
+**接线**
+- `Regrowth.use` → `BlobFx.growth( false )`，`Foliage.use` → `BlobFx.FOLIAGE`，`WaterOfHealth.use` → `BlobFx.WELL`
+- `WaterOfHealth` 回血那一刻调 `HealFx.drink( hero, hero.pos )`
+
+**为了编译做的适配（本仓库粒子还是老版）**
+- 上游的 `ShaftParticle`/`LeafParticle` 已重写成 FxParticle 体系并绑天气图集；这里用本仓库的老粒子，
+  所以 `ShaftParticle.allowed/shaft/ambientRoom` 换成 `FxBudget.keep` + `ShaftParticle.FACTORY.emit`，
+  `LeafParticle.allowed/leaf` 换成设 `color1/color2` 后 `reset`
+- 没有 `LightParticle`，改用 `ShaftParticle.FACTORY` 顶
+- 光墙（`WallOfLight.LightWall` + `WallSheet`）整段删：`hero.spells` 是 4.x 的东西
+- 季节（`GameCalendar`）→ `Nature.autumn()` 恒 false
+
+**没搬的**
+- `GrowthPulse` / `Ticker`（地形变化时的生长脉冲）：要每帧 ticker 与 `terrainChanged` 接线，留到下一批
+- `HolyFx`（4.x 英雄技能的圣光/光环/星芒）、`NatureScenes`（调试画廊）、`SeasonSweep`（季节）
+
+**实测**：临时场景 `Z_Nature`（跑完即删）放一片再生 + 一片枝叶跑 80 帧，再放一次水井回血，PASS 3/3：
+`BlobFx.grown>0`、`BlobFx.foliageTicks>0`、英雄没死；截图里生长区有绿叶、枝叶区有白色光柱与绒絮。`Smoke` 9/9 同时过。

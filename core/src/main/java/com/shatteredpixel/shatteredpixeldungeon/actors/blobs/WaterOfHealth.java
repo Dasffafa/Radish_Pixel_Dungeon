@@ -32,6 +32,8 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.nature.BlobFx;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.nature.HealFx;
 import com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Speck;
@@ -113,6 +115,7 @@ public class WaterOfHealth extends WellWater {
 		}
 
 		CellEmitter.get( hero.pos ).start( ShaftParticle.FACTORY, 0.2f, 3 );
+		HealFx.drink( hero, hero.pos );
 
 		Dungeon.hero.interrupt();
 
@@ -177,7 +180,7 @@ public class WaterOfHealth extends WellWater {
 	@Override
 	public void use( BlobEmitter emitter ) {
 		super.use( emitter );
-		emitter.start( Speck.factory( Speck.HEALING ), 0.5f, 0 );
+		emitter.start( BlobFx.WELL, BlobFx.WELL_EVERY, 0 );
 	}
 
 	@Override
