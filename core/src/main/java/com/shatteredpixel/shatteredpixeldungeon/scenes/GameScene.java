@@ -385,7 +385,6 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.sceneCreated();
 
 		lightFx = new Group();
-		add( lightFx );
 
 		// Warped fx 框架：场景建立 + 水系统
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.sceneCreated();
@@ -416,6 +415,8 @@ public class GameScene extends PixelScene {
 
 		fog = new FogOfWar( Dungeon.level.width(), Dungeon.level.height() );
 		add( fog );
+		//光效层要画在夜色遮罩与战雾之上：否则火花之类的发光粒子全被盖掉
+		add( lightFx );
 
 		spells = new Group();
 		add( spells );

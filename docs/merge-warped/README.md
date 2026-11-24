@@ -1352,3 +1352,21 @@ procs ember=1 storm=2  runs=2  earlyOut=0
 
 **物品光晕（`ItemAura`）暂缓**：它强依赖 Warped 的 `items/rarity`（`Quality.of`、`RarityLine.WARM_GRIP/COOLING/RAINPROOF`
 等）与 ~20 个本仓库没有的附魔/符文类，直接搬会变成一堆桩；先把现有的自定义光晕保留，等品质系统真正引入后再接。
+
+## 附魔外观体系第五批：画面终于出来了（光效层顺序）
+
+根因找到了：`GameScene.create` 里 `lightFx` 组是在 **`dayNightOverlay` 与 `FogOfWar` 之前** `add`
+进场景的，于是所有“发光类”粒子（火花、闪电等走 `Fx.glowAir()` → `lightFx` 的）都被夜色遮罩与战雾
+**盖在下面**，再亮也看不见。
+
+修正：`lightFx` 改为在 `fog` 之后 `add`（光效画在遮罩与雾之上）。
+
+**实测**（`Z_EnchantArt`，跑完即删）：
+
+- Blazing：老鼠身上出现橙色火星与焦痕（截图 `01-ember.png`）
+- Shocking：老鼠身上出现白色闪电爆裂（截图 `03-storm.png`）
+
+全量回归：**58 通过**，仍只有 `A0_KnockbackControl`、`A4_BlastWaveHeroIntoChasm` 两个基线失败（本次
+`Extra_ActivatedPrototypeAsleep` 耐性通过）。
+
+下一批：物品光晕仍暂缓（需品质系统）；可以先把“每次命中都叫拍子”收窄到“真正 proc 才叫”。
