@@ -66,6 +66,25 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 
 	/** Warped fx 框架给每个精灵留的槽位（本仓库只用了水那一格） */
 	public Object[] fxSlots = new Object[ com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.COUNT ];
+	/** The look of the enchantment on the blow that just landed (enchant framework; null for none). */
+	public com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantLook blowLook;
+	/** When that blow's stamp ends, s. */
+	public float blowUntil;
+
+	/** The enchant framework's tinted flash after a blow (Warped's CharSprite.afterglow). */
+	public void afterglow( int color, float seconds ){
+		if (seconds <= 0f) return;
+		tint( color, seconds );
+	}
+
+	/** The enchant framework's small push (Warped's CharSprite.nudge): a shove of `px` along a
+	 *  direction, over `seconds`. */
+	public void nudge( int dx, int dy, float seconds ){
+		if (seconds <= 0f || (dx == 0 && dy == 0)) return;
+		move( ch != null ? ch.pos : 0, ch != null ? ch.pos : 0 );
+		x += dx;
+		y += dy;
+	}
 
 	/** 是否"漂浮"（船/水面载具）。本仓库没有载具系统，恒为 false。 */
 	public boolean afloat(){ return false; }

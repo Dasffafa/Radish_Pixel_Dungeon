@@ -14,8 +14,10 @@ public final class FxModules {
 	private FxModules(){}
 
 	/** 只注册"水"一个模块 */
-	public static final int COUNT = 1;
+	public static final int COUNT = 2;
 	public static final int WATER_LIFE = 0;
+	/** The enchant framework's per-sprite state slot (EnchantState). */
+	public static final int ENCHANT = 1;
 	public static final int KIT = COUNT;
 
 	/** The game's scene stands, every layer made. */

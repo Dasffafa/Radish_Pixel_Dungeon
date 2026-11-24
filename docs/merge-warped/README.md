@@ -1303,3 +1303,25 @@ Warped 的 `effects/fx/enchant`（43 个文件）与本仓库**已有**的自定
 
 下一批：带着桩过度（`Sting` 空实现、`EnchantNet` 断开、`Quality.vestigeOf` 返回 null）
 把 `EnchantFx` + `EnchantState` + 精简 `EnchantLooks` 弄编译，再接 `BlowPresenter`。
+
+## 附魔外观体系第二批：核心编排器编译通过
+
+本批把骨架合上了，`warped` 包现在包含：
+
+- `EnchantFx`（1603 行，核心编排器）、`EnchantState`（249 行）、`EnchantLooks`（**精简版**）
+- 15 个家族特效：`EmberFx`、`RimeFx`、`StormFx`、`VenomFx`、`VerdantFx`、`DreadFx`、`ReaperFx`、`CutFx`、`ForceFx`、`WardFx`、`RadianceFx`、`FortuneFx`、`MirageFx`、`HeartFx`
+- `MotifFx`、`HexOverlay`
+
+**桩与防**（都是本仓库没有的 Warped 系统，看不到效果但不报错）：
+
+- `EnchantNet`（联机，全空实现）、`Sting`（附魔音效，全空实现，但保留音量公式）
+- `DrainFx`（吸血治疗的血珠，空实现）
+- `items.rarity.Quality`（品质系统，`vestigeOf` 返回 null）
+- `CharSprite` 补了 `blowLook`/`blowUntil`/`afterglow()`/`nudge()`（对应 Warped 的字段与方法）
+- `FxModules` 加了 `ENCHANT` 槽位（`COUNT = 2`）
+
+`EnchantLooks` 是**手写的精简表**：只收本仓库有的附魔——武器附魔 13 条（Blazing/Chilling/Shocking/Corrupting/Grim/
+Kinetic/Elastic/Blooming/Lucky/Vampiric/Blocking/Meteor/Seeking）、符文 5 条、武器诅咒 5 条。
+Warped 原表 78 行，多数对应的是它自己的附魔集合；未收录的附魔按“没有外观”处理，行为与之前一致。
+
+下一批：把 `BlowPresenter` / `Weapon.proc` 接到这套上（先接“附魔参与打击演示”），再做物品光晕。
