@@ -160,6 +160,8 @@ public final class Quality {
 	public static void noteKill( Item item ){
 		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
 			((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon)item).masterworkKills++;
+		} else if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor){
+			((com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor)item).masterworkKills++;
 		}
 	}
 
@@ -167,6 +169,9 @@ public final class Quality {
 	public static int masterworkKills( Item item ){
 		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
 			return ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon)item).masterworkKills;
+		}
+		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor){
+			return ((com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor)item).masterworkKills;
 		}
 		return 0;
 	}

@@ -107,6 +107,8 @@ public class Armor extends EquipableItem {
 	public Augment augment = Augment.NONE;
 
 	public Glyph glyph;
+	/** Masterwork: kills made in this armour, saved with it (a level every five). */
+	public int masterworkKills = 0;
 
 	/** 持甲者上下文，供刻印在承伤结算时读取。 */
 	public Char wearer;
@@ -139,6 +141,7 @@ public class Armor extends EquipableItem {
 	@Override
 	public void storeInBundle( Bundle bundle ) {
 		super.storeInBundle( bundle );
+		bundle.put( "masterwork", masterworkKills );
 		bundle.put( USES_LEFT_TO_ID, usesLeftToID );
 		bundle.put( AVAILABLE_USES, availableUsesToID );
 		bundle.put( GLYPH, glyph );
@@ -159,6 +162,7 @@ public class Armor extends EquipableItem {
 	@Override
 	public void restoreFromBundle( Bundle bundle ) {
 		super.restoreFromBundle(bundle);
+		masterworkKills = bundle.getInt( "masterwork" );
 		usesLeftToID = bundle.getInt( USES_LEFT_TO_ID );
 		availableUsesToID = bundle.getInt( AVAILABLE_USES );
 		inscribe((Glyph) bundle.get(GLYPH));

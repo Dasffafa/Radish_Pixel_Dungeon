@@ -1873,3 +1873,14 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 `restoreFromBundle` → `kills before=7 after reload=7 level=1`。编译通过、`Smoke` 9/9、`F1` 3/3。
 
 **限制**：目前只对**武器**计数（护甲尚未实现杰作）；升级仍不需要“杰作核心”道具。
+
+## 护甲的杰作
+
+- `Armor.masterworkKills` 与 `"masterwork"` 存档字段（同武器一样的 `storeInBundle`/`restoreFromBundle`）
+- `Quality.noteKill`/`masterworkKills` 同时处理武器与护甲
+
+**实测**（`Z_ArmorMasterwork`，跑完即删）：11 次杀敌 → 存档往返 →
+`armour kills before=11 after=11 level=2 potency=0.065`。编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**限制**：护甲的 potency 目前只体现在窗口文字与 `potencyOf` 计算上，
+**尚未接入实际防御值**（`Hero.drRoll` 里护甲 DR 的计算路径瑌在子类，需单独接）。
