@@ -467,15 +467,20 @@ public final class H {
 
 	/** 开新局，第 1 层是正常生成的下水道。 */
 	public void newGame( HeroClass heroClass, String seed ) {
-		startGame( heroClass, seed, false );
+		startGame( heroClass, seed, false, 0 );
+	}
+
+	/** 开新局并指定挑战位掩码（Challenges 里的位）。 */
+	public void newGame( HeroClass heroClass, String seed, int challenges ) {
+		startGame( heroClass, seed, false, challenges );
 	}
 
 	/** 开新局，第 1 层直接是测试场（TestArenaLevel：21x21 空房间，四周是墙，入口在正中）。 */
 	public void newGameInArena( HeroClass heroClass, String seed ) {
-		startGame( heroClass, seed, true );
+		startGame( heroClass, seed, true, 0 );
 	}
 
-	private void startGame( HeroClass heroClass, String seed, boolean arena ) {
+	private void startGame( HeroClass heroClass, String seed, boolean arena, int challenges ) {
 		if (gameStarted) throw new HarnessError( "newGame may only be called once per scenario (one game process per scenario)" );
 		gameStarted = true;
 		Log.step( "new game: class=" + heroClass + " seed=" + seed + (arena ? " level=TestArenaLevel" : " level=regular depth 1") );
@@ -491,7 +496,7 @@ public final class H {
 				}
 			}
 			SPDSettings.customSeed( seed == null ? "" : seed );
-			SPDSettings.challenges( 0 );
+			SPDSettings.challenges( challenges );
 			GamesInProgress.selectedClass = heroClass;
 			GamesInProgress.curSlot = 1;
 			Dungeon.hero = null;
