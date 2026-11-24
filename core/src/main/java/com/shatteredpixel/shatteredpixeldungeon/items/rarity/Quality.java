@@ -32,7 +32,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Spear;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.Sword;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The gear quality, Warped's cut down to what this repo has: an item's rarity and the family of
@@ -57,9 +59,44 @@ public final class Quality {
 		this.family = family;
 	}
 
-	/** The quality of an item: COMMON for anything not gear (this repo does not roll rarities). */
+	//one rolled quality per item instance: the same gear always reads the same
+	private static final Map<Item, Quality> ROLLED = new IdentityHashMap<>();
+
+	/** The quality of an item: gear rolls a rarity once and keeps it; anything else is COMMON. */
 	public static Quality of( Item item ){
-		return new Quality( item, Rarity.COMMON, familyOf( item ) );
+		if (item == null) return new Quality( null, Rarity.COMMON, Family.OTHER );
+		if (!(item instanceof Weapon) && !(item instanceof Armor)){
+			return new Quality( item, Rarity.COMMON, Family.OTHER );
+		}
+		Quality q = ROLLED.get( item );
+		if (q == null){
+			//seeded by the instance's own identity, so an item does not change its rarity as it is
+			//looked at; deeper gear rolls better tiers
+			java.util.Random seeded = new java.util.Random(
+					((long)System.identityHashCode( item ) << 7) ^ item.getClass().getName().hashCode() );
+			int depth = com.shatteredpixel.shatteredpixeldungeon.Dungeon.depth;
+			Rarity r = rollWith( seeded, Math.max( 1, depth ) );
+			q = new Quality( item, r, familyOf( item ) );
+			ROLLED.put( item, q );
+		}
+		return q;
+	}
+
+	/** Rarity.roll(depth), with a seeded source so it is stable per item. */
+	private static Rarity rollWith( java.util.Random rnd, int depth ){
+		//weights as Rarity's own shallow/deep tables, by depth
+		float total = 0f;
+		float[] w = new float[Rarity.values().length];
+		for (Rarity r : Rarity.values()){
+			w[r.ordinal()] = r.weight( depth );
+			total += w[r.ordinal()];
+		}
+		float pick = rnd.nextFloat() * total;
+		for (Rarity r : Rarity.values()){
+			pick -= w[r.ordinal()];
+			if (pick <= 0f) return r;
+		}
+		return Rarity.COMMON;
 	}
 
 	public static Family familyOf( Item item ){
