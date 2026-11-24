@@ -26,45 +26,52 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxBudget;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter;
-import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxRandom;
+import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Game;
 
 /**
- * How warm it is, and how warm the hero is - **without any harm**.
+ * How warm it is, and how warm the hero feels - **without any harm**.
  *
- * Warped's ClimateManager works out an air temperature from season, biome, depth, weather and wind;
- * the hero's body temperature drifts toward it; and below -5 or above 30 he takes frost/heat damage
- * through Hypothermia and Heatstroke (slowed, chilled, burnt). This is the first half only: the air,
- * the drift, and what it looks like (breath in the cold, a shimmer of heat when it is too warm).
- * **Nothing here touches HP, buffs, speed or anything else of the game's** - no Hypothermia, no
- * Heatstroke, no damage. Temperature is climate, not a hazard.
+ * Warped's ClimateManager works out an air temperature from season, biome, depth, weather and wind
+ * (a "feels like" figure), and below -5 °C or above 30 °C the hero takes frost/heat damage through
+ * Hypothermia and Heatstroke (slowed, chilled, burnt). This is the climate only: the air, a body
+ * temperature that follows it, and what it looks like.
  *
- * The numbers are Warped's thresholds where they had one: cold from 0 °C, freezing under -5 °C,
- * hot over 30 °C; the drift is slower here (clothes and a dungeon's still air), and the air itself
- * is a simple read of depth and weather rather than a simulation of fronts and seasons.
+ * **Nothing here touches HP, buffs, speed or anything else of the game's** - there is no
+ * Hypothermia, no Heatstroke, no damage. Temperature is climate, not a hazard: the worst a blizzard
+ * does is make the hero breathe vapour and shiver.
+ *
+ * The state is read off the air (Warped's thresholds: 0 / -5 / 30 °C); the body temperature is a
+ * smoothed copy of it, used for the pictures and never sharp enough to hurt.
  */
 public final class Thermal {
 
-	/** The dungeon's still air by depth (0-based index is depth 1). */
+	/** The dungeon's still air by depth (index is depth - 1). */
 	private static final float[] DEPTH_AIR = { 13f, 12f, 11f, 10f, 9f, 8f, 8f, 9f, 10f, 12f };
-	/** What each kind of weather does to it, and what a wind does per unit of it. */
-	private static final float WIND_CHILL = 9f;
+	/** Wind chill per unit of (sideways) wind, and what a nearby heat adds, °C. */
+	private static final float WIND_CHILL = 9f, HEAT_EMBERS = 8f, HEAT_FIRE = 15f;
 
-	/** Where the hero is comfortable, and where he is in real trouble (Warped's thresholds). */
+	/** Warped's thresholds, °C of air. */
 	public static final float COLD = 0f, FREEZING = -5f, HOT = 30f;
-	/** His own body's normal heat, and how fast it follows the air (degrees a second, at most). */
+	/** The hero's own warmth at rest, and how fast his body follows the air, °C a second. */
 	public static final float WARM = 36.5f, DRIFT = 0.06f;
+
+	/** The air shown instead of the real one (the self-tests). */
+	public static float debugAir = Float.NaN;
 
 	/** The hero's own warmth now, °C. */
 	private static float body = WARM;
-	/** puffs made by the cold breath (tests) */
-	public static int breaths;
+	/** What this frame's air and state are. */
+	private static float air = 13f, state;
+
 	/** Acceptance counters. */
-	public static int updates;
+	public static int updates, announcements, breaths, tint;
 
 	private static float breathIn;
 
@@ -74,10 +81,14 @@ public final class Thermal {
 	public static void reset(){
 		body = WARM;
 		breathIn = 0f;
+		tint = 0;
+		debugAir = Float.NaN;
 	}
 
-	/** The air about the hero, °C: depth, weather and wind, nothing else. */
+	/** The air about the hero, °C: depth, weather, wind and whatever is burning nearby. */
 	public static float ambient(){
+		if (!Float.isNaN( debugAir )) return debugAir;
+
 		int idx = Dungeon.depth <= 0 ? 0 : Math.min( DEPTH_AIR.length - 1, Dungeon.depth - 1 );
 		float t = DEPTH_AIR[idx];
 		switch (Weather.precip){
@@ -89,50 +100,49 @@ public final class Thermal {
 			default: break;
 		}
 		t -= Math.abs( Weather.windX ) * WIND_CHILL;
+		t += heat();
 		return t;
 	}
 
-	/** Sets the hero's warmth outright: the self-tests use it (a body does not cool by 30 degrees a frame). */
-	public static void debugBody( float t ){
-		body = t;
-	}
-
-	/**
-	 * How much something near is warming him (0..1): embers and a fire beside him. Warmth is a
-	 * comfort only - it never sets anything alight and never costs health either way.
-	 */
-	public static float warmth(){
+	/** What embers underfoot and a fire or lava beside add to the air, °C. */
+	public static float heat(){
 		if (Dungeon.hero == null || Dungeon.level == null) return 0f;
-		float w = 0f;
-		int pos = Dungeon.hero.pos;
-		int wdt = Dungeon.level.width();
-		if (Dungeon.level.map[pos] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMBERS) w = 0.7f;
+		float h = 0f;
+		int pos = Dungeon.hero.pos, wdt = Dungeon.level.width();
+		if (Dungeon.level.map[pos] == Terrain.EMBERS) h = HEAT_EMBERS;
 		for (int dy = -1; dy <= 1; dy++){
 			for (int dx = -1; dx <= 1; dx++){
 				int cx = pos % wdt + dx, cy = pos / wdt + dy;
 				if (cx < 0 || cy < 0 || cx >= wdt || cy >= Dungeon.level.height()) continue;
 				int cell = cy * wdt + cx;
-				if (Dungeon.level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMBERS) w = Math.max( w, 0.7f );
+				if (Dungeon.level.map[cell] == Terrain.EMBERS) h = Math.max( h, HEAT_EMBERS );
 				for (Blob b : Dungeon.level.blobs.values()){
 					if (b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire
-							&& b.volume > 0 && b.cur != null && b.cur[cell] > 0) w = Math.max( w, 1f );
+							&& b.volume > 0 && b.cur != null && b.cur[cell] > 0) h = Math.max( h, HEAT_FIRE );
 				}
 			}
 		}
-		return w;
+		return h;
 	}
 
-	/** The hero's body temperature now, °C. */
+	/** The hero's body temperature now, °C (a smoothed copy of the air). */
 	public static float body(){
 		return body;
 	}
 
-	/** COLD, FREEZING, HOT or 0 when comfortable. */
+	/** The air about him now, °C. */
+	public static float air(){
+		return air;
+	}
+
+	/** The hero's comfort: COLD, FREEZING or HOT, or NaN when it is neither too cold nor too warm. */
 	public static float stress(){
-		if (body >= HOT) return HOT;
-		if (body <= FREEZING) return FREEZING;
-		if (body <= COLD) return COLD;
-		return 0f;
+		return state;
+	}
+
+	/** Sets the hero's warmth outright: the self-tests use it. */
+	public static void debugBody( float t ){
+		body = t;
 	}
 
 	/** Every frame: the body follows the air, and the cold or the heat shows. */
@@ -140,17 +150,13 @@ public final class Thermal {
 		if (dt <= 0f || Dungeon.hero == null || Dungeon.level == null) return;
 		updates++;
 
-		float air = ambient();
-		//a fire beside him warms him back toward his own heat; it is a comfort, never a burn
-		float warm = warmth();
-		float target = warm > 0f ? air + (WARM - air) * Math.min( 1f, warm ) : air;
-		//soaked through (standing in water, or out in the rain) he loses and gains heat faster
-		boolean wet = Dungeon.level.water[Dungeon.hero.pos]
-				|| (Weather.precip == PrecipType.RAIN || Weather.precip == PrecipType.SLEET
-					|| Weather.precip == PrecipType.BLIZZARD);
-		float step = DRIFT * (wet ? 1.6f : 1f) * dt;
-		if (body > target) body = Math.max( target, body - step );
-		else if (body < target) body = Math.min( target, body + step );
+		air = ambient();
+		//his own body follows the air slowly, and never changes faster than the drift
+		float step = DRIFT * dt;
+		if (body > air) body = Math.max( air, body - step );
+		else if (body < air) body = Math.min( air, body + step );
+
+		state = air <= FREEZING ? FREEZING : air <= COLD ? COLD : air >= HOT ? HOT : Float.NaN;
 
 		if (!(Game.scene() instanceof GameScene)) return;
 		CharSprite s = Dungeon.hero.sprite;
@@ -158,11 +164,11 @@ public final class Thermal {
 
 		//cold breath: a little white puff from the mouth now and then
 		breathIn -= dt;
-		if (body <= 12f && breathIn <= 0f){
+		if (air <= 5f && breathIn <= 0f){
 			breathIn = 1.1f + FxRandom.Float( 0.8f );
-			FxEmitter air2 = Fx.air();
-			if (air2 != null){
-				FxParticle p = (FxParticle) air2.recycle( FxParticle.class );
+			FxEmitter e = Fx.air();
+			if (e != null){
+				FxParticle p = (FxParticle) e.recycle( FxParticle.class );
 				if (p != null){
 					p.reset( s.x + s.width() / 2f + (s.flipHorizontal ? -3f : 3f), s.y + s.height() * 0.35f )
 							.look( FxRandom.chance( 0.5f ) ? FxFrames.MOTE_2 : FxFrames.MOTE_1 )
@@ -176,10 +182,10 @@ public final class Thermal {
 		}
 
 		//too warm: a shimmer of heat off the hero
-		if (body >= 30f && FxRandom.chance( dt * 2f )){
-			FxEmitter air2 = Fx.air();
-			if (air2 != null){
-				FxParticle p = (FxParticle) air2.recycle( FxParticle.class );
+		if (air >= 25f && FxRandom.chance( dt * 2f )){
+			FxEmitter e = Fx.air();
+			if (e != null){
+				FxParticle p = (FxParticle) e.recycle( FxParticle.class );
 				if (p != null){
 					p.reset( s.x + FxRandom.Float( s.width() ), s.y + s.height() * 0.6f )
 							.look( FxFrames.MOTE_1 ).paint( 0xFFD9A0 )
@@ -188,5 +194,26 @@ public final class Thermal {
 				}
 			}
 		}
+
+		//the body's state on the hero himself: a cold blue, a warm flush, and a word when it turns
+		show( s );
+	}
+
+	/** The hero's own colour and the log's word: blue when freezing, flush when too warm, plain between. */
+	private static void show( CharSprite s ){
+		boolean cold = state == COLD || state == FREEZING;
+		boolean hot = state == HOT;
+		int want = cold ? -1 : hot ? 1 : 0;
+		if (want == tint) return;
+		if (s.tintFree( null )){
+			if (want == 0) s.resetColor();
+			else if (want < 0) s.hardlight( 0xC8DDFF );
+			else s.hardlight( 0xFFD2B0 );
+		}
+		if (want == 0 && tint != 0) GLog.p( "You feel comfortable again" );
+		else if (want < 0) GLog.w( state == FREEZING ? "You are shivering with cold" : "You feel a little cold" );
+		else GLog.w( "You feel a little warm" );
+		announcements++;
+		tint = want;
 	}
 }
