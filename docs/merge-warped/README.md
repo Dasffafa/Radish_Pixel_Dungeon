@@ -901,6 +901,15 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 天气第十四批：火的烟柱
+
+Warped 用 `ChimneySmokeParticle`（依赖它的营火 blob 与天气图集）做一条直上的烟。这里用本仓库等价的实现：
+`FireField.smoke()` 每 0.9 秒有 55% 概率从**燃烧区域顶端**放一蓬烟（`SmokeParticle.puff`，3.2~4.8 秒寿命、
+向上 18~32 px/s、带风的横向漂移），比火堆上原本那层贴近火焰的烟**升得更高**，读起来就是烟柱。
+
+**实测**：临时场景 `Z_CampSmoke`（跑完即删）在英雄两格外点火，PASS 2/2（`smoke puffs=1`）；
+截图里火堆上方能看到烟。回归：`Smoke` 9/9、`F1` 3/3。
+
 ## 天气第十三批：火的热浪（HeatRay 终于有得看）
 
 之前 `FireStyle.shimmers()` 只给 `INFERNO`/`FORGE`（Warped 里"普通火不闪"），所以营火上方没有热浪。

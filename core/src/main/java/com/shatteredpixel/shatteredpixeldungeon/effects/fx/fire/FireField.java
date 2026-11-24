@@ -25,7 +25,10 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Weather;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxBudget;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxParticle;
 import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Freezing;
 import com.shatteredpixel.shatteredpixeldungeon.effects.BlobEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Element;
@@ -77,6 +80,8 @@ public class FireField extends Group {
 	public static final float WASH_EVERY = 1f;
 	/** A ray of shimmer from each of a group's sources every this many s. */
 	public static final float SHIMMER_EVERY = 0.3f;
+	/** How often a fire's column gives a puff, s. */
+	public static final float SMOKE_EVERY = 0.9f;
 	/** A cell gone out: its smoke, its embers and their life, its steam where frost put it out. */
 	public static final int OUT_WISPS = 2, OUT_EMBERS = 3, FROST_WISPS = 6;
 	public static final float OUT_EMBER_MIN = 1.5f, OUT_EMBER_MAX = 3f;
@@ -122,6 +127,9 @@ public class FireField extends Group {
 	private final int[] groupKey = new int[GROUPS], groupN = new int[GROUPS], groupSlot = new int[GROUPS];
 	private final int[] groupX0 = new int[GROUPS], groupY0 = new int[GROUPS], groupX1 = new int[GROUPS], groupY1 = new int[GROUPS];
 	private final float[] groupX = new float[GROUPS], groupY = new float[GROUPS];
+	/** Acceptance counter (Z_CampSmoke selftest): smoke puffs of a fire's column. */
+	public static int smoked;
+	private float smokeIn;
 	private int groups;
 	//the walk over joined cells: a mark a level cell (this scan's burning, walked), its queue
 	private int[] mark;
@@ -214,6 +222,10 @@ public class FireField extends Group {
 		if ((washIn -= dt) <= 0){
 			washIn = WASH_EVERY;
 			washes();
+		}
+		if ((smokeIn -= dt) <= 0){
+			smokeIn = SMOKE_EVERY;
+			smoke();
 		}
 	}
 
@@ -583,6 +595,26 @@ public class FireField extends Group {
 		t = groupX1[a]; groupX1[a] = groupX1[b]; groupX1[b] = t;
 		t = groupY0[a]; groupY0[a] = groupY0[b]; groupY0[b] = t;
 		t = groupY1[a]; groupY1[a] = groupY1[b]; groupY1[b] = t;
+	}
+
+	// ------------------------------------------------------------------ the column
+
+	/**
+	 * A fire's smoke column: a puff off the top of a burning group that climbs a good way up before
+	 * it thins out. Warped kept a whole particle (and a whole campfire blob) for this; here it is the
+	 * kit's own smoke, rising taller than the smoke that hangs over the flames.
+	 */
+	private void smoke(){
+		if (groups <= 0 || emitter == null || FxRandom.Float() >= 0.55f) return;
+		int g = FxRandom.Int( groups );
+		float x = (groupX0[g] + FxRandom.Float( groupX1[g] - groupX0[g] + 1 )) * DungeonTilemap.SIZE + 8f;
+		float y = groupY0[g] * DungeonTilemap.SIZE + 2f;
+		if (!FxBudget.keep( FxBudget.P2, x, y )) return;
+		FxParticle p = (FxParticle) emitter.recycle( com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle.class );
+		if (p == null) return;
+		com.shatteredpixel.shatteredpixeldungeon.effects.particles.SmokeParticle.puff(
+				p.reset( x, y ), Weather.windX * 18f, -18f - FxRandom.Float( 14f ), 3.2f + FxRandom.Float( 1.6f ) );
+		smoked++;
 	}
 
 	// ------------------------------------------------------------------ shimmer and washes
