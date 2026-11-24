@@ -22,6 +22,7 @@ public final class FxModules {
 	public static void sceneCreated( GameScene scene ){
 		WindSway.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.effects.WeatherOverlay.sceneCreated();
+		com.shatteredpixel.shatteredpixeldungeon.actors.Thermal.reset();
 		WaterFX.sceneCreated();
 	}
 
