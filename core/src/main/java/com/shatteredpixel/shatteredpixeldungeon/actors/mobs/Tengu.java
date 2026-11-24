@@ -206,9 +206,6 @@ public class Tengu extends Mob {
 		if (Dungeon.hero.subClass == HeroSubClasses.NONE) {
 			Dungeon.level.drop( new TengusMask(), pos ).sprite.drop();
 		}
-
-		//beating the second region's boss leaves a masterwork core
-		Dungeon.level.drop( new com.shatteredpixel.shatteredpixeldungeon.items.rarity.MasterworkCore().quantity( 1 ), pos ).sprite.drop();
 		
 		GameScene.bossSlain();
 		super.die( cause );

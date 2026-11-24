@@ -1141,6 +1141,20 @@ public abstract class Mob extends Char {
 			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.noteKill( hero.belongings.weapon );
 		}
 
+		//an elite (a champion) may leave a masterwork core
+		boolean elite = false;
+		for (com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff b : buffs()){
+			if (b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ChampionEnemy){
+				elite = true;
+				break;
+			}
+		}
+		if (elite && com.watabou.utils.Random.Float() < 0.25f){
+			com.shatteredpixel.shatteredpixeldungeon.items.Heap coreHeap = Dungeon.level.drop(
+					new com.shatteredpixel.shatteredpixeldungeon.items.rarity.MasterworkCore().quantity( 1 ), pos );
+			if (coreHeap != null && coreHeap.sprite != null) coreHeap.sprite.drop();
+		}
+
 		//quality lines: HUNTER leaves meat off the beasts it kills
 		if (cause == hero || cause instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
 			if (hero.belongings != null && hero.belongings.weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){

@@ -1911,3 +1911,15 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_CoreDrop`，跑完即删）：直接调 `Tengu.die(hero)` 后，尸体旁的堆里检到了杰作核心（`coreDropped=true`）。
 编译通过、`Smoke` 9/9、`F1` 3/3。
+
+## 杰作核心改为精英怪掉落
+
+- 取消了 Tengu（第二区 BOSS）的固定掉落
+- `Mob.die(...)`：若死者带任意 `ChampionEnemy`（即精英怪），按 **25%** 概率掉 1 颗杰作核心
+  （用 `instanceof` 遍历 buffs，不能用 `buff(ChampionEnemy.class)`——它只匹配子类均等的情况）
+
+**实测**（`Z_CoreElite`，跑完即删）：40 只带 `ChampionEnemy.Blazing` 的老鼠，`elite core drops=11/40`（约 27.5%，符合 25%）。
+编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**宝箱没做**：本仓库没有通用的 `Chest` 类（只有 `SuspiciousChestRoom` 这种房间实现），
+要加需先找到宝箱的成品逻辑。
