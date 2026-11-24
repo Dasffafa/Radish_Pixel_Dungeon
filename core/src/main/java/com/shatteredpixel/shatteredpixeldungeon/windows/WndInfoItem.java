@@ -239,10 +239,8 @@ public class WndInfoItem extends Window {
 		descHit.setRect( 0, y, secWidth, com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT );
 		y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
 		secInfo.visible = descOpen;
-		if (descOpen){
-			secInfo.setPos( 0, y );
-			y = secInfo.bottom();
-		}
+		secInfo.setPos( 0, y );
+		y = secInfo.bottom();
 		y += GAP;
 
 		if (rarityHeader != null){
@@ -271,20 +269,14 @@ public class WndInfoItem extends Window {
 					rarityIntro.hardlight( com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityColor( sectionItem ) );
 					add( rarityIntro );
 				}
-				if (rarityOpen){
-					rarityIntro.visible = true;
-					rarityIntro.setPos( 0, y );
-					y = rarityIntro.bottom() + 1;
-				} else {
-					rarityIntro.visible = false;
-				}
+				rarityIntro.visible = rarityOpen;
+				rarityIntro.setPos( 0, y );
+				y = rarityIntro.bottom() + 1;
 			}
 			if (secLines != null){
 				secLines.visible = rarityOpen;
-				if (rarityOpen){
-					secLines.setPos( 0, y );
-					y = secLines.bottom();
-				}
+				secLines.setPos( 0, y );
+				y = secLines.bottom();
 			}
 			y += GAP;
 		}
@@ -306,10 +298,8 @@ public class WndInfoItem extends Window {
 			y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
 			if (typeBody != null){
 				typeBody.visible = typeOpen;
-				if (typeOpen){
-					typeBody.setPos( 0, y );
-					y = typeBody.bottom();
-				}
+				typeBody.setPos( 0, y );
+				y = typeBody.bottom();
 			}
 			y += GAP;
 		}
