@@ -21,6 +21,7 @@ public final class FxModules {
 	/** The game's scene stands, every layer made. */
 	public static void sceneCreated( GameScene scene ){
 		WindSway.sceneCreated();
+		com.shatteredpixel.shatteredpixeldungeon.effects.WeatherOverlay.sceneCreated();
 		WaterFX.sceneCreated();
 	}
 

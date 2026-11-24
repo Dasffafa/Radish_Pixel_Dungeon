@@ -239,6 +239,9 @@ public class GameScene extends PixelScene {
 
 		Dungeon.level.playLevelMusic();
 
+		//天气只是布景：这个关卡自己决定下不下雨/雪，不碰角色半点
+		com.shatteredpixel.shatteredpixeldungeon.actors.Weather.rollForLevel();
+
 		// 「萝卜自走棋」：进棋盘挂上对局状态，并弹出备战界面
 		com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.ensureStarted();
 
@@ -1012,6 +1015,7 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.TerrainWatch.drain();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.update( Game.elapsed );
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WindSway.update( Game.elapsed );
+		com.shatteredpixel.shatteredpixeldungeon.effects.WeatherOverlay.update( Game.elapsed );
 		AmbientCritters.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.update( Game.elapsed );
