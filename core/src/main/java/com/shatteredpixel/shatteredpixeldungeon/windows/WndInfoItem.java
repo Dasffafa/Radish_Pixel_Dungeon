@@ -208,8 +208,8 @@ public class WndInfoItem extends Window {
 		secTitle.setPos( 0, 0 );
 		y = secTitle.bottom() + 2;
 
-		descHeader.place( 0, y );
 		descHeader.open = descOpen;
+		descHeader.place( 0, y );
 		if (descHit == null){
 			descHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
 				@Override
@@ -230,8 +230,8 @@ public class WndInfoItem extends Window {
 		y += GAP;
 
 		if (rarityHeader != null){
-			rarityHeader.place( 0, y );
 			rarityHeader.open = rarityOpen;
+			rarityHeader.place( 0, y );
 			if (rarityHit == null){
 				rarityHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
 					@Override
