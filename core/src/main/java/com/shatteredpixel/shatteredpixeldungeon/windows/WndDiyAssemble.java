@@ -34,8 +34,8 @@ import java.util.LinkedHashSet;
  */
 public class WndDiyAssemble extends Window {
 
-	private static final int WIDTH_P = 150;
-	private static final int WIDTH_L = 172;
+	private static final int WIDTH_P = 120;
+	private static final int WIDTH_L = 144;
 	private static final int MARGIN = 2;
 	private static final int BUTTON_HEIGHT = 18;
 	private static final int SMALL_HEIGHT = 16;
@@ -265,14 +265,18 @@ public class WndDiyAssemble extends Window {
 		add(scroll);
 
 		float confirmHeight = BUTTON_HEIGHT;
-		float visibleHeight = Math.min(y, Math.max(48f,
-				PixelScene.uiCamera.height * 0.55f - pos - confirmHeight - 3 * MARGIN));
-		scroll.setRect(MARGIN, pos, innerWidth, visibleHeight);
-		float priceY = pos + visibleHeight + MARGIN;
 
 		RenderedTextBlock priceLine = PixelScene.renderTextBlock(6);
 		priceLine.text("需要：" + price.summary(), (int) innerWidth);
 		priceLine.hardlight(price.affordable ? 0xFFFF44 : 0xFF6666);
+		float priceHeight = priceLine.height();
+
+		// 手机版：整个窗口（标题 + 滚动区 + 价格 + 按钮）不能超出 UI 视口
+		float maxTotal = PixelScene.uiCamera.height * 0.80f;
+		float maxVisible = maxTotal - pos - MARGIN * 4 - priceHeight - confirmHeight;
+		float visibleHeight = Math.max(40f, Math.min(y, maxVisible));
+		scroll.setRect(MARGIN, pos, innerWidth, visibleHeight);
+		float priceY = pos + visibleHeight + MARGIN;
 		priceLine.setPos(MARGIN, priceY);
 		add(priceLine);
 
@@ -294,7 +298,7 @@ public class WndDiyAssemble extends Window {
 		confirm.enable(price.affordable);
 		add(confirm);
 
-		resize(width, (int)(confirm.bottom() + MARGIN));
+		resize(width, (int) Math.min(confirm.bottom() + MARGIN, PixelScene.uiCamera.height - MARGIN));
 	}
 
 	private Runnable[] bonusActions(final int which) {

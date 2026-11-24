@@ -25,8 +25,8 @@ import java.util.Map;
  */
 public class WndDiyEssence extends Window {
 
-	private static final int WIDTH_P = 150;
-	private static final int WIDTH_L = 172;
+	private static final int WIDTH_P = 120;
+	private static final int WIDTH_L = 144;
 	private static final int MARGIN = 2;
 	private static final int BUTTON_HEIGHT = 18;
 
@@ -122,8 +122,9 @@ public class WndDiyEssence extends Window {
 		ScrollPane scroll = new ScrollPane(content);
 		add(scroll);
 
-		float visibleHeight = Math.min(y, Math.max(60f,
-				PixelScene.uiCamera.height * 0.55f - pos - BUTTON_HEIGHT - 3 * MARGIN));
+		float maxTotal = PixelScene.uiCamera.height * 0.72f;
+		float maxVisible = maxTotal - pos - MARGIN * 4 - BUTTON_HEIGHT;
+		float visibleHeight = Math.max(40f, Math.min(y, maxVisible));
 		scroll.setRect(MARGIN, pos, innerWidth, visibleHeight);
 
 		RedButton close = new RedButton("关闭", 8) {
@@ -135,7 +136,8 @@ public class WndDiyEssence extends Window {
 		close.setRect(MARGIN, pos + visibleHeight + MARGIN, innerWidth, BUTTON_HEIGHT);
 		add(close);
 
-		resize(width, (int) (pos + visibleHeight + MARGIN + BUTTON_HEIGHT + MARGIN));
+		resize(width, (int) Math.min(pos + visibleHeight + MARGIN + BUTTON_HEIGHT + MARGIN,
+				PixelScene.uiCamera.height - MARGIN));
 	}
 
 	private float addHeader(Component content, float y, float width, String text) {

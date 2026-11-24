@@ -29,8 +29,8 @@ import java.util.LinkedHashSet;
  */
 public class WndDiyPick extends Window {
 
-	private static final int WIDTH_P = 150;
-	private static final int WIDTH_L = 172;
+	private static final int WIDTH_P = 120;
+	private static final int WIDTH_L = 144;
 	private static final int MARGIN = 2;
 	private static final int BUTTON_HEIGHT = 18;
 	private static final int ROW_HEIGHT = 17;
@@ -167,8 +167,9 @@ public class WndDiyPick extends Window {
 		add(scroll);
 
 		float doneHeight = BUTTON_HEIGHT;
-		float visibleHeight = Math.min(y, Math.max(60f,
-				PixelScene.uiCamera.height * 0.55f - pos - doneHeight - 3 * MARGIN));
+		float maxTotal = PixelScene.uiCamera.height * 0.72f;
+		float maxVisible = maxTotal - pos - MARGIN * 4 - doneHeight;
+		float visibleHeight = Math.max(40f, Math.min(y, maxVisible));
 		scroll.setRect(MARGIN, pos, innerWidth, visibleHeight);
 
 		RedButton done = new RedButton("完成", 8) {
@@ -180,6 +181,7 @@ public class WndDiyPick extends Window {
 		done.setRect(MARGIN, pos + visibleHeight + MARGIN, innerWidth, doneHeight);
 		add(done);
 
-		resize(width, (int)(pos + visibleHeight + MARGIN + doneHeight + MARGIN));
+		resize(width, (int) Math.min(pos + visibleHeight + MARGIN + doneHeight + MARGIN,
+				PixelScene.uiCamera.height - MARGIN));
 	}
 }

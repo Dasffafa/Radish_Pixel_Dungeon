@@ -17,8 +17,8 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
  */
 public class WndDiyCraft extends Window {
 
-	private static final int WIDTH_P = 132;
-	private static final int WIDTH_L = 152;
+	private static final int WIDTH_P = 120;
+	private static final int WIDTH_L = 144;
 	private static final int MARGIN = 2;
 	private static final int BUTTON_HEIGHT = 18;
 
@@ -50,7 +50,7 @@ public class WndDiyCraft extends Window {
 
 		Diy.Group[] groups = Diy.Group.values();
 
-		float buttonWidth = (width - MARGIN * 3) / 2f;
+		float buttonWidth = (width - MARGIN * 4) / 3f;
 		int col = 0;
 		float rowY = pos;
 		float bottom = pos;
@@ -70,12 +70,12 @@ public class WndDiyCraft extends Window {
 			bottom = rowY + BUTTON_HEIGHT;
 
 			col++;
-			if (col >= 2) {
+			if (col >= 3) {
 				col = 0;
 				rowY += BUTTON_HEIGHT + MARGIN;
 			}
 		}
 
-		resize(width, (int)(bottom + MARGIN));
+		resize(width, (int) Math.min(bottom + MARGIN, PixelScene.uiCamera.height - MARGIN));
 	}
 }

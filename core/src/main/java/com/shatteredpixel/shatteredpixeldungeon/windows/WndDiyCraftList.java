@@ -24,8 +24,8 @@ import java.util.ArrayList;
  */
 public class WndDiyCraftList extends Window {
 
-	private static final int WIDTH_P = 132;
-	private static final int WIDTH_L = 152;
+	private static final int WIDTH_P = 120;
+	private static final int WIDTH_L = 144;
 	private static final int MARGIN = 2;
 	private static final int BUTTON_HEIGHT = 18;
 
@@ -89,11 +89,12 @@ public class WndDiyCraftList extends Window {
 		ScrollPane scroll = new ScrollPane(content);
 		add(scroll);
 
-		float visibleHeight = Math.min(y,
-				Math.max(48f, PixelScene.uiCamera.height * 0.72f - pos));
+		float maxTotal = PixelScene.uiCamera.height * 0.72f;
+		float maxVisible = maxTotal - pos - MARGIN * 3;
+		float visibleHeight = Math.max(40f, Math.min(y, maxVisible));
 		scroll.setRect(MARGIN, pos, width - MARGIN * 2, visibleHeight);
 
-		resize(width, (int)(pos + visibleHeight + MARGIN));
+		resize(width, (int) Math.min(pos + visibleHeight + MARGIN, PixelScene.uiCamera.height - MARGIN));
 	}
 
 	/** 选好底材就进组装窗口，自己挑强化/附魔/特性。 */
