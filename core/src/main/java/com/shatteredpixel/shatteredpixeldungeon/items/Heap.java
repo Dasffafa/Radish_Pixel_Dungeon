@@ -90,6 +90,10 @@ public class Heap implements Bundlable {
 	public LinkedList<Item> items = new LinkedList<>();
 	
 	public void open( Hero hero ) {
+		//a golden (locked) chest sometimes holds a masterwork core besides its usual loot
+		if (type == Type.LOCKED_CHEST && com.watabou.utils.Random.Float() < 0.3f){
+			drop( new com.shatteredpixel.shatteredpixeldungeon.items.rarity.MasterworkCore().quantity( 1 ) );
+		}
 		switch (type) {
 		case TOMB:
 			Wraith.spawnAround( hero.pos );

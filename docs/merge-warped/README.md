@@ -1923,3 +1923,13 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **宝箱没做**：本仓库没有通用的 `Chest` 类（只有 `SuspiciousChestRoom` 这种房间实现），
 要加需先找到宝箱的成品逻辑。
+
+## 金色宝箱也会出杰作核心
+
+本仓库的宝箱不是物品类，而是 `Heap.Type`：`LOCKED_CHEST`（金色，需金钥匙）、`CHEST`、`CRYSTAL_CHEST`。
+
+- `Heap.open(Hero)`：若类型是 **`LOCKED_CHEST`**，按 **30%** 概率额外放一颗 `MasterworkCore`
+- 精英怪那条（25%）保留，两条途径并存
+
+**实测**（`Z_CoreChest`，跑完即删）：造 40 个金色宝箱并打开，`golden chests with a core=11/40`（约 27.5%）。
+编译通过、`Smoke` 9/9、`F1` 3/3。
