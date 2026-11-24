@@ -1384,3 +1384,20 @@ procs ember=1 storm=2  runs=2  earlyOut=0
 
 **实测**（`Z_EnchantAura`，跑完即删）：把一把 Blazing 短剑丢在英雄旁边，帧数后
 `motes=1`（heap 存在、look=Blazing），截图里剑旁有橙色光点。全量回归 **58 通过**，仅 `A0`/`A4` 基线失败。
+
+## 附魔外观体系第七批：只在真正触发时叫拍子
+
+之前是“每次命中都叫一次附魔拍子”，会在普通命中上也冒特效。现在 `Weapon.proc` 在调用
+`enchantment.proc(...)` 前后比较三个量：伤害值、目标 HP、目标 buff 数——**任一变化才认为 proc 真的发生了**，
+只有那时才调 `warped.EnchantFx.proc(...)`。
+
+**实测**（`Z_EnchantProc`，跑完即删）：
+
+```
+enchanted 0 -> 1 (burning=true)   plain 1 -> 1
+```
+
+即附魔命中叫了拍子、普通命中不叫。`Smoke` 9/9、`E0` 3/3、`F1` 3/3。
+
+**值得注意**：这是“行为差异”启发式判断，而不是每个附魔自己声明“我 proc 了”。
+对“只改状态不改伤害/HP/buff”的附魔（例如只推位、只改坡度）仍可能漏判，后续可逐个附魔加显式钩子。

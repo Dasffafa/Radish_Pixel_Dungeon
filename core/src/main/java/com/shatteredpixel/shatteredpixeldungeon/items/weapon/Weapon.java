@@ -207,13 +207,20 @@ abstract public class Weapon extends KindOfWeapon {
 			}
 		}
 
+		// Warped enchant visuals: fire only when the enchantment actually changed something
+		boolean procced = false;
 		if (enchantment != null && attacker.buff(MagicImmune.class) == null
 				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight.pokeIsPlain( attacker )) {
+			final int dmgIn = damage;
+			final int hpIn = defender != null ? defender.HP : 0;
+			final int buffsIn = defender != null ? defender.buffs().size() : 0;
 			damage = enchantment.proc( this, attacker, defender, damage );
+			procced = damage != dmgIn
+					|| (defender != null && defender.HP != hpIn)
+					|| (defender != null && defender.buffs().size() != buffsIn);
 		}
 
-		// Warped 附魔外观：命中时把这次附魔交给打击演示（warped 那套，与上面的旧外观并存）
-		if (enchantment != null && defender != null && defender.sprite != null
+		if (procced && defender != null && defender.sprite != null
 				&& attacker.alignment != defender.alignment) {
 			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantLook look =
 					com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantLooks.of( enchantment.getClass() );
