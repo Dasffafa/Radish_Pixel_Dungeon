@@ -239,8 +239,10 @@ public class WndInfoItem extends Window {
 		descHit.setRect( 0, y, secWidth, com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT );
 		y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
 		secInfo.visible = descOpen;
-		secInfo.setPos( 0, y );
-		y = secInfo.bottom();
+		if (descOpen){
+			secInfo.setPos( 0, y );
+			y = secInfo.bottom();
+		}
 		y += GAP;
 
 		if (rarityHeader != null){
@@ -270,13 +272,17 @@ public class WndInfoItem extends Window {
 					add( rarityIntro );
 				}
 				rarityIntro.visible = rarityOpen;
-				rarityIntro.setPos( 0, y );
-				y = rarityIntro.bottom() + 1;
+				if (rarityOpen){
+					rarityIntro.setPos( 0, y );
+					y = rarityIntro.bottom() + 1;
+				}
 			}
 			if (secLines != null){
 				secLines.visible = rarityOpen;
-				secLines.setPos( 0, y );
-				y = secLines.bottom();
+				if (rarityOpen){
+					secLines.setPos( 0, y );
+					y = secLines.bottom();
+				}
 			}
 			y += GAP;
 		}
@@ -298,14 +304,22 @@ public class WndInfoItem extends Window {
 			y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
 			if (typeBody != null){
 				typeBody.visible = typeOpen;
-				typeBody.setPos( 0, y );
-				y = typeBody.bottom();
+				if (typeOpen){
+					typeBody.setPos( 0, y );
+					y = typeBody.bottom();
+				}
 			}
 			y += GAP;
 		}
 
+		float oldHeight = height;
 		resize( secWidth, (int)(y + 2) );
+		onRelayout( oldHeight );
 
+	}
+
+	/** Called after the window's height changed (a section was folded). */
+	protected void onRelayout( float oldHeight ){
 	}
 
 	private void layoutFields(IconTitle title, RenderedTextBlock info){		int width = WIDTH_MIN;

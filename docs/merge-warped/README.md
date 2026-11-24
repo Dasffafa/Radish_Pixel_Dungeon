@@ -1933,3 +1933,14 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_CoreChest`，跑完即删）：造 40 个金色宝箱并打开，`golden chests with a core=11/40`（约 27.5%）。
 编译通过、`Smoke` 9/9、`F1` 3/3。
+
+## 折叠后的空白：窗口真正收紧，按钮跟着上移
+
+- `WndInfoItem.layoutSections()`：重新按展开状态**缩短**窗口，并在 `resize` 后调用
+  新的钩子 `onRelayout(oldHeight)`
+- `WndUseItem`：把自己的操作按钮（`actionList`）在 `onRelayout` 里用原有的 `layoutButtons()`
+  重新排一次，并再次 `resize` 让窗口包住按钮
+- 注意点：`actionList` 在父类构造器时还是 null（子类字段初始化在后），已加空判断
+
+**实测**（`Z_FoldShrink`，跑完即删，用反射点中真实的分段头按钮）：折叠“描述”后
+窗口从展开态收短，**放下/打出/取下按钮仍在框内**，无空白。`Smoke` 9/9、`F1` 3/3。

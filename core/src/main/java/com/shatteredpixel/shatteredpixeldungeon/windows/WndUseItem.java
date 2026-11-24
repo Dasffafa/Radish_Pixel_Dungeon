@@ -42,6 +42,18 @@ public class WndUseItem extends WndInfoItem {
 	
 	private static final float GAP	= 2;
 	
+	//the item's action buttons, kept so they can be laid out again when a section is folded
+	private java.util.ArrayList<RedButton> actionList;
+
+	@Override
+	protected void onRelayout( float oldHeight ){
+		//the super constructor lays out before this field exists
+		if (actionList == null || actionList.isEmpty()) return;
+		float y = height + GAP;
+		y = layoutButtons( new java.util.ArrayList<>( actionList ), width, y );
+		resize( width, (int)y );
+	}
+
 	public WndUseItem( final Window owner, final Item item ) {
 		
 		super(item);
@@ -72,6 +84,8 @@ public class WndUseItem extends WndInfoItem {
 				btn.setSize( btn.reqWidth(), BUTTON_HEIGHT );
 				buttons.add(btn);
 				add( btn );
+				if (actionList == null) actionList = new java.util.ArrayList<>();
+				actionList.add( btn );
 
 				if (action.equals(item.defaultAction())) {
 					btn.textColor( TITLE_COLOR );
