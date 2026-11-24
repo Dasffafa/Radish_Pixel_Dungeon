@@ -376,8 +376,12 @@ public class ItemSlot extends Button {
 	}
 
 	protected void updateAura(){
+		//warped look first (its enchantment's colour, else its rarity's), the old colour after
 		int color = item == null ? 0
-				: com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
+				: com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.auraColor( item );
+		if (color == 0 && item != null){
+			color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
+		}
 
 		hasShine = color != 0;
 		if (!hasShine && (item == null || item.level() <= 1)){

@@ -1506,3 +1506,11 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 
 **实测**（`Z_RarityText`，跑完即删）：烈焰短剑 +2 窗口底部显示
 `品质：普通` 与一条品质特质（本次抽到“吸血”）。编译通过、`Smoke` 9/9、`F1` 3/3。
+
+## 品质系统第三阶段：装备光晕接上品质与附魔色
+
+- `ItemText.auraColor(item)`：有附魔用 `EnchantLook.glow`；否则要么用 `Quality.rarity().color`（非 COMMON 才亮），否则 0
+- `ItemSlot.updateAura`：优先用这个色，取不到才回退到原来的 `EnchantFx.uiColor`
+  ——即物品格里的扫光/光环/粒子现在跟随附魔与品质颜色
+
+编译通过，`Smoke` 9/9、`F1` 3/3。图标光晕的实机效果需你装 APK 看一下。

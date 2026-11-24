@@ -68,6 +68,18 @@ public final class ItemText {
 		return "\u2726 " + name + (l.curse ? "  (\u8bc5\u5492)" : "");
 	}
 
+	/** The colour of an item's glow: its enchantment's, else its rarity's (0 for plain common gear). */
+	public static int auraColor( Item it ){
+		EnchantLook l = lookOf( it );
+		if (l != null) return l.glow;
+		if ((it instanceof Weapon) || (it instanceof Armor)){
+			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Rarity r =
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( it ).rarity();
+			if (r != com.shatteredpixel.shatteredpixeldungeon.items.rarity.Rarity.COMMON) return r.color;
+		}
+		return 0;
+	}
+
 	/** The gear quality block: its rarity and the lines it carries, or "" for non-gear. */
 	public static String qualityText( Item it ){
 		if (!(it instanceof Weapon) && !(it instanceof Armor)) return "";
