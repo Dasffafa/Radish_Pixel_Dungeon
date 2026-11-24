@@ -1485,3 +1485,13 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 `✦ 烈焰附魔`（`line=[✦ 烈焰附魔]`、`color=16745496`）。
 
 **还没做**：Warped 原版的多段式排版（分隔线、品质行、词条行）需要 `items/rarity`；这一批只做了“名字颜色 + 附魔行”。
+
+## 品质系统第一阶段：Rarity 与 Quality 骨架
+
+- 搬入 `items/rarity/Rarity`（Warped 原文件）：COMMON/UNCOMMON/RARE/LEGENDARY/EXOTIC，带颜色、品质线数、深度权重与
+  `roll(depth)`、`rerollWheel(...)`
+- `Quality` 换成**精简骨架**：`Family` 枚举（SWORD/AXE/SPEAR/MACE/DAGGER/STAFF/ARMOR/…，去掉 Warped 的枪械与弓）、
+  `of(item)`、`family()`、`level()`、`title()`
+- 保留 `Quality.vestigeOf(...)`（附魔框架需要）
+
+**实测**：编译通过，`Smoke` 9/9。品质线（`RarityLine`）与蓝图展示留给下一阶段。
