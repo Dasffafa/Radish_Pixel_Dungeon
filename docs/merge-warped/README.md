@@ -1903,3 +1903,11 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 编译通过、`Smoke` 9/9、`F1` 3/3。
 
 **未做**：核心的掉落表（目前只能靠物品代码/调试获得）；图标暂用 `SOMETHING` 占位。
+
+## 杰作核心的掉落：第二区域 BOSS
+
+- `Tengu.die(...)`：除了原有的面具，在尸体位置额外掉 **1 颗 `MasterworkCore`**
+  （Tengu 就是第二区域（城市）的 BOSS，深度 10）
+
+**实测**（`Z_CoreDrop`，跑完即删）：直接调 `Tengu.die(hero)` 后，尸体旁的堆里检到了杰作核心（`coreDropped=true`）。
+编译通过、`Smoke` 9/9、`F1` 3/3。
