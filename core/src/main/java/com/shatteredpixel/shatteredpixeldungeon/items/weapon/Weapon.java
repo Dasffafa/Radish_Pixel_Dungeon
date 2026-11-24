@@ -128,7 +128,6 @@ abstract public class Weapon extends KindOfWeapon {
 	public float    ACC = 1f;	// Accuracy modifier
 	public float	DLY	= 1f;	// Speed modifier
 	public int      RCH = 1;    // Reach modifier (only applies to melee hits)
-	public int fusionMin = 0, fusionMax = 0;
 
 	// 怪物持有时授予的 AI 标签（由各武器子类在初始化块中设定）
 	public WeaponAITag aiTag = WeaponAITag.NONE;
@@ -220,13 +219,6 @@ abstract public class Weapon extends KindOfWeapon {
 				}
 			}
 		}
-		if (fusedItems != null) {
-			for (Item it : fusedItems) {
-				if (it instanceof Weapon) {
-					damage = ((Weapon) it).proc(attacker, defender, damage);
-				}
-			}
-		}
 
 		if (!levelKnown && attacker == Dungeon.hero) {
 			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero, this) );
@@ -277,8 +269,6 @@ abstract public class Weapon extends KindOfWeapon {
 		bundle.put( AUGMENT, augment );
 
 		bundle.put("is_shining",isShining);
-		bundle.put("fusion_min", fusionMin);
-		bundle.put("fusion_max", fusionMax);
 		// DIY 属性：攻击距离 / 攻击速度
 		bundle.put("diy_rch", RCH);
 		bundle.put("diy_dly", DLY);
@@ -299,8 +289,6 @@ abstract public class Weapon extends KindOfWeapon {
 		if (bundle.contains("is_shining")){
 			isShining=bundle.getBoolean("is_shining");
 		}
-		fusionMin = bundle.getInt("fusion_min");
-		fusionMax = bundle.getInt("fusion_max");
 		RCH = bundle.getInt("diy_rch");
 		DLY = bundle.getFloat("diy_dly");
 

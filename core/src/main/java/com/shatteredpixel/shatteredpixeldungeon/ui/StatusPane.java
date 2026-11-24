@@ -74,8 +74,6 @@ public class StatusPane extends Component {
 	private Compass compass;
 
 	private BusyIndicator busy;
-	private IconButton fusionButton;
-	private BitmapText fusionText;
 	private CircleArc counter;
 
 	// 骰子法师使用离散生命格代替普通血条
@@ -195,21 +193,6 @@ public class StatusPane extends Component {
 		busy = new BusyIndicator();
 		add( busy );
 
-		fusionButton = new IconButton(Icons.get(Icons.CHALLENGE_ON)) {
-			@Override
-			protected void onClick() {
-				GameScene.show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndFusion());
-			}
-			@Override
-			protected String hoverText() {
-				return "融合装备";
-			}
-		};
-		add(fusionButton);
-
-		fusionText = new BitmapText(PixelScene.pixelFont);
-		fusionText.hardlight(0xFFFF66);
-		add(fusionText);
 
 		counter = new CircleArc(18, 4.25f);
 		counter.color( 0x808080, true );
@@ -296,11 +279,6 @@ public class StatusPane extends Component {
 
 		layoutDiceMageHealth();
 
-		if (fusionButton != null) {
-			fusionButton.setRect(x + width - 20, y + bg.height + 4, 16, 16);
-			fusionText.x = fusionButton.left() + 8;
-			fusionText.y = fusionButton.top() + 9;
-		}
 	}
 
 	private void layoutDiceMageHealth() {
@@ -334,12 +312,6 @@ public class StatusPane extends Component {
 	public void update() {
 		super.update();
 
-		if (fusionButton != null) {
-			int charges = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.fusionCharges(Dungeon.hero);
-			fusionButton.visible = charges > 0;
-			fusionText.visible = charges > 0;
-			if (charges > 0) fusionText.text(Integer.toString(charges));
-		}
 
 		int health = Dungeon.hero.HP;
 		int shield = Dungeon.hero.shielding();

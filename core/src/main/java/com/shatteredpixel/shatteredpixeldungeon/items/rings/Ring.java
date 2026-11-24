@@ -154,11 +154,6 @@ public class Ring extends KindofMisc {
 		}
 		buff = buff();
 		buff.attachTo(ch);
-		if (fusedItems != null) {
-			for (Item it : fusedItems) {
-				if (it instanceof Ring) ((Ring) it).activate(ch);
-			}
-		}
 	}
 
 	@Override

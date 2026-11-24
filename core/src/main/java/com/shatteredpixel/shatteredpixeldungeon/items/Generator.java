@@ -1029,11 +1029,7 @@ public class Generator {
 					}
 				}
 
-				Item rolledItem = ((Item) Reflection.newInstance(itemCls)).random();
-				if (com.shatteredpixel.shatteredpixeldungeon.challenges.FusionRules.banned(rolledItem)) {
-					return random(cat);
-				}
-				return rolledItem;
+				return ((Item) Reflection.newInstance(itemCls)).random();
 		}
 	}
 
@@ -1090,17 +1086,9 @@ public class Generator {
 		} else if (cat.defaultProbs == null || cat == Category.ARTIFACT) {
 			return random(cat);
 		} else if (cat.defaultProbsTotal != null){
-			Item rolledItem = ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbsTotal)])).random();
-			if (com.shatteredpixel.shatteredpixeldungeon.challenges.FusionRules.banned(rolledItem)) {
-				return randomUsingDefaults(cat);
-			}
-			return rolledItem;
+			return ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbsTotal)])).random();
 		} else {
-			Item rolledItem = ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbs)])).random();
-			if (com.shatteredpixel.shatteredpixeldungeon.challenges.FusionRules.banned(rolledItem)) {
-				return randomUsingDefaults(cat);
-			}
-			return rolledItem;
+			return ((Item) Reflection.newInstance(cat.classes[Random.chances(cat.defaultProbs)])).random();
 		}
 	}
 	

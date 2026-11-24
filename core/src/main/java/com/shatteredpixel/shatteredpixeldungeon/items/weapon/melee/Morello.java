@@ -60,7 +60,7 @@ public class Morello extends MeleeWeapon {
         private int buffCharge = 0;
 
        public void updateMaxCharge(Hero hero){
-           Morello morello = com.shatteredpixel.shatteredpixeldungeon.items.Fusion.fusedItem(hero.belongings.weapon, Morello.class);
+           Morello morello = hero.belongings.weapon instanceof Morello ? (Morello) hero.belongings.weapon : null;
            if(morello != null){
            			this.buffCharge = 2 + (int)Math.ceil(morello.buffedLvl() * 0.5f);
            		}

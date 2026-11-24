@@ -70,14 +70,6 @@ public class WhiteKingGodSword extends MeleeWeapon {
             WhiteKingGodSword weapon = null;
             if (hero.belongings.weapon instanceof WhiteKingGodSword) {
                 weapon = (WhiteKingGodSword) hero.belongings.weapon;
-            } else if (hero.belongings.weapon != null
-                    && hero.belongings.weapon.fusedItems != null) {
-                for (com.shatteredpixel.shatteredpixeldungeon.items.Item it : hero.belongings.weapon.fusedItems) {
-                    if (it instanceof WhiteKingGodSword) {
-                        weapon = (WhiteKingGodSword) it;
-                        break;
-                    }
-                }
             }
             if (weapon == null
                     && com.shatteredpixel.shatteredpixeldungeon.items.Diy.equippedItemProvides(hero, "eye")) {

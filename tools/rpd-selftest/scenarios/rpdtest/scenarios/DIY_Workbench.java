@@ -75,8 +75,12 @@ public class DIY_Workbench implements Scenario {
 	public void run( H h ) {
 		h.newGameInArena( HeroClasses.WARRIOR, "DIYTEST" );
 
+		// 工作台现在只在「智能怪物」挑战开局发放；普通模式测试里手动发一个
+		if ( h.get( () -> Dungeon.hero.belongings.getItem( DiyWorkbench.class ) ) == null ) {
+			h.world( "发一个工作台", () -> new DiyWorkbench().collect( Dungeon.hero.belongings.backpack ) );
+		}
 		DiyWorkbench bench = h.get( () -> Dungeon.hero.belongings.getItem( DiyWorkbench.class ) );
-		h.require( bench != null, "开局背包里应该有 DIY 工作台" );
+		h.require( bench != null, "测试需要一个 DIY 工作台" );
 
 		// ---------- 专属贴图 ----------
 		h.check( h.get( () -> new DiyMaterial( DiyMaterial.METAL, 1 ).image ).equals( ItemSpriteSheet.DIY_METAL ),
@@ -179,7 +183,7 @@ public class DIY_Workbench implements Scenario {
 		h.check( h.get( () -> Diy.allEnchantsOf( crafted ).size() ) == 4, "成品记录了四个附魔类名" );
 		h.check( h.get( () -> ( (Weapon) crafted ).diyEnchantments().get( 2 ) instanceof Shocking ), "第三个附魔是电击" );
 		h.check( h.get( () -> ( (Weapon) crafted ).diyEnchantments().get( 3 ) instanceof Corrupting ), "第四个附魔是腐蚀" );
-		h.check( h.get( () -> ( (KindOfWeapon) crafted ).fusionMin ) == 3, "伤害 +3 写进了 fusionMin" );
+		h.check( h.get( () -> ( (KindOfWeapon) crafted ).diyMin ) == 3, "伤害 +3 写进了 diyMin" );
 		h.check( h.get( () -> {
 			Shortsword probe = new Shortsword();
 			probe.level( 2 );
@@ -226,7 +230,7 @@ public class DIY_Workbench implements Scenario {
 		h.check( h.get( () -> ( (Armor) armorOut ).diyGlyphs().size() ) == 2, "布甲同时挂着 2 个铭文" );
 		h.check( h.get( () -> Reflect.get( ( (Armor) armorOut ).diyGlyphs().get( 0 ), "armor" ) ) != null,
 				"铭文拿到了 armor 引用（proc 里不会空指针）" );
-		h.check( h.get( () -> ( (Armor) armorOut ).fusionDRMin ) == 4, "减伤 +4 写进了 fusionDRMin" );
+		h.check( h.get( () -> ( (Armor) armorOut ).diyDRMin ) == 4, "减伤 +4 写进了 diyDRMin" );
 
 		// ---------- 多附魔/多铭文的 proc 都能跑 ----------
 		final Rat dummy = h.spawn( new Rat(), h.xy( 14, 10 ) );
@@ -732,7 +736,7 @@ public class DIY_Workbench implements Scenario {
 		h.check( h.get( DIY_Workbench::countMeleeWeapons ) == weaponsBeforeReload, "存读档后近战武器数量不变" );
 		h.check( h.get( DIY_Workbench::hasDoubleEnchantWeapon ), "存读档后两个附魔还在（能重新加载附魔实例）" );
 		h.check( h.get( DIY_Workbench::hasDoublePassiveWeapon ), "存读档后两个特性还在" );
-		h.check( h.get( DIY_Workbench::hasStatWeapon ), "存读档后 +3 伤害还在（fusionMin 有存档）" );
+		h.check( h.get( DIY_Workbench::hasStatWeapon ), "存读档后 +3 伤害还在（diyMin 有存档）" );
 		bench = h.get( () -> Dungeon.hero.belongings.getItem( DiyWorkbench.class ) );
 		h.require( bench != null, "存读档后要重新拿到工作台实例" );
 
@@ -835,13 +839,15 @@ public class DIY_Workbench implements Scenario {
 		h.check( h.get( () -> !Diy.hasWorkbench() ), "拿走之后包里没有工作台了" );
 
 		ArrayList<Item> stockWithout = h.get( DIY_Workbench::generateShopStock );
-		h.check( containsWorkbench( stockWithout ),
-				"身上没工作台时商店会补一件（" + stockWithout.size() + " 件商品）" );
+		h.check( !containsWorkbench( stockWithout ),
+				"商店永远不卖工作台（" + stockWithout.size() + " 件商品）" );
 
 		h.world( "把一件新的工作台放回包里",
 				() -> new DiyWorkbench().collect( Dungeon.hero.belongings.backpack ) );
 		ArrayList<Item> stockWith = h.get( DIY_Workbench::generateShopStock );
-		h.check( !containsWorkbench( stockWith ), "身上有工作台时商店不再占一个格子" );
+		h.check( !containsWorkbench( stockWith ), "身上有工作台时商店也没有" );
+		h.check( h.get( () -> !Diy.shouldGrantStarterWorkbench() ),
+				"普通模式开局不给工作台（只有智能怪物挑战给）" );
 
 		// 截一张消耗品专属属性（数量/饱食度/充能）的界面
 		h.world( "打开药水组装窗口截图", () -> com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
@@ -912,7 +918,7 @@ public class DIY_Workbench implements Scenario {
 
 	private static boolean hasStatWeapon() {
 		for ( Item it : Dungeon.hero.belongings ) {
-			if ( it instanceof KindOfWeapon && ( (KindOfWeapon) it ).fusionMin >= 3
+			if ( it instanceof KindOfWeapon && ( (KindOfWeapon) it ).diyMin >= 3
 					&& ( (KindOfWeapon) it ).min() > 0 ) {
 				return true;
 			}

@@ -76,17 +76,6 @@ public class WndGame extends Window {
 			curBtn.icon(Icons.get(Icons.CHALLENGE_ON));
 		}
 
-		if (com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.fusionCharges(Dungeon.hero) > 0) {
-			int fusionCharges = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.fusionCharges(Dungeon.hero);
-			addButton(curBtn = new RedButton("使用融合机会 (" + fusionCharges + ")") {
-				@Override
-				protected void onClick() {
-					hide();
-					GameScene.show(new WndFusion());
-				}
-			});
-			curBtn.icon(Icons.get(Icons.CHALLENGE_ON));
-		}
 
 		// 红包属性测试入口
 		if (Dungeon.isChallenged(com.shatteredpixel.shatteredpixeldungeon.Challenges.TEST_MODE)) {

@@ -47,8 +47,8 @@ public class ShadowBooks extends MeleeWeapon {
         public boolean act() {
             // 主手不一定是幻影之书：旧存档里可能留着装备失败时挂上的 buff，直接强转会崩溃
             ShadowBooks w2 = target instanceof Hero
-                    ? com.shatteredpixel.shatteredpixeldungeon.items.Fusion.fusedItem(
-                        ((Hero) target).belongings.weapon, ShadowBooks.class) : null;
+                    && ((Hero) target).belongings.weapon instanceof ShadowBooks
+                    ? (ShadowBooks) ((Hero) target).belongings.weapon : null;
             if (w2 != null) {
                 w2.chance = w2.mirrorCasts();
             } else {

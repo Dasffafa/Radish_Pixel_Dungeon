@@ -117,7 +117,7 @@ public class Armor extends EquipableItem {
 	public boolean masteryPotionBonus = false;
 
 	public int tier;
-	public int fusionDRMin = 0, fusionDRMax = 0;
+	public int diyDRMin = 0, diyDRMax = 0;
 
 	private static final int USES_TO_ID = 10;
 	private float usesLeftToID = USES_TO_ID;
@@ -146,8 +146,8 @@ public class Armor extends EquipableItem {
 		bundle.put( MASTERY_POTION_BONUS, masteryPotionBonus );
 		bundle.put( AUGMENT, augment);
 		bundle.put( TOY_CHARGE, toyCharge);
-		bundle.put("fusion_dr_min", fusionDRMin);
-		bundle.put("fusion_dr_max", fusionDRMax);
+		bundle.put("diy_dr_min", diyDRMin);
+		bundle.put("diy_dr_max", diyDRMax);
 		Bundle toyBundle = new Bundle();
 		for (int i = 0; i < attachedToys.size(); i++) {
 			toyBundle.put("toy_" + i, attachedToys.get(i));
@@ -166,8 +166,8 @@ public class Armor extends EquipableItem {
 		masteryPotionBonus = bundle.getBoolean( MASTERY_POTION_BONUS );
 
 		augment = bundle.getEnum(AUGMENT, Augment.class);
-		fusionDRMin = bundle.getInt("fusion_dr_min");
-		fusionDRMax = bundle.getInt("fusion_dr_max");
+		diyDRMin = bundle.getInt("diy_dr_min");
+		diyDRMax = bundle.getInt("diy_dr_max");
 
 		// 恢复玩具背包数据
 		if (bundle.contains(TOY_CHARGE)) {
@@ -744,7 +744,7 @@ public class Armor extends EquipableItem {
 	}
 
 	public int DRMax(int lvl){
-		int max = tier * (2 + lvl) + augment.defenseFactor(lvl) + fusionDRMax;
+		int max = tier * (2 + lvl) + augment.defenseFactor(lvl) + diyDRMax;
 		if (lvl > max){
 			return ((lvl - max)+1)/2;
 		} else {
@@ -758,7 +758,7 @@ public class Armor extends EquipableItem {
 
 	public int DRMin(int lvl){
 		int max = DRMax(lvl);
-		lvl += fusionDRMin;
+		lvl += diyDRMin;
 		int min;
 		if (lvl >= max){
 			min = (lvl - max);
@@ -986,13 +986,6 @@ public class Armor extends EquipableItem {
 			for (Glyph gl : diyGlyphs()) {
 				if (gl != null) {
 					damage = gl.proc( this, attacker, defender, damage );
-				}
-			}
-		}
-		if (fusedItems != null && !magicImmune) {
-			for (Item it : fusedItems) {
-				if (it instanceof Armor && ((Armor) it).glyph != null) {
-					damage = ((Armor) it).glyph.proc(this, attacker, defender, damage);
 				}
 			}
 		}

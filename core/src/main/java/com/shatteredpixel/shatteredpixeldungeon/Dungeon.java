@@ -332,18 +332,11 @@ public class Dungeon {
 		GamesInProgress.selectedClass.initHero( hero );
 
 
-		// 「智能怪物」挑战：开局给 1 次装备融合机会
-
-		if (isChallenged(Challenges.REAL_INTELLIGENCE)) {
-
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.grantCharge(hero, 1);
-
+		// DIY 工作台：只在「智能怪物」挑战开局给一件，其它途径都拿不到
+		if (com.shatteredpixel.shatteredpixeldungeon.items.Diy.shouldGrantStarterWorkbench()) {
+			new com.shatteredpixel.shatteredpixeldungeon.items.DiyWorkbench()
+					.collect( hero.belongings.backpack );
 		}
-
-		// DIY 工作台：开局带一件，拆解/合成随便用
-		com.shatteredpixel.shatteredpixeldungeon.items.DiyWorkbench diyWorkbench =
-				new com.shatteredpixel.shatteredpixeldungeon.items.DiyWorkbench();
-		diyWorkbench.collect( hero.belongings.backpack );
 	}
 
 	public static boolean isChallenged( int mask ) {
@@ -620,24 +613,6 @@ public class Dungeon {
 
 		Mob.restoreAllies( level, pos );
 
-
-		if (hero != null) {
-
-			if (isChallenged(Challenges.REAL_INTELLIGENCE)) {
-
-				if (hero.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.class) == null) {
-
-					com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.grantCharge(hero, 1);
-
-				}
-
-			} else if (levelJustGenerated) {
-
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.grantCharge(hero, 1);
-
-			}
-
-		}
 
 		// 红包：每到一个新楼层，在英雄旁边生成一个盟友
 		if (levelJustGenerated) {

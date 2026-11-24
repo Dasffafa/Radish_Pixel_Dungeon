@@ -5,6 +5,7 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items;
 
+import com.shatteredpixel.shatteredpixeldungeon.Challenges;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.watabou.noosa.Game;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
@@ -22,7 +23,6 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.WandEmpower;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.DiyRegen;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FlavourBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
-import com.shatteredpixel.shatteredpixeldungeon.challenges.FusionRules;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.glyphs.Thorns;
@@ -300,6 +300,11 @@ public final class Diy {
 			if (left <= 0) break;
 		}
 		return left <= 0;
+	}
+
+	/** 工作台只在「智能怪物」挑战开局发放，其它途径都拿不到。 */
+	public static boolean shouldGrantStarterWorkbench() {
+		return Dungeon.isChallenged(Challenges.REAL_INTELLIGENCE);
 	}
 
 	/** 拿到英雄身上的工作台（精粹仓库）。 */
@@ -1396,7 +1401,6 @@ public final class Diy {
 		// 唯一物品（剧情、任务、神器核心）不开放
 		if (sample.unique) return false;
 		// 挑战禁掉的东西（力量药水 / 升级卷轴）也不开放
-		if (FusionRules.banned(sample)) return false;
 		return true;
 	}
 
@@ -1778,16 +1782,12 @@ public final class Diy {
 			}
 		}
 		if (atk > 0 && out instanceof KindOfWeapon) {
-			((KindOfWeapon) out).fusionMin += atk;
-			((KindOfWeapon) out).fusionMax += atk;
-			if (out instanceof Weapon) {
-				((Weapon) out).fusionMin += atk;
-				((Weapon) out).fusionMax += atk;
-			}
+			((KindOfWeapon) out).diyMin += atk;
+			((KindOfWeapon) out).diyMax += atk;
 		}
 		if (arm > 0 && out instanceof Armor) {
-			((Armor) out).fusionDRMin += arm;
-			((Armor) out).fusionDRMax += arm;
+			((Armor) out).diyDRMin += arm;
+			((Armor) out).diyDRMax += arm;
 		}
 		if (out instanceof Weapon) {
 			Weapon weapon = (Weapon) out;
