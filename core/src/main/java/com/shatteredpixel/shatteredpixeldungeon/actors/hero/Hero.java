@@ -997,6 +997,11 @@ public class Hero extends Char {
 					armDr -= 2*(belongings.armor().STRReq() - STR());
 				}
             }
+            //rarity's own grant on armour: a share more of its block, lifted by masterwork
+            if (armDr > 0){
+                armDr = Math.round( armDr * (1f + com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.potencyOf(
+                        belongings.armor() )) );
+            }
             if (armDr > 0) dr += armDr;
 
             // 共鸣刻印：同时装备共鸣附魔武器与共鸣刻印护甲时，护甲格挡提升50%
