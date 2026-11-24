@@ -796,3 +796,20 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Lightning`（跑完即删）向水面/干地各打一道大闪电、再打一道不足一格的小电火花，PASS 1/1；
 截图里闪电是带关节和光晕的锯齿，落点有明显光斑；`Smoke` 9/9、`E0` 3/3、`F1` 3/3、
 `Extra_WardenAllyLightningKill` 8/8、`E1_PsiBlastTwice` 10/10 同时过。
+
+## 自然第二批：GrowthPulse / Ticker（地形生长脉冲，已并入 feat/fx-modules）
+
+- `GrowthPulse`：地板（EMPTY / EMBERS / EMPTY_DECO）变成草地（GRASS）、或草地变成高地草时，播一次「生长」：
+  把新地块的图裁一块从中间张开（`TileCrop.REVEAL`，0.2s 张开 + 0.3s 淡出），地面撒 2~4 株嫩芽，
+  高地草有 30% 概率再冒一个花苞。法术一次铺开时 `waveFrom(cell)` 让生长以 160px/s 的波传出去，
+  0.6s 窗口内的变化会排队等波到（最多 64 个）
+- `Ticker`：每帧 `GrowthPulse.tick()`（`Emitter.freezeEmitters` 时停）
+
+**接线（顺手补的一块基础设施）**
+- 本仓库以前**根本没人调用 `TerrainWatch`**，所以地形变化的钩子是死的。这次接上：
+  `GameScene.updateMap(cell)` → `TerrainWatch.changed(cell)`、每帧 `TerrainWatch.drain()`、换场景 `resync()`
+- `FxModules.terrainChanged` → `GrowthPulse.changed(...)`；`GameScene.create` 里 `GrowthPulse.reset()` + `add(new Ticker())`
+- 注意：这条链路同时也让 `WaterTerrain` 的地块变化第一次真正跑起来（之前水格拼接靠的是另一条路径）
+
+**实测**：临时场景 `Z_Growth`（跑完即删）在英雄周围把地板改成草地，PASS 2/2（`GrowthPulse.played()>0`、英雄没死）；
+截图里草地长满嫩芽。回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3、`D4_WardenSaveReload` 14/14 全过。

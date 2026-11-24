@@ -48,5 +48,6 @@ public final class FxModules {
 
 	public static void terrainChanged( int cell, int oldTerrain, int newTerrain ){
 		WaterTerrain.changed( cell, oldTerrain, newTerrain );
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.nature.GrowthPulse.changed( cell, oldTerrain, newTerrain );
 	}
 }

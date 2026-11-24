@@ -389,6 +389,9 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.sceneCreated( this );
 		com.shatteredpixel.shatteredpixeldungeon.effects.Lightning.sceneCreated();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.nature.GrowthPulse.reset();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.TerrainWatch.resync();
+		add( new com.shatteredpixel.shatteredpixeldungeon.effects.fx.nature.Ticker() );
 
 		gases = new Group();
 		add( gases );
@@ -1006,6 +1009,7 @@ public class GameScene extends PixelScene {
 		applyDayNightTint();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.frame();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX.frame();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.TerrainWatch.drain();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.update( Game.elapsed );
 		AmbientCritters.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
@@ -1624,6 +1628,7 @@ public class GameScene extends PixelScene {
 	}
 	
 	public static void updateMap( int cell ) {
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.TerrainWatch.changed( cell );
 		if (scene != null) {
 			scene.tiles.updateMapCell( cell );
 			scene.visualGrid.updateMapCell( cell );
