@@ -123,10 +123,9 @@ public class WndInfoItem extends Window {
 		titlebar.color( color );
 		
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.displayInfo()
-				+ com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.suffix( item )
-				+ com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.qualityText( item ), 6 );
-		
-		layoutFields(titlebar, txtInfo);
+				+ com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.suffix( item ), 6 );
+
+		layoutItem( titlebar, txtInfo, item );
 		maybeAddCurseButton( item );
 	}
 
@@ -154,6 +153,52 @@ public class WndInfoItem extends Window {
 		btn.setRect( 0, height + GAP, width, 16 );
 		add( btn );
 		resize( (int) width, (int) (btn.bottom() + 2) );
+	}
+
+	private void layoutItem( IconTitle title, RenderedTextBlock info, Item item ){
+		int width = WIDTH_MIN;
+		info.maxWidth( width );
+		while (PixelScene.landscape() && info.height() > 100 && width < WIDTH_MAX){
+			width += 20;
+			info.maxWidth( width );
+		}
+
+		title.setRect( 0, 0, width, 0 );
+		add( title );
+
+		float y = title.bottom() + 2;
+		com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader desc =
+				new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader( "\u63cf\u8ff0", 0xE8D9A8, width );
+		desc.place( 0, y );
+		add( desc );
+		y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
+
+		info.setPos( 0, y );
+		add( info );
+		y = info.bottom() + GAP;
+
+		if (com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.isGear( item )){
+			int rColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityColor( item );
+			com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader rare =
+					new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
+							"\u7a00\u6709\u5ea6\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityTitle( item ),
+							rColor, width );
+			rare.place( 0, y );
+			add( rare );
+			y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
+
+			String lines = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.qualityLines( item );
+			if (!lines.isEmpty()){
+				RenderedTextBlock q = PixelScene.renderTextBlock( lines, 6 );
+				q.maxWidth( width );
+				q.hardlight( rColor );
+				q.setPos( 0, y );
+				add( q );
+				y = q.bottom() + 2;
+			}
+		}
+
+		resize( width, (int)(y + 2) );
 	}
 
 	private void layoutFields(IconTitle title, RenderedTextBlock info){		int width = WIDTH_MIN;

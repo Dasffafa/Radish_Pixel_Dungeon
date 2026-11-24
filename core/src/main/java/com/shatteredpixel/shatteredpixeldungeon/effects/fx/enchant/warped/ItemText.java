@@ -80,6 +80,33 @@ public final class ItemText {
 		return 0;
 	}
 
+	/** Whether the item shows a rarity block at all. */
+	public static boolean isGear( Item it ){
+		return (it instanceof Weapon) || (it instanceof Armor);
+	}
+
+	/** The rarity's own title ("\u666e\u901a"...), or "" for non-gear. */
+	public static String rarityTitle( Item it ){
+		return isGear( it ) ? com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( it ).title() : "";
+	}
+
+	/** The rarity's colour. */
+	public static int rarityColor( Item it ){
+		return isGear( it ) ? com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( it ).rarity().color : 0xFFF1B0;
+	}
+
+	/** Its quality lines, one per line, or "". */
+	public static String qualityLines( Item it ){
+		if (!isGear( it )) return "";
+		StringBuilder b = new StringBuilder();
+		for (com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine l
+				: com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( it ).lines()){
+			if (b.length() > 0) b.append( "\n" );
+			b.append( "\u00b7 " ).append( l.title() );
+		}
+		return b.toString();
+	}
+
 	/** The gear quality block: its rarity and the lines it carries, or "" for non-gear. */
 	public static String qualityText( Item it ){
 		if (!(it instanceof Weapon) && !(it instanceof Armor)) return "";

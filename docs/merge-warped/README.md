@@ -1514,3 +1514,16 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
   ——即物品格里的扫光/光环/粒子现在跟随附魔与品质颜色
 
 编译通过，`Smoke` 9/9、`F1` 3/3。图标光晕的实机效果需你装 APK 看一下。
+
+## 品质系统第四阶段：物品窗口分段（描述 / 稀有度）
+
+- 新增 `ui/SectionHeader`：小三角 + 标题 + 细线，模仿 Warped 物品窗口的分段头
+- `WndInfoItem` 改用 `layoutItem(...)`：标题 → **描述** 分段 → 正文（含附魔行）→ **稀有度：普通** 分段（按稀有度色）
+  → 品质行（同色）
+- `ItemText` 拆出 `isGear/rarityTitle/rarityColor/qualityLines` 供窗口使用
+
+**实测**（`Z_RaritySections`，跑完即删）：窗口里出现“描述”与“稀有度：普通”两个分段头，
+品质行按稀有度色着色。编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**与 Warped 原版的剩余差距**：稀有度不会真生成（永远 COMMON）、无词条数值效果、无品质图标、
+无附魔等级与残迹附魔段落。
