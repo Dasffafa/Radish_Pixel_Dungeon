@@ -901,6 +901,18 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 天气第四批：雷暴的天闪（只有光，不落雷）
+
+- `effects/fx/FlashGate` 照搬：全屏闪光的总闸（风暴 0.7 秒一次、游戏自己的 2 秒一次、10 秒内最多 3 次），
+  用真实时间计，所以不会闪成癫痫
+- `effects/LightningFlash` 照搬：整屏一瞬的冷白闪光（瞬间起亮→快速衰减→回击的第二道小脉冲），
+  跟着镜头走；震屏幅度取 `SPDSettings.screenShake()`，最多 2 像素
+- 触发：`WeatherOverlay` 在**雷暴**时每 4~11 秒放一次 `LightningFlash.flash()`，加进 EFFECTS 层
+- **不落雷**：Warped 的 `StormStrikes`（会掉血、会点燃）完全没有搬，闪光纯粹是画面
+
+**实测**：临时场景 `Z_Storm`（跑完即删）拉起暴雪，PASS 5/5（`flashes=1 drops=847`，
+**血量 20→20、buff 3→3**、英雄没死）；截图正好拍到闪光那一帧，整屏被照亮。
+
 ## 天气第三批：草跟着天气的风摆（WindSway 接风）
 
 `WindSway` 之前是"恒微风"（固定 1.15 周期、±2 像素）。现在它读 `Weather.windX`：

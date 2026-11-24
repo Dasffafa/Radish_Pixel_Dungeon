@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.effects;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.PrecipType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Weather;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FlashGate;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.Camera;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx;
@@ -32,6 +33,7 @@ import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxParticle;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames;
 import com.watabou.noosa.Game;
+import com.watabou.noosa.Group;
 
 /**
  * What the weather looks like: the drops themselves, falling past the camera.
@@ -53,9 +55,11 @@ public final class WeatherOverlay {
 			HAIL_COLOR = 0xD8E8F0, SLEET_COLOR = 0xBCD4E8;
 
 	/** Acceptance counter (Z_Weather selftest): drops made. */
-	public static int spawned;
+	public static int spawned, flashes;
 
 	private static float acc, live;
+	//when the next flash of a storm comes
+	private static float flashIn = 4f;
 
 	private WeatherOverlay(){}
 
@@ -69,7 +73,25 @@ public final class WeatherOverlay {
 	public static void update( float dt ){
 		if (dt <= 0f || Dungeon.level == null) return;
 		if (!(Game.scene() instanceof GameScene)) return;
-		if (Weather.precip == PrecipType.NONE || Weather.intensity <= 0f) return;
+		if (Weather.precip == PrecipType.NONE || Weather.intensity <= 0f){
+			flashIn = 4f;
+			return;
+		}
+
+		//a storm's lightning: the whole view flashes for a moment (pictures only, it strikes nothing)
+		if (Weather.storming){
+			flashIn -= dt;
+			if (flashIn <= 0f){
+				flashIn = 4f + (float)Math.random() * 7f;
+				com.shatteredpixel.shatteredpixeldungeon.effects.LightningFlash f =
+						com.shatteredpixel.shatteredpixeldungeon.effects.LightningFlash.flash();
+				Group host = GameScene.layer( GameScene.Layer.EFFECTS );
+				if (host != null && f != null){
+					host.add( f );
+					flashes++;
+				}
+			}
+		}
 
 		FxEmitter air = Fx.air();
 		if (air == null) return;
