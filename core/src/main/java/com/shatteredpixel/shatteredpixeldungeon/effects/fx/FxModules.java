@@ -25,7 +25,6 @@ public final class FxModules {
 		com.shatteredpixel.shatteredpixeldungeon.actors.Thermal.reset();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.IceCrust.reset();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.AmbientDust.reset();
-		com.shatteredpixel.shatteredpixeldungeon.effects.fx.GrassSway.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.LowMist.reset();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.IceFringe.reset();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.ShoreSurf.reset();
@@ -37,6 +36,7 @@ public final class FxModules {
 		if (s.ch == null) return;
 		WaterWalk.stepped( s, from, to );
 		RoamerTracks.stepped( s.ch, from, to );
+		WindSway.rustle( from, to );
 	}
 
 	public static void jumped( CharSprite s ){

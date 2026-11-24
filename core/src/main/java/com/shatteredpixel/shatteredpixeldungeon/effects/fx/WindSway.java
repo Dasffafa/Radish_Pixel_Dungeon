@@ -49,25 +49,29 @@ import com.watabou.utils.RectF;
 public final class WindSway {
 
 	/** Blades kept on screen, and how often they pick a new bit of grass. */
-	private static final int BLADES = 60;
+	private static final int BLADES = 90;
 	private static final float RETARGET = 2.5f;
 	/** The breeze: cycles a second, and the most it leans either way (whole pixels). */
-	private static final float PACE = 1.15f, LEAN = 2f;
+	private static final float PACE = 1.15f, LEAN = 2.5f;
 	/** Its colour, its alpha, and the blades it may wear. */
 	private static final int COLOR = 0x7FA04A;
-	private static final float ALPHA = 0.55f;
+	private static final float ALPHA = 0.7f;
 	private static final int[][] FRAMES = { FxFrames.BLADE_3, FxFrames.BLADE_4, FxFrames.BLADE_5 };
 
 	/** Acceptance counter (Z_Wind selftest): blades standing now. */
-	public static int standing, swaySum;
+	public static int standing, swaySum, rustles;
+	/** How many blades are bending under a foot right now. */
+	private static float[] kick;
 
 	private static Blade[] blades;
+	private static Group host;
 	private static float time, retargetIn;
 
 	private static final class Blade {
 		Image img;
 		int cell = -1;
 		float baseX, baseY, phase;
+		int fh;
 	}
 
 	private WindSway(){}
@@ -91,7 +95,8 @@ public final class WindSway {
 		if (retarget) retargetIn = RETARGET;
 
 		int n = 0, leanSum = 0;
-		for (Blade b : blades){
+		for (int i = 0; i < blades.length; i++){
+			Blade b = blades[i];
 			if (b.cell < 0) continue;
 			if (!grassVisible( b.cell )){
 				b.img.visible = false;
@@ -103,7 +108,9 @@ public final class WindSway {
 			float wind = Weather.windX;
 			float amp = 1f + 2.2f * Math.abs( wind );
 			float pace = PACE * (1f + 0.9f * Math.abs( wind ));
-			int lean = (int)Math.round( Math.sin( time * pace * 6.2831853f + b.phase ) * amp + wind * 1.6f );
+			if (kick != null && kick[i] > 0f) kick[i] = Math.max( 0f, kick[i] - dt * 3f );
+			int lean = (int)Math.round( Math.sin( time * pace * 6.2831853f + b.phase ) * amp + wind * 1.6f
+					+ (kick != null ? kick[i] * 3f * (i % 2 == 0 ? 1f : -1f) : 0f) );
 			b.img.x = b.baseX + lean;
 			leanSum += lean;
 			b.img.y = b.baseY;
@@ -117,9 +124,10 @@ public final class WindSway {
 	}
 
 	private static void build(){
-		Group host = GameScene.layer( GameScene.Layer.SURFACE );
+		host = GameScene.layer( GameScene.Layer.SURFACE );
 		if (host == null){ blades = null; return; }
 		blades = new Blade[BLADES];
+		kick = new float[BLADES];
 		for (int i = 0; i < BLADES; i++){
 			Blade b = new Blade();
 			Image img = new Image( Assets.Effects.FX_LIGHT );
@@ -132,6 +140,7 @@ public final class WindSway {
 			host.add( img );
 			b.img = img;
 			b.phase = FxRandom.Float( 0f, 6.2831853f );
+			b.fh = f[3];
 			blades[i] = b;
 		}
 		placeAll();
@@ -139,6 +148,76 @@ public final class WindSway {
 
 	private static void placeAll(){
 		for (Blade b : blades) place( b );
+	}
+
+	/** Stands a blade exactly on `cell`, at its foot. */
+	private static boolean placeAt( Blade b, int cell ){
+		if (host == null || b.img == null || !grassVisible( cell )) return false;
+		PointF p = DungeonTilemap.tileToWorld( cell );
+		b.cell = cell;
+		b.baseX = p.x + 4f + FxRandom.Float( 8f );
+		b.baseY = p.y + DungeonTilemap.SIZE - b.fh - FxRandom.Int( 2 );
+		b.img.x = b.baseX;
+		b.img.y = b.baseY;
+		b.img.visible = true;
+		return true;
+	}
+
+	/** Feet went through grass at `from` and `to`: the blades there bend and spring back. */
+	public static void rustle( int from, int to ){
+		if (blades == null || Dungeon.level == null) return;
+
+		//a few blades right where the feet went
+		int made = 0;
+		for (int i = 0; i < blades.length && made < 4; i++){
+			Blade b = blades[i];
+			if (b.cell >= 0 && Dungeon.level.distance( b.cell, to ) <= 1) continue;
+			if (placeAt( b, to )){
+				made++;
+				b.phase = FxRandom.Float( 0f, 6.2831853f );
+			}
+		}
+
+		//bend every blade near the step
+		for (int i = 0; i < blades.length; i++){
+			Blade b = blades[i];
+			if (b.cell < 0) continue;
+			if (b.cell != from && Dungeon.level.distance( b.cell, to ) > 1) continue;
+			kick[i] = 1.5f;
+			b.phase = FxRandom.Float( 0f, 6.2831853f );
+			rustles++;
+		}
+
+		//and a flat trampled mark under the foot, so the step reads on the ground too
+		PointF foot = DungeonTilemap.tileToWorld( to );
+		FxDecal.at( foot.x + 2f + FxRandom.Float( 4f ), foot.y + 9f + FxRandom.Float( 3f ),
+				FxFrames.WET_9, 0x53702E, 0.45f, 0.15f, 0.55f, FxRandom.chance( 0.5f ) );
+
+		//a few tips thrown out of the patch
+		FxEmitter air = Fx.air();
+		if (air != null){
+			PointF p = DungeonTilemap.tileToWorld( to );
+			//torn leaves and a puff of dust: readable even on dark grass
+			for (int i = 0; i < 6; i++){
+				FxParticle q = (FxParticle) air.recycle( FxParticle.class );
+				if (q == null) break;
+				int[] leaf = FxFrames.LEAF_D[FxRandom.Int( FxFrames.LEAF_D.length )];
+				q.reset( p.x + FxRandom.Float( 12f ), p.y + DungeonTilemap.SIZE - 4f )
+						.look( leaf ).paint( 0x8FBF5A )
+						.vel( FxRandom.Float( -22f, 22f ), -FxRandom.Float( 18f, 38f ) )
+						.gravity( 90f ).drag( 0.6f ).life( 0.7f ).alpha( 1f, 0f, 0.3f )
+						.priority( FxBudget.P3 );
+			}
+			for (int i = 0; i < 3; i++){
+				FxParticle q = (FxParticle) air.recycle( FxParticle.class );
+				if (q == null) break;
+				q.reset( p.x + FxRandom.Float( 10f ), p.y + DungeonTilemap.SIZE - 3f )
+						.look( FxFrames.MOTE_2 ).paint( 0xA89878 )
+						.vel( FxRandom.Float( -10f, 10f ), -FxRandom.Float( 6f, 14f ) )
+						.gravity( 30f ).life( 0.8f ).alpha( 0.55f, 0f, 0.4f )
+						.priority( FxBudget.P3 );
+			}
+		}
 	}
 
 	/** Put a blade on a bit of grass the hero can see, at its foot. */

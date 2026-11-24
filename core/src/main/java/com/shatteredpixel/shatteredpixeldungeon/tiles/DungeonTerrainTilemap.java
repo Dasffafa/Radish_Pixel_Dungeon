@@ -24,8 +24,6 @@ package com.shatteredpixel.shatteredpixeldungeon.tiles;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.watabou.noosa.Image;
-import com.watabou.utils.PointF;
-import com.watabou.utils.RectF;
 import com.watabou.utils.PathFinder;
 
 public class DungeonTerrainTilemap extends DungeonTilemap {
@@ -38,24 +36,6 @@ public class DungeonTerrainTilemap extends DungeonTilemap {
 		map( Dungeon.level.map, Dungeon.level.width() );
 
 		instance = this;
-	}
-
-	/**
-	 * A picture of the tile over `cell`, cut to its top `rows` px: what an effect that shifts a
-	 * tile's top (the grass swaying) draws. Null when the cell is not drawn at all.
-	 */
-	public static Image topOf( int cell, int rows ){
-		if (instance == null || Dungeon.level == null) return null;
-		if (cell < 0 || cell >= instance.data.length) return null;
-		int visual = instance.getTileVisual( cell, Dungeon.level.map[cell], false );
-		if (visual < 0) return null;
-		RectF f = instance.tileset.get( visual );
-		if (f == null) return null;
-		Image img = new Image( instance.texture, (int)f.left, (int)f.top, (int)f.width(), (int)rows );
-		PointF p = tileToWorld( cell );
-		img.x = p.x;
-		img.y = p.y;
-		return img;
 	}
 
 	@Override

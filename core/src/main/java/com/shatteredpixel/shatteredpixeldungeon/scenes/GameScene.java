@@ -1020,8 +1020,6 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.actors.Thermal.update( Game.elapsed );
 		//空气里的浮尘
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.AmbientDust.update( Game.elapsed );
-		//草尖随风摆
-		com.shatteredpixel.shatteredpixeldungeon.effects.fx.GrassSway.update( Game.elapsed );
 		AmbientCritters.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.update( Game.elapsed );
