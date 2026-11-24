@@ -80,10 +80,8 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	/** The enchant framework's small push (Warped's CharSprite.nudge): a shove of `px` along a
 	 *  direction, over `seconds`. */
 	public void nudge( int dx, int dy, float seconds ){
-		if (seconds <= 0f || (dx == 0 && dy == 0)) return;
-		move( ch != null ? ch.pos : 0, ch != null ? ch.pos : 0 );
-		x += dx;
-		y += dy;
+		//intentionally a no-op: the visual shove needs a tween of its own, and starting a
+		//zero-length motion here left the game waiting on sprite movement (a freeze)
 	}
 
 	/** 是否"漂浮"（船/水面载具）。本仓库没有载具系统，恒为 false。 */

@@ -187,7 +187,13 @@ public final class EnchantFx {
 		final boolean seen = fightSeen( a, d ), hero = involvesHero( a, d );
 		//inside a blow: its piece, drawn as the blow's lead or an accent (BlowPresenter)
 		if (Blow.offer( new ProcPiece( l, a, as, d, ds, s, level, flags, twist, seen, hero, false, -1, -1 ) )) return;
-		Fx.post( () -> runProc( l, a, as, d, ds, s, level, flags, -1, seen, hero, false, twist ) );
+		Fx.post( () -> {
+			try {
+				runProc( l, a, as, d, ds, s, level, flags, -1, seen, hero, false, twist );
+			} catch (Throwable t){
+				//ditto: never throw out of the render task
+			}
+		} );
 	}
 
 	//a guest's: what the host sent (EnchantNet), from the guest's own sprites
@@ -1085,6 +1091,7 @@ public final class EnchantFx {
 
 	/** The family's own look on the beat. */
 	public static void family( Beat b ){
+		try {
 		switch (b.fam){
 			case EMBER:    EmberFx.play( b ); break;
 			case RIME:     RimeFx.play( b ); break;
@@ -1101,6 +1108,10 @@ public final class EnchantFx {
 			case FORTUNE:  FortuneFx.play( b ); break;
 			case MIRAGE:   MirageFx.play( b ); break;
 			case HEART:    HeartFx.play( b ); break;
+		}
+		} catch (Throwable t){
+			//a family's art must never break the blow: an exception here would leave the blow
+			//unclosed and the game waiting on it (a freeze)
 		}
 	}
 
