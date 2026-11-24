@@ -852,6 +852,24 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Items2`（跑完即删）连读充能/暴怒/恐惧/传送四张卷轴，PASS 5/5
 （`reads=4`、`recharges>0`、`shocks=2`、`teleports>0`、英雄没死）。
 
+## 战斗第二批：HitFx 命中星芒（已并入 feat/fx-modules）
+
+- `effects/fx/combat/HitFx`：一刀命中的「星芒」——中心亮星 + 一圈 bloom（按血量颜色）、按武器音效分
+  HIT / SLASH / STAB / CRUSH / ARROW / MAGIC / PARRY / STRONG 八种形态（挥砍的月牙、突刺的细芒、钝击的尘土、
+  箭的木屑、法术的亮点、格挡的环），重伤/暴击时更大更亮，英雄参与时还会轻微震屏；另有 `dodged`（闪避的气流）
+  与 `killPuff`（击杀的一团血雾 + 地面环）
+- `effects/fx/combat/Piece` 与 `LightFlash` 一并搬来（星芒作为 blow 的零件、命中瞬间的一道光）
+- 接线：`Char.damage()` 里打完 `bloodBurstA`/`flash` 之后，若 `visibleFight` 且攻击者可见 →
+  `CharSprite.hitFx( ... )` → `HitFx.hit(...)`；武器形态用 `HitFx.styleOf(attacker)`，
+  `KindOfWeapon` 补了 `hitSoundAsset()` 取值
+- **去掉的 4.x 耦合**：`EnchantLook`/`EnchantState`/`TypeFx`（附魔 look 框架）——星芒固定用目标自身血色，
+  刀锋用白色；木屑用固定色而不是 `TypeFx.WOOD`
+- **没搬的**：`Blow`/`BlowPresenter`（打击演示管线，负责把一次攻击编排成多拍）、`Looks`/`StateLooks`（武器外观表，
+  依赖 rarity）；`CharSprite.nudge`（受击抖动）本分支没有，先省掉
+
+**实测**：临时场景 `Z_Hit`（跑完即删）砍一只老鼠三刀，PASS 3/3（`HitFx.hits>0`、老鼠掉血、英雄没死）；
+截图里能清楚看到目标身上一团亮黄星芒 + 一道红色月牙。回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3 全过。
+
 ## 火第三批：HeatRay（热浪，已并入 feat/fx-modules）
 
 - `effects/fx/fire/HeatRay`：一团热浪，一帧一帧往上飘，每 0.3~0.5s 左右镜像翻一次（像空气抖动，

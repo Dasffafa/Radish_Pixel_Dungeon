@@ -478,6 +478,12 @@ public abstract class Char extends Actor {
             enemy.sprite.bloodBurstA(sprite.center(), effectiveDamage);
             enemy.sprite.flash();
 
+            if (visibleFight && sprite != null) {
+                enemy.sprite.hitFx( sprite.x + sprite.width() / 2f, sprite.y + sprite.height() / 2f, effectiveDamage,
+                        com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.HitFx.styleOf( this ),
+                        this == Dungeon.hero || enemy == Dungeon.hero );
+            }
+
             if (!enemy.isAlive() && visibleFight) {
                 if (enemy == hero) {
 

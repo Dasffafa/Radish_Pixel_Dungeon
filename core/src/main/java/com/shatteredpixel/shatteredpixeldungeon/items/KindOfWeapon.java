@@ -393,6 +393,11 @@ abstract public class KindOfWeapon extends EquipableItem {
 		return damage;
 	}
 
+	/** The sound a blow of this weapon makes (fx/combat/HitFx's style). */
+	public String hitSoundAsset(){
+		return hitSound;
+	}
+
 	public void hitSound( float pitch ){
 		// TheCatist 2026.7.30 武器音效在SnDUI的时候会额外变化
 		if (!SnDSFX.active()){
