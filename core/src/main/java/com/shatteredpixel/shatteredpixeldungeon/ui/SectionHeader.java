@@ -33,8 +33,9 @@ public class SectionHeader extends Group {
 
 	private final RenderedTextBlock arrow;
 	private final RenderedTextBlock label;
-	private final ColorBlock rule;
+	private final RenderedTextBlock rule;
 	private final int color;
+	private int fullWidth;
 
 	/** Whether the section under this header is showing (the owner sets this before placing). */
 	public boolean open = true;
@@ -51,12 +52,13 @@ public class SectionHeader extends Group {
 		label.hardlight( color );
 		add( label );
 
-		rule = new ColorBlock( 1, 1, color );
-		rule.alpha( 0.3f );
+		rule = PixelScene.renderTextBlock( "", 6 );
+		rule.hardlight( color );
+		rule.alpha( 0.55f );
 		add( rule );
 
+		fullWidth = width;
 		place( 0, 0 );
-		placeRule( width );
 	}
 
 	private void placeArrow( float y ){
@@ -65,18 +67,24 @@ public class SectionHeader extends Group {
 		arrow.setPos( 1, y + (HEIGHT - arrow.height()) / 2f );
 	}
 
-	private void placeRule( int width ){
+	private void placeRule( float y ){
 		float from = label.right() + 3;
-		rule.size( Math.max( 0, width - from ), 1 );
-		rule.x = from;
-		rule.y = HEIGHT / 2f;
+		int room = Math.max( 0, (int)(fullWidth - from) );
+		StringBuilder dashes = new StringBuilder();
+		while (dashes.length() < 100) dashes.append( "\u2500" );
+		rule.text( dashes.toString() );
+		float perChar = Math.max( 1f, rule.width() / 100f );
+		int n = Math.max( 1, (int)(room / perChar) );
+		StringBuilder fit = new StringBuilder();
+		for (int i = 0; i < n; i++) fit.append( "\u2500" );
+		rule.text( fit.toString() );
+		rule.setPos( from, y + (HEIGHT - rule.height()) / 2f );
 	}
 
 	/** Puts the whole header at (x, y). */
 	public void place( float x, float y ){
 		placeArrow( y );
 		label.setPos( x + 9, y + (HEIGHT - label.height()) / 2f );
-		rule.x = label.right() + 3;
-		rule.y = y + HEIGHT / 2f;
+		placeRule( y );
 	}
 }
