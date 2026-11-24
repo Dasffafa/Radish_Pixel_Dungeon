@@ -146,6 +146,14 @@ public final class Quality {
 		return out;
 	}
 
+	/** How strongly one of its lines reads, 0..1: its rarity's roll, fixed per item and line. */
+	public float strength( RarityLine line ){
+		if (!has( line )) return 0f;
+		int seed = (item.getClass().getName().hashCode() ^ line.ordinal() * 0x9E3779B9);
+		java.util.Random rnd = new java.util.Random( seed );
+		return rarity.minRoll + (rarity.maxRoll - rarity.minRoll) * rnd.nextFloat();
+	}
+
 	/** Whether it carries that quality line. */
 	public boolean has( RarityLine line ){
 		return line != null && lines().contains( line );

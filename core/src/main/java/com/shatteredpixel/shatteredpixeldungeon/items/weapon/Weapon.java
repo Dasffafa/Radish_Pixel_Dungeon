@@ -240,6 +240,23 @@ abstract public class Weapon extends KindOfWeapon {
 			}
 		}
 
+		// Warped quality lines that act on a blow: crit and lifesteal (the rest are still names)
+		if (attacker != null && defender != null && attacker != defender && damage > 0){
+			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( this );
+			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.CRIT )){
+				float chance = 0.08f + 0.22f * q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.CRIT );
+				if (com.watabou.utils.Random.Float() < chance){
+					damage = Math.round( damage * 1.5f );
+				}
+			}
+			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.LIFESTEAL )){
+				int heal = Math.max( 1, Math.round( damage * 0.3f
+						* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.LIFESTEAL ) ) );
+				attacker.HP = Math.min( attacker.HT, attacker.HP + heal );
+			}
+		}
+
 		if (!levelKnown && attacker == Dungeon.hero) {
 			float uses = Math.min( availableUsesToID, Talent.itemIDSpeedFactor(Dungeon.hero, this) );
 			availableUsesToID -= uses;
