@@ -1816,3 +1816,13 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **不完整的地方（如实）**：杰作杀敌数存在**内存**里（存档会丢）；残迹是“伤害回响”而不是真实附魔效果；
 宝石仍是 **◆ 字符**，没有 `rarity_icons.png` 图标素材。
+
+## 品质宝石图标：从 Warped 仓库拿到了素材
+
+之前以为没有素材，实际 Warped 仓库里有：
+
+- `core/src/main/assets/sprites/rarity_icons.png`（1285 字节，8 个 16×16 宝石格）→ 已复制到本仓库同路径
+- `messages/rarity/rarity.properties`（品质文案）→ 未复制，本仓库已自带中文品质名
+
+`Assets.Sprites` 加了常量 `RARITY_ICONS`。**尚未接入窗口**：下一步把它以
+`Image` 按 `Rarity.ordinal()*16` 取帧、缩放 0.5 后画在稀有度分段头前，替掉 ◆ 字符。
