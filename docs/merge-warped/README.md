@@ -1596,3 +1596,15 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 编译通过、`Smoke` 9/9、`F1` 3/3。本轮同样未写专项场景（下一轮可补测试）。
 
 **剩余**：SLAYER/HUNTER/STEADY/MOONLIT + HUSHED/RAINPROOF。
+
+## 品质系统第十一阶段：补上词条验证
+
+用一个场景（`Z_PerksTest`，跑完即删）同时验证三条之前只有编译覆盖的词条：
+
+```
+exec 100.0 -> 109.0        (EXECUTIONER：目标半血时伤害上升，+9%)
+wind 4.0 -> 4.79           (WINDBREAK：风大时气温降幅变小)
+warm 4.79 -> 6.14          (WARM_GRIP：手持暖手武器时气温回升)
+```
+
+编译通过、`Smoke` 9/9、`F1` 3/3。**SUREFOOT / COOLING / STORMBORN 仍无专项验证**。
