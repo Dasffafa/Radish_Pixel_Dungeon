@@ -60,13 +60,15 @@ public final class WeatherOverlay {
 			HAIL_COLOR = 0xD8E8F0, SLEET_COLOR = 0xBCD4E8;
 
 	/** Acceptance counter (Z_Weather selftest): drops made. */
-	public static int spawned, flashes, splashes;
+	public static int spawned, flashes, splashes, mists;
 
 	private static float acc, live;
 	//when the next flash of a storm comes
 	private static float flashIn = 4f;
 	//when the next drop lands on the ground
 	private static float splashAcc;
+	//when the next wisp of ground mist rises
+	private static float mistIn = 1f;
 
 	private WeatherOverlay(){}
 
@@ -104,6 +106,7 @@ public final class WeatherOverlay {
 		if (air == null) return;
 
 		splash( dt );
+		mist( dt, air );
 
 		acc += dt * RATE * (0.3f + Weather.intensity);
 		int made = 0;
@@ -112,6 +115,41 @@ public final class WeatherOverlay {
 			made++;
 			drop( air );
 		}
+	}
+
+	/**
+	 * Ground mist: a slow, very faint wisp rising off damp floors while it rains or snows. Purely
+	 * atmospheric - it never hides a monster (alpha is a tenth or so) and touches nothing.
+	 */
+	private static void mist( float dt, FxEmitter air ){
+		if (Weather.intensity < 0.25f) return;
+		mistIn -= dt;
+		if (mistIn > 0f) return;
+		mistIn = 0.45f + (float)Math.random() * 0.9f;
+
+		Camera c = Camera.main;
+		float camX = c != null ? c.scroll.x : 0f, camY = c != null ? c.scroll.y : 0f;
+		float w = c != null ? c.width : 480f, h = c != null ? c.height : 800f;
+		int lvlW = Dungeon.level.width(), lvlH = Dungeon.level.height();
+
+		int cx = (int)( (camX + (float)Math.random() * w) / DungeonTilemap.SIZE );
+		int cy = (int)( (camY + (float)Math.random() * h) / DungeonTilemap.SIZE );
+		if (cx < 0 || cy < 0 || cx >= lvlW || cy >= lvlH) return;
+		int cell = cy * lvlW + cx;
+		if (Dungeon.level.solid[cell]) return;
+
+		PointF p = DungeonTilemap.tileToWorld( cell );
+		boolean snowy = Weather.precip == PrecipType.SNOW || Weather.precip == PrecipType.BLIZZARD;
+		FxParticle q = (FxParticle) air.recycle( FxParticle.class );
+		if (q == null) return;
+		q.reset( p.x + FxRandom.Float( 12f ), p.y + DungeonTilemap.SIZE - FxRandom.Float( 6f ) )
+				.look( FxFrames.Light.GLOW_31 )
+				.paint( snowy ? SNOW_COLOR : RAIN_COLOR )
+				.vel( Weather.windX * 14f, -3f - FxRandom.Float( 4f ) )
+				.life( 4f + FxRandom.Float( 3f ) )
+				.alpha( 0.10f + 0.06f * Weather.intensity, 0.3f, 0.6f )
+				.priority( FxBudget.P3 );
+		mists++;
 	}
 
 	/** Drops landing on the ground: a little fading mark where they hit (never on water: that rings). */
