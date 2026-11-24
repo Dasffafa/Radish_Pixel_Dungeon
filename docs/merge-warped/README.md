@@ -1370,3 +1370,17 @@ procs ember=1 storm=2  runs=2  earlyOut=0
 `Extra_ActivatedPrototypeAsleep` 耐性通过）。
 
 下一批：物品光晕仍暂缓（需品质系统）；可以先把“每次命中都叫拍子”收窄到“真正 proc 才叫”。
+
+## 附魔外观体系第六批：地上附魔物品的光晕
+
+新增 `warped/ItemAura`（精简版）：地上堆里若有**带附魔的武器或带符文的护甲**，就按它的
+`EnchantLook.motif` 周期（`periodAt(0)`）从堆上冒一颗光晕粒子（`MotifFx.heap`），只在镜头内扫描。
+
+- `GameScene.create` 里 `reset()`，`update()` 每帧推进
+- `motes` 验收计数
+
+**与 Warped 原版的差距**（写在类注释里）：Warped 的 `ItemAura` 还画物品格子里的光晕、符文、品质线与冷热握感，
+那些都需要品质系统；这里只做了“地上”这一半。
+
+**实测**（`Z_EnchantAura`，跑完即删）：把一把 Blazing 短剑丢在英雄旁边，帧数后
+`motes=1`（heap 存在、look=Blazing），截图里剑旁有橙色光点。全量回归 **58 通过**，仅 `A0`/`A4` 基线失败。

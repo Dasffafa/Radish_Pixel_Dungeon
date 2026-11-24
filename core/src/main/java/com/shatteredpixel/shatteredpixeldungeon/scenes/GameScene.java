@@ -382,6 +382,7 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.init();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.ItemAura.reset();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemAura.reset();
 		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.sceneCreated();
 
 		lightFx = new Group();
@@ -1025,6 +1026,8 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.update( Game.elapsed );
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.ItemAura.update( Game.elapsed );
+		//地上附魔物品的光晕（warped 附魔外观）
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemAura.update( Game.elapsed );
 		com.shatteredpixel.shatteredpixeldungeon.levels.ambience.LevelAmbience.update();
 
 		if (!Actor.processing() && Dungeon.hero.isAlive()) {
