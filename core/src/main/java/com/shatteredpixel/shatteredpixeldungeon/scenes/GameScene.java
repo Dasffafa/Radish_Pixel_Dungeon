@@ -388,6 +388,7 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxModules.sceneCreated( this );
+		com.shatteredpixel.shatteredpixeldungeon.effects.Lightning.sceneCreated();
 
 		gases = new Group();
 		add( gases );

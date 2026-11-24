@@ -84,7 +84,7 @@ public class FlashBangBomb extends Bomb {
 		}
 
 		CellEmitter.center(cell).burst(SparkParticle.FACTORY, 20);
-		Dungeon.hero.sprite.parent.addToFront(new Lightning(arcs, null));
+		Dungeon.hero.sprite.parent.addToFront(new Lightning(arcs, null).major());
 		Sample.INSTANCE.play( Assets.Sounds.LIGHTNING );
 	}
 

@@ -540,3 +540,34 @@ sendToBack(frame); bringToFront(sparks);
 已照做（`MissileSprite`）：每 0.03s 在当前位置留一张**与弹体同一帧、同角度、同缩放**的淡影，
 初始 alpha 0.35，0.3 秒内线性淡出，最多 4 张循环复用。
 这样轨迹看起来是"箭的残影拖出去"，而不是旁边飘着不相干的东西。
+
+## 闪电（lightning 区，已并入 feat/fx-modules）
+
+这次终于有真源码可读（`GabriWar/warpedpd` v24.5.6），所以不再照反编译猜，直接搬。
+
+**搬进来的（`effects/fx/lightning/`）**
+
+| 文件 | 作用 | 关键参数 |
+|---|---|---|
+| `Lines` | 线段的摆放与淡出（Warped 原样） | — |
+| `StrikeLights` | 落点的地面光池；相近的两次电击点亮同一片而不是并排两片 | `NEAR 24px / FOR 0.35s / AGAIN 0.7`，最多记 24 片 |
+| `StrikeGround` | 干地留焦痕；水面发亮（wash）+ 荡开一圈纹 + 鱼影惊散；电痕沿水面爬行时的青色环 | 焦痕 `0.4 / 3s`；wash `9CC8FF / 0.3 / 0.4s`，半径 1~2 格、最多 12 格；`DISTURB 96px` |
+| `Crackle` | 落点上还在爬的 2~3 根 3~5px 小电枝；武器附魔触发的静电火花 | 每 `0.05s` 换一茬、`0.15s` 消失、最多 8 处 |
+| `Afterglow` | 大闪电消失后，光芯在眼前再留一瞬 | `0.12s`、`PEAK 0.25`、色 `0x6A80FF`、最多 3 份 |
+
+**接线**
+
+- `effects/Lightning` 保留原仓库的两段折线画法，新增 `major()`：`WandOfLightning`、`ShockBomb`、`FlashBangBomb` 标记为 major，落点才有焦痕、大光池与余光
+- 短于 30px 的电火花算「没打到地上」：不铺光池、不留痕（与 Warped 的 `GLOW_FROM` 一致）
+- 光池每帧按光晕亮度 `halo(t)` 驱动；被别的闪电重新点亮时，驱动权交给新的那道
+- `GameScene.create` 调 `Lightning.sceneCreated()` 重置 `StrikeLights / Crackle / Afterglow`
+
+**刻意的差异（本仓库没有天气层）**
+
+- 没有整屏闪白、雷声、落点「咔嚓」声；`stormsOwn` / `thunderous` / `WeatherOverlay` 相关的都没搬
+- 仍是原来的两段折线，没有换 Warped 那套 1254 行的 `Arc`（每 16px 一个关节、叉形、树枝、光晕、leader）
+- `Arc.crawl()`（电痕沿水面跑）和 `ElectricityFx`（被电的水面自身的闪烁）还没搬
+
+**实测**：临时场景 `Z_Lightning`（跑完即删）在真实引擎里打三道电——水面上、干地上、不足一格的短电火花——PASS 7/7：
+光池 `poolsLaid>0`、焦痕 `scorchesLaid>0`、余光 `afterglowsShown>0`，短电火花两项都是 0。
+另做了对照：直接铺一块 63px 的暖色光池，`LIGHTS` 图层正常显示（说明不是图层问题，只是本仓库地板很暗、蓝光弱）。
