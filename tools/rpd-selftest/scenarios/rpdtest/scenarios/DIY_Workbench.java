@@ -82,6 +82,13 @@ public class DIY_Workbench implements Scenario {
 		DiyWorkbench bench = h.get( () -> Dungeon.hero.belongings.getItem( DiyWorkbench.class ) );
 		h.require( bench != null, "测试需要一个 DIY 工作台" );
 
+		h.world( "打开拆装台说明", () -> com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+				new com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoItem( Dungeon.hero.belongings.getItem( DiyWorkbench.class ) ) ) );
+		h.frames( 10 );
+		h.screenshot( "diy-workbench-info" );
+		h.closeWindows();
+		h.frames( 3 );
+
 		// ---------- 专属贴图 ----------
 		h.check( h.get( () -> new DiyMaterial( DiyMaterial.METAL, 1 ).image ).equals( ItemSpriteSheet.DIY_METAL ),
 				"铁件用的是新贴图 diy_metal" );
