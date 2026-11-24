@@ -25,6 +25,11 @@ import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.PrecipType;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Weather;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FlashGate;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxDecal;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxFrames;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxRandom;
+import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
+import com.watabou.utils.PointF;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.watabou.noosa.Camera;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx;
@@ -55,11 +60,13 @@ public final class WeatherOverlay {
 			HAIL_COLOR = 0xD8E8F0, SLEET_COLOR = 0xBCD4E8;
 
 	/** Acceptance counter (Z_Weather selftest): drops made. */
-	public static int spawned, flashes;
+	public static int spawned, flashes, splashes;
 
 	private static float acc, live;
 	//when the next flash of a storm comes
 	private static float flashIn = 4f;
+	//when the next drop lands on the ground
+	private static float splashAcc;
 
 	private WeatherOverlay(){}
 
@@ -96,12 +103,45 @@ public final class WeatherOverlay {
 		FxEmitter air = Fx.air();
 		if (air == null) return;
 
+		splash( dt );
+
 		acc += dt * RATE * (0.3f + Weather.intensity);
 		int made = 0;
 		while (acc >= 1f && made < 24){
 			acc -= 1f;
 			made++;
 			drop( air );
+		}
+	}
+
+	/** Drops landing on the ground: a little fading mark where they hit (never on water: that rings). */
+	private static void splash( float dt ){
+		Camera c = Camera.main;
+		float camX = c != null ? c.scroll.x : 0f, camY = c != null ? c.scroll.y : 0f;
+		float w = c != null ? c.width : 480f, h = c != null ? c.height : 800f;
+		int lvlW = Dungeon.level.width(), lvlH = Dungeon.level.height();
+
+		float per = (Weather.precip == PrecipType.SNOW || Weather.precip == PrecipType.BLIZZARD) ? 4f : 16f;
+		splashAcc += dt * per * (0.3f + Weather.intensity);
+
+		int made = 0;
+		while (splashAcc >= 1f && made < 10){
+			splashAcc -= 1f;
+			made++;
+			int cx = (int)( (camX + (float)Math.random() * w) / DungeonTilemap.SIZE );
+			int cy = (int)( (camY + (float)Math.random() * h) / DungeonTilemap.SIZE );
+			if (cx < 0 || cy < 0 || cx >= lvlW || cy >= lvlH) continue;
+			int cell = cy * lvlW + cx;
+			if (Dungeon.level.solid[cell] || Dungeon.level.water[cell]) continue;
+			if (!Dungeon.level.heroFOV[cell] && !Dungeon.level.visited[cell]) continue;
+
+			PointF p = DungeonTilemap.tileToWorld( cell );
+			float x = p.x + 3f + FxRandom.Float( 10f ), y = p.y + 9f + FxRandom.Float( 5f );
+			boolean snow = Weather.precip == PrecipType.SNOW || Weather.precip == PrecipType.BLIZZARD;
+			int color = snow ? SNOW_COLOR : RAIN_COLOR;
+			FxDecal.at( x, y, snow ? FxFrames.MOTE_1 : FxFrames.RING_5, color,
+					snow ? 0.35f : 0.30f, 0.03f, 0.22f, Math.random() < 0.5 );
+			splashes++;
 		}
 	}
 
