@@ -77,17 +77,6 @@ public class WndGame extends Window {
 		}
 
 
-		// 红包属性测试入口
-		if (Dungeon.isChallenged(com.shatteredpixel.shatteredpixeldungeon.Challenges.TEST_MODE)) {
-			addButton(curBtn = new RedButton("红包属性测试") {
-				@Override
-				protected void onClick() {
-					hide();
-					GameScene.show(new WndHongbaoDebug());
-				}
-			});
-			curBtn.icon(Icons.get(Icons.CHALLENGE_ON));
-		}
 
 		if(!Dungeon.hero.ready && Dungeon.hero.isAlive()) {
 			// Debug

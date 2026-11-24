@@ -306,8 +306,6 @@ public class Dungeon {
 		gateChains.clear();
 		generatedLevels.clear();
 		levelJustGenerated = false;
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.clearCarriedAllies();
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MobEnvelope.resetGlobal();
 
 		gold = 0;
 		energy = 0;
@@ -399,11 +397,6 @@ public class Dungeon {
 			level = new com.shatteredpixel.shatteredpixeldungeon.levels.ChessBoardLevel();
 		}
 
-		// 「三分钟一把」：整局都待在竞技场里，正常楼层生成全部跳过。
-		// 放在这里是为了让挑战优先于分支/随机地图变体，但不影响测试工具的强制关卡。
-		if (isChallenged(Challenges.THREE_MINUTE)) {
-			level = new com.shatteredpixel.shatteredpixeldungeon.levels.ArenaLevel();
-		}
 		
 		// 第10层的 Boss 选择：典狱长与天狗随机替换出现
 		if (branchId.equals(Branches.MAIN) && depth == 10 && level instanceof PrisonBossLevel) {
@@ -615,10 +608,6 @@ public class Dungeon {
 
 
 		// 红包：每到一个新楼层，在英雄旁边生成一个盟友
-		if (levelJustGenerated) {
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.spawnFloorAlly(level, pos);
-		}
-
 		Actor.init();
 
 		level.addRespawner();
@@ -635,12 +624,6 @@ public class Dungeon {
 			}
 		}
 		
-		if (levelJustGenerated && !level.hongbaoSpawned
-				&& com.shatteredpixel.shatteredpixeldungeon.challenges.Hongbao.active()) {
-			level.hongbaoSpawned = true;
-			com.shatteredpixel.shatteredpixeldungeon.challenges.Hongbao.spawnFloorEnvelopes();
-		}
-
 		Light light = hero.buff( Light.class );
 		hero.viewDistance = light == null ? level.viewDistance : Math.max( Light.DISTANCE, level.viewDistance );
 		
@@ -847,7 +830,6 @@ public class Dungeon {
 				SecretRoom.storeRoomsInBundle( bundle );
 			
 				Statistics.storeInBundle( bundle );
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MobEnvelope.storeGlobal(bundle);
 				Notes.storeInBundle( bundle );
 				Generator.storeInBundle( bundle );
 
@@ -1014,7 +996,6 @@ public class Dungeon {
 		energy = bundle.getInt( ENERGY );
 
 		Statistics.restoreFromBundle( bundle );
-		com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MobEnvelope.restoreGlobal(bundle);
 		Generator.restoreFromBundle( bundle );
 
 		generatedLevels.clear();
@@ -1158,7 +1139,6 @@ public class Dungeon {
 		}
 		
 		level.updateFieldOfView(hero, level.heroFOV);
-		com.shatteredpixel.shatteredpixeldungeon.challenges.Hongbao.highlightEnvelopes();
 
 		int x = hero.pos % level.width();
 		int y = hero.pos / level.width();

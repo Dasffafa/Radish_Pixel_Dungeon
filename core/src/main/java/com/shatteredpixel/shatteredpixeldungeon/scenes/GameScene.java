@@ -169,7 +169,6 @@ public class GameScene extends PixelScene {
 
 	private MenuPane menu;
 	private StatusPane status;
-	private com.shatteredpixel.shatteredpixeldungeon.ui.ArenaHUD arenaHud;
 	private com.shatteredpixel.shatteredpixeldungeon.ui.AutochessHUD autochessHud;
 
 	private BossHealthBar boss;
@@ -240,8 +239,6 @@ public class GameScene extends PixelScene {
 
 		Dungeon.level.playLevelMusic();
 
-		// 「三分钟一把」：进竞技场就挂上导演 Buff，计时与刷怪由它接管
-		com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaRun.ensureStarted();
 		// 「萝卜自走棋」：进棋盘挂上对局状态，并弹出备战界面
 		com.shatteredpixel.shatteredpixeldungeon.challenges.autochess.AutochessRun.ensureStarted();
 
@@ -512,15 +509,6 @@ public class GameScene extends PixelScene {
 			Camera.main.setCenterOffset(0, 0);
 			Camera.main.panTo(new com.watabou.utils.PointF(boardPx / 2f, boardPx / 2f + 52f), 0f);
 
-		}
-
-		// 「三分钟一把」的顶部计时条
-		if (com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaRun.active()
-				&& Dungeon.level instanceof com.shatteredpixel.shatteredpixeldungeon.levels.ArenaLevel) {
-			arenaHud = new com.shatteredpixel.shatteredpixeldungeon.ui.ArenaHUD();
-			arenaHud.camera = uiCamera;
-			arenaHud.setPos((uiCamera.width - com.shatteredpixel.shatteredpixeldungeon.ui.ArenaHUD.WIDTH) / 2f, 2);
-			add(arenaHud);
 		}
 
 		boss = new BossHealthBar();
@@ -2022,23 +2010,6 @@ public class GameScene extends PixelScene {
 	private static final CellSelector.Listener defaultCellListener = new CellSelector.Listener() {
 		@Override
 		public void onSelect( Integer cell ) {
-			// 红包盟友：点击换位
-			if (cell != null && cell >= 0 && cell < Dungeon.level.length() && cell != Dungeon.hero.pos) {
-				Char c = Actor.findChar(cell);
-				if (c instanceof Mob && c.alignment == Char.Alignment.ALLY
-						&& Dungeon.level.distance(Dungeon.hero.pos, cell) <= 1
-						&& c.buff(com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeAllyBuff.class) != null) {
-					int heroPos = Dungeon.hero.pos;
-					Dungeon.hero.pos = cell;
-					c.pos = heroPos;
-					if (Dungeon.hero.sprite != null) Dungeon.hero.sprite.place(Dungeon.hero.pos);
-					if (c.sprite != null) c.sprite.place(c.pos);
-					Dungeon.observe();
-					GameScene.updateFog();
-					Dungeon.hero.spendAndNext(1f);
-					return;
-				}
-			}
 			if (Dungeon.hero.handle( cell )) {
 				Dungeon.hero.next();
 			}

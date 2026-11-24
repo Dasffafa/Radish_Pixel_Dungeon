@@ -84,17 +84,6 @@ import java.util.LinkedHashMap;
 
 public class Potion extends Item {
 
-	private boolean freePotionPending = false;
-
-	@Override
-	public Item detach(com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag bag) {
-		if (freePotionPending && Dungeon.hero != null && bag == Dungeon.hero.belongings.backpack) {
-			freePotionPending = false;
-			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.markFreePotionUsed(this);
-			return this;
-		}
-		return super.detach(bag);
-	}
 
 	public static final String AC_DRINK = "DRINK";
 
@@ -299,26 +288,15 @@ public class Potion extends Item {
 						@Override
 						protected void onSelect(int index) {
 							if (index == 0) {
-								if (prepareFreePotionThrow()) Potion.super.doThrow( hero );
+								Potion.super.doThrow( hero );
 							}
 						}
 					}
 			);
 
 		} else {
-			if (prepareFreePotionThrow()) super.doThrow( hero );
+			super.doThrow( hero );
 		}
-	}
-
-	private boolean prepareFreePotionThrow() {
-		if (!com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.isFreePotion(this)) return true;
-		int cd = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.freePotionRemaining(this);
-		if (cd > 0) {
-			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("药水免耗冷却中，剩余 " + cd + " 回合");
-			return false;
-		}
-		freePotionPending = true;
-		return true;
 	}
 
 	public boolean isThrowOnly() {
@@ -327,17 +305,9 @@ public class Potion extends Item {
 
 	protected void drink( Hero hero ) {
 
-		if (com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.isFreePotion(this)) {
-			int cd = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.freePotionRemaining(this);
-			if (cd > 0) {
-				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w("药水免耗冷却中，剩余 " + cd + " 回合");
-				return;
-			}
-		}
 
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.CatalystBracer.onUse( hero );
 
-		freePotionPending = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.tryStartFreePotion(this);
 		detach( hero.belongings.backpack );
 
 		hero.spend( TIME_TO_DRINK );

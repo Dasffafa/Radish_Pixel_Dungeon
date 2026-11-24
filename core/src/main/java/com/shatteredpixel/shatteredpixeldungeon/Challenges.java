@@ -42,9 +42,6 @@ public class Challenges {
 	public static final int SNAKE_BITE			= 1<<10;
 	public static final int REAL_INTELLIGENCE	= 1<<11;
 	public static final int ALCHEMY_APPRENTICE	= 1<<12;
-	public static final int HONGBAO				= 1<<13;
-	/** 「三分钟一把」：开局直接进竞技场，三分钟一波波刷怪，清波三选一。 */
-	public static final int THREE_MINUTE		= 1<<14;
 	/** 「萝卜自走棋」：买怪、摆位、自动开打，英雄也下场当棋子。 */
 	public static final int AUTO_BATTLER		= 1<<15;
 
@@ -64,14 +61,12 @@ public class Challenges {
 			"snake_bite",
 			"real_intelligence",
 			"alchemy_apprentice",
-			"hongbao",
-			"three_minute",
 			"auto_battler"
 	};
 
 	public static final int[] MASKS = {
 			CHAMPION_ENEMIES, STRONGER_BOSSES, NO_FOOD, BAD_POINT, DAMAGE_NO, NO_HERBALISM, SWARM_INTELLIGENCE, DARKNESS, NO_SCROLLS,
-			TEST_MODE, SNAKE_BITE, REAL_INTELLIGENCE, ALCHEMY_APPRENTICE, HONGBAO, THREE_MINUTE, AUTO_BATTLER
+			TEST_MODE, SNAKE_BITE, REAL_INTELLIGENCE, ALCHEMY_APPRENTICE, AUTO_BATTLER
 	};
 
 	public static int activeChallenges(){

@@ -1228,13 +1228,6 @@ public class Hero extends Char {
 			return true;
 		}
 
-		int envelopeReach = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.reachBonus(this);
-		if (envelopeReach > 0
-				&& Dungeon.level.distance(pos, enemy.pos) <= 1 + envelopeReach
-				&& fieldOfView != null && fieldOfView.length == Dungeon.level.length()
-				&& fieldOfView[enemy.pos]) {
-			return true;
-		}
 
 		KindOfWeapon wep = Dungeon.hero.belongings.attackingWeapon();
 
@@ -1312,8 +1305,6 @@ public class Hero extends Char {
 			speed *= (1f + ((float) t_lvl)/3);
 		}
 
-		// 「三分钟一把」的攻速强化：没有该 Buff 时系数恒为 1，不影响正常对局
-		speed /= com.shatteredpixel.shatteredpixeldungeon.challenges.ArenaEmpower.attackDelayFactor(this);
 
         return delay/speed;
     }
@@ -2334,7 +2325,6 @@ public class Hero extends Char {
 		}
 	}
 
-	private boolean comboAttacking = false;
 
 	@Override
 	public int attackProc( final Char enemy, int damage ) {
@@ -2518,15 +2508,6 @@ public class Hero extends Char {
 			subClass.onAttackProc(this, enemy, damage, true, enemy.alignment == Char.Alignment.ENEMY);
 		}
 
-		// 红包连击：每次连击都是一次独立攻击，但不额外消耗回合
-		if (!comboAttacking) {
-			comboAttacking = true;
-			int comboHits = com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.comboHits(this);
-			for (int i = 0; i < comboHits && enemy != null && enemy.isAlive(); i++) {
-				attack(enemy, 1f, 0f, 1f);
-			}
-			comboAttacking = false;
-		}
 
 		return damage;
 	}
@@ -3514,11 +3495,6 @@ public class Hero extends Char {
 		// 被门或其它规则拦下时位置没有变化，不能算一次移动
 		if (fromPos != pos) {
 			EventManager.emit(new HeroMoveEvent(this, fromPos, pos));
-			// 烈焰人：走过的地格燃烧
-			if (com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.hasFlamewalker(this)) {
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.burnWalkedCell(fromPos);
-				com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.burnWalkedCell(pos);
-			}
 		}
 
 		if (!flying && travelling) {
@@ -3659,11 +3635,6 @@ public class Hero extends Char {
 
 	@Override
 	public boolean isImmune(Class effect) {
-		// 烈焰人：免疫燃烧类效果
-		if (effect == com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Burning.class
-				&& com.shatteredpixel.shatteredpixeldungeon.actors.buffs.EnvelopeBoost.hasFlamewalker(this)) {
-			return true;
-		}
 		if (effect == Burning.class
 				&& belongings.armor() != null
 				&& belongings.armor().hasGlyph(Brimstone.class, this)){
