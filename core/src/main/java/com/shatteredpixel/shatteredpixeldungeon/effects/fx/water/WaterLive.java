@@ -195,6 +195,8 @@ public class WaterLive extends Group {
 		WaterRain.rain( level, dt );
 		//the rime creeping over freezing water
 		IceCrust.frost( level, dt );
+		//the low mist that lies over still water
+		LowMist.mist( level, dt );
 		driveFalls( level, l, dt );
 		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
 		if (dt > 0f && (dropIn -= dt) <= 0f){

@@ -901,6 +901,16 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 场景氛围第三批：水上的低雾
+
+Warped 的 `SwampMist`（303 行）是覆盖整片湿地的雾层，读气候与 overworld。本仓库没有湿地，所以做了
+`effects/fx/water/LowMist`：每秒约 1.4 缕，从**视野可见的水面**升起（贴水面 5px 内），随风漂、6~8 秒消散，
+alpha 只有 0.16 左右。
+
+和天气的地雾（`WeatherOverlay.mist`，下雨才起）区分：这只是"静水自己冒的雾"，晴天也有。
+
+**实测**：临时场景 `Z_LowMist`（跑完即删）在英雄旁铺 7×5 水面跑 3 秒，PASS 2/2（`mists=4`）。
+
 ## 场景氛围第二批：空气里的浮尘
 
 Warped 用 `DustParticle`/`SunMoteParticle` 配合天气与光柱画浮尘；本仓库没有这些，所以直接做了个轻量版
