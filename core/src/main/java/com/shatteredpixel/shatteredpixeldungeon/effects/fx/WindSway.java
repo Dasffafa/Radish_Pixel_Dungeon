@@ -59,7 +59,7 @@ public final class WindSway {
 	private static final int[][] FRAMES = { FxFrames.BLADE_3, FxFrames.BLADE_4, FxFrames.BLADE_5 };
 
 	/** Acceptance counter (Z_Wind selftest): blades standing now. */
-	public static int standing, swaySum, rustles;
+	public static int standing, swaySum, rustles, puffs;
 	/** How many blades are bending under a foot right now. */
 	private static float[] kick;
 
@@ -163,38 +163,45 @@ public final class WindSway {
 		return true;
 	}
 
-	/** Feet went through grass at `from` and `to`: the blades there bend and spring back. */
+	/** Feet went through grass at `from` and `to`: the blades there bend and spring back. A step on
+	 *  stone or wood is silent and draws nothing - only grass reacts. */
 	public static void rustle( int from, int to ){
 		if (blades == null || Dungeon.level == null) return;
+		final boolean fromGrass = grassVisible( from ), toGrass = grassVisible( to );
+		if (!fromGrass && !toGrass) return;
 
-		//a few blades right where the feet went
-		int made = 0;
-		for (int i = 0; i < blades.length && made < 4; i++){
-			Blade b = blades[i];
-			if (b.cell >= 0 && Dungeon.level.distance( b.cell, to ) <= 1) continue;
-			if (placeAt( b, to )){
-				made++;
-				b.phase = FxRandom.Float( 0f, 6.2831853f );
+		//a few blades right where the feet went (when that cell is grass)
+		if (toGrass){
+			int made = 0;
+			for (int i = 0; i < blades.length && made < 4; i++){
+				Blade b = blades[i];
+				if (b.cell >= 0 && Dungeon.level.distance( b.cell, to ) <= 1) continue;
+				if (placeAt( b, to )){
+					made++;
+					b.phase = FxRandom.Float( 0f, 6.2831853f );
+				}
 			}
 		}
 
-		//bend every blade near the step
+		//bend the blades of the grass cells the feet touched
 		for (int i = 0; i < blades.length; i++){
 			Blade b = blades[i];
 			if (b.cell < 0) continue;
-			if (b.cell != from && Dungeon.level.distance( b.cell, to ) > 1) continue;
+			boolean touched = b.cell == from || (toGrass && Dungeon.level.distance( b.cell, to ) <= 1);
+			if (!touched) continue;
 			kick[i] = 1.5f;
 			b.phase = FxRandom.Float( 0f, 6.2831853f );
 			rustles++;
 		}
 
-		//the same sparkle the teleport scroll uses (a plain Speck burst at a cell): that one is
-		//known to draw on this repo's scene. Mostly at the cell just LEFT - the hero no longer
-		//stands over it, so the grass he pushed through is what the eye catches
-		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( to ).burst(
-				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 4 );
-		if (grassVisible( from )){
+		//the sparkle only off grass: the cell just LEFT is the one the eye catches, as the hero no
+		//longer stands over it
+		if (toGrass){
+			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( to ).burst(
+					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 4 );
+		}
+		if (fromGrass){
 			com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( from ).burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
 							com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 8 );
@@ -203,6 +210,7 @@ public final class WindSway {
 			Dungeon.hero.sprite.centerEmitter().burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.particles.GrassParticle.FACTORY, 8 );
 		}
+		puffs++;
 	}
 
 	/** Put a blade on a bit of grass the hero can see, at its foot. */
