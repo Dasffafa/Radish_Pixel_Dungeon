@@ -1668,3 +1668,12 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_PerkMoonlit`，跑完即删）：一把带“月华”的短剑，白天 100.0，
 夜晚 114.0（+14%，与 `25%×0.574` 对应）。编译通过、`Smoke` 9/9、`F1` 3/3。
+
+## 时间系统第一阶段：GameCalendar（星历）搬入
+
+- 搬入 Warped 的 `actors/GameCalendar`（521 行，年/月/日/季节与周期计算）
+- 时钟源改成本仓库现有的 `Game.timeTotal`：一天 = `DayNightCycle.FULL_CYCLE`（360s）
+- 去掉 Warped 的 `Dungeon.cycleTurn` / `Dungeon.calendarStartDay` / `Challenges.REAL_CLOCK`（本仓库没有），
+  改为 `START_DAY = 1` 常量与常假分支
+
+编译通过、`Smoke` 9/9。**尚未接入 UI，也尚未影响温度**。
