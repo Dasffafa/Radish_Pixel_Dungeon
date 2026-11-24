@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.effects.fx;
 
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Weather;
 import com.shatteredpixel.shatteredpixeldungeon.levels.Terrain;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap;
@@ -98,7 +99,11 @@ public final class WindSway {
 				continue;
 			}
 			b.img.visible = true;
-			int lean = (int)Math.round( Math.sin( time * PACE * 6.2831853f + b.phase ) * LEAN );
+			//the weather's wind: a stronger one leans the blades further and faster, downwind
+			float wind = Weather.windX;
+			float amp = 1f + 2.2f * Math.abs( wind );
+			float pace = PACE * (1f + 0.9f * Math.abs( wind ));
+			int lean = (int)Math.round( Math.sin( time * pace * 6.2831853f + b.phase ) * amp + wind * 1.6f );
 			b.img.x = b.baseX + lean;
 			leanSum += lean;
 			b.img.y = b.baseY;
