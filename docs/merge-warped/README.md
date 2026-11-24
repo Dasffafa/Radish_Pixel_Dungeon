@@ -865,6 +865,25 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 - **去掉的 4.x 耦合**：`EnchantLook`/`EnchantState`/`TypeFx`（附魔 look 框架）——星芒固定用目标自身血色，
   刀锋用白色；木屑用固定色而不是 `TypeFx.WOOD`
 
+## 场景互动第二批：岩浆活起来（WaterLava 真身）
+
+之前搬 water 套件时，`WaterLava` 只留了个空壳（5 个空方法）。这次把 Warped 的正文整段搬了进来（316 行），
+按我们 `WaterAmbience` 的接口原样接通：
+
+- **壳（crust）**：熔岩表面的暗色浮皮，缓慢漂移，最多每格 0.5 片
+- **气泡**：鼓起 → 亮泡 → 破裂（`POP_5` + 2~3 颗火星 + 一小团光晕），平均每格 3 秒一个
+- **热气**：每 1.5 秒一道摇曳的热浪（三分之一格，持续 1.5 秒，最多 8 道）
+- **岸光**：熔岩旁最近的 6 格干地各有一盏橙色池光（POOL_23，随英雄走开熄灭）
+- **喷溅**：`spit(x, y)`（连 `HallsLevel.Stream` 那种场景用）
+
+**`WaterRain` 与 `WaterVoices`**：
+- `WaterVoices` 本仓库早已有一版可用实现（拍岸/细流/咕噜/倒水，靠近水面时随机播），这次验证它确实在跑
+- `WaterRain`（雨点涟漪）**没有搬**：本仓库没有天气系统，没有降水来源；同类视觉由 `WaterLive` 的屋顶滴水与
+  `WaterWalk` 的落水涟漪承担
+
+**实测**：临时场景 `Z_Lava`（跑完即删）在英雄旁边铺 9 格水、把液体设为熔岩，跑 150 帧，PASS 3/3
+（`bubbles=3`、`waterVoices=1 last=LAP`、英雄没死）；截图里能看到熔岩池的流动纹理。回归：`Smoke` 9/9、`F1` 3/3。
+
 ## 场景互动第一批：怪物足迹（RoamerTracks）
 
 Warped 的 `effects/RoamerTracks` 是「漫游野兽留下的脚印」：它只负责把上游（overworld 的漫游事件）算好的
