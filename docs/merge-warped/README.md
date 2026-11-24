@@ -1463,3 +1463,11 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 - `WindSway` 里的 `rustle`/`placeAt` 与 `puffs`/`rustles` 计数一并删除（不留死代码）
 
 保留：风里的草叶（环境氛围，不是走路触发）、水面涟漪、怪物脚印。
+
+## 负责修正：删掉草地上的脚步碎叶（怪物与玩家都不再有）
+
+上一批只删了 `WindSway.rustle`，但 **`WaterWalk.footstep` 仍在**：任何角色走在草地/耕地上都会
+飞出一两片草叶（`FxFrames.BLADE_3/4`，颜色取关卡地板色）——这就是怪物走路时那些碎片。
+
+现在：`WaterWalk.step` 对“两边都不是水”的案例**直接返回**，`footstep` 方法与 `FOOTSTEP_GAP` 一并删除。
+水面/岩浆上的涟漪与火星保留（只在油/水面上发生）。

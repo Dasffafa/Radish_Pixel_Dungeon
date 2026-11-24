@@ -96,7 +96,6 @@ public final class WaterWalk {
 	static final float STAND_MIN = 1.4f, STAND_MAX = 2.6f;
 	static final float WAKE_LIFE = 0.6f, WAKE_ALPHA = 0.55f, WAKE_BEHIND = 3f;
 	static final float ENTER_RING_AFTER = 0.06f, JUMP_RING_AFTER = 0.12f;
-	static final float FOOTSTEP_GAP = 0.2f;
 
 	private static final int[][][] WAKES = { FxFrames.WAKE_H, FxFrames.WAKE_V, FxFrames.WAKE_D };
 
@@ -126,10 +125,9 @@ public final class WaterWalk {
 		Level level = Dungeon.level;
 		if (level == null || to >= level.length() || from >= level.length()) return;
 		boolean wFrom = level.water[from], wTo = level.water[to];
-		if (!wFrom && !wTo){
-			footstep( s, from, to, level );
-			return;
-		}
+		//a step off the water draws nothing: the grass scatter (every character's footsteps) was
+		//cut on feedback that it reads as clutter on the floor
+		if (!wFrom && !wTo) return;
 		Element.Liquid l = WaterFX.liquid();
 		boolean lava = l.ringAdditive;
 		boolean large = s.width() > LARGE_W;
@@ -225,42 +223,6 @@ public final class WaterWalk {
 		m.look( frames, 0 ).paint( l.foam ).smooth().life( WAKE_LIFE ).alpha( WAKE_ALPHA, 0f, WAKE_LIFE ).snap()
 				.priority( FxBudget.P1 );
 		m.flip( WaterGeom.wakeFlipX( dx ), WaterGeom.wakeFlipY( dy ) );
-	}
-
-	// ------------------------------------------------------------------ footsteps
-
-	private static void footstep( CharSprite s, int from, int to, Level level ){
-		int t = level.map[from];
-		boolean grass = t == Terrain.GRASS || t == Terrain.FURROWED_GRASS;
-		boolean snow = false; // 本仓库没有雪地地形
-		if (!grass && !snow) return;
-		Wader w = wader( s );
-		float now = Game.timeTotal;
-		if (now >= w.stepAt && now - w.stepAt < FOOTSTEP_GAP) return;
-		w.stepAt = now;
-		PointF p = feet( s, from );
-		FxEmitter air = Fx.air();
-		if (air == null) return;
-		int dx = to % level.width() - from % level.width(), dy = to / level.width() - from / level.width();
-		if (snow){
-			if (!FxBudget.keep( FxBudget.P3, p.x, p.y )) return;
-			((FxParticle) air.recycle( FxParticle.class )).reset( p.x - dx * 2, p.y - 2 ).look( FxFrames.PUFF_S, 0 )
-					.paint( 0xFFFFFF ).smooth().life( 0.4f ).alpha( 0.4f, 0.05f, 0.3f ).vel( -dx * 6f, -4f )
-					.snap().priority( FxBudget.P3 );
-			return;
-		}
-		int n = FxRandom.IntRange( 1, 2 );
-		for (int i = 0; i < n; i++){
-			if (!FxBudget.keep( FxBudget.P3, p.x, p.y )) continue;
-			//flung back, against the way it went, and up
-			float a = (float)Math.atan2( -dy - 1.2f, -dx + FxRandom.Float( -0.6f, 0.6f ) );
-			((FxParticle) air.recycle( FxParticle.class )).reset( p.x, p.y - 1 )
-					.look( FxRandom.chance( 0.5f ) ? FxFrames.BLADE_3 : FxFrames.BLADE_4 )
-					.paint( FxRandom.chance( 0.5f ) ? level.color1 : level.color2 )
-					.polar( a, FxRandom.Float( 20f, 40f ) ).gravity( 120f ).spin( 0.12f )
-					.ground( p.y + FxRandom.Float( 0f, 3f ), FxParticle.SETTLE, 0 ).life( 0.9f ).alpha( 1f, 0, 0.4f )
-					.priority( FxBudget.P3 );
-		}
 	}
 
 	// ------------------------------------------------------------------ waders
