@@ -119,6 +119,9 @@ public final class EnchantFx {
 	}
 
 	public static final int WEAK = 0, MID = 1, STRONG = 2, FINISHER = 3;
+
+	/** Acceptance counter (Z_EnchantBlow selftest): procs the framework was asked to play. */
+	public static int procs;
 	/** Where a tier starts, by strength. */
 	public static final float MID_FROM = 0.30f, STRONG_FROM = 0.60f;
 
@@ -179,6 +182,7 @@ public final class EnchantFx {
 	public static void proc( final EnchantLook l, final Char a, final Char d, final float s, final int level, final int flags,
 			final Twist twist ){
 		if (l == null || d == null || d.sprite == null) return;
+		procs++;
 		final CharSprite as = a != null ? a.sprite : null, ds = d.sprite;
 		final boolean seen = fightSeen( a, d ), hero = involvesHero( a, d );
 		//inside a blow: its piece, drawn as the blow's lead or an accent (BlowPresenter)

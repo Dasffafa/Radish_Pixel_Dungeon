@@ -211,6 +211,19 @@ abstract public class Weapon extends KindOfWeapon {
 				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight.pokeIsPlain( attacker )) {
 			damage = enchantment.proc( this, attacker, defender, damage );
 		}
+
+		// Warped 附魔外观：命中时把这次附魔交给打击演示（warped 那套，与上面的旧外观并存）
+		if (enchantment != null && defender != null && defender.sprite != null
+				&& attacker.alignment != defender.alignment) {
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantLook look =
+					com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantLooks.of( enchantment.getClass() );
+			if (look != null) {
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantFx.proc( look, attacker, defender,
+						com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantFx.strengthOf(
+								com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantFx.MID ),
+						0, 0 );
+			}
+		}
 		// DIY 组装贴上去的额外附魔：全部依次触发
 		if (attacker.buff(MagicImmune.class) == null) {
 			for (Enchantment ench : diyEnchantments()) {

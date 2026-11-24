@@ -1325,3 +1325,15 @@ Kinetic/Elastic/Blooming/Lucky/Vampiric/Blocking/Meteor/Seeking）、符文 5 �
 Warped 原表 78 行，多数对应的是它自己的附魔集合；未收录的附魔按“没有外观”处理，行为与之前一致。
 
 下一批：把 `BlowPresenter` / `Weapon.proc` 接到这套上（先接“附魔参与打击演示”），再做物品光晕。
+
+## 附魔外观体系第三批：接上打击演示
+
+- `Weapon.proc` 命中时（带附魔、敌对关系、目标有 sprite）除了呼叫旧的自定义外观，
+  现在还会把这次附魔交给 `enchant.warped.EnchantFx.proc(...)`（等级 MID）
+- `EnchantFx` 加了 `procs` 验收计数
+
+**自测**：临时场景 `Z_EnchantBlow`（跑完即删）——英雄手持 Blazing 剑打老鼠，
+PASS：附魔表里有 Blazing（`lookKnown=1`），`procs 0 → 1`，截图里能看到“燃烧”与伤害数字。
+
+注意：目前是“每次命中都叫一次附魔拍子”，与旧外观并存；后续可以改成“只在真正
+触发 proc 时”（需要逐个附魔改接）。物品光晕（`ItemAura`）仍未接，下一批做。
