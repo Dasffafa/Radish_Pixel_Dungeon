@@ -20,13 +20,15 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.noosa.ColorBlock;
-import com.watabou.noosa.Group;
+import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 
 /**
- * A titled section divider, the way Warped's item window reads: a small triangle, the title, and a
- * hairline running out to the right edge. Used for the description and rarity blocks.
+ * A titled section divider that can be pressed to fold its text away, the way Warped's item window
+ * reads: a triangle, the title, a hairline out to the edge, and the section's text under it. The
+ * triangle points down while the text shows and right while it is folded; the owner lays the
+ * window out again when it changes.
  */
-public class SectionHeader extends Group {
+public class SectionHeader extends Button {
 
 	public static final int HEIGHT = 9;
 
@@ -34,11 +36,13 @@ public class SectionHeader extends Group {
 	private final ColorBlock line;
 	private final ColorBlock mark;
 
-	private final int width;
+	/** Whether the section under this header is showing. */
+	public boolean open = true;
+
+	private Runnable onToggle;
 
 	public SectionHeader( String text, int color, int width ){
 		super();
-		this.width = width;
 
 		mark = new ColorBlock( 4, 4, color );
 		mark.x = 0;
@@ -50,22 +54,37 @@ public class SectionHeader extends Group {
 
 		line = new ColorBlock( 1, 1, color );
 		line.alpha( 0.35f );
-		line.x = label.right() + 3;
 		line.y = 3;
-		line.size( Math.max( 1, width - line.x ), 1 );
 
 		add( mark );
 		add( label );
 		add( line );
+
+		setSize( width, HEIGHT );
+		placeLine( 0, width );
 	}
 
-	/** Puts the whole header at (x, y); a Group has no position of its own. */
+	public void setOnToggle( Runnable r ){
+		onToggle = r;
+	}
+
+	@Override
+	protected void onClick(){
+		open = !open;
+		if (onToggle != null) onToggle.run();
+	}
+
+	private void placeLine( float x, int width ){
+		line.x = x + label.right() + 3;
+		line.size( Math.max( 1, width - (line.x - x) ), 1 );
+	}
+
+	/** Puts the whole header at (x, y). */
 	public void place( float x, float y ){
 		mark.x = x;
 		mark.y = y + 2;
 		label.setPos( x + 6, y );
-		line.x = x + label.right() + 3;
 		line.y = y + 3;
-		line.size( Math.max( 1, width - (line.x - x) ), 1 );
+		placeLine( x, (int)width );
 	}
 }
