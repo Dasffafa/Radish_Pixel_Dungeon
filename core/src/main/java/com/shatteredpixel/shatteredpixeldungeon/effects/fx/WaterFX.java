@@ -101,6 +101,8 @@ public final class WaterFX {
 	/** The level's liquid, by its water texture (which the world's slices change with their
 	 *  height, so it is asked each time). */
 	public static Element.Liquid liquid(){
+		//a freezing sky freezes the water plane over: still, pale ice instead of moving water
+		if (com.shatteredpixel.shatteredpixeldungeon.actors.Weather.freezing()) return Element.Liquid.FROZEN;
 		Level level = Dungeon.level;
 		String tex = level == null ? null : level.waterTex();
 		if (level != liquidOf || tex != liquidTex){

@@ -72,6 +72,8 @@ public final class Thermal {
 
 	/** Acceptance counters. */
 	public static int updates, announcements, breaths, tint;
+	/** Whether he is soaked through this frame (the self-tests). */
+	public static boolean wet;
 
 	private static float breathIn;
 
@@ -158,7 +160,12 @@ public final class Thermal {
 
 		air = ambient();
 		//his own body follows the air slowly, and never changes faster than the drift
-		float step = DRIFT * dt;
+		//soaked through (standing in open water, or out in the rain) he loses and gains heat faster;
+		//ice is not water: a frozen pool keeps him as dry as stone
+		wet = !Weather.freezing() && (Dungeon.level.water[Dungeon.hero.pos]
+				|| Weather.precip == PrecipType.RAIN || Weather.precip == PrecipType.SLEET
+				|| Weather.precip == PrecipType.BLIZZARD);
+		float step = DRIFT * (wet ? 1.6f : 1f) * dt;
 		if (body > air) body = Math.max( air, body - step );
 		else if (body < air) body = Math.min( air, body + step );
 

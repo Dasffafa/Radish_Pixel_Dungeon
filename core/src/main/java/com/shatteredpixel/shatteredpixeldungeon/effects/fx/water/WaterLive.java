@@ -193,6 +193,8 @@ public class WaterLive extends Group {
 		FireReflections.update( dt );
 		//雨点打在水面上的一圈圈涟漪（有天气时才有）
 		WaterRain.rain( level, dt );
+		//the rime creeping over freezing water
+		IceCrust.frost( level, dt );
 		driveFalls( level, l, dt );
 		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
 		if (dt > 0f && (dropIn -= dt) <= 0f){
@@ -527,7 +529,9 @@ public class WaterLive extends Group {
 				cycleKey = strip + "#" + (WaterGeom.CYCLE_FRAMES - 1);
 			} else {
 				cycle = null;
-				plane.texture = debug ? repeating( baseOf( l ) ) : own;
+				//ice is a surface of its own: a freezing sky puts the frozen sheet over the water
+				boolean ice = l == Element.Liquid.FROZEN;
+				plane.texture = (debug || ice) ? repeating( baseOf( l ) ) : own;
 			}
 		}
 		if (cycle == null) return;

@@ -58,6 +58,12 @@ public final class Weather {
 		storming = type == PrecipType.BLIZZARD || (intensity > 0.8f && FxRandom.chance( 0.35f ));
 	}
 
+	/** Whether the wet ground freezes over: snow, sleet, hail or a blizzard, with air at freezing. */
+	public static boolean freezing(){
+		if (precip == PrecipType.NONE) return false;
+		return Thermal.air() <= 0f;
+	}
+
 	/** No weather at all. */
 	public static void clear(){
 		precip = PrecipType.NONE;

@@ -23,6 +23,7 @@ public final class FxModules {
 		WindSway.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.effects.WeatherOverlay.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.actors.Thermal.reset();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.IceCrust.reset();
 		WaterFX.sceneCreated();
 	}
 

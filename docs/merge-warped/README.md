@@ -901,6 +901,23 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 天气第十五批：水面会冻结（视觉 + 行为，不改变地形）
+
+Warped 的做法是把格子本身换成 `Terrain.FROZEN_WATER`（水⇄冰，冰可行走、有自己的贴图）。
+本仓库的 `Terrain.FROZEN_WATER` 只是 `WATER` 的别名，tilemap 里也没有冰的贴图，所以这里换了个做法：
+
+- **状态**：`Weather.freezing()`（有降水且气温 ≤ 0℃）为真时，`WaterFX.liquid()` 返回 `Element.Liquid.FROZEN`
+  —— 水面静止、不波光；同时 `WaterWalk` 不再溅水花、`WaterRain` 不在冰上打涟漪、`Thermal` 也不把冰当成湿身
+- **视觉**：`IceCrust` 每帧在视野内的水面上铺白霜（`FxFrames.RIME`，0.5 透明度、2.5 秒停留 + 2 秒淡出），
+  天冷时冰壳越积越明显，天暖后停止、旧霜自然化掉
+- 天气一停，液体切回关卡原本的（`WaterLive.liquid()` 回落到关卡自己的水）
+
+**没有做的**：把格子真的变成可行走的冰（`Terrain.FROZEN_WATER` 的独立地形与贴图）。那需要新的 tile 美术，
+而且会改变寻路/滑动等玩法。
+
+**实测**：临时场景 `Z_Freeze`（跑完即删）在英雄旁边铺水面后拉暴雪，PASS 7/7：
+`liquid=FROZEN rings=0 wet=false rime=2`，天气停后 `liquid` 回到关卡原本的液体；截图里水面上能看到白霜。
+
 ## 天气第十四批：火的烟柱
 
 Warped 用 `ChimneySmokeParticle`（依赖它的营火 blob 与天气图集）做一条直上的烟。这里用本仓库等价的实现：

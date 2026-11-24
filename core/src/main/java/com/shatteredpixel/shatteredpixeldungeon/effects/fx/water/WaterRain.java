@@ -65,6 +65,8 @@ public final class WaterRain {
 		if (level == null || dt <= 0f) return;
 		PrecipType type = Weather.precip;
 		if (type == PrecipType.NONE || Weather.intensity <= 0f) return;
+		//ice takes the drops without a ring
+		if (Weather.freezing()) return;
 
 		float rate;
 		switch (type){

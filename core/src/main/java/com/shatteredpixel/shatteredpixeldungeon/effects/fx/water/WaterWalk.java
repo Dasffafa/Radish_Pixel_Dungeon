@@ -107,6 +107,8 @@ public final class WaterWalk {
 		Level level = Dungeon.level;
 		//a boat makes its own wake (StateLooks' boat look)
 		if (level == null || s.ch == null || s.ch.flying || !s.visible || s.afloat()) return;
+		//no splashes on ice: the water froze over
+		if (com.shatteredpixel.shatteredpixeldungeon.actors.Weather.freezing()) return;
 		if (from < 0 || to < 0 || from >= level.length() || to >= level.length()) return;
 		Fx.post( () -> step( s, from, to ) );
 	}
