@@ -89,6 +89,35 @@ public enum RarityLine {
 		}
 	}
 
+	/** The line as the window reads it, with the number this item's roll gives (Warped's style). */
+	public String describe( com.shatteredpixel.shatteredpixeldungeon.items.Item item, float strength ){
+		com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+				com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( item );
+		switch (this){
+			case CRIT:        return "\u66b4\u51fb\u51e0\u7387 +" + pct( 0.08f + 0.22f * strength );
+			case LIFESTEAL:   return "\u5438\u8840 " + pct( 0.30f * strength );
+			case EXECUTIONER: return "\u5904\u51b3\uff1a\u76ee\u6807\u534a\u8840\u65f6\u4f24\u5bb3 +" + pct( 0.35f * strength );
+			case DEFIANT:     return "\u4e0d\u5c48\uff1a\u81ea\u8eab\u534a\u8840\u65f6\u4f24\u5bb3 +" + pct( 0.35f * strength );
+			case STORMBORN:   return "\u98ce\u66b4\u4e4b\u5b50\uff1a\u96f7\u66b4\u65f6\u4f24\u5bb3 +" + pct( 0.20f * strength );
+			case MOONLIT:     return "\u6708\u534e\uff1a\u591c\u665a\u4f24\u5bb3 +" + pct( 0.25f * strength );
+			case SLAYER:      return "\u5c60\u622e" + q.slayer().title() + "\uff1a\u5bf9\u8be5\u65cf\u4f24\u5bb3 +" + pct( 0.30f * strength );
+			case HUNTER:      return "\u4f60\u6740\u6b7b\u7684\u91ce\u517d\u6709" + pct( 0.15f + 0.35f * strength ) + "\u51e0\u7387\u7559\u4e0b\u8089";
+			case WARM_GRIP:   return "\u6c14\u6e29\u611f\u53d7 +" + Math.round( 3f * strength ) + "\u00b0C";
+			case FLEET:       return "\u79fb\u52a8\u901f\u5ea6 +" + pct( 0.15f * strength );
+			case WINDBREAK:   return "\u98ce\u5bd2\u51cf\u5c11 " + pct( 0.60f * strength );
+			case COOLING:     return "\u9ad8\u6e29\u964d\u4f4e " + Math.round( 5f * strength ) + "\u00b0C";
+			case RAINPROOF:   return "\u6dcb\u96e8\u6d78\u900f\u51cf\u6162 " + pct( 0.60f * strength );
+			case SUREFOOT:    return "\u5760\u843d\u4f24\u5bb3 -" + pct( 0.40f * strength );
+			case HUSHED:      return "\u6f5c\u884c\u66f4\u597d";
+			case STEADY:      return "\u5c04\u51fb\u66f4\u7a33";
+			default:          return title();
+		}
+	}
+
+	private static String pct( float f ){
+		return Math.round( f * 100f ) + "%";
+	}
+
 	/** The lines that fit this family, in table order. */
 	public static List<RarityLine> forFamily( Quality.Family family ){
 		List<RarityLine> out = new ArrayList<>();

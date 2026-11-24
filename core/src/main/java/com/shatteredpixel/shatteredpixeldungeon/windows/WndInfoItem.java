@@ -158,7 +158,7 @@ public class WndInfoItem extends Window {
 
 	//the folding sections: description and rarity
 	private IconTitle secTitle;
-	private SectionHeader descHeader, rarityHeader;
+	private SectionHeader descHeader, rarityHeader, typeHeader;
 	private RenderedTextBlock secInfo, secLines;
 	private int secWidth;
 
@@ -182,6 +182,11 @@ public class WndInfoItem extends Window {
 			rarityHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
 					"\u7a00\u6709\u5ea6\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityTitle( item ),
 					rColor, secWidth );
+			typeHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
+					"\u7c7b\u578b\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.familyTitle( item ),
+					rColor, secWidth );
+			add( typeHeader );
+
 			String lines = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.qualityLines( item );
 			if (!lines.isEmpty()){
 				secLines = PixelScene.renderTextBlock( lines, 6 );
@@ -273,6 +278,12 @@ public class WndInfoItem extends Window {
 					y = secLines.bottom();
 				}
 			}
+			y += GAP;
+		}
+
+		if (typeHeader != null){
+			typeHeader.place( 0, y );
+			y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
 			y += GAP;
 		}
 

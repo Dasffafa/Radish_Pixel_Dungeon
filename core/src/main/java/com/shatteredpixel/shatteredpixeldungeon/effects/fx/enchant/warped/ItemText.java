@@ -99,12 +99,31 @@ public final class ItemText {
 	public static String qualityLines( Item it ){
 		if (!isGear( it )) return "";
 		StringBuilder b = new StringBuilder();
-		for (com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine l
-				: com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( it ).lines()){
+		com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+				com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( it );
+		for (com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine l : q.lines()){
 			if (b.length() > 0) b.append( "\n" );
-			b.append( "\u00b7 " ).append( l.title() );
+			b.append( "\u00b7 " ).append( l.describe( it, q.strength( l ) ) );
 		}
 		return b.toString();
+	}
+
+	/** The item's family as the window names it ("\u7c7b\u578b\uff1a\u5251"). */
+	public static String familyTitle( Item it ){
+		if (!isGear( it )) return "";
+		switch (com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.familyOf( it )){
+			case SWORD:  return "\u5251";
+			case AXE:    return "\u65a7";
+			case SPEAR:  return "\u77db";
+			case MACE:   return "\u9524";
+			case DAGGER: return "\u5315\u9996";
+			case STAFF:  return "\u6cd5\u6756";
+			case ARMOR:  return "\u62a4\u7532";
+			case SHIELD: return "\u76fe";
+			case RING:   return "\u6212\u6307";
+			case WAND:   return "\u6cd5\u6756";
+			default:     return "\u6742\u9879";
+		}
 	}
 
 	/** The gear quality block: its rarity and the lines it carries, or "" for non-gear. */
