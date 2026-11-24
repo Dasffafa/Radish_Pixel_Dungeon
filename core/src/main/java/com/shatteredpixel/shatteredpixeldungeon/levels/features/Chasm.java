@@ -168,16 +168,7 @@ public class Chasm implements Hero.Doom {
 		if(hero.belongings.armor() != null){
 			if(hero.belongings.armor().hasGlyph(SkyWalker.class,hero)){
 				Buff.affect( hero, Bleeding.class).set( Math.round(hero.HT/ 4f / (6f + (6f*(hero.HP/(float)hero.HT)))), Chasm.class);
-				int damage = Math.max( hero.HP / 8, Char.combatRoll( hero.HP / 8, hero.HT / 16 ));
-				//quality lines on worn armour: SUREFOOT takes some of the fall
-				if (hero.belongings != null && hero.belongings.armor() != null){
-					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
-							com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( hero.belongings.armor() );
-					if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SUREFOOT )){
-						damage = Math.max( 1, Math.round( damage * (1f - 0.4f
-								* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SUREFOOT )) ) );
-					}
-				}
+				int damage = sureFoot( hero, Math.max( hero.HP / 8, Char.combatRoll( hero.HP / 8, hero.HT / 16 ) ) );
 				hero.damage(new DamageInfo(damage, DamageType.CHASM, null, null, new Chasm()));
 				return;
 			}
@@ -188,8 +179,25 @@ public class Chasm implements Hero.Doom {
 		//The lower the hero's HP, the more bleed and the less upfront damage.
 		//Hero has a 50% chance to bleed out at 66% HP, and begins to risk instant-death at 25%
 		Buff.affect( hero, Bleeding.class).set( Math.round(hero.HT / (6f + (6f*(hero.HP/(float)hero.HT)))), Chasm.class);
-		int damage = Math.max( hero.HP / 2, Char.combatRoll( hero.HP / 2, hero.HT / 4 ));
+		int damage = fallDamage( hero );
 		hero.damage(new DamageInfo(damage, DamageType.CHASM, null, null, new Chasm()));
+	}
+
+	/** What a plain fall hurts a hero for, before armour: the shared rule the tests read. */
+	public static int fallDamage( Hero hero ){
+		return sureFoot( hero, Math.max( hero.HP / 2, Char.combatRoll( hero.HP / 2, hero.HT / 4 ) ) );
+	}
+
+	/** SUREFOOT on worn armour takes some of a fall (a fourth off at most). */
+	static int sureFoot( Hero hero, int damage ){
+		if (hero.belongings == null || hero.belongings.armor() == null) return damage;
+		com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+				com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( hero.belongings.armor() );
+		if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SUREFOOT )){
+			damage = Math.max( 1, Math.round( damage * (1f - 0.4f
+					* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.SUREFOOT ) ) ) );
+		}
+		return damage;
 	}
 
 	public static void mobFall( Mob mob ) {

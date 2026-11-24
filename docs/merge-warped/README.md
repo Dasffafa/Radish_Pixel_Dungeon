@@ -1643,3 +1643,20 @@ SUREFOOT/COOLING（实现已在，仅缺专项测试）。
   从 `1.6` 降到 `1 + 0.6×(1-强度)`（水里不管用）
 
 编译通过、`Smoke` 9/9、`F1` 3/3。**本轮未写专项场景**（与 SUREFOOT/COOLING 一样待补）。
+
+## 品质系统第十六阶段：补齐 SUREFOOT / COOLING / RAINPROOF 验证
+
+- **SUREFOOT**：把坠落伤害计算提取为 `Chasm.fallDamage(hero)` 与 `sureFoot(...)`，
+  除了 SkyWalker 分支，**普通坠落路径现在也生效**（之前只在 SkyWalker 里，实际是错位）
+- **COOLING**：提取为 `Thermal.coolAir(t)`，方便直接断言
+- **RAINPROOF**：已在 `Thermal.update` 里
+
+**实测**（`Z_PerksRest`，跑完即删）：
+
+```
+fall 10 -> 8              SUREFOOT：坠落伤害下降
+air  32.0 -> 31.99        COOLING：高温读数被拉低（本次抽到的强度极小）
+body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
+```
+
+编译通过、`Smoke` 9/9、`F1` 3/3。

@@ -124,13 +124,17 @@ public final class Thermal {
 
 		t += heat();
 
-		//quality lines: COOLING armour takes the edge off the heat, never below 25 C
-		if (Dungeon.hero != null && Dungeon.hero.belongings != null && Dungeon.hero.belongings.armor() != null && t > 25f){
-			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
-					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( Dungeon.hero.belongings.armor() );
-			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.COOLING )){
-				t = Math.max( 25f, t - 5f * q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.COOLING ) );
-			}
+		return coolAir( t );
+	}
+
+	/** COOLING on worn armour takes the edge off a hot air reading, never below 25 C. */
+	public static float coolAir( float t ){
+		if (t <= 25f || Dungeon.hero == null || Dungeon.hero.belongings == null
+				|| Dungeon.hero.belongings.armor() == null) return t;
+		com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+				com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( Dungeon.hero.belongings.armor() );
+		if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.COOLING )){
+			return Math.max( 25f, t - 5f * q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.COOLING ) );
 		}
 		return t;
 	}
