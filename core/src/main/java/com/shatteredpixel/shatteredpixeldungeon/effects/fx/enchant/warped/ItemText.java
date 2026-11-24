@@ -105,6 +105,18 @@ public final class ItemText {
 			if (b.length() > 0) b.append( "\n" );
 			b.append( "\u00b7 " ).append( l.describe( it, q.strength( l ) ) );
 		}
+		//the rarity's own grant, said the way Warped says it
+		b.append( "\n\n\u4ec5\u51ed\u7a00\u6709\u5ea6\uff0c\u5b83\u81ea\u8eab\u7684\u4f24\u5bb3\u3001\u9632\u5fa1\u6216\u5a01\u529b\u5c31\u63d0\u9ad8" )
+				.append( Math.round( q.rarity().potency() * 100f ) ).append( "%\u3002" );
+
+		//a vestige and its masterwork core, only on the top two tiers (text only for now)
+		if (q.rarity().ordinal() >= com.shatteredpixel.shatteredpixeldungeon.items.rarity.Rarity.LEGENDARY.ordinal()){
+			String ench = enchantName( it );
+			if (ench.isEmpty()) ench = "\u70c8\u7130";
+			b.append( "\n\n\u5b83\u8fd8\u5e26\u6709\u4e00\u4e2a\u6b8b\u8ff9\u9644\u9b54\uff0c\u90a3\u662f\u4e00\u7f15\u5b83\u59cb\u7ec8\u672a\u80fd\u771f\u6b63\u638c\u63e1\u7684\u9b54\u6cd5\u7684\u5fae\u5f31\u56de\u54cd\uff1a" );
+			b.append( "\n\u2726 \u6b8b\u8ff9" ).append( ench ).append( "\u9644\u9b54\uff1a\u89e6\u53d1\u9891\u7387\u4e3a\u771f\u54c1\u768427%" );
+			b.append( "\n\n\u6770\u4f5c 0/5\uff1a\u6bcf\u6761\u52a0\u6210\u8bcd\u6761\u6bcf\u7ea7\u63d0\u534715%\u3002\u5b83\u5df2\u6740\u6b7b0\u4e2a\u654c\u4eba\u3002\u4e0b\u4e00\u7ea7\u9700\u89811\u9897\u6770\u4f5c\u6838\u5fc3\u3002" );
+		}
 		return b.toString();
 	}
 

@@ -260,6 +260,9 @@ abstract public class Weapon extends KindOfWeapon {
 				damage += Math.round( damage * 0.35f
 						* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.DEFIANT ) );
 			}
+			//the rarity's own grant: a share of the weapon's power, whatever its lines
+			damage = Math.round( damage * (1f + q.rarity().potency()) );
+
 			//time system: the night strengthens the undead against every blow
 			if (com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.of( defender )
 					== com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.UNDEAD){
