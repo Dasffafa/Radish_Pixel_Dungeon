@@ -182,10 +182,15 @@ public class WndInfoItem extends Window {
 			rarityHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
 					"\u7a00\u6709\u5ea6\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityTitle( item ),
 					rColor, secWidth );
+			typeBody = PixelScene.renderTextBlock(
+					com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.familyText( item ), 6 );
+			typeBody.maxWidth( secWidth );
+
 			typeHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
 					"\u7c7b\u578b\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.familyTitle( item ),
 					rColor, secWidth );
 			add( typeHeader );
+			add( typeBody );
 
 			String lines = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.qualityLines( item );
 			if (!lines.isEmpty()){
@@ -206,7 +211,9 @@ public class WndInfoItem extends Window {
 	/** Lays the sections out; folded ones take only their header's height. */
 	//invisible buttons laid over each section header: pressing one folds that section
 	private com.shatteredpixel.shatteredpixeldungeon.ui.Button descHit, rarityHit;
-	private boolean descOpen = true, rarityOpen = true;
+	private boolean descOpen = true, rarityOpen = true, typeOpen = true;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.Button typeHit;
+	private RenderedTextBlock typeBody;
 	private com.watabou.noosa.ColorBlock descRule, rarityRule;
 	private RenderedTextBlock rarityIntro;
 	private Item sectionItem;
@@ -283,8 +290,27 @@ public class WndInfoItem extends Window {
 		}
 
 		if (typeHeader != null){
+			typeHeader.open = typeOpen;
 			typeHeader.place( 0, y );
+			if (typeHit == null){
+				typeHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+					@Override
+					protected void onClick(){
+						typeOpen = !typeOpen;
+						layoutSections();
+					}
+				};
+				add( typeHit );
+			}
+			typeHit.setRect( 0, y, secWidth, com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT );
 			y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
+			if (typeBody != null){
+				typeBody.visible = typeOpen;
+				if (typeOpen){
+					typeBody.setPos( 0, y );
+					y = typeBody.bottom();
+				}
+			}
 			y += GAP;
 		}
 

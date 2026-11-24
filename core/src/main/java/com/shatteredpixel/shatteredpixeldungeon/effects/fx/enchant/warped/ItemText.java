@@ -142,6 +142,23 @@ public final class ItemText {
 		}
 	}
 
+	/** A line or two about the item's family, for the type section. */
+	public static String familyText( Item it ){
+		if (!isGear( it )) return "";
+		switch (com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.familyOf( it )){
+			case SWORD:  return "\u5251\uff1a\u5747\u8861\u7684\u8fd1\u6218\u6b66\u5668\uff0c\u653b\u51fb\u4e0e\u901f\u5ea6\u90fd\u5c45\u4e2d\uff0c\u9002\u5408\u5927\u591a\u6570\u60c5\u51b5\u3002";
+			case AXE:    return "\u65a7\uff1a\u4f24\u5bb3\u5f88\u9ad8\u4f46\u901f\u5ea6\u504f\u6162\uff0c\u9760\u91cd\u51fb\u538b\u5236\u5bf9\u624b\u3002";
+			case SPEAR:  return "\u77db\uff1a\u653b\u51fb\u8ddd\u79bb\u66f4\u8fdc\uff0c\u9002\u5408\u4fdd\u6301\u8ddd\u79bb\u4f5c\u6218\u3002";
+			case MACE:   return "\u9524\uff1a\u7834\u7532\u80fd\u529b\u5f3a\uff0c\u51fb\u4e2d\u540e\u66f4\u5bb9\u6613\u9020\u6210\u786c\u76f4\u51fb\u3002";
+			case DAGGER: return "\u5315\u9996\uff1a\u8f7b\u5feb\u4e14\u9690\u853d\uff0c\u9002\u5408\u7a81\u88ad\u4e0e\u80cc\u523a\u3002";
+			case STAFF:  return "\u6cd5\u6756\uff1a\u4ee5\u9b54\u529b\u9a71\u52a8\u7684\u6b66\u5668\uff0c\u6ce8\u91cd\u6cd5\u672f\u4e0e\u8fdc\u7a0b\u3002";
+			case ARMOR:  return "\u62a4\u7532\uff1a\u62a4\u4f4f\u8eab\u4f53\uff0c\u63d0\u4f9b\u9632\u5fa1\u4e0e\u6301\u7eed\u4f5c\u6218\u80fd\u529b\u3002";
+			case SHIELD: return "\u76fe\uff1a\u4e13\u95e8\u7528\u4e8e\u683c\u6321\u4e0e\u9632\u5b88\u3002";
+			case RING:   return "\u6212\u6307\uff1a\u4ee5\u6301\u7eed\u52a0\u6210\u56de\u62a5\u4f69\u6234\u8005\u3002";
+			default:     return "\u6742\u9879\uff1a\u4e0d\u5c5e\u4e8e\u5e38\u89c4\u6b66\u5668\u6216\u62a4\u7532\u3002";
+		}
+	}
+
 	/** The gear quality block: its rarity and the lines it carries, or "" for non-gear. */
 	public static String qualityText( Item it ){
 		if (!(it instanceof Weapon) && !(it instanceof Armor)) return "";
