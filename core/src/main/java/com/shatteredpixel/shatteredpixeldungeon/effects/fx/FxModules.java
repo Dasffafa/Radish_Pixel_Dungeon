@@ -24,6 +24,7 @@ public final class FxModules {
 		com.shatteredpixel.shatteredpixeldungeon.effects.WeatherOverlay.sceneCreated();
 		com.shatteredpixel.shatteredpixeldungeon.actors.Thermal.reset();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.IceCrust.reset();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.AmbientDust.reset();
 		WaterFX.sceneCreated();
 	}
 

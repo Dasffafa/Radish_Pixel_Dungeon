@@ -901,6 +901,16 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 场景氛围第二批：空气里的浮尘
+
+Warped 用 `DustParticle`/`SunMoteParticle` 配合天气与光柱画浮尘；本仓库没有这些，所以直接做了个轻量版
+`effects/fx/AmbientDust`：每秒 1.6 颗、在视野内可见的非实心格子里随机出现，随风轻飘（`Weather.windX`）、
+`sway` 小幅摆动、5~7 秒后淡出；颜色多数冷白、三成偏暖。
+
+刻意压得很淡（alpha 0.14~0.24），只是让空气"有东西"，不挡视线。
+
+**实测**：临时场景 `Z_Dust`（跑完即删）在 arena 里跑 5 秒，PASS 2/2（`motes=4`）；截图里能看到淡淡的浮尘点。
+
 ## 场景氛围第一批：天上一道雷（ThunderBolt）
 
 Warped 的 `effects/ThunderBolt` 是"从天而降砸在某个人身上的一道雷"（它用两条带分叉的 Arc、三声声音与火花拼出来，
