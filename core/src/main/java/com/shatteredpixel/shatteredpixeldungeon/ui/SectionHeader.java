@@ -21,6 +21,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Group;
+import com.watabou.noosa.Image;
 
 /**
  * A part's header in the item window, drawn the way Warped draws it: a five-pixel fold arrow (down
@@ -34,6 +35,7 @@ public class SectionHeader extends Group {
 	private final RenderedTextBlock arrow;
 	private final RenderedTextBlock label;
 	private final int color;
+	private Image icon;
 	private final RenderedTextBlock rule;
 	private int fullWidth;
 
@@ -87,10 +89,27 @@ public class SectionHeader extends Group {
 		return label.right();
 	}
 
+	/** Shows a 16px-cell picture (half scale) between the arrow and the title. */
+	public void setIcon( int cell ){
+		if (icon == null){
+			icon = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Sprites.RARITY_ICONS );
+			icon.scale.set( 0.5f );
+			add( icon );
+		}
+		icon.frame( cell * 16, 0, 16, 16 );
+		icon.visible = true;
+	}
+
 	/** Puts the whole header at (x, y). */
 	public void place( float x, float y ){
 		placeArrow( y );
-		label.setPos( x + 9, y + (HEIGHT - label.height()) / 2f );
+		if (icon != null && icon.visible){
+			icon.x = x + 9;
+			icon.y = y + (HEIGHT - 8) / 2f;
+			label.setPos( x + 19, y + (HEIGHT - label.height()) / 2f );
+		} else {
+			label.setPos( x + 9, y + (HEIGHT - label.height()) / 2f );
+		}
 		placeRule( y );
 	}
 }

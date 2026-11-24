@@ -1826,3 +1826,11 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 `Assets.Sprites` 加了常量 `RARITY_ICONS`。**尚未接入窗口**：下一步把它以
 `Image` 按 `Rarity.ordinal()*16` 取帧、缩放 0.5 后画在稀有度分段头前，替掉 ◆ 字符。
+
+## 品质宝石图标接入
+
+`SectionHeader` 新增 `setIcon(cell)`：从 `Assets.Sprites.RARITY_ICONS` 取 16×16 格、缩放 0.5，
+画在箭头与标题之间；标题随之右移。`WndInfoItem` 的稀有度分段头用
+`Quality.of(item).rarity().ordinal()` 选帧，已去掉 ◆ 字符。
+
+**实测截图**：`稀有度：普通` 前出现了宝石图标。编译通过、`Smoke` 9/9、`F1` 3/3。

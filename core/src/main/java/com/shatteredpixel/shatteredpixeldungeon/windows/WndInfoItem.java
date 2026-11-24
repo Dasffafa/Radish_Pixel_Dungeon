@@ -180,7 +180,7 @@ public class WndInfoItem extends Window {
 		if (com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.isGear( item )){
 			int rColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityColor( item );
 			rarityHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
-					"\u25c6 " + "\u7a00\u6709\u5ea6\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityTitle( item ),
+					"\u7a00\u6709\u5ea6\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityTitle( item ),
 					rColor, secWidth );
 			typeHeader = new com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader(
 					"\u7c7b\u578b\uff1a" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.familyTitle( item ),
@@ -239,6 +239,7 @@ public class WndInfoItem extends Window {
 		y += GAP;
 
 		if (rarityHeader != null){
+			rarityHeader.setIcon( com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( sectionItem ).rarity().ordinal() );
 			rarityHeader.open = rarityOpen;
 			rarityHeader.place( 0, y );
 			if (rarityHit == null){
