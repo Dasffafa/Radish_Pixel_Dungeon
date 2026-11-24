@@ -617,3 +617,37 @@ sendToBack(frame); bringToFront(sparks);
 
 **实测**：`Z_Fire` 改成「3x3 火 + 旁边一条水」跑 80 帧，PASS 4/4：`poured>0`、`flames>0`、`FireField.attached>0`、英雄没死；
 截图里火堆周围有暖光铺地、水边有一条火色的 wash；`Smoke` 9/9 同时过。
+
+## 气体与寒冷（gas / cold 区，已并入 feat/fx-modules）
+
+**搬进来的（`effects/fx/gas/`）**
+
+| 文件 | 作用 |
+|---|---|
+| `GasStyle` | 19 种气体的外观：冠部/底部配色、最浓时不透明度、是否加色（魔法气）、细节类型与频率、辉光、地面 tint / etch、每格约几张图与 pour 间隔 |
+| `GasPuff` | 一朵气团（GAS_S → GAS_L、烟用 PUFF_*），透明度按格子体积、1.5–3s、顺体积漂移、卷曲 |
+| `GasFactory` | 每格的粒子：气团、云的边缘偶尔换成向外卷的 wisp、每 `every` 个粒子插一个细节、云涌起时 6–10 团、有人穿过时推两团、厚格子给地面 tint、腐蚀气蚀刻地板、辉光/静态闪光/冰晶闪光 |
+| `GasGlow` | 会发光的气（麻痹、腐化、黏液…）在夜色之上的一层光 |
+| `CellOverlay` | 地面上的覆盖层：冰霜（rime，从格子中间张开）、tint、蚀刻；按格子保留、化开时淡出 |
+| `Shade` | 气团从冠部到底部的灰阶映射 |
+| `FrostFactory` | 冰冻云：格子上的霜 0.3s 张开、雪花/冰晶下落、贴地冷雾、冰面闪光 |
+
+**`GasDetails`（我们自己的拼装）**
+
+Warped 把这些"细节工厂"放在 `WeatherBlobFX` 里，而那个类绑着 `WeatherSprites`（天气图集）、`DriftParticle`、雨雪雾粒子。
+于是只把**细节那一段**摘出来做成 `effects/fx/gas/GasDetails`：bubbles / motes / SWIRL / FLIES / drips / acidDrips / SOOT /
+FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了（`ASH_2`/`SPECK_1` → `MOTE_2`/`PEBBLE_2`，天气图集没有）。
+
+**接线**
+- `ToxicGas` → `TOXIC`，`ParalyticGas` → `PARALYTIC`，`ConfusionGas` → `CONFUSION`，`CorrosiveGas` → `CORROSIVE`，
+  `StenchGas` → `STENCH`，`SmokeScreen` → `SMOKE`
+- `Freezing` → `emitter.start( FrostFactory.FREEZING, FrostFactory.POUR, 0 )`（原来 0.05 一颗粒，现在 0.12 一张图，约十张一格的密度）
+
+**没搬的**
+- `Blizzard` 还是旧粒子：Warped 的暴雪粒子在 `WeatherBlobFX.BLIZZARD`（驱动雪、天气图集），属天气
+- 本仓库没有的气体 blob（Miasma / CorruptGas / BallGas / Dirtcloud / IceStorm / CloudOfCorruption…）不接线
+- 天气图集里的 wisp / puff 细节（雷云、雾、季节风）没搬
+
+**实测**：临时场景 `Z_Gas`（跑完即删）在真实引擎里放一团毒气 + 一片冰冻，跑 90 帧，PASS 4/4：
+`GasFactory.emitted>0`、`FrostFactory.emitted>0`、毒气 blob 仍在、英雄没死；截图里毒气是 Warped 的深绿气团、
+冰冻区是白霜团 + 冰晶。`Smoke` 9/9 同时过。
