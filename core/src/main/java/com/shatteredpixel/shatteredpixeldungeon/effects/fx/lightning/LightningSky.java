@@ -22,34 +22,75 @@
 package com.shatteredpixel.shatteredpixeldungeon.effects.fx.lightning;
 
 import com.shatteredpixel.shatteredpixeldungeon.effects.Lightning;
+import com.shatteredpixel.shatteredpixeldungeon.effects.LightningFlash;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Element;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FlashGate;
+import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxRecipes;
+import com.shatteredpixel.shatteredpixeldungeon.levels.ambience.WeatherSounds;
+import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
+import com.watabou.noosa.Group;
 
 /**
- * A stand-in for Warped's weather layer (`WeatherOverlay`), which this repo does not have: the
- * lightning keeps its own looks (arcs, joints, twigs, halos, pools, crackle, afterglow) but the
- * sky's answer (screen flash, thunder, shake, the overlay it is carried on) is dropped.
+ * What the sky answers a lightning with: the whole view flashing for a moment (LightningFlash, on
+ * FlashGate so flashes never strobe) and the thunder that follows, plus the sparks thrown where a
+ * bolt lands.
  *
- * 本仓库没有天气层。Warped 的 `Lightning` 把「闪屏 / 雷声 / 震屏 / 载体」都交给天气层，
- * 这里给一个空实现：`Lightning.layer` 永远返回 null，于是这些调用不会发生，其余表现照旧。
+ * Warped hands all of this to its WeatherOverlay, which this repo never had - so it was a stand-in
+ * that answered nothing. Now that this repo has a weather layer (WeatherOverlay / LightningFlash /
+ * WeatherSounds), the stand-in does the job itself: the flash and the thunder are pictures and
+ * sound only, they never strike or hurt anybody.
  */
 public final class LightningSky {
 
+	/** Acceptance counters (Z_LightningSky selftest). */
+	public static int flashes, thunders, sparks;
+
 	private LightningSky(){}
 
-	/** The overlay that would carry a lightning (none here). */
-	public static Object carry( Object lightning ){ return null; }
+	/** No overlay carries a lightning here: it draws itself on the effect layers. */
+	public static Object carry( Object lightning ){
+		return null;
+	}
 
-	/** The storm's crack where a bolt strikes (none here). */
-	public static void struck( int cell ){}
+	/** A major strike (a wand's, a potion's, a spell's): the flash and the thunder after it. */
+	public static void struck( int cell ){
+		flash();
+	}
 
-	/** A zap's crack where it strikes (none here). */
-	public static void crackOnly( int cell ){}
+	/** A storm's own bolt: it flashes too (the storm's own gate), and thunders. */
+	public static void stormStruck( Lightning lightning ){
+		flash();
+	}
 
-	/** A wand of lightning's thunder (none here). */
-	public static void wandThunder( int cell ){}
+	/** A zap's crack where it strikes: the thunder only (a creature's zap never flashes the screen). */
+	public static void crackOnly( int cell ){
+		WeatherSounds.thunder();
+		thunders++;
+	}
 
-	/** The storm's own bolt (none here). */
-	public static void stormStruck( Lightning lightning ){}
+	/** A wand of lightning's thunder. */
+	public static void wandThunder( int cell ){
+		crackOnly( cell );
+	}
 
-	/** Sparks thrown where a bolt lands (none here). */
-	public static void spark( float x, float y, int n ){}
+	/** Sparks thrown where a bolt lands. */
+	public static void spark( float x, float y, int n ){
+		if (n <= 0) return;
+		FxRecipes.sparks( x, y, Element.ELECTRIC, n );
+		sparks++;
+	}
+
+	/** The screen's flash, as FlashGate lets the game's own flashes go (2 s apart, three in ten). */
+	private static void flash(){
+		LightningFlash f = LightningFlash.game();
+		if (f != null){
+			Group g = GameScene.layer( GameScene.Layer.EFFECTS );
+			if (g != null){
+				g.add( f );
+				flashes++;
+			}
+		}
+		WeatherSounds.thunder();
+		thunders++;
+	}
 }

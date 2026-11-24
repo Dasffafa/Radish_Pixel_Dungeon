@@ -547,7 +547,9 @@ public class Lightning extends Group {
 	//(a major's flash and crack, a zap's crack), and the ground's
 	private void strike() {
 		glows();
-		//no weather layer in this repo: no screen flash, no thunder crack, just the ground's answer
+		//the sky's answer to a major strike: a flash and the thunder after it (pictures and sound
+		//only: FlashGate keeps it from strobing, and nothing is struck by it)
+		if (major && onWorld) LightningSky.struck( -1 );
 		if (onWorld) world();
 	}
 

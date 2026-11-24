@@ -901,6 +901,23 @@ Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风�
 **实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
 （站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 天气第十一批：闪电终于有人接（补回天气层缺失时丢掉的那半）
+
+之前搬 `Lightning` 时，Warped 把「闪屏 / 雷声 / 震屏 / 载体」都交给天气层，而本仓库没有天气层，
+只能留一个 `LightningSky` 空壳（`carry()` 返回 null、`struck()` 什么都不做）。现在天气层有了，空壳换成真的：
+
+- `LightningSky.struck(cell)` / `stormStruck(...)` → `LightningFlash.game()`（走 FlashGate 的"游戏自己的闪光"闸门，
+  2 秒一次、10 秒内最多 3 次）+ 一声雷（`WeatherSounds.thunder()`）
+- `crackOnly/wandThunder` → 只响雷不闪屏（小怪的电击不该闪屏，照 Warped 的规矩）
+- `spark(x, y, n)` → `FxRecipes.sparks(..., Element.ELECTRIC, n)`
+- `Lightning.strike()` 里恢复：**major 级闪电**（法杖/药水/法术/风暴的）落地时调 `LightningSky.struck()`，
+  原来那句「本仓库没有天气层：不闪屏、不响雷」的注释可以删了
+
+**不落雷伤人**：这套只闪屏、响雷、放火花，不产生伤害或点燃。
+
+**实测**：临时场景 `Z_LightningSky`（跑完即删）在英雄身旁放一道真实 `Lightning(...).major()`，PASS 5/5
+（`flashes=1 thunders=1 skyThunders=1`，**HP 20→20、buff 3→3**）；截图能看到白色分叉电弧与整屏微亮。
+
 ## 天气第十批：温度看得见（并修正了状态判定的口径）
 
 上一批把阈值套在**体温**上，导致"正常体温 36.5℃ > 30℃"永远算过热——这轮改成 Warped 的口径：
