@@ -22,6 +22,7 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Blob;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.Fx;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxBudget;
 import com.shatteredpixel.shatteredpixeldungeon.effects.fx.FxEmitter;
@@ -96,6 +97,31 @@ public final class Thermal {
 		body = t;
 	}
 
+	/**
+	 * How much something near is warming him (0..1): embers and a fire beside him. Warmth is a
+	 * comfort only - it never sets anything alight and never costs health either way.
+	 */
+	public static float warmth(){
+		if (Dungeon.hero == null || Dungeon.level == null) return 0f;
+		float w = 0f;
+		int pos = Dungeon.hero.pos;
+		int wdt = Dungeon.level.width();
+		if (Dungeon.level.map[pos] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMBERS) w = 0.7f;
+		for (int dy = -1; dy <= 1; dy++){
+			for (int dx = -1; dx <= 1; dx++){
+				int cx = pos % wdt + dx, cy = pos / wdt + dy;
+				if (cx < 0 || cy < 0 || cx >= wdt || cy >= Dungeon.level.height()) continue;
+				int cell = cy * wdt + cx;
+				if (Dungeon.level.map[cell] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMBERS) w = Math.max( w, 0.7f );
+				for (Blob b : Dungeon.level.blobs.values()){
+					if (b instanceof com.shatteredpixel.shatteredpixeldungeon.actors.blobs.Fire
+							&& b.volume > 0 && b.cur != null && b.cur[cell] > 0) w = Math.max( w, 1f );
+				}
+			}
+		}
+		return w;
+	}
+
 	/** The hero's body temperature now, °C. */
 	public static float body(){
 		return body;
@@ -115,9 +141,16 @@ public final class Thermal {
 		updates++;
 
 		float air = ambient();
-		float step = DRIFT * dt;
-		if (body > air) body = Math.max( air, body - step );
-		else if (body < air) body = Math.min( air, body + step );
+		//a fire beside him warms him back toward his own heat; it is a comfort, never a burn
+		float warm = warmth();
+		float target = warm > 0f ? air + (WARM - air) * Math.min( 1f, warm ) : air;
+		//soaked through (standing in water, or out in the rain) he loses and gains heat faster
+		boolean wet = Dungeon.level.water[Dungeon.hero.pos]
+				|| (Weather.precip == PrecipType.RAIN || Weather.precip == PrecipType.SLEET
+					|| Weather.precip == PrecipType.BLIZZARD);
+		float step = DRIFT * (wet ? 1.6f : 1f) * dt;
+		if (body > target) body = Math.max( target, body - step );
+		else if (body < target) body = Math.min( target, body + step );
 
 		if (!(Game.scene() instanceof GameScene)) return;
 		CharSprite s = Dungeon.hero.sprite;
