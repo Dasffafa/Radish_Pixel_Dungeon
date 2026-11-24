@@ -865,6 +865,27 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 - **去掉的 4.x 耦合**：`EnchantLook`/`EnchantState`/`TypeFx`（附魔 look 框架）——星芒固定用目标自身血色，
   刀锋用白色；木屑用固定色而不是 `TypeFx.WOOD`
 - **没搬的**：`Blow`/`BlowPresenter`（打击演示管线，负责把一次攻击编排成多拍）、`Looks`/`StateLooks`（武器外观表，
+
+## 战斗第三批：打击演示管线的骨架（进行中）
+
+Warped 的「打击演示」（`Blow` + `BlowPresenter` + `Looks` + `StateLooks`）不是一个孤立特效，它长在四套子系统上。
+这一批先把**缺失的依赖骨架**补上，让后面几批能逐块搬：
+
+| 新增 | 作用 |
+|---|---|
+| `effects/fx/FxOrbit` | 打击光环的轨道粒子（341 行，照搬，和本仓库 fx kit 兼容） |
+| `effects/HitCard` | **替身**：Warped 的 798 行伤害数字卡；这里先用现有 `FloatingText` 顶上，数字照常浮出，没有 chips/stamps/hop |
+| `net/NetManager` | **替身**：本仓库没有联机，恒为 host、非 client |
+| `effects/fx/enchant/EnchantNet` | **替身**：联机广播出口，全部空实现 |
+
+**为什么不能一次搬完**：`Blow`/`BlowPresenter` 直接引用 Warped 的
+`EnchantFx.SwingPiece/ProcPiece`（附魔 look 体系内部类）、`EnchantLook`/`EnchantState`/`TypeFx`、
+以及 Warped 版的 `FloatingText` 数字图标码（`MANA`/`HIT_WEP`/`MISS_DODGE`…）和 `Buff.icon()` 返回 int 的约定
+（本仓库是 String）。这些要逐个做替身或改写，属多轮工作。
+
+**当前状态**：骨架编译通过、`ronghe` 与 `feat/fx-modules` 仍在 `01497d200`（骨架提交后前进一个提交）；
+下一批：`Blow` 的图标/卡片适配 → `BlowPresenter` → `Looks`/`StateLooks`。
+
   依赖 rarity）；`CharSprite.nudge`（受击抖动）本分支没有，先省掉
 
 **实测**：临时场景 `Z_Hit`（跑完即删）砍一只老鼠三刀，PASS 3/3（`HitFx.hits>0`、老鼠掉血、英雄没死）；
