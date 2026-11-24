@@ -512,6 +512,11 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.HitFx.hit( this, fromX, fromY, damage, style, heroInvolved );
 	}
 
+	/** A blow from `from` that missed this sprite: a whoosh past it and a puff at its feet. */
+	public void dodgeFx( float fromX, float fromY ){
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.HitFx.dodged( this, fromX, fromY );
+	}
+
 	public int blood() {
 		return 0xFFBB0000;
 	}

@@ -523,6 +523,7 @@ public abstract class Char extends Actor {
                     attackingWeapon(), defendingWeapon(enemy), defendingArmor(enemy)));
 
             enemy.sprite.showStatus(CharSprite.NEUTRAL, enemy.defenseVerb());
+            enemy.sprite.dodgeFx( sprite.x + sprite.width() / 2f, sprite.y + sprite.height() / 2f );
 
             if (visibleFight) {
                 //TODO enemy.defenseSound? currently miss plays for monks/crab even when they parry

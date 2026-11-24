@@ -92,6 +92,7 @@ public final class HitFx {
 	/** What a blow was, by the weapon's sound. */
 	//acceptance counter (Z_Hit selftest)
 	public static int hits;
+	public static int dodges;
 
 	public static final int HIT = 0, SLASH = 1, STAB = 2, CRUSH = 3, ARROW = 4, MAGIC = 5, PARRY = 6, STRONG = 7;
 
@@ -299,6 +300,7 @@ public final class HitFx {
 
 	/** A blow that missed `d`: a whoosh past it and a puff at its feet. Any thread. */
 	public static void dodged( final CharSprite d, final float fromX, final float fromY ){
+		dodges++;
 		if (d == null) return;
 		if (!Fx.onRenderThread()){
 			Fx.post( () -> dodged( d, fromX, fromY ) );
