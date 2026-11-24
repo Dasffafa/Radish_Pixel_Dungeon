@@ -521,6 +521,43 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.HitFx.dodged( this, fromX, fromY );
 	}
 
+	/** The frame it shows now (Warped's looks slice a crop of it). */
+	public com.watabou.utils.RectF frameNow(){
+		return frame();
+	}
+
+	/** A shiver of `dx` whole pixels (Warped's cold looks ask for one): not offset here. */
+	public void shiver( int dx ){
+	}
+
+	/** Whether this sprite is mid-flash. */
+	public boolean isFlashing(){
+		return flashTime > 0;
+	}
+
+	/** Whether nothing is tinting this sprite. */
+	public boolean tintFree( Object unused ){
+		return flashTime <= 0;
+	}
+
+	/** A boat's rise and fall (Warped's sea look): this repo has none, so it stays where it is. */
+	public void lift( int dy ){
+	}
+
+	public int lift(){
+		return 0;
+	}
+
+	/** The colour of its aura (Warped's AURA state look). */
+	public int auraColor(){
+		return 0xFFE9A8;
+	}
+
+	/** Whether its stun stars are already drawn elsewhere. */
+	public boolean stunStars(){
+		return false;
+	}
+
 	public int blood() {
 		return 0xFFBB0000;
 	}

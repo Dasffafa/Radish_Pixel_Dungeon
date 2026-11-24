@@ -864,6 +864,23 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
   `KindOfWeapon` 补了 `hitSoundAsset()` 取值
 - **去掉的 4.x 耦合**：`EnchantLook`/`EnchantState`/`TypeFx`（附魔 look 框架）——星芒固定用目标自身血色，
   刀锋用白色；木屑用固定色而不是 `TypeFx.WOOD`
+
+## 战斗第四批：状态外观层的前置件（进行中）
+
+`Looks`/`StateLooks`（武器与角色状态外观）连到 Warped 的「角色状态外观」层上，这轮先把本仓库缺的 API/替身补上：
+
+| 新增 | 说明 |
+|---|---|
+| `CharSprite.State` 扩充 | 补 `GLOWING/AURA/ELECTRIC/BUTTER/HEATSTROKE/HYPOTHERMIA/TORCHLIT/ROOTED/BARKED/VERDANT/HERB/POISONED/CORRODED/OOZED/SEEDED/SURGING/BOAT_*`（只追加，不改原有序号） |
+| `actors/buffs/Stunned` | 替身，`Stunned.HOLD` |
+| `HeldLight` / `Quad` | 外观层的光与贴片基元 |
+| `effects/fx/enchant/EnchantState` | 替身（`of/get/stunAt`） |
+| `Group.membersView()` | Warped 的 Group 有它（外观给已有 quad 染色） |
+| `CharSprite` | `isFlashing/tintFree/frameNow/shiver/lift/auraColor/stunStars` |
+
+**现状**：这些前置件编译通过、`Smoke` 9/9；`Looks`/`StateLooks` 本身还没落地——
+`StateLooks` 的 `switch (CharSprite.State)` 与 `Look` 基类（`pour/once` 等）需要成组搬，且 `RiddenHorse` 依赖本仓库没有的 `HorseSprite`。
+
 - **没搬的**：`Blow`/`BlowPresenter`（打击演示管线，负责把一次攻击编排成多拍）、`Looks`/`StateLooks`（武器外观表，
 
 ## 战斗第三批：打击演示管线的骨架（进行中）
