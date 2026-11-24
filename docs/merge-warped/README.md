@@ -865,6 +865,22 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 - **去掉的 4.x 耦合**：`EnchantLook`/`EnchantState`/`TypeFx`（附魔 look 框架）——星芒固定用目标自身血色，
   刀锋用白色；木屑用固定色而不是 `TypeFx.WOOD`
 
+## 场景互动第一批：怪物足迹（RoamerTracks）
+
+Warped 的 `effects/RoamerTracks` 是「漫游野兽留下的脚印」：它只负责把上游（overworld 的漫游事件）算好的
+`Print` 列表画到地上，贴图是构建时生成的 `effects/roamer_tracks.png`——这两样本仓库都没有。
+
+所以这里做的是它的**本仓库版**：脚印直接来自每一步（`CharSprite.move` → `FxModules.stepped` → `RoamerTracks.stepped`），
+用本仓库的 `FxDecal` 画在 FLOOR 层，`WET_9` 当脚印形状，颜色取扬起的尘土色（浅底/深底都能看见）。
+
+- 只有**怪物**留脚印（英雄自己的会糊满脚下，看着乱）
+- 只留在**已经见过**的地面上（没见过的地看不到脚印）
+- 空中、水里的不留；**不是每一步都留**（55%）
+- 存活 8 秒、再用 6 秒淡出
+
+**实测**：临时场景 `Z_Tracks`（跑完即删）让老鼠来回走几步，PASS 2/2（`RoamerTracks.prints>0`），
+截图里老鼠脚下能看到浅色尘土印。回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3。
+
 ## 战斗第四批：状态外观层的前置件（进行中）
 
 `Looks`/`StateLooks`（武器与角色状态外观）连到 Warped 的「角色状态外观」层上，这轮先把本仓库缺的 API/替身补上：

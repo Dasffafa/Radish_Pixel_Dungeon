@@ -27,6 +27,7 @@ public final class FxModules {
 		Steps.record( from, to, s.visible );
 		if (s.ch == null) return;
 		WaterWalk.stepped( s, from, to );
+		RoamerTracks.stepped( s.ch, from, to );
 	}
 
 	public static void jumped( CharSprite s ){
