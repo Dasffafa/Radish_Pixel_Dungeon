@@ -1011,6 +1011,7 @@ public class GameScene extends PixelScene {
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WaterFX.frame();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.TerrainWatch.drain();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.WaterLive.update( Game.elapsed );
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.WindSway.update( Game.elapsed );
 		AmbientCritters.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.AmbientMotes.update();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.FireReflections.update( Game.elapsed );

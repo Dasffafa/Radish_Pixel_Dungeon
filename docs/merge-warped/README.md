@@ -884,6 +884,23 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Lava`（跑完即删）在英雄旁边铺 9 格水、把液体设为熔岩，跑 150 帧，PASS 3/3
 （`bubbles=3`、`waterVoices=1 last=LAP`、英雄没死）；截图里能看到熔岩池的流动纹理。回归：`Smoke` 9/9、`F1` 3/3。
 
+## 场景互动第三批：风里的草（WindSway 的替身版）
+
+Warped 的 `tiles/WindSway` 是把树/灌木/高草的**贴图上半截**按风向整像素侧移，因此要求它的 tilemap
+（`OverworldDress.Layer`、`TerrainFeaturesTilemap`、`RaisedTerrainTilemap`）把会摆的格子从 chunk 里排除、
+再用单独的 Batch 跟在后面画；风本身来自 `ClimateManager`（风速、风向、阵风、雷暴）。
+
+本仓库的 tilemap 没有这个钩子，所以这里走另一条路：**在见过的草格上放几十片可摆动的小草叶**
+（`FxFrames.BLADE_3/4/5`，2 倍缩放，恒微风 1.15 周期/秒，最多左右各 2 像素，整像素取整保持锐利）。
+贴图本身不动，属于"视觉近似"而不是原版效果。
+
+- 只放在 `heroFOV || visited` 且是 `GRASS/HIGH_GRASS/FURROWED_GRASS` 的格子上
+- 每 2.5 秒重新挑一次位置（不够半个屏时更勤）
+- 接在 `GameScene.update` 每帧推进，`FxModules.sceneCreated` 时重建
+
+**实测**：临时场景 `Z_Wind`（跑完即删）在英雄周围铺 7×7 草地，PASS 3/3
+（站着 28 片草、`swaySum` 在采样中变化多次、英雄没死）。回归：`Smoke` 9/9、`F1` 3/3。
+
 ## 场景互动第一批：怪物足迹（RoamerTracks）
 
 Warped 的 `effects/RoamerTracks` 是「漫游野兽留下的脚印」：它只负责把上游（overworld 的漫游事件）算好的

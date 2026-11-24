@@ -20,6 +20,7 @@ public final class FxModules {
 
 	/** The game's scene stands, every layer made. */
 	public static void sceneCreated( GameScene scene ){
+		WindSway.sceneCreated();
 		WaterFX.sceneCreated();
 	}
 
