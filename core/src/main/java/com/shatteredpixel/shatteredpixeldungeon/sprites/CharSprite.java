@@ -504,6 +504,11 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 
 	/** The blow as the eye takes it (fx/combat/HitFx): its star, crescent, dust or sparks. */
 	public void hitFx( float fromX, float fromY, int damage, int style, boolean heroInvolved ){
+		//inside an open blow the star is one of its pictures (the presenter draws it on the lead);
+		//outside one (a trap, a hazard) it draws itself at once
+		if (ch != null && com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.Blow.offer(
+				new com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.HitFx.StarPiece(
+						ch, fromX, fromY, damage, style, heroInvolved ) ) ) return;
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.HitFx.hit( this, fromX, fromY, damage, style, heroInvolved );
 	}
 

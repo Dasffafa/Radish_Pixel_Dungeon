@@ -883,8 +883,15 @@ Warped 的「打击演示」（`Blow` + `BlowPresenter` + `Looks` + `StateLooks`
 以及 Warped 版的 `FloatingText` 数字图标码（`MANA`/`HIT_WEP`/`MISS_DODGE`…）和 `Buff.icon()` 返回 int 的约定
 （本仓库是 String）。这些要逐个做替身或改写，属多轮工作。
 
-**当前状态**：骨架编译通过、`ronghe` 与 `feat/fx-modules` 仍在 `01497d200`（骨架提交后前进一个提交）；
-下一批：`Blow` 的图标/卡片适配 → `BlowPresenter` → `Looks`/`StateLooks`。
+**当前状态（第二批已落地）**：`Blow` 与 `BlowPresenter` 已搬进来并接上：
+
+- `Char.attack(...)` 外面包了 `Blow.begin( this, enemy )` / `try { attackInBlow(...) } finally { Blow.end(); }`
+- `CharSprite.hitFx(...)` 里先 `Blow.offer( new HitFx.StarPiece(...) )`，open 的 blow 就把它当一拍演，没有 open 就自己画
+- 去掉的部分：`EnchantFx.SwingPiece`/`ProcPiece`（附魔 look 体系的拍子）、`Looks.stunning`、`DamageLedger.card`
+  （伤害数字卡的数据来源）、Warped 的 `FloatingText` 图标码（缺失的都用 `NO_ICON`，数字照常显示）
+- **伤害数字**仍由本仓库 `Char.damage` 的 `showStatusWithIcons` 显示；`HitCard` 替身目前只做兜底
+
+下一批：`Looks`/`StateLooks`（武器外观表）——它们依赖 `EnchantState` 与 `Stunned`（本仓库没有），仍要逐个替身。
 
   依赖 rarity）；`CharSprite.nudge`（受击抖动）本分支没有，先省掉
 

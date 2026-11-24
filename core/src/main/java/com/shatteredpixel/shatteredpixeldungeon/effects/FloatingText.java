@@ -85,6 +85,24 @@ public class FloatingText extends RenderedTextBlock {
 	public static int EX_EXP    = 27;
 	public static int BELIEF    = 28;
 
+	//Warped 的额外图标码：本仓库的 text_icons 图集里没有对应帧，先用 NO_ICON（只显示数字）
+	public static int MANA      = NO_ICON;
+	public static int HIT_WEP   = NO_ICON, HIT_ARM   = NO_ICON, HIT_BLS   = NO_ICON, HIT_HEX   = NO_ICON;
+	public static int HIT_DAZE  = NO_ICON, HIT_ACC   = NO_ICON, HIT_EVA   = NO_ICON, HIT_LIQ   = NO_ICON;
+	public static int HIT_DANCE = NO_ICON, HIT_SUPR  = NO_ICON, HIT_PRES  = NO_ICON, HIT_MOMEN = NO_ICON;
+	public static int MISS_WEP  = NO_ICON, MISS_ARM  = NO_ICON, MISS_DODGE = NO_ICON, MISS_BLOCK = NO_ICON;
+	public static int PARRY     = NO_ICON, GUARDED   = NO_ICON;
+
+	public static int RAGE = NO_ICON, FUSE = NO_ICON, RELOAD = NO_ICON;
+	public static int F_EMBER = NO_ICON, F_HEX = NO_ICON;
+	public static int EXECUTIONER = NO_ICON, MOON = NO_ICON, DEFIANT = NO_ICON;
+	public static int S_UNDEAD = NO_ICON, S_HUMANOID = NO_ICON;
+
+	/** Warped's hollow variant of an icon: none here. */
+	public static int hollow( int code ){
+		return NO_ICON;
+	}
+
 	private final ArrayList<Image> icons = new ArrayList<>();
 	private boolean iconLeft;
 

@@ -399,6 +399,17 @@ public abstract class Char extends Actor {
      * 返回 true 表示行动已消耗（命中或被取消），false 表示未命中或未发生。
      */
     public boolean attack(Char enemy, float dmgMulti, float dmgBonus, float accMulti) {
+    	//the whole blow: the presentation (effects/fx/combat/Blow) arranges its pictures now and
+    	//draws them once the attack's own frame is done
+    	com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.Blow.begin( this, enemy );
+    	try {
+    		return attackInBlow( enemy, dmgMulti, dmgBonus, accMulti );
+    	} finally {
+    		com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.Blow.end();
+    	}
+    }
+
+    private boolean attackInBlow(Char enemy, float dmgMulti, float dmgBonus, float accMulti) {
 
         if (enemy == null) return false;
 
