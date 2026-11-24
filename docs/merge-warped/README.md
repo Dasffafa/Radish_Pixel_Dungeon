@@ -734,3 +734,21 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Combat`（跑完即删）打一只老鼠 5 下再砸一瓶毒气，PASS 4/4：
 `Spray.spreads>0`、老鼠确实掉血、药水飞溅也走同一条路径、英雄没死。
 `Smoke` 9/9、`SelfTest_Potions` 5/5、`F1_Dm175ShieldAfterBreak` 3/3、`E0_BlastInactivePrototype` 3/3 同时过。
+
+## 奥术第二批：Beam（光束，已并入 feat/fx-modules）
+
+把 `effects/Beam` 整个换成 Warped 的版本（87 行 → 317 行），配合上一批搬进来的 `RayFx` / `PrismFx`：
+
+- **核心与光晕分帧**：核心粗 2px → 4px → 整条（0.04s 内），维持一半寿命后按 8/6/4/2px 逐档收细；
+  光晕用 `ArcImage` 的 `BAND_21` 沿光束铺，20Hz 抖动 ±6%，核心消失后再活 `AFTERGLOW 0.2s`
+- **两端的表现**：起点一盏 11px 光、终点一盏 15px 光加一片 23px 地面光池，光照按 beam 的颜色走
+- **按类型分化**：死亡射线有随机 1px 抖动、光射线沿光束铺 3 片地面光池、日光射线带自己的色、治疗射线有白色珠子从起点跑到终点 + 4 个脉冲 + 光点
+- **几种新形态**：`SunRay`、`SuperNovaRay`、`PrismRay`（本仓库暂时只用前三种老类，新类留给后续）
+- `Beam` 现在实现 `Lit`，画在 `GameScene.carryLight` 的光照层上（本仓库该接口是空实现，所以只是不走那一层）
+
+**为编译做的适配**
+- 本仓库 `GameScene.carryLight` 返回 void（Warped 返回 Gizmo），赋值去掉
+- 本仓库 `Effects.Type` 没有 `SUPERNOVA_RAY`，`SuperNovaRay` 暂用 `LIGHT_RAY` 的贴图
+
+**实测**：临时场景 `Z_Beam`（跑完即删）连放光射线/死亡射线/治疗射线，PASS 1/1（三道光都正常画出、英雄没死）；
+截图里光射线是金白一道、死亡射线是紫白一道、治疗射线是粉紫一道，末端都有光斑。`Smoke`、`F1` 等回归见下一批提交。
