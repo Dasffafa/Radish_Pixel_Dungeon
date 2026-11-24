@@ -826,3 +826,16 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Heat`（跑完即删）点一片 5x3 的大火跑 100 帧，PASS 3/3：
 `FireField.attached>0`、`HeatRay.risen>0`、英雄没死；截图里火苗上方能看到一缕缕上升的热浪。
 回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3 全过。
+
+## 奥术第三批：ItemFx 接到物品上（已并入 feat/fx-modules）
+
+- 卷轴：`Scroll.readAnimation` 每次读卷轴都 `ItemFx.read( curUser, SCROLL )`（翻页的光、上升的光点）
+- 魔法地图卷轴：`ItemFx.mapping( curUser )` + 每发现一处密门 `ItemFx.secret( i )`（地面上一圈扩散的光）
+- 力量药水：`ItemFx.strength( hero )`（金色迸发）
+- 移除诅咒卷轴：`ItemFx.uncurse( curUser )`（**注意**：本分支的移除诅咒卷轴会先弹背包窗，所以自动化场景里读不了它，
+  这个接线只做了代码接入，没有场景断言）
+- `ItemFx` 加了验收计数：`reads / mappings / curses / strengths`
+
+**实测**：临时场景 `Z_Items`（跑完即删）连读三张魔法地图卷轴 + 喝一瓶力量药水，PASS 4/4
+（`reads=3`、`mappings=3`、`strengths=1`、英雄没死）；回归：`Smoke` 9/9、`SelfTest_Potions` 5/5、
+`B0_TeleportScrollControl` 3/3、`E0` 3/3 全过。

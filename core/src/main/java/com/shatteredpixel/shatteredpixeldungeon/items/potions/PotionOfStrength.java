@@ -51,6 +51,7 @@ public class PotionOfStrength extends Potion {
 
 		GLog.p( Messages.get(this, "msg", hero.STR()) );
 		
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.strength( hero );
 		Badges.validateStrengthAttained();
 	}
 

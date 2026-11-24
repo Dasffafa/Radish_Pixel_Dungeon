@@ -53,6 +53,8 @@ public class ScrollOfRemoveCurse extends InventoryScroll {
 	@Override
 	public void doRead() {
 
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.uncurse( curUser );
+
 		TormentedSpirit spirit = null;
 		for (int i : PathFinder.NEIGHBOURS8){
 			if (Actor.findChar(curUser.pos+i) instanceof TormentedSpirit){

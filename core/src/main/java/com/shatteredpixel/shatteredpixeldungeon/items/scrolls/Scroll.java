@@ -270,6 +270,7 @@ public abstract class Scroll extends Item {
 		curUser.spend( TIME_TO_READ );
 		curUser.busy();
 		((HeroSprite)curUser.sprite).read();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.read( curUser, com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.SCROLL );
 
 		// TheCatist 2026/07/21 无序魔典的卷轴使用是anonymous不会触发天赋
 		if (anonymous) return;

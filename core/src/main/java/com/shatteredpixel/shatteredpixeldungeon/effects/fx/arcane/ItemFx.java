@@ -84,6 +84,7 @@ public final class ItemFx {
 
 	/** A scroll read: runes rising off the reader's hands over the read, a glow in its colour. */
 	public static void read( final Char reader, final int color ){
+		reads++;
 		Fx.post( () -> {
 			CharSprite s = reader.sprite;
 			if (s == null || !s.visible || !Arc.onScene()) return;
@@ -114,6 +115,7 @@ public final class ItemFx {
 
 	/** A curse lifted: ink pulled out of him and dissolving, holy motes rising. */
 	public static void uncurse( final Char ch ){
+		curses++;
 		Fx.post( () -> {
 			if (ch.sprite == null || !ch.sprite.visible || !Arc.onScene()) return;
 			float x = ch.sprite.x + ch.sprite.width() / 2f, y = ch.sprite.y + ch.sprite.height() / 2f;
@@ -162,6 +164,7 @@ public final class ItemFx {
 	/** Magic mapping: a wave of pale light across the floor from the reader, and a star on every
 	 *  secret it uncovers (secret()). */
 	public static void mapping( final Char reader ){
+		mappings++;
 		Fx.post( () -> {
 			Level level = Dungeon.level;
 			if (reader.sprite == null || level == null || !Arc.onScene()) return;
@@ -281,6 +284,7 @@ public final class ItemFx {
 
 	/** A potion strengthening him: arrows rising, a warm glow. */
 	public static void strength( final Char ch ){
+		strengths++;
 		Fx.post( () -> {
 			if (ch.sprite == null || !ch.sprite.visible || !Arc.onScene()) return;
 			float x = ch.sprite.x + ch.sprite.width() / 2f, y = ch.sprite.y + ch.sprite.height() / 2f;
@@ -298,7 +302,7 @@ public final class ItemFx {
 
 	/** A potion drunk: three or four bubbles of its colour fizzing up at his mouth. */
 	//验收用计数（selftest 的 Z_Arcane 场景会看）
-	public static int drinks, shatters;
+	public static int drinks, shatters, reads, mappings, curses, strengths;
 
 	public static void drink( final Char ch, final int color ){
 		drinks++;

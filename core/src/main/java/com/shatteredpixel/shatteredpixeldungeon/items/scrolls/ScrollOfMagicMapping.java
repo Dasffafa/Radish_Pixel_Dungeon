@@ -63,6 +63,7 @@ public class ScrollOfMagicMapping extends Scroll {
 					
 					if (Dungeon.level.heroFOV[i]) {
 						GameScene.discoverTile( i, terr );
+						com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.secret( i );
 						discover( i );
 						
 						noticed = true;
@@ -70,6 +71,7 @@ public class ScrollOfMagicMapping extends Scroll {
 				}
 			}
 		}
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.mapping( curUser );
 		GameScene.updateFog();
 		
 		GLog.i( Messages.get(this, "layout") );
