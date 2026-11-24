@@ -1137,6 +1137,26 @@ public abstract class Mob extends Char {
 
 	@Override
 	public void die( Object cause ) {
+		//quality lines: HUNTER leaves meat off the beasts it kills
+		if (cause == hero || cause instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
+			if (hero.belongings != null && hero.belongings.weapon instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon){
+				com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+						com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( hero.belongings.weapon );
+				if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.HUNTER )){
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily fam =
+							com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.of( this );
+					if ((fam == com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.BEAST
+							|| fam == com.shatteredpixel.shatteredpixeldungeon.items.rarity.SlayerFamily.VERMIN)
+							&& com.watabou.utils.Random.Float() < 0.15f + 0.35f
+									* q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.HUNTER )){
+						com.shatteredpixel.shatteredpixeldungeon.items.Heap heap = Dungeon.level.drop(
+								new com.shatteredpixel.shatteredpixeldungeon.items.food.ChargrilledMeat(), pos );
+						if (heap != null && heap.sprite != null) heap.sprite.drop();
+					}
+				}
+			}
+		}
+
 		if (alignment == Alignment.ENEMY
 				&& hero.subClass == HeroSubClasses.DICE_MAGE
 				&& (cause == hero || cause instanceof Weapon || cause instanceof Wand || cause instanceof DiceMageSpell)){
