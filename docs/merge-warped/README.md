@@ -770,3 +770,29 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 
 **实测**：临时场景 `Z_Electric`（跑完即删）在英雄旁铺一片水并灌满电，跑 60 帧，PASS 3/3：
 `sparksMade>0`、`washesMade>0`、英雄没死；截图里红水面上有白色电火花和一块块亮斑。`Smoke` 9/9、`E0` 3/3 同时过。
+
+## 闪电第三批：Arc 重写（Warped 的闪电形态，已并入 feat/fx-modules）
+
+`effects/Lightning` 整个换成 Warped 版（166 行 → 1254 行），这是本仓库视觉上变化最大的一次：
+
+- **stroke 形态**：按长度分关节（每 16px 一个、最多 8 段），越长的拧得越开；40px 以上七成概率长叉（两条细腿），
+  1~3 根 5~12px 的小树枝，每段中间随机鼓 3px 并逐帧抖 1px
+- **两层绘制**：白亮的芯（effects.png 的闪电帧）叠在 `lightning_halo.png` 的蓝白光晕上，关节处光晕多出 3px 不缺口；
+  整体按 `FLICKER` 曲线闪（打击 → 暗一下 → 再亮 → 淡出），芯色从白到 `9CC0FF` 逐渐变冷
+- **富大闪电**（同时最多 3 道）：先有 0.03s 的 leader 沿通道往下跑，落点铺大光池、关节处再铺 4 片小光池，
+  干地留焦痕、水面 wash/涟漪/鱼影，落点爬电痕，消失后再留 0.12s 余光
+- **新的雷击配色**：`tint()` 支持技能用的 STORM/ARCANE 配色（本仓库暂无调用方）
+- `ElectricityFx` 的电痕改回 Warped 的 `Lightning.Arc.visual(...).crawl(0)` + `.noGlow()`
+
+**为编译做的适配**
+- **没有天气层**：Warped 把闪屏/雷声/震屏/载体都交给 `WeatherOverlay`；这里加了一个空壳
+  `effects/fx/lightning/LightningSky`，`Lightning.layer` 恒为 null ⇒ 没有闪白/雷声/震屏，其余（弧、光晕、
+  光池、焦痕、wash、电痕、余光）全都保留
+- `world` 的判定从「天空存在」改成「在主相机上且 LIGHTS 层可用」
+- 余光挂到 `GameScene.Layer.LIGHTS`（Warped 是挂在天气层上）
+- 补了 `Assets.Effects.LIGHTNING_HALO` 常量（图集文件本来就在 assets 里）
+- `Afterglow.membersView()` 补上（Warped 的 Group 有，本仓库的没有）
+
+**实测**：临时场景 `Z_Lightning`（跑完即删）向水面/干地各打一道大闪电、再打一道不足一格的小电火花，PASS 1/1；
+截图里闪电是带关节和光晕的锯齿，落点有明显光斑；`Smoke` 9/9、`E0` 3/3、`F1` 3/3、
+`Extra_WardenAllyLightningKill` 8/8、`E1_PsiBlastTwice` 10/10 同时过。

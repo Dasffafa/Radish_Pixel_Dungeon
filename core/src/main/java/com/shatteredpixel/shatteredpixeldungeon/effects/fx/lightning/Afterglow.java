@@ -100,6 +100,11 @@ public class Afterglow extends Group {
 		return true;
 	}
 
+	/** Its lines, for a tinted lightning's afterglow (Lightning.afterglow recolours them). */
+	public java.util.List<com.watabou.noosa.Gizmo> membersView(){
+		return members == null ? new java.util.ArrayList<>() : members;
+	}
+
 	public int lines(){
 		return lines;
 	}

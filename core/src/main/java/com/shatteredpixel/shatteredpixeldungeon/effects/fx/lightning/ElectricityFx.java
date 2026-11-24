@@ -332,7 +332,7 @@ public final class ElectricityFx extends Emitter.Factory implements FxBudget.Pri
 				int b = neighbour( a, w, n );
 				if (b < 0) continue;
 				PointF from = DungeonTilemap.tileCenterToWorld( a ), to = DungeonTilemap.tileCenterToWorld( b );
-				Lightning l = new Lightning( Arrays.asList( new Lightning.Arc( from, to ) ), null );
+				Lightning l = Lightning.visual( Arrays.asList( Lightning.Arc.visual( from, to ).crawl( 0 ) ), null ).noGlow();
 				for (int s = 0; s < CRAWLS; s++){
 					if (crawls[s] == null || !crawls[s].alive || crawls[s].parent == null){
 						crawls[s] = l;

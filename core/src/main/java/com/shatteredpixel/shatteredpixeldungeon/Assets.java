@@ -30,6 +30,7 @@ public class Assets {
 		public static final String SPELL_ICONS  = "effects/spell_icons.png";
 		public static final String TEXT_ICONS   = "effects/text_icons.png";
 		public static final String FX_SHEET     = "effects/fx_sheet.png";
+		public static final String LIGHTNING_HALO = "effects/lightning_halo.png";
 		public static final String FX_LIGHT     = "effects/fx_light.png";
 		public static final String WATER_POCKS  = "effects/water_pocks.png";
 		public static final String WATER_SHEEN_A = "effects/water_sheen_a.png";
