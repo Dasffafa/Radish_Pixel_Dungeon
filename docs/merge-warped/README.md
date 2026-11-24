@@ -814,6 +814,17 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Growth`（跑完即删）在英雄周围把地板改成草地，PASS 2/2（`GrowthPulse.played()>0`、英雄没死）；
 截图里草地长满嫩芽。回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3、`D4_WardenSaveReload` 14/14 全过。
 
+## 奥术第四批：ChargeGlow（蓄力光，已并入 feat/fx-modules）
+
+- `effects/fx/arcane/ChargeGlow`：蓄力时在目标中间聚起一小团光（7px），0.8s 升到 `PEAK 0.6` 后呼吸式明灭，
+  蓄力结束时 0.15s 内熄灭；会跟着目标移动
+- 接到 `EyeSprite`：眼睛的 beam 在蓄力（`Eye.beamCharged`）且可见时聚光，死亡时熄灭
+  （本仓库只有 EyeSprite 存在；SentrySprite/TempleSentrySprite 不在本分支）
+- `ChargeGlow` 加了验收计数 `glows`
+
+**实测**：临时场景 `Z_Glow`（跑完即删）在英雄旁边放一只 Eye 并让它蓄力，跑 60 帧，PASS 2/2（`glows>0`、英雄没死）；
+回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3 全过。
+
 ## 火第三批：HeatRay（热浪，已并入 feat/fx-modules）
 
 - `effects/fx/fire/HeatRay`：一团热浪，一帧一帧往上飘，每 0.3~0.5s 左右镜像翻一次（像空气抖动，

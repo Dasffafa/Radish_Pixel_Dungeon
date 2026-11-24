@@ -41,6 +41,9 @@ public final class ChargeGlow {
 	/** Its glow's size, px. */
 	public static final int SIZE = 7;
 
+	//acceptance counter (Z_Glow selftest)
+	public static int glows;
+
 	private FxLight light;
 	private float level;
 
@@ -59,6 +62,7 @@ public final class ChargeGlow {
 		if (light == null || !light.exists){
 			light = Arc.glow( at.x + at.width() / 2f, at.y + at.height() / 2f, SIZE, color, 0.01f );
 			if (light == null) return;
+			glows++;
 			light.flicker( FxLight.BREATH ).follow( at, 0, 0 );
 		}
 		light.level( Math.min( 1f, level * PEAK / FxLight.GLOW_CAP ) );

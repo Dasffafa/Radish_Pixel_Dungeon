@@ -38,6 +38,7 @@ public class EyeSprite extends MobSprite {
 
 	private Animation charging;
 	private Emitter chargeParticles;
+	private final com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ChargeGlow chargeGlow = new com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ChargeGlow();
 	
 	public EyeSprite() {
 		super();
@@ -84,6 +85,8 @@ public class EyeSprite extends MobSprite {
 			chargeParticles.pos( center() );
 			chargeParticles.visible = visible;
 		}
+		//its coming beam: a glow gathering at its middle while the beam charges
+		chargeGlow.update( this, ((Eye)ch).beamCharged && visible, 0x88CCFF );
 	}
 
 	@Override
@@ -92,6 +95,7 @@ public class EyeSprite extends MobSprite {
 		if (chargeParticles != null){
 			chargeParticles.on = false;
 		}
+		chargeGlow.release();
 	}
 
 	@Override
