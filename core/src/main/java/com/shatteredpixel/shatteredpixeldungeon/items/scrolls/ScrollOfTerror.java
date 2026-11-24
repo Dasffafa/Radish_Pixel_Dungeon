@@ -43,6 +43,7 @@ public class ScrollOfTerror extends Scroll {
 	public void doRead() {
 
 		detach(curUser.belongings.backpack);
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.shock( curUser, 0xFF3030, true );
 		new Flare( 5, 32 ).color( 0xFF0000, true ).show( curUser.sprite, 2f );
 		Sample.INSTANCE.play( Assets.Sounds.READ );
 		

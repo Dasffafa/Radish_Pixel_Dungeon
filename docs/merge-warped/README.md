@@ -840,6 +840,18 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 截图能看到烟团与地面光环。**注意**：在这块很暗的测试场里，核心闪光/火舌不明显，可能需要在真实关卡里再看一次、
 必要时调 `Explosion` 的亮度参数。回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3、`A1_BlastWaveMobIntoChasm` 3/3 全过。
 
+## 奥术第五批：剩余 ItemFx 事件点（已并入 feat/fx-modules）
+
+- **传送卷轴**：`ScrollOfTeleportation.appear()` 里，角色真正挪过去之后调
+  `ItemFx.teleport( from, pos, seenFrom, seenTo )`——起点/落点之间一道光，两头的光斑按可见性决定
+- **充能卷轴**：`ScrollOfRecharging.doRead` → `ItemFx.recharge( curUser )`
+- **暴怒/恐惧卷轴**：`ItemFx.shock( curUser, 0xFF4040/0xFF3030, false/true )`（红色冲击，恐惧那份更大）
+- `ItemFx` 又加了 `recharges / teleports / shocks` 三个验收计数
+- 没接的：`PotionOfBeacon` / `PotionOfHoly` 的 `bloom`（本分支没有这两种药水）、`ScrollOfAntiMagic`/`Dread`（同样没有）
+
+**实测**：临时场景 `Z_Items2`（跑完即删）连读充能/暴怒/恐惧/传送四张卷轴，PASS 5/5
+（`reads=4`、`recharges>0`、`shocks=2`、`teleports>0`、英雄没死）。
+
 ## 火第三批：HeatRay（热浪，已并入 feat/fx-modules）
 
 - `effects/fx/fire/HeatRay`：一团热浪，一帧一帧往上飘，每 0.3~0.5s 左右镜像翻一次（像空气抖动，

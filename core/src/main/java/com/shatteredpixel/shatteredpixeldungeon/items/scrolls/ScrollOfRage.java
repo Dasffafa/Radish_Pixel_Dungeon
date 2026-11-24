@@ -43,6 +43,7 @@ public class ScrollOfRage extends Scroll {
 	public void doRead() {
 
 		detach(curUser.belongings.backpack);
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.shock( curUser, 0xFF4040, false );
 		for (Mob mob : Dungeon.level.mobs.toArray( new Mob[0] )) {
 			mob.beckon( curUser.pos );
 			if (mob.alignment != Char.Alignment.ALLY && Dungeon.level.heroFOV[mob.pos]) {

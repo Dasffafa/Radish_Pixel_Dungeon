@@ -45,6 +45,7 @@ public class ScrollOfRecharging extends Scroll {
 		detach(curUser.belongings.backpack);
 		Buff.affect(curUser, Recharging.class, Recharging.DURATION);
 		charge(curUser);
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.recharge( curUser );
 
 		Sample.INSTANCE.play( Assets.Sounds.READ );
 		Sample.INSTANCE.play( Assets.Sounds.CHARGEUP );

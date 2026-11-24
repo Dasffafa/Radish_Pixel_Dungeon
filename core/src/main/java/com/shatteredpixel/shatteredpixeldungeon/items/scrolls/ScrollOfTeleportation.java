@@ -332,10 +332,13 @@ public class ScrollOfTeleportation extends Scroll {
 			CellEmitter.get(ch.pos).start(Speck.factory(Speck.LIGHT), 0.2f, 3);
 		}
 
+		int from = ch.pos;
 		ch.move( pos, false );
 		if (ch.pos == pos) {
 			ch.sprite.interruptMotion();
 			ch.sprite.place(pos);
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.arcane.ItemFx.teleport( from, pos,
+					Dungeon.level.heroFOV[from], Dungeon.level.heroFOV[pos] || ch == Dungeon.hero );
 		}
 
 		if (ch.invisible == 0) {

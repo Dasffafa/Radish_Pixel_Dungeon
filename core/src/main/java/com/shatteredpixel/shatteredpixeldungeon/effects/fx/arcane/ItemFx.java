@@ -140,6 +140,7 @@ public final class ItemFx {
 	 * left (if seen), a taller shaft, a ring and (on water) a splash where it arrives (if seen).
 	 */
 	public static void teleport( final int from, final int to, final boolean seenFrom, final boolean seenTo ){
+		teleports++;
 		Fx.post( () -> {
 			if (!Arc.onScene() || Dungeon.level == null) return;
 			int w = Dungeon.level.width();
@@ -204,6 +205,7 @@ public final class ItemFx {
 
 	/** A recharge: as its stream of energy converges, a flash on him. */
 	public static void recharge( final Char ch ){
+		recharges++;
 		Fx.post( () -> {
 			if (ch.sprite == null || !ch.sprite.visible || !Arc.onScene()) return;
 			float x = ch.sprite.x + ch.sprite.width() / 2f, y = ch.sprite.y + ch.sprite.height() / 2f;
@@ -215,6 +217,7 @@ public final class ItemFx {
 	/** A shock of fear, rage or anti-magic from him: a ring 13 to 55 px across in its colour, and
 	 *  (for terror) six wisps of ink thrown out. */
 	public static void shock( final Char ch, final int color, final boolean ink ){
+		shocks++;
 		Fx.post( () -> {
 			if (ch.sprite == null || !ch.sprite.visible || !Arc.onScene()) return;
 			float x = ch.sprite.x + ch.sprite.width() / 2f, y = ch.sprite.y + ch.sprite.height() / 2f;
@@ -302,7 +305,7 @@ public final class ItemFx {
 
 	/** A potion drunk: three or four bubbles of its colour fizzing up at his mouth. */
 	//验收用计数（selftest 的 Z_Arcane 场景会看）
-	public static int drinks, shatters, reads, mappings, curses, strengths;
+	public static int drinks, shatters, reads, mappings, curses, strengths, recharges, teleports, shocks;
 
 	public static void drink( final Char ch, final int color ){
 		drinks++;
