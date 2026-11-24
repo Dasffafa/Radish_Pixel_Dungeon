@@ -878,7 +878,15 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 | `Group.membersView()` | Warped 的 Group 有它（外观给已有 quad 染色） |
 | `CharSprite` | `isFlashing/tintFree/frameNow/shiver/lift/auraColor/stunStars` |
 
-**现状**：这些前置件编译通过、`Smoke` 9/9；`Looks`/`StateLooks` 本身还没落地——
+**第五批已落地**：`Looks` + `StateLooks` + `BoatLook` 搬进来了（`RiddenHorse` 因本仓库没有 `HorseSprite` 舍弃）：
+
+- `StateLooks` 是**角色状态外观**的注册表：`BURNING/CHILLED/FROZEN/DARKENED/MARKED/HEALING/GLOWING/TORCHLIT/AURA/ELECTRIC/BUTTER/POISONED/...` 各自一档外观
+- 接到 `CharSprite`：`add(State)`/`remove(State)` 通知它、`update()` 每帧推进、`stunStars()` 交由它回答
+- 为它做的替身：`Surging`（只保留内部 `SurgeTracker.stacks`）、`FiendBurning`、`EnchantState`
+- `Blow` 里晕眩等待恢复为 `Looks.stunning(ch)`
+
+**注意**：`Looks` 这一层只有**状态外观**（火/冰/暗/光/藤/泡泡…），没有武器刀光——Warped 的「武器外观」其实由 `HitFx` 的八种形态承担，那部分我们已经在上一批接好了。
+
 `StateLooks` 的 `switch (CharSprite.State)` 与 `Look` 基类（`pour/once` 等）需要成组搬，且 `RiddenHorse` 依赖本仓库没有的 `HorseSprite`。
 
 - **没搬的**：`Blow`/`BlowPresenter`（打击演示管线，负责把一次攻击编排成多拍）、`Looks`/`StateLooks`（武器外观表，

@@ -353,7 +353,7 @@ public final class Blow {
 	public static boolean announce( Char ch, Buff buff ){
 		Record r = top();
 		if (r == null || ch == null || buff == null || ch.sprite == null || !ch.sprite.visible) return false;
-		//Looks.stunning is not ported yet: the stun star waits for the next blow
+		if (buff instanceof Paralysis) Looks.stunning( ch );
 		//this repo's Buff.icon() is a String (a texture name), not Warped's numeric icon: no icon here
 		int icon = FloatingText.NO_ICON;
 		if (icon < 0) return false;

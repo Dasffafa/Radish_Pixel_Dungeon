@@ -127,6 +127,9 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	protected Emitter hearts;
 	protected Emitter haloburning;
 	
+	//what its states wear (burning, frost, shadow...: effects/fx/combat/StateLooks)
+	protected com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.StateLooks looks;
+
 	protected IceBlock iceBlock;
 	protected DarkBlock darkBlock;
 	protected TorchHalo light;
@@ -555,7 +558,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 
 	/** Whether its stun stars are already drawn elsewhere. */
 	public boolean stunStars(){
-		return false;
+		return looks != null && looks.stunStars();
 	}
 
 	public int blood() {
@@ -568,6 +571,8 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	}
 	
 	public void add( State state ) {
+		if (looks == null) looks = new com.shatteredpixel.shatteredpixeldungeon.effects.fx.combat.StateLooks( this );
+		looks.add( state );
 		switch (state) {
 			case BURNING:
 				burning = emitter();
@@ -639,6 +644,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	}
 	
 	public void remove( State state ) {
+		if (looks != null) looks.remove( state );
 		switch (state) {
 			case HALOMETHANEBURNING:
 				if (haloburning != null) {
@@ -748,6 +754,7 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 	
 	@Override
 	public void update() {
+		if (looks != null) looks.update();
 		if (paused && ch != null && curAnim != null && !curAnim.looped && !finished){
 			listener.onComplete(curAnim);
 			finished = true;
