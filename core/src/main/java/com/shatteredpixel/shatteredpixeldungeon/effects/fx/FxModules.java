@@ -26,6 +26,8 @@ public final class FxModules {
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.IceCrust.reset();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.AmbientDust.reset();
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.LowMist.reset();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.IceFringe.reset();
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.water.ShoreSurf.reset();
 		WaterFX.sceneCreated();
 	}
 

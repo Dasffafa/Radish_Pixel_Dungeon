@@ -197,6 +197,9 @@ public class WaterLive extends Group {
 		IceCrust.frost( level, dt );
 		//the low mist that lies over still water
 		LowMist.mist( level, dt );
+		//ice creeping in at the banks, and the waves that break on them
+		IceFringe.frost( level, dt );
+		ShoreSurf.surf( level, dt );
 		driveFalls( level, l, dt );
 		// 屋顶滴水：偶尔一颗从上方落下（带下落轨迹与落水的水花）
 		if (dt > 0f && (dropIn -= dt) <= 0f){
