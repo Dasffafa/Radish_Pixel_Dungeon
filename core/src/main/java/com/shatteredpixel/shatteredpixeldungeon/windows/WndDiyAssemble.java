@@ -55,6 +55,8 @@ public class WndDiyAssemble extends Window {
 		public int countBonus;
 		public int energyBonus;
 		public int chargeBonus;
+		/** 上次离开时的滚动位置（重建/从选择器返回时恢复）。 */
+		public float scrollY;
 
 		public State(Diy.Group group, Class<? extends Item> base) {
 			this.group = group;
@@ -64,6 +66,7 @@ public class WndDiyAssemble extends Window {
 
 	private final State state;
 	private final Item sample;
+	private ScrollPane scrollPane;
 
 	public WndDiyAssemble(Diy.Group group, Class<? extends Item> baseClass) {
 		this(new State(group, baseClass));
@@ -87,6 +90,9 @@ public class WndDiyAssemble extends Window {
 	}
 
 	private void rebuild() {
+		if (scrollPane != null) {
+			state.scrollY = scrollPane.scrollY();
+		}
 		hide();
 		GameScene.show(new WndDiyAssemble(state));
 	}
@@ -168,6 +174,7 @@ public class WndDiyAssemble extends Window {
 			RedButton pick = new RedButton("选择附魔", 8) {
 				@Override
 				protected void onClick() {
+					if (scrollPane != null) state.scrollY = scrollPane.scrollY();
 					hide();
 					GameScene.show(new WndDiyPick(state, true));
 				}
@@ -187,6 +194,7 @@ public class WndDiyAssemble extends Window {
 			RedButton pick = new RedButton("选择效果", 8) {
 				@Override
 				protected void onClick() {
+					if (scrollPane != null) state.scrollY = scrollPane.scrollY();
 					hide();
 					GameScene.show(new WndDiyPick(state, false));
 				}
@@ -262,6 +270,7 @@ public class WndDiyAssemble extends Window {
 		content.setSize(innerWidth, y);
 
 		ScrollPane scroll = new ScrollPane(content);
+		scrollPane = scroll;
 		add(scroll);
 
 		float confirmHeight = BUTTON_HEIGHT;
@@ -276,6 +285,9 @@ public class WndDiyAssemble extends Window {
 		float maxVisible = maxTotal - pos - MARGIN * 4 - priceHeight - confirmHeight;
 		float visibleHeight = Math.max(40f, Math.min(y, maxVisible));
 		scroll.setRect(MARGIN, pos, innerWidth, visibleHeight);
+		if (state.scrollY > 0) {
+			scroll.scrollTo(0, state.scrollY);
+		}
 		float priceY = pos + visibleHeight + MARGIN;
 		priceLine.setPos(MARGIN, priceY);
 		add(priceLine);

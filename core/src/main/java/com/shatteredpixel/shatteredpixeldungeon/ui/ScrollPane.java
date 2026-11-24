@@ -99,6 +99,11 @@ public class ScrollPane extends Component {
 		KeyEvent.removeKeyListener(keyListener);
 	}
 
+	/** 当前纵向滚动位置（用于窗口重建后恢复）。 */
+	public float scrollY() {
+		return content.camera.scroll.y;
+	}
+
 	public void scrollTo( float x, float y ) {
 		Camera c = content.camera;
 		c.scroll.set( x, y );

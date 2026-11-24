@@ -1,6 +1,6 @@
 /*
  * Radish Pixel Dungeon
- * DIY 工作台 - 附魔/特性选择器（全开放列表）
+ * DIY 工作台 - 附魔/效果选择器
  */
 
 package com.shatteredpixel.shatteredpixeldungeon.windows;
@@ -19,13 +19,14 @@ import com.watabou.noosa.ui.Component;
 import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 
 /**
- * 从游戏里的**全部**附魔 / 铭文 / 特性里挑，想选多少选多少。
+ * 从全部附魔 / 铭文 / 效果里挑，想选多少选多少。
  *
- * <p>有对应精粹的项会显示「精粹×1」，按精粹抵扣；没有的显示材料价
- * （附魔 4 魔尘、特性 6 铁件），只要材料够就能贴上去。</p>
+ * <p>点一行就地切换选中状态，不重建窗口，所以滚动位置不会跳；
+ * 「全选」只选已经有对应精粹的条目，避免选完发现材料不够。</p>
  */
 public class WndDiyPick extends Window {
 
@@ -39,12 +40,19 @@ public class WndDiyPick extends Window {
 	private final WndDiyAssemble.State state;
 	private final boolean enchantMode;
 	private final Item sample;
+	private final ArrayList<String> catalog;
+	private final LinkedHashSet<String> selected;
+	private final LinkedHashMap<String, RedButton> rows = new LinkedHashMap<>();
+	private RenderedTextBlock info;
+	private int windowWidth = WIDTH_P;
 
 	public WndDiyPick(WndDiyAssemble.State state, boolean enchantMode) {
 		super();
 		this.state = state;
 		this.enchantMode = enchantMode;
 		this.sample = safeInstance(state.base);
+		this.catalog = enchantMode ? Diy.enchantCatalog(sample) : Diy.passiveCatalog(sample);
+		this.selected = enchantMode ? state.enchants : state.passives;
 		build();
 	}
 
@@ -58,18 +66,53 @@ public class WndDiyPick extends Window {
 		}
 	}
 
-	private void rebuild() {
-		hide();
-		GameScene.show(new WndDiyPick(state, enchantMode));
-	}
-
 	private void back() {
 		hide();
 		GameScene.show(new WndDiyAssemble(state));
 	}
 
+	private static String enchantClassOf(String entry) {
+		return Diy.enchantEffectClass(entry) != null ? Diy.enchantEffectClass(entry) : entry;
+	}
+
+	private boolean isEnchantEntry(String entry) {
+		return enchantMode || Diy.isEnchantEffect(entry);
+	}
+
+	private String entryName(String entry) {
+		return isEnchantEntry(entry) ? Diy.enchantName(enchantClassOf(entry)) : Diy.effectName(entry);
+	}
+
+	private boolean owned(String entry) {
+		String cls = enchantClassOf(entry);
+		return isEnchantEntry(entry)
+				? Diy.componentCount(DiyComponent.ENCHANT, cls) > 0
+				: Diy.componentCount(DiyComponent.PASSIVE, entry) > 0;
+	}
+
+	private String rowLabel(String entry) {
+		String price = owned(entry) ? "精粹×1" : "精粹×1（缺）";
+		return (selected.contains(entry) ? "【已选】" : "") + entryName(entry) + "　" + price;
+	}
+
+	private void refreshRow(String entry) {
+		RedButton row = rows.get(entry);
+		if (row != null) {
+			row.text(rowLabel(entry));
+		}
+	}
+
+	private void refreshInfo() {
+		if (info == null) return;
+		String tail = enchantMode
+				? "　魔尘 " + Diy.materialCount(DiyMaterial.ARCANE) + "，附魔精粹 " + Diy.componentTotal(DiyComponent.ENCHANT)
+				: "　铁件 " + Diy.materialCount(DiyMaterial.METAL) + "，效果精粹 " + Diy.componentTotal(DiyComponent.PASSIVE);
+		info.text("已选 " + selected.size() + " / " + catalog.size() + tail, (int)(windowWidth - MARGIN * 2));
+	}
+
 	private void build() {
 		int width = PixelScene.landscape() ? WIDTH_L : WIDTH_P;
+		windowWidth = width;
 		final float innerWidth = width - MARGIN * 2;
 
 		float pos = MARGIN;
@@ -81,29 +124,24 @@ public class WndDiyPick extends Window {
 		add(title);
 		pos = title.bottom() + MARGIN;
 
-		ArrayList<String> catalog = enchantMode
-				? Diy.enchantCatalog(sample)
-				: Diy.passiveCatalog(sample);
-		LinkedHashSet<String> selected = enchantMode ? state.enchants : state.passives;
-
-		RenderedTextBlock info = PixelScene.renderTextBlock(6);
-		info.text("已选 " + selected.size() + " / " + catalog.size()
-				+ (enchantMode
-				? "　　魔尘 " + Diy.materialCount(DiyMaterial.ARCANE) + "，附魔精粹 " + Diy.componentTotal(DiyComponent.ENCHANT)
-				: "　　铁件 " + Diy.materialCount(DiyMaterial.METAL) + "，效果精粹 " + Diy.componentTotal(DiyComponent.PASSIVE)),
-				(int) innerWidth);
+		info = PixelScene.renderTextBlock(6);
+		info.text("已选 " + selected.size() + " / " + catalog.size(), (int) innerWidth);
 		info.setPos(MARGIN, pos);
 		add(info);
 		pos = info.bottom() + MARGIN;
 
-		// 全选 / 清空
+		// 全选（只选已有精粹的）/ 清空
 		float half = (innerWidth - MARGIN) / 2f;
-		RedButton selectAll = new RedButton("全选", 6) {
+		RedButton selectAll = new RedButton("全选已有", 6) {
 			@Override
 			protected void onClick() {
-				selected.clear();
-				selected.addAll(catalog);
-				rebuild();
+				for (String entry : catalog) {
+					if (owned(entry)) {
+						selected.add(entry);
+						refreshRow(entry);
+					}
+				}
+				refreshInfo();
 			}
 		};
 		selectAll.setRect(MARGIN, pos, half, BUTTON_HEIGHT);
@@ -112,10 +150,12 @@ public class WndDiyPick extends Window {
 		RedButton clear = new RedButton("清空", 6) {
 			@Override
 			protected void onClick() {
-				if (!selected.isEmpty()) {
-					selected.clear();
-					rebuild();
+				for (String entry : new ArrayList<>(selected)) {
+					selected.remove(entry);
+					refreshRow(entry);
 				}
+				selected.clear();
+				refreshInfo();
 			}
 		};
 		clear.setRect(MARGIN + half + MARGIN, pos, half, BUTTON_HEIGHT);
@@ -136,29 +176,22 @@ public class WndDiyPick extends Window {
 				y = header.bottom() + 2;
 				lastSource = source;
 			}
-			boolean isSelected = selected.contains(entry);
-			boolean enchantEntry = enchantMode || Diy.isEnchantEffect(entry);
-			String name = enchantEntry ? Diy.enchantName(Diy.enchantEffectClass(entry) != null
-					? Diy.enchantEffectClass(entry) : entry) : Diy.effectName(entry);
-			boolean owned = enchantEntry
-					? Diy.componentCount(DiyComponent.ENCHANT, Diy.enchantEffectClass(entry) != null
-							? Diy.enchantEffectClass(entry) : entry) > 0
-					: Diy.componentCount(DiyComponent.PASSIVE, entry) > 0;
-			String price = owned ? "精粹×1" : "精粹×1（缺）";
-			String label = (isSelected ? "【已选】" : "") + name + "　" + price;
 
-			RedButton row = new RedButton(label, 7) {
+			RedButton row = new RedButton(rowLabel(entry), 7) {
 				@Override
 				protected void onClick() {
+					// 就地切换，不重建窗口，滚动位置不会丢
 					if (!selected.remove(entry)) {
 						selected.add(entry);
 					}
-					rebuild();
+					refreshRow(entry);
+					refreshInfo();
 				}
 			};
 			row.multiline = true;
 			row.setRect(0, y, innerWidth, ROW_HEIGHT);
 			content.add(row);
+			rows.put(entry, row);
 			y += ROW_HEIGHT + ROW_GAP;
 		}
 		content.setSize(innerWidth, y);
@@ -166,9 +199,8 @@ public class WndDiyPick extends Window {
 		ScrollPane scroll = new ScrollPane(content);
 		add(scroll);
 
-		float doneHeight = BUTTON_HEIGHT;
 		float maxTotal = PixelScene.uiCamera.height * 0.72f;
-		float maxVisible = maxTotal - pos - MARGIN * 4 - doneHeight;
+		float maxVisible = maxTotal - pos - MARGIN * 4 - BUTTON_HEIGHT;
 		float visibleHeight = Math.max(40f, Math.min(y, maxVisible));
 		scroll.setRect(MARGIN, pos, innerWidth, visibleHeight);
 
@@ -178,10 +210,10 @@ public class WndDiyPick extends Window {
 				back();
 			}
 		};
-		done.setRect(MARGIN, pos + visibleHeight + MARGIN, innerWidth, doneHeight);
+		done.setRect(MARGIN, pos + visibleHeight + MARGIN, innerWidth, BUTTON_HEIGHT);
 		add(done);
 
-		resize(width, (int) Math.min(pos + visibleHeight + MARGIN + doneHeight + MARGIN,
+		resize(width, (int) Math.min(pos + visibleHeight + MARGIN + BUTTON_HEIGHT + MARGIN,
 				PixelScene.uiCamera.height - MARGIN));
 	}
 }

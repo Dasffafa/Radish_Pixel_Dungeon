@@ -29,7 +29,7 @@ public class WndDiyCraft extends Window {
 
 		float pos = MARGIN;
 
-		RenderedTextBlock title = PixelScene.renderTextBlock("DIY 合成", 9);
+		RenderedTextBlock title = PixelScene.renderTextBlock("拆装台", 9);
 		title.hardlight(TITLE_COLOR);
 		title.setPos(MARGIN, pos);
 		title.maxWidth(width - MARGIN * 2);
