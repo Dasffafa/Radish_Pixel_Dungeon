@@ -843,6 +843,15 @@ public abstract class Char extends Actor {
     public float speed() {
         float speed = baseSpeed;
 
+        //quality lines on worn armour: FLEET quickens its wearer
+        if (this == hero && hero.belongings != null && hero.belongings.armor() != null){
+            com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+                    com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( hero.belongings.armor() );
+            if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.FLEET )){
+                speed *= 1f + 0.15f * q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.FLEET );
+            }
+        }
+
         /** 祝福之戒 */
         float ben_mul = 1f;
         if (this == hero) {

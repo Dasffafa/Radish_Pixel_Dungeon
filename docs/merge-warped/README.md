@@ -1566,3 +1566,14 @@ enchanted 0 -> 1 (burning=true)   plain 1 -> 1
 编译通过、`Smoke` 9/9、`F1` 3/3。
 
 **仍未做**：其余 11 条（SLAYER/HUNTER/STEADY/MOONLIT/WARM_GRIP/护甲六条）、品质图标、残迹附魔。
+
+## 品质系统第八阶段：FLEET 生效 + 修掉“同类装备永远同一条词条”
+
+- **FLEET**：穿着带该词条的护甲时，`Char.speed()` × `1 + 0.15×强度`
+- **修 bug**：`Quality.lines()` 的选择种子原来只取**类名**，导致同一类装备永远抽到同一条（轮 400 件
+  皮甲都没有 FLEET）；现在种子叠上实例身份，同一件仍稳定，但同类不同件会不同
+
+**实测**（`Z_RarityFleet`，跑完即删）：同样皮甲，普通件 speed=0.694，FLEET 件 speed=0.766
+（+10.3%，与强度 0.685 对应）。编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**剩余**：SLAYER/HUNTER/STEADY/MOONLIT/WARM_GRIP + HUSHED/RAINPROOF/COOLING/WINDBREAK/SUREFOOT。

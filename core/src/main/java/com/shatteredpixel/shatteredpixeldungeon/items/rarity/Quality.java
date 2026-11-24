@@ -146,7 +146,8 @@ public final class Quality {
 		List<RarityLine> out = new ArrayList<>();
 		int want = Math.min( rarity.lines, pool.size() );
 		if (want <= 0) return out;
-		int seed = (item.getClass().getName().hashCode() ^ 0x5EED) & 0x7fffffff;
+		//per instance, not per class: otherwise every sword of a kind would read the same line
+		int seed = (System.identityHashCode( item ) ^ (item.getClass().getName().hashCode() * 31) ^ 0x5EED) & 0x7fffffff;
 		for (int i = 0; i < want; i++){
 			int k = (seed / (i + 1) + i * 7) % pool.size();
 			RarityLine line = pool.get( k );
