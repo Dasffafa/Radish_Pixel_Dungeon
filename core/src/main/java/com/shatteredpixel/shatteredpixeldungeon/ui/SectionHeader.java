@@ -33,8 +33,8 @@ public class SectionHeader extends Group {
 
 	private final RenderedTextBlock arrow;
 	private final RenderedTextBlock label;
-	private final RenderedTextBlock rule;
 	private final int color;
+	private final RenderedTextBlock rule;
 	private int fullWidth;
 
 	/** Whether the section under this header is showing (the owner sets this before placing). */
@@ -48,14 +48,15 @@ public class SectionHeader extends Group {
 		arrow.hardlight( color );
 		add( arrow );
 
+		rule = PixelScene.renderTextBlock( "", 6 );
+		rule.hardlight( color );
+		rule.alpha( 0.7f );
+		add( rule );
+
 		label = PixelScene.renderTextBlock( text, 6 );
 		label.hardlight( color );
 		add( label );
 
-		rule = PixelScene.renderTextBlock( "", 6 );
-		rule.hardlight( color );
-		rule.alpha( 0.55f );
-		add( rule );
 
 		fullWidth = width;
 		place( 0, 0 );
@@ -70,15 +71,20 @@ public class SectionHeader extends Group {
 	private void placeRule( float y ){
 		float from = label.right() + 3;
 		int room = Math.max( 0, (int)(fullWidth - from) );
-		StringBuilder dashes = new StringBuilder();
-		while (dashes.length() < 100) dashes.append( "\u2500" );
-		rule.text( dashes.toString() );
+		StringBuilder all = new StringBuilder();
+		while (all.length() < 100) all.append( "\u2500" );
+		rule.text( all.toString() );
 		float perChar = Math.max( 1f, rule.width() / 100f );
 		int n = Math.max( 1, (int)(room / perChar) );
 		StringBuilder fit = new StringBuilder();
 		for (int i = 0; i < n; i++) fit.append( "\u2500" );
 		rule.text( fit.toString() );
 		rule.setPos( from, y + (HEIGHT - rule.height()) / 2f );
+	}
+
+	/** Where the title ends, so the window can draw a rule out from there. */
+	public float labelRight(){
+		return label.right();
 	}
 
 	/** Puts the whole header at (x, y). */

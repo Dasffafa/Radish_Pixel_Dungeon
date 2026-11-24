@@ -165,6 +165,7 @@ public class WndInfoItem extends Window {
 	private void layoutItem( IconTitle title, RenderedTextBlock info, Item item ){
 		secTitle = title;
 		secInfo = info;
+		sectionItem = item;
 		secWidth = WIDTH_MIN;
 		info.maxWidth( secWidth );
 		while (PixelScene.landscape() && info.height() > 100 && secWidth < WIDTH_MAX){
@@ -201,6 +202,9 @@ public class WndInfoItem extends Window {
 	//invisible buttons laid over each section header: pressing one folds that section
 	private com.shatteredpixel.shatteredpixeldungeon.ui.Button descHit, rarityHit;
 	private boolean descOpen = true, rarityOpen = true;
+	private com.watabou.noosa.ColorBlock descRule, rarityRule;
+	private RenderedTextBlock rarityIntro;
+	private Item sectionItem;
 
 	private void layoutSections(){
 		float y = 0;
@@ -244,6 +248,24 @@ public class WndInfoItem extends Window {
 			}
 			rarityHit.setRect( 0, y, secWidth, com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT );
 			y += com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader.HEIGHT;
+			if (sectionItem != null){
+				if (rarityIntro == null){
+					int n = com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( sectionItem ).lines().size();
+					rarityIntro = PixelScene.renderTextBlock(
+							"\u7a00\u6709\u5ea6" + com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityTitle( sectionItem )
+									+ "\uff0c\u5e26\u6709" + n + "\u6761\u52a0\u6210\u8bcd\u6761\uff1a", 6 );
+					rarityIntro.maxWidth( secWidth );
+					rarityIntro.hardlight( com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityColor( sectionItem ) );
+					add( rarityIntro );
+				}
+				if (rarityOpen){
+					rarityIntro.visible = true;
+					rarityIntro.setPos( 0, y );
+					y = rarityIntro.bottom() + 1;
+				} else {
+					rarityIntro.visible = false;
+				}
+			}
 			if (secLines != null){
 				secLines.visible = rarityOpen;
 				if (rarityOpen){
