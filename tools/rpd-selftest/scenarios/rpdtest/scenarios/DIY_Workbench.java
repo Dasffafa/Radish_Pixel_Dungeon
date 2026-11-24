@@ -143,6 +143,8 @@ public class DIY_Workbench implements Scenario {
 		h.world( "拆 +2 烈焰短剑", () -> Diy.dismantle( blazing ) );
 		h.check( h.get( () -> Diy.componentCount( DiyComponent.ENCHANT, Blazing.class.getName() ) ) == 1,
 				"背包里有 1 份烈焰精粹" );
+		h.frames( 5 );
+		h.screenshot( "diy-log-dismantle" );
 
 		Shortsword chilling = h.give( new Shortsword() );
 		h.world( "把短剑改成冰霜", () -> chilling.enchant( Reflection.newInstance( Chilling.class ) ) );
@@ -184,6 +186,16 @@ public class DIY_Workbench implements Scenario {
 
 		Item crafted = (Item) box[0];
 		h.check( crafted instanceof Shortsword, "组装出了一把短剑" );
+		h.check( h.get( () -> crafted.displayInfo().contains( "额外附魔" ) ),
+				"成品说明里列出额外附魔" );
+		h.check( h.get( () -> crafted.displayInfo().contains( "融入特性" ) ),
+				"成品说明里列出融入特性" );
+		h.world( "查看成品说明", () -> com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(
+				new com.shatteredpixel.shatteredpixeldungeon.windows.WndInfoItem( crafted ) ) );
+		h.frames( 10 );
+		h.screenshot( "diy-crafted-info" );
+		h.closeWindows();
+		h.frames( 3 );
 		h.check( h.get( () -> crafted.level() ) == 2, "成品是 +2" );
 		h.check( h.get( () -> ( (Weapon) crafted ).diyEnchantments().size() ) == 4,
 				"成品同时挂着 4 个附魔（" + h.get( () -> ( (Weapon) crafted ).diyEnchantments().size() ) + "）" );
@@ -861,6 +873,25 @@ public class DIY_Workbench implements Scenario {
 				new WndDiyAssemble( null, PotionOfHealing.class ) ) );
 		h.frames( 10 );
 		h.screenshot( "diy-assemble-consumable" );
+
+		// ---------- 合成列表不替玩家鉴定未知物品 ----------
+		com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLevitation unknown =
+				new com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLevitation();
+		h.world( "放一瓶未鉴定药水进背包", () -> {
+			unknown.levelKnown = false;
+			unknown.cursedKnown = false;
+			Dungeon.hero.belongings.backpack.items.add( unknown );
+		} );
+		h.check( h.get( () -> !unknown.isIdentified() ), "药水是未鉴定状态" );
+		h.check( h.get( () -> {
+			for ( Item s : Diy.craftableSamples( Diy.Group.POTION ) ) {
+				if ( s.getClass() == com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfLevitation.class ) {
+					return false;
+				}
+			}
+			return true;
+		} ), "未鉴定的药水不会出现在合成列表" );
+		h.check( h.get( () -> !unknown.isIdentified() ), "看合成列表不会鉴定物品" );
 
 		h.check( h.heroAlive(), "英雄还活着" );
 	}

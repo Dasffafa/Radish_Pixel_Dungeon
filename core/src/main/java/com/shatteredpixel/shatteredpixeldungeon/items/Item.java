@@ -664,14 +664,14 @@ public class Item implements Bundlable {
 		if (SnakeBiteChallengeManager.shouldReplaceItemText(this)) {
 			return Messages.getSnakeBiteItemDescription();
 		}
-		return info();
+		return withFusedInfo(info());
 	}
 
 	public final String displayDesc() {
 		if (SnakeBiteChallengeManager.shouldReplaceItemText(this)) {
 			return Messages.getSnakeBiteItemDescription();
 		}
-		return desc();
+		return withFusedInfo(desc());
 	}
 
 	public String desc() {

@@ -1175,6 +1175,20 @@ public final class Diy {
 		}
 
 		/** 一行一样，给确认窗口用（一行塞不下的时候不会挤在一起）。 */
+		/** 只列精粹名字，给日志一行用。 */
+		public String shortNames() {
+			StringBuilder sb = new StringBuilder();
+			for (String cls : enchants) {
+				if (sb.length() > 0) sb.append("、");
+				sb.append("附魔·").append(enchantName(cls));
+			}
+			for (String id : passives) {
+				if (sb.length() > 0) sb.append("、");
+				sb.append("特性·").append(passiveName(id));
+			}
+			return sb.toString();
+		}
+
 		public String describeLines() {
 			StringBuilder sb = new StringBuilder();
 			for (String part : parts()) {
@@ -1277,8 +1291,9 @@ public final class Diy {
 			giveEssence(DiyComponent.PASSIVE, bonus, 1);
 		}
 
-		GLog.p("拆解：" + name + " → " + y.describe()
-				+ (bonus == null ? "" : "（额外 " + passiveName(bonus) + "精粹×1）"));
+		int essenceCount = y.levels + y.enchants.size() + y.passives.size() + (bonus == null ? 0 : 1);
+		GLog.p("拆解 " + name + "：" + Diy.materialName(y.kind) + "×" + y.material
+				+ (essenceCount > 0 ? "，精粹×" + essenceCount : ""));
 		return true;
 	}
 
@@ -1357,6 +1372,21 @@ public final class Diy {
 	}
 
 	/** 某个大类里可以合成的东西（实例只用来显示名字和要价）。 */
+	/** 玩家是否已经知道这类物品（身上有鉴定过的实例）。 */
+	@SuppressWarnings("unchecked")
+	private static boolean playerKnows(Class<?> rawCls) {
+		if (Dungeon.hero == null) return false;
+		Class<? extends Item> cls = (Class<? extends Item>) rawCls;
+		Item owned = Dungeon.hero.belongings.getItem(cls);
+		if (owned != null && owned.isIdentified()) return true;
+		if (Dungeon.hero.belongings.backpack != null) {
+			for (Item it : Dungeon.hero.belongings.backpack.items) {
+				if (cls.isInstance(it) && it.isIdentified()) return true;
+			}
+		}
+		return false;
+	}
+
 	public static ArrayList<Item> craftableSamples(Group group) {
 		ArrayList<Item> out = new ArrayList<>();
 		if (group == null) return out;
@@ -1374,8 +1404,8 @@ public final class Diy {
 					sample = null;
 				}
 				if (sample == null) continue;
-				// 列表里要显示真正的名字，不然一排「未知药剂」没法选
-				sample.identify(false);
+				// 不替玩家鉴定：只列出已经知道的东西，未知的等鉴定后再来
+				if (!playerKnows(sample.getClass())) continue;
 				if (!craftable(sample)) continue;
 				boolean dup = false;
 				for (Item seen : out) {
@@ -1806,15 +1836,15 @@ public final class Diy {
 		DiyEffectsTracker.ensure(Dungeon.hero);
 
 		StringBuilder msg = new StringBuilder("组装完成：").append(out.title());
-		if (atk > 0) msg.append("（伤害 +").append(atk).append("）");
-		if (reach > 0) msg.append("（距离 +").append(reach).append("）");
-		if (speed > 0) msg.append("（攻速 +").append(speed).append("）");
-		if (count > 0) msg.append("（数量 +").append(count).append("）");
-		if (energy > 0) msg.append("（饱食 +").append(energy).append("）");
-		if (charge > 0) msg.append("（充能 +").append(charge).append("）");
-		if (arm > 0) msg.append("（减伤 +").append(arm).append("）");
-		if (enchantList.size() > 0) msg.append("（附魔 ×").append(enchantList.size()).append("）");
-		if (passiveList.size() > 0) msg.append("（特性 ×").append(passiveList.size()).append("）");
+		if (atk > 0) msg.append(" 伤害+").append(atk);
+		if (arm > 0) msg.append(" 减伤+").append(arm);
+		if (reach > 0) msg.append(" 距离+").append(reach);
+		if (speed > 0) msg.append(" 攻速+").append(speed);
+		if (count > 0) msg.append(" 数量+").append(count);
+		if (energy > 0) msg.append(" 饱食+").append(energy);
+		if (charge > 0) msg.append(" 充能+").append(charge);
+		if (enchantList.size() > 0) msg.append(" 附魔×").append(enchantList.size());
+		if (passiveList.size() > 0) msg.append(" 特性×").append(passiveList.size());
 		GLog.p(msg.toString());
 		return out;
 	}

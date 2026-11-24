@@ -59,7 +59,6 @@ public class WndDiyPick extends Window {
 	private static Item safeInstance(Class<? extends Item> cls) {
 		try {
 			Item item = Reflection.newInstance(cls);
-			if (item != null) item.identify(false);
 			return item;
 		} catch (Throwable t) {
 			return null;
