@@ -11,6 +11,7 @@ AI Agent 应先读项目根目录的 `AGENTS.md`，再按任务查阅本目录�
 | `damage-type-system-design.md` | 伤害类型、修正阶段与伤害计算 |
 | `event-system-usage.md` | 事件创建、订阅和发布 |
 | `branch_system.md` | 分支楼层、楼梯配对与跨层切换 |
+| `diy-workbench.md` | DIY 工作台：拆解产出材料、材料合成物品 |
 | `runtime-atlas-resource-guide.md` | Item、Talent、Buff 与英雄图标资源 |
 | `snd_items.md` | Slice&Dice 图集区域加载 |
 | `hero-skin-system.md` | 英雄皮肤定义与持久化 |

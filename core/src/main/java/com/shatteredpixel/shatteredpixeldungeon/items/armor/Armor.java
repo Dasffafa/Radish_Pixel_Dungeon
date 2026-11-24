@@ -981,6 +981,14 @@ public class Armor extends EquipableItem {
 		if (glyph != null && !magicImmune) {
 			damage = glyph.proc( this, attacker, defender, damage );
 		}
+		// DIY 组装贴上去的额外铭文：全部依次触发
+		if (!magicImmune) {
+			for (Glyph gl : diyGlyphs()) {
+				if (gl != null) {
+					damage = gl.proc( this, attacker, defender, damage );
+				}
+			}
+		}
 		if (fusedItems != null && !magicImmune) {
 			for (Item it : fusedItems) {
 				if (it instanceof Armor && ((Armor) it).glyph != null) {
@@ -1235,6 +1243,27 @@ public class Armor extends EquipableItem {
 		BrokenSeal s = checkSeal();
 		boolean sealHasGlyph = s != null && s.getGlyph() != null && s.getGlyph().getClass() == type && owner.buff(MagicImmune.class) == null;
 		return armorHasGlyph||sealHasGlyph;
+	}
+
+	/** DIY 组装贴上去的额外铭文（可以同时挂好几个）。 */
+	private transient java.util.ArrayList<Glyph> diyGlyphCache = null;
+
+	public java.util.ArrayList<Glyph> diyGlyphs() {
+		if (diyGlyphCache == null) {
+			diyGlyphCache = new java.util.ArrayList<>();
+			if (diyEnchants != null) {
+				for (String name : diyEnchants) {
+					Object instance = com.shatteredpixel.shatteredpixeldungeon.items.Diy.newGlyphInstance(name);
+					if (instance instanceof Glyph) {
+						Glyph glyph = (Glyph) instance;
+						// 铭文的 proc 里会用 armor 字段（例如敌法刻印），这里补上，不然会空指针
+						glyph.armor = this;
+						diyGlyphCache.add(glyph);
+					}
+				}
+			}
+		}
+		return diyGlyphCache;
 	}
 
 	//these are not used to process specific glyph effects, so magic immune doesn't affect them

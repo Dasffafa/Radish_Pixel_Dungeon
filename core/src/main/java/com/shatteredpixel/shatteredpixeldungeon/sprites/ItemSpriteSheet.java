@@ -419,6 +419,15 @@ public class ItemSpriteSheet {
 	public static final String LAW_FRAGMENT = "law_fragment";
 	public static final String SOUL_EMBER = "soul_ember";
 	public static final String MECHANICAL_FRAGMENT = "mechanic_shard";
+
+	// DIY 工作台：拆解材料 / 组装部件 / 工作台本体（贴图由 tools/diy_sprites.py 生成）
+	public static final String DIY_METAL = "diy_metal";
+	public static final String DIY_ARCANE = "diy_arcane";
+	public static final String DIY_SCRAP = "diy_scrap";
+	public static final String DIY_ESSENCE_LEVEL = "diy_essence_level";
+	public static final String DIY_ESSENCE_ENCHANT = "diy_essence_enchant";
+	public static final String DIY_ESSENCE_PASSIVE = "diy_essence_passive";
+	public static final String DIY_WORKBENCH = "diy_workbench";
 	public static final String BONE_PILE = "bone_pile";
 	public static final String FLASH_CRYSTAL = "flash_crystal";
 	public static final String HEAVY_CANNON = "heavy_cannon";

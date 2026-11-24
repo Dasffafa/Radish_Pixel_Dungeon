@@ -79,6 +79,11 @@ public class WhiteKingGodSword extends MeleeWeapon {
                     }
                 }
             }
+            if (weapon == null
+                    && com.shatteredpixel.shatteredpixeldungeon.items.Diy.equippedItemProvides(hero, "eye")) {
+                // DIY 组装贴上去的特性：用一把临时武器取伤害系数（不参与实际装备栏）
+                weapon = new WhiteKingGodSword();
+            }
             if (weapon == null) {
                 detach();
                 return true;

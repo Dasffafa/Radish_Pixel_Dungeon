@@ -339,6 +339,11 @@ public class Dungeon {
 			com.shatteredpixel.shatteredpixeldungeon.actors.buffs.FusionCharges.grantCharge(hero, 1);
 
 		}
+
+		// DIY 工作台：开局带一件，拆解/合成随便用
+		com.shatteredpixel.shatteredpixeldungeon.items.DiyWorkbench diyWorkbench =
+				new com.shatteredpixel.shatteredpixeldungeon.items.DiyWorkbench();
+		diyWorkbench.collect( hero.belongings.backpack );
 	}
 
 	public static boolean isChallenged( int mask ) {

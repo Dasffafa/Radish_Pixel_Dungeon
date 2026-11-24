@@ -212,6 +212,14 @@ abstract public class Weapon extends KindOfWeapon {
 				&& !com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.subclasses.LittleKnight.pokeIsPlain( attacker )) {
 			damage = enchantment.proc( this, attacker, defender, damage );
 		}
+		// DIY 组装贴上去的额外附魔：全部依次触发
+		if (attacker.buff(MagicImmune.class) == null) {
+			for (Enchantment ench : diyEnchantments()) {
+				if (ench != null) {
+					damage = ench.proc( this, attacker, defender, damage );
+				}
+			}
+		}
 		if (fusedItems != null) {
 			for (Item it : fusedItems) {
 				if (it instanceof Weapon) {
@@ -271,6 +279,9 @@ abstract public class Weapon extends KindOfWeapon {
 		bundle.put("is_shining",isShining);
 		bundle.put("fusion_min", fusionMin);
 		bundle.put("fusion_max", fusionMax);
+		// DIY 属性：攻击距离 / 攻击速度
+		bundle.put("diy_rch", RCH);
+		bundle.put("diy_dly", DLY);
 	}
 	
 	@Override
@@ -290,6 +301,8 @@ abstract public class Weapon extends KindOfWeapon {
 		}
 		fusionMin = bundle.getInt("fusion_min");
 		fusionMax = bundle.getInt("fusion_max");
+		RCH = bundle.getInt("diy_rch");
+		DLY = bundle.getFloat("diy_dly");
 
 	}
 	
@@ -571,6 +584,24 @@ abstract public class Weapon extends KindOfWeapon {
 		return enchantment != null && enchantment.getClass() == type && owner.buff(MagicImmune.class) == null;
 	}
 
+	/** DIY 组装贴上去的额外附魔（可以同时挂好几个）。 */
+	private transient java.util.ArrayList<Enchantment> diyEnchantCache = null;
+
+	public java.util.ArrayList<Enchantment> diyEnchantments() {
+		if (diyEnchantCache == null) {
+			diyEnchantCache = new java.util.ArrayList<>();
+			if (diyEnchants != null) {
+				for (String name : diyEnchants) {
+					Object instance = com.shatteredpixel.shatteredpixeldungeon.items.Diy.newEnchantInstance(name);
+					if (instance instanceof Enchantment) {
+						diyEnchantCache.add((Enchantment) instance);
+					}
+				}
+			}
+		}
+		return diyEnchantCache;
+	}
+
 	/**
 	 * 普通攻击的 DamageInfo 构建完成后调用，允许武器改写本次伤害的来源与类型。
 	 * 例：天球仪把来源改写成魔法来源（{@link com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DM100.LightningBolt}）。
@@ -579,6 +610,14 @@ abstract public class Weapon extends KindOfWeapon {
 		//与 proc() 一致：魔法免疫期间附魔不生效，否则精制、逆转这类改伤害数值的附魔会照常起作用
 		if (enchantment != null && attacker.buff(MagicImmune.class) == null) {
 			enchantment.modifyDamageInfo(this, attacker, defender, info);
+		}
+		// DIY 额外附魔也参与改写本次伤害（精制、逆转这类数值类附魔）
+		if (attacker.buff(MagicImmune.class) == null) {
+			for (Enchantment ench : diyEnchantments()) {
+				if (ench != null) {
+					ench.modifyDamageInfo(this, attacker, defender, info);
+				}
+			}
 		}
 	}
 

@@ -219,6 +219,10 @@ public class ShopRoom extends SpecialRoom {
 
 		itemsToSpawn.add(ChooseBag(Dungeon.hero.belongings));
 
+		// DIY 工作台：身上没带才补一件，带着就不占商店格子
+		if (!com.shatteredpixel.shatteredpixeldungeon.items.Diy.hasWorkbench()) {
+			itemsToSpawn.add(new com.shatteredpixel.shatteredpixeldungeon.items.DiyWorkbench());
+		}
 
 		itemsToSpawn.add( new PotionOfHealing() );
 		itemsToSpawn.add( Generator.randomUsingDefaults( Generator.Category.POTION ) );

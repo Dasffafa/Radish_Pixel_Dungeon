@@ -323,6 +323,25 @@ abstract public class KindOfWeapon extends EquipableItem {
 
 	public int fusionMin = 0, fusionMax = 0;
 
+	// 这两个字段是真正参与 min()/max() 的（Weapon 里那对同名的是旧字段，管不到伤害），
+	// 以前没有存档，融合/DIY 加的伤害读档就没了——这里补上。
+	private static final String KW_FUSION_MIN = "kw_fusion_min";
+	private static final String KW_FUSION_MAX = "kw_fusion_max";
+
+	@Override
+	public void storeInBundle( com.watabou.utils.Bundle bundle ) {
+		super.storeInBundle( bundle );
+		bundle.put( KW_FUSION_MIN, fusionMin );
+		bundle.put( KW_FUSION_MAX, fusionMax );
+	}
+
+	@Override
+	public void restoreFromBundle( com.watabou.utils.Bundle bundle ) {
+		super.restoreFromBundle( bundle );
+		fusionMin = bundle.getInt( KW_FUSION_MIN );
+		fusionMax = bundle.getInt( KW_FUSION_MAX );
+	}
+
 	public int min(){
 		return min(buffedLvl()) + fusionMin;
 	}

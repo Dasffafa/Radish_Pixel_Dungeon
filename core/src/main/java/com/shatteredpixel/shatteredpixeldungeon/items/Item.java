@@ -99,6 +99,10 @@ public class Item implements Bundlable {
 	protected int quantity = 1;
 	/** 红包融合：挂在这件装备上的其他装备。 */
 	public java.util.ArrayList<Item> fusedItems = new java.util.ArrayList<>();
+	/** DIY 工作台：组装时贴上去的特殊特性（拆解时返还成特性精粹）。 */
+	public java.util.ArrayList<String> diyPassives = new java.util.ArrayList<>();
+	/** DIY 工作台：组装时贴上去的额外附魔/铭文（类名，可同时有多个）。 */
+	public java.util.ArrayList<String> diyEnchants = new java.util.ArrayList<>();
 	public boolean dropsDownHeap = false;
 	
 	public int level = 0;
@@ -640,16 +644,33 @@ public class Item implements Bundlable {
 	}
 
 	private String withFusedInfo(String base) {
-		if (fusedItems == null || fusedItems.isEmpty()) return base;
 		StringBuilder sb = new StringBuilder(base == null ? "" : base);
-		sb.append("\n\n").append(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(Item.class, "fused_list"));
-		java.util.ArrayList<String> shown = new java.util.ArrayList<>();
-		for (Item it : fusedItems) {
-			if (it == null) continue;
-			String n = it.name();
-			if (!shown.contains(n)) shown.add(n);
+		if (fusedItems != null && !fusedItems.isEmpty()) {
+			sb.append("\n\n").append(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(Item.class, "fused_list"));
+			java.util.ArrayList<String> shown = new java.util.ArrayList<>();
+			for (Item it : fusedItems) {
+				if (it == null) continue;
+				String n = it.name();
+				if (!shown.contains(n)) shown.add(n);
+			}
+			for (String n : shown) {
+				sb.append("\n- ").append(n);
+			}
 		}
-		for (String n : shown) sb.append("\n- ").append(n);
+		if (diyEnchants != null && !diyEnchants.isEmpty()) {
+			sb.append("\n\n").append(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(Item.class, "diy_enchants"));
+			for (String cls : diyEnchants) {
+				if (cls == null) continue;
+				sb.append("\n- ").append(Diy.enchantName(cls));
+			}
+		}
+		if (diyPassives != null && !diyPassives.isEmpty()) {
+			sb.append("\n\n").append(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(Item.class, "diy_parts"));
+			for (String id : diyPassives) {
+				if (id == null) continue;
+				sb.append("\n- ").append(Diy.passiveName(id));
+			}
+		}
 		return sb.toString();
 	}
 
@@ -731,6 +752,10 @@ public class Item implements Bundlable {
 		}
 		bundle.put( KEPT_LOST, keptThoughLostInvent );
 		bundle.put("fused_items", fusedItems);
+		bundle.put("diy_passives", diyPassives == null
+				? new String[0] : diyPassives.toArray(new String[0]));
+		bundle.put("diy_enchants", diyEnchants == null
+				? new String[0] : diyEnchants.toArray(new String[0]));
 	}
 	
 	@Override
@@ -760,6 +785,24 @@ public class Item implements Bundlable {
 		if (bundle.contains("fused_items")) {
 			for (Object o : bundle.getCollection("fused_items")) {
 				if (o instanceof Item) fusedItems.add((Item) o);
+			}
+		}
+		diyPassives = new java.util.ArrayList<>();
+		if (bundle.contains("diy_passives")) {
+			String[] stored = bundle.getStringArray("diy_passives");
+			if (stored != null) {
+				for (String id : stored) {
+					if (id != null && !id.isEmpty()) diyPassives.add(id);
+				}
+			}
+		}
+		diyEnchants = new java.util.ArrayList<>();
+		if (bundle.contains("diy_enchants")) {
+			String[] stored = bundle.getStringArray("diy_enchants");
+			if (stored != null) {
+				for (String id : stored) {
+					if (id != null && !id.isEmpty()) diyEnchants.add(id);
+				}
 			}
 		}
 	}

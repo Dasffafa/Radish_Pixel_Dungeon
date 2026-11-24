@@ -64,7 +64,10 @@ public class EnemyFlag extends MeleeWeapon {
         public boolean act() {
             // 旗子不在主手上了就自行移除：以前装备失败时留下的，
             // 或者武器被缴械陷阱、滑溜诅咒直接从手上拿走、没有经过正常卸下的
-            if (!(target instanceof Hero) || com.shatteredpixel.shatteredpixeldungeon.items.Fusion.fusedItem(((Hero) target).belongings.weapon, EnemyFlag.class) == null) {
+            if (!(target instanceof Hero)
+                    || (com.shatteredpixel.shatteredpixeldungeon.items.Fusion.fusedItem(
+                            ((Hero) target).belongings.weapon, EnemyFlag.class) == null
+                        && !com.shatteredpixel.shatteredpixeldungeon.items.Diy.equippedItemProvides((Hero) target, "flag"))) {
                 detach();
                 return true;
             }
