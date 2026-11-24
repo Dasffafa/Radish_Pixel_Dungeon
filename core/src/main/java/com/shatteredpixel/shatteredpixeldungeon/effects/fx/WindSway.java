@@ -188,7 +188,11 @@ public final class WindSway {
 			rustles++;
 		}
 
-		//the feet themselves kick up grass: a sprite emitter draws these for certain
+		//the same sparkle the teleport scroll uses (a plain Speck burst at the cell):
+		//that one is known to draw on this repo's scene
+		com.shatteredpixel.shatteredpixeldungeon.effects.CellEmitter.get( to ).burst(
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+						com.shatteredpixel.shatteredpixeldungeon.effects.Speck.LIGHT ), 5 );
 		if (Dungeon.hero != null && Dungeon.hero.sprite != null){
 			Dungeon.hero.sprite.centerEmitter().burst(
 					com.shatteredpixel.shatteredpixeldungeon.effects.particles.GrassParticle.FACTORY, 8 );
