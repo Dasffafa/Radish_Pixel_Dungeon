@@ -23,19 +23,20 @@ import com.watabou.noosa.ColorBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Button;
 
 /**
- * A part's header in the item window, the way Warped draws it: a five-pixel fold arrow, the title
- * in its colour, and a rule out to the window's edge. Pressing it folds or unfolds the text under
- * it; the arrow points down while open and right while folded.
+ * A titled section divider that can be pressed to fold its text away, the way Warped's item window
+ * reads: a triangle, the title, a hairline out to the edge, and the section's text under it. The
+ * triangle points down while the text shows and right while it is folded; the owner lays the
+ * window out again when it changes.
  */
 public class SectionHeader extends Button {
 
 	public static final int HEIGHT = 9;
 
-	private final ColorBlock[] arrow = new ColorBlock[3];
 	private final RenderedTextBlock label;
-	private final ColorBlock rule;
+	private final ColorBlock line;
+	private final ColorBlock mark;
 
-	/** Whether the text under this header is showing. */
+	/** Whether the section under this header is showing. */
 	public boolean open = true;
 
 	private Runnable onToggle;
@@ -43,23 +44,24 @@ public class SectionHeader extends Button {
 	public SectionHeader( String text, int color, int width ){
 		super();
 
-		for (int i = 0; i < arrow.length; i++){
-			arrow[i] = new ColorBlock( 1, 1, color );
-			add( arrow[i] );
-		}
+		mark = new ColorBlock( 4, 4, color );
+		mark.x = 0;
+		mark.y = 2;
 
 		label = PixelScene.renderTextBlock( text, 6 );
 		label.hardlight( color );
-		add( label );
+		label.setPos( 6, 0 );
 
-		rule = new ColorBlock( 1, 1, color );
-		rule.alpha( 0.3f );
-		add( rule );
+		line = new ColorBlock( 1, 1, color );
+		line.alpha( 0.35f );
+		line.y = 3;
+
+		add( mark );
+		add( label );
+		add( line );
 
 		setSize( width, HEIGHT );
-		placeArrow( color );
-		label.setPos( 9, (HEIGHT - label.height()) / 2f );
-		placeRule( width );
+		placeLine( 0, width );
 	}
 
 	public void setOnToggle( Runnable r ){
@@ -68,43 +70,21 @@ public class SectionHeader extends Button {
 
 	@Override
 	protected void onClick(){
-		toggle();
-	}
-
-	/** Folds or unfolds the section (also what a test calls). */
-	public void toggle(){
 		open = !open;
 		if (onToggle != null) onToggle.run();
 	}
 
-	/** Puts the whole header at (x, y); the children sit relative to it. */
+	private void placeLine( float x, int width ){
+		line.x = x + label.right() + 3;
+		line.size( Math.max( 1, width - (line.x - x) ), 1 );
+	}
+
+	/** Puts the whole header at (x, y). */
 	public void place( float x, float y ){
-		setPos( x, y );
-		placeArrow( -1 );
-		label.setPos( 9, (HEIGHT - label.height()) / 2f );
-		placeRule( (int)width );
-	}
-
-	private void placeArrow( int color ){
-		float ax = 1, ay = (HEIGHT - 5) / 2f;
-		for (int i = 0; i < arrow.length; i++){
-			int len = 5 - 2 * i;
-			if (open){
-				arrow[i].size( len, 1 );
-				arrow[i].x = ax + i;
-				arrow[i].y = ay + 1 + i;
-			} else {
-				arrow[i].size( 1, len );
-				arrow[i].x = ax + 1 + i;
-				arrow[i].y = ay + i;
-			}
-		}
-	}
-
-	private void placeRule( int width ){
-		float from = label.right() + 3;
-		rule.size( Math.max( 0, width - from ), 1 );
-		rule.x = from;
-		rule.y = HEIGHT / 2f;
+		mark.x = x;
+		mark.y = y + 2;
+		label.setPos( x + 6, y );
+		line.y = y + 3;
+		placeLine( x, (int)width );
 	}
 }
