@@ -97,7 +97,11 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 
 	public enum State {
 		BURNING, LEVITATING, INVISIBLE, PARALYSED, FROZEN, ILLUMINATED, CHILLED, DARKENED, MARKED, HEALING, SHIELDED, HEARTS,
-		HALOMETHANEBURNING,ELMOBURNING
+		HALOMETHANEBURNING,ELMOBURNING,
+		//Warped 的状态外观（effects/fx/combat/StateLooks）认得的其余状态：本仓库暂时没有系统会设置它们，
+		//但枚举里要有，否则那套外观表没法搬
+		GLOWING, AURA, ELECTRIC, BUTTER, HEATSTROKE, HYPOTHERMIA, TORCHLIT, ROOTED, BARKED, VERDANT, HERB,
+		POISONED, CORRODED, OOZED, SEEDED, SURGING, BOAT_RAFT, BOAT_SAIL, RIDING
 	}
 	private int stunStates = 0;
 	

@@ -35,6 +35,11 @@ public class Group extends Gizmo {
 	// Accessing it is a little faster,
 	// than calling members.getSize()
 	public int length;
+
+	/** Its members, read-only (Warped's Groups have this: looks tint the quads already in a run). */
+	public java.util.List<Gizmo> membersView(){
+		return members == null ? new java.util.ArrayList<>() : java.util.Collections.unmodifiableList( members );
+	}
 	
 	public Group() {
 		members = new ArrayList<>();
