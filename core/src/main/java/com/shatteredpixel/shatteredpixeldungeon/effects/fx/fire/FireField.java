@@ -273,6 +273,7 @@ public class FireField extends Group {
 		wentOut( level, cur );
 		floorGlows( level );
 		lights();
+		shimmer();
 	}
 
 	//the burning cells seen, gathered into groups of joined cells (8 ways); a group wider or taller
@@ -585,6 +586,22 @@ public class FireField extends Group {
 	}
 
 	// ------------------------------------------------------------------ shimmer and washes
+
+	//over each group, a source for every four of its cells (at least one, for what always
+	//shimmers), each a ray a SHIMMER_EVERY s somewhere over the group
+	private void shimmer(){
+		float p = SCAN / SHIMMER_EVERY;
+		for (int g = 0; g < groups; g++) {
+			int sources = groupN[g] / 4;
+			if (style.shimmers()) sources = Math.max( 1, sources );
+			for (int k = 0; k < sources; k++){
+				if (FxRandom.Float() >= p) continue;
+				float x = (groupX0[g] + FxRandom.Float( groupX1[g] - groupX0[g] + 1 )) * DungeonTilemap.SIZE;
+				float y = (groupY0[g] + 0.5f + FxRandom.Float( groupY1[g] - groupY0[g] )) * DungeonTilemap.SIZE + FxRandom.Float( -2f, 4f );
+				HeatRay.rise( emitter, x, y );
+			}
+		}
+	}
 
 	//the fire's light washing over the water beside it, WASHES cells at most
 	private void washes(){

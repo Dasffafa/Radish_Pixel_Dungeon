@@ -813,3 +813,16 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 
 **实测**：临时场景 `Z_Growth`（跑完即删）在英雄周围把地板改成草地，PASS 2/2（`GrowthPulse.played()>0`、英雄没死）；
 截图里草地长满嫩芽。回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3、`D4_WardenSaveReload` 14/14 全过。
+
+## 火第三批：HeatRay（热浪，已并入 feat/fx-modules）
+
+- `effects/fx/fire/HeatRay`：一团热浪，一帧一帧往上飘，每 0.3~0.5s 左右镜像翻一次（像空气抖动，
+  不是拉伸），默认 `FFE8C0` 色 0.15 透明度，1.2s 寿命
+- `FireField.shimmer()` 重新接上：每 0.2s 扫一次，每 4 个燃烧格一个「源」，每源每 0.3s 起一道热浪；
+  炼狱/炉火这种 `shimmers()` 的火至少一个源
+- **贴图换来源**：Warped 用的是天气图集的 `HEAT_RAY`，本仓库没有天气图集，改用 `Assets.Effects.FX_LIGHT`
+  里 `FxFrames.Light.SHAFT_32` 那根光柱，运动/闪烁/镜像逻辑照旧
+
+**实测**：临时场景 `Z_Heat`（跑完即删）点一片 5x3 的大火跑 100 帧，PASS 3/3：
+`FireField.attached>0`、`HeatRay.risen>0`、英雄没死；截图里火苗上方能看到一缕缕上升的热浪。
+回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3 全过。
