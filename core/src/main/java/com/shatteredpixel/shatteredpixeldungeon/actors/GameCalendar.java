@@ -247,7 +247,7 @@ public class GameCalendar {
 	}
 
 	private static int gameDaysElapsed() {
-		return (int)(com.watabou.noosa.Game.timeTotal / DayNightCycle.FULL_CYCLE);
+		return DayNightCycle.daysElapsed();
 	}
 
 	// Resolve absolute day into year, season, dayOfSeason

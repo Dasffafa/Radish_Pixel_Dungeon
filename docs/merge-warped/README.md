@@ -1677,3 +1677,17 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
   改为 `START_DAY = 1` 常量与常假分支
 
 编译通过、`Smoke` 9/9。**尚未接入 UI，也尚未影响温度**。
+
+## 时间系统第二阶段：改成回合制（Warped 的方式）
+
+按玩家选的 A 方案，一天不再是 360 秒，而是随**英雄回合**推进：
+
+- `DayNightCycle.FULL_CYCLE = 2500`（回合），新增 `turns`、`onHeroTurn()`、`daysElapsed()`
+- `Hero.act()` 每回合调 `DayNightCycle.onHeroTurn()`
+- `GameCalendar` 的日期改从 `DayNightCycle.daysElapsed()` 取，不再按 `Game.timeTotal`
+- 相位/色调/亮度曲线不变，只是时间基准由秒换成回合
+
+**实测**（`Z_TimeTurns`，跑完即删）：等待 6 回合后 `turns 1 -> 7`，时钟随英雄行动推进。
+编译通过、`Smoke` 9/9、`F1` 3/3。
+
+**未搬**：Warped DayNightCycle 里那些依赖小镇/住所/植物/睡眠的玩法效果（视野距离、刷怪率、亡灵伤害、潜行）。

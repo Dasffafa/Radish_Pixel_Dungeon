@@ -1339,6 +1339,9 @@ public class Hero extends Char {
 	@Override
 	public boolean act() {
 
+		// 时间系统：英雄每过一个回合，白天/黑夜往前走一步
+		com.shatteredpixel.shatteredpixeldungeon.actors.DayNightCycle.onHeroTurn();
+
 		// 发布英雄回合事件
 		EventManager.emit(new HeroActEvent(this));
 
