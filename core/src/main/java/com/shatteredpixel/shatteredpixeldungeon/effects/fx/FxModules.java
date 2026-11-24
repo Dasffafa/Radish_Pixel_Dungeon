@@ -49,5 +49,9 @@ public final class FxModules {
 	public static void terrainChanged( int cell, int oldTerrain, int newTerrain ){
 		WaterTerrain.changed( cell, oldTerrain, newTerrain );
 		com.shatteredpixel.shatteredpixeldungeon.effects.fx.nature.GrowthPulse.changed( cell, oldTerrain, newTerrain );
+		if (newTerrain == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMBERS
+				&& oldTerrain != com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMBERS) {
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.Embers.lay( cell );
+		}
 	}
 }

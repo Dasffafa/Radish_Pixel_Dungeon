@@ -387,6 +387,8 @@ public class Heap implements Bundlable {
 	
 	public static void burnFX( int pos ) {
 		CellEmitter.get( pos ).burst( ElmoParticle.FACTORY, 6 );
+		//what burnt curls up as ash after the green flash
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.fire.Ash.flakes( pos, 3 );
 		Sample.INSTANCE.play( Assets.Sounds.BURNING );
 	}
 	

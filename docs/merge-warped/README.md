@@ -839,3 +839,15 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 **实测**：临时场景 `Z_Items`（跑完即删）连读三张魔法地图卷轴 + 喝一瓶力量药水，PASS 4/4
 （`reads=3`、`mappings=3`、`strengths=1`、英雄没死）；回归：`Smoke` 9/9、`SelfTest_Potions` 5/5、
 `B0_TeleportScrollControl` 3/3、`E0` 3/3 全过。
+
+## 火第四批：Embers / Ash（余烬与飞灰，已并入 feat/fx-modules）
+
+- `effects/fx/fire/Embers`：一个格子烧成 `EMBERS` 时铺下余烬——地面留一小片焦痕（1.5s 后开始 6s 内淡出）、
+  3 粒余烬在地上明灭、每隔 0.6s 冒一小股烟
+- `effects/fx/fire/Ash`：东西烧掉时飞灰——`n` 片灰屑（`6A6468`/`3E3A3C` 两色）从格子往上飘、打旋、慢慢落
+- 接线：`FxModules.terrainChanged` 里判断新地形是 `EMBERS` 且旧的不是 → `Embers.lay(cell)`；
+  `Heap.burnFX` 里调 `Ash.flakes( pos, 3 )`（东西烧掉时先绿光一闪，再飞灰卷起）
+- 适配：`Ash.FireNet.send(...)`（联机广播）删掉，本仓库没有联机层
+
+**实测**：临时场景 `Z_Embers`（跑完即删）把一片地板烧成 EMBERS、再烧一个堆，PASS 3/3（`Embers.laid>0`、`Ash.flakes>0`、英雄没死）；
+回归：`Smoke` 9/9、`E0` 3/3、`F1` 3/3、`D4_WardenSaveReload` 14/14 全过。
