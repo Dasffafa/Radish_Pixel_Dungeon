@@ -711,3 +711,26 @@ FROST / LEAF_BITS / sparkles，参数照抄。只有 SOOT 和落叶的帧换了�
 
 **实测**：临时场景 `Z_Arcane`（跑完即删）喝一瓶治疗药、砸一瓶毒气，PASS 3/3：`ItemFx.drinks=1`、`shatters=1`、英雄没死；
 截图里喝药有治疗色光圈、砸药处有红色碎片。`Smoke` 9/9、`SelfTest_Potions` 5/5 同时过。
+
+## 战斗（combat 区第一批：命中飞溅，已并入 feat/fx-modules）
+
+**搬进来的**
+
+| 文件 | 作用 |
+|---|---|
+| `effects/fx/combat/Spray` | 一次飞溅的模型，按颜色分三类：LIQUID（血、药水、酸）、DUST（骨灰、尘土）、SPARK（晶光、纯净、能量）。带方向与锥角，滴落时留血渍/灰印、落水荡纹并铺一层色云；最多 24 粒 |
+| `effects/fx/combat/CombatFactories` | 打击用的火舌/烟/火星工厂（`CombatFactories.make` 与按元素的 tongue/smoke 变体） |
+| `effects/Splash` | 换成 Warped 版：接到 `Spray` 上，`at/around` 五个重载不变 |
+
+**效果**：`CharSprite.bloodBurstA` 本来就调 `Splash.at(c, 角度, 锥角, blood(), n)`，所以一换全通：
+命中时血朝攻击方向飞出去、落地留血渍；药水砸地、水中落水、骨头粉尘走同一条路径。
+`Splash` 全仓库有 52 处调用，全都自动升级。
+
+**没搬的**
+- `Blow` / `BlowPresenter`（Warped 的「打击演示」管线：稀有度/品质、起始与收招、连击、附魔 look 参与演出）——这套要连 `items/rarity` 与本仓库没有的武器 look 系统一起搬，属大改
+- `HitFx`（命中星芒）依赖 `EnchantLook` / `EnchantState` / `TypeFx`，没搬
+- `Looks` / `StateLooks`（1122 + 395 行，武器/护甲外观表）、`WeaponLight` / `HeldLight` / `ColdBreath`（天气）、`Quad` / `Piece`（Blow 的零件）、`BoatLook` / `RiddenHorse`（主世界）
+
+**实测**：临时场景 `Z_Combat`（跑完即删）打一只老鼠 5 下再砸一瓶毒气，PASS 4/4：
+`Spray.spreads>0`、老鼠确实掉血、药水飞溅也走同一条路径、英雄没死。
+`Smoke` 9/9、`SelfTest_Potions` 5/5、`F1_Dm175ShieldAfterBreak` 3/3、`E0_BlastInactivePrototype` 3/3 同时过。
