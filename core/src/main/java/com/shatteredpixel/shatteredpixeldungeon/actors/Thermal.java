@@ -191,10 +191,20 @@ public final class Thermal {
 		//his own body follows the air slowly, and never changes faster than the drift
 		//soaked through (standing in open water, or out in the rain) he loses and gains heat faster;
 		//ice is not water: a frozen pool keeps him as dry as stone
-		wet = !Weather.freezing() && (Dungeon.level.water[Dungeon.hero.pos]
-				|| Weather.precip == PrecipType.RAIN || Weather.precip == PrecipType.SLEET
-				|| Weather.precip == PrecipType.BLIZZARD);
-		float step = DRIFT * (wet ? 1.6f : 1f) * dt;
+		boolean inWater = Dungeon.level.water[Dungeon.hero.pos];
+		boolean rainy = Weather.precip == PrecipType.RAIN || Weather.precip == PrecipType.SLEET
+				|| Weather.precip == PrecipType.BLIZZARD;
+		wet = !Weather.freezing() && (inWater || rainy);
+		float wetMul = 1.6f;
+		//quality lines: RAINPROOF armour takes turns to soak its wearer
+		if (!inWater && rainy && Dungeon.hero.belongings != null && Dungeon.hero.belongings.armor() != null){
+			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality q =
+					com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.of( Dungeon.hero.belongings.armor() );
+			if (q.has( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.RAINPROOF )){
+				wetMul = 1f + 0.6f * (1f - q.strength( com.shatteredpixel.shatteredpixeldungeon.items.rarity.RarityLine.RAINPROOF ));
+			}
+		}
+		float step = DRIFT * (wet ? wetMul : 1f) * dt;
 		if (body > air) body = Math.max( air, body - step );
 		else if (body < air) body = Math.min( air, body + step );
 
