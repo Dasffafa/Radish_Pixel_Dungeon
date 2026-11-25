@@ -210,17 +210,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			updateFrame();
 		}
 
-		//our arrow art points straight up, not up-right like Warped's: turn it by the flight line
-		if (item instanceof SpiritBow.SpiritArrow
-				|| item instanceof SpiritBow.ALTSpiritArrow
-				|| item instanceof CompositeCrossbow.CrossbowArrow
-				|| item instanceof StormAttackArrow
-				|| item instanceof ScorpioSprite.ScorpioShot){
-			flipHorizontal = false;
-			angle = (float)Math.toDegrees( Math.atan2( d.y, d.x ) ) + 90f;
-			updateFrame();
-		}
-
 		if (item instanceof GnollGeomancer.Boulder){
 			angle = 0;
 			flipHorizontal = false;
@@ -290,35 +279,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (parent != null) parent.add( trail );
 	}
 
-	//a fading copy of the missile, left behind as it flies
-	private static class Ghost extends com.watabou.noosa.Image {
-		private float age, life = 0.22f, peak = 0.35f;
-		private final MissileSprite owner;
-		Ghost( Object tex, MissileSprite owner ){ super( tex ); this.owner = owner; }
-		@Override
-		public void update(){
-			super.update();
-			//take the missile's heading every frame: a copy frozen at spawn can point the wrong way
-			if (owner != null && owner.alive) angle = owner.angle;
-			age += com.watabou.noosa.Game.elapsed;
-			if (age >= life){ killAndErase(); return; }
-			alpha( peak * (1f - age / life) );
-		}
-	}
-
-	private float ghostTimer;
-
-	private void spawnGhost(){
-		if (parent == null || texture == null) return;
-		Ghost g = new Ghost( texture, this );
-		g.frame( frame() );
-		g.x = x; g.y = y;
-		g.angle = angle;
-		g.scale.set( scale.x, scale.y );
-		g.hardlight( 1f, 1f, 1f );
-		parent.add( g );
-	}
-
 	private void stopTrail(){
 		if (trail != null){
 			trail.killAndErase();
@@ -331,10 +291,6 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		super.update();
 		if (trail != null){
 			trail.pos( x + width() / 2f, y + height() / 2f );
-			if ((ghostTimer -= com.watabou.noosa.Game.elapsed) <= 0){
-				ghostTimer = 0.045f;
-				spawnGhost();
-			}
 		}
 	}
 
