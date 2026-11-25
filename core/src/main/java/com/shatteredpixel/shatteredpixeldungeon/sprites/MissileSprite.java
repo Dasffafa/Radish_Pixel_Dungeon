@@ -60,18 +60,21 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	private Callback callback;
 
 	public void reset( int from, int to, Item item, Callback listener ) {
+		destCell = to;
 		reset(Dungeon.level.solid[from] ? DungeonTilemap.raisedTileCenterToWorld(from) : DungeonTilemap.raisedTileCenterToWorld(from),
 				Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
 				item, listener);
 	}
 
 	public void reset( Visual from, int to, Item item, Callback listener ) {
+		destCell = to;
 		reset(from.center(),
 				Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
 				item, listener );
 	}
 
 	public void reset( Visual from, int to, Item item, Callback listener, float speedMultiplier ) {
+		destCell = to;
 		reset(from.center(),
 				Dungeon.level.solid[to] ? DungeonTilemap.raisedTileCenterToWorld(to) : DungeonTilemap.raisedTileCenterToWorld(to),
 				item, listener, speedMultiplier);
@@ -249,34 +252,91 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	//a thin dust trail behind thrown weapons and arrows, so their flight reads at a glance
 	private com.watabou.noosa.particles.Emitter trail;
 
+	//Warped's full trail, the parts that do not need its light layer: one mote shed every SHED_PX
+	//flown (at most MOST_SHEDS a flight), two colours taking turns, a splash where it lands in water
+	private static final float SHED_PX = 12f;
+	private static final int MOST_SHEDS = 8;
+	private int trailA, trailB, sheds;
+	private float shedFlown;
+	private int destCell = -1;
+
 	private void startTrail( com.shatteredpixel.shatteredpixeldungeon.items.Item it ){
 		if (!(it instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon)) return;
 		if (trail != null) return;
-		trail = new com.watabou.noosa.particles.Emitter();
-		trail.pos( x + width() / 2f, y + height() / 2f );
-		//Warped's own kit: motes from its fx sheet, so the trail is the one it pours
+
 		//the missile's own magic colours its trail: its enchantment's, else its rarity's
-		final int trailColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText
-				.auraColor( it );
-		final boolean faint = trailColor == 0;
-		trail.start( new com.watabou.noosa.particles.Emitter.Factory(){
-			@Override
-			public void emit( com.watabou.noosa.particles.Emitter e, int index, float px, float py ){
-				com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle p =
-						(com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle)
-								e.recycle( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle.class );
-				p.reset( px, py );
-				p.look( faint
-						? com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_2
-						: com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_1 );
-				p.paint( faint ? 0xF3EBD7 : trailColor );
-				p.life( faint ? 0.42f : 0.5f );
-				p.vel( 0, -8f );
-				p.gravity( 14f );
-				if (!faint) p.light( true );
-			}
-		}, faint ? 0.05f : 0.025f, faint ? 1 : 2 );
-		if (parent != null) parent.add( trail );
+		trailA = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.auraColor( it );
+		trailB = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.rarityColor( it );
+		if (trailB == 0 || trailB == trailA){
+			//no second colour of its own: a paler take on the first, so the trail still alternates
+			int r = (trailA >> 16) & 0xFF, g = (trailA >> 8) & 0xFF, b = trailA & 0xFF;
+			trailB = ((r + 255) / 2 << 16) | ((g + 255) / 2 << 8) | ((b + 255) / 2);
+		}
+
+		if (trailA == 0){
+			//plain gear: the old faint dust
+			trail = new com.watabou.noosa.particles.Emitter();
+			trail.pos( x + width() / 2f, y + height() / 2f );
+			trail.start( new com.watabou.noosa.particles.Emitter.Factory(){
+				@Override
+				public void emit( com.watabou.noosa.particles.Emitter e, int index, float px, float py ){
+					shed( e, px, py, 0xF3EBD7, false );
+				}
+			}, 0.05f, 1 );
+			if (parent != null) parent.add( trail );
+		}
+	}
+
+	/** One mote of the trail, poured into the given emitter's pool. */
+	private static void shed( com.watabou.noosa.particles.Emitter e, float px, float py, int color, boolean light ){
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle p =
+				(com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle)
+						e.recycle( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle.class );
+		p.reset( px, py );
+		p.look( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_2 );
+		p.paint( color );
+		p.life( 0.55f );
+		p.vel( 0, -9f );
+		p.gravity( 16f );
+		if (light) p.light( true );
+	}
+
+	/** Sheds by distance flown, the way Warped measures its trail, alternating the two colours. */
+	private void shedAlongFlight(){
+		if (trailA == 0 || parent == null) return;
+		float step = (float)Math.hypot( speed.x, speed.y ) * com.watabou.noosa.Game.elapsed;
+		shedFlown += step;
+		while (shedFlown >= SHED_PX && sheds < MOST_SHEDS){
+			shedFlown -= SHED_PX;
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle p =
+					(com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle)
+							parent.recycle( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle.class );
+			p.reset( x + width() / 2f, y + height() / 2f );
+			p.look( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_2 );
+			p.paint( (sheds++ % 2 == 0) ? trailA : trailB );
+			p.life( 0.55f );
+			p.vel( 0, -9f );
+			p.gravity( 16f );
+			p.light( true );
+		}
+	}
+
+	/** A splash where the missile went into water, Warped's droplet. */
+	private void splash(){
+		if (destCell < 0 || parent == null) return;
+		if (!com.shatteredpixel.shatteredpixeldungeon.Dungeon.level.water[destCell]) return;
+		for (int i = 0; i < 4; i++){
+			com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle p =
+					(com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle)
+							parent.recycle( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle.class );
+			p.reset( x + width() / 2f, y + height() / 2f );
+			p.look( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_2 );
+			p.paint( 0x9CC8FF );
+			p.life( 0.4f );
+			p.vel( com.watabou.utils.Random.Float( -22f, 22f ), com.watabou.utils.Random.Float( -34f, -18f ) );
+			p.gravity( 90f );
+			p.light( true );
+		}
 	}
 
 	private void stopTrail(){
@@ -292,6 +352,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (trail != null){
 			trail.pos( x + width() / 2f, y + height() / 2f );
 		}
+		shedAlongFlight();
 	}
 
 	@Override
@@ -301,6 +362,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (color != 0){
 			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.burst( x, y, color );
 		}
+		splash();
 		stopTrail();
 		kill();
 		if (callback != null) {
