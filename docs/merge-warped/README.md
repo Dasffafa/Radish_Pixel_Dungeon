@@ -2268,3 +2268,17 @@ Warped 的箭贴图是**朝右上 45°**的，所以它用 `angle = 135 - atan2(
 精灵父组中检到 1 个 `BuffPop`。`Smoke` 9/9、`F1` 3/3。
 
 注意：这是本作自己的实现（Warped 是走它的 `Blow.buffIcon` + HitCard，那套依赖战斗卡片与联机）。
+
+## 修复手机闪退：未知附魔外观用了 `java.awt.Color`
+
+**崩溃**：`EnchantLooks.synthetic()` 里用 `java.awt.Color.HSBtoRGB` 算颜色。Android 没有 awt，
+一旦遇到表里查不到的附魔（DIY/本作特色）就 `NoClassDefFoundError` 闪退；
+堆栈起点是 `ItemSprite.updateItemGlow` → `ItemText.auraColor`。
+
+**修正**：自写 HSV→RGB 函数（`EnchantLooks.hsv`）替代 awt。
+
+**实测**（`Z_SyntheticLook`，跑完即删）：`EnchantLooks.of(String.class)` 得到 `b2ff73`、
+`ArrayList` 得到 `f873ff`，且同一类缓存同一个对象（`same=true`）。`Smoke` 9/9、`F1` 3/3。
+
+**另有一处旧隐患**：`custom/utils/TextInput.java` 也引用了 `java.awt.*`（文本输入）。
+它是本仓库静态存在的代码，尚未在 Android 上触发崩溃（可能路径未走到），先记录不改。

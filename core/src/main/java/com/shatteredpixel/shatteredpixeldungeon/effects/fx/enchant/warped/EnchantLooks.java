@@ -92,6 +92,27 @@ public final class EnchantLooks {
 
 	private static final java.util.HashMap<Class<?>, EnchantLook> SYNTHETIC = new java.util.HashMap<>();
 
+	/** HSV to 0xRRGGBB, by hand: android has no java.awt.Color. */
+	private static int hsv( float hue, float sat, float val ){
+		float h6 = (hue - (float)Math.floor( hue )) * 6f;
+		int i = (int)h6;
+		float f = h6 - i;
+		float p = val * (1f - sat);
+		float q = val * (1f - sat * f);
+		float t = val * (1f - sat * (1f - f));
+		float r, g, b;
+		switch (i % 6){
+			case 0: r = val; g = t; b = p; break;
+			case 1: r = q; g = val; b = p; break;
+			case 2: r = p; g = val; b = t; break;
+			case 3: r = p; g = q; b = val; break;
+			case 4: r = t; g = p; b = val; break;
+			default: r = val; g = p; b = q; break;
+		}
+		int ri = Math.round( r * 255f ), gi = Math.round( g * 255f ), bi = Math.round( b * 255f );
+		return (ri << 16) | (gi << 8) | bi;
+	}
+
 	private static EnchantLook synthetic( Class<?> c ){
 		EnchantLook cached = SYNTHETIC.get( c );
 		if (cached != null) return cached;
@@ -99,7 +120,7 @@ public final class EnchantLooks {
 		int h = Math.abs( c.getName().hashCode() );
 		Family[] fams = Family.values();
 		Family fam = fams[h % fams.length];
-		int glow = java.awt.Color.HSBtoRGB( (h % 360) / 360f, 0.55f, 1f ) & 0xFFFFFF;
+		int glow = hsv( (h % 360) / 360f, 0.55f, 1f );
 		Motif[] motifs = Motif.values();
 		Profile[] profiles = Profile.values();
 
