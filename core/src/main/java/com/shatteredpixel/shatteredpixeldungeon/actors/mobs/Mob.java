@@ -1138,7 +1138,17 @@ public abstract class Mob extends Char {
 	@Override
 	public void die( Object cause ) {
 		if (cause == hero && hero.belongings != null && hero.belongings.weapon != null){
+			int before = com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.masterworkLevel(
+					hero.belongings.weapon );
 			com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.noteKill( hero.belongings.weapon );
+			int after = com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.masterworkLevel(
+					hero.belongings.weapon );
+			if (after > before && sprite != null && sprite.parent != null){
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
+						sprite.parent, sprite.center().x, sprite.center().y, 4, 20, 0.5f, 0xFFD76B, 0.75f, true );
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
+						sprite.parent, sprite.center().x, sprite.center().y, 2, 11, 0.4f, 0xFFFFFF, 0.5f, true );
+			}
 		}
 
 		//an elite (a champion) may leave a masterwork core

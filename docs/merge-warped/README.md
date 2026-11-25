@@ -2061,3 +2061,14 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
   颜色取 `EnchantLook.glow`（即该附魔的主色），半径 3→14px、0.3s
 
 这是 `FxRing` 的第二个用途（第一个是法术弹落地）。`Smoke` 9/9、`F1` 3/3。
+
+## 附魔环按家族变形 + 杰作相关环
+
+- 附魔触发的落地环按 `EnchantLook.fam` 取不同形状：
+  EMBER 又宽又康、RIME 慢而大、STORM 极短极亮、VENOM/VERDANT 散开、
+  REAPER 收紧、WARD 耐久；EMBER/RIME/REAPER 额外套一层更紧的白环
+- **杰作升级**（`Mob.die` 里比较升级前后）：金色双环
+- **使用杰作核心**：英雄脚下金色双环
+
+**实测**（`Z_CoreRing`，跑完即删）：用一颗核心后 `level=1`，环生成无异常。
+`Smoke` 9/9、`F1` 3/3。
