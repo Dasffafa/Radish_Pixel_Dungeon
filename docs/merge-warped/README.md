@@ -2152,3 +2152,18 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 **验证**：`Z_SlotAura` 确认附魔武器 `uiColor=ff7a1e`、`ItemText.auraColor=ff8418`（非 0 才会有光）；
 `Z_LookGlow` 截图跑通（竞技场很黑，光晕在截图里不明显，需实机确认）。
 `Smoke` 9/9、`F1` 3/3。
+
+## 箭矢飞行时的朝向（与 Warped 一致）
+
+**差异**：本仓库的箭贴图默认朝上，而 `ANGULAR_SPEEDS` 把所有箭类设为 **0**，
+于是无论射哪个方向，箭都一直竖着飞。
+
+**修正**：`MissileSprite` 对箭类弹体（`SpiritArrow`/`ALTSpiritArrow`/`CrossbowArrow`/
+`StormAttackArrow`/`ScorpioShot`）把 `angle` 设为飞行方向：`atan2(dy,dx) + 90°`，
+并在 `update()` 里每帧重算（一旦弹道改变也不会偏）。
+
+**实测**（`Z_ArrowFace`，跑完即删）：对角线发射，读到 `angle=-44.5` 而预期 `-48.5`（差 4°，
+来自物品中心与箭头锚点的小偏差）。`Smoke` 9/9、`F1` 3/3。
+
+**仍未搬**：Warped 的空间音效（`SpatialSound`+`Earshot`+`RoomAcoustics`）——
+`Earshot` 依赖它的 `Place`/`OverworldLevel`/房间声学类，尝试后已回退。

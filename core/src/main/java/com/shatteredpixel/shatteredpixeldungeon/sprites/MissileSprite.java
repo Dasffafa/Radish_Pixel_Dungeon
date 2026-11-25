@@ -170,6 +170,15 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	}
 
 	//TODO it might be nice to have a source and destination angle, to improve thrown weapon visuals
+	/** Missiles whose art points up by default and should be turned onto their flight line. */
+	private static boolean pointsAlongFlight( Item item ){
+		return item instanceof SpiritBow.SpiritArrow
+				|| item instanceof SpiritBow.ALTSpiritArrow
+				|| item instanceof CompositeCrossbow.CrossbowArrow
+				|| item instanceof StormAttackArrow
+				|| item instanceof ScorpioSprite.ScorpioShot;
+	}
+
 	private void setup( PointF from, PointF to, Item item, Callback listener, float speedMultiplier ){
 
 		this.enchantSource = item;
@@ -187,6 +196,12 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 		PointF d = PointF.diff( to, from );
 		speed.set(d).normalize().scale(SPEED * speedMultiplier);
+
+		//an arrow turns to face where it is going (its art points up at 0 degrees)
+		turnsToFlight = pointsAlongFlight( item );
+		if (turnsToFlight){
+			angle = (float)(Math.toDegrees( Math.atan2( d.y, d.x ) )) + 90f;
+		}
 		
 		angularSpeed = DEFAULT_ANGULAR_SPEED;
 		for (Class<?extends Item> cls : ANGULAR_SPEEDS.keySet()){
@@ -244,6 +259,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	}
 
 	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
+	private boolean turnsToFlight;
 
 	//a thin dust trail behind thrown weapons and arrows, so their flight reads at a glance
 	private com.watabou.noosa.particles.Emitter trail;
@@ -281,6 +297,9 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	@Override
 	public void update() {
 		super.update();
+		if (turnsToFlight){
+			angle = (float)(Math.toDegrees( Math.atan2( speed.y, speed.x ) )) + 90f;
+		}
 		if (trail != null){
 			trail.pos( x + width() / 2f, y + height() / 2f );
 		}
