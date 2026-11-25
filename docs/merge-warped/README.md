@@ -1985,3 +1985,20 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_BowWindow`，跑完即删）：十字弯的窗口显示 `类型：弓`，箭头与细线均为贴图；
 `Smoke` 9/9。
+
+## 弓/投掷物的拖尾与 Warped 音效调查
+
+**拖尾：之前没搬。** Warped 的拖尾依赖它自己的粒子套件
+（`effects/fx/{FxFrames,FxBudget,Element,Ramp,FxParticle}`，数百行），我们只有其中很小一部分。
+现在用本仓库现成的粒子给投掷物/箭加了一条薄灰尘拖尾：
+
+- `MissileSprite` 挂一个 `Emitter`（`Speck.DUST`，0.09s 一粒），每帧跟随精灵中心
+- 仅 `MissileWeapon`（弓箭/投掷物）生效，药水等其他飞行物不加
+- 飞行结束时 `killAndErase()` 收尾
+
+**实测**（`Z_MissileTrail`，跑完即删）：`missile trail=emitter`、`potion trail=none`。`Smoke` 9/9。
+
+**音效：素材已经全在仓库里了。** 对比
+`core/src/main/assets/sounds/`：Warped 有而我们没有的文件 = **0**
+（反而我们多 7 个）。`Assets.Sounds` 常量比 Warped 少 21 个，那些是 Warped 特有系统
+（技能、家园、海洋）的触发点，没搬那些系统就没有播放地方。

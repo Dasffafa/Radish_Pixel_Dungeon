@@ -125,6 +125,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		else {
 			view( item );
 			if (item instanceof Senbon) frame( ItemSpriteSheet.SENBON_PROJECTILE );
+			startTrail( item );
 		}
 
 		setup( from,
@@ -244,9 +245,32 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 	private com.shatteredpixel.shatteredpixeldungeon.items.Item enchantSource;
 
+	//a thin dust trail behind thrown weapons and arrows, so their flight reads at a glance
+	private com.watabou.noosa.particles.Emitter trail;
+
+	private void startTrail( com.shatteredpixel.shatteredpixeldungeon.items.Item it ){
+		if (!(it instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon)) return;
+		if (trail != null) return;
+		trail = new com.watabou.noosa.particles.Emitter();
+		trail.pos( x + width() / 2f, y + height() / 2f );
+		trail.start( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
+				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.DUST ), 0.09f, 1 );
+		if (parent != null) parent.add( trail );
+	}
+
+	private void stopTrail(){
+		if (trail != null){
+			trail.killAndErase();
+			trail = null;
+		}
+	}
+
 	@Override
 	public void update() {
 		super.update();
+		if (trail != null){
+			trail.pos( x + width() / 2f, y + height() / 2f );
+		}
 	}
 
 	@Override
@@ -256,6 +280,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (color != 0){
 			com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.burst( x, y, color );
 		}
+		stopTrail();
 		kill();
 		if (callback != null) {
 			callback.call();
