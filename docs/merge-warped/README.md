@@ -2054,3 +2054,10 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 至此 fx 工具箱已搬：`FxFrames / FxParticle / FxBudget / FxRandom / Element / Ramp / FxCurves / FxRing` + `BoltTrails`
 （火焰、火锥、叶片、叶锥四组）。
+
+## 附魔触发时的落地圆环
+
+- `Weapon.proc`：附魔真正触发时，在受击者脚下用 **`FxRing.ground`** 生成一圈环，
+  颜色取 `EnchantLook.glow`（即该附魔的主色），半径 3→14px、0.3s
+
+这是 `FxRing` 的第二个用途（第一个是法术弹落地）。`Smoke` 9/9、`F1` 3/3。

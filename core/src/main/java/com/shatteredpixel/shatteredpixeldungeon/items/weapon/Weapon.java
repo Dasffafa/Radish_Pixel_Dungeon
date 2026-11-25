@@ -231,6 +231,12 @@ abstract public class Weapon extends KindOfWeapon {
 						com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantFx.strengthOf(
 								com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantFx.MID ),
 						0, 0 );
+				//a ring on the ground under the blow: Warped's FxRing, in the enchantment's colour
+				if (defender.sprite != null && defender.sprite.parent != null){
+					com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
+							defender.sprite.parent, defender.sprite.center().x, defender.sprite.center().y,
+							3, 14, 0.3f, look.glow, 0.5f, true );
+				}
 			}
 		}
 		// DIY 组装贴上去的额外附魔：全部依次触发
