@@ -2167,3 +2167,22 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **仍未搬**：Warped 的空间音效（`SpatialSound`+`Earshot`+`RoomAcoustics`）——
 `Earshot` 依赖它的 `Place`/`OverworldLevel`/房间声学类，尝试后已回退。
+
+## 箭矢朝向：回到 Warped 原版公式
+
+核对后发现：`MissileSprite` 里**本来就是 Warped 的原版代码**：
+
+```java
+angle = 135 - (float)(Math.atan2( d.x, d.y ) / PI * 180);
+if (d.x >= 0){ flipHorizontal = false; }
+else { angularSpeed = -angularSpeed; angle += 90; flipHorizontal = true; }
+```
+
+我在上一提交里自己加的“`atan2(dy,dx)+90`”与它**冲突**（后面会被覆盖且每帧重算会弄乱翻转）。
+现已**删掉我的那两处**，完全保留 Warped 原版（含水平翻转、青况额外 -45/+45 修正、
+弹体速度倍率：精灵箭/蝎弹 1.5×、十字弩发飞镖 3×）。
+
+实测：关掉夜色遮罩（`GameScene.debugTintOverride = 0`）后截图，箭矢在英雄右上方、
+与射击方向一致。`Smoke` 9/9、`F1` 3/3。
+
+备注：`debugTintOverride` 是现成的调试开关，正式游戏里不会被打开。
