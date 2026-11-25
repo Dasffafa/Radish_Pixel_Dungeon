@@ -2031,3 +2031,15 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **没搬的（依赖链太长）**：`FxEmitter`（需要 Warped 的网络同步 `netCell/netEmType`）、
 `FxLight`、`FxRing`、`Fx` 的天气部分。`BoltTrails` 里的 `FROST/FOLIAGE` 两组已就位，只是还没接到对应法术。
+
+## 叶归轨拖尾也接上了
+
+- `MagicMissile.startBoltTrail` 改成按类型选工厂：`FIRE → BoltTrails.FIRE`、`FOLIAGE → BoltTrails.LEAF`
+- 实测 `Z_LeafTrail`（跑完即删）：树叶法术弹飞行无异常；`Smoke` 9/9、`F1` 3/3
+
+## 为什么没继续搬 BoltFx
+
+`BoltFx`（711 行，弹体命中爆发效果）依赖 `ArcImage`/`ArcFlash`/`FxLight`/`FxEmitter`，而后两者又要
+`GameScene.Layer.LIGHTS`、`GameScene.lightEmitter()/fxEmitter()`、`Fx.glowAir()`——这些是 Warped 自己的渲染分层与光照接口，
+本仓库没有对应结构。继续往下搬会变成“先重建它的渲染层”，不再是搬一个特效。文件已删除，
+避免留下编译不通的残留代码。

@@ -53,11 +53,18 @@ public class MagicMissile extends Emitter {
 	private com.watabou.noosa.particles.Emitter boltTrail;
 
 	private void startBoltTrail( int type ){
-		if (type != FIRE) return;
+		com.watabou.noosa.particles.Emitter.Factory factory = null;
+		switch (type){
+			case FIRE:    factory = com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.FIRE; break;
+			case FOLIAGE: factory = com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.LEAF; break;
+			case SHAMAN_RED: break;
+			default: break;
+		}
+		if (factory == null) return;
 		if (boltTrail != null) return;
 		boltTrail = new com.watabou.noosa.particles.Emitter();
 		boltTrail.pos( x, y );
-		boltTrail.start( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.FIRE, 0.05f, 1 );
+		boltTrail.start( factory, 0.05f, 1 );
 		if (parent != null) parent.add( boltTrail );
 	}
 
