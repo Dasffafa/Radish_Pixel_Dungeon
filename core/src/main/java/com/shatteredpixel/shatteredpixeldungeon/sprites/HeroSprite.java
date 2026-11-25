@@ -254,11 +254,43 @@ public class HeroSprite extends CharSprite {
 		 */
 	}
 
+	//the wielded weapon's magic shows on the hero too: a soft glow at the blade's side
+	private com.watabou.noosa.Image weaponGlow;
+	private int weaponGlowColor;
+
+	private void updateWeaponGlow(){
+		int color = 0;
+		if (hero != null && hero.belongings != null && hero.belongings.weapon != null){
+			color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText
+					.auraColor( hero.belongings.weapon );
+		}
+		if (color == 0 || parent == null){
+			if (weaponGlow != null) weaponGlow.visible = false;
+			return;
+		}
+		if (weaponGlow == null || weaponGlow.parent == null){
+			weaponGlow = new com.watabou.noosa.Image( Assets.Effects.GLOW_SOFT );
+			weaponGlow.scale.set( 1.2f );
+			parent.add( weaponGlow );
+		}
+		if (weaponGlowColor != color){
+			weaponGlowColor = color;
+			weaponGlow.hardlight( ((color >> 16) & 0xFF) / 255f, ((color >> 8) & 0xFF) / 255f, (color & 0xFF) / 255f );
+		}
+		weaponGlow.visible = visible;
+		float gw = weaponGlow.width() * weaponGlow.scale.x;
+		float gh = weaponGlow.height() * weaponGlow.scale.y;
+		weaponGlow.x = x + width() * 0.62f - gw / 2f;
+		weaponGlow.y = y + height() * 0.45f - gh / 2f;
+		weaponGlow.alpha( 0.16f + 0.10f * (float)Math.sin( com.watabou.noosa.Game.timeTotal * 2.2f ) );
+	}
+
 	@Override
 	public void update() {
 		sleeping = ch.isAlive() && ((Hero)ch).resting;
 		
 		super.update();
+		updateWeaponGlow();
 	}
 	
 	public void sprint( float speed ) {

@@ -36,6 +36,8 @@ public class Assets {
 	public static final String WARPED_FX_LIGHT = "effects/warped_fx_light.png";
 	//我们自己画的平面光环（Warped 图集里的 ring 帧在本作中只能画成一条线）
 	public static final String GROUND_RING = "effects/ground_ring.png";
+	//软光晕（物品图标背后的附魔光）
+	public static final String GLOW_SOFT = "effects/glow_soft.png";
 		public static final String LIGHTNING_HALO = "effects/lightning_halo.png";
 		public static final String FX_LIGHT     = "effects/fx_light.png";
 		public static final String WATER_POCKS  = "effects/water_pocks.png";

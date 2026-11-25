@@ -64,6 +64,10 @@ public class ItemSprite extends MovieClip {
 
 	public Heap heap;
 	private Item item;
+
+	//Warped shows an item's magic wherever it is drawn as itself: a soft glow behind the icon
+	private com.watabou.noosa.Image itemGlow;
+	private int glowColor;
 	private static final RuntimeAtlas ATLAS = RuntimeAtlasRegistry.get( ItemSpriteSheet.ATLAS );
 
 	// 声明式动画缓存：资产+片段名定位；图集重建（贴图身份变化）后自动失效重建
@@ -426,6 +430,36 @@ public class ItemSprite extends MovieClip {
 
 	private float[] shadowMatrix = new float[16];
 
+	private void updateItemGlow(){
+		int color = 0;
+		if (item != null){
+			color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText.auraColor( item );
+			if (color == 0){
+				color = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.EnchantFx.uiColor( item );
+			}
+		}
+		if (color == 0 || parent == null){
+			if (itemGlow != null) itemGlow.visible = false;
+			return;
+		}
+		if (itemGlow == null || itemGlow.parent == null){
+			//a sibling in the same group draws over the icon, which is all a backlight needs
+			itemGlow = new com.watabou.noosa.Image( Assets.Effects.GLOW_SOFT );
+			itemGlow.scale.set( 1.6f );
+			parent.add( itemGlow );
+		}
+		if (glowColor != color){
+			glowColor = color;
+			itemGlow.hardlight( ((color >> 16) & 0xFF) / 255f, ((color >> 8) & 0xFF) / 255f, (color & 0xFF) / 255f );
+		}
+		itemGlow.visible = visible;
+		float gw = itemGlow.width() * itemGlow.scale.x;
+		float gh = itemGlow.height() * itemGlow.scale.y;
+		itemGlow.x = x + (width() - gw) / 2f;
+		itemGlow.y = y + (height() - gh) / 2f;
+		itemGlow.alpha( 0.22f + 0.12f * (float)Math.sin( com.watabou.noosa.Game.timeTotal * 2.2f ) );
+	}
+
 	@Override
 	protected void updateMatrix() {
 		super.updateMatrix();
@@ -475,6 +509,7 @@ public class ItemSprite extends MovieClip {
 	@Override
 	public synchronized void update() {
 		super.update();
+		updateItemGlow();
 
 		//一次性动画播完自动回到 idle（若有声明）
 		if (finished && curAnim != null && !curAnim.looped && item != null){

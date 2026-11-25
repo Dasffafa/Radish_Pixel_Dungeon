@@ -2140,3 +2140,15 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 
 **实测**（`Z_EnRingPos`，跑完即删）：附魔触发 30 次，截图里环**正好套在目标格子上**，
 大小也随时间正常增长。`Smoke` 9/9、`F1` 3/3。
+
+## 武器的外观展示（图标光、地上光、持枪光）
+
+- 自画 `effects/glow_soft.png`（32×32 径向柔光）
+- `ItemSprite`：每帧按 `ItemText.auraColor` / `EnchantFx.uiColor` 取色，在图标同位置放一层
+  脉动光晕（alpha 0.22~0.34）。因为加在父组里，物品窗口图标、地上物品堆、飞行中的物品都会有
+- `HeroSprite`：同样按手持武器的附魔色，在刀侧（x+0.62w, y+0.45h）放一层更淡的光晕
+- 背包格子本来就有的光效（`ItemSlot.updateAura`）保持不变
+
+**验证**：`Z_SlotAura` 确认附魔武器 `uiColor=ff7a1e`、`ItemText.auraColor=ff8418`（非 0 才会有光）；
+`Z_LookGlow` 截图跑通（竞技场很黑，光晕在截图里不明显，需实机确认）。
+`Smoke` 9/9、`F1` 3/3。
