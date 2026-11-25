@@ -2019,3 +2019,15 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 0.06s 一粒、保留0.42s、先上飘后下坠），取代之前的 `Speck.DUST`
 
 **实测**（`Z_KitTrail`，跑完即删）：弹道飞行期间套件运行无异常。`Smoke` 9/9、`F1` 3/3。
+
+## 带火的箭：搬入 BoltTrails 并接到火弹
+
+- 原样搬入 `effects/fx/kit/arcane/BoltTrails.java`（153 行：火舌、火锥、叶归轨三组粒子工厂）
+- 它调用的 `Arc.make(e,x,y)`（原版还兼管光与环）用一个**最小实现**顶上：只从池里取一颗 `FxParticle`
+- `MagicMissile`：`FIRE` 类型的法术弹现在会拖一条 Warped 式火舌（`BoltTrails.FIRE`，0.05s 一粒），
+  弹体每帧跟随，结束时收尾
+
+**实测**（`Z_FireTrail`，跑完即删）：火弹飞行期间无异常。`Smoke` 9/9、`F1` 3/3。
+
+**没搬的（依赖链太长）**：`FxEmitter`（需要 Warped 的网络同步 `netCell/netEmType`）、
+`FxLight`、`FxRing`、`Fx` 的天气部分。`BoltTrails` 里的 `FROST/FOLIAGE` 两组已就位，只是还没接到对应法术。

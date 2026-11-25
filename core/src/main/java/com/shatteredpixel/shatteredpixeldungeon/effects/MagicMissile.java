@@ -49,6 +49,25 @@ public class MagicMissile extends Emitter {
 
 	private Callback callback;
 
+	//Warped's flame trail, poured behind a fire bolt by its ported particle kit
+	private com.watabou.noosa.particles.Emitter boltTrail;
+
+	private void startBoltTrail( int type ){
+		if (type != FIRE) return;
+		if (boltTrail != null) return;
+		boltTrail = new com.watabou.noosa.particles.Emitter();
+		boltTrail.pos( x, y );
+		boltTrail.start( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.FIRE, 0.05f, 1 );
+		if (parent != null) parent.add( boltTrail );
+	}
+
+	private void stopBoltTrail(){
+		if (boltTrail != null){
+			boltTrail.killAndErase();
+			boltTrail = null;
+		}
+	}
+
 	private PointF to;
 
 	private float sx;
@@ -137,6 +156,7 @@ public class MagicMissile extends Emitter {
 		time = d.length() / SPEED;
 		total = time;
 		elapsed = 0;
+		startBoltTrail( type );
 
 		//for now all specks share the same size and volume, this can easily be customized later if needed
 		if (type >= SPECK){
@@ -308,8 +328,10 @@ public class MagicMissile extends Emitter {
 			x += sx * d;
 			y += sy * d;
 			elapsed += d;
+			if (boltTrail != null) boltTrail.pos( x, y );
 			if ((time -= d) <= 0) {
 				on = false;
+				stopBoltTrail();
 				if (callback != null ) callback.call();
 			}
 		}
