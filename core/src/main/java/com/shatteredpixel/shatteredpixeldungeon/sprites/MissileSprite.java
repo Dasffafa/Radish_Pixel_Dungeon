@@ -253,8 +253,21 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		if (trail != null) return;
 		trail = new com.watabou.noosa.particles.Emitter();
 		trail.pos( x + width() / 2f, y + height() / 2f );
-		trail.start( com.shatteredpixel.shatteredpixeldungeon.effects.Speck.factory(
-				com.shatteredpixel.shatteredpixeldungeon.effects.Speck.DUST ), 0.09f, 1 );
+		//Warped's own kit: motes from its fx sheet, so the trail is the one it pours
+		trail.start( new com.watabou.noosa.particles.Emitter.Factory(){
+			@Override
+			public void emit( com.watabou.noosa.particles.Emitter e, int index, float px, float py ){
+				com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle p =
+						(com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle)
+								e.recycle( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle.class );
+				p.reset( px, py );
+				p.look( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_2 );
+				p.paint( 0xF3EBD7 );
+				p.life( 0.42f );
+				p.vel( 0, -8f );
+				p.gravity( 14f );
+			}
+		}, 0.06f, 1 );
 		if (parent != null) parent.add( trail );
 	}
 

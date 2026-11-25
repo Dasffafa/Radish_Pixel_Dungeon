@@ -30,6 +30,10 @@ public class Assets {
 		public static final String SPELL_ICONS  = "effects/spell_icons.png";
 		public static final String TEXT_ICONS   = "effects/text_icons.png";
 		public static final String FX_SHEET     = "effects/fx_sheet.png";
+
+	//Warped 的粒子图集（effects/fx/kit 用），与本仓库自己的 FX_SHEET 并存
+	public static final String WARPED_FX_SHEET = "effects/warped_fx_sheet.png";
+	public static final String WARPED_FX_LIGHT = "effects/warped_fx_light.png";
 		public static final String LIGHTNING_HALO = "effects/lightning_halo.png";
 		public static final String FX_LIGHT     = "effects/fx_light.png";
 		public static final String WATER_POCKS  = "effects/water_pocks.png";

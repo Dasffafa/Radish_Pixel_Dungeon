@@ -2002,3 +2002,20 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 `core/src/main/assets/sounds/`：Warped 有而我们没有的文件 = **0**
 （反而我们多 7 个）。`Assets.Sounds` 常量比 Warped 少 21 个，那些是 Warped 特有系统
 （技能、家园、海洋）的触发点，没搬那些系统就没有播放地方。
+
+## 直接搬 Warped 粒子套件（effects/fx/kit）
+
+**为什么不能整个目录搬**：Warped 的 `effects/fx` 共 **177 文件 / 49285 行**，
+大量依赖它自己的 `actors/blobs`（Fire/Blizzard/CampFire…十几个本仓库没有的气体）与技能/物品。
+
+**但核心粒子引擎是自洽的**，已原样搬入 `effects/fx/kit`：
+
+- `FxFrames`(270) `FxParticle`(556) `Element`(199) `Ramp`(114) `FxRandom`(107) `FxBudget`(300)
+- 同时复制它的两张图集：`effects/warped_fx_sheet.png`、`effects/warped_fx_light.png`
+  （`Assets.Effects.WARPED_FX_SHEET` / `WARPED_FX_LIGHT`），与本仓库自己的 FX_SHEET 并存
+- `Fx`/`WaterFX`/`FxDecal` 这三个被调用的外部帮手用**空实现**替代（它们原本要读天气/水面/污迹状态）
+
+**用途**：`MissileSprite` 的弓/投掷物拖尾改用这套粒子（`FxParticle` + `FxFrames.MOTE_2`，
+0.06s 一粒、保留0.42s、先上飘后下坠），取代之前的 `Speck.DUST`
+
+**实测**（`Z_KitTrail`，跑完即删）：弹道飞行期间套件运行无异常。`Smoke` 9/9、`F1` 3/3。
