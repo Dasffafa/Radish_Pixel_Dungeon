@@ -2214,3 +2214,15 @@ else { angularSpeed = -angularSpeed; angle += 90; flipHorizontal = true; }
 
 **实测**（`Z_GhostAngle`，跑完即删）：对角线射击后 `missile=360.79`、`ghosts=[360.79]`，
 逐个比对差 < 1°。`Smoke` 9/9、`F1` 3/3。
+
+## 箭矢真正变竖的原因：两作的箭图朝向不同
+
+Warped 的箭贴图是**朝右上 45°**的，所以它用 `angle = 135 - atan2(dx, dy)` 配合水平翻转。
+而本仓库的箭贴图是**朝正上**的——同一公式下，射任何方向箭都显得竖着（尾迹也跟着竖）。
+
+**修正**：对箭类（`SpiritArrow`/`ALTSpiritArrow`/`CrossbowArrow`/`StormAttackArrow`/
+`ScorpioShot`）单独用“朝正上”的公式：`angle = toDegrees( atan2( dy, dx ) ) + 90°`，
+并取消水平翻转；其他投掷物仍用 Warped 原公式。残影每帧跟随转向。
+
+**实测**（`Z_ArrowAngle`，跑完即删）：向东 `angle=88.9`（期望 90）、向东北 `angle=44.5`
+（期望 45）；差值来自箭头锚点的半格偏移。`Smoke` 9/9、`F1` 3/3。

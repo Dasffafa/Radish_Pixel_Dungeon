@@ -210,6 +210,17 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			updateFrame();
 		}
 
+		//our arrow art points straight up, not up-right like Warped's: turn it by the flight line
+		if (item instanceof SpiritBow.SpiritArrow
+				|| item instanceof SpiritBow.ALTSpiritArrow
+				|| item instanceof CompositeCrossbow.CrossbowArrow
+				|| item instanceof StormAttackArrow
+				|| item instanceof ScorpioSprite.ScorpioShot){
+			flipHorizontal = false;
+			angle = (float)Math.toDegrees( Math.atan2( d.y, d.x ) ) + 90f;
+			updateFrame();
+		}
+
 		if (item instanceof GnollGeomancer.Boulder){
 			angle = 0;
 			flipHorizontal = false;
