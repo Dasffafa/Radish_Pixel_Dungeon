@@ -2043,3 +2043,14 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 `GameScene.Layer.LIGHTS`、`GameScene.lightEmitter()/fxEmitter()`、`Fx.glowAir()`——这些是 Warped 自己的渲染分层与光照接口，
 本仓库没有对应结构。继续往下搬会变成“先重建它的渲染层”，不再是搬一个特效。文件已删除，
 避免留下编译不通的残留代码。
+
+## FxRing 落地圆环 + 锥形拖尾
+
+- 原样搬入 `FxRing`（258 行）与它依赖的 `FxCurves`（140 行）到 `effects/fx/kit/`
+- `MagicMissile` 弹体落地时按元素颜色生成一圈小环（火 橙、冰 蓝、草 绿）
+- `BoltTrails` 的锥形变体也接上了：`FIRE_CONE → FIRE_CONE`、`FOLIAGE_CONE → LEAF_CONE`
+
+**实测**（`Z_ImpactRing`，跑完即删）：火弹飞行到落地全程无异常。`Smoke` 9/9、`F1` 3/3。
+
+至此 fx 工具箱已搬：`FxFrames / FxParticle / FxBudget / FxRandom / Element / Ramp / FxCurves / FxRing` + `BoltTrails`
+（火焰、火锥、叶片、叶锥四组）。

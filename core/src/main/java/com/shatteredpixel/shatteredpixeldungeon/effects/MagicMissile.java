@@ -51,12 +51,15 @@ public class MagicMissile extends Emitter {
 
 	//Warped's flame trail, poured behind a fire bolt by its ported particle kit
 	private com.watabou.noosa.particles.Emitter boltTrail;
+	private int boltType;
 
 	private void startBoltTrail( int type ){
 		com.watabou.noosa.particles.Emitter.Factory factory = null;
 		switch (type){
 			case FIRE:    factory = com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.FIRE; break;
 			case FOLIAGE: factory = com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.LEAF; break;
+			case FIRE_CONE:    factory = com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.FIRE_CONE; break;
+			case FOLIAGE_CONE: factory = com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.arcane.BoltTrails.LEAF_CONE; break;
 			case SHAMAN_RED: break;
 			default: break;
 		}
@@ -66,6 +69,20 @@ public class MagicMissile extends Emitter {
 		boltTrail.pos( x, y );
 		boltTrail.start( factory, 0.05f, 1 );
 		if (parent != null) parent.add( boltTrail );
+	}
+
+	/** A small ground ring where a bolt lands: Warped's FxRing, coloured by the bolt. */
+	private void spawnImpactRing(){
+		if (parent == null) return;
+		int color;
+		switch (boltType){
+			case FIRE: case FIRE_CONE:      color = 0xFF8A3C; break;
+			case FROST: case FROST_CONE:    color = 0x9CC8FF; break;
+			case FOLIAGE: case FOLIAGE_CONE: color = 0x9BD05A; break;
+			default: return;
+		}
+		com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
+				(com.watabou.noosa.Group) parent, x, y, 2, 13, 0.28f, color, 0.55f, false );
 	}
 
 	private void stopBoltTrail(){
@@ -163,6 +180,7 @@ public class MagicMissile extends Emitter {
 		time = d.length() / SPEED;
 		total = time;
 		elapsed = 0;
+		boltType = type;
 		startBoltTrail( type );
 
 		//for now all specks share the same size and volume, this can easily be customized later if needed
@@ -339,6 +357,7 @@ public class MagicMissile extends Emitter {
 			if ((time -= d) <= 0) {
 				on = false;
 				stopBoltTrail();
+				spawnImpactRing();
 				if (callback != null ) callback.call();
 			}
 		}
