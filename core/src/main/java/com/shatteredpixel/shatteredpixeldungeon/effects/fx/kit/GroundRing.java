@@ -54,10 +54,11 @@ public class GroundRing extends Image {
 
 	private void updateSize( float p ){
 		float w = fromW + (toW - fromW) * p;
-		width = Math.round( w );
-		height = Math.max( 2, Math.round( w / 2f ) );
-		x = Math.round( cx - width / 2f );
-		y = Math.round( cy - height / 2f );
+		float h = Math.max( 2f, w / 2f );
+		//the art is 64x32: grow it with scale, which is what Image actually draws with
+		scale.set( w / 64f, h / 32f );
+		x = Math.round( cx - w / 2f );
+		y = Math.round( cy - h / 2f );
 	}
 
 	@Override

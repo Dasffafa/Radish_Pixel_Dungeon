@@ -233,9 +233,12 @@ abstract public class Weapon extends KindOfWeapon {
 						0, 0 );
 				//a flat ring under the blow, in the enchantment's colour
 				if (defender.sprite != null && defender.sprite.parent != null){
+					//the tile it stands on: during a hit animation the sprite is nudged, so its
+					//own centre would drift away from the blow
+					com.watabou.utils.PointF at =
+							com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap.tileCenterToWorld( defender.pos );
 					new com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.GroundRing(
-							defender.sprite.parent, defender.sprite.center().x, defender.sprite.center().y,
-							4, 16, 0.32f, look.glow, 0.5f );
+							defender.sprite.parent, at.x, at.y + 2, 4, 16, 0.32f, look.glow, 0.5f );
 				}
 			}
 		}
