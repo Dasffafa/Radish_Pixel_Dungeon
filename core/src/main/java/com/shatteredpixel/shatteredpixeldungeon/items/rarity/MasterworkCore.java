@@ -82,8 +82,10 @@ public class MasterworkCore extends Item {
 		}
 		detach( hero.belongings.backpack );
 		if (hero.sprite != null && hero.sprite.parent != null){
+			com.watabou.utils.PointF at = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap
+					.tileCenterToWorld( hero.pos );
 			new com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.GroundRing(
-					hero.sprite.parent, hero.sprite.center().x, hero.sprite.center().y + 4, 5, 26, 0.55f, 0xFFD76B, 0.8f );
+					hero.sprite.parent, at.x, at.y + 2, 5, 22, 0.55f, 0xFFD76B, 0.8f );
 		}
 	}
 

@@ -1144,8 +1144,11 @@ public abstract class Mob extends Char {
 			int after = com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.masterworkLevel(
 					hero.belongings.weapon );
 			if (after > before && sprite != null && sprite.parent != null){
+				//on the dying mob's tile, not its sprite centre: the death animation slides and scales
+				com.watabou.utils.PointF at = com.shatteredpixel.shatteredpixeldungeon.tiles.DungeonTilemap
+						.tileCenterToWorld( pos );
 				new com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.GroundRing(
-						sprite.parent, sprite.center().x, sprite.center().y + 4, 6, 26, 0.5f, 0xFFD76B, 0.75f );
+						sprite.parent, at.x, at.y + 2, 6, 22, 0.5f, 0xFFD76B, 0.75f );
 			}
 		}
 
