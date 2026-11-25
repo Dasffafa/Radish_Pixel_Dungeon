@@ -282,10 +282,13 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 	//a fading copy of the missile, left behind as it flies
 	private static class Ghost extends com.watabou.noosa.Image {
 		private float age, life = 0.22f, peak = 0.35f;
-		Ghost( Object tex ){ super( tex ); }
+		private final MissileSprite owner;
+		Ghost( Object tex, MissileSprite owner ){ super( tex ); this.owner = owner; }
 		@Override
 		public void update(){
 			super.update();
+			//take the missile's heading every frame: a copy frozen at spawn can point the wrong way
+			if (owner != null && owner.alive) angle = owner.angle;
 			age += com.watabou.noosa.Game.elapsed;
 			if (age >= life){ killAndErase(); return; }
 			alpha( peak * (1f - age / life) );
@@ -296,7 +299,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 
 	private void spawnGhost(){
 		if (parent == null || texture == null) return;
-		Ghost g = new Ghost( texture );
+		Ghost g = new Ghost( texture, this );
 		g.frame( frame() );
 		g.x = x; g.y = y;
 		g.angle = angle;

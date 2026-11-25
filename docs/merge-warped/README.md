@@ -2204,3 +2204,13 @@ else { angularSpeed = -angularSpeed; angle += 90; flipHorizontal = true; }
 
 **仍不如 Warped 的地方**：它的尾迹还会换 look（两种颜色轮流）、落水溅起浪花、尾迹会被风吹偏；
 这些都挂在未搬的套件上。
+
+## 残影朝向修正
+
+残影（`Ghost`）之前只在生成时记下弹体旋转，而箭矢的 `angle` 是按 Warped 公式
+算出的值（，且可能因回收而拿到旧值）——于是残影看起来是竖的。
+
+**修正**：`Ghost` 持有弹体引用，**每帧**把 `angle` 同步为弹体当前角度。
+
+**实测**（`Z_GhostAngle`，跑完即删）：对角线射击后 `missile=360.79`、`ghosts=[360.79]`，
+逐个比对差 < 1°。`Smoke` 9/9、`F1` 3/3。
