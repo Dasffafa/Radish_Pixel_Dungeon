@@ -64,7 +64,7 @@ public final class VerdantFx {
 		FxParticle p = b.mat( x, y, pri );
 		if (p == null) return null;
 		return p.look( BLADE[Math.max( 0, Math.min( 2, size ) )] ).paint( green( b, 1 + FxRandom.Int( 3 ) ) )
-				.vel( FxRandom.Float( -2f, 2f ), -36f ).drag( 7f ).life( 0.6f + late ).alpha( b.a( 1f ), late, 0.3f ).snap();
+				.vel( FxRandom.Float( -2f, 2f ), -12f ).drag( 9f ).life( 0.42f + late ).alpha( b.a( 1f ), late, 0.3f ).snap();
 	}
 
 	//a petal or a leaf fluttering off (x, y); on water it floats
