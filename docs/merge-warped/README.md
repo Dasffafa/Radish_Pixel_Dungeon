@@ -2186,3 +2186,21 @@ else { angularSpeed = -angularSpeed; angle += 90; flipHorizontal = true; }
 与射击方向一致。`Smoke` 9/9、`F1` 3/3。
 
 备注：`debugTintOverride` 是现成的调试开关，正式游戏里不会被打开。
+
+## 飞行过程的拖尾：按附魔取色 + 残影
+
+**Warped 原版怎么做**：`effects/fx/enchant/EnchantTrail`（400 行）——弹体飞行时派发
+`ItemLooks` 的两个 look、按 `MotifFx` 吐粒子、尾迹落水还有浪花。
+它依赖 `FxEmitter`/`FxLight`/`HeapLook`，而这三个又要 Warped 的网络同步与光照分层——同样是搬不动的那一层。
+
+**本作实现**（在 `MissileSprite` 里）：
+
+- 尾迹颜色取 `ItemText.auraColor(item)`（附魔色，无附魔时回到普通灰尘）
+- 有颜色时密度提高（每 0.025s、每次 2 粒）、粒子发光（`light(true)`）、存活 0.5s
+- 另外每 0.045s 在弹体位置留一个**残影**（`Ghost`：同帧同旋转，0.22s 内淡出）
+
+**实测**（`Z_FlightTrail`，跑完即删：关掉夜色遮罩后截图）：火附魔匕首飞行时
+拖着橙色光点。`Smoke` 9/9、`F1` 3/3。
+
+**仍不如 Warped 的地方**：它的尾迹还会换 look（两种颜色轮流）、落水溅起浪花、尾迹会被风吹偏；
+这些都挂在未搬的套件上。

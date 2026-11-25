@@ -255,6 +255,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		trail = new com.watabou.noosa.particles.Emitter();
 		trail.pos( x + width() / 2f, y + height() / 2f );
 		//Warped's own kit: motes from its fx sheet, so the trail is the one it pours
+		//the missile's own magic colours its trail: its enchantment's, else its rarity's
+		final int trailColor = com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.ItemText
+				.auraColor( it );
+		final boolean faint = trailColor == 0;
 		trail.start( new com.watabou.noosa.particles.Emitter.Factory(){
 			@Override
 			public void emit( com.watabou.noosa.particles.Emitter e, int index, float px, float py ){
@@ -262,14 +266,43 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 						(com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle)
 								e.recycle( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxParticle.class );
 				p.reset( px, py );
-				p.look( com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_2 );
-				p.paint( 0xF3EBD7 );
-				p.life( 0.42f );
+				p.look( faint
+						? com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_2
+						: com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxFrames.MOTE_1 );
+				p.paint( faint ? 0xF3EBD7 : trailColor );
+				p.life( faint ? 0.42f : 0.5f );
 				p.vel( 0, -8f );
 				p.gravity( 14f );
+				if (!faint) p.light( true );
 			}
-		}, 0.06f, 1 );
+		}, faint ? 0.05f : 0.025f, faint ? 1 : 2 );
 		if (parent != null) parent.add( trail );
+	}
+
+	//a fading copy of the missile, left behind as it flies
+	private static class Ghost extends com.watabou.noosa.Image {
+		private float age, life = 0.22f, peak = 0.35f;
+		Ghost( Object tex ){ super( tex ); }
+		@Override
+		public void update(){
+			super.update();
+			age += com.watabou.noosa.Game.elapsed;
+			if (age >= life){ killAndErase(); return; }
+			alpha( peak * (1f - age / life) );
+		}
+	}
+
+	private float ghostTimer;
+
+	private void spawnGhost(){
+		if (parent == null || texture == null) return;
+		Ghost g = new Ghost( texture );
+		g.frame( frame() );
+		g.x = x; g.y = y;
+		g.angle = angle;
+		g.scale.set( scale.x, scale.y );
+		g.hardlight( 1f, 1f, 1f );
+		parent.add( g );
 	}
 
 	private void stopTrail(){
@@ -284,6 +317,10 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		super.update();
 		if (trail != null){
 			trail.pos( x + width() / 2f, y + height() / 2f );
+			if ((ghostTimer -= com.watabou.noosa.Game.elapsed) <= 0){
+				ghostTimer = 0.045f;
+				spawnGhost();
+			}
 		}
 	}
 
