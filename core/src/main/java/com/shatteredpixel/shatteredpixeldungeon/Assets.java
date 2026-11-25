@@ -34,6 +34,8 @@ public class Assets {
 	//Warped 的粒子图集（effects/fx/kit 用），与本仓库自己的 FX_SHEET 并存
 	public static final String WARPED_FX_SHEET = "effects/warped_fx_sheet.png";
 	public static final String WARPED_FX_LIGHT = "effects/warped_fx_light.png";
+	//我们自己画的平面光环（Warped 图集里的 ring 帧在本作中只能画成一条线）
+	public static final String GROUND_RING = "effects/ground_ring.png";
 		public static final String LIGHTNING_HALO = "effects/lightning_halo.png";
 		public static final String FX_LIGHT     = "effects/fx_light.png";
 		public static final String WATER_POCKS  = "effects/water_pocks.png";

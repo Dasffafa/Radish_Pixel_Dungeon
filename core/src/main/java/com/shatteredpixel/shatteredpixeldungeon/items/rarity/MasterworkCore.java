@@ -81,6 +81,10 @@ public class MasterworkCore extends Item {
 			((Armor)target).masterworkKills += 5;
 		}
 		detach( hero.belongings.backpack );
+		if (hero.sprite != null && hero.sprite.parent != null){
+			new com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.GroundRing(
+					hero.sprite.parent, hero.sprite.center().x, hero.sprite.center().y + 4, 5, 26, 0.55f, 0xFFD76B, 0.8f );
+		}
 	}
 
 	@Override

@@ -343,7 +343,19 @@ public class MagicMissile extends Emitter {
 			if ((time -= d) <= 0) {
 				on = false;
 				stopBoltTrail();
-				//(impact ring awaits a working FxRing)
+				if (parent != null){
+					int ringColor;
+					switch (boltType){
+						case FIRE: case FIRE_CONE:      ringColor = 0xFF8A3C; break;
+						case FROST: case FROST_CONE:    ringColor = 0x9CC8FF; break;
+						case FOLIAGE: case FOLIAGE_CONE: ringColor = 0x9BD05A; break;
+						default: ringColor = 0; break;
+					}
+					if (ringColor != 0){
+						new com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.GroundRing(
+								(com.watabou.noosa.Group) parent, x, y, 3, 15, 0.3f, ringColor, 0.55f );
+					}
+				}
 				if (callback != null ) callback.call();
 			}
 		}
