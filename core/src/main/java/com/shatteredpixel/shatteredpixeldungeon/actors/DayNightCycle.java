@@ -80,13 +80,13 @@ public final class DayNightCycle {
 	}
 
 	// 色调端点：{A, R, G, B}
-	private static final float[] NIGHT_TINT = {0.133f, 0.067f, 0.133f, 0.267f};
+	private static final float[] NIGHT_TINT = {0.160f, 0.115f, 0.190f, 0.150f};
 	private static final float[] DAWN_TINT  = {0.067f, 1.000f, 0.533f, 0.267f};
 	private static final float[] DAY_TINT   = {0f, 0f, 0f, 0f};
 	private static final float[] DUSK_TINT  = {0.067f, 0.533f, 0.267f, 0.400f};
 
-	private static final float NIGHT_BRIGHT = 0.65f, DAWN_BRIGHT = 1.05f,
-			DAY_BRIGHT = 1.00f, DUSK_BRIGHT = 0.85f;
+	private static final float NIGHT_BRIGHT = 0.86f, DAWN_BRIGHT = 1.05f,
+			DAY_BRIGHT = 1.00f, DUSK_BRIGHT = 0.94f;
 
 	private static float lerp( float a, float b, float t ){
 		return a + (b - a) * t;
