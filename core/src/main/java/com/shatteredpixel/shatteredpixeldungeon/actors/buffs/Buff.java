@@ -131,7 +131,17 @@ public class Buff extends Actor {
 				}
 			}
 			if (target.sprite != null) fx( true );
-			return true;
+			//its icon rises off the head, so the player sees what landed on them
+		if (com.watabou.noosa.Game.scene() != null
+				&& target.sprite != null && target.sprite.visible && target.sprite.parent != null){
+			com.shatteredpixel.shatteredpixeldungeon.ui.BuffPop pop =
+					new com.shatteredpixel.shatteredpixeldungeon.ui.BuffPop( this );
+			pop.x = target.sprite.x + (target.sprite.width() - pop.width()) / 2f;
+			pop.y = target.sprite.y - pop.height() - 2;
+			target.sprite.parent.add( pop );
+		}
+
+		return true;
 		} else {
 			this.target = null;
 			return false;
