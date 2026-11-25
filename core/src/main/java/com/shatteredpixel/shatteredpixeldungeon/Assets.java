@@ -348,6 +348,9 @@ public class Assets {
 	public static class Sprites {
 		//Warped 的品质宝石图集（8个 16x16 格，按 Rarity 序号取）
 		public static final String RARITY_ICONS = "sprites/rarity_icons.png";
+		//分段头的箭头与细线：文字字符在 Android 字体里是问号，改用图
+		public static final String SECTION_ARROW = "sprites/section_arrow.png";
+		public static final String SECTION_RULE = "sprites/section_rule.png";
 		public static final String AVATARS_WARRIOR	= "sprites/avatars_warrior.png";
 		public static final String AVATARS_MAGE	= "sprites/avatars_mage.png";
 		public static final String AVATARS_ROGUE	= "sprites/avatars_rogue.png";

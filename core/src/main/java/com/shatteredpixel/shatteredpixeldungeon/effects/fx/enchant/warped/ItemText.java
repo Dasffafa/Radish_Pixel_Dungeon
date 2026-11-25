@@ -65,7 +65,7 @@ public final class ItemText {
 		EnchantLook l = lookOf( it );
 		String name = enchantName( it );
 		if (l == null || name.isEmpty()) return "";
-		return "\u2726 " + name + (l.curse ? "  (\u8bc5\u5492)" : "");
+		return "\u00b7 " + name + (l.curse ? "  (\u8bc5\u5492)" : "");
 	}
 
 	/** The colour of an item's glow: its enchantment's, else its rarity's (0 for plain common gear). */
@@ -121,7 +121,7 @@ public final class ItemText {
 			if (ench.isEmpty()) ench = enchantName( it );
 			if (ench.isEmpty()) ench = "\u70c8\u7130";
 			b.append( "\n\n\u5b83\u8fd8\u5e26\u6709\u4e00\u4e2a\u6b8b\u8ff9\u9644\u9b54\uff0c\u90a3\u662f\u4e00\u7f15\u5b83\u59cb\u7ec8\u672a\u80fd\u771f\u6b63\u638c\u63e1\u7684\u9b54\u6cd5\u7684\u5fae\u5f31\u56de\u54cd\uff1a" );
-			b.append( "\n\u2726 \u6b8b\u8ff9" ).append( ench ).append( "\u9644\u9b54\uff1a\u89e6\u53d1\u9891\u7387\u4e3a\u771f\u54c1\u768427%" );
+			b.append( "\n\u00b7 \u6b8b\u8ff9" ).append( ench ).append( "\u9644\u9b54\uff1a\u89e6\u53d1\u9891\u7387\u4e3a\u771f\u54c1\u768427%" );
 			b.append( "\n\n\u6770\u4f5c " )
 					.append( com.shatteredpixel.shatteredpixeldungeon.items.rarity.Quality.masterworkLevel( it ) )
 					.append( "/5\uff1a\u6bcf\u6761\u52a0\u6210\u8bcd\u6761\u6bcf\u7ea7\u63d0\u534715%\u3002\u5b83\u5df2\u6740\u6b7b" )
@@ -141,6 +141,8 @@ public final class ItemText {
 			case MACE:   return "\u9524";
 			case DAGGER: return "\u5315\u9996";
 			case STAFF:  return "\u6cd5\u6756";
+			case BOW:    return "\u5f13";
+			case THROWN: return "\u6295\u63b7\u6b66\u5668";
 			case ARMOR:  return "\u62a4\u7532";
 			case SHIELD: return "\u76fe";
 			case RING:   return "\u6212\u6307";
@@ -159,6 +161,8 @@ public final class ItemText {
 			case MACE:   return "\u9524\uff1a\u7834\u7532\u80fd\u529b\u5f3a\uff0c\u51fb\u4e2d\u540e\u66f4\u5bb9\u6613\u9020\u6210\u786c\u76f4\u51fb\u3002";
 			case DAGGER: return "\u5315\u9996\uff1a\u8f7b\u5feb\u4e14\u9690\u853d\uff0c\u9002\u5408\u7a81\u88ad\u4e0e\u80cc\u523a\u3002";
 			case STAFF:  return "\u6cd5\u6756\uff1a\u4ee5\u9b54\u529b\u9a71\u52a8\u7684\u6b66\u5668\uff0c\u6ce8\u91cd\u6cd5\u672f\u4e0e\u8fdc\u7a0b\u3002";
+			case BOW:    return "\u5f13\uff1a\u8fdc\u7a0b\u6b66\u5668\uff0c\u9700\u8981\u7bad\u77e2\uff0c\u8ddd\u79bb\u8d8a\u8fdc\u8d8a\u5b89\u5168\u3002";
+			case THROWN: return "\u6295\u63b7\u6b66\u5668\uff1a\u4e00\u6b21\u6027\u4f7f\u7528\uff0c\u8fdc\u8ddd\u6295\u51fa\u540e\u9700\u8981\u62a2\u56de\u3002";
 			case ARMOR:  return "\u62a4\u7532\uff1a\u62a4\u4f4f\u8eab\u4f53\uff0c\u63d0\u4f9b\u9632\u5fa1\u4e0e\u6301\u7eed\u4f5c\u6218\u80fd\u529b\u3002";
 			case SHIELD: return "\u76fe\uff1a\u4e13\u95e8\u7528\u4e8e\u683c\u6321\u4e0e\u9632\u5b88\u3002";
 			case RING:   return "\u6212\u6307\uff1a\u4ee5\u6301\u7eed\u52a0\u6210\u56de\u62a5\u4f69\u6234\u8005\u3002";

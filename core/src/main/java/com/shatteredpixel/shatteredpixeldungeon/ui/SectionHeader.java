@@ -18,26 +18,30 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.ui;
 
+import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
-import com.watabou.noosa.ColorBlock;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
 
 /**
- * A part's header in the item window, drawn the way Warped draws it: a five-pixel fold arrow (down
- * while the section is open, right while it is folded), the title in its colour, and a rule out to
- * the window's edge. It only draws; the window lays a transparent button over it for the press.
+ * A part's header in the item window, the way Warped draws it: a fold arrow (down while open,
+ * right while folded), the title in its colour, and a rule out to the window's edge. It only
+ * draws; the window lays a transparent button over it for the press.
+ *
+ * The arrow and rule are artwork rather than text glyphs: the game font has no ▼ or ─ on Android,
+ * so text turned into question marks there.
  */
 public class SectionHeader extends Group {
 
 	public static final int HEIGHT = 9;
 
-	private final RenderedTextBlock arrow;
+	private final Image arrow;
 	private final RenderedTextBlock label;
+	private final Image rule;
 	private final int color;
-	private Image icon;
-	private final RenderedTextBlock rule;
+
 	private int fullWidth;
+	private Image icon;
 
 	/** Whether the section under this header is showing (the owner sets this before placing). */
 	public boolean open = true;
@@ -45,54 +49,28 @@ public class SectionHeader extends Group {
 	public SectionHeader( String text, int color, int width ){
 		super();
 		this.color = color;
+		this.fullWidth = width;
 
-		arrow = PixelScene.renderTextBlock( "\u25bc", 6 );
+		arrow = new Image( Assets.Sprites.SECTION_ARROW );
 		arrow.hardlight( color );
 		add( arrow );
-
-		rule = PixelScene.renderTextBlock( "", 6 );
-		rule.hardlight( color );
-		rule.alpha( 0.7f );
-		add( rule );
 
 		label = PixelScene.renderTextBlock( text, 6 );
 		label.hardlight( color );
 		add( label );
 
+		rule = new Image( Assets.Sprites.SECTION_RULE );
+		rule.hardlight( color );
+		rule.alpha( 0.35f );
+		add( rule );
 
-		fullWidth = width;
 		place( 0, 0 );
-	}
-
-	private void placeArrow( float y ){
-		arrow.text( open ? "\u25bc" : "\u25b6" );
-		arrow.hardlight( color );
-		arrow.setPos( 1, y + (HEIGHT - arrow.height()) / 2f );
-	}
-
-	private void placeRule( float y ){
-		float from = label.right() + 3;
-		int room = Math.max( 0, (int)(fullWidth - from) );
-		StringBuilder all = new StringBuilder();
-		while (all.length() < 100) all.append( "\u2500" );
-		rule.text( all.toString() );
-		float perChar = Math.max( 1f, rule.width() / 100f );
-		int n = Math.max( 1, (int)(room / perChar) );
-		StringBuilder fit = new StringBuilder();
-		for (int i = 0; i < n; i++) fit.append( "\u2500" );
-		rule.text( fit.toString() );
-		rule.setPos( from, y + (HEIGHT - rule.height()) / 2f );
-	}
-
-	/** Where the title ends, so the window can draw a rule out from there. */
-	public float labelRight(){
-		return label.right();
 	}
 
 	/** Shows a 16px-cell picture (half scale) between the arrow and the title. */
 	public void setIcon( int cell ){
 		if (icon == null){
-			icon = new Image( com.shatteredpixel.shatteredpixeldungeon.Assets.Sprites.RARITY_ICONS );
+			icon = new Image( Assets.Sprites.RARITY_ICONS );
 			icon.scale.set( 0.5f );
 			add( icon );
 		}
@@ -100,9 +78,17 @@ public class SectionHeader extends Group {
 		icon.visible = true;
 	}
 
+	/** Where the title ends, so the window can draw a rule out from there. */
+	public float labelRight(){
+		return label.right();
+	}
+
 	/** Puts the whole header at (x, y). */
 	public void place( float x, float y ){
-		placeArrow( y );
+		arrow.frame( open ? 0 : 8, 0, 5, 5 );
+		arrow.x = x + 1;
+		arrow.y = y + (HEIGHT - 5) / 2f;
+
 		if (icon != null && icon.visible){
 			icon.x = x + 9;
 			icon.y = y + (HEIGHT - 8) / 2f;
@@ -110,6 +96,11 @@ public class SectionHeader extends Group {
 		} else {
 			label.setPos( x + 9, y + (HEIGHT - label.height()) / 2f );
 		}
-		placeRule( y );
+
+		float from = label.right() + 3;
+		int room = Math.max( 0, (int)(fullWidth - (from - x)) );
+		rule.scale.set( Math.max( 1, room ), 1f );
+		rule.x = from;
+		rule.y = y + HEIGHT / 2f;
 	}
 }

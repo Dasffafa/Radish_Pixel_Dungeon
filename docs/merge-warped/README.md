@@ -1970,3 +1970,18 @@ body 29.9808 -> 29.9862   RAINPROOF：淋雨时温度漂移变慢
 `GameScene.updateDayNightTint()` 每帧从 `DayNightCycle.phaseTintSmooth()` 取颜色、
 `DayNightCycle.brightnessMult()` 取亮度，合成一层 `dayNightOverlay`（ColorBlock）盖在整张地图上。
 所以**光线（色调与暗度）确实与时间挂钩**；但它是全屏叠加层，不改变逐格照明半径。
+
+## 手机端修复：分段头改用素材、弓与投掷物归类
+
+**问题**：Android 上分段头的 **▼ ▶ ─** 字符全显示为问号；弓/投掷物被归为“杂项”。
+
+**修正**：
+
+- 新增两张自制嵌入贴图：`sprites/section_arrow.png`（下/右两帧）、`sprites/section_rule.png`（1×1 白点）
+- `SectionHeader` 改用 `Image` 画箭头与细线（细线用 `scale` 拉伸），完全不再依赖字体字符
+- 草稿里剩下的 `✦` 也换成 `·`（同样会在 Android 上变问号）
+- `Quality.Family` 新增 **BOW / THROWN**：类名含 `bow` → 弓，`MissileWeapon` → 投掷武器；
+  `ItemText` 补上对应标题与介绍。工具类（Wand/Ring）也归了类
+
+**实测**（`Z_BowWindow`，跑完即删）：十字弯的窗口显示 `类型：弓`，箭头与细线均为贴图；
+`Smoke` 9/9。
