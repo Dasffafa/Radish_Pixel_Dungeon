@@ -80,7 +80,37 @@ public final class EnchantLooks {
 	private EnchantLooks(){}
 
 	public static EnchantLook of( Class<?> c ){
-		return c == null ? null : BY_CLASS.get( c );
+		if (c == null) return null;
+		EnchantLook l = BY_CLASS.get( c );
+		if (l != null) return l;
+		//an enchantment this table never heard of (the fork's own, or a DIY one): give it a look of
+		//its own so the window, the aura and the proc rings still have a colour and a family
+		l = synthetic( c );
+		BY_CLASS.put( c, l );
+		return l;
+	}
+
+	private static final java.util.HashMap<Class<?>, EnchantLook> SYNTHETIC = new java.util.HashMap<>();
+
+	private static EnchantLook synthetic( Class<?> c ){
+		EnchantLook cached = SYNTHETIC.get( c );
+		if (cached != null) return cached;
+
+		int h = Math.abs( c.getName().hashCode() );
+		Family[] fams = Family.values();
+		Family fam = fams[h % fams.length];
+		int glow = java.awt.Color.HSBtoRGB( (h % 360) / 360f, 0.55f, 1f ) & 0xFFFFFF;
+		Motif[] motifs = Motif.values();
+		Profile[] profiles = Profile.values();
+
+		Element[] els = Element.values();
+		Element el = els[h / 5 % els.length];
+
+		EnchantLook l = new EnchantLook( -1, c, fam, el, glow, glow, glow,
+				motifs[h / 7 % motifs.length], profiles[h / 11 % profiles.length],
+				"", 0f, 1f, false, new int[0], new int[0], false, false );
+		SYNTHETIC.put( c, l );
+		return l;
 	}
 
 	public static EnchantLook byCode( int code ){

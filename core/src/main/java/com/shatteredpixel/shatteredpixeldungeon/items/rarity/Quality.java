@@ -46,7 +46,7 @@ public final class Quality {
 
 	/** What kind of gear it is: Warped's families, without its guns, bows and instrument set. */
 	public enum Family {
-		SWORD, AXE, SPEAR, MACE, DAGGER, STAFF, BOW, THROWN, ARMOR, SHIELD, RING, WAND, OTHER
+		SWORD, AXE, SPEAR, MACE, DAGGER, STAFF, BOW, THROWN, WHEEL, ARMOR, SHIELD, RING, WAND, OTHER
 	}
 
 	private final Item item;
@@ -105,6 +105,7 @@ public final class Quality {
 		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring) return Family.RING;
 		String cls = item.getClass().getSimpleName().toLowerCase();
 		if (cls.contains( "bow" )) return Family.BOW;
+		if (cls.contains( "circle" )) return Family.WHEEL;
 		if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) return Family.THROWN;
 		if (item instanceof Sword) return Family.SWORD;
 		if (item instanceof Greataxe) return Family.AXE;
