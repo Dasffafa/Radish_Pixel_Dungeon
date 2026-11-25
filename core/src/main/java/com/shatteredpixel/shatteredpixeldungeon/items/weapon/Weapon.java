@@ -231,32 +231,7 @@ abstract public class Weapon extends KindOfWeapon {
 						com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantFx.strengthOf(
 								com.shatteredpixel.shatteredpixeldungeon.effects.fx.enchant.warped.EnchantFx.MID ),
 						0, 0 );
-				//a ring on the ground under the blow: Warped's FxRing, shaped by the enchantment's family
-				if (defender.sprite != null && defender.sprite.parent != null){
-					float cx = defender.sprite.center().x, cy = defender.sprite.center().y;
-					int from = 2, to = 13;
-					float life = 0.30f, alpha = 0.55f;
-					boolean light = true;
-					switch (look.fam){
-						case EMBER:   from = 3; to = 16; life = 0.28f; break;          //a hot flare
-						case RIME:    from = 2; to = 18; life = 0.42f; alpha = 0.45f; break; //a slow chill
-						case STORM:   from = 1; to = 12; life = 0.18f; alpha = 0.7f; break;  //a sharp snap
-						case VENOM: case VERDANT: from = 4; to = 12; life = 0.36f; break;    //a spreading sear
-						case REAPER:  from = 6; to = 12; life = 0.22f; alpha = 0.65f; break; //a tight bite
-						case WARD:    from = 2; to = 15; life = 0.45f; alpha = 0.4f; break;  //a steady ward
-						default: break;
-					}
-					com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
-							defender.sprite.parent, cx, cy, from, to, life, look.glow, alpha, light );
-					//the heavier families leave a second, tighter ring inside the first
-					switch (look.fam){
-						case EMBER: case RIME: case REAPER:
-							com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
-									defender.sprite.parent, cx, cy, 1, Math.max( 4, to / 2 ), life * 0.8f, 0xFFFFFF, 0.35f, true );
-							break;
-						default: break;
-					}
-				}
+				//(the FxRing port renders as a flat line here: its ring is not used until fixed)
 			}
 		}
 		// DIY 组装贴上去的额外附魔：全部依次触发

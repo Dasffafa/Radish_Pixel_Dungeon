@@ -155,9 +155,8 @@ public class FxRing extends Image {
 		if (i != shownIndex){
 			shownIndex = i;
 			int[] f = FxFrames.RINGS[i];
-			float tw = texture.width, th = texture.height;
-			uv.set( f[0] / tw, f[1] / th, (f[0] + f[2]) / tw, (f[1] + f[3]) / th );
-			frame( uv );
+			//pixel rects, not UV: our noosa wants the frame in pixels here
+			frame( f[0], f[1], f[2], f[3] );
 		}
 		place();
 	}

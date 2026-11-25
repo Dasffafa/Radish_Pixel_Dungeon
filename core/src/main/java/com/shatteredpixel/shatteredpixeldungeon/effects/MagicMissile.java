@@ -71,20 +71,6 @@ public class MagicMissile extends Emitter {
 		if (parent != null) parent.add( boltTrail );
 	}
 
-	/** A small ground ring where a bolt lands: Warped's FxRing, coloured by the bolt. */
-	private void spawnImpactRing(){
-		if (parent == null) return;
-		int color;
-		switch (boltType){
-			case FIRE: case FIRE_CONE:      color = 0xFF8A3C; break;
-			case FROST: case FROST_CONE:    color = 0x9CC8FF; break;
-			case FOLIAGE: case FOLIAGE_CONE: color = 0x9BD05A; break;
-			default: return;
-		}
-		com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
-				(com.watabou.noosa.Group) parent, x, y, 2, 13, 0.28f, color, 0.55f, false );
-	}
-
 	private void stopBoltTrail(){
 		if (boltTrail != null){
 			boltTrail.killAndErase();
@@ -357,7 +343,7 @@ public class MagicMissile extends Emitter {
 			if ((time -= d) <= 0) {
 				on = false;
 				stopBoltTrail();
-				spawnImpactRing();
+				//(impact ring awaits a working FxRing)
 				if (callback != null ) callback.call();
 			}
 		}

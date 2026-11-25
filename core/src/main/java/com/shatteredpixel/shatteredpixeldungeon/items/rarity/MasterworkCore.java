@@ -81,14 +81,6 @@ public class MasterworkCore extends Item {
 			((Armor)target).masterworkKills += 5;
 		}
 		detach( hero.belongings.backpack );
-		if (hero.sprite != null && hero.sprite.parent != null){
-			float cx = hero.sprite.center().x, cy = hero.sprite.center().y;
-			com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
-					hero.sprite.parent, cx, cy, 3, 22, 0.55f, 0xFFD76B, 0.8f, true );
-			com.shatteredpixel.shatteredpixeldungeon.effects.fx.kit.FxRing.ground(
-					hero.sprite.parent, cx, cy, 1, 9, 0.4f, 0xFFFFFF, 0.6f, true );
-		}
-		GLog.i( "\u6770\u4f5c\u6838\u5fc3\u5df2\u88ab\u6d88\u8017\uff0c\u88c5\u5907\u664b\u5347\u81f3\u6770\u4f5c " + Quality.masterworkLevel( target ) + "/5" );
 	}
 
 	@Override
