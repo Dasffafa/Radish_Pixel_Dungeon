@@ -2241,3 +2241,17 @@ Warped 的箭贴图是**朝右上 45°**的，所以它用 `angle = 135 - atan2(
 截图里四枚都**箭尖朝外、顺着各自弹道**。`Smoke` 9/9、`F1` 3/3。
 
 保留：按附魔取色的发光粒子拖尾（密度 0.025s/每次 2 粒）。
+
+## 搬入 Warped 的箭矢美术
+
+对比发现两仓库的 `sprites/items.png` **逐像素完全相同**，但我们的箭用的是**自建的
+`sprites/items/spirit_arrow.png`**（16×16、粗短），而 Warped 用的是图集里的箭（11×11、细长带轮廓）。
+
+**做法**：把 Warped 图集中 `SPIRIT_ARROW` 那一格（索引 `xy(3,2)+6`，裁 11×11）取出，
+居中粘到 16×16 透明底上，写成 `sprites/items/spirit_arrow.png`（原图备份在
+`E:\work-2\spirit_arrow.orig.png`）。箭矢/弩箭类共用这张图，所以一步全换。
+
+**实测**（`Z_ArrowArt`，跑完即删）：关掉夜色后截图，箭为 Warped 那种细长形状。
+`Smoke` 9/9、`F1` 3/3。
+
+**未换**：`spirit_alt_arrow.png`（替换箭，粉红色）——Warped 没有对应美术；以及飞镖、千本等其他投掷物。
