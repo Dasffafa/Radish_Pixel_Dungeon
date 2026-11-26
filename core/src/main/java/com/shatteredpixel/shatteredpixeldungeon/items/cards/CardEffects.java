@@ -679,6 +679,9 @@ public final class CardEffects {
 	}
 
 	private static void eatCard(Hero hero, Card card, float energy) {
+		if (hero.pointsInTalent(Talent.ADVANCED_FOOD) >= 2) {
+			CardDrawer.cancelCooldown(hero);
+		}
 		if (card.type == CardType.SMALL_RATION && hero.buff(RationCooldown.class) != null) {
 			GLog.w(Messages.get(CardEffects.class, "ration_cooling"));
 			return;
@@ -688,9 +691,6 @@ public final class CardEffects {
 		Buff.affect(hero, Hunger.class).satisfy(val);
 		if (card.type == CardType.SMALL_RATION) {
 			Buff.affect(hero, RationCooldown.class, 100f);
-		}
-		if (hero.pointsInTalent(Talent.ADVANCED_FOOD) >= 2) {
-			CardDrawer.cancelCooldown(hero);
 		}
 		hero.sprite.operate(hero.pos);
 		SpellSprite.show(hero, SpellSprite.FOOD);

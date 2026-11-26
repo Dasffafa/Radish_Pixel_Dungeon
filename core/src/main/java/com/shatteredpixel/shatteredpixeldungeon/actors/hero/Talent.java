@@ -1447,6 +1447,9 @@ public class Talent {
 				// lvl/3 / lvl/2 bonus dmg on next hit for other classes
 				Buff.affect( hero, PhysicalEmpower.class).set(Math.round(hero.lvl / (4f - hero.pointsInTalent(FOCUSED_MEAL))), 1);
 		}
+		if (hero.pointsInTalent(ADVANCED_FOOD) >= 2){
+			com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.cancelCooldown(hero);
+		}
 	}
 
 	public static class WarriorFoodImmunity extends FlavourBuff{
