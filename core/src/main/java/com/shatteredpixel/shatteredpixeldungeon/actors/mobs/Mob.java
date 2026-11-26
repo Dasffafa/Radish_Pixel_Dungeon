@@ -1049,7 +1049,7 @@ public abstract class Mob extends Char {
 
 				float Rbelief = Dungeon.hero.lvl <= maxLvl ? 1f+0.2f*Dungeon.depth/5f : 0f;
 				Belief belief = hero.buff(Belief.class);
-				if (belief != null && TalentRequirement.isActive(hero, Belief.class)) {
+				if (belief != null && hero.belongings.getItem(com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross.class) != null) {
 					belief.getBelief(Rbelief);
 					if (hero.hasSubClass(HeroSubClasses.REDCARDINAL) && exp >= 10) {
 						belief.getBelief(1f);
