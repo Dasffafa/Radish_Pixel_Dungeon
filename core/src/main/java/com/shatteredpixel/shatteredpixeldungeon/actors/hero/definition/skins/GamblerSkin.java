@@ -57,6 +57,7 @@ public class GamblerSkin extends SkinDefinition {
 		Dungeon.quickslot.setSlot(1, knives);
 
 		new ScrollOfMagicMapping().identify();
+
 		new PotionOfInvisibility().identify();
 	}
 }
