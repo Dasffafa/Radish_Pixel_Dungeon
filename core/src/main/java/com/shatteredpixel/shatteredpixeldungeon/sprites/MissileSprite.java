@@ -208,11 +208,18 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			updateFrame();
 		}
 
-		if (item instanceof GnollGeomancer.Boulder
-				|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.cards.CardProjectile){
+		if (item instanceof GnollGeomancer.Boulder){
 			angle = 0;
 			flipHorizontal = false;
+			scale.set(1f);
 			updateFrame();
+		} else if (item instanceof com.shatteredpixel.shatteredpixeldungeon.items.cards.CardProjectile){
+			angle = 90;
+			flipHorizontal = false;
+			scale.set(0.7f);
+			updateFrame();
+		} else {
+			scale.set(1f);
 		}
 
 		//千本贴图朝上，其他投掷物朝右上，差值 45 度；镜像贴图时方向相反

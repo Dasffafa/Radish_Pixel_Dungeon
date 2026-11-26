@@ -100,24 +100,20 @@ public class Rlyeh extends MeleeWeapon {
         Char defender = event.getDefender();
         if (attacker == null || defender == null) return;
 
-        // 只有玩家参与的攻击（玩家为攻方或守方）才可能触发反弹
-        if (attacker != player && defender != player) return;
-
-        // 玩家被攻击时用 HeroChance，玩家攻击时用 chance（保持原 behavior）
-        boolean playerAttacks = (attacker == player);
+        // 仅在敌人攻击持有者时触发反伤
+        if (defender != player || attacker == player) return;
 
         Rlyeh rlyeh = findPlayerRlyeh();
         if (rlyeh == null) return;
 
-        boolean triggered = playerAttacks ? rlyeh.chance() : rlyeh.HeroChance();
-        if (!triggered) return;
+        if (!rlyeh.HeroChance()) return;
 
-        // 反弹：攻击者显示诅咒特效 + 受到伤害
+        // 反弹：攻击者显示诅咒特效 + 受到本次攻击伤害
         if (attacker.sprite != null) {
             attacker.sprite.emitter().burst(ShadowParticle.CURSE, 10);
         }
         Sample.INSTANCE.play(Assets.Sounds.CURSED);
-        attacker.damage(DamageInfo.physical(rlyeh.damageRoll(defender), attacker, rlyeh));
+        attacker.damage(DamageInfo.physical(event.getDamage(), defender, rlyeh));
 
         // 英雄自己的攻击被弹回来、把自己打死了：这次攻击随后被取消，攻击流程不会再做死亡结算，
         // 不在这里补的话这次死亡不进排行榜，也没有任何死因提示

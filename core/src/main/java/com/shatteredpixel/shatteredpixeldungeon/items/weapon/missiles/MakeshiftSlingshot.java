@@ -166,6 +166,11 @@ public class MakeshiftSlingshot extends Item {
 	}
 
 	@Override
+	public boolean isUpgradable() {
+		return false;
+	}
+
+	@Override
 	public int value() {
 		return 25;
 	}
