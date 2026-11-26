@@ -84,6 +84,8 @@ public abstract class RemainsItem extends Item {
 			return new CloakScrap();
 		} else if (cls == HeroClasses.HUNTRESS){
 			return new BowFragment();
+		} else if (cls == HeroClasses.ENGINEER){
+			return new RemainTool();
 		} else {
 			return new SealShard();
 		}
