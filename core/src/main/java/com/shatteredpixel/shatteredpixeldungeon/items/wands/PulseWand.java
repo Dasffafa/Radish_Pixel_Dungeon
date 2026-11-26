@@ -48,11 +48,99 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
  */
 public class PulseWand extends Wand {
 
+	public static final String AC_DISARM = "disarm";
+
 	{
 		image = ItemSpriteSheet.PULSE;
 
 		unique = true;
 		bones = false;
+	}
+
+	@Override
+	public java.util.ArrayList<String> actions(Hero hero) {
+		java.util.ArrayList<String> actions = super.actions(hero);
+		actions.add(AC_DISARM);
+		return actions;
+	}
+
+	@Override
+	public void execute(Hero hero, String action) {
+		super.execute(hero, action);
+		if (action.equals(AC_DISARM)) {
+			if ((Dungeon.level.map[hero.pos] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.INACTIVE_TRAP
+					|| (Dungeon.level.map[hero.pos] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.PEDESTAL && hero.hasTalent(Talent.APART_ANYTHING)))
+					&& Dungeon.depth != 15) {
+				com.shatteredpixel.shatteredpixeldungeon.levels.Level.set(hero.pos, com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMPTY);
+				Dungeon.level.traps.remove(hero.pos);
+				int quantity = 1;
+				for (int i : com.watabou.utils.PathFinder.NEIGHBOURS4) {
+					if (Dungeon.level.map[hero.pos + i] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.INACTIVE_TRAP) {
+						com.shatteredpixel.shatteredpixeldungeon.levels.Level.set(hero.pos + i, com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMPTY);
+						Dungeon.level.traps.remove(hero.pos + i);
+						quantity++;
+					}
+				}
+				com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap(hero.pos);
+				if (hero.subClass != HeroSubClasses.CRAFTSMAN) quantity = Math.min(quantity, 2);
+				com.shatteredpixel.shatteredpixeldungeon.items.Gold gold = new com.shatteredpixel.shatteredpixeldungeon.items.Gold(quantity * 5);
+				if (!gold.collect()) Dungeon.level.drop(gold, hero.pos).sprite.drop();
+				hero.sprite.operate(hero.pos);
+				com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.UNLOCK);
+				hero.spendAndNext(2f);
+				if (hero.hasTalent(Talent.GENERAL_DISARM)) {
+					Buff.affect(hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.PhysicalEmpower.class)
+							.set(1 + hero.pointsInTalent(Talent.GENERAL_DISARM), 3);
+				}
+			} else if (hero.hasTalent(Talent.DISMANTLE_URGE)) {
+				int doorCell = findAdjacentDoor(hero.pos);
+				Char mech = hero.pointsInTalent(Talent.DISMANTLE_URGE) >= 2 ? findAdjacentMech(hero.pos) : null;
+				if (mech != null) {
+					Buff.affect(mech, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple.class, 999999f);
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerLoot.give(hero, 1, 0, mech.pos);
+					hero.sprite.operate(mech.pos);
+					com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.UNLOCK);
+					hero.spendAndNext(2f);
+				} else if (doorCell != -1) {
+					com.shatteredpixel.shatteredpixeldungeon.levels.Level.set(doorCell, com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.EMPTY);
+					com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.updateMap(doorCell);
+					Dungeon.observe();
+					com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerLoot.give(hero, 1, 0, doorCell);
+					hero.sprite.operate(doorCell);
+					com.watabou.noosa.audio.Sample.INSTANCE.play(com.shatteredpixel.shatteredpixeldungeon.Assets.Sounds.UNLOCK);
+					hero.spendAndNext(3f);
+				} else {
+					com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(this, "no_trap"));
+				}
+			} else {
+				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w(com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(this, "no_trap"));
+			}
+		}
+	}
+
+	private int findAdjacentDoor(int pos) {
+		if (Dungeon.level.map[pos] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.DOOR
+				|| Dungeon.level.map[pos] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.OPEN_DOOR) {
+			return pos;
+		}
+		for (int i : com.watabou.utils.PathFinder.NEIGHBOURS4) {
+			int c = pos + i;
+			if (Dungeon.level.map[c] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.DOOR
+					|| Dungeon.level.map[c] == com.shatteredpixel.shatteredpixeldungeon.levels.Terrain.OPEN_DOOR) {
+				return c;
+			}
+		}
+		return -1;
+	}
+
+	private Char findAdjacentMech(int pos) {
+		for (int i : com.watabou.utils.PathFinder.NEIGHBOURS8) {
+			Char ch = Actor.findChar(pos + i);
+			if (ch != null && ch.alignment == Char.Alignment.ENEMY && Char.hasProp(ch, Char.Property.INORGANIC)) {
+				return ch;
+			}
+		}
+		return null;
 	}
 
 	@Override

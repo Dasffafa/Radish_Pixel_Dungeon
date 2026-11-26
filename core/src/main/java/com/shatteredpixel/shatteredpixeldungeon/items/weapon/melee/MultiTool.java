@@ -21,6 +21,11 @@
 
 package com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee;
 
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Cripple;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerLoot;
+
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
@@ -87,51 +92,12 @@ public class MultiTool extends MeleeWeapon {
 
     @Override
     public ArrayList<String> actions(Hero hero) {
-        ArrayList<String> actions = super.actions( hero );
-        actions.add(AC_DISARM);
-        return actions;
-    }
-
-    @Override
-    public String defaultAction() {
-        return AC_DISARM;
+        return super.actions( hero );
     }
 
     @Override
     public void execute(Hero hero, String action) {
         super.execute(hero, action);
-        if (action.equals(AC_DISARM)){
-            if ((Dungeon.level.map[hero.pos] == Terrain.INACTIVE_TRAP ||
-                    (Dungeon.level.map[hero.pos] == Terrain.PEDESTAL && hero.hasTalent(Talent.APART_ANYTHING))
-                    && Dungeon.depth != 15)){
-
-                Level.set(hero.pos, Terrain.EMPTY);
-                Dungeon.level.traps.remove( hero.pos );
-                int quantity = 1;
-
-                for (int i : PathFinder.NEIGHBOURS4) {
-                    if (Dungeon.level.map[hero.pos + i] == Terrain.INACTIVE_TRAP){
-                        Level.set(hero.pos + i, Terrain.EMPTY);
-                        Dungeon.level.traps.remove( hero.pos + i );
-                        quantity ++;
-                    }
-                }
-                GameScene.updateMap( hero.pos );
-
-                if (hero.subClass != HeroSubClasses.CRAFTSMAN) quantity = Math.min(quantity, 2);
-                Gold gold = new Gold(quantity * 5);
-
-                if (!gold.collect()) Dungeon.level.drop(gold, hero.pos).sprite.drop();
-
-                hero.sprite.operate( hero.pos );
-                Sample.INSTANCE.play(Assets.Sounds.UNLOCK);
-                hero.spendAndNext(2f);
-
-                if (hero.hasTalent(Talent.GENERAL_DISARM))
-                    Buff.affect(hero, PhysicalEmpower.class).set(1 + hero.pointsInTalent(Talent.GENERAL_DISARM), 3);
-
-            } else GLog.w(Messages.get(this, "no_trap"));
-        }
     }
 
     @Override
