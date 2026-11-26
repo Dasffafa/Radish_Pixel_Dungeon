@@ -634,6 +634,19 @@ public class Toolbar extends Component {
 
 		}
 
+		if (SPDSettings.moreQuickslots()) {
+			for (int i = 6; i < btnQuick.length; i++) {
+				QuickslotTool base = btnQuick[i - 6];
+				btnQuick[i].visible = base.visible;
+				btnQuick[i].enable(base.visible && lastEnabled);
+				if (base.visible) {
+					btnQuick[i].border(0, 1);
+					btnQuick[i].frame(88, 0, 18, 24);
+					btnQuick[i].setPos(base.left(), base.top() - btnQuick[i].height());
+				}
+			}
+		}
+
 	}
 
 	public static void updateLayout(){

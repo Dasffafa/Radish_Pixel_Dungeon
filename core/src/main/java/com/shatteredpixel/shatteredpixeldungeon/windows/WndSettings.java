@@ -480,6 +480,7 @@ public class WndSettings extends WndTabbed {
 							RenderedTextBlock barDesc;
 							RedButton btnSplit; RedButton btnGrouped; RedButton btnCentered;
 							CheckBox chkQuickSwapper;
+							CheckBox chkMoreQuickslots;
 							RenderedTextBlock swapperDesc;
 							CheckBox chkFlipToolbar;
 							CheckBox chkFlipTags;
@@ -543,6 +544,17 @@ public class WndSettings extends WndTabbed {
 								};
 								chkQuickSwapper.checked(SPDSettings.quickSwapper());
 								add(chkQuickSwapper);
+
+								chkMoreQuickslots = new CheckBox("更多快捷栏") {
+									@Override
+									protected void onClick() {
+										super.onClick();
+										SPDSettings.moreQuickslots(checked());
+										Toolbar.updateLayout();
+									}
+								};
+								chkMoreQuickslots.checked(SPDSettings.moreQuickslots());
+								add(chkMoreQuickslots);
 
 								swapperDesc = PixelScene.renderTextBlock(Messages.get(WndSettings.UITab.this, "swapper_desc"), 5);
 								swapperDesc.hardlight(0x888888);

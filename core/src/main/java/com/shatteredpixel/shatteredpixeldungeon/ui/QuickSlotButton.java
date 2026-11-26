@@ -103,7 +103,12 @@ public class QuickSlotButton extends Button {
 					Item item = select(slotNum);
 					if (Dungeon.hero.belongings.contains(item) && !GameScene.cancel()) {
 						GameScene.centerNextWndOnInvPane();
+						String action = Dungeon.quickslot.getAction(slotNum);
+					if (action != null) {
+						item.execute(Dungeon.hero, action);
+					} else {
 						item.execute(Dungeon.hero);
+					}
 						if (item.usesTargeting) {
 							useTargeting();
 						}
@@ -278,8 +283,32 @@ public class QuickSlotButton extends Button {
 	}
 
 	public static void set(int slotNum, Item item){
-		Dungeon.quickslot.setSlot( slotNum , item );
-		refresh();
+		java.util.ArrayList<String> usableActions = new java.util.ArrayList<>();
+		for (String act : item.actions(Dungeon.hero)) {
+			if (!Item.AC_DROP.equals(act) && !Item.AC_THROW.equals(act)) {
+				usableActions.add(act);
+			}
+		}
+		if (usableActions.size() > 1) {
+			String[] labels = new String[usableActions.size()];
+			for (int i = 0; i < usableActions.size(); i++) {
+				labels[i] = item.actionName(usableActions.get(i), Dungeon.hero);
+			}
+			GameScene.show(new com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions(
+					new com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite(item),
+					com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase(item.name()),
+					com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get(QuickSlotButton.class, "select_action"),
+					labels) {
+				@Override
+				protected void onSelect(int index) {
+					Dungeon.quickslot.setSlot(slotNum, item, usableActions.get(index));
+					refresh();
+				}
+			});
+		} else {
+			Dungeon.quickslot.setSlot(slotNum, item);
+			refresh();
+		}
 
 		//Remember if the player adds the waterskin as one of their first actions.
 		if (Statistics.duration + Actor.now() <= 10){

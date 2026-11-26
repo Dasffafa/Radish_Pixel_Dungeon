@@ -37,22 +37,35 @@ public class QuickSlot {
 	 */
 
 	//note that the current max size is coded at 6, due to UI constraints, but it could be much much bigger with no issue.
-	public static int SIZE = 6;
+	public static int SIZE = 12;
 	private Item[] slots = new Item[SIZE];
+	private String[] actions = new String[SIZE];
 
 
 	//direct array interaction methods, everything should build from these methods.
 	public void setSlot(int slot, Item item){
-		clearItem(item); //we don't want to allow the same item in multiple slots.
+		setSlot(slot, item, null);
+	}
+
+	public void setSlot(int slot, Item item, String action){
+		if (slot < 0 || slot >= SIZE) return;
 		slots[slot] = item;
+		actions[slot] = action;
+	}
+
+	public String getAction(int slot){
+		if (slot < 0 || slot >= SIZE) return null;
+		return actions[slot];
 	}
 
 	public void clearSlot(int slot){
 		slots[slot] = null;
+		actions[slot] = null;
 	}
 
 	public void reset(){
 		slots = new Item[SIZE];
+		actions = new String[SIZE];
 	}
 
 	public Item getItem(int slot){
