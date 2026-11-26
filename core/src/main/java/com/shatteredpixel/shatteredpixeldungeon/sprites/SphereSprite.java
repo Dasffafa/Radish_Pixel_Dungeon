@@ -46,19 +46,23 @@ public class SphereSprite extends HeroSprite {
 		run = new Animation( 30, true );
 		run.frames( film, 0, 5, 6, 7, 8, 9, 10, 11, 12, 13 );
 
-		operate = new Animation( 30, false );
-		operate.frames( film, 14, 15, 16, 17, 17, 18, 18, 19, 20, 21, 22, 23 );
+		attack = new Animation( 30, false );
+		attack.frames( film, 14, 15, 16, 17, 17, 18, 18, 19, 20, 21, 22 );
 
-		attack = operate.clone();
+		operate = new Animation( 8, false );;
+
+		operate.frames(film, 23,24,23,24);
+
 		zap = operate.clone();
 
-		read = new Animation( 10, false );
-		read.frames( film, 23, 24, 25, 26, 27, 27, 27, 27);
+		read = new Animation( 20, false );
+		read.frames( film, 26, 27, 27, 27, 27, 27, 27, 27, 27, 26);
 
 		die = new Animation( 5, false );
 		die.frames( film, 28, 29, 30, 31 );
 
-		fly = idle.clone();
+		fly = new Animation( 1, true );
+		fly.frames( film, 25);
 
 		if (ch != null && ch.isAlive())
 			idle();
@@ -157,8 +161,16 @@ public class SphereSprite extends HeroSprite {
 	}
 
 	@Override
+	public void turnTo( int from, int to ) {
+		flipHorizontal = false;
+		flipVertical = false;
+	}
+
+	@Override
 	public void update() {
 		if (rolling) paused = false;
+		flipHorizontal = false;
+		flipVertical = false;
 		super.update();
 	}
 
