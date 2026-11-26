@@ -624,7 +624,17 @@ abstract public class Weapon extends KindOfWeapon {
 		return super.identify(byHero);
 	}
 
+	@Override
+	public void onLoss(Char owner) {
+		super.onLoss(owner);
+		if (enchantment != null) enchantment.onLoss(owner);
+	}
+
 	public static abstract class Enchantment implements Bundlable {
+
+		public void onGain(Char owner) { }
+
+		public void onLoss(Char owner) { }
 
 		public static final Class<?>[] common = new Class<?>[]{
 				Blazing.class, Chilling.class, Shocking.class, Lamprey.class,

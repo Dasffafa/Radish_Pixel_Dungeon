@@ -141,6 +141,9 @@ public class Item implements Bundlable {
 	}
 
 	public boolean doPickUp(Hero hero, int pos) {
+		if (!com.shatteredpixel.shatteredpixeldungeon.actors.hero.TalentRequirement.isValidTalentItem(hero, this)) {
+			return true;
+		}
 
 		// func 4 Muramasa mania
 		// DoggingDog on 20250419

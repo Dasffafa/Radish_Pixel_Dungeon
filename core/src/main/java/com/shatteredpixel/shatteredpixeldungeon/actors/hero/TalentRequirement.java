@@ -126,6 +126,17 @@ public final class TalentRequirement {
 		return false;
 	}
 
+	public static boolean isValidTalentItem(Hero hero, Item item) {
+		if (hero == null || item == null) return true;
+		for (Talent talent : Talent.removableRequirements) {
+			Class<? extends Bundlable> req = talent.requirement();
+			if (req != null && req.isInstance(item) && !hero.hasTalent(talent)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public static void store(Bundle bundle, Hero hero) {
 		bundle.put("talent_requirement_items", hero.talentRequirementItems.toArray(new String[0]));
 		bundle.put("talent_requirement_buffs", hero.talentRequirementBuffs.toArray(new String[0]));

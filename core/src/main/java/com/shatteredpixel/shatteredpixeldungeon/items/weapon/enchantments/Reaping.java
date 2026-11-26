@@ -13,6 +13,11 @@ import com.watabou.utils.Bundle;
  */
 public class Reaping extends Weapon.Enchantment {
 
+	@Override
+	public void onLoss(Char owner) {
+		Buff.detach(owner, ReapingTracker.class);
+	}
+
     private static final ItemSprite.Glowing DARK_RED = new ItemSprite.Glowing( 0x8B0000 );
 
     @Override

@@ -704,6 +704,7 @@ public class Armor extends EquipableItem {
 	@Override
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 		if (super.doUnequip( hero, collect, single )) {
+			if (glyph != null) glyph.onLoss(hero);
 			removeFromWearer( hero );
 			return true;
 
@@ -1200,6 +1201,9 @@ public class Armor extends EquipableItem {
 	}
 
 	public Armor inscribe( Glyph glyph ) {
+		if (this.glyph != null && this.glyph != glyph && Dungeon.hero != null && isEquipped(Dungeon.hero)) {
+			this.glyph.onLoss(Dungeon.hero);
+		}
 		if (glyph == null || !glyph.curse()) curseInfusionBonus = false;
 		this.glyph = glyph;
 		updateQuickslot();
@@ -1246,6 +1250,10 @@ public class Armor extends EquipableItem {
 	}
 
 	public static abstract class Glyph implements Bundlable {
+
+		public void onGain(Char owner) { }
+
+		public void onLoss(Char owner) { }
 
 		public static float genericProcChanceMultiplier( Char defender ){
 			float multi = RingOfArcana.enchantPowerMultiplier(defender);

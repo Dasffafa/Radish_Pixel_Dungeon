@@ -210,6 +210,8 @@ public final class JumbleTalents {
 				Talent replacement = eligible.get(Random.Int(eligible.size()));
 				if (missingClassItem(hero, replacement, null, null)) missingBudget--;
 				next.put(replacement, Math.min(previous.get(old), replacement.maxPoints()));
+				old.onLoss(hero);
+				replacement.onGain(hero);
 				index++;
 			}
 			hero.talents.set(tier, next);

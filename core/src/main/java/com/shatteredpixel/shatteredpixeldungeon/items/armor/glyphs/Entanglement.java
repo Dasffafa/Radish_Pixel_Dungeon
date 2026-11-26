@@ -34,6 +34,11 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite.Glowing;
 import com.watabou.utils.Random;
 
 public class Entanglement extends Glyph {
+
+	@Override
+	public void onLoss(Char owner) {
+		Buff.detach(owner, Earthroot.Armor.class);
+	}
 	
 	private static ItemSprite.Glowing BROWN = new ItemSprite.Glowing( 0x663300 );
 	

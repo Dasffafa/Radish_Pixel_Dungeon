@@ -39,7 +39,10 @@ public class ActionIndicator extends Tag {
 	Visual secondVis;
 
 	public static Action action;
+	public static final java.util.ArrayList<Action> actions = new java.util.ArrayList<>();
 	public static ActionIndicator instance;
+
+	public Action boundAction;
 
 	public ActionIndicator() {
 		super( 0 );
@@ -162,6 +165,9 @@ public class ActionIndicator extends Tag {
 
 	public static void setAction(Action action){
 		synchronized (ActionIndicator.class) {
+			if (action != null && !actions.contains(action)) {
+				actions.add(action);
+			}
 			ActionIndicator.action = action;
 			refresh();
 		}
@@ -188,8 +194,14 @@ public class ActionIndicator extends Tag {
 
 	public static void clearAction(Action action){
 		synchronized (ActionIndicator.class) {
-			if (action == null || ActionIndicator.action == action) {
+			if (action == null) {
+				actions.clear();
 				ActionIndicator.action = null;
+			} else {
+				actions.remove(action);
+				if (ActionIndicator.action == action) {
+					ActionIndicator.action = actions.isEmpty() ? null : actions.get(actions.size() - 1);
+				}
 			}
 		}
 	}

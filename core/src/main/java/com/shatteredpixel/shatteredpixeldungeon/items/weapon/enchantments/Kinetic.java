@@ -38,6 +38,11 @@ import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
 
 public class Kinetic extends Weapon.Enchantment {
+
+	@Override
+	public void onLoss(Char owner) {
+		Buff.detach(owner, ConservedDamage.class);
+	}
 	
 	private static ItemSprite.Glowing YELLOW = new ItemSprite.Glowing( 0xFFFF00 );
 	

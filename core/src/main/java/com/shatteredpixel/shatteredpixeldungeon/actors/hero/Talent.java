@@ -113,6 +113,10 @@ public class Talent {
 	public String name(){ return name; }
 	public int maxPoints(){ return maxPoints; }
 	public Class<? extends com.watabou.utils.Bundlable> requirement(){ return null; }
+
+	public void onGain(Hero hero) { }
+
+	public void onLoss(Hero hero) { }
 	public boolean removeRequirementOnLoss(){ return false; }
 
 	private static final Class<? extends com.watabou.utils.Bundlable> BELIEF = Belief.class;
@@ -1195,7 +1199,7 @@ public class Talent {
 		if (metamorphed){
 			String metaDesc = Messages.get(this, name() + ".meta_desc");
 			if (!metaDesc.equals(Messages.NO_TEXT_FOUND)){
-				return Messages.get(this, name() + ".desc") + "\n\n" + metaDesc;
+				return metaDesc;
 			}
 		}
 		return Messages.get(this, name() + ".desc");

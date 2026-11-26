@@ -36,6 +36,11 @@ import com.watabou.noosa.Image;
 import com.watabou.utils.Random;
 
 public class Blocking extends Weapon.Enchantment {
+
+	@Override
+	public void onLoss(Char owner) {
+		Buff.detach(owner, BlockBuff.class);
+	}
 	
 	private static ItemSprite.Glowing BLUE = new ItemSprite.Glowing( 0x0000FF );
 	

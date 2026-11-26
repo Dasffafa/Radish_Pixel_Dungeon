@@ -203,6 +203,7 @@ public class GameScene extends PixelScene {
 	private AttackIndicator attack;
 	private LootIndicator loot;
 	private ActionIndicator action;
+	private final ArrayList<ActionIndicator> extraActions = new ArrayList<>();
 	private ResumeIndicator resume;
 
 	{
@@ -972,7 +973,7 @@ public class GameScene extends PixelScene {
 			}
 		}
 
-		float pos = scene.toolbar.top();
+		float pos = scene.toolbar.top() - (SPDSettings.moreQuickslots() ? 24 : 0);
 		if (tagsOnLeft && SPDSettings.interfaceSize() > 0){
 			pos = scene.status.top();
 		}
@@ -993,6 +994,31 @@ public class GameScene extends PixelScene {
 			scene.action.setRect( tagLeft, pos - Tag.SIZE, tagWidth, Tag.SIZE );
 			scene.action.flip(tagsOnLeft);
 			pos = scene.action.top();
+
+			int extraCount = Math.max(0, ActionIndicator.actions.size() - 1);
+			while (scene.extraActions.size() < extraCount) {
+				ActionIndicator extra = new ActionIndicator();
+				scene.add(extra);
+				scene.extraActions.add(extra);
+			}
+			for (int i = 0; i < scene.extraActions.size(); i++) {
+				ActionIndicator extra = scene.extraActions.get(i);
+				if (i < extraCount) {
+					extra.boundAction = ActionIndicator.actions.get(i + 1);
+					extra.visible = extra.active = true;
+					extra.setRect(tagLeft, pos - Tag.SIZE, tagWidth, Tag.SIZE);
+					extra.flip(tagsOnLeft);
+					pos = extra.top();
+				} else {
+					extra.boundAction = null;
+					extra.visible = extra.active = false;
+				}
+			}
+		} else {
+			for (ActionIndicator extra : scene.extraActions) {
+				extra.boundAction = null;
+				extra.visible = extra.active = false;
+			}
 		}
 
 		if (scene.tagResume) {

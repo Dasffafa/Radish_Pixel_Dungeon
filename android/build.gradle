@@ -104,7 +104,7 @@ android {
         beta {
             initWith buildTypes.release
             applicationIdSuffix ".beta"
-            versionNameSuffix "-BETA"
+            versionNameSuffix " Build ${new Date().format('yyyy-MM-dd_HH-mm-ss')}"
             buildConfigField "boolean", "ENABLE_FIREBASE", "false"
             manifestPlaceholders = [appName: "Radish Pixel Dungeon Test Version"]
             signingConfig signingConfigs.beta
@@ -119,6 +119,17 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            if (variant.buildType.name == 'beta') {
+                def timestamp = new Date().format('yyyy-MM-dd_HH-mm-ss')
+                outputFileName = "Radish Pixel Dungeon Test Version Build ${timestamp}.apk.rename"
+            } else if (variant.buildType.name == 'release') {
+                outputFileName = "${appName} ${appVersionName}.apk.rename"
+            }
         }
     }
 }

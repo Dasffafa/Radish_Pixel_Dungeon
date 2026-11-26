@@ -14,6 +14,11 @@ import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
  */
 public class Pulse extends Weapon.Enchantment {
 
+	@Override
+	public void onLoss(Char owner) {
+		Buff.detach(owner, PulseTracker.class);
+	}
+
     private static final ItemSprite.Glowing YELLOW = new ItemSprite.Glowing( 0xFFFF66 );
 
     public static final float DAMAGE_BONUS = 0.25f;

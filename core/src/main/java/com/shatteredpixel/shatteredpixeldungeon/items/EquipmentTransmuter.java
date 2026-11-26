@@ -39,6 +39,22 @@ public final class EquipmentTransmuter {
 			replaceEquipped(hero, ring, result);
 		}
 
+		KindofMisc misc = hero.belongings.misc;
+		if (misc instanceof Artifact && !misc.isClassSpecific()) {
+			transmuteArtifact(hero, (Artifact) misc);
+		} else if (misc instanceof Ring) {
+			Ring miscRing = (Ring) misc;
+			boolean ringTypeKnown = miscRing.isKnown();
+			Item result = ScrollOfTransmutation.changeItem(miscRing);
+			if (result instanceof Ring) {
+				if (ringTypeKnown) ((Ring) result).setKnown();
+				result.cursed = miscRing.cursed;
+				result.cursedKnown = miscRing.cursedKnown;
+				result.levelKnown = miscRing.levelKnown;
+			}
+			replaceEquipped(hero, miscRing, result);
+		}
+
 		KindOfWeapon weapon = hero.belongings.weapon();
 		if (weapon != null && !weapon.isClassSpecific()) {
 			Item result = ScrollOfTransmutation.changeItem(weapon);
@@ -133,11 +149,15 @@ public final class EquipmentTransmuter {
 
 		int slot = Dungeon.quickslot.getSlot(oldItem);
 		if (oldItem instanceof EquipableItem && ((EquipableItem) oldItem).isEquipped(hero)) {
+			float cooldownBefore = hero.cooldown();
 			((EquipableItem) oldItem).doUnequip(hero, false);
 			if (newItem instanceof EquipableItem) {
 				((EquipableItem) newItem).doEquip(hero);
 			} else if (!newItem.collect(hero.belongings.backpack)) {
 				Dungeon.level.drop(newItem, hero.pos);
+			}
+			if (hero.cooldown() > cooldownBefore) {
+				hero.spend(cooldownBefore - hero.cooldown());
 			}
 		} else {
 			oldItem.detachAll(hero.belongings.backpack);

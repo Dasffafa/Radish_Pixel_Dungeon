@@ -193,6 +193,10 @@ public abstract class EquipableItem extends Item {
 
 	public abstract boolean doEquip( Hero hero );
 
+	public void onGain(com.shatteredpixel.shatteredpixeldungeon.actors.Char owner) { }
+
+	public void onLoss(com.shatteredpixel.shatteredpixeldungeon.actors.Char owner) { }
+
 	public boolean doUnequip( Hero hero, boolean collect, boolean single ) {
 
 		// func 4 Muramasa mania
