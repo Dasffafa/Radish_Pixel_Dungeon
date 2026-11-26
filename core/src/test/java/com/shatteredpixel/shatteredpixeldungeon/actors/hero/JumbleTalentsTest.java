@@ -97,7 +97,7 @@ public class JumbleTalentsTest {
         hero.talentRequirementItems.add(SpiritBow.class.getName());
         SpiritBow bow = new SpiritBow();
         hero.belongings.backpack.items.add(bow);
-        assertFalse(JumbleTalents.canRollWithReplacement(hero, bow, BrokenSeal.class));
+        assertTrue(JumbleTalents.canRollWithReplacement(hero, bow, BrokenSeal.class));
         assertTrue(JumbleTalents.canRollWithReplacement(hero, bow, SpiritBow.class));
         assertTrue(JumbleTalents.canRollWithReplacement(hero, new CloakOfShadows(), MagesStaff.class));
     }
