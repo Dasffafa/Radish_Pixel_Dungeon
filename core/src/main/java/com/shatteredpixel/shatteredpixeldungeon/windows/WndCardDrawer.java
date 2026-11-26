@@ -6,6 +6,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.cards.Card;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDeck;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardTargeter;
+import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardType;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
@@ -13,13 +14,14 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.IconButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Icons;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ScrollPane;
 import com.shatteredpixel.shatteredpixeldungeon.ui.Window;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.HeldCardTracker;
+import com.watabou.noosa.BitmapText;
+import com.watabou.noosa.ui.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 public class WndCardDrawer extends Window {
 
@@ -268,20 +270,119 @@ public class WndCardDrawer extends Window {
 	private void openPile(ArrayList<Card> pile, String title) {
 		ArrayList<Card> shown = new ArrayList<>();
 		if (pile != null) {
-			for (Card c : pile) {
+			// 抽牌堆顶在 drawPile 末尾，按抽牌顺序从上到下展示
+			for (int i = pile.size() - 1; i >= 0; i--) {
+				Card c = pile.get(i);
 				if (c != null && c.type != null) shown.add(c);
 			}
 		}
-		Collections.sort(shown, Comparator.comparingInt(c -> c.type.ordinal()));
 		if (shown.isEmpty()) {
 			hide();
 			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.i(
 					Messages.get(WndCardDrawer.class, "pile_empty"));
 			return;
 		}
-		GameScene.show(new WndCardSelect(title,
-				Messages.get(this, "pile_desc", shown.size()),
-				shown, 1, false, selected -> {
-				}));
+		GameScene.show(new WndCardPile(title, shown));
+	}
+
+	/** 按抽牌顺序以图标网格展示抽牌堆，点击图标查看卡牌名称与详情。 */
+	private static class WndCardPile extends Window {
+
+		private static final int CELL = 22;
+		private static final int MAX_LIST_HEIGHT = 120;
+
+		private ScrollPane pane;
+		private boolean paneSized;
+		private int paneX, paneY, paneW, paneH;
+
+		WndCardPile(String title, ArrayList<Card> cards) {
+			super();
+			int width = Math.min(160, PixelScene.uiCamera.width - chrome.marginHor());
+			int inner = width - MARGIN * 2;
+
+			RenderedTextBlock heading = PixelScene.renderTextBlock(title, 9);
+			heading.hardlight(TITLE_COLOR);
+			heading.maxWidth(inner);
+			heading.setPos(MARGIN, MARGIN);
+			add(heading);
+
+			float pos = heading.bottom() + MARGIN;
+			RenderedTextBlock info = PixelScene.renderTextBlock(
+					Messages.get(WndCardDrawer.class, "pile_desc", cards.size()), 6);
+			info.maxWidth(inner);
+			info.setPos(MARGIN, pos);
+			add(info);
+			pos = info.bottom() + MARGIN;
+
+			int cols = Math.max(1, inner / CELL);
+			float xOffset = (inner - cols * CELL) / 2f;
+
+			Component content = new Component();
+			for (int i = 0; i < cards.size(); i++) {
+				Card card = cards.get(i);
+				int col = i % cols;
+				int row = i / cols;
+				float cx = xOffset + col * CELL;
+				float cy = row * CELL;
+
+				IconButton btn = new IconButton(new ItemSprite(card.type.image)) {
+					@Override
+					protected void onClick() {
+						String name = card.name() + (card.power > 1 ? " +" + (card.power - 1) : "");
+						String desc = card.desc();
+						if (card.type == CardType.TRAP && card.trapClass != null) {
+							desc += "\n\n" + Messages.get(WndCardDrawer.class, "trap_content",
+									Messages.get(card.trapClass, "name"));
+						}
+						GameScene.show(new WndTitledMessage(
+								new ItemSprite(card.type.image), name, desc));
+					}
+				};
+				btn.setRect(cx, cy, CELL, CELL);
+				content.add(btn);
+
+				if (card.power > 1) {
+					BitmapText lvl = new BitmapText("+" + (card.power - 1), PixelScene.pixelFont);
+					lvl.hardlight(TITLE_COLOR);
+					lvl.measure();
+					lvl.x = cx + CELL - lvl.width() - 1;
+					lvl.y = cy + CELL - lvl.height() - 1;
+					content.add(lvl);
+				}
+			}
+
+			int rows = (cards.size() + cols - 1) / cols;
+			float totalH = Math.max(CELL, rows * CELL);
+			content.setSize(inner, totalH);
+
+			int listHeight = (int) Math.min(MAX_LIST_HEIGHT, totalH);
+			pane = new ScrollPane(content);
+			paneX = MARGIN;
+			paneY = (int) pos;
+			paneW = inner;
+			paneH = listHeight;
+			add(pane);
+			pos += listHeight + MARGIN;
+
+			RedButton close = new RedButton(Messages.get(WndCardDrawer.class, "close")) {
+				@Override
+				protected void onClick() {
+					hide();
+				}
+			};
+			close.setRect(MARGIN, pos, inner, BUTTON_HEIGHT);
+			add(close);
+
+			resize(width, (int) (close.bottom() + MARGIN));
+		}
+
+		@Override
+		public void update() {
+			super.update();
+			if (!paneSized && pane != null && camera() != null) {
+				pane.setRect(paneX, paneY, paneW, paneH);
+				paneSized = true;
+			}
+		}
 	}
 }
