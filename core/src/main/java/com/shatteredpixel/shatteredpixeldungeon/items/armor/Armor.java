@@ -1028,7 +1028,9 @@ public class Armor extends EquipableItem {
 
 	@Override
 	public String name() {
-		return glyph != null && (cursedKnown || !glyph.curse()) ? glyph.name( super.name() ) : super.name();
+		//同理：铭文的名字也要等鉴定（或诅咒已确认）
+		boolean known = glyph != null && (isIdentified() || (cursedKnown && glyph.curse()));
+		return known ? glyph.name( super.name() ) : super.name();
 	}
 
 	@Override
@@ -1066,10 +1068,7 @@ public class Armor extends EquipableItem {
 			case NONE:
 		}
 
-		if (glyph != null  && (cursedKnown || !glyph.curse())) {
-			info += "\n\n" +  Messages.capitalize(Messages.get(Armor.class, "inscribed", glyph.name()));
-			info += " " + glyph.desc();
-		}
+
 
 		if (cursed && isEquipped( Dungeon.hero )) {
 			info += "\n\n" + Messages.get(Armor.class, "cursed_worn");
