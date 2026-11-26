@@ -26,6 +26,7 @@ import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.InvisibilityState;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.LockedFloor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicImmune;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MoveCount;
@@ -39,7 +40,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
-import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
@@ -325,13 +325,7 @@ public class CloakOfShadows extends Artifact {
 		@Override
 		public boolean attachTo( Char target ) {
 			if (super.attachTo( target )) {
-				target.invisible++;
-				if (target instanceof Hero && ((Hero) target).subClass == HeroSubClasses.ASSASSIN){
-					Buff.affect(target, Preparation.class);
-				}
-				if (target instanceof Hero && ((Hero) target).hasTalent(Talent.PROTECTIVE_SHADOWS)){
-					Buff.affect(target, Talent.ProtectiveShadowsTracker.class);
-				}
+				InvisibilityState.attach( target );
 				return true;
 			} else {
 				return false;
@@ -388,15 +382,14 @@ public class CloakOfShadows extends Artifact {
 
 		@Override
 		public void fx(boolean on) {
-			if (on) target.sprite.add( CharSprite.State.INVISIBLE );
-			else if (target.invisible == 0) target.sprite.remove( CharSprite.State.INVISIBLE );
+			InvisibilityState.fx( target, on );
 		}
 
 		@Override
 		public void detach() {
 			activeBuff = null;
 
-			if (target.invisible > 0)   target.invisible--;
+			InvisibilityState.detach( target );
 
 			updateQuickslot();
 			super.detach();
