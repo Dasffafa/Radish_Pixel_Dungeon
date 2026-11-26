@@ -58,6 +58,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRetributio
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTeleportation;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.exotic.ScrollOfPsionicBlast;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.FerretTuft;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Midas;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.LightKing;
 import com.shatteredpixel.shatteredpixeldungeon.items.trinkets.ThirteenLeafClover;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfLivingEarth;
@@ -473,8 +474,7 @@ public abstract class Char extends Actor {
 
             int hpBefore = enemy.HP;
             enemy.damage(attackDamage);
-            com.shatteredpixel.shatteredpixeldungeon.items.weapon.enchantments.Midas.flushPending(
-                    this, enemy, Math.max(0, hpBefore - enemy.HP));
+            Midas.flushPending(this, enemy, Math.max(0, hpBefore - enemy.HP));
 
             // 命中后事件：附带 debuff（火/冰赋能）、控制（圆球皮肤）、斩杀（箭矢）、暗杀（潜行）等
             EventManager.emit(new AttackHitEvent(this, enemy, effectiveDamage, attackDamage,
