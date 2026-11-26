@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.GamesInProgress;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.ArtifactRecharge;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
@@ -128,10 +129,14 @@ public class Talent {
 	public static final Talent FINE_INTUITION = new Talent("FINE_INTUITION");
 	public static final Talent TESTED_MAINTENANCE = new Talent("TESTED_MAINTENANCE");
 	public static final Talent GENERAL_DISARM = new Talent("GENERAL_DISARM");
-	public static final Talent PULSE_ENERGY = new Talent("PULSE_ENERGY");
+	public static final Talent PULSE_ENERGY = new Talent("PULSE_ENERGY") {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return PulseWand.class; }
+	};
 	public static final Talent TOILSOME_MEAL = new Talent("TOILSOME_MEAL");
 	public static final Talent IONIC_LIQUID = new Talent("IONIC_LIQUID");
-	public static final Talent STRONG_PULSE = new Talent("STRONG_PULSE");
+	public static final Talent STRONG_PULSE = new Talent("STRONG_PULSE") {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return PulseWand.class; }
+	};
 	public static final Talent RESONANT_SENSING = new Talent("RESONANT_SENSING");
 	public static final Talent APART_ANYTHING = new Talent("APART_ANYTHING");
 	public static final Talent REMOTE_DESTRUCTION = new Talent("REMOTE_DESTRUCTION");
@@ -171,7 +176,9 @@ public class Talent {
 	public static final Talent DISMANTLE_URGE = new Talent("DISMANTLE_URGE");
 	public static final Talent COORDINATED_ACTION = new Talent("COORDINATED_ACTION", 3);
 	public static final Talent WAND_ENGINEERING = new Talent("WAND_ENGINEERING", 3);
-	public static final Talent ATTACHED_PULSE = new Talent("ATTACHED_PULSE", 4);
+	public static final Talent ATTACHED_PULSE = new Talent("ATTACHED_PULSE", 4) {
+		@Override public Class<? extends com.watabou.utils.Bundlable> requirement() { return PulseWand.class; }
+	};
 	public static final Talent INSTANT_REPAIR = new Talent("INSTANT_REPAIR", 4);
 	public static final Talent ULTIMATE_DESIGN = new Talent("ULTIMATE_DESIGN", 4);
 	public static final Talent LOYAL_SERVANTS = new Talent("LOYAL_SERVANTS", 4);
