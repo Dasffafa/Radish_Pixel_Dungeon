@@ -2,10 +2,7 @@ package com.shatteredpixel.shatteredpixeldungeon.items;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
-import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Artifact;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfConcealment;
-import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.Armor;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.Ring;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfTransmutation;
@@ -13,8 +10,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MeleeWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon;
-import com.watabou.utils.Random;
-import com.watabou.utils.Reflection;
 
 import java.util.ArrayList;
 
@@ -81,9 +76,6 @@ public final class EquipmentTransmuter {
 	}
 
 	private static void transmuteArtifact(Hero hero, Artifact old) {
-		if (hero.jumbleLoadout == HeroClasses.MOONLIGHT && old instanceof Wheelchair) return;
-		if (hero.jumbleLoadout == HeroClasses.ROGUE && old instanceof CloakOfConcealment) return;
-
 		Item replacement = ScrollOfTransmutation.changeItem(old);
 		if (replacement != null && replacement != old) {
 			replaceEquipped(hero, old, replacement);
