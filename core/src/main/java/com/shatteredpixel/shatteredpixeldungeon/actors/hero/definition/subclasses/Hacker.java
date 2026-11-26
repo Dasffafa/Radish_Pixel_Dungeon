@@ -13,12 +13,11 @@ public class Hacker extends HeroSubClass {
 	@Override
 	public Talent[] subclassT3() {
 		return new Talent[]{
-				Talent.BACKFIRE, Talent.DIFFRACTION, Talent.ELECTRIC_CHARGE,
-				Talent.DARK_MAGIC, Talent.CHARISMA };
+				Talent.BACKFIRE, Talent.WAND_ENGINEERING, Talent.ELECTRIC_CHARGE };
 	}
 
 	@Override
 	public Talent[] subclassT4() {
-		return new Talent[0];
+		return new Talent[]{ Talent.DARK_MAGIC, Talent.LOYAL_SERVANTS };
 	}
 }

@@ -13,12 +13,11 @@ public class Grenadier extends HeroSubClass {
 	@Override
 	public Talent[] subclassT3() {
 		return new Talent[]{
-				Talent.EXPLOSION_PROOF, Talent.SHOCKWAVE, Talent.ADDED_POWDER,
-				Talent.MAGICAL_EXPLOSION, Talent.BALLISTICA_CALC };
+				Talent.EXPLOSION_PROOF, Talent.SHOCKWAVE, Talent.ADDED_POWDER };
 	}
 
 	@Override
 	public Talent[] subclassT4() {
-		return new Talent[0];
+		return new Talent[]{ Talent.URGENT_DEMOLITION, Talent.CRITICAL_OPERATION };
 	}
 }

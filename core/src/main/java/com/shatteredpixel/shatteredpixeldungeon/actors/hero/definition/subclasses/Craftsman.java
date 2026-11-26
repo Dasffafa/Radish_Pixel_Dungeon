@@ -13,12 +13,11 @@ public class Craftsman extends HeroSubClass {
 	@Override
 	public Talent[] subclassT3() {
 		return new Talent[]{
-				Talent.ACTIVE_REPAIR, Talent.MULTI_MODIFY, Talent.PART_RECYCLING,
-				Talent.FAVORITE_WORK, Talent.KINETIC_FRAGMENT };
+				Talent.DURABLE_MODIFIES, Talent.MULTI_MODIFY, Talent.PART_RECYCLING };
 	}
 
 	@Override
 	public Talent[] subclassT4() {
-		return new Talent[0];
+		return new Talent[]{ Talent.ULTIMATE_DESIGN, Talent.KINETIC_FRAGMENT };
 	}
 }

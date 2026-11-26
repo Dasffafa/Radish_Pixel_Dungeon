@@ -3199,6 +3199,9 @@ public class Hero extends Char {
 
 		if (buff(CloakOfConcealment.Disposed.class)!=null)
 			stealth-=4f;
+		for (Buff b : buffs()) {
+			stealth += b.stealthBonus();
+		}
 		return stealth;
 	}
 

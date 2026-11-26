@@ -319,7 +319,8 @@ public class ItemSpriteSheet {
 	public static final String ARMOR_SOULMIX = "armor_soulmix";
 	public static final String MULTITOOL = "multitool";
 	public static final String BLUEPRINT = "blueprint";
-	public static final String PULSE = "adrenaline_dart";
+	public static final String PULSE = "pulse";
+	public static final String METAL_PART = "metal_part";
 
 	public static final String PAPER_CUTTER = "paper_cutter";
 	public static final String CARD_DRAWER = "card_drawer";

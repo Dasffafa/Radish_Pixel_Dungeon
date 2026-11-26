@@ -56,6 +56,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.TalismanOfForesight;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.Bag;
 import com.shatteredpixel.shatteredpixeldungeon.items.bags.MagicalHolster;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.WandZapTimeEvent;
+import com.shatteredpixel.shatteredpixeldungeon.items.engineer.mods.ModState;
 import com.shatteredpixel.shatteredpixeldungeon.items.rings.RingOfEnergy;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.spells.TelekineticGrab;
@@ -105,6 +108,9 @@ public abstract class Wand extends Item {
 
 	//public boolean curseInfusionBonus = false;
 	public int resinBonus = 0;
+
+	//工程师的改装部件；没有改装时为 null
+	public ModState mods;
 
 	private static final int USES_TO_ID = 10;
 	private float usesLeftToID = USES_TO_ID;
@@ -648,7 +654,9 @@ public abstract class Wand extends Item {
 			}
 		}
 
-		float timeToZap = TIME_TO_ZAP;
+		WandZapTimeEvent zapTime = new WandZapTimeEvent(this, hero, TIME_TO_ZAP);
+		EventManager.emit(zapTime);
+		float timeToZap = zapTime.getTime();
 
 		if (hero.hasTalent(Talent.DUEL_DANCE)) {
 			if (hero.buff(Talent.DuelDanceWandTracker.class) != null) {
@@ -755,6 +763,7 @@ public abstract class Wand extends Item {
 		if (!this.customName.equals("")) {
 			bundle.put("customName", this.customName);
 		}
+		if (mods != null) mods.storeInBundle( bundle );
 	}
 
 	@Override
@@ -776,6 +785,7 @@ public abstract class Wand extends Item {
 		if (bundle.contains("customName")) {
 			this.customName = bundle.getString("customName");
 		}
+		mods = ModState.restoreFromBundle( bundle );
 	}
 
 	@Override
@@ -783,6 +793,8 @@ public abstract class Wand extends Item {
 		super.reset();
 		usesLeftToID = USES_TO_ID;
 		availableUsesToID = USES_TO_ID/2f;
+		//法杖可以留在遗骸里带到下一局，改装不带
+		mods = null;
 	}
 
 	public int collisionProperties(int target){
@@ -1009,7 +1021,7 @@ public abstract class Wand extends Item {
 			}
 		}
 
-		private void setScaleFactor(float value){
+		void setScaleFactor(float value){
 			this.scalingFactor = value;
 		}
 	}

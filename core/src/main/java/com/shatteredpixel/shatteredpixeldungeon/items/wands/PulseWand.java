@@ -1,0 +1,136 @@
+/*
+ * Pixel Dungeon
+ * Copyright (C) 2012-2015 Oleg Dolya
+ *
+ * Shattered Pixel Dungeon
+ * Copyright (C) 2014-2024 Evan Debenham
+ *
+ * Radish Pixel Dungeon
+ * Copyright (C) 2026 TheCatist
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package com.shatteredpixel.shatteredpixeldungeon.items.wands;
+
+import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Barrier;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerPassive;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerRules;
+import com.shatteredpixel.shatteredpixeldungeon.custom.utils.RangeMap;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.Trap;
+import com.shatteredpixel.shatteredpixeldungeon.levels.traps.TrapHack;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSpriteSheet;
+
+/**
+ * 脉冲法杖：工程师的初始法杖。
+ *
+ * 放在 items.wands 包里是因为它要改充能器的充能因数，那个字段只在包内可见。
+ */
+public class PulseWand extends Wand {
+
+	{
+		image = ItemSpriteSheet.PULSE;
+
+		unique = true;
+		bones = false;
+	}
+
+	@Override
+	public void onZap( Ballistica attack ) {
+		Hero hero = curUser;
+		int cell = attack.collisionPos;
+		int[] cells = hero.subClass == HeroSubClasses.HACKER
+				? RangeMap.centeredRect( cell, 1, 1 ) : new int[]{ cell };
+		for (int hit : cells) {
+			if (Dungeon.level.solid[hit]) continue;
+			Char enemy = Actor.findChar( hit );
+			if (enemy != null && enemy.alignment == Char.Alignment.ENEMY) {
+				EngineerRules.applyPulse( hero, enemy, level() );
+			}
+			Trap trap = Dungeon.level.traps.get( hit );
+			if (trap != null) {
+				if (trap.active) TrapHack.hack( trap );
+				else TrapHack.offerRepair( hero, trap );
+			}
+		}
+		int shielding = 4 * hero.pointsInTalent( Talent.PULSE_ENERGY );
+		if (shielding > 0) Buff.affect( hero, Barrier.class ).setShield( shielding );
+	}
+
+	@Override
+	public int initialCharges() {
+		return 1;
+	}
+
+	@Override
+	public int level() {
+		return Dungeon.hero == null ? 0 : Dungeon.hero.lvl / 5;
+	}
+
+	@Override
+	public void updateLevel() {
+		maxCharges = Dungeon.hero != null && Dungeon.hero.pointsInTalent( Talent.WAND_ENGINEERING ) >= 3 ? 2 : 1;
+		curCharges = Math.min( curCharges, maxCharges );
+	}
+
+	@Override
+	public void charge( Char owner ) {
+		super.charge( owner );
+		charger.setScaleFactor( 0.75f );
+	}
+
+	@Override
+	public void charge( Char owner, float scale ) {
+		charge( owner );
+	}
+
+	@Override
+	public boolean isUpgradable() {
+		return false;
+	}
+
+	@Override
+	public void onHit( MagesStaff staff, Char attacker, Char defender, int damage ) {
+	}
+
+	/** 点天赋时调用（Talent.onTalentUpgraded）：「杖构工学」+3 把充能上限提到 2。 */
+	public static void onTalentUpgraded( Hero hero, Talent talent ) {
+		if (talent == Talent.WAND_ENGINEERING) {
+			PulseWand wand = hero.belongings.getItem( PulseWand.class );
+			if (wand != null) wand.updateLevel();
+		}
+	}
+
+	/** 工程师身上没有脉冲法杖、也没发过时补发一根（旧存档）。由常驻状态每回合调用，要足够便宜。 */
+	public static void ensureGranted( Hero hero ) {
+		EngineerPassive passive = hero.buff( EngineerPassive.class );
+		if (passive == null || passive.pulseWandGranted) return;
+		if (hero.belongings.getItem( PulseWand.class ) == null) {
+			PulseWand wand = new PulseWand();
+			wand.identify();
+			if (!wand.collect()) return;
+		}
+		passive.pulseWandGranted = true;
+		Buff.detach( hero, com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Pulse.class );
+	}
+}

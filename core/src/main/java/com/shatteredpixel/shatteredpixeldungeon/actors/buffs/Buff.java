@@ -97,6 +97,11 @@ public class Buff extends Actor {
 	public void modifyIncomingAttackDamage(Char attacker, Char defender, DamageInfo info) {
 	}
 
+	/** 加到英雄潜行值上（Hero.stealth）。 */
+	public float stealthBonus() {
+		return 0f;
+	}
+
 	/**
 	 * 目标受到伤害后的回调（减免管线全部完成后调用，无论实际扣血是否 > 0）。
 	 */

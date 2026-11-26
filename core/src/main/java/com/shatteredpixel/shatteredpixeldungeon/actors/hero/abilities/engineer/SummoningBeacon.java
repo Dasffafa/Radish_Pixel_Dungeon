@@ -146,6 +146,6 @@ public class SummoningBeacon extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[]{Talent.POWERED_DEVICE, Talent.SKYNET, Talent.VIOLENT_LEAP, Talent.ASSAULT, Talent.HEROIC_ENERGY};
+		return new Talent[]{Talent.SKYNET, Talent.VIOLENT_LEAP, Talent.ASSAULT, Talent.HEROIC_ENERGY};
 	}
 }

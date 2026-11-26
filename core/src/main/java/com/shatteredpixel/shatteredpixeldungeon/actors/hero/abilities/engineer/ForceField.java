@@ -71,7 +71,7 @@ public class ForceField extends ArmorAbility {
 
 	@Override
 	public Talent[] talents() {
-		return new Talent[]{Talent.MECHANICAL_REFINEMENT, Talent.MOMENTUM_TRANSFORM, Talent.ACTIVE_DEFENSE, Talent.REPAIR_ABILITY, Talent.HEROIC_ENERGY};
+		return new Talent[]{Talent.MECHANICAL_REFINEMENT, Talent.MOMENTUM_TRANSFORM, Talent.ACTIVE_DEFENSE, Talent.HEROIC_ENERGY};
 	}
 
 	public static class Field extends FlavourBuff {

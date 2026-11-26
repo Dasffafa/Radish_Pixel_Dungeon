@@ -88,7 +88,8 @@ public class HeroSelectScene extends PixelScene {
 			HeroClasses.RECTOR,
 			HeroClasses.MOONLIGHT,
 			HeroClasses.CARDTRICKSTER,
-			HeroClasses.JUMBLE
+			HeroClasses.JUMBLE,
+			HeroClasses.ENGINEER
 	};
 	private static int heroClassIndex = 0;
 	private static void addHeroClassIndex(int add) {

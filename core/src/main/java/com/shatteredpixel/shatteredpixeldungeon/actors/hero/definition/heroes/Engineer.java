@@ -3,7 +3,6 @@ package com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.heroes;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Buff;
-import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Pulse;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClass;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroClasses;
@@ -16,10 +15,12 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.engineer.F
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.engineer.SummoningBeacon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.HeroDefinition;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.definition.TalentSet;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.engineer.EngineerPassive;
 import com.shatteredpixel.shatteredpixeldungeon.items.potions.PotionOfParalyticGas;
 import com.shatteredpixel.shatteredpixeldungeon.items.scrolls.ScrollOfRecharging;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool;
-import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.ThrowingSpike;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand;
 
 /** 工程师 - 自 reXuns Pixel Dungeon (xun分支) 移植 */
 public class Engineer extends HeroDefinition {
@@ -36,9 +37,7 @@ public class Engineer extends HeroDefinition {
 
 	@Override
 	public String splashArt() {
-		//工程师还没有自己的立绘。原来指向的 newhero.jpg 是 reXun 作者给他自己的游戏征集立绘的启事（带他的邮箱），
-		//不能出现在萝卜的选人界面上：先用下水道的区域图顶替，有了立绘再换
-		return Assets.Splashes.SEWERS;
+		return spritesheet();
 	}
 
 	@Override
@@ -60,14 +59,16 @@ public class Engineer extends HeroDefinition {
 	public TalentSet talents() {
 		TalentSet set = new TalentSet();
 		set.setTier1(new Talent[]{
-				Talent.KEEN_MEAL, Talent.FINE_INTUITION, Talent.TESTED_MAINTENANCE,
+				Talent.RATION_PLANNING, Talent.FINE_INTUITION,
 				Talent.GENERAL_DISARM, Talent.PULSE_ENERGY });
 		set.setTier2(new Talent[]{
-				Talent.TOILSOME_MEAL, Talent.IONIC_LIQUID, Talent.STRONG_PULSE,
-				Talent.RESONANT_SENSING, Talent.APART_ANYTHING, Talent.REMOTE_DESTRUCTION });
+				Talent.TOILSOME_MEAL, Talent.SCROLL_VIGILANCE, Talent.STRONG_PULSE,
+				Talent.DISMANTLE_URGE, Talent.FAVORITE_WORK });
 		set.setTier3(new Talent[]{
-				Talent.DURABLE_MODIFIES, Talent.ELECTRONIC_REPAIR, Talent.IONIZING_RADIATION });
-		set.setTier4(new Talent[0]);
+				Talent.COORDINATED_ACTION, Talent.ELECTRONIC_REPAIR });
+		//四阶通用天赋；小恶魔「激发潜力」开放四阶后才出现，与护甲技能二选一
+		set.setTier4(new Talent[]{
+				Talent.ATTACHED_PULSE, Talent.INSTANT_REPAIR });
 		return set;
 	}
 
@@ -76,7 +77,14 @@ public class Engineer extends HeroDefinition {
 		(hero.belongings.weapon = new MultiTool()).identify();
 		hero.belongings.weapon.activate(hero);
 		Dungeon.quickslot.setSlot(0, hero.belongings.weapon);
-		ActionIndicator.setAction(Buff.affect(hero, Pulse.class));
+
+		ThrowingSpike spikes = new ThrowingSpike();
+		spikes.quantity(2).collect();
+		Dungeon.quickslot.setSlot(1, spikes);
+
+		//常驻状态：对机械敌人的被动、每回合驱动已骇入陷阱等都挂在它上面
+		Buff.affect(hero, EngineerPassive.class);
+		PulseWand.ensureGranted(hero);
 
 		new PotionOfParalyticGas().identify();
 		new ScrollOfRecharging().identify();
