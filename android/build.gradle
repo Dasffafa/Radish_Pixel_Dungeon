@@ -5,6 +5,9 @@ apply plugin: 'com.google.firebase.crashlytics'
 android {
     namespace 'com.shatteredpixel.shatteredpixeldungeon.android'
     compileSdk appAndroidCompileSDK
+    buildFeatures {
+        buildConfig true
+    }
     compileOptions.sourceCompatibility = compileOptions.targetCompatibility = appJavaCompatibility
 
     sourceSets.main.assets.srcDirs = [new File(project(':core').projectDir, "/src/main/assets")]
@@ -19,8 +22,54 @@ android {
         //noinspection MinSdkTooLow
         minSdkVersion appAndroidMinSDK
         targetSdkVersion appAndroidTargetSDK
+        buildConfigField "boolean", "ENABLE_FIREBASE", "true"
         resourceConfigurations += ['en_US', 'cs', 'de', 'el', 'es', 'fr', 'hu', 'in', 'it', 'ja', 'ko', 'nl', 'pl', 'pt', 'ru', 'tr', 'uk', 'vi', 'zh_CN']
 
+    }
+
+    def envFile = file('.env')
+    def keystorePassword = null
+    if (envFile.exists()) {
+        envFile.eachLine { line ->
+            def trimmed = line.trim()
+            if (trimmed && !trimmed.startsWith('#') && trimmed.startsWith('KEYSTORE_PASSWORD=')) {
+                keystorePassword = trimmed.substring('KEYSTORE_PASSWORD='.length()).trim()
+            }
+        }
+    }
+    if (!keystorePassword) {
+        def provided = project.findProperty('keystorePassword') ?: System.getenv('KEYSTORE_PASSWORD')
+        if (provided) {
+            keystorePassword = provided.toString().trim()
+            envFile.text = "KEYSTORE_PASSWORD=${keystorePassword}\n"
+        } else {
+            throw new GradleException(
+                "Keystore password not found in android/.env (this file is gitignored). Please provide the password via -PkeystorePassword=<password> (it will be saved to android/.env for future builds). If you are a fork author, you must generate your own keystore and re-sign."
+            )
+        }
+    }
+
+    def releaseKeystore = file('keystores/release.jks')
+    def betaKeystore = file('keystores/beta.jks')
+    if (!releaseKeystore.exists() || !betaKeystore.exists()) {
+        throw new GradleException(
+            "Keystore file(s) not found (android/keystores/*.jks are gitignored). Please place release.jks and beta.jks in android/keystores/, or if you are a developer/fork author, generate your own keystore and re-sign."
+        )
+    }
+
+    signingConfigs {
+        release {
+            storeFile releaseKeystore
+            storePassword keystorePassword
+            keyAlias 'release'
+            keyPassword keystorePassword
+        }
+        beta {
+            storeFile betaKeystore
+            storePassword keystorePassword
+            keyAlias 'beta'
+            keyPassword keystorePassword
+        }
     }
 
     buildTypes {
@@ -45,10 +94,24 @@ android {
             minifyEnabled false
             //启用MultiDex解决64k方法限制
             multiDexEnabled true
+            signingConfig signingConfigs.release
             firebaseCrashlytics {mappingFileUploadEnabled false}
             dependencies {
                 releaseImplementation project(':services:updates:githubUpdates')
                 releaseImplementation project(':services:news:shatteredNews')
+            }
+        }
+        beta {
+            initWith buildTypes.release
+            applicationIdSuffix ".beta"
+            versionNameSuffix "-BETA"
+            buildConfigField "boolean", "ENABLE_FIREBASE", "false"
+            manifestPlaceholders = [appName: "Radish Pixel Dungeon Test Version"]
+            signingConfig signingConfigs.beta
+            matchingFallbacks = ['release']
+            dependencies {
+                betaImplementation project(':services:updates:debugUpdates')
+                betaImplementation project(':services:news:debugNews')
             }
         }
     }
@@ -63,6 +126,20 @@ android {
 configurations { natives }
 
 preBuild.dependsOn rootProject.tasks.named('generateRuntimeAtlasManifests')
+
+tasks.matching { it.name == 'processBetaGoogleServices' }.configureEach {
+    enabled = false
+}
+
+tasks.matching { it.name in ['assembleRelease', 'bundleRelease'] }.configureEach {
+    doFirst {
+        if (!file('google-services.json').exists()) {
+            throw new GradleException(
+                "android/google-services.json not found (this file is gitignored). Please provide your google-services.json before building release."
+            )
+        }
+    }
+}
 
 dependencies {
     implementation project(':core')

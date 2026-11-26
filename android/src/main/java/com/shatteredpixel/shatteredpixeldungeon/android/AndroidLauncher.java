@@ -65,7 +65,9 @@ public class AndroidLauncher extends AndroidApplication {
 				.minTimeBetweenCrashesMs(2000) //default: 3000
 				.errorActivity(ErrorActivity.class) //default: null (default error activity)
 				.apply();
-		FirebaseApp.initializeApp(this);
+		if (BuildConfig.ENABLE_FIREBASE) {
+			FirebaseApp.initializeApp(this);
+		}
 		try {
 			GdxNativesLoader.load();
 			FreeType.initFreeType();

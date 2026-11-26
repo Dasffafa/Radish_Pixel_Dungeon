@@ -34,7 +34,6 @@ the_catist/
 /.qwen/settings.json
 /.qwen/settings.json.orig
 
-/AGENTS.md
 /.hermes/progress/dice-mage-slice-dice.md
 /.hermes/plans/2026-07-16_105627-dice-mage-slice-dice-ui-panels.md
 /.hermes/plans/2026-07-16_101729-dice-mage-slice-dice-ui-shaders.md
@@ -93,3 +92,10 @@ replay_pid*.log
 
 # 构建产物
 /event-processor/bin/
+
+# Keystores
+android/keystores/
+*.jks
+android/keystore.properties
+android/.env
+.env
