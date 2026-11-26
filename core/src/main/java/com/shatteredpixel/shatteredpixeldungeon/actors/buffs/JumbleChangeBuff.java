@@ -8,6 +8,8 @@ import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.ClassSpecificItems;
 import com.shatteredpixel.shatteredpixeldungeon.items.ItemArmorAttachable;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
+import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
+import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.BrokenSeal;
@@ -282,51 +284,10 @@ public class JumbleChangeBuff extends Buff {
 	}
 
 	private void doEquipmentTransmute(Hero hero) {
-		Artifact artifact = hero.belongings.artifact();
-		if (artifact != null && !artifact.isClassSpecific()) {
-			try {
-				transmuteArtifact(hero);
-			} catch (Throwable t) {
-				logMetamorphError(t);
-			}
-		}
-
-		Ring ring = hero.belongings.ring();
-		if (ring != null) {
-			try {
-				boolean ringTypeKnown = ring.isKnown();
-				Item generated = ScrollOfTransmutation.changeItem(ring);
-				Item result = storedEquipmentFor(generated);
-				if (generated == result && result instanceof Ring) {
-					if (ringTypeKnown) ((Ring) result).setKnown();
-					result.cursed = ring.cursed;
-					result.cursedKnown = ring.cursedKnown;
-					result.levelKnown = ring.levelKnown;
-				}
-				switchStoredEquipment(hero, ring, result);
-			} catch (Throwable t) {
-				logMetamorphError(t);
-			}
-		}
-
-		KindOfWeapon weapon = hero.belongings.weapon();
-		if (weapon != null && !weapon.isClassSpecific()) {
-			try {
-				Item generated = ScrollOfTransmutation.changeItem(weapon);
-				Item result = storedEquipmentFor(generated);
-				switchStoredEquipment(hero, weapon, result);
-			} catch (Throwable t) {
-				logMetamorphError(t);
-			}
-		}
-
-		Armor armor = hero.belongings.armor();
-		if (armor != null) {
-			try {
-				transmuteArmor(hero, armor);
-			} catch (Throwable t) {
-				logMetamorphError(t);
-			}
+		try {
+			com.shatteredpixel.shatteredpixeldungeon.items.EquipmentTransmuter.transmuteAll(hero);
+		} catch (Throwable t) {
+			logMetamorphError(t);
 		}
 	}
 
@@ -334,30 +295,60 @@ public class JumbleChangeBuff extends Buff {
 		List<Item> items = new ArrayList<>();
 		for (Item item : hero.belongings) {
 			if (item.isClassSpecific()) items.add(item);
+			if (item instanceof Armor) {
+				BrokenSeal seal = ((Armor) item).checkSeal();
+				if (seal != null) {
+					((Armor) item).getToys().remove(seal);
+					items.add(seal);
+				}
+			}
 		}
 		for (Item oldItem : items) {
 			try {
-				Item generated = ClassSpecificItems.replacementFor(oldItem, hero);
-				Item replacement = storedEquipmentFor(generated);
-				if (replacement != null) switchStoredEquipment(hero, oldItem, replacement);
+				Item replacement = com.shatteredpixel.shatteredpixeldungeon.items.ChangingProfessionItem.transform(oldItem, hero);
+				if (replacement != null) com.shatteredpixel.shatteredpixeldungeon.items.EquipmentTransmuter.replaceEquipped(hero, oldItem, replacement);
 			} catch (Throwable t) {
 				logMetamorphError(t);
 			}
 		}
 
 	}
+	private void rerollWeaponEnchant(Weapon oldW, Weapon newW) {
+		if (oldW.hasCurseEnchant()) {
+			newW.enchant(Weapon.Enchantment.randomCurse());
+		} else if (oldW.hasGoodEnchant()) {
+			newW.enchant();
+		} else {
+			newW.enchant(null);
+		}
+	}
+
+	private void rerollArmorGlyph(Armor oldA, Armor newA) {
+		if (oldA.hasCurseGlyph()) {
+			newA.inscribe(Armor.Glyph.randomCurse());
+		} else if (oldA.hasGoodGlyph()) {
+			newA.inscribe();
+		} else {
+			newA.inscribe(null);
+		}
+	}
+
 	/** 护甲变身为同 tier 的随机护甲（原版嬗变卷轴不处理护甲，故单独实现）。 */
 	private void transmuteArmor(Hero hero, Armor old) {
+		Armor replacement = createTransmutedArmor(old);
+		if (replacement != null) switchStoredEquipment(hero, old, replacement);
+	}
+
+	private Armor createTransmutedArmor(Armor old) {
 		int tier = old.tier;
-		if (tier < 1 || tier > 5) return;
+		if (tier < 1 || tier > 5) return null;
 
 		Generator.Category cat = Generator.armTiers[tier - 1];
-		Armor generated;
+		Armor replacement;
 		do {
-			generated = (Armor) Generator.randomUsingDefaults(cat);
-		} while (generated.getClass() == old.getClass() && cat.classes.length > 1);
-		Armor replacement = (Armor) storedEquipmentFor(generated);
-		if (replacement == generated) {
+			replacement = (Armor) Generator.randomUsingDefaults(cat);
+		} while (replacement.getClass() == old.getClass() && cat.classes.length > 1);
+		if (replacement != null) {
 			replacement.level(0);
 			int level = old.trueLevel();
 			if (level > 0) replacement.upgrade(level);
@@ -365,13 +356,13 @@ public class JumbleChangeBuff extends Buff {
 			replacement.levelKnown = old.levelKnown;
 			replacement.cursedKnown = old.cursedKnown;
 			replacement.cursed = old.cursed;
-			replacement.inscribe(old.glyph);
+			rerollArmorGlyph(old, replacement);
 			replacement.curseInfusionBonus = old.curseInfusionBonus;
 			replacement.glyphHardened = old.glyphHardened;
 			replacement.masteryPotionBonus = old.masteryPotionBonus;
 			replacement.augment = old.augment;
 		}
-		switchStoredEquipment(hero, old, replacement);
+		return replacement;
 	}
 
 	private void transmuteArtifact(Hero hero) {

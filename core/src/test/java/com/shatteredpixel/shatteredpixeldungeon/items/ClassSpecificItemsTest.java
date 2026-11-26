@@ -24,10 +24,10 @@ public class ClassSpecificItemsTest {
     public void classSpecificStartingItemsExcludeOrdinaryStartingWeapons() {
         assertEquals(HeroClasses.RECTOR, ClassSpecificItems.ownerOf(new SmallWoodenCross()));
         assertEquals(HeroClasses.MAGE, ClassSpecificItems.ownerOf(new MagesStaff()));
-        assertEquals(HeroClasses.ENGINEER, ClassSpecificItems.ownerOf(new MultiTool()));
-        assertTrue(new MultiTool().isClassSpecific());
-        assertNotNull(ClassSpecificItems.replacementFor(new MultiTool()));
-        for (Item weapon : new Item[]{new MetalCross(), new PaperCutter()}) {
+        assertEquals(HeroClasses.ENGINEER, ClassSpecificItems.ownerOf(new com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand()));
+        assertTrue(new com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand().isClassSpecific());
+        assertNotNull(ClassSpecificItems.replacementFor(new com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand()));
+        for (Item weapon : new Item[]{new MetalCross(), new PaperCutter(), new MultiTool()}) {
             assertNull(ClassSpecificItems.ownerOf(weapon));
             assertNull(ClassSpecificItems.replacementFor(weapon));
         }

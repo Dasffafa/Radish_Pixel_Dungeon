@@ -7,7 +7,7 @@ import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.CloakOfShadows;
 import com.shatteredpixel.shatteredpixeldungeon.items.artifacts.Wheelchair;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff;
-import com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MultiTool;
+import com.shatteredpixel.shatteredpixeldungeon.items.wands.PulseWand;
 import com.shatteredpixel.shatteredpixeldungeon.items.wands.WandOfMagicMissile;
 import com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer;
 import com.shatteredpixel.shatteredpixeldungeon.items.quest.SmallWoodenCross;
@@ -31,7 +31,7 @@ public final class ClassSpecificItems {
 			new Entry(HeroClasses.RECTOR, SmallWoodenCross.class),
 			new Entry(HeroClasses.MOONLIGHT, Wheelchair.class),
 			new Entry(HeroClasses.CARDTRICKSTER, CardDrawer.class),
-			new Entry(HeroClasses.ENGINEER, MultiTool.class)
+			new Entry(HeroClasses.ENGINEER, PulseWand.class)
 	));
 
 	private ClassSpecificItems() { }
@@ -77,6 +77,7 @@ public final class ClassSpecificItems {
 				? new MagesStaff(new WandOfMagicMissile())
 				: Reflection.newInstance(chosen);
 		if (replacement == null) return null;
+		replacement.identify();
 
 		return replacement;
 	}

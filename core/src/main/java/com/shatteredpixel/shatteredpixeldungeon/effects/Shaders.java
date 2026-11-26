@@ -35,6 +35,7 @@ public class Shaders {
     
     public static final LightDissolveShader lightDissolve = load(LightDissolveShader.class);
     public static final LightEvaporateShader lightEvaporate = load(LightEvaporateShader.class);
+    public static final ProfessionWaveShader professionWave = load(ProfessionWaveShader.class);
     
     // ============== 加载方法 ==============
     
