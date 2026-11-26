@@ -23,7 +23,9 @@ package com.shatteredpixel.shatteredpixeldungeon.effects;
 
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
+import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.ItemSprite;
+import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.watabou.noosa.Game;
 
 public class Enchanting extends ItemSprite {
@@ -37,6 +39,10 @@ public class Enchanting extends ItemSprite {
 	private static final float FADE_OUT_TIME	= 0.4f;
 
 	private static final float ALPHA	= 0.6f;
+	private static final int DEFAULT_COLOR = 0x8844CC;
+
+	// 仅在进程生命周期内提示一次，不随开新局或读档重置
+	private static boolean missingGlowWarned = false;
 
 	private int color;
 
@@ -50,7 +56,16 @@ public class Enchanting extends ItemSprite {
 		super( item.image(), null );
 		originToCenter();
 
-		color = item.glowing().color;
+		ItemSprite.Glowing glowing = item.glowing();
+		if (glowing != null) {
+			color = glowing.color;
+		} else {
+			color = DEFAULT_COLOR;
+			if (!missingGlowWarned) {
+				missingGlowWarned = true;
+				GLog.w(Messages.get(this, "no_glowing", item.name()));
+			}
+		}
 
 		phase = Phase.FADE_IN;
 		duration = FADE_IN_TIME;
