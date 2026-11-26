@@ -23,6 +23,7 @@ package com.shatteredpixel.shatteredpixeldungeon.ui;
 
 import com.shatteredpixel.shatteredpixeldungeon.*;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Hunger;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.MagicPoint;
 import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.VitaeBuff;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
@@ -56,6 +57,7 @@ public class StatusPane extends Component {
 	private Image rawShielding;
 	private Image shieldedHP;
 	private Image hp;
+	private com.watabou.noosa.ColorBlock hungerBar;
 
 	private Image vitae;
 	private BitmapText vitaeText;
@@ -151,6 +153,9 @@ public class StatusPane extends Component {
 		else        hp = new Image(asset, 0, 36, 50, 4);
 		add( hp );
 
+		hungerBar = new com.watabou.noosa.ColorBlock(1, large ? 2 : 2, 0xFF4CAF50);
+		add(hungerBar);
+
 		if(large) vitae =new Image(asset, 0, 121, 128, 9);
 		else        vitae = new Image(asset, 0, 121, 50, 4);
 		add(vitae);
@@ -232,6 +237,9 @@ public class StatusPane extends Component {
 			vitae.x = hp.x;
 			vitae.y = hp.y;
 
+			hungerBar.x = hp.x;
+			hungerBar.y = hp.y + hp.height + 1;
+
 			hpText.x = hp.x + (128 - hpText.width())/2f;
 			hpText.y = hp.y + 1;
 			PixelScene.align(hpText);
@@ -260,6 +268,9 @@ public class StatusPane extends Component {
 			vitae.x = hp.x;
 			vitae.y = hp.y;
 
+			hungerBar.x = hp.x;
+			hungerBar.y = hp.y + hp.height + 1;
+
 			hpText.scale.set(PixelScene.align(0.5f));
 			hpText.x = hp.x + 1;
 			hpText.y = hp.y + (hp.height - (hpText.baseLine()+hpText.scale.y))/2f;
@@ -268,7 +279,7 @@ public class StatusPane extends Component {
 
 			heroInfoOnBar.setRect(heroInfo.right(), y, 50, 9);
 
-			buffs.setRect( x + 31, y + 9, 50, 8 );
+			buffs.setRect( x + 31, y + 14, 50, 8 );
 
 			busy.x = x + 1;
 			busy.y = y + 33;
@@ -308,6 +319,25 @@ public class StatusPane extends Component {
 
 	@Override
 	public void update() {
+		if (Dungeon.hero != null && hungerBar != null) {
+			Hunger hunger = Dungeon.hero.buff(Hunger.class);
+			float maxW = large ? 128f : 50f;
+			if (hunger == null) {
+				hungerBar.scale.x = maxW;
+				hungerBar.color(0xFF4CAF50);
+			} else {
+				float ratio = Math.max(0f, Math.min(1f, (Hunger.STARVING - hunger.hunger()) / Hunger.STARVING));
+				hungerBar.scale.x = ratio * maxW;
+				if (hunger.isStarving()) {
+					hungerBar.color(0xFFE53935);
+				} else if (hunger.hunger() >= Hunger.HUNGRY) {
+					hungerBar.color(0xFFFDD835);
+				} else {
+					hungerBar.color(0xFF4CAF50);
+				}
+			}
+		}
+
 		super.update();
 		
 		int health = Dungeon.hero.HP;

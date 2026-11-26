@@ -359,7 +359,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
         }
         FaithObstruction failed = Dungeon.hero.buff(FaithObstruction.class);
         // 动作按钮只有一个槽位；有其他状态按钮时让位，并且只清理自己的按钮。
-        if (credibility >= 0f){
+        if (credibility > 0f){
             if (!slotHeldByOtherBuff()) {
                 ActionIndicator.setAction(this);
             }
@@ -518,7 +518,7 @@ public class Belief extends Buff implements ActionIndicator.Action {
         not_link    = bundle.getBoolean(NOT_LINK);
 
         // 读档后立即恢复信仰按钮，不清除其他状态的按钮。
-        if (credibility >= 0f && !slotHeldByOtherBuff()) {
+        if (credibility > 0f && !slotHeldByOtherBuff()) {
             ActionIndicator.setAction(this);
         }
     }

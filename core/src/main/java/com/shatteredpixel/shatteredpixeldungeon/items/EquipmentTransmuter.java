@@ -149,16 +149,7 @@ public final class EquipmentTransmuter {
 
 		int slot = Dungeon.quickslot.getSlot(oldItem);
 		if (oldItem instanceof EquipableItem && ((EquipableItem) oldItem).isEquipped(hero)) {
-			float cooldownBefore = hero.cooldown();
-			((EquipableItem) oldItem).doUnequip(hero, false);
-			if (newItem instanceof EquipableItem) {
-				((EquipableItem) newItem).doEquip(hero);
-			} else if (!newItem.collect(hero.belongings.backpack)) {
-				Dungeon.level.drop(newItem, hero.pos);
-			}
-			if (hero.cooldown() > cooldownBefore) {
-				hero.spend(cooldownBefore - hero.cooldown());
-			}
+			swapEquippedSlot(hero, (EquipableItem) oldItem, newItem);
 		} else {
 			oldItem.detachAll(hero.belongings.backpack);
 			if (!newItem.collect(hero.belongings.backpack)) {
@@ -170,5 +161,40 @@ public final class EquipmentTransmuter {
 			Dungeon.quickslot.setSlot(slot, newItem);
 			Item.updateQuickslot();
 		}
+	}
+
+	private static void swapEquippedSlot(Hero hero, EquipableItem oldItem, Item newItem) {
+		oldItem.onLoss(hero);
+		if (hero.belongings.weapon == oldItem) {
+			hero.belongings.weapon = newItem instanceof KindOfWeapon ? (KindOfWeapon) newItem : null;
+			if (hero.belongings.weapon == null && !newItem.collect(hero.belongings.backpack)) {
+				Dungeon.level.drop(newItem, hero.pos);
+			}
+		} else if (hero.belongings.armor == oldItem) {
+			hero.belongings.armor = newItem instanceof Armor ? (Armor) newItem : null;
+			if (hero.belongings.armor == null && !newItem.collect(hero.belongings.backpack)) {
+				Dungeon.level.drop(newItem, hero.pos);
+			}
+		} else if (hero.belongings.artifact == oldItem) {
+			hero.belongings.artifact = newItem instanceof Artifact ? (Artifact) newItem : null;
+			if (hero.belongings.artifact == null && !newItem.collect(hero.belongings.backpack)) {
+				Dungeon.level.drop(newItem, hero.pos);
+			}
+		} else if (hero.belongings.ring == oldItem) {
+			hero.belongings.ring = newItem instanceof Ring ? (Ring) newItem : null;
+			if (hero.belongings.ring == null && !newItem.collect(hero.belongings.backpack)) {
+				Dungeon.level.drop(newItem, hero.pos);
+			}
+		} else if (hero.belongings.misc == oldItem) {
+			hero.belongings.misc = newItem instanceof KindofMisc ? (KindofMisc) newItem : null;
+			if (hero.belongings.misc == null && !newItem.collect(hero.belongings.backpack)) {
+				Dungeon.level.drop(newItem, hero.pos);
+			}
+		}
+		if (newItem instanceof EquipableItem && ((EquipableItem) newItem).isEquipped(hero)) {
+			((EquipableItem) newItem).activate(hero);
+			((EquipableItem) newItem).onGain(hero);
+		}
+		hero.updateHT(false);
 	}
 }
