@@ -32,18 +32,6 @@ public final class CardTargeter {
 		}
 		if (!hero.isAlive() || !hero.ready) return;
 
-		if (isProjectileCard(card)) {
-			Char target = QuickSlotButton.lastTarget;
-			if (target != null && Actor.chars().contains(target) && target.isAlive()
-					&& target.alignment != Char.Alignment.ALLY
-					&& target.pos >= 0 && target.pos < Dungeon.level.length()
-					&& Dungeon.level.heroFOV[target.pos]
-					&& new Ballistica(hero.pos, target.pos, Ballistica.PROJECTILE).collisionPos == target.pos) {
-				CardEffects.play(hero, card, target.pos);
-				return;
-			}
-		}
-
 		// 陷阱师：空白卡可以对陷阱使用，因此改用格子选择
 		if (card.type == CardType.BLANK && hero.subClass == HeroSubClasses.JOKER) {
 			if (!hasValidTarget(hero, card)) {

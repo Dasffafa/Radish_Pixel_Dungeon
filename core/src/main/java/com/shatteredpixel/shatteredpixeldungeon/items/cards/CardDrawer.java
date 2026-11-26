@@ -95,6 +95,11 @@ public class CardDrawer extends Item {
 		}
 	}
 
+	@Override
+	public String status() {
+		return "1";
+	}
+
 	public static boolean drawCard(Hero hero) {
 		CardDeck deck = CardDeck.getOrCreate(hero);
 		if (deck.held != null) {
