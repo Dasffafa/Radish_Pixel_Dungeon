@@ -97,6 +97,9 @@ public class Food extends Item {
 					}
 				}
 				GLog.i( Messages.get(this, "card_conversion") );
+				if (hero.pointsInTalent(Talent.ADVANCED_FOOD) >= 2) {
+					com.shatteredpixel.shatteredpixeldungeon.items.cards.CardDrawer.cancelCooldown(hero);
+				}
 				hero.sprite.operate( hero.pos );
 				hero.busy();
 				hero.spend( 1f );

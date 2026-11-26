@@ -158,6 +158,7 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 		//720 is default
 
 		ANGULAR_SPEEDS.put(GnollGeomancer.Boulder.class,   90);
+		ANGULAR_SPEEDS.put(com.shatteredpixel.shatteredpixeldungeon.items.cards.CardProjectile.class, 90);
 		
 		ANGULAR_SPEEDS.put(HeavyBoomerang.class,1440);
 		ANGULAR_SPEEDS.put(Bolas.class,         1440);
@@ -207,7 +208,8 @@ public class MissileSprite extends ItemSprite implements Tweener.Listener {
 			updateFrame();
 		}
 
-		if (item instanceof GnollGeomancer.Boulder){
+		if (item instanceof GnollGeomancer.Boulder
+				|| item instanceof com.shatteredpixel.shatteredpixeldungeon.items.cards.CardProjectile){
 			angle = 0;
 			flipHorizontal = false;
 			updateFrame();

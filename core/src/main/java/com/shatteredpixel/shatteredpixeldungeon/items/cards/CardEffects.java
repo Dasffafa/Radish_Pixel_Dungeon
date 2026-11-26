@@ -20,7 +20,9 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageInfo;
 import com.shatteredpixel.shatteredpixeldungeon.damage.DamageType;
+import com.shatteredpixel.shatteredpixeldungeon.effects.FloatingText;
 import com.shatteredpixel.shatteredpixeldungeon.effects.SpellSprite;
+import com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
 import com.shatteredpixel.shatteredpixeldungeon.items.Generator;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -48,14 +50,17 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Blindness;
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.sprites.CharSprite;
+import com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
+import com.shatteredpixel.shatteredpixeldungeon.ui.QuickSlotButton;
 import com.shatteredpixel.shatteredpixeldungeon.utils.GLog;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndBag;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndCardSelect;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndOptions;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
+import com.watabou.utils.Callback;
 import com.watabou.utils.Random;
 
 import java.util.ArrayList;
@@ -103,34 +108,39 @@ public final class CardEffects {
 					collectorTransform(hero, card);
 					return;
 				}
-				if (ch != null) {
-					int dmg = Random.NormalIntRange(1, 5);
-					int emp = hero.pointsInTalent(Talent.BLANK_EMPOWERMENT);
-					if (emp == 1) dmg += Random.NormalIntRange(0, 2);
-					else if (emp == 2) dmg += Random.NormalIntRange(1, 3);
+				int hitPos = new Ballistica(hero.pos, pos, Ballistica.PROJECTILE).collisionPos;
+				throwCard(hero, card, hitPos, () -> {
+					Char hitChar = Actor.findChar(hitPos);
+					if (hitChar != null && hitChar != hero && hitChar.alignment != Char.Alignment.ALLY) {
+						QuickSlotButton.target(hitChar);
+						int dmg = Random.NormalIntRange(1, 5);
+						int emp = hero.pointsInTalent(Talent.BLANK_EMPOWERMENT);
+						if (emp == 1) dmg += Random.NormalIntRange(0, 2);
+						else if (emp == 2) dmg += Random.NormalIntRange(1, 3);
 
-					int wind = hero.pointsInTalent(Talent.BORROW_WIND_CUT);
-					if (wind > 0) {
-						int dist = Math.min(4, Math.round(Dungeon.level.trueDistance(hero.pos, ch.pos)));
-						dmg += dist * (wind == 2 ? Random.NormalIntRange(2, 3) : Random.NormalIntRange(1, 2));
+						int wind = hero.pointsInTalent(Talent.BORROW_WIND_CUT);
+						if (wind > 0) {
+							int dist = Math.min(4, Math.round(Dungeon.level.trueDistance(hero.pos, hitChar.pos)));
+							dmg += dist * (wind == 2 ? Random.NormalIntRange(2, 3) : Random.NormalIntRange(1, 2));
+						}
+						dealCardDamage(hero, hitChar, card, dmg);
 					}
-					dealCardDamage(hero, ch, card, dmg);
-				}
 
-				// 卡组连携 +3：空白卡使用后自动转化为随机陷阱卡
-				if (hero.pointsInTalent(Talent.DECK_COMBO) >= 3
-						&& hero.subClass == HeroSubClasses.JOKER) {
-					Class<?> trapCls = randomTrapClass();
-					if (trapCls != null) {
-						card.type = CardType.TRAP;
-						card.trapClass = trapCls;
-						GLog.i(Messages.get(CardEffects.class, "trap_recorded",
-								Messages.get(trapCls, "name")));
-						ActionIndicator.refresh();
+					// 卡组连携 +3：空白卡使用后自动转化为随机陷阱卡
+					if (hero.pointsInTalent(Talent.DECK_COMBO) >= 3
+							&& hero.subClass == HeroSubClasses.JOKER) {
+						Class<?> trapCls = randomTrapClass();
+						if (trapCls != null) {
+							card.type = CardType.TRAP;
+							card.trapClass = trapCls;
+							GLog.i(Messages.get(CardEffects.class, "trap_recorded",
+									Messages.get(trapCls, "name")));
+							ActionIndicator.refresh();
+						}
 					}
-				}
 
-				finish(hero, card, false, card.type.time);
+					finish(hero, card, false, card.type.time);
+				});
 				break;
 			}
 			case SMALL_RATION:
@@ -173,14 +183,18 @@ public final class CardEffects {
 					GLog.w(Messages.get(CardTargeter.class, "bad_target"));
 					return;
 				}
-				Buff.affect(ch, Paralysis.class, 5f);
-				CardDrawer.cancelCooldown(hero);
-				finish(hero, card, false, card.type.time);
+				throwCard(hero, card, ch.pos, () -> {
+					Buff.affect(ch, Paralysis.class, 5f);
+					CardDrawer.cancelCooldown(hero);
+					finish(hero, card, false, card.type.time);
+				});
 				break;
 			}
 			case HORMONE: {
-				Buff.affect(hero, Adrenaline.class, 2f);
-				Buff.affect(hero, Haste.class, 2f);
+				// 加上本回合消耗的 card.type.time，使激素涌动与极速在回合推进后仍发挥完整的 2 回合作用
+				float duration = 2f + card.type.time;
+				Buff.prolong(hero, Adrenaline.class, duration);
+				Buff.prolong(hero, Haste.class, duration);
 				CardDrawer.cancelCooldown(hero);
 				finish(hero, card, false, card.type.time);
 				break;
@@ -196,20 +210,23 @@ public final class CardEffects {
 				break;
 			}
 			case GRAND_FINALE: {
-				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) {
-					GLog.w(Messages.get(CardTargeter.class, "bad_target"));
-					return;
-				}
-				int dmg = Random.NormalIntRange(5, 10);
-				for (int i = 0; i < hero.cardDeck.blankCount(); i++) {
-					dmg += Random.NormalIntRange(5, 10);
-				}
-				if (card.power >= 3) {
-					dmg += Math.round(weaponAverage(card) / 3f);
-				}
-				dealCardDamage(hero, ch, card, dmg);
-				fancySpin(hero, hero.cardDeck.spinBlank(card.power >= 2 ? 3 : 2));
-				finish(hero, card, false, card.type.time);
+				int hitPos = new Ballistica(hero.pos, pos, Ballistica.PROJECTILE).collisionPos;
+				throwCard(hero, card, hitPos, () -> {
+					Char hitChar = Actor.findChar(hitPos);
+					if (hitChar != null && hitChar != hero && hitChar.alignment != Char.Alignment.ALLY) {
+						QuickSlotButton.target(hitChar);
+						int dmg = Random.NormalIntRange(5, 10);
+						for (int i = 0; i < hero.cardDeck.blankCount(); i++) {
+							dmg += Random.NormalIntRange(5, 10);
+						}
+						if (card.power >= 3) {
+							dmg += Math.round(weaponAverage(card) / 3f);
+						}
+						dealCardDamage(hero, hitChar, card, dmg);
+					}
+					fancySpin(hero, hero.cardDeck.spinBlank(card.power >= 2 ? 3 : 2));
+					finish(hero, card, false, card.type.time);
+				});
 				break;
 			}
 			case PREPARED: {
@@ -244,73 +261,77 @@ public final class CardEffects {
 				break;
 			}
 			case ATTACK: {
-				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) {
-					GLog.w(Messages.get(CardTargeter.class, "bad_target"));
-					return;
-				}
-				// 只有身上已经有「下一张攻击卡不耗回合」时才免费。
-				// Buff.affect 在没有这个状态时会当场新建一个，新建的一定能 consume，等于所有攻击卡都不耗回合
-				NextAttackFree naf = hero.buff(NextAttackFree.class);
-				boolean free = naf != null && naf.consume();
-				// 基础伤害 1~5，再附加一份 1~5 的额外伤害
-				int dmg = Random.NormalIntRange(1, 5) + Random.NormalIntRange(1, 5);
+				int hitPos = new Ballistica(hero.pos, pos, Ballistica.PROJECTILE).collisionPos;
+				throwCard(hero, card, hitPos, () -> {
+					// 只有身上已经有「下一张攻击卡不耗回合」时才免费。
+					// Buff.affect 在没有这个状态时会当场新建一个，新建的一定能 consume，等于所有攻击卡都不耗回合
+					NextAttackFree naf = hero.buff(NextAttackFree.class);
+					boolean free = naf != null && naf.consume();
 
-				int emp = hero.pointsInTalent(Talent.BLANK_EMPOWERMENT);
-				if (emp == 1) dmg += Random.NormalIntRange(0, 2);
-				else if (emp == 2) dmg += Random.NormalIntRange(1, 3);
+					Char hitChar = Actor.findChar(hitPos);
+					if (hitChar != null && hitChar != hero && hitChar.alignment != Char.Alignment.ALLY) {
+						QuickSlotButton.target(hitChar);
+						// 基础伤害 1~5，再附加一份 1~5 的额外伤害
+						int dmg = Random.NormalIntRange(1, 5) + Random.NormalIntRange(1, 5);
 
-				int wind = hero.pointsInTalent(Talent.BORROW_WIND_CUT);
-				if (wind > 0) {
-					int dist = Math.min(4, Math.round(Dungeon.level.trueDistance(hero.pos, ch.pos)));
-					dmg += dist * (wind == 2 ? Random.NormalIntRange(2, 3) : Random.NormalIntRange(1, 2));
-				}
+						int emp = hero.pointsInTalent(Talent.BLANK_EMPOWERMENT);
+						if (emp == 1) dmg += Random.NormalIntRange(0, 2);
+						else if (emp == 2) dmg += Random.NormalIntRange(1, 3);
 
-				int vault = hero.pointsInTalent(Talent.REFINED_ATTACK_DEFENSE);
-				if (vault > 0) {
-					int count = hero.cardDeck.count(CardType.ATTACK);
-					if (vault == 1) dmg += count;
-					else if (vault == 2) dmg += count * Random.NormalIntRange(1, 2);
-					else dmg += count * Random.NormalIntRange(2, 3);
-				}
+						int wind = hero.pointsInTalent(Talent.BORROW_WIND_CUT);
+						if (wind > 0) {
+							int dist = Math.min(4, Math.round(Dungeon.level.trueDistance(hero.pos, hitChar.pos)));
+							dmg += dist * (wind == 2 ? Random.NormalIntRange(2, 3) : Random.NormalIntRange(1, 2));
+						}
 
-				int pick = hero.pointsInTalent(Talent.CARD_ENCHANT);
-				if (pick > 0) {
-					float frac = pick == 1 ? 0.25f : pick == 2 ? 1f / 3f : 0.5f;
-					dmg += Math.round(weaponAverage(card) * frac);
-				}
+						int vault = hero.pointsInTalent(Talent.REFINED_ATTACK_DEFENSE);
+						if (vault > 0) {
+							int count = hero.cardDeck.count(CardType.ATTACK);
+							if (vault == 1) dmg += count;
+							else if (vault == 2) dmg += count * Random.NormalIntRange(1, 2);
+							else dmg += count * Random.NormalIntRange(2, 3);
+						}
 
-				// 以牙还牙：把存储的伤害一并打出
-				Vendetta vend = hero.buff(Vendetta.class);
-				if (vend != null && vend.stored > 0) {
-					int bonus = vend.take();
-					dmg += bonus;
-					hero.sprite.showStatus(CharSprite.POSITIVE, "+" + bonus);
-				}
+						int pick = hero.pointsInTalent(Talent.CARD_ENCHANT);
+						if (pick > 0) {
+							float frac = pick == 1 ? 0.25f : pick == 2 ? 1f / 3f : 0.5f;
+							dmg += Math.round(weaponAverage(card) * frac);
+						}
 
-				dealCardDamage(hero, ch, card, dmg);
+						// 以牙还牙：把存储的伤害一并打出
+						Vendetta vend = hero.buff(Vendetta.class);
+						if (vend != null && vend.stored > 0) {
+							int bonus = vend.take();
+							dmg += bonus;
+							hero.sprite.showStatus(CharSprite.POSITIVE, "+" + bonus);
+						}
 
-				// 背水一战：牌堆顶仍是攻击卡时追加额外攻击
-				int lastStand = hero.pointsInTalent(Talent.CT_LAST_STAND);
-				if (lastStand > 0 && !hero.cardDeck.drawPile.isEmpty()) {
-					Card top = hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
-					if (top != null && top.type == CardType.ATTACK) {
-						float frac = lastStand >= 3 ? 0.75f : 0.5f;
-						if (lastStand >= 4) frac = 1.0f;
-						int targets = lastStand >= 2 ? 2 : 1;
-						ArrayList<Char> others = new ArrayList<>();
-						for (Char c : Actor.chars()) {
-							if (c != hero && c.alignment == Char.Alignment.ENEMY && c.isAlive()) {
-								others.add(c);
+						dealCardDamage(hero, hitChar, card, dmg);
+
+						// 背水一战：牌堆顶仍是攻击卡时追加额外攻击
+						int lastStand = hero.pointsInTalent(Talent.CT_LAST_STAND);
+						if (lastStand > 0 && !hero.cardDeck.drawPile.isEmpty()) {
+							Card top = hero.cardDeck.drawPile.get(hero.cardDeck.drawPile.size() - 1);
+							if (top != null && top.type == CardType.ATTACK) {
+								float frac = lastStand >= 3 ? 0.75f : 0.5f;
+								if (lastStand >= 4) frac = 1.0f;
+								int targets = lastStand >= 2 ? 2 : 1;
+								ArrayList<Char> others = new ArrayList<>();
+								for (Char c : Actor.chars()) {
+									if (c != hero && c.alignment == Char.Alignment.ENEMY && c.isAlive()) {
+										others.add(c);
+									}
+								}
+								for (int i = 0; i < targets && !others.isEmpty(); i++) {
+									Char t = others.remove(Random.Int(others.size()));
+									dealCardDamage(hero, t, card, Math.max(1, Math.round(dmg * frac)));
+								}
 							}
 						}
-						for (int i = 0; i < targets && !others.isEmpty(); i++) {
-							Char t = others.remove(Random.Int(others.size()));
-							dealCardDamage(hero, t, card, Math.max(1, Math.round(dmg * frac)));
-						}
 					}
-				}
 
-				finish(hero, card, false, free ? 0f : card.type.time);
+					finish(hero, card, false, free ? 0f : card.type.time);
+				});
 				break;
 			}
 			case DEFENSE: {
@@ -330,7 +351,7 @@ public final class CardEffects {
 				if (barrier.shielding() < shield) {
 					barrier.setShield(shield);
 				}
-				hero.sprite.showStatus(CharSprite.POSITIVE, "+" + shield);
+				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING);
 
 				// 以守为攻
 				int guard = hero.pointsInTalent(Talent.CARD_ASSIST);
@@ -581,6 +602,17 @@ public final class CardEffects {
 		return cd;
 	}
 
+	private static void throwCard(Hero hero, Card card, int targetPos, Callback onArrive) {
+		if (hero.sprite == null || hero.sprite.parent == null) {
+			if (onArrive != null) onArrive.call();
+			return;
+		}
+		hero.busy();
+		hero.sprite.zap(targetPos);
+		((MissileSprite) hero.sprite.parent.recycle(MissileSprite.class))
+				.reset(hero.sprite, targetPos, new CardProjectile(card), onArrive);
+	}
+
 	private static void dealCardDamage(Hero hero, Char ch, Card card, int dmg) {
 		// 伤害型卡片等效投掷武器：相邻命中下降、远距离命中加成；不享受神射戒指。
 		float acc = Dungeon.level.adjacent(hero.pos, ch.pos) ? 0.5f : 1.5f;
@@ -626,7 +658,7 @@ public final class CardEffects {
 			Barrier barrier = Buff.affect(hero, Barrier.class);
 			if (barrier.shielding() < shield) {
 				barrier.setShield(shield);
-				hero.sprite.showStatus(CharSprite.POSITIVE, "+" + shield);
+				hero.sprite.showStatusWithIcon(CharSprite.POSITIVE, Integer.toString(shield), FloatingText.SHIELDING);
 			}
 		}
 
@@ -679,6 +711,9 @@ public final class CardEffects {
 	}
 
 	private static void eatCard(Hero hero, Card card, float energy) {
+		if (hero.pointsInTalent(Talent.ADVANCED_FOOD) >= 2) {
+			CardDrawer.cancelCooldown(hero);
+		}
 		if (card.type == CardType.SMALL_RATION && hero.buff(RationCooldown.class) != null) {
 			GLog.w(Messages.get(CardEffects.class, "ration_cooling"));
 			return;
@@ -688,9 +723,6 @@ public final class CardEffects {
 		Buff.affect(hero, Hunger.class).satisfy(val);
 		if (card.type == CardType.SMALL_RATION) {
 			Buff.affect(hero, RationCooldown.class, 100f);
-		}
-		if (hero.pointsInTalent(Talent.ADVANCED_FOOD) >= 2) {
-			CardDrawer.cancelCooldown(hero);
 		}
 		hero.sprite.operate(hero.pos);
 		SpellSprite.show(hero, SpellSprite.FOOD);

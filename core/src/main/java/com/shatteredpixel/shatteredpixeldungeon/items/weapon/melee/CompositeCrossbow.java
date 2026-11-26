@@ -107,7 +107,9 @@ public class CompositeCrossbow extends MeleeWeapon{
     }
 
     public CrossbowArrow combinedArrow(){
-        return new CrossbowArrow();
+        CrossbowArrow arrow = new CrossbowArrow();
+        arrow.level(level());
+        return arrow;
     }
 
     public class CrossbowArrow extends MissileWeapon {
@@ -150,6 +152,16 @@ public class CompositeCrossbow extends MeleeWeapon{
         @Override
         public float delayFactor(Char user) {
             return (1f/speedMultiplier(user));
+        }
+
+        @Override
+        public int buffedLvl() {
+            return CompositeCrossbow.this.buffedLvl();
+        }
+
+        @Override
+        public int STRReq() {
+            return CompositeCrossbow.this.STRReq();
         }
 
         @Override

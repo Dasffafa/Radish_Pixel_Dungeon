@@ -20,19 +20,25 @@ public final class CardTargeter {
 	private CardTargeter() {
 	}
 
+	private static boolean isProjectileCard(Card card) {
+		return card != null && (card.type == CardType.BLANK
+				|| card.type == CardType.ATTACK
+				|| card.type == CardType.GRAND_FINALE);
+	}
+
 	public static void play(Hero hero, Card card) {
 		if (hero == null || card == null || hero.cardDeck == null || hero.cardDeck.held != card) {
 			return;
 		}
 		if (!hero.isAlive() || !hero.ready) return;
 
-		if (card.type.target == CardType.Target.ENEMY) {
+		if (isProjectileCard(card)) {
 			Char target = QuickSlotButton.lastTarget;
 			if (target != null && Actor.chars().contains(target) && target.isAlive()
 					&& target.alignment != Char.Alignment.ALLY
 					&& target.pos >= 0 && target.pos < Dungeon.level.length()
 					&& Dungeon.level.heroFOV[target.pos]
-					&& isValidTarget(hero, card, target.pos)) {
+					&& new Ballistica(hero.pos, target.pos, Ballistica.PROJECTILE).collisionPos == target.pos) {
 				CardEffects.play(hero, card, target.pos);
 				return;
 			}
@@ -150,7 +156,29 @@ public final class CardTargeter {
 	}
 
 	public static boolean isValidTarget(Hero hero, Card card, int cell) {
+		if (cell < 0 || cell >= Dungeon.level.length()) return false;
 		Char ch = Actor.findChar(cell);
+		if (card.type == CardType.RIGID) {
+			// 僵化卡：只要在视野内即可指定，不走弹道
+			return ch != null && Dungeon.level.heroFOV[ch.pos]
+					&& (ch == hero || ch.alignment != Char.Alignment.ALLY);
+		}
+		if (card.type == CardType.BLANK) {
+			if (ch == hero) {
+				// 空白卡指定自己：仅收藏家可用（转化为攻击/防御卡）。
+				return hero.subClass == HeroSubClasses.ILLUSIONIST;
+			}
+			if (hero.subClass == HeroSubClasses.JOKER && absorbableTrap(cell)) {
+				// 陷阱师：吸收可见未触发的陷阱
+				return true;
+			}
+			// 空白卡改为类似灵能弓的弹道射击，可朝任意非自身位置发射
+			return cell != hero.pos;
+		}
+		if (card.type == CardType.ATTACK || card.type == CardType.GRAND_FINALE) {
+			// 弹道射击：可朝任意非自身位置发射
+			return cell != hero.pos;
+		}
 		switch (card.type.target) {
 			case NONE:
 				return true;
@@ -158,21 +186,10 @@ public final class CardTargeter {
 				return ch == hero;
 			case ENEMY:
 				if (ch == null || ch == hero || ch.alignment == Char.Alignment.ALLY) return false;
-				// 卡牌攻击不能穿墙：需要视线可达
 				return inSight(hero, ch.pos);
 			case ANY:
-				if (card.type == CardType.BLANK && ch == hero) {
-					// 空白卡指定自己：仅收藏家可用（转化为攻击/防御卡）。
-					return hero.subClass == HeroSubClasses.ILLUSIONIST;
-				}
-				if (card.type == CardType.BLANK && hero.subClass == HeroSubClasses.JOKER
-						&& absorbableTrap(cell)) {
-					// 陷阱师：陷阱格
-					return true;
-				}
 				if (ch == null) return false;
 				if (ch == hero) return true;
-				// 与攻击卡一样不能隔墙、不能打看不见的目标
 				return ch.alignment != Char.Alignment.ALLY && inSight(hero, ch.pos);
 			case CELL:
 				return isValidCell(hero, card, cell);
@@ -203,6 +220,9 @@ public final class CardTargeter {
 
 	public static boolean hasValidTarget(Hero hero, Card card) {
 		if (card.type.target == CardType.Target.SELF || card.type.target == CardType.Target.NONE) {
+			return true;
+		}
+		if (isProjectileCard(card)) {
 			return true;
 		}
 		if (card.type.target == CardType.Target.CELL) {

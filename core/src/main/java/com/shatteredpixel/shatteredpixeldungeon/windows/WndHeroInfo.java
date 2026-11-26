@@ -217,9 +217,8 @@ public class WndHeroInfo extends WndTabbed {
 				new ItemSprite(ItemSpriteSheet.SCROLL_ISAZ)};
 			} else if (cls == HeroClasses.CARDTRICKSTER) {
 				icons = new Image[]{ new ItemSprite(ItemSpriteSheet.CARD_DRAWER),
-				new ItemSprite(ItemSpriteSheet.PAPER_CUTTER),
-				new ItemSprite(ItemSpriteSheet.CARD_BLANK),
-				new ItemSprite(ItemSpriteSheet.SCROLL_ISAZ)};
+						new ItemSprite(ItemSpriteSheet.PAPER_CUTTER),
+						new ItemSprite(ItemSpriteSheet.SCROLL_ISAZ)};
 			} else {
 				icons = new Image[]{ new ItemSprite(ItemSpriteSheet.SEAL),
 						new ItemSprite(ItemSpriteSheet.WORN_SHORTSWORD),
