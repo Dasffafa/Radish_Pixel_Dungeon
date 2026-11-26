@@ -22,6 +22,8 @@
 package com.shatteredpixel.shatteredpixeldungeon.actors.buffs;
 
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
+import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.TalentRequirement;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
@@ -33,6 +35,7 @@ import com.shatteredpixel.shatteredpixeldungeon.ui.ActionIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.BuffIndicator;
 import com.shatteredpixel.shatteredpixeldungeon.ui.HeroIcon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.DiceMageSpell;
+import com.shatteredpixel.shatteredpixeldungeon.actors.hero.dicemage.spells.SurgerySpell;
 import com.shatteredpixel.shatteredpixeldungeon.windows.WndDiceMageSpells;
 import com.watabou.noosa.Image;
 import com.watabou.utils.Bundle;
@@ -329,6 +332,13 @@ public class MagicPoint extends Buff implements ActionIndicator.Action {
             updateAction();
             spend(TICK);
             return true;
+        }
+        if (activeSurgerySummon != -1) {
+            Actor summon = Actor.findById(activeSurgerySummon);
+            if (!(summon instanceof Char) || !((Char) summon).isAlive()) {
+                activeSurgerySummon = -1;
+                setCooldown(SurgerySpell.class, SurgerySpell.COOLDOWN);
+            }
         }
         if (!cooldowns.isEmpty()) {
             cooldowns.entrySet().removeIf(e -> {

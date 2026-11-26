@@ -366,7 +366,7 @@ public class AshKing extends ArmorAbility {
 			hasEnemyNearby = false;
 			for (Mob mob : Dungeon.level.mobs) {
 				if (mob.alignment == Char.Alignment.ENEMY
-						&& Dungeon.level.distance(target.pos, mob.pos) <= 4) {
+						&& Dungeon.level.distance(target.pos, mob.pos) <= 1) {
 					hasEnemyNearby = true;
 					break;
 				}

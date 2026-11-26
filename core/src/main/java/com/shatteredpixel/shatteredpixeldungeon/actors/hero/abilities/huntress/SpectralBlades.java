@@ -29,6 +29,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.buffs.Invisibility;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Talent;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.abilities.ArmorAbility;
+import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidOakSage;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.armor.ClassArmor;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.Shuriken;
@@ -139,7 +140,10 @@ public class SpectralBlades extends ArmorAbility {
 		for (int cell : path.path){
 			Char ch = Actor.findChar(cell);
 			if (ch != null){
-				if (ch == hero || existingTargets.contains(ch) || ch.alignment == Char.Alignment.ALLY){
+				// 橡木智者是英雄自己召唤的，只是为了不被敌人选作目标才算中立。
+				// 灵刃对它和对友军一样直接穿过去，否则它站在线上时灵刃只会打在它身上（它不受伤害），白白用掉充能
+				if (ch == hero || existingTargets.contains(ch) || ch.alignment == Char.Alignment.ALLY
+						|| ch instanceof DruidOakSage){
 					continue;
 				} else {
 					return ch;

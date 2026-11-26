@@ -106,7 +106,6 @@ public class SpiritBow extends Weapon {
 
 	@Override
 	public int proc(Char attacker, Char defender, int damage) {
-
 		// 自然连结 +3：灵能弓命中时有 16% 概率触发随机负面植物
 		if (Dungeon.hero != null
                 && Dungeon.hero.hasSubClass(com.shatteredpixel.shatteredpixeldungeon.actors.hero.HeroSubClasses.DRUID)

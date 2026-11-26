@@ -67,7 +67,7 @@ public class DruidBear extends Mob {
 
 		// 3x3 溅射 75%
 		for (Char ch : Actor.chars()) {
-			if (ch != enemy && ch.alignment != Alignment.ALLY
+			if (ch != enemy && ch.alignment == Alignment.ENEMY
 					&& ch.isAlive() && Dungeon.level.distance( enemy.pos, ch.pos ) <= 1) {
 				ch.damage( new DamageInfo( Math.round( damage * 0.75f ), DamageType.PHYSICAL, this, null, this ) );
 			}

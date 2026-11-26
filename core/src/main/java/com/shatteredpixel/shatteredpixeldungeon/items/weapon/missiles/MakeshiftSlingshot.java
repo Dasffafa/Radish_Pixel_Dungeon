@@ -134,9 +134,12 @@ public class MakeshiftSlingshot extends Item {
 
 			if (enemy != null && enemy != user) {
 				// 走标准射击流程，命中率/强化/附魔/暴击都会正常计算
-				ThrowingStone shot = new ThrowingStone();
-				// 4倍伤害通过层数体现，保持与说明一致
-				shot.level(Math.max(0, shot.level() + 4));
+				ThrowingStone shot = new ThrowingStone() {
+					@Override
+					public int damageRoll(Char owner) {
+						return Math.round(super.damageRoll(owner) * 4f);
+					}
+				};
 				user.shoot(enemy, shot);
 				// 检查击杀
 				if (!enemy.isAlive()) {

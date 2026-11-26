@@ -99,7 +99,7 @@ public class LastPrayer extends ArmorAbility {
 
         // set heal
         int Lv = hero.pointsInTalent(Talent.EFFICIENT_HEALING);
-        Buff.affect(hero, Healing.class).setHeal(30 + 5 + Lv * 5, ((float) (1/hero.HT)) * (1f + (Lv+1) * 0.25f), 0);
+        Buff.affect(hero, Healing.class).setHeal(Math.round(hero.HT * 0.3f) + Lv * 5, ((float) (1/hero.HT)) * (1f + (Lv+1) * 0.25f), 0);
 
         // set haste
         if(hero.hasTalent(Talent.INERTIAL_CHARGE)){

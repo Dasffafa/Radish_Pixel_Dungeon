@@ -1224,6 +1224,7 @@ public class Hero extends Char {
 		}
 
         float speed = RingOfFuror.attackSpeedMultiplier(this);
+		if (buff(com.shatteredpixel.shatteredpixeldungeon.actors.mobs.DruidOakSage.OakAura.class) != null) speed *= 1.25f;
 
         if (hasTalent(Talent.BOW_DULES) && (buff(SnipersMark.class) != null
                 || Dungeon.level != null && Dungeon.level.mobs.stream().anyMatch(

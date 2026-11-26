@@ -24,6 +24,7 @@ package com.shatteredpixel.shatteredpixeldungeon.sprites;
 import com.shatteredpixel.shatteredpixeldungeon.Assets;
 import com.shatteredpixel.shatteredpixeldungeon.Dungeon;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
+import com.shatteredpixel.shatteredpixeldungeon.effects.CriticalShock;
 import com.shatteredpixel.shatteredpixeldungeon.effects.DarkBlock;
 import com.shatteredpixel.shatteredpixeldungeon.effects.EmoIcon;
 import com.shatteredpixel.shatteredpixeldungeon.effects.Flare;
@@ -57,6 +58,7 @@ import com.watabou.noosa.tweeners.AlphaTweener;
 import com.watabou.noosa.tweeners.PosTweener;
 import com.watabou.noosa.tweeners.Tweener;
 import com.watabou.utils.Callback;
+import com.watabou.utils.GameMath;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Random;
 
@@ -419,6 +421,20 @@ public class CharSprite extends MovieClip implements Tweener.Listener, MovieClip
 			PointF c = center();
 			int n = (int)Math.min( 9 * Math.sqrt( (double)damage / ch.HT ), 9 );
 			Splash.at( c, PointF.angle( from, c ), 3.1415926f / 2, blood(), n );
+		}
+	}
+
+	public void bloodBurstB( PointF from, int damage ) {
+		if (visible) {
+			PointF c = center();
+			Splash.at( c, PointF.angle( from, c ), 3.1415926f / 2, blood(), 12 );
+		}
+	}
+
+	public void spriteBurst( PointF from, int damage ) {
+		if (visible) {
+			float str = GameMath.gate( 1f, (float)Math.sqrt( (double)damage / ch.HT ) * 1.5f, 1.5f );
+			CriticalShock.show( ch, PointF.angle( from, center() ), str );
 		}
 	}
 

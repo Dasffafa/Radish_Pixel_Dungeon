@@ -133,7 +133,7 @@ public class CardDrawer extends Item {
 
 	/** 自动抽卡：冷却结束且没有手牌时触发，不消耗回合。 */
 	public static boolean autoDraw(Hero hero) {
-		if (hero == null || !hero.isAlive() || !hero.ready) return false;
+		if (hero == null || !hero.isAlive()) return false;
 		CardDeck deck = CardDeck.getOrCreate(hero);
 		if (deck.held != null || deck.totalSize() == 0) return false;
 		DrawCooldown cd = hero.buff(DrawCooldown.class);
