@@ -370,11 +370,10 @@ public class MeleeWeapon extends Weapon {
 			case NONE:
 		}
 
-		if (enchantment != null && (cursedKnown || !enchantment.curse())){
-			info += "\n\n" + Messages.capitalize(Messages.get(Weapon.class, "enchanted", enchantment.name()));
-			if (enchantHardened) info += " " + Messages.get(Weapon.class, "enchant_hardened");
-			info += " " + enchantment.desc();
-		} else if (enchantHardened){
+		//附魔在物品窗里有自己的分节，这里只说硬化，不重复附魔的名字与说明
+		if (enchantment != null && enchantHardened){
+			info += "\n\n" + Messages.get(Weapon.class, "enchant_hardened");
+		} else if ((enchantment == null || enchantment.curse()) && enchantHardened){
 			info += "\n\n" + Messages.get(Weapon.class, "hardened_no_enchant");
 		}
 

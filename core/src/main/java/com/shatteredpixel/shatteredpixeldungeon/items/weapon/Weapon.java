@@ -506,7 +506,9 @@ abstract public class Weapon extends KindOfWeapon {
 	
 	@Override
 	public String name() {
-		return enchantment != null && (cursedKnown || !enchantment.curse()) ? enchantment.name( super.name() ) : super.name();
+		//未鉴定时不透出附魔的名字：要么已鉴定，要么诅咒已确认
+		boolean known = enchantment != null && (isIdentified() || (cursedKnown && enchantment.curse()));
+		return known ? enchantment.name( super.name() ) : super.name();
 	}
 	
 	@Override

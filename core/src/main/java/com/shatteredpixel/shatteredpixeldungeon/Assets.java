@@ -328,6 +328,10 @@ public class Assets {
 	}
 
 	public static class Sprites {
+	//the item window's fold arrow and its rule (artwork: the game font has no arrow glyphs)
+	public static final String SECTION_ARROW = "sprites/section_arrow.png";
+	public static final String SECTION_RULE = "sprites/section_rule.png";
+
 		public static final String AVATARS_WARRIOR	= "sprites/avatars_warrior.png";
 		public static final String AVATARS_MAGE	= "sprites/avatars_mage.png";
 		public static final String AVATARS_ROGUE	= "sprites/avatars_rogue.png";

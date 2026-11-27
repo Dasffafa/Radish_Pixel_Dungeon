@@ -32,7 +32,9 @@ import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene;
 import com.shatteredpixel.shatteredpixeldungeon.scenes.PixelScene;
 import com.shatteredpixel.shatteredpixeldungeon.ui.DiceMageUI;
+import com.shatteredpixel.shatteredpixeldungeon.ui.ItemInfoText;
 import com.shatteredpixel.shatteredpixeldungeon.ui.ItemSlot;
+import com.shatteredpixel.shatteredpixeldungeon.ui.SectionHeader;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RedButton;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RenderedTextBlock;
 import com.shatteredpixel.shatteredpixeldungeon.ui.RoundedFrame;
@@ -120,8 +122,8 @@ public class WndInfoItem extends Window {
 		titlebar.color( color );
 		
 		RenderedTextBlock txtInfo = PixelScene.renderTextBlock( item.displayInfo(), 6 );
-		
-		layoutFields(titlebar, txtInfo);
+
+		layoutItem(titlebar, txtInfo, item);
 		maybeAddCurseButton( item );
 	}
 
@@ -252,5 +254,189 @@ public class WndInfoItem extends Window {
 			tags += " unknown";
 		}
 		return tags;
+	}
+
+	//the folding sections: description, enchantment, type
+	private IconTitle secTitle;
+	//an enchanted item's name breathes (its colour, its light waxing and waning)
+	private IconTitle pulseTitle;
+	private boolean pulses;
+	private int pulseColor = 0xE8D9A8;
+	private SectionHeader descHeader, enchantHeader, typeHeader;
+	private RenderedTextBlock secInfo, enchantBody;
+	private int secWidth;
+
+	private void layoutItem( IconTitle title, RenderedTextBlock info, Item item ){
+		secTitle = title;
+		pulseTitle = title;
+		pulses = ItemInfoText.enchantOf( item ) != null;
+		secInfo = info;
+		sectionItem = item;
+		secWidth = WIDTH_MIN;
+		info.maxWidth( secWidth );
+		while (PixelScene.landscape() && info.height() > 100 && secWidth < WIDTH_MAX){
+			secWidth += 20;
+			info.maxWidth( secWidth );
+		}
+
+		descHeader = new SectionHeader( "\u63cf\u8ff0", 0xE8D9A8, secWidth );
+
+		enchantHeader = null;
+		enchantBody = null;
+		Object ench = ItemInfoText.enchantKnown( item )
+				? ItemInfoText.enchantOf( item ) : null;
+		if (ItemInfoText.isGear( item )){
+			int rColor = ench != null
+					? ItemInfoText.enchantColor( item )
+					: 0xE8D9A8;
+			if (rColor == 0) rColor = 0xE8D9A8;
+			pulseColor = rColor;
+
+			//the header already names the type, so the body does not repeat it
+			String famText = ItemInfoText.familyText( item );
+			String famName = ItemInfoText.familyTitle( item );
+			if (famText.startsWith( famName + "\uff1a" )){
+				famText = famText.substring( famName.length() + 1 );
+			}
+			typeBody = PixelScene.renderTextBlock( famText, 6 );
+			typeBody.maxWidth( secWidth );
+
+			typeHeader = new SectionHeader(
+					"\u7c7b\u578b\uff1a" + ItemInfoText.familyTitle( item ),
+					rColor, secWidth );
+			add( typeHeader );
+			add( typeBody );
+
+			if (ench != null){
+				//the header only says which section it is: name and text both fold away below it
+				boolean cursed = ench instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment
+						&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment) ench).curse();
+				enchantHeader = new SectionHeader(
+						cursed ? "\u8bc5\u5492" : "\u9644\u9b54", rColor, secWidth );
+				enchantBody = PixelScene.renderTextBlock(
+						"\u00b7 " + com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase(
+								ItemInfoText.enchantWord( item ) )
+								+ "\n" + com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( ench, "desc" ), 6 );
+				enchantBody.maxWidth( secWidth );
+				add( enchantBody );
+			}
+		}
+
+		add( secTitle );
+		add( descHeader );
+		add( secInfo );
+		if (enchantHeader != null) add( enchantHeader );
+		layoutSections();
+	}
+
+	/** Lays the sections out; folded ones take only their header's height. */
+	//invisible buttons laid over each section header: pressing one folds that section
+
+	private boolean descOpen = true, enchantOpen = true, typeOpen = true;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.Button typeHit;
+	private RenderedTextBlock typeBody;
+	private com.watabou.noosa.ColorBlock descRule;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.Button descHit, enchantHit;
+	private Item sectionItem;
+
+	private void layoutSections(){
+		float y = 0;
+		secTitle.setRect( 0, 0, secWidth, 0 );
+		secTitle.setPos( 0, 0 );
+		y = secTitle.bottom() + 2;
+
+		descHeader.open = descOpen;
+		descHeader.place( 0, y );
+		if (descHit == null){
+			descHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+				@Override
+				protected void onClick(){
+					descOpen = !descOpen;
+					layoutSections();
+				}
+			};
+			add( descHit );
+		}
+		descHit.setRect( 0, y, secWidth, SectionHeader.HEIGHT );
+		y += SectionHeader.HEIGHT;
+		secInfo.visible = descOpen;
+		if (descOpen){
+			secInfo.setPos( 0, y );
+			y = secInfo.bottom();
+		}
+		y += GAP;
+
+		if (enchantHeader != null){
+			enchantHeader.open = enchantOpen;
+			enchantHeader.place( 0, y );
+			if (enchantHit == null){
+				enchantHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+					@Override
+					protected void onClick(){
+						enchantOpen = !enchantOpen;
+						layoutSections();
+					}
+				};
+				add( enchantHit );
+			}
+			enchantHit.setRect( 0, y, secWidth, SectionHeader.HEIGHT );
+			y += SectionHeader.HEIGHT;
+			if (enchantBody != null){
+				enchantBody.visible = enchantOpen;
+				if (enchantOpen){
+					enchantBody.setPos( 0, y );
+					y = enchantBody.bottom();
+				}
+			}
+			y += GAP;
+		}
+
+		if (typeHeader != null){
+			typeHeader.open = typeOpen;
+			typeHeader.place( 0, y );
+			if (typeHit == null){
+				typeHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+					@Override
+					protected void onClick(){
+						typeOpen = !typeOpen;
+						layoutSections();
+					}
+				};
+				add( typeHit );
+			}
+			typeHit.setRect( 0, y, secWidth, SectionHeader.HEIGHT );
+			y += SectionHeader.HEIGHT;
+			if (typeBody != null){
+				typeBody.visible = typeOpen;
+				if (typeOpen){
+					typeBody.setPos( 0, y );
+					y = typeBody.bottom();
+				}
+			}
+			y += GAP;
+		}
+
+		float oldHeight = height;
+		resize( secWidth, (int)(y + 2) );
+		onRelayout( oldHeight );
+
+	}
+
+	/** Called after the window's height changed (a section was folded). */
+	protected void onRelayout( float oldHeight ){
+	}
+
+	@Override
+	public void update(){
+		super.update();
+		//breathing: an enchanted item's name dims and brightens, in its enchantment's colour
+		if (pulses && pulseTitle != null && pulseTitle.tfLabel != null){
+			float wave = ItemInfoText.pulse();
+			pulseTitle.tfLabel.alpha( 0.72f + 0.28f * wave );
+			//and a little brighter at the top of the breath, not only more opaque
+			pulseTitle.tfLabel.hardlight(
+					ItemInfoText
+							.lighten( pulseColor, 0.40f * wave ) );
+		}
 	}
 }
