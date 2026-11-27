@@ -298,6 +298,11 @@ public class WndInfoItem extends Window {
 			if (famText.startsWith( famName + "\uff1a" )){
 				famText = famText.substring( famName.length() + 1 );
 			}
+			//武器类型与伤害类型是两回事，各占一段
+			String dmgName = ItemInfoText.damageTitle( item );
+			if (!dmgName.isEmpty()){
+				famText += "\n\n伤害类型：" + dmgName + "\n" + ItemInfoText.damageText( item );
+			}
 			typeBody = PixelScene.renderTextBlock( famText, 6 );
 			typeBody.maxWidth( secWidth );
 
