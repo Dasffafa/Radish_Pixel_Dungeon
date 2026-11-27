@@ -205,6 +205,11 @@ public class Item implements Bundlable {
 	}
 
 	public void doThrow( Hero hero ) {
+		//自动攻击挑战：投掷武器不能自己选目标（药水不受限）
+		if (com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.blocksThrowAim( this )){
+			GLog.w( "自动攻击挑战：投掷武器无法选定目标" );
+			return;
+		}
 		QuickSlotButton.cancel();
 		GameScene.selectCell(thrower);
 	}

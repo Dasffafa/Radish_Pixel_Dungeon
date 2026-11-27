@@ -2865,6 +2865,11 @@ public class Hero extends Char {
 			return false;
 		}
 
+		//自动攻击挑战：点自己（原地等待）算跳过回合，随机打一个范围内的敌人
+		if (cell == pos && com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.active()){
+			com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroWait( this );
+		}
+
 		// 特殊门：单向门需要手动开启，锁定/封死的门只提示不移动
 		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoor specialDoor =
 				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialDoors.get(Dungeon.level, cell);
@@ -2925,6 +2930,10 @@ public class Hero extends Char {
 
 			if (((Mob) ch).heroShouldInteract()) {
 				curAction = new HeroAction.Interact( ch );
+			} else if (com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.active()){
+				//自动攻击挑战：不能手动选目标，靠移动或跳过回合出手
+				GLog.w( "自动攻击挑战：攻击目标不可手动选择" );
+				return false;
 			} else {
 				curAction = new HeroAction.Attack( ch );
 			}

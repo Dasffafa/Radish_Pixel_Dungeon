@@ -42,6 +42,30 @@ public final class AutoAttack {
 		return Dungeon.isChallenged( Challenges.AUTOMATIC_ATTACK );
 	}
 
+	/** 跳过回合（原地等待）时的随机攻击：范围内随机挑一个敌人。 */
+	public static void onHeroWait( Hero hero ){
+		if (hero == null || !hero.isAlive() || !active()) return;
+		java.util.ArrayList<Char> targets = new java.util.ArrayList<>();
+		int reach = heroReach( hero );
+		for (Mob m : Dungeon.level.mobs){
+			if (!m.isAlive()) continue;
+			if (m.alignment != Char.Alignment.ENEMY) continue;
+			if (!Dungeon.level.heroFOV[m.pos]) continue;
+			if (Dungeon.level.distance( hero.pos, m.pos ) <= reach) targets.add( m );
+		}
+		if (targets.isEmpty()) return;
+		Char target = targets.get( com.watabou.utils.Random.Int( targets.size() - 1 ) );
+		if (hero.sprite != null) hero.sprite.attack( target.pos );
+		hero.attack( target );
+	}
+
+	/** 这个物品能不能手动瞄准：挑战里投掷武器不能选目标，药水照旧。 */
+	public static boolean blocksThrowAim( Object item ){
+		if (!active() || item == null) return false;
+		if (!(item instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon)) return false;
+		return true;
+	}
+
 	/** 起步那一刻够得着的目标：退着走时也照打（这一步内出的手）。 */
 	public static Char targetBeforeMove( Hero hero ){
 		if (hero == null || !hero.isAlive() || !active()) return null;
@@ -114,7 +138,8 @@ public final class AutoAttack {
 		int bestDist = Integer.MAX_VALUE;
 		for (Mob m : Dungeon.level.mobs){
 			if (m == self || !m.isAlive()) continue;
-			if (m.alignment == self.alignment) continue;
+			//只打敌对生物：NPC 与盟友不碰
+			if (m.alignment != Char.Alignment.ENEMY) continue;
 			//视野里看得见才打；贴身的即使视野还没刷新也算
 			if (!Dungeon.level.heroFOV[m.pos] && Dungeon.level.distance( self.pos, m.pos ) > 1) continue;
 			int d = Dungeon.level.distance( self.pos, m.pos );
