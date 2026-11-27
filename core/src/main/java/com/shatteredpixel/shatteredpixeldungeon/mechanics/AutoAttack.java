@@ -147,7 +147,14 @@ public final class AutoAttack {
 	/** 法杖：背包里每根还有能量的都朝目标放一次（没能量就跳过）。 */
 	private static void staffStrikes( Hero hero ){
 		java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand> wands =
-				hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.class );
+				new java.util.ArrayList<>( hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.class ) );
+		//法师的法杖（MagesStaff）里嵌着一根魔杖，也算一根
+		for (com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff staff
+				: hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.weapon.melee.MagesStaff.class )){
+			if (staff.wand != null && !wands.contains( staff.wand )){
+				wands.add( staff.wand );
+			}
+		}
 		for (com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand wand : wands){
 			Char target = visibleEnemy( hero );
 			if (target == null) break;
@@ -161,24 +168,26 @@ public final class AutoAttack {
 	 */
 	private static void zapWith( Hero hero, Char target,
 			com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand wand ){
-		if (!wand.tryToZap( hero, target.pos )) return;
+		//没能量就安静跳过，不再刷"法杖抖动"的提示
+		if (!wand.autoHasCharge()) return;
 		Item.curUser = hero;
 		Item.curItem = wand;
 		if (hero.sprite != null) hero.sprite.zap( target.pos );
 		final int cell = target.pos;
 		final com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand w = wand;
-		final com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica shot = new com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica(
-				hero.pos, cell, wand.collisionProperties( cell ) );
+		final com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica shot =
+				new com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica(
+						hero.pos, cell, wand.collisionProperties( cell ) );
+		com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.autoCastFree = true;
 		wand.fx( shot, new com.watabou.utils.Callback(){
 			@Override
 			public void call(){
 				Item.curUser = hero;
 				Item.curItem = w;
 				w.onZap( shot );
-				//只扣能量，不调 wandUsed（它会花掉玩家的回合）
-				w.curCharges -= w.cursed ? 1 : 1;
-				w.curCharges = Math.max( 0, w.curCharges );
-				w.updateQuickslot();
+				//走 wandUsed：照扣能量、触发施法天赋，但由 autoCastFree 跳过回合消耗
+				w.wandUsed();
+				com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.autoCastFree = false;
 			}
 		} );
 	}

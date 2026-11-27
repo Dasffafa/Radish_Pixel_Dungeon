@@ -98,6 +98,9 @@ public abstract class Wand extends Item {
 
 	private static final float TIME_TO_ZAP	= 1f;
 
+	/** 自动攻击挑战：施法记账照走，但不推进回合。 */
+	public static boolean autoCastFree = false;
+
 	public int maxCharges = initialCharges();
 	public int curCharges = maxCharges;
 	public float partialCharge = 0f;
@@ -184,6 +187,11 @@ public abstract class Wand extends Item {
 			return 1f + ((Hero)attacker).pointsInTalent(Talent.EMPOWERED_STRIKE)/2f;
 		}
 		return 1f;
+	}
+
+	/** 有没有足够能量施法（不弹提示，自动攻击用）。 */
+	public boolean autoHasCharge(){
+		return curCharges >= (cursed ? 1 : chargesPerCast());
 	}
 
 	public boolean tryToZap( Hero owner, int target ){
@@ -672,7 +680,9 @@ public abstract class Wand extends Item {
 				timeToZap = -hero.cooldown();
 		}
 
-		if( !(hero.buff(MagicStick.class)!=null && isMagesStaff)) {
+		if (autoCastFree){
+			//自动施法：不花回合
+		} else if( !(hero.buff(MagicStick.class)!=null && isMagesStaff)) {
 			curUser.spendAndNext(timeToZap);
 		}else{
 			hero.buff(MagicStick.class).detach();
