@@ -310,6 +310,16 @@ public abstract class Mob extends Char {
 	}
 
 	@Override
+	public void move( int step, boolean travelling ){
+		int fromPos = pos;
+		super.move( step, travelling );
+		if (fromPos != pos){
+			//自动攻击挑战：怪走完一格也补一次攻击（跟玩家一致，不额外叠加）
+			com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onMobMoved( this );
+		}
+	}
+
+	@Override
 	protected boolean act() {
 
 		super.act();
@@ -385,8 +395,6 @@ public abstract class Mob extends Char {
 			return true;
 		}
 
-		//自动攻击挑战：这个怪行动完，顺手向范围内的敌人出手
-		com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onMobTurn( this );
 
 		return state.act( enemyInFOV, justAlerted );
 	}

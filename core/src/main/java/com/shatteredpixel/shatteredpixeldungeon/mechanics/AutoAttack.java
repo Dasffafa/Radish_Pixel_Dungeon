@@ -54,6 +54,13 @@ public final class AutoAttack {
 		if (hero == null || !hero.isAlive() || !active()) return;
 		if (Actor.now() == lastWaitTime) return;
 		lastWaitTime = Actor.now();
+		//先随机打一下贴脸的，再照常把弓和投掷物放出去
+		waitMelee( hero );
+		rangedStrikes( hero );
+	}
+
+	/** 原地等待时的那一下随机近战。 */
+	private static void waitMelee( Hero hero ){
 		java.util.ArrayList<Char> targets = new java.util.ArrayList<>();
 		int reach = heroReach( hero );
 		for (Mob m : Dungeon.level.mobs){
@@ -112,6 +119,7 @@ public final class AutoAttack {
 				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon arrow =
 						bow.knockArrow();
 				fling( hero, target, arrow );
+
 			}
 		}
 
@@ -178,7 +186,7 @@ public final class AutoAttack {
 	}
 
 	/** 怪物每次行动后调一次：能打到就打，远程怪贴脸就后退。 */
-	public static void onMobTurn( Mob mob ){
+	public static void onMobMoved( Mob mob ){
 		if (mob == null || !mob.isAlive() || !active()) return;
 		float now = Actor.now();
 		Float last = lastMobAttack.get( mob );
