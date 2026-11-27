@@ -32,9 +32,6 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWea
 import com.shatteredpixel.shatteredpixeldungeon.messages.Messages;
 import com.watabou.noosa.Game;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * 物品窗里名字旁边的那两块：附魔（护甲则是铭文）与类型。
@@ -110,12 +107,63 @@ public final class ItemInfoText {
 		return it instanceof Weapon || it instanceof Armor || it instanceof ItemArmorAttachable;
 	}
 
-	private static final int DAGGER = 0, SHORTSWORD = 1, LONGSWORD = 2, GREATSWORD = 3, AXE = 4, BLUNT = 5,
-			POLEARM = 6, WHIP = 7, WHEEL = 8, BOW = 9, CROSSBOW = 10, THROWN = 11, STAFF = 12, WAND = 13,
-			RING = 14, LIGHT_ARMOR = 15, MID_ARMOR = 16, HEAVY_ARMOR = 17, SHIELD = 18,
-			DUAL = 19, SPECIAL = 20, TOY = 21, OTHER = 22;
+	//武器只分三种打击方式：钝击、挥砍、穿刺；其余装备按各自类别显示
+	private static final int BLUNT = 0, SLASH = 1, PIERCE = 2,
+			LIGHT_ARMOR = 3, MID_ARMOR = 4, HEAVY_ARMOR = 5, SHIELD = 6,
+			WAND = 7, RING = 8, STAFF = 9, TOY = 10, OTHER = 11;
 
-	/** 类型分类：先看是什么（护甲/法杖/戒指/投掷），再看类名里的词。 */
+	/** 钝击：靠重量与整体冲击。 */
+	private static final String[] BLUNT_WORDS = {
+			"hammer", "mace", "flail", "club", "stick", "quarterstaff", "staff",
+			"gauntlet", "glove", "fist", "taijutsu", "tonfa", "spanner", "crowbar",
+			"chain", "sphere", "cross", "ankh", "book", "flag", "beecomb",
+			"morello", "multitool", "tool", "endguard", "fragment", "rlyeh",
+			"replace", "decree", "jutte", "cube", "bolas", "stone", "lock"
+	};
+	/** 挥砍：靠刃口划过。 */
+	private static final String[] SLASH_WORDS = {
+			"sword", "blade", "axe", "scythe", "sickle", "scimitar", "katana",
+			"yamato", "whip", "cutter", "cleaver", "ripper", "wheel", "circle",
+			"tomahawk", "claw", "saber", "sabre", "thorn"
+	};
+	/** 穿刺：靠尖端刺入。 */
+	private static final String[] PIERCE_WORDS = {
+			"dagger", "dirk", "katar", "sai", "sting", "rapier", "spear", "lance",
+			"glaive", "trident", "javelin", "kunai", "senbon", "shuriken", "knife",
+			"spike", "belladonna", "perfidy", "grappling", "hook", "crossbow",
+			"cannon", "slingshot", "point"
+	};
+
+	private static boolean has( String n, String[] words ){
+		for (String w : words){
+			if (n.contains( w )) return true;
+		}
+		return false;
+	}
+
+	/** 投掷武器的打击方式：重物钝击、斧类挥砍，其余穿刺。 */
+	private static int thrown( String n ){
+		if (n.contains( "hammer" ) || n.contains( "club" ) || n.contains( "stone" )
+				|| n.contains( "bolas" ) || n.contains( "cube" )) return BLUNT;
+		if (n.contains( "tomahawk" ) || n.contains( "axe" )) return SLASH;
+		return PIERCE;
+	}
+
+	/** 武器的打击方式，按类名判断（没有逐把武器登记数据，只能靠名字）。 */
+	private static int weaponFamily( String n ){
+		boolean blunt = has( n, BLUNT_WORDS );
+		boolean slash = has( n, SLASH_WORDS );
+		boolean pierce = has( n, PIERCE_WORDS );
+		if (blunt && !slash && !pierce) return BLUNT;
+		if (slash && !blunt && !pierce) return SLASH;
+		if (pierce && !blunt && !slash) return PIERCE;
+		//同时命中多个词时按更具体的定：匕首/长枪类穿刺优先，其次挥砍，最后钝击
+		if (pierce) return PIERCE;
+		if (slash) return SLASH;
+		if (blunt) return BLUNT;
+		return SLASH;
+	}
+
 	private static int family( Item it ){
 		if (it instanceof Armor){
 			int t = ((Armor)it).tier;
@@ -125,56 +173,25 @@ public final class ItemInfoText {
 		if (it instanceof Ring) return RING;
 		if (it instanceof ItemArmorAttachable) return TOY;
 		String n = it.getClass().getSimpleName().toLowerCase();
-		if (n.contains( "dual" ) || n.contains( "twin" ) || n.contains( "paired" )) return DUAL;
-		if (SPECIAL_WEAPONS.contains( n )) return SPECIAL;
-		if (n.contains( "crossbow" )) return CROSSBOW;
-		if (n.contains( "bow" )) return BOW;
-		if (n.contains( "circle" ) || n.contains( "waterwheel" )) return WHEEL;
 		if (n.contains( "shield" )) return SHIELD;
-		if (n.contains( "whip" )) return WHIP;
-		if (n.contains( "staff" )) return STAFF;
-		if (it instanceof MissileWeapon) return THROWN;
-		if (n.contains( "dagger" ) || n.contains( "dirk" ) || n.contains( "katar" )
-				|| n.contains( "sai" ) || n.contains( "sting" )) return DAGGER;
-		if (n.contains( "shortsword" ) || n.contains( "rapier" ) || n.contains( "scimitar" )) return SHORTSWORD;
-		if (n.contains( "greatsword" ) || n.contains( "knightgs" ) || n.contains( "kinggodsword" )
-				|| n.contains( "ripper" ) || n.contains( "cleaver" )) return GREATSWORD;
-		if (n.contains( "axe" )) return AXE;
-		if (n.contains( "spear" ) || n.contains( "glaive" ) || n.contains( "lance" )
-				|| n.contains( "scythe" ) || n.contains( "stick" ) || n.contains( "quarterstaff" )
-				|| n.contains( "grappling" ) || n.contains( "hook" )) return POLEARM;
-		if (n.contains( "hammer" ) || n.contains( "mace" ) || n.contains( "flail" )
-				|| n.contains( "crowbar" ) || n.contains( "tonfa" ) || n.contains( "spanner" )
-				|| n.contains( "glove" ) || n.contains( "gauntlet" ) || n.contains( "fist" )
-				|| n.contains( "claw" ) || n.contains( "cross" )) return BLUNT;
-		if (it instanceof MeleeWeapon) return LONGSWORD;
+		if (it instanceof MissileWeapon) return thrown( n );
+		if (it instanceof MeleeWeapon) return weaponFamily( n );
 		return OTHER;
 	}
 
 	public static String familyTitle( Item it ){
 		if (!isGear( it )) return "";
 		switch (family( it )){
-			case DAGGER:      return "匕首";
-			case SHORTSWORD:  return "短剑";
-			case LONGSWORD:   return "长剑";
-			case GREATSWORD:  return "巨剑";
-			case AXE:         return "斧";
-			case BLUNT:       return "钝器";
-			case POLEARM:     return "长柄武器";
-			case WHIP:        return "鞭";
-			case WHEEL:       return "轮刃";
-			case BOW:         return "弓";
-			case CROSSBOW:    return "弩";
-			case THROWN:      return "投掷武器";
-			case STAFF:       return "法杖";
-			case WAND:        return "魔杖";
-			case RING:        return "戒指";
+			case BLUNT:       return "钝击";
+			case SLASH:       return "挥砍";
+			case PIERCE:      return "穿刺";
 			case LIGHT_ARMOR: return "轻甲";
 			case MID_ARMOR:   return "中甲";
 			case HEAVY_ARMOR: return "重甲";
 			case SHIELD:      return "盾";
-			case DUAL:        return "双刃";
-			case SPECIAL:     return "特殊武器";
+			case WAND:        return "魔杖";
+			case RING:        return "戒指";
+			case STAFF:       return "法杖";
 			case TOY:         return "玩具";
 			default:          return "杂项";
 		}
@@ -183,37 +200,21 @@ public final class ItemInfoText {
 	public static String familyText( Item it ){
 		if (!isGear( it )) return "";
 		switch (family( it )){
-			case DAGGER:      return "极快且轻小，伤害偏低，靠速度与背刺取胜。";
-			case SHORTSWORD:  return "轻便的单手近战武器，攻速与伤害都居中。";
-			case LONGSWORD:   return "通用的近战武器，攻击与速度均衡，适合大多数情况。";
-			case GREATSWORD:  return "沉重的大剑，每一击都很重，但出手较慢。";
-			case AXE:         return "伤害很高但速度偏慢，靠重击压制对手。";
-			case BLUNT:       return "破甲能力强，击中后容易造成硬直。";
-			case POLEARM:     return "攻击距离更远，适合保持距离作战。";
-			case WHIP:        return "能在两格外抽打，但伤害稍低。";
-			case WHEEL:       return "本作的特色武器，投出后会旋回，也可近身斩击。";
-			case BOW:         return "需要箭矢的远程武器，距离越远越安全。";
-			case CROSSBOW:    return "装填慢但威力大的远程武器。";
-			case THROWN:      return "一次性使用，远距投出后需要抢回。";
-			case STAFF:       return "以魔力驱动的武器，注重法术与远程。";
-			case WAND:        return "以充能施放法术，需要灵活使用。";
-			case RING:        return "以持续加成回报佩戴者。";
+			case BLUNT:       return "钝击：靠重量与整体冲击破防，容易打出硬直，破甲最好。";
+			case SLASH:       return "挥砍：靠刃口划过，范围与连贯性好，适合正面交锋。";
+			case PIERCE:      return "穿刺：靠尖端刺入，命中精准，更容易造成暴击与致命伤。";
 			case LIGHT_ARMOR: return "防护偏低但不碍行动，适合机动作战。";
 			case MID_ARMOR:   return "防护与重量取得平衡的常规护甲。";
 			case HEAVY_ARMOR: return "防护最高，但对力量要求也最高。";
 			case SHIELD:      return "专门用于格挡与防守。";
-			case DUAL:        return "双手各持一把，连击更快更密集。";
-			case SPECIAL:     return "来历或用法独特的武器，规则往往与常规武器不同。";
+			case WAND:        return "以充能施放法术，需要灵活使用。";
+			case RING:        return "以持续加成回报佩戴者。";
+			case STAFF:       return "以魔力驱动的武器，注重法术与远程。";
 			case TOY:         return "装在护甲上的附装，不占武器位，提供一项特殊效果。";
 			default:          return "不属于常规武器或护甲。";
 		}
 	}
 
-	private static final Set<String> SPECIAL_WEAPONS = new HashSet<>(Arrays.asList(
-			"aberforth", "beecomb", "belladonna", "celestialsphere", "chibayari", "darkshadowsword", "endguard",
-			"enemyflag", "headcleaver", "holyankh", "juttechampionweapon", "killboatsword", "metalcross", "morello",
-			"multitool", "papercutter", "replacepoint", "rlyeh", "shadowbooks", "silversting", "spacefragment",
-			"wingsword" ));
 
 	/** 附魔物品名字的呼吸波（0~1，约 2.4 秒一次）。 */
 	public static float pulse(){
