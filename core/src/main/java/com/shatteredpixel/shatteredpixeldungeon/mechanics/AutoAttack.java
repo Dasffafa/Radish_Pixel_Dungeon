@@ -42,10 +42,24 @@ public final class AutoAttack {
 		return Dungeon.isChallenged( Challenges.AUTOMATIC_ATTACK );
 	}
 
-	/** 英雄一回合动作结束后调一次：范围内最近的敌人，顺手打一下。 */
-	public static void onHeroTurn( Hero hero ){
+	/** 起步那一刻够得着的目标：退着走时也照打（这一步内出的手）。 */
+	public static Char targetBeforeMove( Hero hero ){
+		if (hero == null || !hero.isAlive() || !active()) return null;
+		return nearest( hero, heroReach( hero ) );
+	}
+
+	/**
+	 * 英雄走完一格后调一次：优先打现在够得着的；若往后退出了范围，就打起步时盯着的那个。
+	 * 这样"远离怪物方向走"也照样能还手。
+	 */
+	public static void onHeroTurn( Hero hero, Char preTarget ){
 		if (hero == null || !hero.isAlive() || !active()) return;
-		Char target = nearest( hero, heroReach( hero ) );
+		int reach = heroReach( hero );
+		Char target = nearest( hero, reach );
+		if (target == null && preTarget != null && preTarget.isAlive()
+				&& Dungeon.level.distance( hero.pos, preTarget.pos ) <= reach + 1){
+			target = preTarget;
+		}
 		if (target == null) return;
 		//先摆出攻击动作，再结算伤害
 		if (hero.sprite != null) hero.sprite.attack( target.pos );

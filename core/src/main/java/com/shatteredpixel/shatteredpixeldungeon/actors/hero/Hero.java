@@ -3373,6 +3373,9 @@ public class Hero extends Char {
 	@Override
 	public void move(int step, boolean travelling) {
 		int fromPos = pos;
+		//自动攻击挑战：起步时够得着的目标（退着走也能还手）
+		Char autoTarget = com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack
+				.targetBeforeMove( this );
 		boolean wasHighGrass = Dungeon.level.map[step] == Terrain.HIGH_GRASS;
 
 		super.move( step, travelling);
@@ -3384,7 +3387,7 @@ public class Hero extends Char {
 
 		//自动攻击挑战：每走成一格就免费打一次（跨多格的移动会一格打一下）
 		if (fromPos != pos){
-			com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroTurn( this );
+			com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroTurn( this, autoTarget );
 		}
 
 		if (!flying && travelling) {
