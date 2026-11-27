@@ -1289,6 +1289,9 @@ public class Hero extends Char {
 	@Override
 	public boolean act() {
 
+		//自动攻击挑战：只有移动，才在走完之后补一次攻击
+		boolean autoAttackAfterMove = curAction instanceof HeroAction.Move;
+
 		EventManager.emit(new HeroActEvent(this));
 		if (pendingTalentRequirements) TalentRequirement.sync(this);
 
@@ -1443,9 +1446,10 @@ public class Hero extends Char {
 
 		} else {
 
-			resting = false;
+				resting = false;
 
 			ready = false;
+
 
 			if (curAction instanceof HeroAction.Move) {
 				actResult = actMove( (HeroAction.Move)curAction );
@@ -1491,7 +1495,9 @@ public class Hero extends Char {
 
 		
 		//自动攻击挑战：一回合的动作做完，再补一次攻击（移动后也算）
-		com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroTurn( this );
+		if (autoAttackAfterMove){
+			com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroTurn( this );
+		}
 
 		return actResult;
 	}
