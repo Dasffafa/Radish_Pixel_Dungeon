@@ -2190,6 +2190,9 @@ public class Hero extends Char {
 
  	public void rest( boolean fullRest ) {
 
+		//自动攻击挑战：跳过回合随机打一个范围内的敌人
+		com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroWait( this );
+
 		// 庇护：原地等待时获得（3+等级）点护盾（覆盖式，不叠加）
 		com.shatteredpixel.shatteredpixeldungeon.items.armor.SecondaryArmor shelterArmor = belongings.secondaryArmor();
 		if (shelterArmor instanceof com.shatteredpixel.shatteredpixeldungeon.items.armor.secondary.Shelter

@@ -42,9 +42,14 @@ public final class AutoAttack {
 		return Dungeon.isChallenged( Challenges.AUTOMATIC_ATTACK );
 	}
 
+	/** 上一回合同一时刻是否已经随机出手过（点自己与等待按钮都会走到，避免一回合打两下）。 */
+	private static float lastWaitTime = -1f;
+
 	/** 跳过回合（原地等待）时的随机攻击：范围内随机挑一个敌人。 */
 	public static void onHeroWait( Hero hero ){
 		if (hero == null || !hero.isAlive() || !active()) return;
+		if (Actor.now() == lastWaitTime) return;
+		lastWaitTime = Actor.now();
 		java.util.ArrayList<Char> targets = new java.util.ArrayList<>();
 		int reach = heroReach( hero );
 		for (Mob m : Dungeon.level.mobs){
