@@ -73,42 +73,58 @@ public final class AutoAttack {
 	}
 
 
-	/** 远程够得着的距离（弓与投掷物都用这个上限）。 */
-	private static final int RANGED_REACH = 6;
+	/**
+	 * 远程出手：弓（若装备且力够）射一箭，背包里每件力够的投掷物各投一次。
+	 * 投掷物本身没有距离限制，只要目标在视野里就算够得着。
+	 */
+	private static void rangedStrikes( Hero hero ){
+		KindOfWeapon w = hero.belongings.weapon();
+		if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow
+				&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w).STRReq() <= hero.STR()){
+			Char target = visibleEnemy( hero );
+			if (target != null){
+				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon arrow =
+						((com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w).knockArrow();
+				if (hero.sprite != null) hero.sprite.zap( target.pos );
+				arrow.autoThrow( hero, target.pos );
+			}
+		}
 
-	/** 没有贴身目标时，用手里的弓或背包里的投掷物打一下看得见的敌人。 */
-	private static boolean tryRanged( Hero hero ){
-		Char target = null;
-		int best = Integer.MAX_VALUE;
+		//先把符合条件的投掷物收集起来，投出会导致背包变化
+		java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon>
+				missiles = new java.util.ArrayList<>();
+		for (Item it : hero.belongings.backpack.items){
+			if (it instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon
+					&& it.quantity() > 0
+					&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) it).STRReq() <= hero.STR()){
+				missiles.add( (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) it );
+			}
+		}
+		for (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon m : missiles){
+			Char target = visibleEnemy( hero );
+			if (target == null) break;
+			//从背包里取一件再直接命中：cast 是异步的，一次行动里要投出全部就得同步结算
+			Item one = m.detach( hero.belongings.backpack );
+			if (!(one instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon))
+					continue;
+			if (hero.sprite != null) hero.sprite.zap( target.pos );
+			((com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) one)
+					.autoThrow( hero, target.pos );
+		}
+	}
+
+	/** 视野里最近的敌人（投掷物没有距离限制）。 */
+	private static Char visibleEnemy( Hero hero ){
+		Char best = null;
+		int bestDist = Integer.MAX_VALUE;
 		for (Mob m : Dungeon.level.mobs){
 			if (!m.isAlive() || m.alignment != Char.Alignment.ENEMY) continue;
 			if (!Dungeon.level.heroFOV[m.pos]) continue;
 			int d = Dungeon.level.distance( hero.pos, m.pos );
-			if (d < 2 || d > RANGED_REACH) continue;
-			if (d < best){ best = d; target = m; }
+			if (d < 1) continue;
+			if (d < bestDist){ bestDist = d; best = m; }
 		}
-		if (target == null) return false;
-
-		KindOfWeapon w = hero.belongings.weapon();
-		if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow){
-			com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon arrow =
-					((com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w).knockArrow();
-			if (hero.sprite != null) hero.sprite.zap( target.pos );
-			arrow.autoThrow( hero, target.pos );
-			return true;
-		}
-
-		com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon missile = null;
-		for (Item it : hero.belongings.backpack.items){
-			if (it instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon
-					&& it.quantity() > 0){
-				missile = (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) it;
-				break;
-			}
-		}
-		if (missile == null) return false;
-		missile.cast( hero, target.pos );
-		return true;
+		return best;
 	}
 
 	/** 起步那一刻够得着的目标：退着走时也照打（这一步内出的手）。 */
@@ -129,14 +145,14 @@ public final class AutoAttack {
 				&& Dungeon.level.distance( hero.pos, preTarget.pos ) <= reach + 1){
 			target = preTarget;
 		}
-		if (target == null){
-			//近处没目标：试试弓与投掷物
-			tryRanged( hero );
-			return;
+		if (target != null){
+			//先摆出攻击动作，再结算伤害
+			if (hero.sprite != null) hero.sprite.attack( target.pos );
+			hero.attack( target );
 		}
-		//先摆出攻击动作，再结算伤害
-		if (hero.sprite != null) hero.sprite.attack( target.pos );
-		hero.attack( target );
+
+		//远程照打：弓与背包里所有力够的投掷物
+		rangedStrikes( hero );
 	}
 
 	/** 怪物每次行动后调一次：能打到就打，远程怪贴脸就后退。 */
