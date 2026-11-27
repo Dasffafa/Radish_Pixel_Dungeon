@@ -261,6 +261,25 @@ public final class ItemInfoText {
 		}
 	}
 
+	/** 把附魔本色调柔，用于标题与文字：纯色在深色面板上太扎眼，向面板米色靠一靠。 */
+	public static int soften( int color ){
+		if (color < 0) return 0xE8D9A8;
+		int r = (color >> 16) & 0xFF, g = (color >> 8) & 0xFF, b = color & 0xFF;
+		float mix = 0.45f;
+		r = (int)( r * (1 - mix) + 0xE0 * mix );
+		g = (int)( g * (1 - mix) + 0xCF * mix );
+		b = (int)( b * (1 - mix) + 0xA8 * mix );
+		//再压一压最亮通道，深底上不刺眼
+		int max = Math.max( r, Math.max( g, b ) );
+		if (max > 210){
+			float k = 210f / max;
+			r = (int)( r * k );
+			g = (int)( g * k );
+			b = (int)( b * k );
+		}
+		return (r << 16) | (g << 8) | b;
+	}
+
 	/** 附魔物品名字的呼吸波（0~1，约 2.4 秒一次）。 */
 	public static float pulse(){
 		return 0.5f + 0.5f * (float)Math.sin( Game.timeTotal * 2.6f );

@@ -289,7 +289,9 @@ public class WndInfoItem extends Window {
 			int rColor = ench != null
 					? ItemInfoText.enchantColor( item )
 					: 0xE8D9A8;
-			if (rColor == 0) rColor = 0xE8D9A8;
+			if (rColor == 0 || rColor < 0) rColor = 0xE8D9A8;
+			//附魔本色太饱和，用在标题上会扎眼：统一调柔
+			rColor = ItemInfoText.soften( rColor );
 			pulseColor = rColor;
 
 			//the header already names the type, so the body does not repeat it
