@@ -94,13 +94,20 @@ public final class AutoAttack {
 	 * 投掷物本身没有距离限制，只要目标在视野里就算够得着。
 	 */
 	private static void rangedStrikes( Hero hero ){
-		KindOfWeapon w = hero.belongings.weapon();
-		if (w == null) w = hero.belongings.attackingWeapon();
-		if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow){
+		//女猎手的弓不能装备，一直放在背包里：按物品找，不按武器槽找
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow bow =
+				hero.belongings.getItem( com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow.class );
+		if (bow == null){
+			KindOfWeapon w = hero.belongings.weapon();
+			if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow){
+				bow = (com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w;
+			}
+		}
+		if (bow != null){
 			Char target = visibleEnemy( hero );
 			if (target != null){
 				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon arrow =
-						((com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w).knockArrow();
+						bow.knockArrow();
 				fling( hero, target, arrow );
 			}
 		}
