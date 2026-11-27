@@ -141,6 +141,46 @@ public final class AutoAttack {
 					continue;
 			fling( hero, target, (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) one );
 		}
+		staffStrikes( hero );
+	}
+
+	/** 法杖：背包里每根还有能量的都朝目标放一次（没能量就跳过）。 */
+	private static void staffStrikes( Hero hero ){
+		java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand> wands =
+				hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.class );
+		for (com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand wand : wands){
+			Char target = visibleEnemy( hero );
+			if (target == null) break;
+			zapWith( hero, target, wand );
+		}
+	}
+
+	/**
+	 * 用这根法杖打一下：能量照扣，但不推进回合。
+	 * 走的是法杖自己的 onZap，所以各法杖的特殊效果都在。
+	 */
+	private static void zapWith( Hero hero, Char target,
+			com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand wand ){
+		if (!wand.tryToZap( hero, target.pos )) return;
+		Item.curUser = hero;
+		Item.curItem = wand;
+		if (hero.sprite != null) hero.sprite.zap( target.pos );
+		final int cell = target.pos;
+		final com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand w = wand;
+		final com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica shot = new com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica(
+				hero.pos, cell, wand.collisionProperties( cell ) );
+		wand.fx( shot, new com.watabou.utils.Callback(){
+			@Override
+			public void call(){
+				Item.curUser = hero;
+				Item.curItem = w;
+				w.onZap( shot );
+				//只扣能量，不调 wandUsed（它会花掉玩家的回合）
+				w.curCharges -= w.cursed ? 1 : 1;
+				w.curCharges = Math.max( 0, w.curCharges );
+				w.updateQuickslot();
+			}
+		} );
 	}
 
 	/** 视野里最近的敌人（投掷物没有距离限制）。 */
