@@ -73,20 +73,35 @@ public final class AutoAttack {
 	}
 
 
+
+	/** 放一个飞行物出去，落地时结算伤害；没有精灵图时退回直接命中。 */
+	private static void fling( Hero hero, Char target,
+			com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon missile ){
+		//先放飞行物（纯视觉），伤害当场结算：之前等它飞到再算，回调没触发时等于没打
+		if (hero.sprite != null && hero.sprite.parent != null && target.sprite != null){
+			com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite ms =
+					(com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite)
+							hero.sprite.parent.recycle( com.shatteredpixel.shatteredpixeldungeon.sprites.MissileSprite.class );
+			ms.reset( hero.sprite, target.sprite, missile, null );
+		} else if (hero.sprite != null){
+			hero.sprite.zap( target.pos );
+		}
+		missile.autoThrow( hero, target.pos );
+	}
+
 	/**
 	 * 远程出手：弓（若装备且力够）射一箭，背包里每件力够的投掷物各投一次。
 	 * 投掷物本身没有距离限制，只要目标在视野里就算够得着。
 	 */
 	private static void rangedStrikes( Hero hero ){
 		KindOfWeapon w = hero.belongings.weapon();
-		if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow
-				&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w).STRReq() <= hero.STR()){
+		if (w == null) w = hero.belongings.attackingWeapon();
+		if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow){
 			Char target = visibleEnemy( hero );
 			if (target != null){
 				com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon arrow =
 						((com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w).knockArrow();
-				if (hero.sprite != null) hero.sprite.zap( target.pos );
-				arrow.autoThrow( hero, target.pos );
+				fling( hero, target, arrow );
 			}
 		}
 
@@ -106,9 +121,7 @@ public final class AutoAttack {
 			Item one = m.detach( hero.belongings.backpack );
 			if (!(one instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon))
 					continue;
-			if (hero.sprite != null) hero.sprite.zap( target.pos );
-			((com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) one)
-					.autoThrow( hero, target.pos );
+			fling( hero, target, (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) one );
 		}
 	}
 
