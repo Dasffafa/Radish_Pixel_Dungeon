@@ -261,6 +261,11 @@ abstract public class MissileWeapon extends Weapon {
 
 	@Override
 	public void doThrow(Hero hero) {
+		//自动攻击挑战：投掷武器不能自己选目标
+		if (com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.blocksThrowAim( this )){
+			com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( "自动攻击挑战：投掷武器无法选定目标" );
+			return;
+		}
 		parent = null; //reset parent before throwing, just incase
 		super.doThrow(hero);
 	}

@@ -92,6 +92,12 @@ public class SpiritBow extends Weapon {
 		super.execute(hero, action);
 		
 		if (action.equals(AC_SHOOT)) {
+
+			//自动攻击挑战：不能自己选目标，靠移动或跳过回合出手
+			if (com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.active()){
+				com.shatteredpixel.shatteredpixeldungeon.utils.GLog.w( "自动攻击挑战：弓无法选定目标" );
+				return;
+			}
 			
 			curUser = hero;
 			curItem = this;
