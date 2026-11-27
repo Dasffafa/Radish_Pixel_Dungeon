@@ -90,14 +90,13 @@ public final class AutoAttack {
 			}
 		}
 
-		//先把符合条件的投掷物收集起来，投出会导致背包变化
+		//背包里所有投掷物（含收纳袋里的），力够的才能用
 		java.util.ArrayList<com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon>
 				missiles = new java.util.ArrayList<>();
-		for (Item it : hero.belongings.backpack.items){
-			if (it instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon
-					&& it.quantity() > 0
-					&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) it).STRReq() <= hero.STR()){
-				missiles.add( (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) it );
+		for (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon m
+				: hero.belongings.getAllItems( com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon.class )){
+			if (m.quantity() > 0 && m.STRReq() <= hero.STR()){
+				missiles.add( m );
 			}
 		}
 		for (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon m : missiles){
