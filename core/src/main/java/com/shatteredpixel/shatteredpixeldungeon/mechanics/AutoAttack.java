@@ -46,7 +46,10 @@ public final class AutoAttack {
 	public static void onHeroTurn( Hero hero ){
 		if (hero == null || !hero.isAlive() || !active()) return;
 		Char target = nearest( hero, heroReach( hero ) );
-		if (target != null) hero.attack( target );
+		if (target == null) return;
+		//先摆出攻击动作，再结算伤害
+		if (hero.sprite != null) hero.sprite.attack( target.pos );
+		hero.attack( target );
 	}
 
 	/** 怪物每次行动后调一次：能打到就打，远程怪贴脸就后退。 */
@@ -60,6 +63,7 @@ public final class AutoAttack {
 		int reach = mobReach( mob );
 		int dist = Dungeon.level.distance( mob.pos, hero.pos );
 		if (dist <= reach){
+			if (mob.sprite != null) mob.sprite.attack( hero.pos );
 			mob.attack( hero );
 		}
 		if (isRanged( mob ) && dist <= 3){
