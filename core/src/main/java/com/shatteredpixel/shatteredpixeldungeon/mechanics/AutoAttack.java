@@ -37,6 +37,9 @@ import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
  */
 public final class AutoAttack {
 
+	//同一次行动里 Mob.act 可能被反复调用（状态返回 false 时），用时间戳保证一回合只打一次
+	private static final java.util.WeakHashMap<Mob, Float> lastMobAttack = new java.util.WeakHashMap<>();
+
 	private AutoAttack(){}
 
 	public static boolean active(){
@@ -177,6 +180,10 @@ public final class AutoAttack {
 	/** 怪物每次行动后调一次：能打到就打，远程怪贴脸就后退。 */
 	public static void onMobTurn( Mob mob ){
 		if (mob == null || !mob.isAlive() || !active()) return;
+		float now = Actor.now();
+		Float last = lastMobAttack.get( mob );
+		if (last != null && Math.abs( now - last ) < 0.0001f) return;
+		lastMobAttack.put( mob, now );
 		Char hero = Dungeon.hero;
 		if (hero == null || !hero.isAlive()) return;
 		//双方都看得见彼此才动手（用英雄视野近似）
