@@ -142,6 +142,31 @@ public final class AutoAttack {
 			fling( hero, target, (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) one );
 		}
 		staffStrikes( hero );
+		cardStrikes( hero );
+	}
+
+	/** 卡牌：手里握着的牌自动打出（有目标就朝目标，没目标就按自用牌处理）。 */
+	private static void cardStrikes( Hero hero ){
+		if (hero.cardDeck == null || hero.cardDeck.held == null) return;
+		com.shatteredpixel.shatteredpixeldungeon.items.cards.Card card = hero.cardDeck.held;
+		if (card.type == null) return;
+		int cell = -1;
+		switch (card.type.target){
+			case NONE:
+			case SELF:
+				cell = hero.pos;
+				break;
+			default:
+				Char target = visibleEnemy( hero );
+				if (target != null
+						&& com.shatteredpixel.shatteredpixeldungeon.items.cards.CardTargeter
+								.isValidTarget( hero, card, target.pos )){
+					cell = target.pos;
+				}
+				break;
+		}
+		if (cell < 0) return;
+		com.shatteredpixel.shatteredpixeldungeon.items.cards.CardEffects.play( hero, card, cell );
 	}
 
 	/** 法杖：背包里每根还有能量的都朝目标放一次（没能量就跳过）。 */
