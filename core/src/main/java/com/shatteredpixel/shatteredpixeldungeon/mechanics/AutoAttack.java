@@ -27,6 +27,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Actor;
 import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.shatteredpixel.shatteredpixeldungeon.actors.hero.Hero;
 import com.shatteredpixel.shatteredpixeldungeon.actors.mobs.Mob;
+import com.shatteredpixel.shatteredpixeldungeon.items.Item;
 import com.shatteredpixel.shatteredpixeldungeon.items.KindOfWeapon;
 import com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon;
 
@@ -71,6 +72,45 @@ public final class AutoAttack {
 		return true;
 	}
 
+
+	/** 远程够得着的距离（弓与投掷物都用这个上限）。 */
+	private static final int RANGED_REACH = 6;
+
+	/** 没有贴身目标时，用手里的弓或背包里的投掷物打一下看得见的敌人。 */
+	private static boolean tryRanged( Hero hero ){
+		Char target = null;
+		int best = Integer.MAX_VALUE;
+		for (Mob m : Dungeon.level.mobs){
+			if (!m.isAlive() || m.alignment != Char.Alignment.ENEMY) continue;
+			if (!Dungeon.level.heroFOV[m.pos]) continue;
+			int d = Dungeon.level.distance( hero.pos, m.pos );
+			if (d < 2 || d > RANGED_REACH) continue;
+			if (d < best){ best = d; target = m; }
+		}
+		if (target == null) return false;
+
+		KindOfWeapon w = hero.belongings.weapon();
+		if (w instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow){
+			com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon arrow =
+					((com.shatteredpixel.shatteredpixeldungeon.items.weapon.SpiritBow) w).knockArrow();
+			if (hero.sprite != null) hero.sprite.zap( target.pos );
+			arrow.autoThrow( hero, target.pos );
+			return true;
+		}
+
+		com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon missile = null;
+		for (Item it : hero.belongings.backpack.items){
+			if (it instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon
+					&& it.quantity() > 0){
+				missile = (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) it;
+				break;
+			}
+		}
+		if (missile == null) return false;
+		missile.cast( hero, target.pos );
+		return true;
+	}
+
 	/** 起步那一刻够得着的目标：退着走时也照打（这一步内出的手）。 */
 	public static Char targetBeforeMove( Hero hero ){
 		if (hero == null || !hero.isAlive() || !active()) return null;
@@ -89,7 +129,11 @@ public final class AutoAttack {
 				&& Dungeon.level.distance( hero.pos, preTarget.pos ) <= reach + 1){
 			target = preTarget;
 		}
-		if (target == null) return;
+		if (target == null){
+			//近处没目标：试试弓与投掷物
+			tryRanged( hero );
+			return;
+		}
 		//先摆出攻击动作，再结算伤害
 		if (hero.sprite != null) hero.sprite.attack( target.pos );
 		hero.attack( target );

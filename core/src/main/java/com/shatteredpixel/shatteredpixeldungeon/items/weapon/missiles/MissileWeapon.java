@@ -265,6 +265,13 @@ abstract public class MissileWeapon extends Weapon {
 		super.doThrow(hero);
 	}
 
+	/** 自动攻击挑战用：以 owner 的身份直接命中 cell（不经过背包扣除与选格）。 */
+	public void autoThrow( Hero owner, int cell ){
+		curUser = owner;
+		curItem = this;
+		onThrow( cell );
+	}
+
 	@Override
 	protected void onThrow( int cell ) {
 		Char enemy = Actor.findChar( cell );
