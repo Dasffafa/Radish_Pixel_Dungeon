@@ -262,8 +262,8 @@ public class WndInfoItem extends Window {
 	private IconTitle pulseTitle;
 	private boolean pulses;
 	private int pulseColor = 0xE8D9A8;
-	private SectionHeader descHeader, enchantHeader, typeHeader;
-	private RenderedTextBlock secInfo, enchantBody;
+	private SectionHeader descHeader, enchantHeader, typeHeader, damageHeader;
+	private RenderedTextBlock secInfo, enchantBody, damageBody;
 	private int secWidth;
 
 	private void layoutItem( IconTitle title, RenderedTextBlock info, Item item ){
@@ -289,7 +289,9 @@ public class WndInfoItem extends Window {
 			int rColor = ench != null
 					? ItemInfoText.enchantColor( item )
 					: 0xE8D9A8;
-			if (rColor == 0) rColor = 0xE8D9A8;
+			if (rColor == 0 || rColor < 0) rColor = 0xE8D9A8;
+			//附魔本色太饱和，用在标题上会扎眼：统一调柔
+			rColor = ItemInfoText.soften( rColor );
 			pulseColor = rColor;
 
 			//the header already names the type, so the body does not repeat it
@@ -307,16 +309,28 @@ public class WndInfoItem extends Window {
 			add( typeHeader );
 			add( typeBody );
 
+			damageHeader = null;
+			damageBody = null;
+			String dmgName = ItemInfoText.damageTitle( item );
+			if (!dmgName.isEmpty()){
+				damageHeader = new SectionHeader( "\u4f24\u5bb3\u7c7b\u578b\uff1a" + dmgName, rColor, secWidth );
+				damageBody = PixelScene.renderTextBlock( ItemInfoText.damageText( item ), 6 );
+				damageBody.maxWidth( secWidth );
+				add( damageHeader );
+				add( damageBody );
+			}
+
 			if (ench != null){
 				//the header only says which section it is: name and text both fold away below it
 				boolean cursed = ench instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment
 						&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment) ench).curse();
+				//名字写在标题里：标题的着色在两端都稳定，文字块单独上色在安卓上会偏色
 				enchantHeader = new SectionHeader(
-						cursed ? "\u8bc5\u5492" : "\u9644\u9b54", rColor, secWidth );
+						(cursed ? "\u8bc5\u5492" : "\u9644\u9b54") + "\uff1a"
+								+ com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase(
+										ItemInfoText.enchantWord( item ) ), rColor, secWidth );
 				enchantBody = PixelScene.renderTextBlock(
-						"\u00b7 " + com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase(
-								ItemInfoText.enchantWord( item ) )
-								+ "\n" + com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( ench, "desc" ), 6 );
+						com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( ench, "desc" ), 6 );
 				enchantBody.maxWidth( secWidth );
 				add( enchantBody );
 			}
@@ -332,8 +346,8 @@ public class WndInfoItem extends Window {
 	/** Lays the sections out; folded ones take only their header's height. */
 	//invisible buttons laid over each section header: pressing one folds that section
 
-	private boolean descOpen = true, enchantOpen = true, typeOpen = true;
-	private com.shatteredpixel.shatteredpixeldungeon.ui.Button typeHit;
+	private boolean descOpen = true, enchantOpen = true, typeOpen = true, damageOpen = true;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.Button typeHit, damageHit;
 	private RenderedTextBlock typeBody;
 	private com.watabou.noosa.ColorBlock descRule;
 	private com.shatteredpixel.shatteredpixeldungeon.ui.Button descHit, enchantHit;
@@ -411,6 +425,31 @@ public class WndInfoItem extends Window {
 				if (typeOpen){
 					typeBody.setPos( 0, y );
 					y = typeBody.bottom();
+				}
+			}
+			y += GAP;
+		}
+
+		if (damageHeader != null){
+			damageHeader.open = damageOpen;
+			damageHeader.place( 0, y );
+			if (damageHit == null){
+				damageHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+					@Override
+					protected void onClick(){
+						damageOpen = !damageOpen;
+						layoutSections();
+					}
+				};
+				add( damageHit );
+			}
+			damageHit.setRect( 0, y, secWidth, SectionHeader.HEIGHT );
+			y += SectionHeader.HEIGHT;
+			if (damageBody != null){
+				damageBody.visible = damageOpen;
+				if (damageOpen){
+					damageBody.setPos( 0, y );
+					y = damageBody.bottom();
 				}
 			}
 			y += GAP;
