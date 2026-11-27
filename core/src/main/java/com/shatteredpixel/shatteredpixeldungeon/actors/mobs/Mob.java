@@ -385,6 +385,9 @@ public abstract class Mob extends Char {
 			return true;
 		}
 
+		//自动攻击挑战：这个怪行动完，顺手向范围内的敌人出手
+		com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onMobTurn( this );
+
 		return state.act( enemyInFOV, justAlerted );
 	}
 

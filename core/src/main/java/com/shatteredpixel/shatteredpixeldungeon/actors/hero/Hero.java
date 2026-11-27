@@ -1489,6 +1489,10 @@ public class Hero extends Char {
 			Barkskin.conditionallyAppend(this, (lvl*pointsInTalent(Talent.BARKSKIN))/2, 1 );
 		}
 
+		
+		//自动攻击挑战：一回合的动作做完，再补一次攻击（移动后也算）
+		com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroTurn( this );
+
 		return actResult;
 	}
 
