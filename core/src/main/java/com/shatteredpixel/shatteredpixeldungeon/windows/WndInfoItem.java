@@ -262,8 +262,8 @@ public class WndInfoItem extends Window {
 	private IconTitle pulseTitle;
 	private boolean pulses;
 	private int pulseColor = 0xE8D9A8;
-	private SectionHeader descHeader, enchantHeader, typeHeader;
-	private RenderedTextBlock secInfo, enchantBody;
+	private SectionHeader descHeader, enchantHeader, typeHeader, damageHeader;
+	private RenderedTextBlock secInfo, enchantBody, damageBody;
 	private int secWidth;
 
 	private void layoutItem( IconTitle title, RenderedTextBlock info, Item item ){
@@ -298,11 +298,6 @@ public class WndInfoItem extends Window {
 			if (famText.startsWith( famName + "\uff1a" )){
 				famText = famText.substring( famName.length() + 1 );
 			}
-			//武器类型与伤害类型是两回事，各占一段
-			String dmgName = ItemInfoText.damageTitle( item );
-			if (!dmgName.isEmpty()){
-				famText += "\n\n伤害类型：" + dmgName + "\n" + ItemInfoText.damageText( item );
-			}
 			typeBody = PixelScene.renderTextBlock( famText, 6 );
 			typeBody.maxWidth( secWidth );
 
@@ -311,6 +306,17 @@ public class WndInfoItem extends Window {
 					rColor, secWidth );
 			add( typeHeader );
 			add( typeBody );
+
+			damageHeader = null;
+			damageBody = null;
+			String dmgName = ItemInfoText.damageTitle( item );
+			if (!dmgName.isEmpty()){
+				damageHeader = new SectionHeader( "\u4f24\u5bb3\u7c7b\u578b\uff1a" + dmgName, rColor, secWidth );
+				damageBody = PixelScene.renderTextBlock( ItemInfoText.damageText( item ), 6 );
+				damageBody.maxWidth( secWidth );
+				add( damageHeader );
+				add( damageBody );
+			}
 
 			if (ench != null){
 				//the header only says which section it is: name and text both fold away below it
@@ -337,8 +343,8 @@ public class WndInfoItem extends Window {
 	/** Lays the sections out; folded ones take only their header's height. */
 	//invisible buttons laid over each section header: pressing one folds that section
 
-	private boolean descOpen = true, enchantOpen = true, typeOpen = true;
-	private com.shatteredpixel.shatteredpixeldungeon.ui.Button typeHit;
+	private boolean descOpen = true, enchantOpen = true, typeOpen = true, damageOpen = true;
+	private com.shatteredpixel.shatteredpixeldungeon.ui.Button typeHit, damageHit;
 	private RenderedTextBlock typeBody;
 	private com.watabou.noosa.ColorBlock descRule;
 	private com.shatteredpixel.shatteredpixeldungeon.ui.Button descHit, enchantHit;
@@ -416,6 +422,31 @@ public class WndInfoItem extends Window {
 				if (typeOpen){
 					typeBody.setPos( 0, y );
 					y = typeBody.bottom();
+				}
+			}
+			y += GAP;
+		}
+
+		if (damageHeader != null){
+			damageHeader.open = damageOpen;
+			damageHeader.place( 0, y );
+			if (damageHit == null){
+				damageHit = new com.shatteredpixel.shatteredpixeldungeon.ui.Button(){
+					@Override
+					protected void onClick(){
+						damageOpen = !damageOpen;
+						layoutSections();
+					}
+				};
+				add( damageHit );
+			}
+			damageHit.setRect( 0, y, secWidth, SectionHeader.HEIGHT );
+			y += SectionHeader.HEIGHT;
+			if (damageBody != null){
+				damageBody.visible = damageOpen;
+				if (damageOpen){
+					damageBody.setPos( 0, y );
+					y = damageBody.bottom();
 				}
 			}
 			y += GAP;
