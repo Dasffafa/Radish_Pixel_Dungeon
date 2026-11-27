@@ -432,7 +432,7 @@ public class WndInfoItem extends Window {
 		//breathing: an enchanted item's name dims and brightens, in its enchantment's colour
 		if (pulses && pulseTitle != null && pulseTitle.tfLabel != null){
 			float wave = ItemInfoText.pulse();
-			pulseTitle.tfLabel.alpha( 0.45f + 0.55f * wave );
+			pulseTitle.tfLabel.alpha( 0.72f + 0.28f * wave );
 			//and a little brighter at the top of the breath, not only more opaque
 			pulseTitle.tfLabel.hardlight(
 					ItemInfoText
