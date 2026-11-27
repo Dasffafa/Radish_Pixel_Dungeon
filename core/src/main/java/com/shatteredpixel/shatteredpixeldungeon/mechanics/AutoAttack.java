@@ -100,7 +100,9 @@ public final class AutoAttack {
 		int bestDist = Integer.MAX_VALUE;
 		for (Mob m : Dungeon.level.mobs){
 			if (m == self || !m.isAlive()) continue;
-			if (!Dungeon.level.heroFOV[m.pos] || m.alignment == self.alignment) continue;
+			if (m.alignment == self.alignment) continue;
+			//视野里看得见才打；贴身的即使视野还没刷新也算
+			if (!Dungeon.level.heroFOV[m.pos] && Dungeon.level.distance( self.pos, m.pos ) > 1) continue;
 			int d = Dungeon.level.distance( self.pos, m.pos );
 			if (d > reach) continue;
 			if (d < bestDist){

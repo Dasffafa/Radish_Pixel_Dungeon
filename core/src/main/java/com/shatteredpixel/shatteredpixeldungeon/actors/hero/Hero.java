@@ -1289,8 +1289,6 @@ public class Hero extends Char {
 	@Override
 	public boolean act() {
 
-		//自动攻击挑战：只有移动，才在走完之后补一次攻击
-		boolean autoAttackAfterMove = curAction instanceof HeroAction.Move;
 
 		EventManager.emit(new HeroActEvent(this));
 		if (pendingTalentRequirements) TalentRequirement.sync(this);
@@ -1495,10 +1493,6 @@ public class Hero extends Char {
 
 		
 		//自动攻击挑战：一回合的动作做完，再补一次攻击（移动后也算）
-		if (autoAttackAfterMove){
-			com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroTurn( this );
-		}
-
 		return actResult;
 	}
 
@@ -3386,6 +3380,11 @@ public class Hero extends Char {
 		// 被门或其它规则拦下时位置没有变化，不能算一次移动
 		if (fromPos != pos) {
 			EventManager.emit(new HeroMoveEvent(this, fromPos, pos));
+		}
+
+		//自动攻击挑战：每走成一格就免费打一次（跨多格的移动会一格打一下）
+		if (fromPos != pos){
+			com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onHeroTurn( this );
 		}
 
 		if (!flying && travelling) {
