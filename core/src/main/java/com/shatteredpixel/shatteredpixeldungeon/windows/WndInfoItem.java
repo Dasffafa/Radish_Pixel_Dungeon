@@ -263,7 +263,7 @@ public class WndInfoItem extends Window {
 	private boolean pulses;
 	private int pulseColor = 0xE8D9A8;
 	private SectionHeader descHeader, enchantHeader, typeHeader, damageHeader;
-	private RenderedTextBlock secInfo, enchantBody, damageBody, enchantName;
+	private RenderedTextBlock secInfo, enchantBody, damageBody;
 	private int secWidth;
 
 	private void layoutItem( IconTitle title, RenderedTextBlock info, Item item ){
@@ -283,7 +283,6 @@ public class WndInfoItem extends Window {
 
 		enchantHeader = null;
 		enchantBody = null;
-		enchantName = null;
 		Object ench = ItemInfoText.enchantKnown( item )
 				? ItemInfoText.enchantOf( item ) : null;
 		if (ItemInfoText.isGear( item )){
@@ -323,15 +322,11 @@ public class WndInfoItem extends Window {
 				//the header only says which section it is: name and text both fold away below it
 				boolean cursed = ench instanceof com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment
 						&& ((com.shatteredpixel.shatteredpixeldungeon.items.weapon.Weapon.Enchantment) ench).curse();
+				//名字写在标题里：标题的着色在两端都稳定，文字块单独上色在安卓上会偏色
 				enchantHeader = new SectionHeader(
-						cursed ? "\u8bc5\u5492" : "\u9644\u9b54", rColor, secWidth );
-				enchantName = PixelScene.renderTextBlock(
-						"\u00b7 " + com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase(
-								ItemInfoText.enchantWord( item ) ), 6 );
-				enchantName.maxWidth( secWidth );
-				enchantName.hardlight( 0xFF000000 | rColor );
-				add( enchantName );
-
+						(cursed ? "\u8bc5\u5492" : "\u9644\u9b54") + "\uff1a"
+								+ com.shatteredpixel.shatteredpixeldungeon.messages.Messages.titleCase(
+										ItemInfoText.enchantWord( item ) ), rColor, secWidth );
 				enchantBody = PixelScene.renderTextBlock(
 						com.shatteredpixel.shatteredpixeldungeon.messages.Messages.get( ench, "desc" ), 6 );
 				enchantBody.maxWidth( secWidth );
@@ -398,14 +393,6 @@ public class WndInfoItem extends Window {
 			}
 			enchantHit.setRect( 0, y, secWidth, SectionHeader.HEIGHT );
 			y += SectionHeader.HEIGHT;
-			if (enchantName != null){
-				enchantName.visible = enchantOpen;
-				if (enchantOpen){
-					enchantName.setPos( 0, y );
-					//留一点间距，名字才不会和说明的第一行挤在一起
-					y += enchantName.height() + 3;
-				}
-			}
 			if (enchantBody != null){
 				enchantBody.visible = enchantOpen;
 				if (enchantOpen){
