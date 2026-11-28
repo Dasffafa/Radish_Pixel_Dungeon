@@ -133,6 +133,8 @@ public class CardDrawer extends Item {
 		HeldCardTracker.sync(hero);
 		ActionIndicator.refresh();
 		GLog.i(Messages.get(CardDrawer.class, "drew", card.name()));
+		//「杀意不息」：抽到牌就自动打出去
+		com.shatteredpixel.shatteredpixeldungeon.mechanics.AutoAttack.onCardDrawn( hero );
 		return true;
 	}
 

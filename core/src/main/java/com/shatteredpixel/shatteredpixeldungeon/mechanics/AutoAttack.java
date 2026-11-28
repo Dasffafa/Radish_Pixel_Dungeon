@@ -142,13 +142,18 @@ public final class AutoAttack {
 			fling( hero, target, (com.shatteredpixel.shatteredpixeldungeon.items.weapon.missiles.MissileWeapon) one );
 		}
 		staffStrikes( hero );
-		cardStrikes( hero );
 	}
 
 	/** 卡牌：手里握着的牌自动打出（有目标就朝目标，没目标就按自用牌处理）。 */
-	private static void cardStrikes( Hero hero ){
+	/** 玩家抽到牌的那一刻：自动把这张牌打出去（抽牌仍由玩家自己操作）。 */
+	public static void onCardDrawn( Hero hero ){
+		if (hero == null || !hero.isAlive() || !active()) return;
 		if (hero.cardDeck == null || hero.cardDeck.held == null) return;
-		com.shatteredpixel.shatteredpixeldungeon.items.cards.Card card = hero.cardDeck.held;
+		playCard( hero, hero.cardDeck.held );
+	}
+
+	private static void playCard( Hero hero,
+			com.shatteredpixel.shatteredpixeldungeon.items.cards.Card card ){
 		if (card.type == null) return;
 		int cell = -1;
 		switch (card.type.target){
@@ -203,6 +208,11 @@ public final class AutoAttack {
 		final com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica shot =
 				new com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica(
 						hero.pos, cell, wand.collisionProperties( cell ) );
+		//中间有墙/怪挡着就不放（解离杖本来就能穿，例外）
+		boolean piercing = wand.getClass().getSimpleName().contains( "Disintegration" );
+		Char atImpact = Actor.findChar( shot.collisionPos );
+		if (!piercing && (shot.collisionPos != cell || atImpact != target)) return;
+
 		com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.autoCastFree = true;
 		wand.fx( shot, new com.watabou.utils.Callback(){
 			@Override
