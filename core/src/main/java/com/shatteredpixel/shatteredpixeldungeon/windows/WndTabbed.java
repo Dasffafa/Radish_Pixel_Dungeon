@@ -83,6 +83,10 @@ public class WndTabbed extends Window {
 			tabs.get( tabs.size() - 1 ).right(), height );
 		tab.select( tab.selected );
 		super.add( tab );
+		sendToBack( tab );
+		if (shadow != null) {
+			sendToBack( shadow );
+		}
 		
 		tabs.add( tab );
 
