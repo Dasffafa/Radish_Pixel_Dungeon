@@ -200,31 +200,26 @@ public final class AutoAttack {
 			com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand wand ){
 		//没能量就安静跳过，不再刷"法杖抖动"的提示
 		if (!wand.autoHasCharge()) return;
-		Item.curUser = hero;
-		Item.curItem = wand;
-		if (hero.sprite != null) hero.sprite.zap( target.pos );
 		final int cell = target.pos;
-		final com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand w = wand;
 		final com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica shot =
 				new com.shatteredpixel.shatteredpixeldungeon.mechanics.Ballistica(
 						hero.pos, cell, wand.collisionProperties( cell ) );
+
 		//中间有墙/怪挡着就不放（解离杖本来就能穿，例外）
 		boolean piercing = wand.getClass().getSimpleName().contains( "Disintegration" );
-		Char atImpact = Actor.findChar( shot.collisionPos );
-		if (!piercing && (shot.collisionPos != cell || atImpact != target)) return;
+		if (!piercing && shot.collisionPos != cell) return;
+
+		Item.curUser = hero;
+		Item.curItem = wand;
+		if (hero.sprite != null) hero.sprite.zap( cell );
+		//视觉单独播（回调不用），伤害当场结算：否则等飞行物飞到，目标可能已经走开/死了
+		wand.fx( shot, new com.watabou.utils.Callback(){ public void call(){} } );
 
 		com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.autoCastFree = true;
-		wand.fx( shot, new com.watabou.utils.Callback(){
-			@Override
-			public void call(){
-				Item.curUser = hero;
-				Item.curItem = w;
-				w.onZap( shot );
-				//走 wandUsed：照扣能量、触发施法天赋，但由 autoCastFree 跳过回合消耗
-				w.wandUsed();
-				com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.autoCastFree = false;
-			}
-		} );
+		wand.onZap( shot );
+		//走 wandUsed：照扣能量、触发施法天赋，但由 autoCastFree 跳过回合消耗
+		wand.wandUsed();
+		com.shatteredpixel.shatteredpixeldungeon.items.wands.Wand.autoCastFree = false;
 	}
 
 	/** 视野里最近的敌人（投掷物没有距离限制）。 */
