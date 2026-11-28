@@ -102,7 +102,12 @@ public class TalentButton extends Button {
 		fill = new ColorBlock(0, 4, 0xFFFFFF44);
 		add(fill);
 
-		bg = new Image(Assets.Interfaces.TALENT_BUTTON);
+		boolean useShattered = com.shatteredpixel.shatteredpixeldungeon.SPDSettings.NORMAL_SKIN()
+				|| com.shatteredpixel.shatteredpixeldungeon.SPDSettings.statusStyle()
+				== com.shatteredpixel.shatteredpixeldungeon.SPDSettings.STYLE_SHATTERED;
+		bg = new Image(useShattered
+				? Assets.Interfaces.TALENT_BUTTON
+				: Assets.Interfaces.TALENT_BUTTON_RADISH);
 		add(bg);
 
 		roundedFrame = UITheme.roundedFrame(DiceMageUI.BLACK, DiceMageUI.ORANGE);
@@ -286,6 +291,68 @@ public class TalentButton extends Button {
 			emitter.revive();
 			emitter.pos(fill.x + (fill.width() + oldWidth) / 2f, fill.y + fill.height() / 2f);
 			emitter.burst(Speck.factory(Speck.STAR), 12);
+			if (Talent.isReef(talent)) {
+				showReefLockWindow();
+			}
 		}
+	}
+
+	private void showReefLockWindow() {
+		int tierIndex = tier - 1;
+		if (Dungeon.hero == null || tierIndex < 0 || tierIndex >= Dungeon.hero.talents.size()) return;
+		java.util.ArrayList<Talent> candidates = new java.util.ArrayList<>();
+		for (Talent candidate : Dungeon.hero.talents.get(tierIndex).keySet()) {
+			if (!Talent.isReef(candidate)) {
+				candidates.add(candidate);
+			}
+		}
+		if (candidates.isEmpty()) return;
+
+		com.shatteredpixel.shatteredpixeldungeon.scenes.GameScene.show(new Window() {
+			{
+				int cols = Math.min(candidates.size(), 5);
+				int rows = (candidates.size() + cols - 1) / cols;
+				int gap = 4;
+				int winWidth = Math.max(110, cols * WIDTH + (cols - 1) * gap + 8);
+
+				RenderedTextBlock title = PixelScene.renderTextBlock(talent.title(), 9);
+				title.hardlight(TITLE_COLOR);
+				title.setPos((winWidth - title.width()) / 2f, 2);
+				PixelScene.align(title);
+				add(title);
+
+				RenderedTextBlock desc = PixelScene.renderTextBlock("选择本层一个天赋锁定，使其不再因变身而改变：", 6);
+				desc.maxWidth(winWidth - 8);
+				desc.setPos(4, title.bottom() + 4);
+				add(desc);
+
+				float startY = desc.bottom() + 6;
+				for (int i = 0; i < candidates.size(); i++) {
+					final Talent candidate = candidates.get(i);
+					int col = i % cols;
+					int row = i / cols;
+					float rowWidth = Math.min(cols, candidates.size() - row * cols) * WIDTH
+							+ (Math.min(cols, candidates.size() - row * cols) - 1) * gap;
+					float startX = (winWidth - rowWidth) / 2f;
+
+					TalentButton btn = new TalentButton(tier, candidate, Dungeon.hero.pointsInTalent(candidate), Mode.INFO) {
+						@Override
+						protected void onClick() {
+							com.shatteredpixel.shatteredpixeldungeon.actors.hero.JumbleTalents
+									.lockTalent(Dungeon.hero, tierIndex, candidate);
+							hide();
+						}
+					};
+					if (Dungeon.hero.jumbleLockedTalents[tierIndex] == candidate) {
+						btn.bg.hardlight(0x66CCFF);
+					}
+					btn.setPos(startX + col * (WIDTH + gap), startY + row * (HEIGHT + gap));
+					add(btn);
+				}
+
+				int winHeight = (int) (startY + rows * HEIGHT + (rows - 1) * gap + 4);
+				resize(winWidth, winHeight);
+			}
+		});
 	}
 }

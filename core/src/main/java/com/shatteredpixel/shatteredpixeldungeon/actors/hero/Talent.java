@@ -871,6 +871,34 @@ public class Talent {
 	public static final Talent PLACEHOLDER_T4_1 = new Talent("PLACEHOLDER_T4_1", 4);
 	public static final Talent PLACEHOLDER_T4_2 = new Talent("PLACEHOLDER_T4_2", 4);
 
+	public static final Talent REEF_TIER1 = new Talent("REEF_TIER1", 1);
+	public static final Talent REEF_TIER2 = new Talent("REEF_TIER2", 1);
+	public static final Talent REEF_TIER3 = new Talent("REEF_TIER3", 1);
+	public static final Talent REEF_TIER4 = new Talent("REEF_TIER4", 1);
+
+	public static boolean isReef(Talent talent) {
+		return talent == REEF_TIER1 || talent == REEF_TIER2
+				|| talent == REEF_TIER3 || talent == REEF_TIER4;
+	}
+
+	public static Talent reefForTier(int tier) {
+		switch (tier) {
+			case 0: return REEF_TIER1;
+			case 1: return REEF_TIER2;
+			case 2: return REEF_TIER3;
+			case 3: return REEF_TIER4;
+			default: return null;
+		}
+	}
+
+	public static int reefTier(Talent talent) {
+		if (talent == REEF_TIER1) return 0;
+		if (talent == REEF_TIER2) return 1;
+		if (talent == REEF_TIER3) return 2;
+		if (talent == REEF_TIER4) return 3;
+		return -1;
+	}
+
 	public static final Talent ERROR = new Talent("ERROR");
 
 	public static class MagicRootDropped extends CounterBuff{{revivePersists = true;}};
@@ -1188,6 +1216,9 @@ public class Talent {
 		if (this == HEROIC_ENERGY && Ratmogrify.useRatroicEnergy){
 			return Messages.get(this, name() + ".rat_title");
 		}
+		if (isReef(this)) {
+			return Messages.get(this, "REEF.title");
+		}
 		return Messages.get(this, name() + ".title");
 	}
 
@@ -1201,6 +1232,18 @@ public class Talent {
 			if (!metaDesc.equals(Messages.NO_TEXT_FOUND)){
 				return metaDesc;
 			}
+		}
+		if (isReef(this)) {
+			int tierIdx = reefTier(this);
+			String extra = "";
+			if (Dungeon.hero != null && Dungeon.hero.jumbleLockedTalents != null
+					&& tierIdx >= 0 && tierIdx < Dungeon.hero.jumbleLockedTalents.length) {
+				Talent locked = Dungeon.hero.jumbleLockedTalents[tierIdx];
+				if (locked != null) {
+					extra = "\n\n当前已固定：" + locked.title();
+				}
+			}
+			return Messages.get(this, "REEF.desc", extra);
 		}
 		return Messages.get(this, name() + ".desc");
 	}

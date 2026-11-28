@@ -60,10 +60,10 @@ public class JumbleTalentsTest {
             JumbleTalents.initImp(hero);
             HeroSubClass first = hero.jumbleFirst, second = hero.jumbleSecond;
             for (int iteration = 0; iteration < 64; iteration++) {
-                assertEquals(4, hero.talents.get(0).size());
-                assertEquals(5, hero.talents.get(1).size());
-                assertEquals(5, hero.talents.get(2).size());
-                assertEquals(4, hero.talents.get(3).size());
+                assertEquals(5, hero.talents.get(0).size());
+                assertEquals(6, hero.talents.get(1).size());
+                assertEquals(6, hero.talents.get(2).size());
+                assertEquals(5, hero.talents.get(3).size());
                 for (LinkedHashMap<Talent, Integer> tier : hero.talents) {
                     int missing = 0;
                     for (Talent talent : tier.keySet()) {

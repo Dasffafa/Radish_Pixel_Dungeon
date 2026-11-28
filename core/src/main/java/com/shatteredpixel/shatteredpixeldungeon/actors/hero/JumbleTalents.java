@@ -28,6 +28,9 @@ public final class JumbleTalents {
 		fill(hero, 0, commonPool(0), 4);
 		fill(hero, 1, commonPool(1), 5);
 		fill(hero, 2, commonPool(2), 2);
+		ensureReef(hero, 0);
+		ensureReef(hero, 1);
+		ensureReef(hero, 2);
 	}
 
 	public static void initSubclass(Hero hero) {
@@ -66,7 +69,9 @@ public final class JumbleTalents {
 			hero.jumbleFirst = pairs.get(pair);
 			hero.jumbleSecond = pairs.get(pair + 1);
 		}
-		fill(hero, 2, specialPool(hero, 2), 5);
+		Talent reef = Talent.reefForTier(2);
+		fill(hero, 2, specialPool(hero, 2), 5 + (reef != null && hero.talents.get(2).containsKey(reef) ? 1 : 0));
+		ensureReef(hero, 2);
 		TalentRequirement.sync(hero);
 	}
 
@@ -77,6 +82,21 @@ public final class JumbleTalents {
 		common.removeAll(special);
 		fill(hero, 3, common, 2, minimumMissing(hero, special, 2, null, null));
 		fill(hero, 3, special, 4);
+		ensureReef(hero, 3);
+	}
+
+	private static void ensureReef(Hero hero, int tier) {
+		Talent reef = Talent.reefForTier(tier);
+		if (reef == null) return;
+		LinkedHashMap<Talent, Integer> map = hero.talents.get(tier);
+		Integer existing = map.remove(reef);
+		map.put(reef, existing != null ? existing : 0);
+	}
+
+	public static void lockTalent(Hero hero, int tier, Talent talent) {
+		if (hero == null || tier < 0 || tier >= Talent.MAX_TALENT_TIERS) return;
+		if (Talent.isReef(talent)) return;
+		hero.jumbleLockedTalents[tier] = talent;
 	}
 
 	private static void ensureTiers(Hero hero) {
@@ -111,8 +131,8 @@ public final class JumbleTalents {
 	private static void addTalents(LinkedHashSet<Talent> pool, Talent[] source) {
 		if (source == null) return;
 		for (Talent talent : source) {
-			// 计数槽和原职业尚未实装的占位天赋不能成为随机奖励。
-			if (talent != Talent.D3_SKIPPED && talent != Talent.ERROR
+			// 计数槽、礁石和原职业尚未实装的占位天赋不能成为随机奖励。
+			if (talent != Talent.D3_SKIPPED && !Talent.isReef(talent) && talent != Talent.ERROR
 					&& !talent.name().startsWith("PLACEHOLDER_")) pool.add(talent);
 		}
 	}
@@ -195,9 +215,21 @@ public final class JumbleTalents {
 			ArrayList<Talent> common = commonPool(tier);
 			ArrayList<Talent> special = tier >= 2 ? specialPool(hero, tier) : common;
 			if (tier >= 2) common.removeAll(special);
+			Talent locked = hero.jumbleLockedTalents[tier];
+			Talent reef = Talent.reefForTier(tier);
+			Integer reefPoints = null;
 			int index = 0;
 			int missingBudget = 1;
 			for (Talent old : previous.keySet()) {
+				if (Talent.isReef(old)) {
+					reefPoints = previous.get(old);
+					continue;
+				}
+				if (locked != null && old == locked) {
+					next.put(old, previous.get(old));
+					index++;
+					continue;
+				}
 				ArrayList<Talent> pool = tier >= 2 && index >= 2 ? special : common;
 				pool.removeAll(next.keySet());
 				int reserve = tier >= 2 && index < 2
@@ -213,6 +245,9 @@ public final class JumbleTalents {
 				old.onLoss(hero);
 				replacement.onGain(hero);
 				index++;
+			}
+			if (reef != null && reefPoints != null) {
+				next.put(reef, reefPoints);
 			}
 			hero.talents.set(tier, next);
 			for (Talent talent : next.keySet()) {
@@ -237,6 +272,8 @@ public final class JumbleTalents {
 			ArrayList<String> names = new ArrayList<>();
 			for (Talent talent : hero.talents.get(tier).keySet()) names.add(talent.name());
 			bundle.put("jumble_tier_" + tier, names.toArray(new String[0]));
+			Talent locked = hero.jumbleLockedTalents[tier];
+			bundle.put("jumble_locked_" + tier, locked == null ? "" : locked.name());
 		}
 	}
 
@@ -253,6 +290,8 @@ public final class JumbleTalents {
 				Talent talent = Talent.byName(name);
 				if (talent != null) talents.put(talent, 0);
 			}
+			String lockedName = bundle.getString("jumble_locked_" + tier);
+			hero.jumbleLockedTalents[tier] = lockedName.isEmpty() ? null : Talent.byName(lockedName);
 		}
 		return true;
 	}

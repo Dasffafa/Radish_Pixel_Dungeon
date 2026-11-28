@@ -86,6 +86,10 @@ import com.shatteredpixel.shatteredpixeldungeon.events.HeroMoveEvent;
 import com.shatteredpixel.shatteredpixeldungeon.items.Ankh;
 import com.shatteredpixel.shatteredpixeldungeon.items.Dewdrop;
 import com.shatteredpixel.shatteredpixeldungeon.items.EquipableItem;
+import com.shatteredpixel.shatteredpixeldungeon.events.EventManager;
+import com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair;
+import com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap;
 import com.shatteredpixel.shatteredpixeldungeon.items.Heap.Type;
 import com.shatteredpixel.shatteredpixeldungeon.items.Item;
@@ -241,6 +245,7 @@ public class Hero extends Char {
 	public HeroClass jumbleLoadout;
 	public HeroSubClass jumbleFirst = HeroSubClasses.NONE;
 	public HeroSubClass jumbleSecond = HeroSubClasses.NONE;
+	public Talent[] jumbleLockedTalents = new Talent[Talent.MAX_TALENT_TIERS];
 	public final HashSet<String> talentRequirementItems = new HashSet<>();
 	public final HashSet<String> talentRequirementBuffs = new HashSet<>();
 	public boolean pendingTalentRequirements;
@@ -2056,28 +2061,24 @@ public class Hero extends Char {
 		int stairs = action.dst;
 		LevelTransition transition = Dungeon.level.getTransition(stairs);
 
-		com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair stair =
-				com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.of(Dungeon.level, transition);
-		com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent attempt =
-				new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent(this, transition, stair);
-		com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
-		if (attempt.isCancelled()) {
-			String message = stair != null
-					? com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.blockMessage(stair)
-					: null;
-			if (message != null) {
-				GLog.w(message);
-			}
-			ready();
-			return false;
-		}
-
 		if (rooted) {
 			PixelScene.shake(1, 1f);
 			ready();
 			return false;
 
 		} else if (!Dungeon.level.locked && transition != null && transition.inside(pos)) {
+
+			SpecialStair stair = SpecialStairs.of(Dungeon.level, transition);
+			TransitionUseAttemptEvent attempt = new TransitionUseAttemptEvent(this, transition, stair);
+			EventManager.emit(attempt);
+			if (attempt.isCancelled()) {
+				String message = stair != null ? SpecialStairs.blockMessage(stair) : null;
+				if (message != null) {
+					GLog.w(message);
+				}
+				ready();
+				return false;
+			}
 
 			if (Dungeon.level.activateTransition(this, transition)){
 				curAction = null;
@@ -2994,21 +2995,21 @@ public class Hero extends Char {
 
 		} else if (Dungeon.level.getTransition(cell) != null) {
 			LevelTransition transition = Dungeon.level.getTransition(cell);
-			com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStair stair =
-					com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.of(Dungeon.level, transition);
-			com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent attempt =
-					new com.shatteredpixel.shatteredpixeldungeon.events.TransitionUseAttemptEvent(this, transition, stair);
-			com.shatteredpixel.shatteredpixeldungeon.events.EventManager.emit(attempt);
+			SpecialStair stair = SpecialStairs.of(Dungeon.level, transition);
+			TransitionUseAttemptEvent attempt = new TransitionUseAttemptEvent(this, transition, stair);
+			EventManager.emit(attempt);
 			String blocked = attempt.isCancelled() && !attempt.getBlockedMessage().isEmpty()
 					? attempt.getBlockedMessage()
-					: com.shatteredpixel.shatteredpixeldungeon.levels.features.SpecialStairs.blockMessage(stair);
-			if (blocked != null) {
+					: SpecialStairs.blockMessage(stair);
+			if (blocked != null && cell == pos) {
 				GLog.w(blocked);
 				return false;
 			}
 
-			//环境条件不满足时按普通移动处理，不再误报成门被挡
+			//环境条件不满足或为不可传送的单向特殊楼梯时按普通移动处理
+			boolean blockedTransition = blocked != null || (stair != null && cell != pos);
 			if ((visibleEnemies.size() == 0 || cell == pos)
+					&& !blockedTransition
 					&& !Dungeon.level.locked
 					&& !Dungeon.level.plants.containsKey(cell)
 					&& (Dungeon.depth < 26 || transition.type == LevelTransition.Type.REGULAR_ENTRANCE)) {

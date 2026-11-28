@@ -42,8 +42,8 @@ public class JumbleChangeBuff extends Buff {
 	/** Shared by transformation commit and Hero serialization. */
 	public static final Object STATE_LOCK = new Object();
 
-	private static final float MIN_INTERVAL = 180;
-	private static final float MAX_INTERVAL = 220;
+	private static final float MIN_INTERVAL = 50;
+	private static final float MAX_INTERVAL = 300;
 	// 两段各 10 帧、12 FPS，再留半秒余量；仅用于解锁，不参与游戏计时。
 	private static final float VISUAL_TIMEOUT = 20f / 12f + 0.5f;
 
@@ -117,11 +117,6 @@ public class JumbleChangeBuff extends Buff {
 	public float iconFadePercent() {
 		//随倒计时临近逐渐淡出
 		return Math.max(0f, 1f - (turnsRemaining / MAX_INTERVAL));
-	}
-
-	@Override
-	public String desc() {
-		return super.desc() + "\n\n" + Messages.get(this, "countdown", (int) turnsRemaining);
 	}
 
 	@Override
