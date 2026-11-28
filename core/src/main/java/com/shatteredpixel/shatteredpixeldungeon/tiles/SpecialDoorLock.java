@@ -20,7 +20,7 @@ final class SpecialDoorLock extends Image {
 
 	void draw(SpecialDoor door) {
 		//门打开后锁头自然消失，不再渲染
-		if (Dungeon.level.map[door.cell] == Terrain.OPEN_DOOR) {
+		if (door == null || Dungeon.level.map[door.cell] == Terrain.OPEN_DOOR) {
 			return;
 		}
 		int color = SpecialDoorTint.color(door);
@@ -32,8 +32,8 @@ final class SpecialDoorLock extends Image {
 		//左右走向的门（两侧是墙）锁头上移 1px，上下走向的门下移 3px
 		boolean horizontal = Dungeon.level.solid[door.cell - 1] && Dungeon.level.solid[door.cell + 1];
 		Image sprite = blocked ? locked : this;
-		sprite.x = x;
-		sprite.y = y + (horizontal ? 5 : -3) * scale.y;
+		sprite.x = x + (horizontal ? -1 : 0) * scale.x;
+		sprite.y = y + (horizontal ? 3 : -3) * scale.y;
 		sprite.scale.set(scale);
 		sprite.camera = camera;
 		sprite.hardlight(color);

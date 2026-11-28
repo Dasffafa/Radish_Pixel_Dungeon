@@ -4,6 +4,7 @@ import com.shatteredpixel.shatteredpixeldungeon.actors.Char;
 import com.watabou.noosa.Game;
 import com.watabou.noosa.Group;
 import com.watabou.noosa.Image;
+import com.watabou.utils.PointF;
 
 public class CriticalShock extends Image {
 	private static final float MOVE_OUT_DONE = .1f;
@@ -27,6 +28,8 @@ public class CriticalShock extends Image {
 		flipHorizontal = c.sprite.flipHorizontal;
 		flipVertical = c.sprite.flipVertical;
 		copy(c.sprite);
+		// Image.copy 会共享 scale 引用，必须新建独立 PointF 避免修改本体缩放
+		scale = new PointF(c.sprite.scale.x, c.sprite.scale.y);
 		origin.set(c.sprite.width / 2f, c.sprite.height / 2f);
 
 		color = c.sprite.blood();
